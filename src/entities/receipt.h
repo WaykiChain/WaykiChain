@@ -19,12 +19,13 @@ static CUserID nullId;
 //       -----------------              ----------  ----------------------------
 #define RECEIPT_CODE_LIST(DEFINE) \
     /**** reward */ \
-    DEFINE(BLOCK_REWORD_TO_MINER,               101, "block reward to miner") \
-    DEFINE(COIN_BLOCK_REWORD_TO_MINER,          102, "coin block reward to miner") \
+    DEFINE(BLOCK_REWARD_TO_MINER,               101, "block reward to miner") \
+    DEFINE(COIN_BLOCK_REWARD_TO_MINER,          102, "coin block reward to miner") \
     DEFINE(COIN_BLOCK_INFLATE,                  103, "inflate coins to user of tx") \
     /**** transfer */ \
     DEFINE(TRANSFER_FEE_TO_RESERVE,             201, "transferred fee to risk reserve") \
     DEFINE(TRANSFER_ACTUAL_COINS,               202, "actual transferred coins") \
+    DEFINE(TRANSFER_UTXO_COINS,                 203, "transferred utxo coins") \
     /**** delegate */ \
     DEFINE(DELEGATE_ADD_VOTE,                   301, "delegate add votes") \
     DEFINE(DELEGATE_SUB_VOTE,                   302, "delegate sub votes") \
@@ -55,9 +56,9 @@ static CUserID nullId;
     DEFINE(DEX_UNFREEZE_COIN_TO_BUYER,          505, "dex unfreeze coins to buyer for canceling order") \
     DEFINE(DEX_UNFREEZE_ASSET_TO_SELLER,        506, "dex unfreeze asset to seller for canceling order") \
     DEFINE(DEX_OPERATOR_REG_FEE_TO_RESERVE,     520, "dex operator registered fee to risk reserve") \
-    DEFINE(DEX_OPERATOR_UPDATED_FEE_TO_RESERVE, 702, "dex operator updated fee to risk reserve") \
-    DEFINE(DEX_OPERATOR_REG_FEE_TO_MINER,       703, "dex operator registered fee to miner") \
-    DEFINE(DEX_OPERATOR_UPDATED_FEE_TO_MINER,   704, "dex operator updated fee to miner") \
+    DEFINE(DEX_OPERATOR_UPDATED_FEE_TO_RESERVE, 521, "dex operator updated fee to risk reserve") \
+    DEFINE(DEX_OPERATOR_REG_FEE_TO_MINER,       522, "dex operator registered fee to miner") \
+    DEFINE(DEX_OPERATOR_UPDATED_FEE_TO_MINER,   523, "dex operator updated fee to miner") \
     /**** contract */ \
     DEFINE(CONTRACT_FUEL_TO_RISK_RESERVE,       601, "contract fuel to risk reserve") \
     DEFINE(CONTRACT_TOKEN_OPERATE_ADD,          602, "operate add token of contract user account") \
@@ -112,6 +113,14 @@ public:
         READWRITE(VARINT(coin_amount));
         READWRITE_CONVERT(uint16_t, code);
     )
+
+    string ToString() const {
+        return strprintf("from_uid=%s", from_uid.ToString()) + ", " +
+        strprintf("to_uid=%s", to_uid.ToString()) + ", " +
+        strprintf("coin_symbol=%s", coin_symbol) + ", " +
+        strprintf("coin_amount=%llu", coin_amount) + ", " +
+        strprintf("code=%s", GetReceiptCodeName(code));
+    }
 };
 
 #endif  // ENTITIES_RECEIPT_H

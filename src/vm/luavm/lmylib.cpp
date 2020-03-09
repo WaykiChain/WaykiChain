@@ -108,10 +108,12 @@ static CLuaVMRunEnv* GetVmRunEnvByContext(lua_State *L) {
     return (CLuaVMRunEnv*)pState->pContext;
 }
 
-static bool GetKeyId(const CAccountDBCache &accountView, vector<uint8_t> &ret, CKeyID &keyId) {
+static bool GetKeyId(const CAccountDBCache &accountCache, vector<uint8_t> &ret, CKeyID &keyId) {
     if (ret.size() == 6) {
-        CRegID reg(ret);
-        keyId = reg.GetKeyId(accountView);
+        CRegID regid(ret);
+        if (regid.IsEmpty()) return false;
+
+        accountCache.GetKeyId(regid, keyId);
     } else if (ret.size() == 34) {
         string addr(ret.begin(), ret.end());
         keyId = CKeyID(addr);
@@ -1581,7 +1583,7 @@ int32_t ExGetContractDataFunc(lua_State *L) {
     string value;
 
     int32_t len = 0;
-    if (!scriptDB->GetContractData(contractRegId, key, value)) {
+    if (contractRegId.IsEmpty() || !scriptDB->GetContractData(contractRegId, key, value)) {
         len = 0;
         lua_BurnStoreUnchanged(L, key.size(), 0, BURN_VER_R2);
     } else {
@@ -2053,7 +2055,6 @@ int32_t ExTransferSomeAsset(lua_State *L) {
 
     vector<uint8_t> sendKey;
     vector<uint8_t> recvKey;
-    CRegID script = pVmRunEnv->GetContractRegID();
 
     CRegID sendRegID = pVmRunEnv->GetTxUserRegid();
     CKeyID SendKeyID = sendRegID.GetKeyId(*pVmRunEnv->GetCatchView());
@@ -2227,9 +2228,8 @@ static bool ParseAccountAssetTransfer(lua_State *L, CLuaVMRunEnv &vmRunEnv, Asse
         return false;
     }
 
-    auto pErr = vmRunEnv.GetCw()->assetCache.CheckTransferCoinSymbol(transfer.tokenType);
-    if (pErr) {
-        LogPrint(BCLog::LUAVM, "ParseAccountAssetTransfer(), Invalid tokenType=%s! %s \n", transfer.tokenType, *pErr);
+    if (!vmRunEnv.GetCw()->assetCache.CheckAsset(transfer.tokenType)) {
+        LogPrint(BCLog::LUAVM, "ParseAccountAssetTransfer(), Invalid tokenType=%s!\n", transfer.tokenType);
         return false;
     }
 
@@ -2350,7 +2350,7 @@ int32_t ExGetCurTxInputAssetFunc(lua_State *L) {
     LUA_BurnFuncCall(L, FUEL_CALL_GetCurTxInputAsset, BURN_VER_R2);
 
     lua_createtable (L, 0, 2); // create table object with 2 field
-    // set asset.symbol
+    // set asset.asset_symbol
     lua_pushstring(L, pVmRunEnv->GetContext().transfer_symbol.c_str());
     lua_setfield(L, -2, "symbol");
 
@@ -2406,9 +2406,8 @@ int32_t ExGetAccountAssetFunc(lua_State *L) {
         LogPrint(BCLog::LUAVM, "[ERROR]%s(), get tokenType failed\n", __FUNCTION__);
         return 0;
     }
-    auto pErr = pVmRunEnv->GetCw()->assetCache.CheckTransferCoinSymbol(tokenType);
-    if (pErr) {
-        LogPrint(BCLog::LUAVM, "[ERROR]%s(), Invalid tokenType=%s! %s \n", __FUNCTION__, tokenType, *pErr);
+    if (!pVmRunEnv->GetCw()->assetCache.CheckAsset(tokenType)) {
+        LogPrint(BCLog::LUAVM, "[ERROR]%s(), Invalid tokenType=%s!\n", __FUNCTION__, tokenType);
         return 0;
     }
     LUA_BurnAccount(L, FUEL_ACCOUNT_GET_VALUE, BURN_VER_R2);
@@ -2430,13 +2429,70 @@ int32_t ExGetAccountAssetFunc(lua_State *L) {
         return 0;
     }
     lua_createtable (L, 0, 2); // create table object with 2 field
-    // set asset.symbol
+    // set asset.asset_symbol
     lua_pushstring(L, tokenType.c_str());
     lua_setfield(L, -2, "symbol");
 
     // set asset.amount
     lua_pushinteger(L, value);
     lua_setfield(L, -2, "amount");
+
+    return 1;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// new function added in MAJOR_VER_R3
+
+/**
+ * GetAssetPrice - lua api
+ * int GetAssetPrice( paramTable )
+ * get asset price of baseSymbol/quoteSymbol pair
+ * @param paramTable: table     get asset price param table
+ * {
+ *   baseSymbol: (string, required)       base symbol of price, such as WICC
+ *   quoteSymbol: (array, required)        quote symbol of price, such as USD
+ * }
+ * @return price (int)
+ */
+int32_t ExGetAssetPriceFunc(lua_State *L) {
+
+    CLuaVMRunEnv* pVmRunEnv = GetVmRunEnvByContext(L);
+
+    if (!lua_istable(L, -1)) {
+        LogPrint(BCLog::LUAVM,"[ERROR]%s(), input param must be a table\n", __func__);
+        return 0;
+    }
+
+    TokenSymbol baseSymbol;
+    if (!(getStringInTable(L, "baseSymbol", baseSymbol))) {
+        LogPrint(BCLog::LUAVM, "[ERROR]%s(), get baseSymbol failed\n", __func__);
+        return 0;
+    }
+
+    TokenSymbol quoteSymbol;
+    if (!(getStringInTable(L, "quoteSymbol", quoteSymbol))) {
+        LogPrint(BCLog::LUAVM, "[ERROR]%s(), get quoteSymbol failed\n", __func__);
+        return 0;
+    }
+
+    CoinPricePair pricePair(baseSymbol, quoteSymbol);
+    auto pErr = CheckPricePair(pricePair);
+    if (pErr) {
+        LogPrint(BCLog::LUAVM, "[ERROR]%s(), Invalid price pair! %s \n", __func__, *pErr);
+        return 0;
+    }
+    LUA_BurnAccount(L, FUEL_CALL_GetAssetPrice, BURN_VER_R2);
+
+    auto pAccount = make_shared<CAccount>();
+    uint64_t price = pVmRunEnv->GetCw()->priceFeedCache.GetMedianPrice(pricePair);
+
+    // check stack to avoid stack overflow
+    if (!lua_checkstack(L, sizeof(lua_Integer))) {
+        LogPrint(BCLog::LUAVM, "[ERROR] lua stack overflow\n");
+        return 0;
+    }
+
+    lua_pushinteger(L, price);
 
     return 1;
 }
@@ -2494,6 +2550,11 @@ static const luaL_Reg mylib[] = {
     {"TransferAccountAssets",       ExTransferAccountAssetsFunc},
     {"GetCurTxInputAsset",          ExGetCurTxInputAssetFunc},
     {"GetAccountAsset",             ExGetAccountAssetFunc},
+
+
+///////////////////////////////////////////////////////////////////////////////
+// new function added in MAJOR_VER_R3
+    {"GetAssetPrice",               ExGetAssetPriceFunc},
 
     {nullptr, nullptr}
 

@@ -31,7 +31,7 @@ bool CBlockRewardTx::ExecuteTx(CTxExecuteContext &context) {
                              "operate-account-failed");
         }
 
-        CReceipt receipt(nullId, txUid, SYMB::WICC, reward_fees, ReceiptCode::BLOCK_REWORD_TO_MINER);
+        CReceipt receipt(nullId, txUid, SYMB::WICC, reward_fees, ReceiptCode::BLOCK_REWARD_TO_MINER);
         if (!cw.txReceiptCache.SetTxReceipts(GetHash(), {receipt})) {
             return state.DoS(100, ERRORMSG("CBlockRewardTx::ExecuteTx, set tx receipts failed!! txid=%s",
                             GetHash().ToString()), REJECT_INVALID, "set-tx-receipt-failed");
@@ -101,7 +101,7 @@ bool CUCoinBlockRewardTx::ExecuteTx(CTxExecuteContext &context) {
                     return state.DoS(100, ERRORMSG("CUCoinBlockRewardTx::ExecuteTx, opeate account failed"),
                                      UPDATE_ACCOUNT_FAIL, "operate-account-failed");
                 }
-                receipts.emplace_back(nullId, txUid, coinSymbol, rewardAmount, ReceiptCode::COIN_BLOCK_REWORD_TO_MINER);
+                receipts.emplace_back(nullId, txUid, coinSymbol, rewardAmount, ReceiptCode::COIN_BLOCK_REWARD_TO_MINER);
             } else {
                 return ERRORMSG("CUCoinBlockRewardTx::ExecuteTx, invalid coin type");
             }

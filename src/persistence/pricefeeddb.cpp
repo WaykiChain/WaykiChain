@@ -243,7 +243,7 @@ bool CPricePointMemCache::CalcBlockMedianPrices(CCacheWrapper &cw, const int32_t
         return ERRORMSG("%s, read sys param MEDIAN_PRICE_SLIDE_WINDOW_BLOCKCOUNT error", __func__);
     }
 
-    latest_median_prices = cw.blockCache.GetMedianPrices();
+    latest_median_prices = cw.priceFeedCache.GetMedianPrices();
 
     CoinPricePair bcoinPricePair(SYMB::WICC, SYMB::USD);
     uint64_t bcoinMedianPrice = GetMedianPrice(blockHeight, slideWindow, bcoinPricePair);
@@ -258,4 +258,97 @@ bool CPricePointMemCache::CalcBlockMedianPrices(CCacheWrapper &cw, const int32_t
              blockHeight, SYMB::WGRT, SYMB::USD, fcoinMedianPrice);
 
     return true;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// CPriceFeedCache
+
+uint64_t CPriceFeedCache::GetMedianPrice(const CoinPricePair &coinPricePair) const {
+    PriceMap medianPrices;
+    if (medianPricesCache.GetData(medianPrices)) {
+        auto it = medianPrices.find(coinPricePair);
+        if (it != medianPrices.end())
+            return it->second;
+    }
+    return 0;
+}
+
+PriceMap CPriceFeedCache::GetMedianPrices() const {
+    PriceMap medianPrices;
+    if (medianPricesCache.GetData(medianPrices)) {
+        return medianPrices;
+    }
+    return {};
+}
+
+bool CPriceFeedCache::SetMedianPrices(const PriceMap &medianPrices) {
+    return medianPricesCache.SetData(medianPrices);
+}
+
+
+
+bool CPriceFeedCache::CheckIsPriceFeeder(const CRegID &candidateRegId) {
+    if (!price_feeders_cache.HasData())
+        return (candidateRegId == CRegID(SysCfg().GetStableCoinGenesisHeight(), 2));
+
+    vector<CRegID> regids;
+    if(price_feeders_cache.GetData(regids)){
+        auto itr = find(regids.begin(), regids.end(), candidateRegId);
+        return ( itr != regids.end() );
+    }
+
+    return false ;
+}
+
+bool CPriceFeedCache::SetPriceFeeders(const vector<CRegID> &governors){
+    return price_feeders_cache.SetData(governors) ;
+}
+bool CPriceFeedCache::GetPriceFeeders(vector<CRegID>& priceFeeders) {
+
+    price_feeders_cache.GetData(priceFeeders);
+    if(priceFeeders.empty())
+        priceFeeders.emplace_back(CRegID(SysCfg().GetStableCoinGenesisHeight(), 2));
+    return true;
+}
+
+bool CPriceFeedCache::AddFeedCoinPair(TokenSymbol feedCoin, TokenSymbol baseCoin) {
+
+    if(feedCoin == SYMB::WICC && baseCoin == SYMB::USD)
+        return true ;
+
+    set<pair<TokenSymbol,TokenSymbol>> coinPairs ;
+    price_feed_coin_cache.GetData(coinPairs);
+    if(coinPairs.count(make_pair(feedCoin, baseCoin)) != 0 )
+        return true ;
+    coinPairs.insert(make_pair(feedCoin,baseCoin)) ;
+    return price_feed_coin_cache.SetData(coinPairs);
+}
+
+bool CPriceFeedCache::EraseFeedCoinPair(TokenSymbol feedCoin, TokenSymbol baseCoin) {
+
+    if(feedCoin == SYMB::WICC && baseCoin == SYMB::USD)
+        return true ;
+
+    auto coinPair = std::make_pair(feedCoin, baseCoin);
+    set<pair<TokenSymbol,TokenSymbol>> coins ;
+    price_feed_coin_cache.GetData(coins);
+    if(coins.count(coinPair) == 0 )
+        return true ;
+    coins.erase(coinPair) ;
+    return price_feed_coin_cache.SetData(coins);
+}
+
+bool CPriceFeedCache::HasFeedCoinPair(TokenSymbol feedCoin,TokenSymbol baseCoin) {
+    if(feedCoin == SYMB::WICC && baseCoin == SYMB::USD)
+        return true ;
+
+    set<pair<TokenSymbol, TokenSymbol>> coins ;
+    price_feed_coin_cache.GetData(coins);
+    return (coins.count(make_pair(feedCoin,baseCoin)) != 0 ) ;
+}
+
+bool CPriceFeedCache::GetFeedCoinPairs(set<pair<TokenSymbol,TokenSymbol>>& coinSet) {
+    price_feed_coin_cache.GetData(coinSet) ;
+    coinSet.insert(make_pair(SYMB::WICC, SYMB::USD));
+    return true ;
 }

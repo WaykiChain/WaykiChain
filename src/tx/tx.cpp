@@ -40,9 +40,7 @@ string GetTxType(const TxType txType) {
 }
 
 bool GetTxMinFee(const TxType nTxType, int height, const TokenSymbol &symbol, uint64_t &feeOut) {
-
-
-    if(pCdMan->pSysParamCache->GetMinerFee(nTxType, symbol, feeOut))
+    if (pCdMan->pSysParamCache->GetMinerFee(nTxType, symbol, feeOut))
         return true ;
 
     const auto &iter = kTxFeeTable.find(nTxType);
@@ -67,7 +65,6 @@ bool GetTxMinFee(const TxType nTxType, int height, const TokenSymbol &symbol, ui
         }
     }
     return false;
-
 }
 
 bool CBaseTx::IsValidHeight(int32_t nCurrHeight, int32_t nTxCacheHeight) const {
@@ -158,18 +155,6 @@ bool CBaseTx::AddInvolvedKeyIds(vector<CUserID> uids, CCacheWrapper &cw, set<CKe
     return true;
 }
 
-bool CBaseTx::CheckCoinRange(const TokenSymbol &symbol, const int64_t amount) const {
-    if (symbol == SYMB::WICC) {
-        return CheckBaseCoinRange(amount);
-    } else if (symbol == SYMB::WGRT) {
-        return CheckFundCoinRange(amount);
-    } else if (symbol == SYMB::WUSD) {
-        return CheckStableCoinRange(amount);
-    } else {
-        // TODO: need to check other token range
-        return amount >= 0;
-    }
-}
 
 bool CBaseTx::CheckFee(CTxExecuteContext &context, function<bool(CTxExecuteContext&, uint64_t)> minFeeChecker) const {
     // check fee value range
@@ -219,6 +204,7 @@ bool CBaseTx::VerifySignature(CTxExecuteContext &context, const CPubKey &pubkey)
         return context.pState->DoS(100, ERRORMSG("%s, tx signature error", BASE_TX_TITLE),
             REJECT_INVALID, "bad-tx-signature");
     }
+    return true ;
 }
 
 /**################################ Universal Coin Transfer ########################################**/

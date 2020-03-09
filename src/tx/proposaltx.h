@@ -11,70 +11,64 @@
 #include "entities/proposal.h"
 
 
-class CProposalCreateTx: public CBaseTx {
+class CProposalRequestTx: public CBaseTx {
 public:
-    CProposalStorageBean proposalBean ;
+    CProposalStorageBean proposal;
 
 public:
-    CProposalCreateTx(): CBaseTx(PROPOSAL_CREATE_TX) {}
+    CProposalRequestTx(): CBaseTx(PROPOSAL_REQUEST_TX) {}
 
-    CProposalCreateTx(const CUserID &txUidIn, int32_t validHeightIn, const TokenSymbol &feeSymbolIn,
-                 uint64_t feesIn, CProposalStorageBean proposalIn )
-            : CBaseTx(PROPOSAL_CREATE_TX, txUidIn, validHeightIn, feeSymbolIn, feesIn),
-              proposalBean(proposalIn) {}
+    CProposalRequestTx(const CUserID &txUidIn, int32_t validHeightIn, const TokenSymbol &feeSymbolIn,
+                    uint64_t feesIn, CProposalStorageBean proposalIn ) : 
+                    CBaseTx(PROPOSAL_REQUEST_TX, txUidIn, validHeightIn, feeSymbolIn, feesIn), proposal(proposalIn) {}
 
-    ~CProposalCreateTx() {}
+    ~CProposalRequestTx() {}
 
     IMPLEMENT_SERIALIZE(
-            READWRITE(VARINT(this->nVersion));
-            nVersion = this->nVersion;
-            READWRITE(VARINT(valid_height));
-            READWRITE(txUid);
-            READWRITE(VARINT(llFees));
-            READWRITE(fee_symbol);
-            READWRITE(proposalBean);
-            READWRITE(signature);
+        READWRITE(VARINT(this->nVersion));
+        nVersion = this->nVersion;
+        READWRITE(VARINT(valid_height));
+        READWRITE(txUid);
+        READWRITE(VARINT(llFees));
+        READWRITE(fee_symbol);
+        READWRITE(proposal);
+        READWRITE(signature);
     )
 
     virtual void SerializeForHash(CHashWriter &hw) const {
         hw << VARINT(nVersion) << uint8_t(nTxType) << VARINT(valid_height) << txUid << VARINT(llFees)
-           << fee_symbol <<proposalBean;
+           << fee_symbol <<proposal;
     }
 
-    virtual std::shared_ptr<CBaseTx> GetNewInstance() const { return std::make_shared<CProposalCreateTx>(*this); }
+    virtual std::shared_ptr<CBaseTx> GetNewInstance() const { return std::make_shared<CProposalRequestTx>(*this); }
     virtual string ToString(CAccountDBCache &accountCache);            // logging usage
     virtual Object ToJson(const CAccountDBCache &accountCache) const;  // json-rpc usage
-
     virtual bool CheckTx(CTxExecuteContext &context);
     virtual bool ExecuteTx(CTxExecuteContext &context);
 };
 
-
-
-
-class CProposalAssentTx: public CBaseTx {
+class CProposalApprovalTx: public CBaseTx {
 public:
     TxID txid;
 
 public:
-    CProposalAssentTx(): CBaseTx(PROPOSAL_ASSENT_TX) {}
+    CProposalApprovalTx(): CBaseTx(PROPOSAL_APPROVAL_TX) {}
 
-    CProposalAssentTx(const CUserID &txUidIn, int32_t validHeightIn, const TokenSymbol &feeSymbolIn,
-                      uint64_t feesIn, const TxID& txidIn)
-            : CBaseTx(PROPOSAL_ASSENT_TX, txUidIn, validHeightIn, feeSymbolIn, feesIn),
-              txid(txidIn){}
+    CProposalApprovalTx(const CUserID &txUidIn, int32_t validHeightIn, const TokenSymbol &feeSymbolIn,
+                        uint64_t feesIn, const TxID& txidIn) : 
+                        CBaseTx(PROPOSAL_APPROVAL_TX, txUidIn, validHeightIn, feeSymbolIn, feesIn), txid(txidIn) {}
 
-    ~CProposalAssentTx() {}
+    ~CProposalApprovalTx() {}
 
     IMPLEMENT_SERIALIZE(
-            READWRITE(VARINT(this->nVersion));
-            nVersion = this->nVersion;
-            READWRITE(VARINT(valid_height));
-            READWRITE(txUid);
-            READWRITE(fee_symbol);
-            READWRITE(VARINT(llFees));
-            READWRITE(txid);
-            READWRITE(signature);
+        READWRITE(VARINT(this->nVersion));
+        nVersion = this->nVersion;
+        READWRITE(VARINT(valid_height));
+        READWRITE(txUid);
+        READWRITE(fee_symbol);
+        READWRITE(VARINT(llFees));
+        READWRITE(txid);
+        READWRITE(signature);
     )
 
 
@@ -83,11 +77,9 @@ public:
            << fee_symbol << txid ;
     }
 
-
-    virtual std::shared_ptr<CBaseTx> GetNewInstance() const { return std::make_shared<CProposalAssentTx>(*this); }
+    virtual std::shared_ptr<CBaseTx> GetNewInstance() const { return std::make_shared<CProposalApprovalTx>(*this); }
     virtual string ToString(CAccountDBCache &accountCache);            // logging usage
     virtual Object ToJson(const CAccountDBCache &accountCache) const;  // json-rpc usage
-
     virtual bool CheckTx(CTxExecuteContext &context);
     virtual bool ExecuteTx(CTxExecuteContext &context);
 };

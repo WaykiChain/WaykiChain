@@ -268,13 +268,13 @@ private:
 };
 
 template<typename CacheType>
-class CDBIterator {
+class CDbIterator {
 public:
     typedef CDBCacheIteratorImpl<CacheType> IteratorImpl;
     typedef typename CacheType::KeyType KeyType;
     typedef typename CacheType::ValueType ValueType;
 
-    CDBIterator(CacheType &dbCacheIn): sp_it_Impl(IteratorImpl::Create(dbCacheIn)){
+    CDbIterator(CacheType &dbCacheIn): sp_it_Impl(IteratorImpl::Create(dbCacheIn)){
 
     }
     virtual bool First() {
@@ -316,27 +316,34 @@ struct CommonPrefixMatcher {
     }
 
     // 1/2: make 2 pair key object by 1 prefix
-    template<typename T1, typename T2>
-    static void MakeKeyByPrefix(const T1 &prefix, std::pair<T1, T2> &keyObj) {
-        keyObj = make_pair<T1, T2>(prefix, db_util::MakeEmpty<T2>());
+    template<typename T0, typename T1>
+    static void MakeKeyByPrefix(const T0 &prefix, std::pair<T0, T1> &keyObj) {
+        keyObj = pair<T0, T1>(prefix, db_util::MakeEmpty<T1>());
     }
 
     // 2/2: make 2 pair key object by 2 prefix, the 2nd prefix must support partial match
-    template<typename T1, typename T2>
-    static void MakeKeyByPrefix(const std::pair<T1, T2> &prefix, std::pair<T1, T2> &keyObj) {
+    template<typename T0, typename T1>
+    static void MakeKeyByPrefix(const std::pair<T0, T1> &prefix, std::pair<T0, T1> &keyObj) {
         keyObj = prefix;
     }
 
     // 1/3: make 3 tuple key object by 1 prefix
-    template<typename T1, typename T2, typename T3>
-    static void MakeKeyByPrefix(const T1 &prefix, std::tuple<T1, T2, T3> &keyObj) {
-        keyObj = make_tuple<T1, T2, T3>(prefix, db_util::MakeEmpty<T2>(), db_util::MakeEmpty<T3>());
+    template<typename T0, typename T1, typename T2>
+    static void MakeKeyByPrefix(const T0 &prefix, std::tuple<T0, T1, T2> &keyObj) {
+        keyObj = tuple<T0, T1, T2>(prefix, db_util::MakeEmpty<T1>(), db_util::MakeEmpty<T2>());
     }
 
     // 2/3: make 3 tuple key object by 2 pair prefix
-    template<typename T1, typename T2, typename T3>
-    static void MakeKeyByPrefix(const std::pair<T1, T2> &prefix, std::tuple<T1, T2, T3> &keyObj) {
-        keyObj = make_tuple<T1, T2, T3>(prefix.first, prefix.second, db_util::MakeEmpty<T3>());
+    template<typename T0, typename T1, typename T2>
+    static void MakeKeyByPrefix(const std::pair<T0, T1> &prefix, std::tuple<T0, T1, T2> &keyObj) {
+        keyObj = tuple<T0, T1, T2>(prefix.first, prefix.second, db_util::MakeEmpty<T2>());
+    }
+
+    // 1/4: make 4 tuple key object by 1 pair prefix
+    template<typename T0, typename T1, typename T2, typename T3>
+    static void MakeKeyByPrefix(const T0 &prefix, std::tuple<T0, T1, T2, T3> &keyObj) {
+        keyObj = tuple<T0, T1, T2, T3>(prefix, db_util::MakeEmpty<T1>(),
+            db_util::MakeEmpty<T2>(), db_util::MakeEmpty<T3>());
     }
 
     // empty prefix, will match all keys
@@ -347,29 +354,34 @@ struct CommonPrefixMatcher {
 
 
     // 1/2: check 2 pair key match 1 prefix
-    template<typename T1, typename T2>
-    static bool MatchPrefix(const std::pair<T1, T2> &key, const T1 &prefix) {
+    template<typename T0, typename T1>
+    static bool MatchPrefix(const std::pair<T0, T1> &key, const T0 &prefix) {
         return MatchPrefix(key.first, prefix);
     }
 
     // 2/2: check 2 pair key match 2 prefix, the 2nd prefix must support partial match
-    template<typename T1, typename T2>
-    static bool MatchPrefix(const std::pair<T1, T2> &key, const std::pair<T1, T2> &prefix) {
+    template<typename T0, typename T1>
+    static bool MatchPrefix(const std::pair<T0, T1> &key, const std::pair<T0, T1> &prefix) {
         return key.first == prefix.first && MatchPrefix(key.second, prefix.second);
     }
 
     // 1/3: check 3 tuple key match 1 prefix
-    template<typename T1, typename T2, typename T3>
-    static bool MatchPrefix(const std::tuple<T1, T2, T3> &key, const T1 &prefix) {
+    template<typename T0, typename T1, typename T2>
+    static bool MatchPrefix(const std::tuple<T0, T1, T2> &key, const T0 &prefix) {
         return MatchPrefix(std::get<0>(key), prefix);
     }
 
     // 2/3: check 3 tuple key match 2 pair prefix
-    template<typename T1, typename T2, typename T3>
-    static bool MatchPrefix(const std::tuple<T1, T2, T3> &key, const std::pair<T1, T2> &prefix) {
+    template<typename T0, typename T1, typename T2>
+    static bool MatchPrefix(const std::tuple<T0, T1, T2> &key, const std::pair<T0, T1> &prefix) {
         return std::get<0>(key) == prefix.first && MatchPrefix(std::get<1>(key), prefix.second);
     }
 
+    // 1/4: check 4 tuple key match 1 prefix
+    template<typename T0, typename T1, typename T2, typename T3>
+    static bool MatchPrefix(const std::tuple<T0, T1, T2, T3> &key, const T0 &prefix) {
+        return MatchPrefix(std::get<0>(key), prefix);
+    }
 
     // match string, support part string match
     template<uint32_t MAX_KEY_SIZE>
@@ -377,15 +389,15 @@ struct CommonPrefixMatcher {
         return key.StartWith(prefix);
     }
 
-    template<typename T1>
-    static bool MatchPrefix(const T1 &key, const T1 &prefix) {
+    template<typename T>
+    static bool MatchPrefix(const T &key, const T &prefix) {
         return key == prefix;
     }
 };
 template<typename CacheType, typename PrefixElement, typename PrefixMatcher = CommonPrefixMatcher>
-class CDBPrefixIterator: public CDBIterator<CacheType> {
+class CDBPrefixIterator: public CDbIterator<CacheType> {
 private:
-    typedef CDBIterator<CacheType> Base;
+    typedef CDbIterator<CacheType> Base;
     typedef typename CacheType::KeyType KeyType;
     typedef typename CacheType::ValueType ValueType;
 protected:

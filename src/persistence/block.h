@@ -177,7 +177,7 @@ public:
     static uint256 CheckMerkleBranch(uint256 hash, const vector<uint256> &vMerkleBranch, int32_t index);
 
     map<TokenSymbol, uint64_t> GetFees() const;
-    PriceMap GetBlockMedianPrice() const;
+    const PriceMap& GetBlockMedianPrice() const;
     CUserID GetMinerUserID() const;
 
     void Print() const;

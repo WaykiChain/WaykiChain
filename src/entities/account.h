@@ -26,12 +26,40 @@ using namespace json_spirit;
 
 class CAccountDBCache;
 
+
+// perms for an account
+enum AccountPermType : uint64_t {
+    NULL_ACCOUNT_PERM   = 0,        // no perm at all w/ the account
+    PERM_SEND_COIN      = (1 << 0 ),
+    PERM_RECV_COIN      = (1 << 1 ),
+    PERM_STAKE_COIN     = (1 << 2 ),
+    PERM_UNSTAKE_COIN   = (1 << 3 ),
+    PERM_SEND_VOTE      = (1 << 4 ),
+    PERM_RECV_VOTE      = (1 << 5 ),
+    PERM_SEND_UTXO      = (1 << 6 ),      
+    PERM_RECV_UTXO      = (1 << 7 ),
+    PERM_PROPOSE        = (1 << 8 ), //DeGov propose
+    PERM_MINE_BLOCK     = (1 << 9 ), //elected BP can mine blocks
+    PERM_DEX            = (1 << 10), //freeze | unfreeze
+    PERM_CDP            = (1 << 12), //pledge | unpledge
+    PERM_XCHAIN         = (1 << 12), //swap in | out
+    
+};
+
+const uint64_t kAccountCommonPerms =  
+                  AccountPermType::PERM_SEND_COIN   + AccountPermType::PERM_RECV_COIN 
+                + AccountPermType::PERM_STAKE_COIN  + AccountPermType::PERM_UNSTAKE_COIN   
+                + AccountPermType::PERM_SEND_VOTE   + AccountPermType::PERM_RECV_VOTE 
+                + AccountPermType::PERM_SEND_UTXO   + AccountPermType::PERM_RECV_UTXO 
+                + AccountPermType::PERM_PROPOSE     + AccountPermType::PERM_MINE_BLOCK;
+
 enum BalanceType : uint8_t {
     NULL_TYPE    = 0,  //!< invalid type
     FREE_VALUE   = 1,
     STAKED_VALUE = 2,
     FROZEN_VALUE = 3,
-    VOTED_VALUE  = 4
+    VOTED_VALUE  = 4,
+    PLEDGED_VALUE= 5
 };
 
 enum BalanceOpType : uint8_t {
@@ -41,9 +69,11 @@ enum BalanceOpType : uint8_t {
     STAKE    = 3,  //!< free   -> staked
     UNSTAKE  = 4,  //!< staked -> free
     FREEZE   = 5,  //!< free   -> frozen
-    UNFREEZE = 6,  //!< frozen -> free
+    UNFREEZE = 6,  //!< frozen -> free, and then SUB_FREE for further ops
     VOTE     = 7,  //!< free -> voted
-    UNVOTE   = 8   //!< voted -> free
+    UNVOTE   = 8,  //!< voted -> free
+    PLEDGE   = 9,  //!< free -> pledged
+    UNPLEDGE = 10  //!< pledged -> free, and then SUB_FREE for further ops
 };
 
 struct BalanceOpTypeHash {
@@ -59,7 +89,9 @@ static const unordered_map<BalanceOpType, string, BalanceOpTypeHash> kBalanceOpT
     { FREEZE,   "FREEZE"    },
     { UNFREEZE, "UNFREEZE"  },
     { VOTE,     "VOTE"      },
-    { UNVOTE,   "UNVOTE"    }
+    { UNVOTE,   "UNVOTE"    },
+    { PLEDGE,   "PLEDGE"    },
+    { UNPLEDGE, "UNPLEDGE"  }
 };
 
 inline string GetBalanceOpTypeName(const BalanceOpType opType) {
@@ -72,12 +104,15 @@ public:
     uint64_t frozen_amount;     // for coins held in DEX buy/sell orders
     uint64_t staked_amount;     // for staking
     uint64_t voted_amount;      // for voting
+    uint64_t pledged_amount;    //for CDP collateral amount
 
 public:
-    CAccountToken() : free_amount(0), frozen_amount(0), staked_amount(0), voted_amount(0) { }
+    CAccountToken() : free_amount(0), frozen_amount(0), staked_amount(0), voted_amount(0), pledged_amount(0) { }
 
-    CAccountToken(uint64_t& freeAmount, uint64_t& frozenAmount, uint64_t& stakedAmount, uint64_t& votedAmount)
-        : free_amount(freeAmount), frozen_amount(frozenAmount), staked_amount(stakedAmount), voted_amount(votedAmount) {}
+    CAccountToken(uint64_t& freeAmount, uint64_t& frozenAmount, uint64_t& stakedAmount, 
+                uint64_t& votedAmount, uint64_t& pledgedAmount )
+        : free_amount(freeAmount), frozen_amount(frozenAmount), staked_amount(stakedAmount), 
+            voted_amount(votedAmount), pledged_amount(pledgedAmount) {}
 
     CAccountToken& operator=(const CAccountToken& other) {
         if (this == &other)
@@ -87,6 +122,7 @@ public:
         this->frozen_amount = other.frozen_amount;
         this->staked_amount = other.staked_amount;
         this->voted_amount  = other.voted_amount;
+        this->pledged_amount= other.pledged_amount;
 
         return *this;
     }
@@ -96,6 +132,7 @@ public:
         READWRITE(VARINT(frozen_amount));
         READWRITE(VARINT(staked_amount));
         READWRITE(VARINT(voted_amount));
+        READWRITE(VARINT(pledged_amount));
     )
 };
 
@@ -184,7 +221,7 @@ public:
 
     uint64_t ComputeVoteBcoinInterest(const uint64_t lastVotedBcoins, const uint32_t currHeight);
     uint64_t ComputeVoteFcoinInterest(const uint64_t lastVotedBcoins, const uint32_t currBlockTime);
-    uint64_t ComputeBlockInflateInterest(const uint32_t currHeight, const VoteDelegate &curDelegate) const;
+    uint64_t ComputeBlockInflateInterest(const uint32_t currHeight, const VoteDelegate &curDelegate, const uint32_t totalDelegateNum) const;
 
     bool HaveOwnerPubKey() const { return owner_pubkey.IsFullyValid(); }
     bool IsRegistered() const { return owner_pubkey.IsValid(); }

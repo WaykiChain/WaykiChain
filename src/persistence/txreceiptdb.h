@@ -38,7 +38,7 @@ public:
     void RegisterUndoFunc(UndoDataFuncMap &undoDataFuncMap) {
         txReceiptCache.RegisterUndoFunc(undoDataFuncMap);
     }
-private:
+public:
 /*       type               prefixType               key                     value                 variable               */
 /*  ----------------   -------------------------   -----------------------  ------------------   ------------------------ */
     /////////// SysParamDB

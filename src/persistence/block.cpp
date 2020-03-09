@@ -79,16 +79,16 @@ map<TokenSymbol, uint64_t> CBlock::GetFees() const {
     return fees;
 }
 
-PriceMap CBlock::GetBlockMedianPrice() const {
+const PriceMap& CBlock::GetBlockMedianPrice() const {
     if (GetFeatureForkVersion(GetHeight()) == MAJOR_VER_R1) {
-        return PriceMap();
+        return EMPTY_PRICE_MAP;
     }
 
     for (size_t index = 1; index < vptx.size(); ++ index) {
         if (vptx[index]->IsPriceFeedTx()) {
             continue;
         } else if (vptx[index]->IsPriceMedianTx()) {
-            return ((CBlockPriceMedianTx*)vptx[index].get())->GetMedianPrice();
+            return ((CBlockPriceMedianTx*)vptx[index].get())->median_prices;
         } else {
             break;
         }
@@ -97,7 +97,7 @@ PriceMap CBlock::GetBlockMedianPrice() const {
     LogPrint(BCLog::ERROR, "GetBlockMedianPrice() : failed to acquire median price, height: %u, hash: %s\n", GetHeight(),
              GetHash().GetHex());
     assert(false && "block does not have price median tx");
-    return PriceMap();
+    return EMPTY_PRICE_MAP;
 }
 
 CUserID CBlock::GetMinerUserID() const {
@@ -109,7 +109,8 @@ CUserID CBlock::GetMinerUserID() const {
 
 void CBlock::Print() const {
     string medianPrices;
-    for (const auto &item : GetBlockMedianPrice()) {
+    const auto& priceMap = GetBlockMedianPrice();
+    for (const auto &item : priceMap) {
         medianPrices += strprintf("{%s/%s -> %llu}", std::get<0>(item.first), std::get<1>(item.first), item.second);
     }
 

@@ -174,6 +174,7 @@ public:
     bool IsCoinRewardTx() { return nTxType == UCOIN_REWARD_TX; }
 
     const string& GetTxTypeName() const { return ::GetTxTypeName(nTxType); }
+    
 public:
     static unsigned int GetSerializePtrSize(const std::shared_ptr<CBaseTx> &pBaseTx, int nType, int nVersion){
         return pBaseTx->GetSerializeSize(nType, nVersion) + 1;
@@ -192,7 +193,7 @@ public:
 protected:
     bool CheckTxFeeSufficient(const TokenSymbol &feeSymbol, const uint64_t llFees, const int32_t height) const;
     bool CheckSignatureSize(const vector<unsigned char> &signature) const;
-    bool CheckCoinRange(const TokenSymbol &symbol, const int64_t amount) const;
+
 
     static bool AddInvolvedKeyIds(vector<CUserID> uids, CCacheWrapper &cw, set<CKeyID> &keyIds);
 };

@@ -250,7 +250,7 @@ namespace wasm {
     bool wasm_context::is_account( const uint64_t& account ) const {
 
         //auto account_name = wasm::name(account);
-        return database.accountCache.HaveAccount(nick_name(account));
+        return database.accountCache.HasAccount(nick_name(account));
     }
 
     std::vector<uint64_t> wasm_context::get_active_producers(){

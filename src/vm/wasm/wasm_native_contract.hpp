@@ -2,7 +2,6 @@
 
 #include "wasm/wasm_context.hpp"
 #include "wasm/types/asset.hpp"
-#include "wasm/modules/dex_contract.hpp"
 
 using namespace std;
 using namespace wasm;

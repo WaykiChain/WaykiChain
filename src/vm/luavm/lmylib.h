@@ -281,4 +281,21 @@ int32_t ExGetCurTxInputAssetFunc(lua_State *L);
  */
 int32_t ExGetAccountAssetFunc(lua_State *L);
 
+
+///////////////////////////////////////////////////////////////////////////////
+// new function added in MAJOR_VER_R3
+
+/**
+ * GetAssetPrice - lua api
+ * int GetAssetPrice( paramTable )
+ * get asset price of baseSymbol/quoteSymbol pair
+ * @param paramTable: table     get asset price param table
+ * {
+ *   baseSymbol: (string, required)       base symbol of price, such as WICC
+ *   quoteSymbol: (array, required)        quote symbol of price, such as USD
+ * }
+ * @return price (int)
+ */
+int32_t ExGetAssetPriceFunc(lua_State *L);
+
 #endif //VM_LUA_LMYLIB_H

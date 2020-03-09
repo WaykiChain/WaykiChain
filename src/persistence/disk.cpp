@@ -5,7 +5,6 @@
 
 #include "disk.h"
 #include "logging.h"
-#include "commons/util/util.h"
 #include "boost/filesystem.hpp"
 
 ////////////////////////////////////////////////////////////////////////////////

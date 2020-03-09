@@ -102,4 +102,6 @@ typedef int lua_burner_version;
 #define FUEL_ACCOUNT_GET_FUND_TAG       600
 #define FUEL_ACCOUNT_UNCHANGED          200
 
+#define FUEL_CALL_GetAssetPrice         4
+
 #endif // FUEL_H

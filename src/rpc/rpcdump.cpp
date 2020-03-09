@@ -119,7 +119,7 @@ Value importwallet(const Array& params, bool fHelp) {
             string strKeyId = find_value(keyItem.get_obj(), "keyid").get_str();
             CKeyID keyId(uint160(ParseHex(strKeyId)));
             keyCombi.UnSerializeFromJson(keyItem.get_obj());
-            if (!keyCombi.HaveMainKey() && !keyCombi.HaveMinerKey())
+            if (!keyCombi.HasMainKey() && !keyCombi.HaveMinerKey())
                 continue;
 
             if (pWalletMain->AddKey(keyId, keyCombi))
@@ -149,21 +149,14 @@ Value dumpprivkey(const Array& params, bool fHelp) {
 
     EnsureWalletIsUnlocked();
 
-    string strAddress = params[0].get_str();
-    CCoinAddress address;
-    if (!address.SetString(strAddress))
-        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid address.");
-
-    CKeyID keyId;
-    if (!address.GetKeyId(keyId))
-        throw JSONRPCError(RPC_TYPE_ERROR, "The address is not associated with any private key.");
+    auto keyid = RPC_PARAM::GetKeyId(params[0]);
 
     CKey vchSecret;
-    if (!pWalletMain->GetKey(keyId, vchSecret))
-        throw JSONRPCError(RPC_WALLET_ERROR, "Private key for address " + strAddress + " is not known.");
+    if (!pWalletMain->GetKey(keyid, vchSecret))
+        throw JSONRPCError(RPC_WALLET_ERROR, "Private key for uid " + params[0].get_str() + " is not known.");
 
     CKey minerkey;
-	pWalletMain->GetKey(keyId, minerkey, true);
+	pWalletMain->GetKey(keyid, minerkey, true);
     Object reply;
     	reply.push_back(Pair("privkey", CCoinSecret(vchSecret).ToString()));
 
@@ -228,26 +221,26 @@ Value importprivkey(const Array& params, bool fHelp) {
     return ret;
 }
 
-Value dropminerkeys(const Array& params, bool fHelp) {
+Value dropminermainkeys(const Array& params, bool fHelp) {
     if (fHelp || params.size() != 0) {
         throw runtime_error(
-            "dropminerkeys\n"
-            "\ndrop all miner keys in a wallet for cool mining.\n"
+            "dropminermainkeys\n"
+            "\nDrop all miner keys of this wallet in order to operate in a cold mining mode.\n"
             "\nResult:\n"
             "\nExamples:\n" +
-            HelpExampleCli("dropminerkeys", "") + "\nAs a json rpc call\n" + HelpExampleRpc("dropminerkeys", ""));
+            HelpExampleCli("dropminermainkeys", "") + "\nAs a JSON RPC call\n" + HelpExampleRpc("dropminermainkeys", ""));
     }
 
     EnsureWalletIsUnlocked();
 
-    if (!pWalletMain->IsReadyForCoolMiner(*pCdMan->pAccountCache)) {
-        throw runtime_error("there is no cool miner key or miner key which has registered");
+    if (!pWalletMain->IsReadyForColdMining(*pCdMan->pAccountCache)) {
+        throw runtime_error("There is no miner key or cold miner key existing within this wallet!");
     }
 
-    pWalletMain->ClearAllMainKeysForCoolMiner();
+    pWalletMain->DropMainKeysForColdMining();
 
     Object ret;
-    ret.push_back(Pair("info", "wallet is ready for cool mining."));
+    ret.push_back(Pair("info", "wallet is ready for cold mining."));
 
     return ret;
 }

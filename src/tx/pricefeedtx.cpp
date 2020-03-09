@@ -14,27 +14,67 @@
 #include "commons/util/util.h"
 #include "config/version.h"
 
+enum class CoinPricePairStatus: uint8_t {
+    NONE,
+    ENABLED,
+    DISABLED
+};
+
+CoinPricePairStatus GetPricePairStatusFromDb(CCacheWrapper &cw, const CoinPricePair &coinPricePair) {
+
+    // auto cdpCoinPairMap = cw.cdpCache.GetCdpCoinPairMap();
+    const auto& scoinSymbol = GetPriceQuoteByCdpScoin(GetPriceQuoteSymbol(coinPricePair));
+    if (scoinSymbol.empty())
+        return CoinPricePairStatus::NONE;
+
+    CCdpCoinPair cdpCoinPair(GetPriceBaseSymbol(coinPricePair), scoinSymbol);
+    CdpCoinPairStatus cdpCoinPairstatus;
+    if (!cw.cdpCache.GetCdpCoinPairStatus(cdpCoinPair, cdpCoinPairstatus))
+        return CoinPricePairStatus::NONE;
+
+    if (cdpCoinPairstatus == CdpCoinPairStatus::NONE) {
+        return CoinPricePairStatus::NONE;
+    } else if (cdpCoinPairstatus == CdpCoinPairStatus::DISABLE_ALL) {
+        return CoinPricePairStatus::DISABLED;
+    } else {
+        return CoinPricePairStatus::ENABLED;
+    }
+}
+
+CoinPricePairStatus GetPricePairStatus(CCacheWrapper &cw, const CoinPricePair &coinPricePair) {
+    CoinPricePairStatus status = GetPricePairStatusFromDb(cw, coinPricePair);
+    if (status == CoinPricePairStatus::NONE && kCoinPricePairSet.count(coinPricePair)) {
+        status = CoinPricePairStatus::ENABLED;
+    }
+    return status;
+}
+
+string CoinPricePairToString(const CoinPricePair &coinPricePair) {
+    return strprintf("%s:%s", GetPriceBaseSymbol(coinPricePair), GetPriceQuoteSymbol(coinPricePair));
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// class CPriceFeedTx
+
 bool CPriceFeedTx::CheckTx(CTxExecuteContext &context) {
     IMPLEMENT_DEFINE_CW_STATE
     IMPLEMENT_DISABLE_TX_PRE_STABLE_COIN_RELEASE;
     IMPLEMENT_CHECK_TX_REGID(txUid);
     if (!CheckFee(context)) return false;
 
-    if (price_points.size() == 0 || price_points.size() > 2) {  // FIXME: hardcode here
-        return state.DoS(100, ERRORMSG("CPriceFeedTx::CheckTx, price points number not within 1..2"), REJECT_INVALID,
-                         "bad-tx-pricepoint-size-error");
+    if (price_points.size() == 0 || price_points.size() > COIN_PRICE_PAIR_COUNT_MAX) {
+        return state.DoS(100, ERRORMSG("CPriceFeedTx::CheckTx, the count=%u of price_points is 0 or larger than %u",
+                COIN_PRICE_PAIR_COUNT_MAX), REJECT_INVALID, "price-point-size-error");
     }
 
     for (const auto &pricePoint : price_points) {
-        const CoinPricePair &coinPrice = pricePoint.coin_price_pair;
-        if (std::get<0>(coinPrice) != SYMB::WICC && std::get<0>(coinPrice) != SYMB::WGRT) {
-            return state.DoS(100, ERRORMSG("CPriceFeedTx::CheckTx, coin type should be WICC or WGRT"), REJECT_INVALID,
-                             "bad-tx-coin-type");
-        }
-
-        if (std::get<1>(coinPrice) != SYMB::USD) {
-            return state.DoS(100, ERRORMSG("CPriceFeedTx::CheckTx, currency type should be USD"), REJECT_INVALID,
-                             "bad-tx-currency-type");
+        CoinPricePairStatus status = GetPricePairStatus(cw, pricePoint.coin_price_pair);
+        if (status == CoinPricePairStatus::NONE) {
+            return state.DoS(100, ERRORMSG("CPriceFeedTx::CheckTx, unsupported coin price pair={%s:%s}",
+                CoinPricePairToString(pricePoint.coin_price_pair)), REJECT_INVALID, "unsupported-coin-price-pair");
+        } if (status == CoinPricePairStatus::NONE) {
+            return state.DoS(100, ERRORMSG("CPriceFeedTx::CheckTx, disabled coin price pair={%s:%s}",
+                CoinPricePairToString(pricePoint.coin_price_pair)), REJECT_INVALID, "disabled-coin-price-pair");
         }
 
         const uint64_t &price = pricePoint.price;

@@ -117,7 +117,7 @@ uint32_t G_CONFIG_TABLE::GetStartTimeInit(const NET_TYPE type) const {
     return StartTime[type];
 }
 
-uint32_t G_CONFIG_TABLE::GetTotalDelegateNum() const { return TotalDelegateNum; }
+uint8_t G_CONFIG_TABLE::GetTotalDelegateNum() const { return TotalDelegateNum; }
 
 uint32_t G_CONFIG_TABLE::GetMaxVoteCandidateNum() const { return MaxVoteCandidateNum; }
 
@@ -262,7 +262,7 @@ uint64_t G_CONFIG_TABLE::InitialCoin    = INITIAL_BASE_COIN_AMOUNT;  // 210 mill
 uint64_t G_CONFIG_TABLE::DefaultFee = 15;
 
 // Total Delegate Number
-uint32_t G_CONFIG_TABLE::TotalDelegateNum = 11;
+uint8_t G_CONFIG_TABLE::TotalDelegateNum = 11;
 // Max Number of Delegate Candidate to Vote for by a single account
 uint32_t G_CONFIG_TABLE::MaxVoteCandidateNum = 22;
 

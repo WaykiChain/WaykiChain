@@ -32,11 +32,11 @@ public:
     CCDPStakeTx(const CUserID &txUidIn, int32_t validHeightIn, uint256 cdpTxId,
                 const ComboMoney &cmFeeIn, const ComboMoney &cmBcoinsToStake,
                 const ComboMoney &cmScoinsToMint)
-        : CBaseTx(CDP_STAKE_TX, txUidIn, validHeightIn, cmFeeIn.symbol, cmFeeIn.GetSawiAmount()),
+        : CBaseTx(CDP_STAKE_TX, txUidIn, validHeightIn, cmFeeIn.symbol, cmFeeIn.GetAmountInSawi()),
           cdp_txid(cdpTxId),
-          assets_to_stake({ {cmBcoinsToStake.symbol, cmBcoinsToStake.GetSawiAmount()} }),
+          assets_to_stake({ {cmBcoinsToStake.symbol, cmBcoinsToStake.GetAmountInSawi()} }),
           scoin_symbol(cmScoinsToMint.symbol),
-          scoins_to_mint(cmScoinsToMint.GetSawiAmount()) {}
+          scoins_to_mint(cmScoinsToMint.GetAmountInSawi()) {}
 
     ~CCDPStakeTx() {}
 
@@ -91,7 +91,7 @@ public:
 
     CCDPRedeemTx(const CUserID &txUidIn, const ComboMoney &cmFeeIn, int32_t validHeightIn,
                  uint256 cdpTxId, uint64_t scoinsToRepay, uint64_t bcoinsToRedeem)
-        : CBaseTx(CDP_REDEEM_TX, txUidIn, validHeightIn, cmFeeIn.symbol, cmFeeIn.GetSawiAmount()),
+        : CBaseTx(CDP_REDEEM_TX, txUidIn, validHeightIn, cmFeeIn.symbol, cmFeeIn.GetAmountInSawi()),
           cdp_txid(cdpTxId),
           scoins_to_repay(scoinsToRepay),
           assets_to_redeem( { {SYMB::WICC, bcoinsToRedeem} }) {}
@@ -146,7 +146,7 @@ public:
     CCDPLiquidateTx(const CUserID &txUidIn, const ComboMoney &cmFeeIn, int32_t validHeightIn,
                     uint256 cdpTxId, uint64_t scoinsToLiquidate)
         : CBaseTx(CDP_LIQUIDATE_TX, txUidIn, validHeightIn, cmFeeIn.symbol,
-                  cmFeeIn.GetSawiAmount()),
+                  cmFeeIn.GetAmountInSawi()),
           cdp_txid(cdpTxId),
           liquidate_asset_symbol(),
           scoins_to_liquidate(scoinsToLiquidate) {}
@@ -182,8 +182,8 @@ public:
     virtual bool ExecuteTx(CTxExecuteContext &context);
 
 private:
-    bool ProcessPenaltyFees(const CTxCord &txCord, const CUserCDP &cdp, uint64_t scoinPenaltyFees,
-        CCacheWrapper &cw, CValidationState &state, vector<CReceipt> &receipts);
+    bool ProcessPenaltyFees(CTxExecuteContext &context, const CUserCDP &cdp, uint64_t scoinPenaltyFees,
+        vector<CReceipt> &receipts);
 
 private:
     uint256     cdp_txid;            // target CDP to liquidate

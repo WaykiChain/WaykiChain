@@ -41,7 +41,7 @@ static const int64_t DEFAULT_PEER_CONNECT_TIMEOUT = 60;
 inline uint32_t ReceiveFloodSize() { return 1000 * SysCfg().GetArg("-maxreceivebuffer", 5 * 1000); }
 void AddOneShot(string strDest);
 bool RecvLine(SOCKET hSocket, string& strLine);
-bool GetMyExternalIP(CNetAddr& ipRet);
+bool GetMyPublicIP(CNetAddr& ipRet);
 void AddressCurrentlyConnected(const CService& addr);
 CNode* FindNode(const CNetAddr& ip);
 CNode* FindNode(const CService& ip);

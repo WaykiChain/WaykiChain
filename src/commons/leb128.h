@@ -84,6 +84,7 @@ public:
 
     bool IsEmpty() const { return value == 0; }
     void SetEmpty() { value = 0; }
+    string ToString() const { return std::to_string(value); }
 
     bool operator==(I i) { return value == i; }
     bool operator<(I i) { return value < i; }
@@ -94,6 +95,7 @@ public:
     friend bool operator>(const CFixedLeb128 &a, const CFixedLeb128 &b) { return a.value > b.value; }
 };
 
+using CFixedUInt64 = CFixedLeb128<uint64_t>;
 using CFixedUInt32 = CFixedLeb128<uint32_t>;
 using CFixedUInt16 = CFixedLeb128<uint16_t>;
 

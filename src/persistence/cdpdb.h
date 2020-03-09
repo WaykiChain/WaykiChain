@@ -7,8 +7,10 @@
 #define PERSIST_CDPDB_H
 
 #include "commons/uint256.h"
+#include "commons/leb128.h"
 #include "entities/cdp.h"
 #include "dbaccess.h"
+#include "dbiterator.h"
 
 #include <map>
 #include <set>
@@ -20,9 +22,8 @@ using namespace std;
 /*  CCompositeKVCache     prefixType        key                  value           variable  */
 /*  ----------------   --------------      -----------------    --------------   -----------*/
 // cdpr{$Ratio}{$height}{$cdpid} -> CUserCDP
-typedef CCompositeKVCache<dbk::CDP_RATIO, tuple<string, string, uint256>, CUserCDP>      RatioCDPIdCache;
-
-
+// height: allows data of the same ratio to be sorted by height
+typedef CCompositeKVCache<dbk::CDP_RATIO, tuple<CCdpCoinPair, CFixedUInt64, CFixedUInt64, uint256>, CUserCDP>      CdpRatioSortedCache;
 
 class CCdpDBCache {
 public:
@@ -34,35 +35,35 @@ public:
     bool EraseCDP(const CUserCDP &oldCDP, const CUserCDP &cdp);
     bool UpdateCDP(const CUserCDP &oldCDP, const CUserCDP &newCDP);
 
+    bool UserHaveCdp(const CRegID &regId, const TokenSymbol &assetSymbol, const TokenSymbol &scoinSymbol);
     bool GetCDPList(const CRegID &regId, vector<CUserCDP> &cdpList);
     bool GetCDP(const uint256 cdpid, CUserCDP &cdp);
 
-    bool GetCdpListByCollateralRatio(const uint64_t collateralRatio, const uint64_t bcoinMedianPrice,
-                                     RatioCDPIdCache::Map &userCdps);
+    bool GetCdpListByCollateralRatio(const CCdpCoinPair &cdpCoinPair, const uint64_t collateralRatio,
+            const uint64_t bcoinMedianPrice, CdpRatioSortedCache::Map &userCdps);
 
     inline uint64_t GetGlobalStakedBcoins() const;
     inline uint64_t GetGlobalOwedScoins() const;
-    void GetGlobalItem(uint64_t &globalStakedBcoins, uint64_t &globalOwedScoins) const;
-    uint64_t GetGlobalCollateralRatio(const uint64_t bcoinMedianPrice) const;
+    CCdpGlobalData GetCdpGlobalData(const CCdpCoinPair &cdpCoinPair) const;
 
-    bool CheckGlobalCollateralRatioFloorReached(const uint64_t bcoinMedianPrice,
-                                                const uint64_t globalCollateralRatioLimit);
-    bool CheckGlobalCollateralCeilingReached(const uint64_t newBcoinsToStake, const uint64_t globalCollateralCeiling);
+    bool GetCdpCoinPairStatus(const CCdpCoinPair &cdpCoinPair, CdpCoinPairStatus &status);
+    //bool HaveCdpCoinPairStatus(const CCdpCoinPair &cdpCoinPair);
+    bool SetCdpCoinPairStatus(const CCdpCoinPair &cdpCoinPair, const CdpCoinPairStatus &status);
+    map<CCdpCoinPair, CdpCoinPairStatus> GetCdpCoinPairMap();
 
     void SetBaseViewPtr(CCdpDBCache *pBaseIn);
     void SetDbOpLogMap(CDBOpLogMap * pDbOpLogMapIn);
 
     void RegisterUndoFunc(UndoDataFuncMap &undoDataFuncMap) {
-        globalStakedBcoinsCache.RegisterUndoFunc(undoDataFuncMap);
-        globalOwedScoinsCache.RegisterUndoFunc(undoDataFuncMap);
+        cdpGlobalDataCache.RegisterUndoFunc(undoDataFuncMap);
         cdpCache.RegisterUndoFunc(undoDataFuncMap);
-        regId2CDPCache.RegisterUndoFunc(undoDataFuncMap);
-        ratioCDPIdCache.RegisterUndoFunc(undoDataFuncMap);
+        userCdpCache.RegisterUndoFunc(undoDataFuncMap);
+        cdpCoinPairsCache.RegisterUndoFunc(undoDataFuncMap);
+        cdpRatioSortedCache.RegisterUndoFunc(undoDataFuncMap);
     }
 
     uint32_t GetCacheSize() const;
     bool Flush();
-
 private:
     bool SaveCDPToDB(const CUserCDP &cdp);
     bool EraseCDPFromDB(const CUserCDP &cdp);
@@ -71,20 +72,20 @@ private:
     bool SaveCDPToRatioDB(const CUserCDP &userCdp);
     bool EraseCDPFromRatioDB(const CUserCDP &userCdp);
 
-private:
-    /*  CSimpleKVCache          prefixType                     value               variable           */
-    /*  -------------------- --------------------           -------------       --------------------- */
-    CSimpleKVCache<         dbk::CDP_GLOBAL_STAKED_BCOINS,   uint64_t>      globalStakedBcoinsCache;
-    CSimpleKVCache<         dbk::CDP_GLOBAL_OWED_SCOINS,     uint64_t>      globalOwedScoinsCache;
-
-    /*  CCompositeKVCache     prefixType     key                            value             variable  */
-    /*  ----------------   --------------   ------------                --------------    ----- --------*/
+    CdpRatioSortedCache::KeyType MakeCdpRatioSortedKey(const CUserCDP &cdp);
+public:
+    /*  CCompositeKVCache  prefixType       key                            value             variable  */
+    /*  ---------------- --------------   ------------                --------------    ----- --------*/
+    // cdpCoinPair -> total staked assets
+    CCompositeKVCache<  dbk::CDP_GLOBAL_DATA, CCdpCoinPair,   CCdpGlobalData>    cdpGlobalDataCache;
     // cdp{$cdpid} -> CUserCDP
-    CCompositeKVCache<      dbk::CDP,       uint256,                    CUserCDP>           cdpCache;
-    // rcdp${CRegID} -> set<cdpid>
-    CCompositeKVCache<      dbk::REGID_CDP, CRegIDKey,                     set<uint256>>       regId2CDPCache;
+    CCompositeKVCache<  dbk::CDP,       uint256,                    CUserCDP>           cdpCache;
+    // ucdp${CRegID}{$cdpCoinPair} -> set<cdpid>
+    CCompositeKVCache<  dbk::USER_CDP, pair<CRegIDKey, CCdpCoinPair>, optional<uint256>> userCdpCache;
+    // [prefix]${cdpCoinPair} -> ${cdpCoinPairStatus}
+    CCompositeKVCache<  dbk::UPDATE_CDP_COINPAIRS, CCdpCoinPair, uint8_t> cdpCoinPairsCache;
     // cdpr{Ratio}{$cdpid} -> CUserCDP
-    RatioCDPIdCache           ratioCDPIdCache;
+    CdpRatioSortedCache           cdpRatioSortedCache;
 };
 
 enum CDPCloseType: uint8_t {
@@ -143,6 +144,8 @@ public:
         closedTxCdpCache.RegisterUndoFunc(undoDataFuncMap);
     }
 private:
+    CdpRatioSortedCache::KeyType MakeCdpRatioSortedKey(const CUserCDP &cdp);
+public:
     /*  CCompositeKVCache     prefixType     key               value             variable  */
     /*  ----------------   --------------   ------------   --------------    ----- --------*/
     // ccdp${closed_cdpid} -> <closedCdpTxId, closeType>

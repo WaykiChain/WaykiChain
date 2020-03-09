@@ -11,6 +11,7 @@
 #include "commons/uint256.h"
 #include "commons/util/util.h"
 #include "version.h"
+#include "const.h"
 
 #include <map>
 #include <memory>
@@ -45,7 +46,7 @@ public:
     uint32_t GetDefaultPort(const NET_TYPE type) const;
     uint32_t GetRPCPort(const NET_TYPE type) const;
     uint32_t GetStartTimeInit(const NET_TYPE type) const;
-    uint32_t GetTotalDelegateNum() const;
+    uint8_t GetTotalDelegateNum() const;
     uint32_t GetMaxVoteCandidateNum() const;
     uint64_t GetCoinInitValue() const { return InitialCoin; };
 	uint32_t GetFeatureForkHeight(const NET_TYPE type) const;
@@ -110,7 +111,7 @@ private:
     static uint64_t DefaultFee;
 
     /* Total Delegate Number */
-    static uint32_t TotalDelegateNum;
+    static uint8_t TotalDelegateNum;
 
     /* Max Number of Delegate Candidate to Vote for by a single account */
     static uint32_t MaxVoteCandidateNum;
@@ -229,5 +230,17 @@ inline int64_t GetBaseCoinMaxMoney() { return BASECOIN_MAX_MONEY; }
 inline bool CheckBaseCoinRange(const int64_t amount) { return (amount >= 0 && amount <= BASECOIN_MAX_MONEY); }
 inline bool CheckFundCoinRange(const int64_t amount) { return (amount >= 0 && amount <= FUNDCOIN_MAX_MONEY); }
 inline bool CheckStableCoinRange(const int64_t amount) { return (amount >= 0 && amount <= STABLECOIN_MAX_MONEY); }
+inline bool CheckCoinRange(const TokenSymbol &symbol, const int64_t amount) {
+    if (symbol == SYMB::WICC) {
+        return CheckBaseCoinRange(amount);
+    } else if (symbol == SYMB::WGRT) {
+        return CheckFundCoinRange(amount);
+    } else if (symbol == SYMB::WUSD) {
+        return CheckStableCoinRange(amount);
+    } else {
+        // TODO: need to check other token range
+        return amount >= 0;
+    }
+}
 
 #endif /* CONFIGURATION_H_ */

@@ -39,10 +39,10 @@ public:
     bool GetCKey(CKey &keyOut, bool isMiner = false) const;
     bool CreateANewKey();
     bool GetPubKey(CPubKey &mOutKey, bool isMiner = false) const;
-    bool CleanMainKey();
+    bool PurgeMainKey();
     bool CleanAll();
     bool HaveMinerKey() const;
-    bool HaveMainKey() const;
+    bool HasMainKey() const;
     CKeyID GetCKeyID() const;
     void SetMainKey(CKey &mainKey);
     void SetMinerKey(CKey &minerKey);
@@ -75,7 +75,7 @@ public:
     // virtual bool AddKey(const CKey &key);
 
     // Check whether a key corresponding to a given address is present in the store.
-    virtual bool HaveKey(const CKeyID &address) const                           = 0;
+    virtual bool HasKey(const CKeyID &address) const                           = 0;
     virtual bool GetKey(const CKeyID &address, CKey &keyOut, bool isMine) const = 0;
     virtual void GetKeys(set<CKeyID> &setAddress, bool bFlag) const             = 0;
     virtual bool GetPubKey(const CKeyID &address, CPubKey &vchPubKeyOut, bool isMine) const;
@@ -96,7 +96,7 @@ protected:
 
 public:
     bool AddKeyCombi(const CKeyID &keyId, const CKeyCombi &keyCombi);
-    bool HaveKey(const CKeyID &address) const {
+    bool HasKey(const CKeyID &address) const {
         bool result;
         {
             LOCK(cs_KeyStore);
@@ -113,7 +113,7 @@ public:
                 if (!bFlag)  // return all address in wallet
                     setAddress.insert((*mi).first);
                 else if (mi->second.HaveMinerKey() ||
-                         mi->second.HaveMainKey())  // only return satisfied mining address
+                         mi->second.HasMainKey())  // only return satisfied mining address
                     setAddress.insert((*mi).first);
 
                 mi++;
@@ -134,9 +134,9 @@ public:
 
     virtual bool GetKeyCombi(const CKeyID &address, CKeyCombi &keyCombiOut) const;
 
-    bool HaveMainKey() {
+    bool HasMainKey() {
         for (auto &item : mapKeys) {
-            if (item.second.HaveMainKey()) return true;
+            if (item.second.HasMainKey()) return true;
         }
 
         return false;

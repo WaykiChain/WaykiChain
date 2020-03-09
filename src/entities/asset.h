@@ -15,6 +15,7 @@
 
 #include "commons/types.h"
 #include "config/const.h"
+#include "config/configuration.h"
 #include "crypto/hash.h"
 #include "id.h"
 #include "vote.h"
@@ -23,13 +24,120 @@
 using namespace json_spirit;
 using namespace std;
 
-typedef string TokenSymbol;     //8 chars max, E.g. WICC, WCNY, WICC-01D
-typedef string TokenName;       //32 chars max, E.g. WaykiChain Coins
-typedef string CoinUnitName;    //defined in coin unit type table
+// asset types
+enum AssetType : uint8_t {
+    NULL_ASSET      = 0,
+    NIA             = 1, //Natively Issued Asset
+    DIA             = 2, //DeGov Issued Asset
+    UIA             = 3, //User Issued Asset
+    MPA             = 4  //Market Pegged Asset
+};
 
-typedef std::pair<TokenSymbol, TokenSymbol> TradingPair;
-typedef string AssetSymbol;     //8 chars max, E.g. WICC
-typedef string PriceSymbol;     //8 chars max, E.g. USD, CNY, EUR, BTC
+// perms for an asset group
+enum AssetPermType : uint64_t {
+    NULL_ASSET_PERM     = 0,        // no perm at all w/ the asset including coin transfer etc.
+    PERM_DEX_BASE       = (1 << 1 ),
+    PERM_DEX_QUOTE      = (1 << 2 ),
+    PERM_CDP_BCOIN      = (1 << 3 ),
+    PERM_CDP_SCOIN      = (1 << 4 ),
+    PERM_PRICE_FEED     = (1 << 5 ),
+    PERM_XCHAIN_SWAP    = (1 << 6 ),
+
+};
+
+////////////////////////////////////////////////////////////////////
+/// Common Asset Definition, used when persisted inside state DB
+////////////////////////////////////////////////////////////////////
+class CAsset {
+public:
+    TokenSymbol asset_symbol;       //asset symbol, E.g WICC | WUSD
+    TokenName   asset_name;         //asset long name, E.g WaykiChain coin
+    AssetType   asset_type;         //asset type
+    uint64_t    asset_perms_sum = 0;//a sum of asset perms
+    CUserID     owner_uid;          //creator or owner user id of the asset, null for NIA/DIA/MPA
+    uint64_t    total_supply;       //boosted by 10^8 for the decimal part, max is 90 billion.
+    bool        mintable;           //whether this token can be minted in the future.
+
+public:
+    CAsset(): asset_type(AssetType::NULL_ASSET), asset_perms_sum(AssetPermType::PERM_DEX_BASE) {}
+
+    CAsset(const TokenSymbol& assetSymbol, const TokenName& assetName, const AssetType AssetType, uint64_t assetPermsSum,
+            const CUserID& ownerUid, uint64_t totalSupply, bool mintableIn)
+        : asset_symbol(assetSymbol), asset_name(assetName), asset_type(AssetType), asset_perms_sum(assetPermsSum),
+        owner_uid(ownerUid), total_supply(totalSupply), mintable(mintableIn) {};
+
+    IMPLEMENT_SERIALIZE(
+        READWRITE(asset_symbol);
+        READWRITE(asset_name);
+        READWRITE((uint8_t &) asset_type);
+        READWRITE(VARINT(asset_perms_sum));
+        READWRITE(owner_uid);
+        READWRITE(VARINT(total_supply));
+        READWRITE(mintable);
+    )
+
+    bool IsEmpty() const { return owner_uid.IsEmpty(); }
+
+    void SetEmpty() {
+        asset_symbol.clear();
+        asset_name.clear();
+        asset_type = AssetType::NULL_ASSET;
+        asset_perms_sum = 0;
+        owner_uid.SetEmpty();
+        total_supply = 0;
+        mintable = false;
+    }
+
+    string ToString() const {
+        return strprintf("asset_symbol=%s, asset_name=%s, asset_type=%d, asset_perms_sum=%llu, owner_uid=%s, total_supply=%llu, mintable=%d",
+                asset_symbol, asset_name, asset_type, asset_perms_sum, owner_uid.ToString(), total_supply, mintable);
+    }
+
+    // Check it when supplied from external like Tx or RPC calls
+    static bool CheckSymbol(const AssetType assetType, const TokenSymbol &assetSymbol, string &errMsg) {
+        if (assetType == AssetType::NULL_ASSET) {
+            errMsg = "null asset type";
+            return false;
+        }
+
+        uint32_t symbolSizeMin = 4;
+        uint32_t symbolSizeMax = 5;
+        if (assetType == AssetType::UIA) {
+            symbolSizeMin = 6;
+            symbolSizeMax = 8;
+        }
+
+        size_t symbolSize = assetSymbol.size();
+        if (symbolSize < symbolSizeMin || symbolSize > symbolSizeMax) {
+            errMsg = strprintf("symbol len=%d, beyond range[%d, %d]", 
+                                symbolSize, symbolSizeMin, symbolSizeMax);
+            return false;
+        }
+
+        bool valid = false;
+        for (auto ch : assetSymbol) {
+            valid = (ch >= '0' && ch <= '9') || (ch >= 'A' && ch <= 'Z');
+
+            if (assetType == AssetType::UIA) 
+                valid = valid || (ch == '#' || ch == '.' || ch == '@' || ch == '_');
+
+            if (!valid) {
+                errMsg = strprintf("Invalid char in symbol: %d", ch);
+                return false;
+            }
+        }
+        
+        return true;
+    }
+};
+
+inline const TokenSymbol& GetPriceQuoteByCdpScoin(const TokenSymbol &scoinSymbol) {
+    auto it = kScoinPriceQuoteMap.find(scoinSymbol);
+    if (it != kScoinPriceQuoteMap.end())
+        return it->second;
+
+    return EMPTY_STRING;
+}
 
 struct ComboMoney {
     TokenSymbol     symbol;     //E.g. WICC
@@ -38,40 +146,18 @@ struct ComboMoney {
 
     ComboMoney() : symbol(SYMB::WICC), amount(0), unit(COIN_UNIT::SAWI){};
 
-    uint64_t GetSawiAmount() const {
-        auto it = CoinUnitTypeTable.find(unit);
-        if (it != CoinUnitTypeTable.end()) {
+    uint64_t GetAmountInSawi() const {
+        auto it = CoinUnitTypeMap.find(unit);
+        if (it != CoinUnitTypeMap.end())
             return amount * it->second;
-        } else {
-            assert(false && "coin unit not found");
-            return amount;
-        }
+        
+        assert(false && "coin unit not found");
+        return amount;
     }
-};
 
-static const unordered_set<string> kCoinTypeSet = {
-    SYMB::WICC, SYMB::WGRT, SYMB::WUSD
-};
-
-static const unordered_set<string> kCurrencyTypeSet = {
-    SYMB::USD, SYMB::CNY, SYMB::EUR, SYMB::BTC, SYMB::USDT, SYMB::GOLD, SYMB::KWH
-};
-
-static const UnorderedPairSet<TokenSymbol, TokenSymbol> kCDPCoinPairSet = {
-    {SYMB::WICC, SYMB::WUSD},
-    // {SYMB::WBTC, SYMB::WUSD},
-    // {SYMB::WETH, SYMB::WUSD},
-    // {SYMB::WEOS, SYMB::WUSD},
-
-    // {SYMB::WICC, SYMB::WCNY},
-    // {SYMB::WBTC, SYMB::WCNY},
-    // {SYMB::WETH, SYMB::WCNY},
-    // {SYMB::WEOS, SYMB::WCNY},
-};
-
-static const UnorderedPairSet<TokenSymbol, TokenSymbol> kTradingPairSet = {
-    {SYMB::WICC, SYMB::WUSD},
-    {SYMB::WGRT, SYMB::WUSD}
+    string ToString() {
+        return strprintf("%s:%llu:%s", symbol, amount, unit);
+    }
 };
 
 class CAssetTradingPair {
@@ -91,10 +177,14 @@ public:
     )
 
     friend bool operator<(const CAssetTradingPair& a, const CAssetTradingPair& b) {
-        return a.base_asset_symbol < a.base_asset_symbol || b.quote_asset_symbol < b.quote_asset_symbol;
+        return a.base_asset_symbol < b.base_asset_symbol || a.quote_asset_symbol < b.quote_asset_symbol;
     }
 
-    string ToString() {
+    friend bool operator==(const CAssetTradingPair& a , const CAssetTradingPair& b) {
+        return a.base_asset_symbol == b.base_asset_symbol && a.quote_asset_symbol == b.quote_asset_symbol;
+    }
+
+    string ToString() const {
         return strprintf("%s-%s", base_asset_symbol, quote_asset_symbol);
     }
 
@@ -105,86 +195,5 @@ public:
         quote_asset_symbol.clear();
     }
 };
-
-class CBaseAsset {
-public:
-    TokenSymbol symbol;     // asset symbol, E.g WICC | WUSD
-    CUserID owner_uid;      // creator or owner user id of the asset
-    TokenName name;         // asset long name, E.g WaykiChain coin
-    uint64_t total_supply;  // boosted by 10^8 for the decimal part, max is 90 billion.
-    bool mintable;          // whether this token can be minted in the future.
-public:
-    CBaseAsset(): total_supply(0), mintable(false) {}
-
-    CBaseAsset(const TokenSymbol& symbolIn, const CUserID& ownerUseridIn, const TokenName& nameIn,
-           uint64_t totalSupplyIn, bool mintableIn)
-        : symbol(symbolIn),
-          owner_uid(ownerUseridIn),
-          name(nameIn),
-          total_supply(totalSupplyIn),
-          mintable(mintableIn){};
-
-    IMPLEMENT_SERIALIZE(READWRITE(symbol); READWRITE(owner_uid); READWRITE(name);
-                        READWRITE(mintable); READWRITE(VARINT(total_supply));)
-
-public:
-    static bool CheckSymbolChar(const char ch) {
-        return  ch >= 'A' && ch <= 'Z';
-    }
-
-    // @return nullptr if succeed, else err string
-    static shared_ptr<string> CheckSymbol(const TokenSymbol &symbol) {
-        size_t symbolSize = symbol.size();
-        if (symbolSize < MIN_ASSET_SYMBOL_LEN || symbolSize > MAX_TOKEN_SYMBOL_LEN)
-            return make_shared<string>(strprintf("length=%d must be in range[%d, %d]",
-                symbolSize, MIN_ASSET_SYMBOL_LEN, MAX_TOKEN_SYMBOL_LEN));
-
-        for (auto ch : symbol) {
-            if (!CheckSymbolChar(ch))
-                return make_shared<string>("there is invalid char in symbol");
-        }
-        return nullptr;
-    }
-
-};
-
-class CAsset: public CBaseAsset {
-public:
-    uint64_t min_order_amount;  // min amount for submit order tx, 0 is unlimited
-    uint64_t max_order_amount;  // max amount for submit order tx, 0 is unlimited
-public:
-    CAsset(): CBaseAsset(), min_order_amount(0), max_order_amount(0) {}
-
-    CAsset(CBaseAsset *pBaseAsset): CBaseAsset(*pBaseAsset), min_order_amount(0), max_order_amount(0) {}
-
-    CAsset(const TokenSymbol& symbolIn, const CUserID& ownerUseridIn, const TokenName& nameIn,
-           uint64_t totalSupplyIn, bool mintableIn, uint64_t minOrderAmountIn, uint64_t maxOrderAmountIn)
-        : CBaseAsset(symbolIn, ownerUseridIn, nameIn, totalSupplyIn, mintableIn),
-          min_order_amount(minOrderAmountIn), max_order_amount(maxOrderAmountIn){};
-
-    IMPLEMENT_SERIALIZE(
-        READWRITE(symbol);
-        READWRITE(owner_uid);
-        READWRITE(name);
-        READWRITE(mintable);
-        READWRITE(VARINT(total_supply));
-        READWRITE(VARINT(max_order_amount));
-        READWRITE(VARINT(min_order_amount));
-    )
-
-    bool IsEmpty() const { return owner_uid.IsEmpty(); }
-
-    void SetEmpty() {
-        owner_uid.SetEmpty();
-        symbol.clear();
-        name.clear();
-        mintable = false;
-        total_supply = 0;
-        max_order_amount = 0;
-        min_order_amount = 0;
-    }
-};
-
-bool CheckCoinRange(const TokenSymbol &symbol, const int64_t amount);
 
 #endif //ENTITIES_ASSET_H

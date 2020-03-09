@@ -15,6 +15,7 @@
 #include "commons/serialize.h"
 #include "commons/tinyformat.h"
 #include "commons/compat/compat.h"
+#include "commons/json/json_spirit_value.h"
 
 #include <stdarg.h>
 #include <stdint.h>
@@ -459,6 +460,20 @@ inline std::string StrToUpper(const std::string &str) {
 		c = ::toupper(c);
 	});
     return ret;
+}
+
+inline json_spirit::Value ValueFromAmount(uint64_t amount) {
+    uint64_t val = (double)amount / (double)COIN;
+    return val;
+}
+
+template <size_t N>
+void splitString(string (&arr)[N], string str)
+{
+    int n = 0;
+    istringstream iss(str);
+    for (auto it = istream_iterator<string>(iss); it != istream_iterator<string>() && n < N; ++it, ++n)
+        arr[n] = *it;
 }
 
 #endif

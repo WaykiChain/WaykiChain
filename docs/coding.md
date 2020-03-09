@@ -1,79 +1,3 @@
-Coding
-====================
-
-## General Naming Convention
-
-|Type|Naming Convention| Examples |
-|--|--|--|
-|functions| Pascal case | ```GetAccountBalance```, ```OperateBalance``` |
-|global variables| All small cases, starting with ```g_```.| ```g_cs_main```|
-|local variables| Camel case | ```freeAmount```, ```delegateVotes```|
-|classes| Pascal case, starting with ```C``` |```CCDPStakeTx``` |
-|class fields| All small case, using ```_``` to connect words| ```tx_uid```, ```free_amount``` |
-|constants| All capital letters, using ```_``` to connect words| ```ASSET_RISK_FEE_RATIO```|
-
-
-## Container Type Naming Postfix/Prefix
-|Category |Type | Examples|
-|--|--|--|
-| Container| Array | variables |
-| Container| List | variables |
-| Container| Vector | variables |
-| Container| Map | variableMap |
-| Container| Set | variableSet |
-| pointer | |pVariable |
-| shared pointer | |spVariable |
-
-## Code Structure
-- Commons
-- Tx
-- Persistence
-- Smart Contract Engine
-
-## Coding Style
-
-- Please be consistent with the existing coding style.
-
-Block style:
-
-	bool Function(char* psz, int n)
-	{
-	    // Comment summarising what this section of code does
-	    for (int i = 0; i < n; i++)
-	    {
-	        // When something fails, return early
-	        if (!Something())
-	            return false;
-	        ...
-	    }
-
-	    // Success return is usually at the end
-	    return true;
-	}
-
-- ANSI/Allman block style
-- 4 space indenting, no tabs
-- No extra spaces inside parenthesis; please don't do ( this )
-- No space after function names, one space after if, for and while
-
-Variable names begin with the type in lowercase, like nSomeVariable.
-Please don't put the first word of the variable name in lowercase like
-someVariable.
-
-Common types:
-
-	n       integer number: short, unsigned short, int, unsigned int, int64, uint64, sometimes char if used as a number
-	d       double, float
-	f       flag
-	hash    uint256
-	p       pointer or array, one p for each level of indirection
-	psz     pointer to null terminated string
-	str     string object
-	v       vector or similar list objects
-	map     map or multimap
-	set     set or multiset
-	bn      CBigNum
-
 Doxygen comments
 -----------------
 
@@ -153,7 +77,7 @@ Threads
 
 - StartNode : Starts other threads.
 
-- ThreadGetMyExternalIP : Determines outside-the-firewall IP address, sends addr message to connected peers when it determines it.
+- ThreadGetMyPublicIP : Determines outside-the-firewall IP address, sends addr message to connected peers when it determines it.
 
 - ThreadDNSAddressSeed : Loads addresses of peers from the DNS.
 

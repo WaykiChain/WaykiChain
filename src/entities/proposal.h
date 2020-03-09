@@ -1,82 +1,96 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
 // Copyright (c) 2017-2019 The WaykiChain Developers
 // Distributed under the MIT/X11 software license, see the accompanying
-// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.'
 
 #ifndef ENTITIES_PROPOSAL_H
 #define ENTITIES_PROPOSAL_H
 
+
 #include <string>
 #include <vector>
 #include <unordered_map>
+
 #include "entities/id.h"
 #include "commons/json/json_spirit.h"
 #include "config/const.h"
 #include "config/txbase.h"
 #include "config/scoin.h"
+#include "entities/cdp.h"
+#include "config/sysparams.h"
 
-class CCacheWrapper ;
-class CValidationState ;
+
+class CCacheWrapper;
+class CValidationState;
+class CTxExecuteContext;
+
 using namespace json_spirit;
+using namespace std;
 
-enum ProposalType: uint8_t{
-    NULL_PROPOSAL     = 0 ,
-    PARAM_GOVERN      = 1 ,
-    GOVERNER_UPDATE   = 2 ,
-    DEX_SWITCH        = 3 ,
-    MINER_FEE_UPDATE  = 4
+// Proposal for DeGov
+enum ProposalType: uint8_t {
+    NULL_PROPOSAL       = 0 ,
+    GOV_SYS_PARAM       = 1 , // basic parameters
+    GOV_BPMC_LIST       = 2 , // update BP Mgmt Committee List
+    GOV_BP_SIZE         = 3 , // update BP total number (11 -> 21 -> xxx)
+    GOV_MINER_FEE       = 4 , // Miner fees for all Trx types
+    GOV_COIN_TRANSFER   = 5 , // for private-key loss, account robbery or for CFT/AML etc purposes
+    GOV_ACCOUNT_PERM    = 6 , // update account perms
+    GOV_ASSET_PERM      = 7 , // update asset perms
+    GOV_CDP_COINPAIR    = 8 , // govern GOV_CDP_COINPAIR, set GOV_CDP_COINPAIR status
+    GOV_CDP_PARAM       = 9 , // CDP parameters
+    GOV_DEX_OP          = 10, // turn on/off DEX operator
+    GOV_DEX_QUOTE       = 11, // DEX quote coin
+    GOV_FEED_COINPAIR   = 12, // BaseSymbol/QuoteSymbol
+    GOV_AXC_IN          = 13, // atomic-cross-chain swap in
+    GOV_AXC_OUT         = 14, // atomic-cross-chain swap out
+
 };
 
 enum ProposalOperateType: uint8_t {
-    NULL_OPT = 0,
-    ENABLE   = 1 ,
-    DISABLE  = 2
+    NULL_PROPOSAL_OP    = 0 ,
+    ENABLE              = 1 ,
+    DISABLE             = 2
 };
 
 
-class CProposal {
-public:
-
+struct CProposal {
     ProposalType proposal_type = NULL_PROPOSAL;
-    int8_t need_governer_count = 0;
-    int32_t expire_block_height = 0;
-
-public:
+    int32_t expiry_block_height = 0;
+    int8_t approval_min_count = 0;
 
     CProposal() {}
-    CProposal(uint8_t proposalTypeIn):proposal_type(ProposalType(proposalTypeIn)) {}
+    CProposal(ProposalType proposalTypeIn) : proposal_type(proposalTypeIn) {}
 
-    virtual shared_ptr<CProposal> GetNewInstance(){ return nullptr; } ;
-    virtual bool ExecuteProposal(CCacheWrapper &cw, CValidationState& state) { return true ;};
-    virtual bool CheckProposal(CCacheWrapper &cw, CValidationState& state) {return true ;};
-    virtual string ToString(){
-        return strprintf("proposaltype=%d,needgoverneramount=%d,expire_height=%d",
-                proposal_type, need_governer_count, expire_block_height) ;
+    virtual bool CheckProposal(CTxExecuteContext& context ) {return true ;};
+    virtual bool ExecuteProposal(CTxExecuteContext& context) { return true ;};
+    virtual std::string ToString() {
+        return strprintf("proposal_type=%d,approval_min_count=%d,expiry_block_height=%d",
+                        proposal_type, approval_min_count, expiry_block_height) ;
     }
     virtual Object ToJson(){
         Object o ;
         o.push_back(Pair("proposal_type", proposal_type)) ;
-        o.push_back(Pair("need_governer_count", need_governer_count)) ;
-        o.push_back(Pair("expire_block_height", expire_block_height)) ;
+        o.push_back(Pair("approval_min_count", approval_min_count)) ;
+        o.push_back(Pair("expiry_block_height", expiry_block_height)) ;
 
         return o ;
-
     };
 
     virtual uint32_t GetSerializeSize(int32_t nType, int32_t nVersion) const { return 0; }
 };
 
 
-class CParamsGovernProposal: public CProposal {
-public:
+struct CGovSysParamProposal: public CProposal {
     vector<std::pair<uint8_t, uint64_t>> param_values;
 
-    CParamsGovernProposal(): CProposal(ProposalType::PARAM_GOVERN){}
+    CGovSysParamProposal(): CProposal(ProposalType::GOV_SYS_PARAM){}
 
     IMPLEMENT_SERIALIZE(
-            READWRITE(VARINT(expire_block_height));
-            READWRITE(need_governer_count);
-            READWRITE(param_values);
+        READWRITE(VARINT(expiry_block_height));
+        READWRITE(approval_min_count);
+
+        READWRITE(param_values);
     );
 
     virtual Object ToJson() override {
@@ -86,10 +100,10 @@ public:
             Object subItem;
             subItem.push_back(Pair("param_code", item.first));
 
-            string param_name = "" ;
+            std::string param_name = "" ;
             auto itr = SysParamTable.find(SysParamType(item.first)) ;
             if(itr != SysParamTable.end())
-                param_name = std::get<2>(itr->second);
+                param_name = std::get<1>(itr->second);
 
             subItem.push_back(Pair("param_name", param_name));
             subItem.push_back(Pair("param_value", item.second));
@@ -100,107 +114,103 @@ public:
         return o ;
     }
 
-    string ToString() override {
-        string baseString = CProposal::ToString();
+    std::string ToString() override {
+        std::string baseString = CProposal::ToString();
         for(auto itr: param_values){
             baseString = strprintf("%s, %s:%d", baseString,itr.first, itr.second ) ;
         }
         return baseString ;
     }
 
-    shared_ptr<CProposal> GetNewInstance() override { return make_shared<CParamsGovernProposal>(*this); } ;
+    bool CheckProposal(CTxExecuteContext& context ) override;
+    bool ExecuteProposal(CTxExecuteContext& context) override;
 
-    bool ExecuteProposal(CCacheWrapper &cw, CValidationState& state) override;
-    bool CheckProposal(CCacheWrapper &cw, CValidationState& state) override;
 };
 
 
+struct CGovBpMcListProposal: public CProposal{
+    CRegID governor_regid ;
+    ProposalOperateType op_type  = ProposalOperateType::NULL_PROPOSAL_OP;
 
-class CGovernerUpdateProposal: public CProposal{
-public:
-    CRegID governer_regid ;
-     ProposalOperateType operate_type  = ProposalOperateType::NULL_OPT;
-
-    CGovernerUpdateProposal(): CProposal(ProposalType::GOVERNER_UPDATE){}
+    CGovBpMcListProposal(): CProposal(ProposalType::GOV_BPMC_LIST){}
 
     IMPLEMENT_SERIALIZE(
-            READWRITE(VARINT(expire_block_height));
-            READWRITE(need_governer_count);
-            READWRITE(governer_regid);
-            READWRITE((uint8_t&)operate_type);
+        READWRITE(VARINT(expiry_block_height));
+        READWRITE(approval_min_count);
+
+        READWRITE(governor_regid);
+        READWRITE((uint8_t&)op_type);
     );
 
     Object ToJson() override {
         Object o = CProposal::ToJson();
-        o.push_back(Pair("governer_regid",governer_regid.ToString())) ;
-        o.push_back(Pair("operate_type", operate_type));
+        o.push_back(Pair("governor_regid",governor_regid.ToString())) ;
+        o.push_back(Pair("operate_type", op_type));
         return o ;
     }
 
-    string ToString() override {
-        string baseString = CProposal::ToString() ;
-        return strprintf("%s, governer_regid=%s, operate_type=%d", baseString,
-                governer_regid.ToString(),operate_type) ;
+    std::string ToString() override {
+        std::string baseString = CProposal::ToString() ;
+        return strprintf("%s, governor_regid=%s, operate_type=%d", baseString,
+                governor_regid.ToString(),op_type) ;
 
     }
 
-    shared_ptr<CProposal> GetNewInstance() override { return make_shared<CGovernerUpdateProposal>(*this); }
-    bool ExecuteProposal(CCacheWrapper &cw, CValidationState& state) override;
-    bool CheckProposal(CCacheWrapper &cw, CValidationState& state) override;
+    bool CheckProposal(CTxExecuteContext& context ) override;
+    bool ExecuteProposal(CTxExecuteContext& context) override;
+
 };
 
-class CDexSwitchProposal: public CProposal{
-public:
-    uint32_t dexid;
-    ProposalOperateType operate_type = ProposalOperateType ::ENABLE;
+struct CGovBpSizeProposal: public CProposal {
+    uint8_t bp_count ;
+    uint32_t effective_height ;
+
+    CGovBpSizeProposal(): CProposal(GOV_BP_SIZE) {}
+
     IMPLEMENT_SERIALIZE(
-            READWRITE(VARINT(expire_block_height));
-            READWRITE(need_governer_count);
-            READWRITE(VARINT(dexid));
-            READWRITE((uint8_t&)operate_type);
+        READWRITE(VARINT(expiry_block_height));
+        READWRITE(approval_min_count);
+
+        READWRITE(bp_count);
+        READWRITE(VARINT(effective_height));
     );
 
-    CDexSwitchProposal(): CProposal(ProposalType::DEX_SWITCH){}
 
-    shared_ptr<CProposal> GetNewInstance() override { return make_shared<CDexSwitchProposal>(*this); }
-
-    bool ExecuteProposal(CCacheWrapper &cw, CValidationState& state) override;
-    bool CheckProposal(CCacheWrapper &cw, CValidationState& state) override;
-
-    Object ToJson() override {
+    virtual Object ToJson() override {
         Object o = CProposal::ToJson();
-        o.push_back(Pair("dexid",(uint64_t)dexid)) ;
-        o.push_back(Pair("operate_type", operate_type));
+        o.push_back(Pair("bp_count", (uint64_t)bp_count));
+        o.push_back(Pair("effective_height",(uint64_t)effective_height));
         return o ;
     }
 
-    string ToString() override {
-        string baseString = CProposal::ToString() ;
-        return strprintf("%s, dexid=%d, operate_type=%d", baseString, dexid, operate_type) ;
+    std::string ToString() override {
+        std::string baseString = CProposal::ToString();
+        return baseString ;
     }
+
+    bool CheckProposal(CTxExecuteContext& context) override;
+    bool ExecuteProposal(CTxExecuteContext& context) override;
 
 };
 
-class CMinerFeeProposal: public CProposal {
-public:
+struct CGovMinerFeeProposal: public CProposal {
     TxType tx_type = TxType::NULL_TX ;
-    string  fee_symbol = "" ;
+    std::string  fee_symbol = "" ;
     uint64_t  fee_sawi_amount = 0 ;
 
-    CMinerFeeProposal():CProposal(ProposalType::MINER_FEE_UPDATE){}
+    CGovMinerFeeProposal() : CProposal(ProposalType::GOV_MINER_FEE) {}
 
     IMPLEMENT_SERIALIZE(
-            READWRITE(VARINT(expire_block_height));
-            READWRITE(need_governer_count);
-            READWRITE((uint8_t&)tx_type);
-            READWRITE(fee_symbol);
-            READWRITE(VARINT(fee_sawi_amount));
-            )
+        READWRITE(VARINT(expiry_block_height));
+        READWRITE(approval_min_count);
 
-    shared_ptr<CProposal> GetNewInstance() override { return make_shared<CMinerFeeProposal>(*this); }
+        READWRITE((uint8_t&)tx_type);
+        READWRITE(fee_symbol);
+        READWRITE(VARINT(fee_sawi_amount));
+    )
 
-    bool CheckProposal(CCacheWrapper &cw, CValidationState& state) override;
-    bool ExecuteProposal(CCacheWrapper &cw, CValidationState& state) override;
+    bool CheckProposal(CTxExecuteContext& context ) override;
+    bool ExecuteProposal(CTxExecuteContext& context) override;
 
     Object ToJson() override {
         Object o = CProposal::ToJson();
@@ -211,69 +221,473 @@ public:
 
     }
 
-    string ToString() override {
-        string baseString = CProposal::ToString() ;
+    std::string ToString() override {
+        std::string baseString = CProposal::ToString() ;
         return strprintf("%s, tx_type=%d, fee_symbo=%s ,fee_sawi_amount=%d",
-                baseString, tx_type, fee_symbol,fee_sawi_amount ) ;
+                        baseString, tx_type, fee_symbol,fee_sawi_amount ) ;
 
     }
+};
+
+
+struct CGovCoinTransferProposal: public CProposal {
+    uint64_t amount ;
+    TokenSymbol token ;
+    CUserID from_uid ;
+    CUserID to_uid ;
+
+    IMPLEMENT_SERIALIZE(
+        READWRITE(VARINT(expiry_block_height));
+        READWRITE(approval_min_count);
+
+        READWRITE(VARINT(amount));
+        READWRITE(token) ;
+        READWRITE(from_uid) ;
+        READWRITE(to_uid) ;
+    );
+
+
+    CGovCoinTransferProposal(): CProposal(ProposalType::GOV_COIN_TRANSFER) {}
+
+    bool CheckProposal(CTxExecuteContext& context ) override;
+    bool ExecuteProposal(CTxExecuteContext& context) override;
+
+    virtual Object ToJson() override {
+        Object o = CProposal::ToJson();
+        o.push_back(Pair("coin_symbol", token)) ;
+        o.push_back(Pair("amount", amount)) ;
+        o.push_back(Pair("from_uid", from_uid.ToString())) ;
+        o.push_back(Pair("to_uid", to_uid.ToString())) ;
+        return o ;
+    }
+
+    std::string ToString() override {
+        std::string baseString = CProposal::ToString();
+        return baseString ;
+    }
+};
+
+
+struct CAccountPermProposal: public CProposal {
+    CUserID account_uid;
+    uint64_t proposed_account_perms_sums;
+
+    CAccountPermProposal(): CProposal(ProposalType::GOV_ACCOUNT_PERM){}
+
+    IMPLEMENT_SERIALIZE(
+        READWRITE(VARINT(expiry_block_height));
+        READWRITE(approval_min_count);
+
+        READWRITE(account_uid);
+        READWRITE(VARINT((uint64_t&)proposed_account_perms_sums));
+    );
+
+    Object ToJson() override {
+        Object o = CProposal::ToJson();
+        o.push_back(Pair("account_uid", account_uid.ToString())) ;
+        o.push_back(Pair("proposed_account_perms_sums", proposed_account_perms_sums)) ;
+        return o ;
+    }
+
+    std::string ToString() override {
+        return  strprintf("account_uid=%s, proposed_account_perms_sums=%llu", 
+                        account_uid.ToString(), proposed_account_perms_sums);
+    }
+
+    bool CheckProposal(CTxExecuteContext& context) override;
+    bool ExecuteProposal(CTxExecuteContext& context) override;
+
+};
+
+struct CAssetPermProposal: public CProposal {
+    TokenSymbol asset_symbol;
+    uint64_t proposed_asset_perms_sums;
+
+    CAssetPermProposal(): CProposal(ProposalType::GOV_ASSET_PERM){}
+
+    IMPLEMENT_SERIALIZE(
+        READWRITE(VARINT(expiry_block_height));
+        READWRITE(approval_min_count);
+
+        READWRITE(asset_symbol);
+        READWRITE(VARINT((uint64_t&)proposed_asset_perms_sums));
+    );
+
+    Object ToJson() override {
+        Object o = CProposal::ToJson();
+        o.push_back(Pair("asset_symbol", asset_symbol));
+        o.push_back(Pair("proposed_asset_perms_sums", proposed_asset_perms_sums)) ;
+        return o ;
+    }
+
+    std::string ToString() override {
+        return  strprintf("asset_symbol=%s, proposed_asset_perms_sums=%llu", 
+                        asset_symbol, proposed_asset_perms_sums);
+    }
+
+    bool CheckProposal(CTxExecuteContext& context) override;
+    bool ExecuteProposal(CTxExecuteContext& context) override;
+
+};
+
+struct CGovCoinPairProposal: public CProposal {
+    CCdpCoinPair cdp_coinpair;
+    CdpCoinPairStatus status; // cdp coin pair status, can not be NONE
+
+    CGovCoinPairProposal(): CProposal(ProposalType::GOV_CDP_COINPAIR){}
+
+    IMPLEMENT_SERIALIZE(
+        READWRITE(cdp_coinpair);
+        READWRITE(VARINT((uint8_t&)status));
+    );
+
+
+    Object ToJson() override {
+        Object o = CProposal::ToJson();
+        o.push_back(Pair("cdp_coinpair", cdp_coinpair.ToString()));
+
+        o.push_back(Pair("status", GetCdpCoinPairStatusName(status))) ;
+        return o ;
+    }
+
+    std::string ToString() override {
+        return  strprintf("cdp_coinpair=%s", cdp_coinpair.ToString()) + ", " +
+                strprintf("status=%s", GetCdpCoinPairStatusName(status));
+    }
+
+    bool CheckProposal(CTxExecuteContext& context) override;
+    bool ExecuteProposal(CTxExecuteContext& context) override;
+
+};
+
+struct CGovCdpParamProposal: public CProposal {
+    vector<std::pair<uint8_t, uint64_t>> param_values;
+    CCdpCoinPair coin_pair ;
+
+    CGovCdpParamProposal(): CProposal(ProposalType::GOV_CDP_PARAM) {}
+
+    IMPLEMENT_SERIALIZE(
+        READWRITE(VARINT(expiry_block_height));
+        READWRITE(approval_min_count);
+        READWRITE(param_values);
+        READWRITE(coin_pair);
+    );
+
+    virtual Object ToJson() override {
+        Object o = CProposal::ToJson();
+        o.push_back(Pair("asset_pair", coin_pair.ToString()));
+        Array arrayItems;
+        for (const auto &item : param_values) {
+            Object subItem;
+            subItem.push_back(Pair("param_code", item.first));
+
+            std::string param_name = "" ;
+            auto itr = SysParamTable.find(SysParamType(item.first)) ;
+            if(itr != SysParamTable.end())
+                param_name = std::get<1>(itr->second);
+
+            subItem.push_back(Pair("param_name", param_name));
+            subItem.push_back(Pair("param_value", item.second));
+            arrayItems.push_back(subItem);
+        }
+
+        o.push_back(Pair("params",arrayItems)) ;
+        return o ;
+    }
+
+    std::string ToString() override {
+        std::string baseString = CProposal::ToString();
+        for(auto itr: param_values){
+            baseString = strprintf("%s, %s:%d", baseString,itr.first, itr.second ) ;
+        }
+        return baseString ;
+    }
+
+    bool CheckProposal(CTxExecuteContext& context ) override;
+    bool ExecuteProposal(CTxExecuteContext& context) override;
+
+};
+
+struct CGovDexOpProposal: public CProposal{
+    uint32_t dexid;
+    ProposalOperateType operate_type = ProposalOperateType::ENABLE;
+
+    IMPLEMENT_SERIALIZE(
+        READWRITE(VARINT(expiry_block_height));
+        READWRITE(approval_min_count);
+
+        READWRITE(VARINT(dexid));
+        READWRITE((uint8_t&)operate_type);
+    );
+
+    CGovDexOpProposal(): CProposal(ProposalType::GOV_DEX_OP){}
+
+    bool CheckProposal(CTxExecuteContext& context ) override;
+    bool ExecuteProposal(CTxExecuteContext& context ) override;
+
+    Object ToJson() override {
+        Object o = CProposal::ToJson();
+        o.push_back(Pair("dexid",(uint64_t)dexid)) ;
+        o.push_back(Pair("operate_type", operate_type));
+        return o ;
+    }
+
+    std::string ToString() override {
+        std::string baseString = CProposal::ToString() ;
+        return strprintf("%s, dexid=%d, operate_type=%d", baseString, dexid, operate_type) ;
+    }
+
+};
+
+struct CGovDexQuoteProposal: public CProposal {
+    TokenSymbol  coin_symbol ;
+    ProposalOperateType op_type  = ProposalOperateType::NULL_PROPOSAL_OP;
+
+    CGovDexQuoteProposal(): CProposal(ProposalType::GOV_DEX_QUOTE) {}
+
+    IMPLEMENT_SERIALIZE(
+        READWRITE(VARINT(expiry_block_height));
+        READWRITE(approval_min_count);
+
+        READWRITE(coin_symbol);
+        READWRITE((uint8_t&)op_type);
+    )
+
+    Object ToJson() override {
+        Object o = CProposal::ToJson();
+        o.push_back(Pair("coin_symbol", coin_symbol));
+
+        o.push_back(Pair("op_type", op_type)) ;
+        return o ;
+    }
+
+    std::string ToString() override {
+        return  strprintf("coin_symbol=%s",coin_symbol ) + ", " +
+                strprintf("op_type=%d", op_type);
+    }
+
+    bool CheckProposal(CTxExecuteContext& context ) override;
+    bool ExecuteProposal(CTxExecuteContext& context) override;
+
+};
+
+// base currency -> quote currency
+struct CGovFeedCoinPairProposal: public CProposal {
+    TokenSymbol  feed_symbol;
+    TokenSymbol  quote_symbol = SYMB::USD;
+    ProposalOperateType op_type = ProposalOperateType::NULL_PROPOSAL_OP;
+
+    CGovFeedCoinPairProposal(): CProposal(ProposalType::GOV_FEED_COINPAIR) {}
+
+    IMPLEMENT_SERIALIZE(
+        READWRITE(VARINT(expiry_block_height));
+        READWRITE(approval_min_count);
+
+        READWRITE(feed_symbol);
+        READWRITE(quote_symbol);
+        READWRITE((uint8_t&)op_type);
+    )
+
+    Object ToJson() override {
+        Object o = CProposal::ToJson();
+        o.push_back(Pair("feed_symbol", feed_symbol));
+        o.push_back(Pair("quote_symbol", quote_symbol));
+
+        o.push_back(Pair("op_type", op_type)) ;
+        return o ;
+    }
+
+    string ToString() override {
+        return  strprintf("feed_symbol=%s,quote_symbol=%s",feed_symbol, quote_symbol ) + ", " +
+                strprintf("op_type=%d", op_type);
+    }
+
+    bool CheckProposal(CTxExecuteContext& context ) override;
+    bool ExecuteProposal(CTxExecuteContext& context) override;
+
+};
+
+
+struct CGovAxcInProposal: public CProposal {
+    ChainType   peer_chain_type = ChainType::BITCOIN;  //redudant, reference only
+    TokenSymbol peer_chain_token_symbol; // from kXChainSwapTokenMap to get the target token symbol
+    string      peer_chain_uid;  // initiator's address at peer chain
+    string      peer_chain_txid; // a proof from the peer chain (non-HTLC version)
+    
+    CUserID     self_chain_uid;
+    uint64_t    swap_amount;
+
+    CGovAxcInProposal(): CProposal(ProposalType::GOV_AXC_IN) {}
+    CGovAxcInProposal(ChainType peerChainType, TokenSymbol peerChainTokenSymbol, string &peerChainUid, string &peerChainTxid,
+                        CUserID &selfChainUid, uint64_t &swapAmount): CProposal(ProposalType::GOV_AXC_IN), 
+                        peer_chain_type(peerChainType), 
+                        peer_chain_token_symbol(peerChainTokenSymbol), 
+                        peer_chain_uid(peerChainUid),
+                        peer_chain_txid(peerChainTxid),
+                        self_chain_uid(selfChainUid), 
+                        swap_amount(swapAmount) {}
+
+    IMPLEMENT_SERIALIZE(
+        READWRITE(VARINT(expiry_block_height));
+        READWRITE(approval_min_count);
+
+        READWRITE((uint8_t &)peer_chain_type);
+        READWRITE(peer_chain_token_symbol);
+        READWRITE(peer_chain_uid);
+        READWRITE(peer_chain_txid);
+        READWRITE(self_chain_uid);
+        READWRITE(VARINT(swap_amount));
+    );
+
+    Object ToJson() override {
+        Object obj = CProposal::ToJson();
+        obj.push_back(Pair("peer_chain_type", peer_chain_type));
+        obj.push_back(Pair("peer_chain_token_symbol", peer_chain_token_symbol));
+        obj.push_back(Pair("peer_chain_uid", peer_chain_uid));
+        obj.push_back(Pair("peer_chain_txid", peer_chain_txid));
+        obj.push_back(Pair("self_chain_uid", self_chain_uid.ToString()));
+        obj.push_back(Pair("swap_amount", ValueFromAmount(swap_amount)));
+        return obj;
+    }
+
+    std::string ToString() override {
+        return  strprintf("peer_chain_type=%d, peer_chain_token_symbol=%s, peer_chain_uid=%, peer_chain_txid=%, self_chain_uid=%s, swap_amount=%llu",
+                        peer_chain_type, peer_chain_token_symbol, peer_chain_uid, peer_chain_txid, self_chain_uid.ToString(), swap_amount);
+    }
+    
+    bool CheckProposal(CTxExecuteContext& context) override;
+    bool ExecuteProposal(CTxExecuteContext& context) override;
+
+};
+
+struct CGovAxcOutProposal: public CProposal {
+public:
+    CUserID     self_chain_uid;  // swap-out initiator's address 
+    TokenSymbol self_chain_token_symbol; // from kXChainSwapTokenMap to get the target token symbol
+
+    ChainType   peer_chain_type = ChainType::BITCOIN; //redudant, reference only
+    string      peer_chain_uid;  // swap-out peer-chain address
+    uint64_t    swap_amount;
+    
+    
+    CGovAxcOutProposal(): CProposal(ProposalType::GOV_AXC_OUT) {}
+    CGovAxcOutProposal(CUserID &uid, TokenSymbol selfChainTokenSymbol, ChainType peerChainType, string &peerChainUid,
+                        uint64_t &swapAmount): CProposal(ProposalType::GOV_AXC_OUT), 
+                        self_chain_uid(uid), 
+                        self_chain_token_symbol(selfChainTokenSymbol), 
+                        peer_chain_type(peerChainType),
+                        peer_chain_uid(peerChainUid),
+                        swap_amount(swapAmount) {}
+
+    IMPLEMENT_SERIALIZE(
+        READWRITE(VARINT(expiry_block_height));
+        READWRITE(approval_min_count);
+
+        READWRITE(self_chain_uid);
+        READWRITE(self_chain_token_symbol);
+        READWRITE((uint8_t &)peer_chain_type);
+        READWRITE(peer_chain_uid);
+        READWRITE(VARINT(swap_amount));
+    );
+
+     Object ToJson() override {
+        Object obj = CProposal::ToJson();
+        obj.push_back(Pair("self_chain_uid", self_chain_uid.ToString()));
+        obj.push_back(Pair("self_chain_token_symbol", self_chain_token_symbol));
+        obj.push_back(Pair("peer_chain_type", peer_chain_type));
+        obj.push_back(Pair("peer_chain_uid", peer_chain_uid));
+        obj.push_back(Pair("swap_amount", ValueFromAmount(swap_amount)));
+        return obj;
+    }
+
+    std::string ToString() override {
+        return  strprintf("self_chain_uid=%s, self_chain_token_symbol=%s, peer_chain_type=%d, peer_chain_uid=%, swap_amount=%llu",
+                        self_chain_uid.ToString(), self_chain_token_symbol, peer_chain_type, peer_chain_uid, swap_amount);
+    }
+
+    bool CheckProposal(CTxExecuteContext& context) override;
+    bool ExecuteProposal(CTxExecuteContext& context) override;
+
 };
 
 class CProposalStorageBean {
 
 public:
-    shared_ptr<CProposal> proposalPtr ;
+    shared_ptr<CProposal> sp_proposal ;
 
     CProposalStorageBean() {}
 
-    CProposalStorageBean( shared_ptr<CProposal> ptr): proposalPtr(ptr) {}
+    CProposalStorageBean( shared_ptr<CProposal> ptr): sp_proposal(ptr) {}
 
-    bool IsEmpty() const { return proposalPtr == nullptr; }
-    void SetEmpty() { proposalPtr = nullptr; }
+    bool IsEmpty() const { return sp_proposal == nullptr; }
+    void SetEmpty() { sp_proposal = nullptr; }
 
-
+    string ToString() const {
+        return sp_proposal->ToString();
+    }
 
     unsigned int GetSerializeSize(int nType, int nVersion) const {
-
         if(IsEmpty())
             return 1 ;
-        else
-            return (*proposalPtr).GetSerializeSize(nType, nVersion) + 1 ;
+  
+        return (*sp_proposal).GetSerializeSize(nType, nVersion) + 1 ;
     }
 
     template <typename Stream>
     void Serialize(Stream &os, int nType, int nVersion) const {
-
         uint8_t proposalType = ProposalType ::NULL_PROPOSAL ;
 
-        if(!IsEmpty())
-            proposalType = proposalPtr->proposal_type ;
-        uint8_t pt = (uint8_t&)proposalType;
+        if (!IsEmpty())
+            proposalType = sp_proposal->proposal_type ;
 
-        ::Serialize(os, pt, nType, nVersion);
+        ::Serialize(os, (uint8_t&) proposalType, nType, nVersion);
 
-        if(IsEmpty())
+        if (IsEmpty())
             return ;
 
-        switch (proposalPtr->proposal_type) {
-            case PARAM_GOVERN:
-                ::Serialize(os, *((CParamsGovernProposal   *) (proposalPtr.get())), nType, nVersion);
+        switch (sp_proposal->proposal_type) {
+
+            case GOV_SYS_PARAM:
+                ::Serialize(os, *((CGovSysParamProposal   *) (sp_proposal.get())), nType, nVersion);
                 break;
-            case GOVERNER_UPDATE:
-                ::Serialize(os, *((CGovernerUpdateProposal *) (proposalPtr.get())), nType, nVersion);
+            case GOV_CDP_COINPAIR:
+                ::Serialize(os, *((CGovCoinPairProposal    *) (sp_proposal.get())), nType, nVersion);
                 break;
-            case DEX_SWITCH:
-                ::Serialize(os, *((CDexSwitchProposal      *) (proposalPtr.get())), nType, nVersion);
+            case GOV_CDP_PARAM:
+                ::Serialize(os, *((CGovCdpParamProposal *) (sp_proposal.get())), nType, nVersion);
                 break;
-            case MINER_FEE_UPDATE:
-                ::Serialize(os, *((CMinerFeeProposal       *) (proposalPtr.get())), nType, nVersion);
+            case GOV_BPMC_LIST:
+                ::Serialize(os, *((CGovBpMcListProposal *) (sp_proposal.get())), nType, nVersion);
                 break;
+            case GOV_DEX_OP:
+                ::Serialize(os, *((CGovDexOpProposal      *) (sp_proposal.get())), nType, nVersion);
+                break;
+            case GOV_MINER_FEE:
+                ::Serialize(os, *((CGovMinerFeeProposal       *) (sp_proposal.get())), nType, nVersion);
+                break;
+            case GOV_COIN_TRANSFER:
+                ::Serialize(os, *((CGovCoinTransferProposal   *) (sp_proposal.get())), nType, nVersion);
+                break;
+            case GOV_BP_SIZE:
+                ::Serialize(os, *((CGovBpSizeProposal  *) (sp_proposal.get())), nType, nVersion);
+                break;
+            case GOV_DEX_QUOTE:
+                ::Serialize(os, *((CGovDexQuoteProposal   *) (sp_proposal.get())), nType, nVersion);
+                break;
+            case GOV_FEED_COINPAIR:
+                ::Serialize(os, *((CGovFeedCoinPairProposal   *) (sp_proposal.get())), nType, nVersion);
+                break;
+            case GOV_AXC_IN:
+                ::Serialize(os, *((CGovAxcInProposal   *) (sp_proposal.get())), nType, nVersion);
+                break;
+            case GOV_AXC_OUT:
+                ::Serialize(os, *((CGovAxcOutProposal  *) (sp_proposal.get())), nType, nVersion);
+                break;
+
             default:
                 throw ios_base::failure(strprintf("Serialize: proposalType(%d) error.",
-                                                  proposalPtr->proposal_type));
+                                                  sp_proposal->proposal_type));
         }
-
-
     }
 
     template <typename Stream>
@@ -282,32 +696,79 @@ public:
         uint8_t nProposalTye;
         is.read((char *)&(nProposalTye), sizeof(nProposalTye));
         ProposalType proposalType = (ProposalType)nProposalTye ;
-        if(proposalType == ProposalType:: NULL_PROPOSAL)
+        if (proposalType == ProposalType:: NULL_PROPOSAL)
             return ;
 
         switch(proposalType) {
-
-            case PARAM_GOVERN: {
-                proposalPtr = std::make_shared<CParamsGovernProposal>();
-                ::Unserialize(is, *((CParamsGovernProposal *)(proposalPtr.get())), nType, nVersion);
+            case GOV_SYS_PARAM: {
+                sp_proposal = std::make_shared<CGovSysParamProposal>();
+                ::Unserialize(is, *((CGovSysParamProposal *)(sp_proposal.get())), nType, nVersion);
                 break;
             }
 
-            case GOVERNER_UPDATE: {
-                proposalPtr = std::make_shared<CGovernerUpdateProposal>();
-                ::Unserialize(is, *((CGovernerUpdateProposal *)(proposalPtr.get())), nType, nVersion);
+            case GOV_CDP_COINPAIR: {
+                sp_proposal = std::make_shared<CGovCoinPairProposal>();
+                ::Unserialize(is, *((CGovCoinPairProposal *)(sp_proposal.get())), nType, nVersion);
                 break;
             }
 
-            case DEX_SWITCH: {
-                proposalPtr = std::make_shared<CDexSwitchProposal>();
-                ::Unserialize(is, *((CDexSwitchProposal *)(proposalPtr.get())), nType, nVersion);
+            case GOV_CDP_PARAM: {
+                sp_proposal = std::make_shared<CGovCdpParamProposal>();
+                ::Unserialize(is, *((CGovCdpParamProposal *)(sp_proposal.get())), nType, nVersion);
                 break;
             }
 
-            case MINER_FEE_UPDATE: {
-                proposalPtr = std::make_shared<CMinerFeeProposal>();
-                ::Unserialize(is, *((CMinerFeeProposal *)(proposalPtr.get())), nType, nVersion);
+            case GOV_BPMC_LIST: {
+                sp_proposal = std::make_shared<CGovBpMcListProposal>();
+                ::Unserialize(is, *((CGovBpMcListProposal *)(sp_proposal.get())), nType, nVersion);
+                break;
+            }
+
+            case GOV_DEX_OP: {
+                sp_proposal = std::make_shared<CGovDexOpProposal>();
+                ::Unserialize(is, *((CGovDexOpProposal *)(sp_proposal.get())), nType, nVersion);
+                break;
+            }
+
+            case GOV_MINER_FEE: {
+                sp_proposal = std::make_shared<CGovMinerFeeProposal>();
+                ::Unserialize(is, *((CGovMinerFeeProposal *)(sp_proposal.get())), nType, nVersion);
+                break;
+            }
+
+            case GOV_COIN_TRANSFER: {
+                sp_proposal = std:: make_shared<CGovCoinTransferProposal>();
+                ::Unserialize(is,  *((CGovCoinTransferProposal *)(sp_proposal.get())), nType, nVersion);
+                break;
+            }
+
+            case GOV_BP_SIZE: {
+                sp_proposal = std:: make_shared<CGovBpSizeProposal>();
+                ::Unserialize(is,  *((CGovBpSizeProposal *)(sp_proposal.get())), nType, nVersion);
+                break;
+            }
+
+            case GOV_DEX_QUOTE: {
+                sp_proposal = std:: make_shared<CGovDexQuoteProposal>();
+                ::Unserialize(is,  *((CGovDexQuoteProposal *)(sp_proposal.get())), nType, nVersion);
+                break;
+            }
+
+            case GOV_FEED_COINPAIR: {
+                sp_proposal = std:: make_shared<CGovFeedCoinPairProposal>();
+                ::Unserialize(is,  *((CGovFeedCoinPairProposal *)(sp_proposal.get())), nType, nVersion);
+                break;
+            }
+
+            case GOV_AXC_IN: {
+                sp_proposal = std:: make_shared<CGovAxcInProposal>();
+                ::Unserialize(is,  *((CGovAxcInProposal *)(sp_proposal.get())), nType, nVersion);
+                break;
+            }
+
+            case GOV_AXC_OUT: {
+                sp_proposal = std:: make_shared<CGovAxcOutProposal>();
+                ::Unserialize(is,  *((CGovAxcOutProposal *)(sp_proposal.get())), nType, nVersion);
                 break;
             }
 
@@ -315,9 +776,9 @@ public:
                 throw ios_base::failure(strprintf("Unserialize: nTxType(%d) error.",
                                                   nProposalTye));
         }
-        proposalPtr->proposal_type = proposalType;
-    }
 
+        sp_proposal->proposal_type = proposalType;
+    }
 };
 
 

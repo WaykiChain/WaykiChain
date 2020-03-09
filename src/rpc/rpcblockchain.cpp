@@ -9,9 +9,9 @@
 
 #include "commons/messagequeue.h"
 #include "commons/uint256.h"
+#include "commons/util/util.h"
 #include "config/configuration.h"
 #include "init.h"
-#include "commons/json/json_spirit_value.h"
 #include "main.h"
 #include "rpc/core/rpcserver.h"
 #include "sync.h"
@@ -53,7 +53,8 @@ Object BlockToJSON(const CBlock& block, const CBlockIndex* pBlockIndex) {
         result.push_back(Pair("next_block_hash", pNext->GetBlockHash().GetHex()));
 
     Array prices;
-    for (auto &item : block.GetBlockMedianPrice()) {
+    const auto& priceMap = block.GetBlockMedianPrice();
+    for (const auto &item : priceMap) {
         if (item.second == 0) {
             continue;
         }
@@ -145,14 +146,14 @@ Value getrawmempool(const Array& params, bool fHelp)
         Object obj;
         for (const auto& entry : mempool.memPoolTxs) {
             const uint256& hash      = entry.first;
-            const CTxMemPoolEntry& e = entry.second;
+            const CTxMemPoolEntry& mpe = entry.second;
             Object info;
-            info.push_back(Pair("size",         (int)e.GetTxSize()));
-            info.push_back(Pair("fees_type",    std::get<0>(e.GetFees())));
-            info.push_back(Pair("fees",         ValueFromAmount(std::get<1>(e.GetFees()))));
-            info.push_back(Pair("time",         e.GetTime()));
-            info.push_back(Pair("height",       (int)e.GetHeight()));
-            info.push_back(Pair("priority",     e.GetPriority()));
+            info.push_back(Pair("size",         (int) mpe.GetTxSize()));
+            info.push_back(Pair("fees_type",    std::get<0>(mpe.GetFees())));
+            info.push_back(Pair("fees",         ValueFromAmount(std::get<1>(mpe.GetFees()))));
+            info.push_back(Pair("time",         mpe.GetTime()));
+            info.push_back(Pair("height",       (int) mpe.GetHeight()));
+            info.push_back(Pair("priority",     mpe.GetPriority()));
 
             obj.push_back(Pair(hash.ToString(), info));
         }

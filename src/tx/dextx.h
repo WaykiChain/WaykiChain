@@ -40,10 +40,10 @@ namespace dex {
         uint64_t asset_amount       = 0;                 //!< amount of asset to buy/sell
         uint64_t price              = 0;                 //!< price in coinType want to buy/sell asset
         DexID dex_id                = 0;                 //!< dex id
-        PublicMode public_mode = ORDER_PUBLIC; //!< order public mode
         string memo                 = "";                   //!< memo
 
-        bool has_operator_config      = false;
+        bool has_operator_config      = false;          //! has operator config
+        PublicMode public_mode = PublicMode::PUBLIC;     //!< order public mode
         OperatorFeeRatios operator_fee_ratios;           //!< operator fee ratios
         CUserID operator_uid        = CUserID();            //!< dex operator uid
         UnsignedCharArray operator_signature;               //!< dex operator signature
@@ -87,7 +87,6 @@ namespace dex {
             order_type  = ORDER_LIMIT_PRICE;
             order_side  = ORDER_BUY;
             dex_id      = DEX_RESERVED_ID;
-            public_mode = ORDER_PUBLIC;
         }
 
         CDEXBuyLimitOrderTx(const CUserID &txUidIn, int32_t validHeightIn, const TokenSymbol &feeSymbol,
@@ -103,7 +102,6 @@ namespace dex {
             asset_amount = assetAmountIn;
             price        = priceIn;
             dex_id       = DEX_RESERVED_ID;
-            public_mode  = ORDER_PUBLIC;
             // other order fields are default value
         }
 
@@ -143,7 +141,6 @@ namespace dex {
             order_type  = ORDER_LIMIT_PRICE;
             order_side  = ORDER_SELL;
             dex_id      = DEX_RESERVED_ID;
-            public_mode = ORDER_PUBLIC;
             // other order fields are default value
         }
 
@@ -159,7 +156,6 @@ namespace dex {
             asset_amount = assetAmountIn;
             price        = priceIn;
             dex_id       = DEX_RESERVED_ID;
-            public_mode  = ORDER_PUBLIC;
             // other order fields are default value
         }
 
@@ -199,7 +195,6 @@ namespace dex {
             order_type   = ORDER_MARKET_PRICE;
             order_side   = ORDER_BUY;
             dex_id       = DEX_RESERVED_ID;
-            public_mode  = ORDER_PUBLIC;
             // other order fields are default value
         }
 
@@ -215,7 +210,6 @@ namespace dex {
             asset_amount = 0;
             price        = 0;
             dex_id       = DEX_RESERVED_ID;
-            public_mode  = ORDER_PUBLIC;
             // other order fields are default value
         }
 
@@ -253,7 +247,6 @@ namespace dex {
             order_type   = ORDER_MARKET_PRICE;
             order_side   = ORDER_SELL;
             dex_id       = DEX_RESERVED_ID;
-            public_mode  = ORDER_PUBLIC;
             // other order fields are default value
         }
 
@@ -269,7 +262,6 @@ namespace dex {
             asset_amount = assetAmountIn;
             price        = 0;
             dex_id       = DEX_RESERVED_ID;
-            public_mode  = ORDER_PUBLIC;
             // other order fields are default value
         }
 
@@ -317,7 +309,6 @@ namespace dex {
                 READWRITE(VARINT(tx.coin_amount));
                 READWRITE(VARINT(tx.price));
                 READWRITE(VARINT(tx.dex_id));
-                READWRITE_ENUM(tx.public_mode, uint8_t);
                 READWRITE(tx.memo);
             )
         };
@@ -329,7 +320,7 @@ namespace dex {
                     uint64_t fees, OrderType orderTypeIn, OrderSide orderSideIn,
                     const TokenSymbol &coinSymbolIn, const TokenSymbol &assetSymbolIn,
                     uint64_t coinAmountIn, uint64_t assetAmountIn, uint64_t priceIn, DexID dexIdIn,
-                    PublicMode publicModeIn, const string &memoIn)
+                    const string &memoIn)
             : CDEXOrderBaseTx(DEX_ORDER_TX, txUidIn, validHeightIn, feeSymbol, fees) {
             order_type   = orderTypeIn;
             order_side   = orderSideIn;
@@ -339,7 +330,6 @@ namespace dex {
             asset_amount = assetAmountIn;
             price        = priceIn;
             dex_id       = dexIdIn;
-            public_mode  = publicModeIn;
             memo         = memoIn;
         }
 

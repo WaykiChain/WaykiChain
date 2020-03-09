@@ -27,20 +27,17 @@ bool CMulsigTx::CheckTx(CTxExecuteContext &context) {
 
     for (size_t i = 0; i < transfers.size(); i++) {
         IMPLEMENT_CHECK_TX_REGID_OR_KEYID(transfers[i].to_uid);
-        auto pSymbolErr = cw.assetCache.CheckTransferCoinSymbol(transfers[i].coin_symbol);
-        if (pSymbolErr) {
-            return state.DoS(100, ERRORMSG("CMulsigTx::CheckTx, transfers[%d], invalid coin_symbol=%s, %s",
-                i, transfers[i].coin_symbol, *pSymbolErr), REJECT_INVALID, "invalid-coin-symbol");
-        }
+        if (!cw.assetCache.CheckAsset(transfers[i].coin_symbol))
+            return state.DoS(100, ERRORMSG("CMulsigTx::CheckTx, transfers[%d], invalid coin_symbol=%s", i,
+                            transfers[i].coin_symbol), REJECT_INVALID, "invalid-coin-symbol");
 
         if (transfers[i].coin_amount < DUST_AMOUNT_THRESHOLD)
-            return state.DoS(100, ERRORMSG("CMulsigTx::CheckTx, transfers[%d], dust amount, %llu < %llu",
-                i, transfers[i].coin_amount, DUST_AMOUNT_THRESHOLD), REJECT_DUST, "invalid-coin-amount");
-
+            return state.DoS(100, ERRORMSG("CMulsigTx::CheckTx, transfers[%d], dust amount, %llu < %llu", i,
+                            transfers[i].coin_amount, DUST_AMOUNT_THRESHOLD), REJECT_DUST, "invalid-coin-amount");
 
         if (!CheckBaseCoinRange(transfers[i].coin_amount))
-            return state.DoS(100, ERRORMSG("CMulsigTx::CheckTx, transfers[%d], coin_amount=%llu out of valid range",
-                i, transfers[i].coin_amount), REJECT_DUST, "invalid-coin-amount");
+            return state.DoS(100, ERRORMSG("CMulsigTx::CheckTx, transfers[%d], coin_amount=%llu out of valid range", i,
+                            transfers[i].coin_amount), REJECT_DUST, "invalid-coin-amount");
     }
 
     uint64_t minFee;
@@ -143,8 +140,8 @@ bool CMulsigTx::ExecuteTx(CTxExecuteContext &context) {
         uint64_t actualCoinsToSend = transfer.coin_amount;
         if (transfer.coin_symbol == SYMB::WUSD) {  // if transferring WUSD, must pay friction fees to the risk reserve
             uint64_t riskReserveFeeRatio;
-            if (!cw.sysParamCache.GetParam(CDP_SCOIN_RESERVE_FEE_RATIO, riskReserveFeeRatio)) {
-                return state.DoS(100, ERRORMSG("CMulsigTx::ExecuteTx, transfers[%d], read CDP_SCOIN_RESERVE_FEE_RATIO error", i),
+            if (!cw.sysParamCache.GetParam(TRANSFER_SCOIN_RESERVE_FEE_RATIO, riskReserveFeeRatio)) {
+                return state.DoS(100, ERRORMSG("CMulsigTx::ExecuteTx, transfers[%d], read TRANSFER_SCOIN_RESERVE_FEE_RATIO error", i),
                                 READ_SYS_PARAM_FAIL, "bad-read-sysparamdb");
             }
             uint64_t reserveFeeScoins = transfer.coin_amount * riskReserveFeeRatio / RATIO_BOOST;

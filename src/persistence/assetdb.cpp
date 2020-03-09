@@ -12,46 +12,36 @@
 
 using namespace std;
 
-bool CAssetDBCache::GetAsset(const TokenSymbol &tokenSymbol, CAsset &asset) {
+bool CAssetDbCache::GetAsset(const TokenSymbol &tokenSymbol, CAsset &asset) {
     return assetCache.GetData(tokenSymbol, asset);
 }
 
-bool CAssetDBCache::HaveAsset(const TokenSymbol &tokenSymbol) {
-    return assetCache.HaveData(tokenSymbol);
+bool CAssetDbCache::SetAsset(const CAsset &asset) {
+    return assetCache.SetData(asset.asset_symbol, asset);
 }
 
-bool CAssetDBCache::SaveAsset(const CAsset &asset) {
-    return assetCache.SetData(asset.symbol, asset);
-}
-bool CAssetDBCache::ExistAssetSymbol(const TokenSymbol &tokenSymbol) {
-    return assetCache.HaveData(tokenSymbol);
+bool CAssetDbCache::HasAsset(const TokenSymbol &tokenSymbol) {
+    return assetCache.HasData(tokenSymbol);
 }
 
-shared_ptr<string> CAssetDBCache::CheckTransferCoinSymbol(const TokenSymbol &symbol) {
-    size_t coinSymbolSize = symbol.size();
-    if (coinSymbolSize == 0 || coinSymbolSize > MAX_TOKEN_SYMBOL_LEN) {
-        return make_shared<string>("empty or too long");
-    }
+bool CAssetDbCache::CheckAsset(const TokenSymbol &symbol, uint64_t permsSum) {
+    if (symbol.size() < 3 || symbol.size() > MAX_TOKEN_SYMBOL_LEN)
+        return false;
 
-    if ((coinSymbolSize < MIN_ASSET_SYMBOL_LEN && !kCoinTypeSet.count(symbol)) ||
-        (coinSymbolSize >= MIN_ASSET_SYMBOL_LEN && !HaveAsset(symbol)))
-        return make_shared<string>("unsupported symbol");
+    if (kCoinTypeSet.count(symbol))
+        return true;
 
-    return nullptr;
+    CAsset asset;
+    if (GetAsset(symbol, asset))
+        return true;
+
+    if (permsSum > asset.asset_perms_sum)
+        return false;
+
+    return (permsSum == (asset.asset_perms_sum & permsSum));
 }
 
-bool CAssetDBCache::AddAssetTradingPair(const CAssetTradingPair &assetTradingPair) {
-    return assetTradingPairCache.SetData(assetTradingPair, 1);
-}
-bool CAssetDBCache::EraseAssetTradingPair(const CAssetTradingPair &assetTradingPair) {
-    return assetTradingPairCache.EraseData(assetTradingPair);
-}
-bool CAssetDBCache::ExistAssetTradingPair(const CAssetTradingPair &assetTradingPair) {
-    return assetTradingPairCache.HaveData(assetTradingPair);
-}
-
-bool CAssetDBCache::Flush() {
+bool CAssetDbCache::Flush() {
     assetCache.Flush();
-    assetTradingPairCache.Flush();
     return true;
 }

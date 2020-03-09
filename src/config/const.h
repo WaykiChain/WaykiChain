@@ -7,28 +7,74 @@
 #define CONFIG_CONST_H
 
 #include <string>
+#include <unordered_set>
 #include <unordered_map>
+
+#include "commons/types.h"
 
 using namespace std;
 
+//default list below, can be also expanded thru DeGov
 namespace SYMB {
-    static const string WICC                = "WICC";
-    static const string WGRT                = "WGRT";
-    static const string WUSD                = "WUSD";
-    static const string WCNY                = "WCNY";
+    static const string WICC        = "WICC";
+    static const string WGRT        = "WGRT";
+    static const string WUSD        = "WUSD";
+    static const string WCNY        = "WCNY";
 
-    static const string WBTC                = "WBTC";
-    static const string WETH                = "WETH";
-    static const string WEOS                = "WEOS";
+    static const string WBTC        = "WBTC";
+    static const string WETH        = "WETH";
+    static const string WEOS        = "WEOS";
 
-    static const string USD                 = "USD";
-    static const string CNY                 = "CNY";
-    static const string EUR                 = "EUR";
-    static const string BTC                 = "BTC";
-    static const string USDT                = "USDT";
-    static const string GOLD                = "GOLD";
-    static const string KWH                 = "KWH";
-}
+    static const string USD         = "USD";
+    static const string CNY         = "CNY";
+    static const string EUR         = "EUR";
+
+    static const string BTC         = "BTC";
+    static const string ETH         = "ETH";
+    static const string EOS         = "EOS";
+
+    static const string BTC_USDT    = "BTC_USDT";
+    static const string ETH_USDT    = "ETH_USDT";   //ERC20 USDT
+    static const string ETH_DAI     = "ETH_DAI";    //ERC20 DAI
+
+    static const string GOLD        = "GOLD";
+    static const string KWH         = "KWH";
+};
+
+//default list below, can be also expanded thru DeGov
+static const unordered_set<TokenSymbol> kCoinTypeSet = {
+    SYMB::WICC, SYMB::WGRT, SYMB::WUSD
+};
+
+
+// must only be specified in code below
+static const unordered_set<string> kScoinSymbolSet = {
+    SYMB::WUSD, SYMB::WCNY
+};
+// cdp scoin symbol -> price quote symbol
+static const unordered_map<TokenSymbol, TokenSymbol> kScoinPriceQuoteMap = {
+    {SYMB::WUSD, SYMB::USD},
+};
+static const unordered_set<TokenSymbol> kPriceQuoteSymbolSet = {
+    SYMB::USD, 
+    //SYMB::CNY, SYMB::EUR, SYMB::BTC, SYMB::BTC_USDT, SYMB::ETH_USDT, SYMB::GOLD, SYMB::KWH
+};
+
+//default list below, can be also expanded thru DeGov
+static const unordered_map<string, pair<TokenSymbol, TokenSymbol>> kCdpCoinPairMap = {
+    {"WICC:WUSD", make_pair(SYMB::WICC, SYMB::WUSD) },
+    {"WBTC:WUSD", make_pair(SYMB::WBTC, SYMB::WUSD) },
+    {"WETH:WUSD", make_pair(SYMB::WETH, SYMB::WUSD) },
+};
+
+// default setting, to be expanded thru deGov
+static const std::map<TokenSymbol, TokenSymbol> kXChainSwapTokenMap =  {
+    { SYMB::BTC,     SYMB::WBTC  },
+    { SYMB::ETH,     SYMB::WETH  },
+    { SYMB::WBTC,    SYMB::BTC   },
+    { SYMB::WETH,    SYMB::ETH   },   
+    // {SYMB::ETH_USDT, SYMB::WETH_USDT},
+};
 
 struct CoinUnitTypeHash {
     size_t operator()(const string &unit) const noexcept {
@@ -50,7 +96,7 @@ namespace COIN_UNIT {
     static const string MWI  = "mwi";
 }
 
-static const unordered_map<string, uint64_t, CoinUnitTypeHash> CoinUnitTypeTable {
+static const unordered_map<string, uint64_t, CoinUnitTypeHash> CoinUnitTypeMap {
     {"sawi", 1                  },  // 0.00000001
     {"quwi", 10                 },  // 0.0000001
     {"muwi", 100                },  // 0.000001
@@ -79,14 +125,19 @@ static const unordered_map<string, unsigned int , CoinUnitTypeHash> CoinUnitPrec
     {"mwi",  14    },  // 1000,000
 };
 
+enum ChainType: uint8_t {
+    NULL_CHAIN_TYPE = 0,
+    BITCOIN         = 1,
+    ETHEREUM        = 2,
+    EOS             = 3
+};
+
 static const uint64_t COIN = 100000000;  //10^8 = 1 WICC
 static const uint64_t CENT = 1000000;    //10^6 = 0.01 WICC
 
-/** the max token symbol len */
 static const uint32_t MAX_TOKEN_SYMBOL_LEN = 7;
 /** the max asset name len */
 static const uint32_t MAX_ASSET_NAME_LEN = 32;
-static const uint32_t MIN_ASSET_SYMBOL_LEN = 6;
 static const uint64_t MAX_ASSET_TOTAL_SUPPLY = 90000000000 * COIN; // 90 billion
 
 /** the total blocks of burn fee need */
@@ -167,7 +218,8 @@ static const uint32_t CONTRACT_CALL_RESERVED_FEES_RATIO = 10;  // boosted by 10^
 
 static const string EMPTY_STRING = "";
 
-static const int32_t FINALITY_BLOCK_CONFIRM_MINER_COUNT = 8 ;
+static const uint8_t BP_MAX_COUNT = 255;    //max number of allowed BPs
 
+static const uint16_t GOVERN_EFFECTIVE_AFTER_BLOCK_COUNT = 50; //blocks number
 
 #endif //CONFIG_CONST_H

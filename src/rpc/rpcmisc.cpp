@@ -50,7 +50,7 @@ Value getcoinunitinfo(const Array& params, bool fHelp){
 
 	// Declaring a set that will store the pairs using above comparision logic
 	std::set<std::pair<std::string, uint64_t>, Comparator> setOfUnits(
-			CoinUnitTypeTable.begin(), CoinUnitTypeTable.end(), compFunctor);
+			CoinUnitTypeMap.begin(), CoinUnitTypeMap.end(), compFunctor);
 
 	Object obj;
     for (auto& it: setOfUnits) {
@@ -72,7 +72,7 @@ Value getinfo(const Array& params, bool fHelp) {
             "  \"protocol_version\": xxxxx,     (numeric) the protocol version\n"
             "  \"net_type\": \"xxxxx\",         (string) the blockchain network type (MAIN_NET|TEST_NET|REGTEST_NET)\n"
             "  \"proxy\": \"host:port\",        (string) the proxy server used by the node program\n"
-            "  \"ext_ip\": \"xxxxx\",           (string) the external ip of the node\n"
+            "  \"public_ip\": \"xxxxx\",        (string) the public IP of this node\n"
             "  \"conf_dir\": \"xxxxx\",         (string) the conf directory\n"
             "  \"data_dir\": \"xxxxx\",         (string) the data directory\n"
             "  \"block_interval\": xxxxx,       (numeric) the time interval (in seconds) to add a new block into the "
@@ -108,7 +108,7 @@ Value getinfo(const Array& params, bool fHelp) {
     obj.push_back(Pair("protocol_version",      PROTOCOL_VERSION));
     obj.push_back(Pair("net_type",              NetTypeNames[SysCfg().NetworkID()]));
     obj.push_back(Pair("proxy",                 (proxy.first.IsValid() ? proxy.first.ToStringIPPort() : string())));
-    obj.push_back(Pair("ext_ip",                externalIp));
+    obj.push_back(Pair("public_ip",             publicIp));
     obj.push_back(Pair("conf_dir",              GetConfigFile().string().c_str()));
     obj.push_back(Pair("data_dir",              GetDataDir().string().c_str()));
     obj.push_back(Pair("block_interval",        (int32_t)::GetBlockInterval(chainActive.Height())));
@@ -190,4 +190,172 @@ Value verifymessage(const Array& params, bool fHelp) {
         return false;
 
     return (pubkey.GetKeyId() == keyId);
+}
+
+//                 prefix type             db          cache
+//               -------------------- -------------  ----------------------
+#define DBK_PREFIX_CACHE_LIST(DEFINE) \
+    /*** Asset Registry DB */ \
+    DEFINE( ASSET,                pAssetCache, assetCache )  \
+    /**** block db                                                                          */ \
+    /*DEFINE( BLOCK_INDEX,          cw.blockCache.txDiskPosCache)         */ \
+    DEFINE( BLOCKFILE_NUM_INFO,   pBlockCache, txDiskPosCache) \
+    DEFINE( LAST_BLOCKFILE,       pBlockCache, lastBlockFileCache) \
+    DEFINE( REINDEX,              pBlockCache, reindexCache) \
+    DEFINE( FINALITY_BLOCK,       pBlockCache, finalityBlockCache) \
+    DEFINE( FLAG,                 pBlockCache, flagCache) \
+    DEFINE( BEST_BLOCKHASH,       pBlockCache, bestBlockHashCache) \
+    DEFINE( TXID_DISKINDEX,       pBlockCache, txDiskPosCache) \
+    /**** account db                                                                      */ \
+    DEFINE( REGID_KEYID,          pAccountCache,  regId2KeyIdCache)\
+    DEFINE( NICKID_KEYID,         pAccountCache,  nickId2KeyIdCache) \
+    DEFINE( KEYID_ACCOUNT,        pAccountCache,  accountCache) \
+    /**** contract db                                                                      */ \
+    DEFINE( CONTRACT_DEF,         pContractCache,  contractCache ) \
+    DEFINE( CONTRACT_DATA,        pContractCache,  contractDataCache) \
+    DEFINE( CONTRACT_ACCOUNT,     pContractCache,  contractAccountCache) \
+    DEFINE( CONTRACT_TRACES,      pContractCache,  contractTracesCache) \
+    /**** delegate db                                                                      */ \
+    DEFINE( VOTE,                 pDelegateCache,  voteRegIdCache) \
+    DEFINE( LAST_VOTE_HEIGHT,     pDelegateCache,  last_vote_height_cache) \
+    DEFINE( PENDING_DELEGATES,    pDelegateCache,  pending_delegates_cache) \
+    DEFINE( ACTIVE_DELEGATES,     pDelegateCache,  active_delegates_cache) \
+    DEFINE( REGID_VOTE,           pDelegateCache,  regId2VoteCache) \
+    /**** cdp db                                                                     */ \
+    DEFINE( CDP,                  pCdpCache,  cdpCache) \
+    DEFINE( USER_CDP,             pCdpCache,  userCdpCache) \
+    DEFINE( CDP_RATIO,            pCdpCache,  cdpRatioSortedCache) \
+    DEFINE( CDP_GLOBAL_DATA,      pCdpCache,  cdpGlobalDataCache) \
+    DEFINE( UPDATE_CDP_COINPAIRS,       pCdpCache,  cdpCoinPairsCache) \
+    /*DEFINE( CDP_GLOBAL_HALT,      pCdpCache,  cdpGlobalDataCache)           */ \
+    /**** cdp closed by redeem/forced or manned liquidate ***/  \
+    DEFINE( CLOSED_CDP_TX,        pClosedCdpCache, closedCdpTxCache) \
+    DEFINE( CLOSED_TX_CDP,        pClosedCdpCache, closedTxCdpCache) \
+    /**** dex db                                                                    */ \
+    DEFINE( DEX_ACTIVE_ORDER,     pDexCache, activeOrderCache) \
+    DEFINE( DEX_BLOCK_ORDERS,     pDexCache, blockOrdersCache) \
+    DEFINE( DEX_OPERATOR_LAST_ID, pDexCache, operator_last_id_cache) \
+    DEFINE( DEX_OPERATOR_DETAIL,  pDexCache, operator_detail_cache) \
+    DEFINE( DEX_OPERATOR_OWNER_MAP, pDexCache, operator_owner_map_cache) \
+    DEFINE( DEX_OPERATOR_TRADE_PAIR, pDexCache, operator_trade_pair_cache) \
+    /**** price feed */ \
+    DEFINE( MEDIAN_PRICES,        pPriceFeedCache, medianPricesCache) \
+    DEFINE( PRICE_FEED_COIN,      pPriceFeedCache,price_feed_coin_cache) \
+    DEFINE( PRICE_FEEDERS,        pPriceFeedCache,price_feeders_cache)  \
+    /**** log db                                                                    */ \
+    DEFINE( TX_EXECUTE_FAIL,      pLogCache,  executeFailCache ) \
+    /**** tx receipt db                                                                    */ \
+    DEFINE( TX_RECEIPT,           pReceiptCache,   txReceiptCache ) \
+    /**** tx coinutxo db                                                                    */ \
+    DEFINE( TX_UTXO,              pUtxoCache,   txUtxoCache) \
+    /**** sys param db                                                              */\
+    DEFINE(SYS_PARAM,             pSysParamCache, sys_param_chache) \
+    DEFINE(MINER_FEE,             pSysParamCache, miner_fee_cache) \
+    DEFINE(CDP_PARAM,             pSysParamCache, cdp_param_cache) \
+    DEFINE(CDP_INTEREST_PARAMS,   pSysParamCache, cdp_interest_param_changes_cache) \
+    DEFINE(BP_COUNT,              pSysParamCache, current_bp_count_cache) \
+    DEFINE(NEW_BP_COUNT,          pSysParamCache, new_bp_count_cache)    \
+    /**** sys govern db                                                */\
+    DEFINE(SYS_GOVERN,            pSysGovernCache, governors_cache)      \
+    DEFINE(GOVN_PROP,             pSysGovernCache, proposals_cache)      \
+    DEFINE(GOVN_APPROVAL_LIST,    pSysGovernCache, approvals_cache)      \
+
+
+template<int32_t PREFIX_TYPE, typename KeyType, typename ValueType>
+string DbCacheToString(CCompositeKVCache<PREFIX_TYPE, KeyType, ValueType> &cache) {
+    string str;
+    CDbIterator< CCompositeKVCache<PREFIX_TYPE, KeyType, ValueType> > it(cache);
+    for(it.First(); it.IsValid(); it.Next()) {
+        str += strprintf("%s={%s},\n", db_util::ToString(it.GetKey()), db_util::ToString(it.GetValue()));
+    }
+    return strprintf("-->%s, data={%s}\n", GetKeyPrefix(cache.PREFIX_TYPE), str);
+}
+
+template<int32_t PREFIX_TYPE, typename ValueType>
+string DbCacheToString(CSimpleKVCache<PREFIX_TYPE, ValueType> &cache) {
+    auto pData = cache.GetDataPtr();
+    if (pData) {
+        return strprintf("-->%s, data={%s}\n", GetKeyPrefix(cache.PREFIX_TYPE), db_util::ToString(*pData));
+    }
+    return "";
+}
+
+#define DUMP_DB_ONE(prefixType, db, cache) \
+    case dbk::prefixType: { str = DbCacheToString(pCdMan->db->cache); break;}
+#define DUMP_DB_ALL(prefixType, db, cache) \
+    str = DbCacheToString(pCdMan->db->cache) + "\n"; \
+    fwrite(str.data(), 1, str.size(), f);
+
+static void DumpDbOne(FILE *f, dbk::PrefixType prefixType, const string &prefixTypeStr) {
+    string str = "";
+    switch (prefixType) {
+        DBK_PREFIX_CACHE_LIST(DUMP_DB_ONE);
+        default :
+            throw JSONRPCError(RPC_INVALID_PARAMS, strprintf("unsupported dump db data of key prefix type=%s",
+                prefixTypeStr));
+            break;
+    }
+    fwrite(str.data(), 1, str.size(), f);
+}
+
+static void DumpDbAll(FILE *f) {
+    string str = "";
+    DBK_PREFIX_CACHE_LIST(DUMP_DB_ALL);
+}
+
+
+Value dumpdb(const Array& params, bool fHelp) {
+    if (fHelp || params.size() > 2)
+        throw runtime_error(
+            "dumpdb \"[key_prefix_type]\" \"[file_path]\"\n"
+            "\ndump db data to file\n"
+            "\nArguments:\n"
+            "1. \"key_prefix_type\"   (string, optional) the data key prefix type, * is all data, default is *\n"
+            "2. \"file_path\"       (string, optional) the output file path, if empty output to stdout, default is empty.\n"
+            "\nResult:\n"
+            "\nExamples:\n"
+            + HelpExampleCli("dumpdb", "") + "\nAs json rpc\n" + HelpExampleRpc("dumpdb", "")
+        );
+
+    string prefixTypeStr = "";
+    if (params.size() > 1)
+        prefixTypeStr = params[0].get_str();
+    string filePath = "";
+    if (params.size() > 1)
+        filePath = params[1].get_str();
+
+    struct FileCloser {
+        FILE *file = nullptr;
+        ~FileCloser() {
+            if (file != nullptr) {
+                fclose(file);
+                file = nullptr;
+            }
+        }
+    };
+
+    FILE *file = nullptr;
+    FileCloser fileCloser;
+    if (!filePath.empty()) {
+        file = fopen(filePath.c_str(), "w");
+        if (file == nullptr) {
+            throw JSONRPCError(RPC_INVALID_PARAMS, strprintf("opten file error! file=%s",
+                filePath));
+        }
+        fileCloser.file = file;
+    } else {
+        file = stdout;
+    }
+
+    if (!prefixTypeStr.empty() && prefixTypeStr != "*") {
+        dbk::PrefixType prefixType = dbk::ParseKeyPrefixType(prefixTypeStr);
+        if (prefixType == dbk::EMPTY)
+            throw JSONRPCError(RPC_INVALID_PARAMS, strprintf("unsupported db data key prefix type=%s",
+                prefixTypeStr));
+        DumpDbOne(file, prefixType, prefixTypeStr);
+    } else {
+        DumpDbAll(file);
+    }
+
+    return Object();
 }

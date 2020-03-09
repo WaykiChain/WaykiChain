@@ -6,14 +6,12 @@
 #ifndef PERSIST_ASSETDB_H
 #define PERSIST_ASSETDB_H
 
-#include "entities/asset.h"
-#include "leveldbwrapper.h"
-#include "entities/asset.h"
-#include "entities/asset.h"
 #include "commons/arith_uint256.h"
 #include "dbconf.h"
 #include "dbaccess.h"
 #include "dbiterator.h"
+#include "entities/asset.h"
+#include "leveldbwrapper.h"
 
 #include <map>
 #include <string>
@@ -23,12 +21,12 @@
 
 /*  CCompositeKVCache     prefixType            key              value           variable           */
 /*  -------------------- --------------------   --------------  -------------   --------------------- */
-    // <asset_tokenSymbol -> asset>
-typedef CCompositeKVCache< dbk::ASSET,         TokenSymbol,        CAsset>      DBAssetCache;
+    // <asset$tokenSymbol -> asset>
+typedef CCompositeKVCache< dbk::ASSET,         TokenSymbol,        CAsset>      DbAssetCache;
 
-class CUserAssetsIterator: public CDBIterator<DBAssetCache> {
+class CUserAssetsIterator: public CDbIterator<DbAssetCache> {
 public:
-    typedef CDBIterator<DBAssetCache> Base;
+    typedef CDbIterator<DbAssetCache> Base;
     using Base::Base;
 
     const CAsset& GetAsset() const {
@@ -36,60 +34,48 @@ public:
     }
 };
 
-class CAssetDBCache {
+class CAssetDbCache {
 public:
-    CAssetDBCache() {}
+    CAssetDbCache() {}
 
-    CAssetDBCache(CDBAccess *pDbAccess) : assetCache(pDbAccess), assetTradingPairCache(pDbAccess) {
+    CAssetDbCache(CDBAccess *pDbAccess) : assetCache(pDbAccess) {
         assert(pDbAccess->GetDbNameType() == DBNameType::ASSET);
     }
 
-    ~CAssetDBCache() {}
+    ~CAssetDbCache() {}
 
 public:
     bool GetAsset(const TokenSymbol &tokenSymbol, CAsset &asset);
-    bool HaveAsset(const TokenSymbol &tokenSymbol);
-    bool SaveAsset(const CAsset &asset);
-    bool ExistAssetSymbol(const TokenSymbol &tokenSymbol);
-    /**
-     * check transfer coin symbol
-     * return nullptr if succeed, else error msg
-     */
-    shared_ptr<string> CheckTransferCoinSymbol(const TokenSymbol &symbol);
+    bool SetAsset(const CAsset &asset);
+    bool HasAsset(const TokenSymbol &tokenSymbol);
 
-    bool AddAssetTradingPair(const CAssetTradingPair &assetTradingPair);
-    bool ExistAssetTradingPair(const CAssetTradingPair &TradingPair);
-    bool EraseAssetTradingPair(const CAssetTradingPair &assetTradingPair);
+    bool CheckAsset(const TokenSymbol &symbol, uint64_t permsSum = 0);
 
     bool Flush();
 
-    uint32_t GetCacheSize() const { return assetCache.GetCacheSize() + assetTradingPairCache.GetCacheSize(); }
+    uint32_t GetCacheSize() const { return assetCache.GetCacheSize(); }
 
-    void SetBaseViewPtr(CAssetDBCache *pBaseIn) {
+    void SetBaseViewPtr(CAssetDbCache *pBaseIn) {
         assetCache.SetBase(&pBaseIn->assetCache);
-        assetTradingPairCache.SetBase(&pBaseIn->assetTradingPairCache);
     }
 
     void SetDbOpLogMap(CDBOpLogMap *pDbOpLogMapIn) {
         assetCache.SetDbOpLogMap(pDbOpLogMapIn);
-        assetTradingPairCache.SetDbOpLogMap(pDbOpLogMapIn);
     }
 
     void RegisterUndoFunc(UndoDataFuncMap &undoDataFuncMap) {
         assetCache.RegisterUndoFunc(undoDataFuncMap);
-        assetTradingPairCache.RegisterUndoFunc(undoDataFuncMap);
     }
 
     shared_ptr<CUserAssetsIterator> CreateUserAssetsIterator() {
         return make_shared<CUserAssetsIterator>(assetCache);
     }
-private:
+
+public:
 /*  CCompositeKVCache     prefixType            key              value           variable           */
 /*  -------------------- --------------------   --------------  -------------   --------------------- */
     // <asset_tokenSymbol -> asset>
-    DBAssetCache   assetCache;
-    // <asset_trading_pair -> 1>
-    CCompositeKVCache< dbk::ASSET_TRADING_PAIR, CAssetTradingPair,  uint8_t>        assetTradingPairCache;
+    DbAssetCache   assetCache;
 };
 
 #endif  // PERSIST_ASSETDB_H

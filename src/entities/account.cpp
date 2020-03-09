@@ -26,6 +26,7 @@ bool CAccount::GetBalance(const TokenSymbol &tokenSymbol, const BalanceType bala
             case STAKED_VALUE:  value = accountToken.staked_amount; return true;
             case FROZEN_VALUE:  value = accountToken.frozen_amount; return true;
             case VOTED_VALUE:   value = accountToken.voted_amount;  return true;
+            case PLEDGED_VALUE: value = accountToken.pledged_amount; return true;
             default: return false;
         }
     }
@@ -101,6 +102,24 @@ bool CAccount::OperateBalance(const TokenSymbol &tokenSymbol, const BalanceOpTyp
 
             accountToken.free_amount += value;
             accountToken.voted_amount -= value;
+            return true;
+        }
+        case PLEDGE: {
+            if (accountToken.free_amount < value)
+                return ERRORMSG("CAccount::OperateBalance, free_amount insufficient(%llu vs %llu) of %s",
+                                accountToken.free_amount, value, tokenSymbol);
+
+            accountToken.free_amount -= value;
+            accountToken.pledged_amount += value;
+            return true;
+        }
+        case UNPLEDGE: {
+            if (accountToken.pledged_amount < value)
+                return ERRORMSG("CAccount::OperateBalance, pledged_amount insufficient(%llu vs %llu) of %s",
+                                accountToken.pledged_amount, value, tokenSymbol);
+
+            accountToken.free_amount += value;
+            accountToken.pledged_amount -= value;
             return true;
         }
         default: return false;
@@ -182,7 +201,7 @@ uint64_t CAccount::ComputeVoteFcoinInterest(const uint64_t lastVotedBcoins, cons
     return interest;
 }
 
-uint64_t CAccount::ComputeBlockInflateInterest(const uint32_t currHeight, const VoteDelegate &curDelegate) const {
+uint64_t CAccount::ComputeBlockInflateInterest(const uint32_t currHeight, const VoteDelegate &curDelegate, const uint32_t totalDelegateNum) const {
 
     FeatureForkVersionEnum version = GetFeatureForkVersion(currHeight);
     if (version == MAJOR_VER_R1)
@@ -195,14 +214,13 @@ uint64_t CAccount::ComputeBlockInflateInterest(const uint32_t currHeight, const 
     uint8_t subsidy      = ::GetSubsidyRate(currHeight);
     uint64_t holdHeight  = 1;
     uint32_t yearHeight  = ::GetYearBlockCount(currHeight);
-    uint32_t delegateNum = IniCfg().GetTotalDelegateNum();
-    uint64_t interest    = (long double)activeVotes * delegateNum * holdHeight * subsidy / yearHeight / 100;
+    uint64_t interest    = (long double)activeVotes * totalDelegateNum * holdHeight * subsidy / yearHeight / 100;
 
     LogPrint(BCLog::PROFIT,
              "compute block inflate interest to miner: %s, current height: %u\n"
              "interest = activeVotes * delegateNum * holdHeight * subsidy / yearHeight / 100\n"
              "formula: %llu = 1.0 * %llu * %u * %llu * %u / %u / 100\n",
-             regid.ToString(), currHeight, interest, activeVotes, delegateNum, holdHeight, subsidy, yearHeight);
+             regid.ToString(), currHeight, interest, activeVotes, totalDelegateNum, holdHeight, subsidy, yearHeight);
 
     return interest;
 }
@@ -233,10 +251,19 @@ Object CAccount::ToJsonObj() const {
     for (auto tokenPair : tokens) {
         Object tokenObj;
         const CAccountToken &token = tokenPair.second;
-        tokenObj.push_back(Pair("free_amount",      token.free_amount));
-        tokenObj.push_back(Pair("staked_amount",    token.staked_amount));
-        tokenObj.push_back(Pair("frozen_amount",    token.frozen_amount));
-        tokenObj.push_back(Pair("voted_amount",     token.voted_amount));
+
+        uint64_t total_amount = token.free_amount + token.staked_amount + token.frozen_amount 
+                                + token.voted_amount + token.pledged_amount;
+        
+        if (total_amount == 0)
+            continue;
+
+        tokenObj.push_back(Pair("free_amount",      token.free_amount));    //FREE
+        tokenObj.push_back(Pair("staked_amount",    token.staked_amount));  //Stake
+        tokenObj.push_back(Pair("frozen_amount",    token.frozen_amount));  //DEX
+        tokenObj.push_back(Pair("voted_amount",     token.voted_amount));   //VOTES
+        tokenObj.push_back(Pair("pledged_amount",   token.pledged_amount)); //CDP
+        tokenObj.push_back(Pair("total_amount",     total_amount));         //Total
 
         tokenMapObj.push_back(Pair(tokenPair.first, tokenObj));
     }

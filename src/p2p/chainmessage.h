@@ -13,7 +13,6 @@
 #include "net.h"
 #include "miner/pbftcontext.h"
 #include "miner/pbftmanager.h"
-#include "tx/einvalidtxtype.h"
 
 #include <string>
 #include <tuple>
@@ -483,7 +482,7 @@ inline bool ProcessTxMessage(CNode *pFrom, string strCommand, CDataStream &vRecv
     std::shared_ptr<CBaseTx> pBaseTx;
     try {
         vRecv >> pBaseTx;
-    } catch(EInvalidTxType e) {
+    } catch(runtime_error e) {
         // TODO: record the misebehaving or ban the peer node.
         return ERRORMSG("Unknown transaction type from peer %s, ignore! %s", pFrom->addr.ToString(), e.what());
     }
@@ -853,10 +852,8 @@ bool ProcessBlockConfirmMessage(CNode *pFrom, CDataStream &vRecv) {
     msgMan.AddMessageKnown(message);
     int messageCount = msgMan.SaveMessageByBlock(message.blockHash, message);
 
-    bool updateFinalitySuccess = false ;
-    if(messageCount >= FINALITY_BLOCK_CONFIRM_MINER_COUNT){
-       updateFinalitySuccess = pbftMan.UpdateLocalFinBlock(message) ;
-    }
+    bool updateFinalitySuccess = pbftMan.UpdateLocalFinBlock(message,  messageCount) ;
+
 
     if(CheckPBFTMessageSignaturer(message))
         RelayBlockConfirmMessage(message) ;
@@ -896,9 +893,8 @@ bool ProcessBlockFinalityMessage(CNode *pFrom, CDataStream &vRecv) {
 
     msgMan.AddMessageKnown(message);
     int messageCount = msgMan.SaveMessageByBlock(message.blockHash, message);
-    if(messageCount>= FINALITY_BLOCK_CONFIRM_MINER_COUNT){
-        pbftMan.UpdateGlobalFinBlock(message) ;
-    }
+    pbftMan.UpdateGlobalFinBlock(message, messageCount) ;
+
     if(CheckPBFTMessageSignaturer(message))
         RelayBlockFinalityMessage(message) ;
 

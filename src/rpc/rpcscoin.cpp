@@ -3,8 +3,6 @@
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include "rpcscoin.h"
-
 #include "commons/base58.h"
 #include "config/const.h"
 #include "rpc/core/rpcserver.h"
@@ -15,6 +13,7 @@
 #include "commons/util/util.h"
 #include "wallet/wallet.h"
 #include "wallet/walletdb.h"
+#include "persistence/assetdb.h"
 #include "tx/cdptx.h"
 #include "tx/pricefeedtx.h"
 #include "tx/assettx.h"
@@ -69,14 +68,12 @@ Value submitpricefeedtx(const Array& params, bool fHelp) {
         }
 
         string coinStr = coinValue.get_str();
-        if (!kCoinTypeSet.count(coinStr)) {
-            throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("Invalid coin symbol: %s", coinStr));
-        }
-
+        if (!pCdMan->pAssetCache->CheckAsset(coinStr, AssetPermType::PERM_PRICE_FEED))
+            throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("Invalid price feed symbol: %s", coinStr));
+    
         string currencyStr = currencyValue.get_str();
-        if (!kCurrencyTypeSet.count(currencyStr)) {
+        if (!kPriceQuoteSymbolSet.count(currencyStr))
             throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("Invalid currency type: %s", currencyStr));
-        }
 
         int64_t price = priceValue.get_int64();
         if (price <= 0) {
@@ -92,10 +89,10 @@ Value submitpricefeedtx(const Array& params, bool fHelp) {
 
     // Get account for checking balance
     CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, feedUid);
-    RPC_PARAM::CheckAccountBalance(account, cmFee.symbol, SUB_FREE, cmFee.GetSawiAmount());
+    RPC_PARAM::CheckAccountBalance(account, cmFee.symbol, SUB_FREE, cmFee.GetAmountInSawi());
 
     int32_t validHeight = chainActive.Height();
-    CPriceFeedTx tx(feedUid, validHeight, cmFee.symbol, cmFee.GetSawiAmount(), pricePoints);
+    CPriceFeedTx tx(feedUid, validHeight, cmFee.symbol, cmFee.GetAmountInSawi(), pricePoints);
 
     return SubmitTx(account.keyid, tx);
 }
@@ -148,9 +145,9 @@ Value submitcoinstaketx(const Array& params, bool fHelp) {
 
     // Get account for checking balance
     CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, userId);
-    RPC_PARAM::CheckAccountBalance(account, cmFee.symbol, SUB_FREE, cmFee.GetSawiAmount());
+    RPC_PARAM::CheckAccountBalance(account, cmFee.symbol, SUB_FREE, cmFee.GetAmountInSawi());
 
-    CCoinStakeTx tx(userId, validHeight, cmFee.symbol, cmFee.GetSawiAmount(), action, coinAmount.symbol, coinAmount.GetSawiAmount());
+    CCoinStakeTx tx(userId, validHeight, cmFee.symbol, cmFee.GetAmountInSawi(), action, coinAmount.symbol, coinAmount.GetAmountInSawi());
     return SubmitTx(account.keyid, tx);
 }
 
@@ -296,6 +293,53 @@ Value submitcdpliquidatetx(const Array& params, bool fHelp) {
     return SubmitTx(account.keyid, tx);
 }
 
+Object GetCdpInfoJson(const CCdpCoinPair &cdpCoinPair, PriceMap &medianPricePoints) {
+
+    uint64_t globalCollateralCeiling = 0;
+    if (!pCdMan->pSysParamCache->GetCdpParam(cdpCoinPair, CdpParamType::CDP_GLOBAL_COLLATERAL_CEILING_AMOUNT, globalCollateralCeiling)) {
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "Acquire global collateral ceiling error");
+    }
+
+    uint64_t globalCollateralRatioFloor = 0;
+    if (!pCdMan->pSysParamCache->GetCdpParam(cdpCoinPair, CdpParamType::CDP_GLOBAL_COLLATERAL_RATIO_MIN, globalCollateralRatioFloor)) {
+        throw JSONRPCError(RPC_INTERNAL_ERROR, "Acquire global collateral ratio floor error");
+    }
+
+    uint64_t assetPrice = medianPricePoints[CoinPricePair(SYMB::WICC, SYMB::USD)];
+    CCdpGlobalData cdpGlobalData = pCdMan->pCdpCache->GetCdpGlobalData(cdpCoinPair);
+    uint64_t globalCollateralRatio = cdpGlobalData.GetCollateralRatio(assetPrice);
+    bool globalCollateralRatioFloorReached =
+        cdpGlobalData.CheckGlobalCollateralRatioFloorReached(assetPrice, globalCollateralRatioFloor);
+
+    bool global_collateral_ceiling_reached = cdpGlobalData.total_staked_assets >= globalCollateralCeiling * COIN;
+
+    uint64_t forceLiquidateRatio = 0;
+    if (!pCdMan->pSysParamCache->GetCdpParam(cdpCoinPair, CdpParamType::CDP_FORCE_LIQUIDATE_RATIO, forceLiquidateRatio)) {
+        throw JSONRPCError(RPC_INTERNAL_ERROR, "Acquire cdp force liquidate ratio error");
+    }
+
+    CdpRatioSortedCache::Map forceLiquidateCdps;
+    pCdMan->pCdpCache->GetCdpListByCollateralRatio(cdpCoinPair, forceLiquidateRatio, assetPrice, forceLiquidateCdps);
+
+    Object obj;
+
+    obj.push_back(Pair("assets_symbol",                         cdpCoinPair.bcoin_symbol));
+    obj.push_back(Pair("scoin_symbol",                          cdpCoinPair.scoin_symbol));
+    obj.push_back(Pair("global_staked_asset",                   cdpGlobalData.total_staked_assets));
+    obj.push_back(Pair("global_owed_scoins",                    cdpGlobalData.total_owed_scoins));
+    obj.push_back(Pair("global_collateral_ceiling",             globalCollateralCeiling * COIN));
+    obj.push_back(Pair("global_collateral_ceiling_reached",     global_collateral_ceiling_reached));
+
+    string gcr = cdpGlobalData.total_owed_scoins == 0 ? "INF" : strprintf("%.2f%%", (double)globalCollateralRatio / RATIO_BOOST * 100);
+    obj.push_back(Pair("global_collateral_ratio",               gcr));
+    obj.push_back(Pair("global_collateral_ratio_floor",         strprintf("%.2f%%", (double)globalCollateralRatioFloor / RATIO_BOOST * 100)));
+    obj.push_back(Pair("global_collateral_ratio_floor_reached", globalCollateralRatioFloorReached));
+
+    obj.push_back(Pair("force_liquidate_ratio",                 strprintf("%.2f%%", (double)forceLiquidateRatio / RATIO_BOOST * 100)));
+    obj.push_back(Pair("force_liquidate_cdp_amount",            (uint32_t) forceLiquidateCdps.size()));
+    return obj;
+}
+
 Value getscoininfo(const Array& params, bool fHelp){
     if (fHelp || params.size() != 0) {
         throw runtime_error(
@@ -307,46 +351,19 @@ Value getscoininfo(const Array& params, bool fHelp){
             HelpExampleCli("getscoininfo", "") + "\nAs json rpc call\n" + HelpExampleRpc("getscoininfo", ""));
     }
 
-    int32_t height = chainActive.Height();
+
+   int32_t height = chainActive.Height();
 
     uint64_t slideWindow = 0;
     if (!pCdMan->pSysParamCache->GetParam(SysParamType::MEDIAN_PRICE_SLIDE_WINDOW_BLOCKCOUNT, slideWindow)) {
         throw JSONRPCError(RPC_INTERNAL_ERROR, "Acquire median price slide window blockcount error");
     }
 
-    uint64_t globalCollateralCeiling = 0;
-    if (!pCdMan->pSysParamCache->GetParam(SysParamType::CDP_GLOBAL_COLLATERAL_CEILING_AMOUNT, globalCollateralCeiling)) {
-        throw JSONRPCError(RPC_INVALID_PARAMETER, "Acquire global collateral ceiling error");
-    }
+    PriceMap medianPricePoints = pCdMan->pPriceFeedCache->GetMedianPrices();
 
-    uint64_t globalCollateralRatioFloor = 0;
-    if (!pCdMan->pSysParamCache->GetParam(SysParamType::CDP_GLOBAL_COLLATERAL_RATIO_MIN, globalCollateralRatioFloor)) {
-        throw JSONRPCError(RPC_INTERNAL_ERROR, "Acquire global collateral ratio floor error");
-    }
-
-    PriceMap medianPricePoints = pCdMan->pBlockCache->GetMedianPrices();
-
-    // TODO: multi stable coin
-    uint64_t bcoinMedianPrice = medianPricePoints[CoinPricePair(SYMB::WICC, SYMB::USD)];
-
-    uint64_t globalCollateralRatio = pCdMan->pCdpCache->GetGlobalCollateralRatio(bcoinMedianPrice);
-    bool globalCollateralRatioFloorReached =
-        pCdMan->pCdpCache->CheckGlobalCollateralRatioFloorReached(bcoinMedianPrice, globalCollateralRatioFloor);
-
-    uint64_t globalStakedBcoins = 0;
-    uint64_t globalOwedScoins   = 0;
-    pCdMan->pCdpCache->GetGlobalItem(globalStakedBcoins, globalOwedScoins);
-
-    bool global_collateral_ceiling_reached = globalStakedBcoins >= globalCollateralCeiling * COIN;
-
-    RatioCDPIdCache::Map forceLiquidateCdps;
-    uint64_t forceLiquidateRatio = 0;
-    if (!pCdMan->pSysParamCache->GetParam(SysParamType::CDP_FORCE_LIQUIDATE_RATIO, forceLiquidateRatio)) {
-        throw JSONRPCError(RPC_INTERNAL_ERROR, "Acquire cdp force liquidate ratio error");
-    }
-
-    pCdMan->pCdpCache->GetCdpListByCollateralRatio(forceLiquidateRatio, bcoinMedianPrice,
-                                                               forceLiquidateCdps);
+    // TODO: multi cdp coin pairs
+    Array cdpInfoArray;
+    cdpInfoArray.push_back(GetCdpInfoJson(CCdpCoinPair(SYMB::WICC, SYMB::WUSD), medianPricePoints));
 
     Object obj;
     Array prices;
@@ -365,19 +382,7 @@ Value getscoininfo(const Array& params, bool fHelp){
     obj.push_back(Pair("tipblock_height",                       height));
     obj.push_back(Pair("median_price",                          prices));
     obj.push_back(Pair("slide_window_block_count",              slideWindow));
-
-    obj.push_back(Pair("global_staked_bcoins",                  globalStakedBcoins));
-    obj.push_back(Pair("global_owed_scoins",                    globalOwedScoins));
-    obj.push_back(Pair("global_collateral_ceiling",             globalCollateralCeiling * COIN));
-    obj.push_back(Pair("global_collateral_ceiling_reached",     global_collateral_ceiling_reached));
-
-    string gcr = globalOwedScoins == 0 ? "INF" : strprintf("%.2f%%", (double)globalCollateralRatio / RATIO_BOOST * 100);
-    obj.push_back(Pair("global_collateral_ratio",               gcr));
-    obj.push_back(Pair("global_collateral_ratio_floor",         strprintf("%.2f%%", (double)globalCollateralRatioFloor / RATIO_BOOST * 100)));
-    obj.push_back(Pair("global_collateral_ratio_floor_reached", globalCollateralRatioFloorReached));
-
-    obj.push_back(Pair("force_liquidate_ratio",                 strprintf("%.2f%%", (double)forceLiquidateRatio / RATIO_BOOST * 100)));
-    obj.push_back(Pair("force_liquidate_cdp_amount",            forceLiquidateCdps.size()));
+    obj.push_back(Pair("cdp_info_list",              cdpInfoArray));
 
     return obj;
 }
@@ -410,7 +415,7 @@ Value getusercdp(const Array& params, bool fHelp){
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, strprintf("The account not exists! userId=%s", pUserId->ToString()));
     }
 
-    uint64_t bcoinMedianPrice = pCdMan->pBlockCache->GetMedianPrice(CoinPricePair(SYMB::WICC, SYMB::USD));
+    uint64_t bcoinMedianPrice = pCdMan->pPriceFeedCache->GetMedianPrice(CoinPricePair(SYMB::WICC, SYMB::USD));
 
     Object obj;
     Array cdps;
@@ -426,22 +431,22 @@ Value getusercdp(const Array& params, bool fHelp){
     return obj;
 }
 
-Value getcdp(const Array& params, bool fHelp){
+Value getcdpinfo(const Array& params, bool fHelp){
     if (fHelp || params.size() < 1 || params.size() > 2) {
         throw runtime_error(
-            "getcdp \"cdp_id\"\n"
-            "\nget CDP by its CDP_ID\n"
+            "getcdpinfo $cdp_id\n"
+            "\nget CDP by its $cdp_id\n"
             "\nArguments:\n"
-            "1.\"cdp_id\": (string, required) cdp_id\n"
+            "1.\"$cdp_id\": (string, required) cdp_id\n"
             "\nResult:\n"
             "\nExamples:\n"
-            + HelpExampleCli("getcdp", "\"c01f0aefeeb25fd6afa596f27ee3a1e861b657d2e1c341bfd1c412e87d9135c8\"\n")
+            + HelpExampleCli("getcdpinfo", "\"c01f0aefeeb25fd6afa596f27ee3a1e861b657d2e1c341bfd1c412e87d9135c8\"\n")
             + "\nAs json rpc call\n"
-            + HelpExampleRpc("getcdp", "\"c01f0aefeeb25fd6afa596f27ee3a1e861b657d2e1c341bfd1c412e87d9135c8\"\n")
+            + HelpExampleRpc("getcdpinfo", "\"c01f0aefeeb25fd6afa596f27ee3a1e861b657d2e1c341bfd1c412e87d9135c8\"\n")
         );
     }
 
-    uint64_t bcoinMedianPrice = pCdMan->pBlockCache->GetMedianPrice(CoinPricePair(SYMB::WICC, SYMB::USD));
+    uint64_t bcoinMedianPrice = pCdMan->pPriceFeedCache->GetMedianPrice(CoinPricePair(SYMB::WICC, SYMB::USD));
 
     uint256 cdpTxId(uint256S(params[0].get_str()));
     CUserCDP cdp;
@@ -535,7 +540,7 @@ Value submitassetissuetx(const Array& params, bool fHelp) {
 
     // Get account for checking balance
     CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, uid);
-    RPC_PARAM::CheckAccountBalance(account, cmFee.symbol, SUB_FREE, cmFee.GetSawiAmount());
+    RPC_PARAM::CheckAccountBalance(account, cmFee.symbol, SUB_FREE, cmFee.GetAmountInSawi());
 
     uint64_t assetIssueFee; //550 WICC
     if (!pCdMan->pSysParamCache->GetParam(ASSET_ISSUE_FEE, assetIssueFee))
@@ -557,8 +562,8 @@ Value submitassetissuetx(const Array& params, bool fHelp) {
             pOwnerRegid->ToString()));
     }
 
-    CBaseAsset asset(assetSymbol, CUserID(*pOwnerRegid), assetName, (uint64_t)totalSupply, mintable);
-    CAssetIssueTx tx(uid, validHeight, cmFee.symbol, cmFee.GetSawiAmount(), asset);
+    CUserIssuedAsset asset(assetSymbol, CUserID(*pOwnerRegid), assetName, (uint64_t)totalSupply, mintable);
+    CUserIssueAssetTx tx(uid, validHeight, cmFee.symbol, cmFee.GetAmountInSawi(), asset);
     return SubmitTx(account.keyid, tx);
 }
 
@@ -590,13 +595,13 @@ Value submitassetupdatetx(const Array& params, bool fHelp) {
     const string &updateTypeStr = params[2].get_str();
     const Value &jsonUpdateValue = params[3].get_str();
 
-    auto pUpdateType = CAssetUpdateData::ParseUpdateType(updateTypeStr);
+    auto pUpdateType = CUserUpdateAsset::ParseUpdateType(updateTypeStr);
     if (!pUpdateType)
         throw JSONRPCError(RPC_INVALID_PARAMS, strprintf("Invalid update_type=%s", updateTypeStr));
 
-    CAssetUpdateData updateData;
+    CUserUpdateAsset updateData;
     switch(*pUpdateType) {
-        case CAssetUpdateData::OWNER_UID: {
+        case CUserUpdateAsset::OWNER_UID: {
             const string &valueStr = jsonUpdateValue.get_str();
             auto pNewOwnerUid = CUserID::ParseUserId(valueStr);
             if (!pNewOwnerUid) {
@@ -606,7 +611,7 @@ Value submitassetupdatetx(const Array& params, bool fHelp) {
             updateData.Set(*pNewOwnerUid);
             break;
         }
-        case CAssetUpdateData::NAME: {
+        case CUserUpdateAsset::NAME: {
             const string &valueStr = jsonUpdateValue.get_str();
             if (valueStr.size() == 0 || valueStr.size() > MAX_ASSET_NAME_LEN) {
                 throw JSONRPCError(RPC_INVALID_PARAMS, strprintf("invalid asset name! empty, or length=%d greater than %d",
@@ -615,7 +620,7 @@ Value submitassetupdatetx(const Array& params, bool fHelp) {
             updateData.Set(valueStr);
             break;
         }
-        case CAssetUpdateData::MINT_AMOUNT: {
+        case CUserUpdateAsset::MINT_AMOUNT: {
             uint64_t mintAmount;
             if (jsonUpdateValue.type() == json_spirit::Value_type::int_type ) {
                 int64_t v = jsonUpdateValue.get_int64();
@@ -644,11 +649,11 @@ Value submitassetupdatetx(const Array& params, bool fHelp) {
         }
     }
 
-    ComboMoney cmFee = RPC_PARAM::GetFee(params, 4, TxType::ASSET_UPDATE_TX);
+    ComboMoney cmFee = RPC_PARAM::GetFee(params, 4, TxType::UIA_UPDATE_TX);
 
     // Get account for checking balance
     CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, uid);
-    RPC_PARAM::CheckAccountBalance(account, cmFee.symbol, SUB_FREE, cmFee.GetSawiAmount());
+    RPC_PARAM::CheckAccountBalance(account, cmFee.symbol, SUB_FREE, cmFee.GetAmountInSawi());
 
     uint64_t assetUpdateFee;
     if (!pCdMan->pSysParamCache->GetParam(ASSET_UPDATE_FEE, assetUpdateFee))
@@ -657,7 +662,7 @@ Value submitassetupdatetx(const Array& params, bool fHelp) {
 
     int32_t validHeight = chainActive.Height();
 
-    if (*pUpdateType == CAssetUpdateData::OWNER_UID) {
+    if (*pUpdateType == CUserUpdateAsset::OWNER_UID) {
         CUserID &ownerUid = updateData.get<CUserID>();
         if (account.IsMyUid(ownerUid))
             return JSONRPCError(RPC_INVALID_PARAMS, strprintf("the new owner uid=%s is belong to old owner account",
@@ -673,62 +678,93 @@ Value submitassetupdatetx(const Array& params, bool fHelp) {
         ownerUid = newAccount.regid;
     }
 
-    CAssetUpdateTx tx(uid, validHeight, cmFee.symbol, cmFee.GetSawiAmount(), assetSymbol, updateData);
+    CUserUpdateAssetTx tx(uid, validHeight, cmFee.symbol, cmFee.GetAmountInSawi(), assetSymbol, updateData);
     return SubmitTx(account.keyid, tx);
 }
 
-extern Value getasset(const Array& params, bool fHelp) {
+extern Value getassetinfo(const Array& params, bool fHelp) {
      if (fHelp || params.size() < 1 || params.size() > 1) {
         throw runtime_error(
-            "getasset \"asset_symbol\"\n"
-            "\nget asset by symbol.\n"
+            "getassetinfo $asset_symbol\n"
+            "\nget asset info by its symbol.\n"
             "\nArguments:\n"
-            "1.\"aset_symbol\":            (string, required) asset symbol\n"
+            "1.\"$aset_symbol\":            (string, required) asset symbol\n"
             "\nResult: asset object\n"
             "\nExamples:\n"
-            + HelpExampleCli("getasset", "MINEUSD")
+            + HelpExampleCli("getassetinfo", "MINEUSD")
             + "\nAs json rpc call\n"
-            + HelpExampleRpc("getasset", "MINEUSD")
+            + HelpExampleRpc("getassetinfo", "MINEUSD")
         );
     }
     const TokenSymbol& assetSymbol = RPC_PARAM::GetAssetIssueSymbol(params[0]);
 
     CAsset asset;
     if (!pCdMan->pAssetCache->GetAsset(assetSymbol, asset))
-        throw JSONRPCError(RPC_INVALID_PARAMS, strprintf("asset not exist! asset_symbol=%s", assetSymbol));
+        throw JSONRPCError(RPC_INVALID_PARAMS, strprintf("Asset(%s) not exist!", assetSymbol));
 
     Object obj = AssetToJson(*pCdMan->pAccountCache, asset);
     return obj;
 }
 
-extern Value getassets(const Array& params, bool fHelp) {
+extern Value listassets(const Array& params, bool fHelp) {
      if (fHelp || params.size() > 0) {
         throw runtime_error(
-            "getassets\n"
+            "listassets\n"
             "\nget all assets.\n"
             "\nArguments:\n"
             "\nResult: a list of assets\n"
             "\nExamples:\n"
-            + HelpExampleCli("getassets", "")
+            + HelpExampleCli("listassets", "")
             + "\nAs json rpc call\n"
-            + HelpExampleRpc("getassets", "")
+            + HelpExampleRpc("listassets", "")
         );
     }
 
     auto pAssetsIt = pCdMan->pAssetCache->CreateUserAssetsIterator();
     if (!pAssetsIt) {
-        throw JSONRPCError(RPC_INVALID_PARAMS, "get all user issued assets iterator error!");
+        throw JSONRPCError(RPC_INVALID_PARAMS, "List all user-issued assets iterator error!");
     }
 
-    Array assetArray;
-    // TODO: need page??
-    int64_t count = 0;
-    for (pAssetsIt->First(); pAssetsIt->IsValid(); pAssetsIt->Next(), count++) {
-        assetArray.push_back(AssetToJson(*pCdMan->pAccountCache, pAssetsIt->GetAsset()));
+    Array arrAssets;
+    for (pAssetsIt->First(); pAssetsIt->IsValid(); pAssetsIt->Next()) {
+        arrAssets.push_back(AssetToJson(*pCdMan->pAccountCache, pAssetsIt->GetAsset()));
     }
 
     Object obj;
-    obj.push_back(Pair("count",     count));
-    obj.push_back(Pair("assets",    assetArray));
+    obj.push_back(Pair("count",     arrAssets.size()));
+    obj.push_back(Pair("assets",    arrAssets));
+    return obj;
+}
+
+
+extern Value listcdpcoinpairs(const Array& params, bool fHelp) {
+     if (fHelp || params.size() > 0) {
+        throw runtime_error(
+            "listcdpcoinpairs\n"
+            "\nget all cdp coin pair.\n"
+            "\nArguments:\n"
+            "\nResult: a list of UPDATE_CDP_COINPAIRs\n"
+            "\nExamples:\n"
+            + HelpExampleCli("listcdpcoinpairs", "")
+            + "\nAs json rpc call\n"
+            + HelpExampleRpc("listcdpcoinpairs", "")
+        );
+    }
+
+    const map<CCdpCoinPair, CdpCoinPairStatus> &cdpCoinPairMap = pCdMan->pCdpCache->GetCdpCoinPairMap();
+
+    Array arrCoinPairs;
+    for (const auto &item : cdpCoinPairMap) {
+        Object coinPairObj;
+        coinPairObj.push_back(Pair("asset_symbol", item.first.bcoin_symbol));
+        coinPairObj.push_back(Pair("scoin_symbol", item.first.scoin_symbol));
+        coinPairObj.push_back(Pair("status",       GetCdpCoinPairStatusName(item.second)));
+
+        arrCoinPairs.push_back(coinPairObj);
+    }
+
+    Object obj;
+    obj.push_back(Pair("count",             arrCoinPairs.size()));
+    obj.push_back(Pair("UPDATE_CDP_COINPAIRs",    arrCoinPairs));
     return obj;
 }

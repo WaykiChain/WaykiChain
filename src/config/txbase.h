@@ -34,7 +34,7 @@ enum TxType: uint8_t {
     UCOIN_STAKE_TX              = 8,    //!< Stake Fund Coin Tx in order to become a price feeder
 
     ASSET_ISSUE_TX              = 9,    //!< a user issues onchain asset
-    ASSET_UPDATE_TX             = 10,   //!< a user update onchain asset
+    UIA_UPDATE_TX             = 10,   //!< a user update onchain asset
 
     UCOIN_TRANSFER_TX           = 11,   //!< Universal Coin Transfer Tx
     UCOIN_REWARD_TX             = 12,   //!< Universal Coin Reward Tx
@@ -43,6 +43,8 @@ enum TxType: uint8_t {
     UCONTRACT_INVOKE_TX         = 15,   //!< universal VM contract invocation
     PRICE_FEED_TX               = 16,   //!< Price Feed Tx: WICC/USD | WGRT/USD | WUSD/USD
     PRICE_MEDIAN_TX             = 17,   //!< Price Median Value on each block Tx
+    UTXO_TRANSFER_TX            = 18,   //!< UTXO & HTLC Coin
+    UTXO_PASSWORD_PROOF_TX      = 19,   //!< UTXO password proof
 
     CDP_STAKE_TX                = 21,   //!< CDP Staking/Restaking Tx
     CDP_REDEEM_TX               = 22,   //!< CDP Redemption Tx (partial or full)
@@ -52,8 +54,8 @@ enum TxType: uint8_t {
 
     WASM_CONTRACT_TX            = 60,   //!< wasm contract tx
 
-    PROPOSAL_CREATE_TX          = 70,
-    PROPOSAL_ASSENT_TX          = 71,
+    PROPOSAL_REQUEST_TX         = 70,
+    PROPOSAL_APPROVAL_TX        = 71,
 
     DEX_TRADEPAIR_PROPOSE_TX    = 81,   //!< Owner proposes a trade pair on DEX
     DEX_TRADEPAIR_LIST_TX       = 82,   //!< Owner lists a trade pair on DEX
@@ -69,7 +71,7 @@ enum TxType: uint8_t {
     DEX_OPERATOR_ORDER_TX       = 91,   //!< dex operator order tx, need dex operator signing
 
     DEX_OPERATOR_REGISTER_TX    = 100,  //!< dex operator register tx
-    DEX_OPERATOR_UPDATE_TX      = 101 //!< dex operator update tx
+    DEX_OPERATOR_UPDATE_TX      = 101, //!< dex operator update tx
 };
 
 struct TxTypeHash {
@@ -117,9 +119,10 @@ static const unordered_map<TxType, std::tuple<string, uint64_t, uint64_t, uint64
 { UCOIN_STAKE_TX,           std::make_tuple("UCOIN_STAKE_TX",           0,          0.01*COIN,  0.01*COIN,  0.01*COIN   ,true) },
 
 { ASSET_ISSUE_TX,           std::make_tuple("ASSET_ISSUE_TX",           0,          0.01*COIN,  0.01*COIN,  0.01*COIN   ,true) }, //plus 550 WICC
-{ ASSET_UPDATE_TX,          std::make_tuple("ASSET_UPDATE_TX",          0,          0.01*COIN,  0.01*COIN,  0.01*COIN   ,true) }, //plus 110 WICC
+{ UIA_UPDATE_TX,          std::make_tuple("UIA_UPDATE_TX",          0,          0.01*COIN,  0.01*COIN,  0.01*COIN   ,true) }, //plus 110 WICC
 { UCOIN_TRANSFER_TX,        std::make_tuple("UCOIN_TRANSFER_TX",        0,          0.001*COIN, 0.001*COIN, 0.001*COIN  ,true) },
-
+{ UTXO_TRANSFER_TX,         std::make_tuple("UTXO_TRANSFER_TX",         0,          0.001*COIN, 0.001*COIN, 0.001*COIN  ,true) },
+{ UTXO_PASSWORD_PROOF_TX,   std::make_tuple("UTXO_PASSWORD_PROOF_TX",   0,          0.001*COIN, 0.001*COIN, 0.001*COIN  ,true) },
 { UCOIN_REWARD_TX,          std::make_tuple("UCOIN_REWARD_TX",          0,          0,          0,          0           ,false) },
 { UCOIN_BLOCK_REWARD_TX,    std::make_tuple("UCOIN_BLOCK_REWARD_TX",    0,          0,          0,          0           ,false) },
 
@@ -133,34 +136,24 @@ static const unordered_map<TxType, std::tuple<string, uint64_t, uint64_t, uint64
 { CDP_REDEEM_TX,            std::make_tuple("CDP_REDEEM_TX",            0,          0.01*COIN,  0.01*COIN,  0.01*COIN   ,true) },
 { CDP_LIQUIDATE_TX,         std::make_tuple("CDP_LIQUIDATE_TX",         0,          0.01*COIN,  0.01*COIN,  0.01*COIN   ,true) },
 
-{ DEX_TRADEPAIR_PROPOSE_TX, std::make_tuple("DEX_TRADEPAIR_PROPOSE_TX", 0,          0.01*COIN,  0.01*COIN,  0.01*COIN   ,true) }, //plus 100 WICC
-{ DEX_TRADEPAIR_LIST_TX,    std::make_tuple("DEX_TRADEPAIR_LIST_TX",    0,          0.01*COIN,  0.01*COIN,  0.01*COIN   ,true) },
-{ DEX_TRADEPAIR_DELIST_TX,  std::make_tuple("DEX_TRADEPAIR_DELIST_TX",  0,          0.01*COIN,  0.001*COIN, 0.001*COIN  ,true) },
-
 { DEX_LIMIT_BUY_ORDER_TX,   std::make_tuple("DEX_LIMIT_BUY_ORDER_TX",   0,          0.001*COIN, 0.001*COIN, 0.001*COIN  ,true) },
 { DEX_LIMIT_SELL_ORDER_TX,  std::make_tuple("DEX_LIMIT_SELL_ORDER_TX",  0,          0.001*COIN, 0.001*COIN, 0.001*COIN  ,true) },
 { DEX_MARKET_BUY_ORDER_TX,  std::make_tuple("DEX_MARKET_BUY_ORDER_TX",  0,          0.001*COIN, 0.001*COIN, 0.001*COIN  ,true) },
 { DEX_MARKET_SELL_ORDER_TX, std::make_tuple("DEX_MARKET_SELL_ORDER_TX", 0,          0.001*COIN, 0.001*COIN, 0.001*COIN  ,true) },
 
+{ DEX_OPERATOR_REGISTER_TX, std::make_tuple("DEX_OPERATOR_REGISTER_TX", 0,          0.01*COIN,  0.01*COIN,  0.01*COIN   ,true) },
+{ DEX_OPERATOR_UPDATE_TX,   std::make_tuple("DEX_OPERATOR_UPDATE_TX",   0,          0.01*COIN,  0.01*COIN,  0.01*COIN   ,true) },
 { DEX_ORDER_TX,             std::make_tuple("DEX_ORDER_TX",             0,          0.001*COIN, 0.001*COIN, 0.001*COIN  ,true) },
 { DEX_OPERATOR_ORDER_TX,    std::make_tuple("DEX_OPERATOR_ORDER_TX",    0,          0.001*COIN, 0.001*COIN, 0.001*COIN  ,true) },
-
 { DEX_CANCEL_ORDER_TX,      std::make_tuple("DEX_CANCEL_ORDER_TX",      0,          0.001*COIN, 0.001*COIN, 0.001*COIN  ,true) },
-
 { DEX_TRADE_SETTLE_TX,      std::make_tuple("DEX_TRADE_SETTLE_TX",      0,          0.0001*COIN,0.0001*COIN,0.0001*COIN ,true) },
-
-{ DEX_OPERATOR_REGISTER_TX, std::make_tuple("DEX_OPERATOR_REGISTER_TX", 0,          0.0001*COIN,0.0001*COIN,0.0001*COIN ,true) },
-{ DEX_OPERATOR_UPDATE_TX,   std::make_tuple("DEX_OPERATOR_UPDATE_TX",   0,          0.0001*COIN,0.0001*COIN,0.0001*COIN ,true) },
 
 { NICKID_REGISTER_TX,       std::make_tuple("NICKID_REGISTER_TX",       0,          0.0001*COIN,0.0001*COIN,0.0001*COIN ,true) },
 
 { WASM_CONTRACT_TX,         std::make_tuple("WASM_CONTRACT_TX",         0,          0.01*COIN,  0.01*COIN,  0.01*COIN   ,true) },
-{ DEX_OPERATOR_REGISTER_TX, std::make_tuple("DEX_OPERATOR_REGISTER_TX", 0,          0.001*COIN, 0.001*COIN, 0.001*COIN  ,true)   },
-{ DEX_OPERATOR_UPDATE_TX, std::make_tuple("DEX_OPERATOR_UPDATE_TX",     0,          0.001*COIN, 0.001*COIN, 0.001*COIN  ,true)   },
 
-{ PROPOSAL_CREATE_TX,      std::make_tuple("PROPOSAL_CREATE_TX",      0,            0.0001*COIN,0.0001*COIN,0.0001*COIN ,true) },
-{ PROPOSAL_ASSENT_TX,      std::make_tuple("PROPOSAL_ASSENT_TX",      0,            0.0001*COIN,0.0001*COIN,0.0001*COIN ,true) },
-
+{ PROPOSAL_REQUEST_TX,      std::make_tuple("PROPOSAL_REQUEST_TX",      0,          0.01*COIN,  0.01*COIN,  0.01*COIN  ,true) },
+{ PROPOSAL_APPROVAL_TX,     std::make_tuple("PROPOSAL_APPROVAL_TX",     0,          0.01*COIN,  0.01*COIN,  0.01*COIN  ,true) },
 
 };
 

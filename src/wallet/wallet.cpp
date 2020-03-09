@@ -250,8 +250,8 @@ DBErrors CWallet::LoadWallet(bool fFirstRunRet) {
     return CWalletDB(strWalletFile, "cr+").LoadWallet(this);
 }
 
-int64_t CWallet::GetFreeCoins(TokenSymbol coinCymbol, bool isConfirmed) const {
-    int64_t ret = 0;
+uint64_t CWallet::GetFreeCoins(TokenSymbol coinCymbol, bool isConfirmed) const {
+    uint64_t ret = 0;
     {
         LOCK2(cs_main, cs_wallet);
         set<CKeyID> setKeyId;
@@ -473,7 +473,7 @@ bool CWallet::IsMine(CBaseTx *pTx) const {
     }
 
     for (auto &keyid : keyIds) {
-        if (HaveKey(keyid) > 0) {
+        if (HasKey(keyid) > 0) {
             return true;
         }
     }
@@ -556,7 +556,7 @@ bool CWallet::AddKey(const CKeyID &KeyId, const CKeyCombi &keyCombi) {
     if (!fFileBacked)
         return true;
 
-    if (keyCombi.HaveMainKey()) {
+    if (keyCombi.HasMainKey()) {
         if (KeyId != keyCombi.GetCKeyID())
             return false;
     }
@@ -577,17 +577,18 @@ bool CWallet::AddKey(const CKey &key) {
 
 bool CWallet::RemoveKey(const CKey &key) {
     CKeyID keyId = key.GetPubKey().GetKeyId();
-    mapKeys.erase(keyId);
-    if (!IsEncrypted()) {
+
+    if (!IsEncrypted()) { //unencrypted or unlocked
         CWalletDB(strWalletFile).EraseKeyStoreValue(keyId);
+        mapKeys.erase(keyId);
     } else {
-        return ERRORMSG("wallet is encrypted hence remove key forbidden!");
+        return ERRORMSG("wallet is being locked hence no key removal!");
     }
 
     return true;
 }
 
-bool CWallet::IsReadyForCoolMiner(const CAccountDBCache &accountView) const {
+bool CWallet::IsReadyForColdMining(const CAccountDBCache &accountView) const {
     CRegID regId;
     for (auto const &item : mapKeys) {
         if (item.second.HaveMinerKey() && accountView.GetRegId(item.first, regId)) {
@@ -598,9 +599,9 @@ bool CWallet::IsReadyForCoolMiner(const CAccountDBCache &accountView) const {
     return false;
 }
 
-bool CWallet::ClearAllMainKeysForCoolMiner() {
+bool CWallet::DropMainKeysForColdMining() {
     for (auto &item : mapKeys) {
-        if (item.second.CleanMainKey()) {
+        if (item.second.PurgeMainKey()) {
             CWalletDB(strWalletFile).WriteKeyStoreValue(item.first, item.second, nWalletVersion);
         }
     }

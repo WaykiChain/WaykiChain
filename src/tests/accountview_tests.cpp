@@ -32,7 +32,7 @@ public:
 	}
 	bool EraseAccount();
 	bool EraseKeyID();
-	bool HaveAccount();
+	bool HasAccount();
 	bool CheckKeyMap(bool bCheckExist);
 	bool SetKeyID();
 	bool TestGetAccount(bool bCheckExist);
@@ -148,10 +148,10 @@ bool CAccountViewTest::CheckKeyMap(bool bCheckExist) {
 	return true;
 }
 
-bool CAccountViewTest::HaveAccount() {
+bool CAccountViewTest::HasAccount() {
 	for (int i = 0; i < VECTOR_SIZE; i++) {
 		CUserID userId = vRandomKeyID.at(i);
-		if (pViewTip2->HaveAccount(userId))
+		if (pViewTip2->HasAccount(userId))
 			return false;
 	}
 
@@ -166,7 +166,7 @@ BOOST_FIXTURE_TEST_CASE(regid_test,CAccountViewTest)
 	BOOST_CHECK(pViewTip2);
 	BOOST_CHECK(CheckKeyMap(false) );
 	BOOST_CHECK(SetKeyID() );
-	BOOST_CHECK(HaveAccount() );
+	BOOST_CHECK(HasAccount() );
 
 	BOOST_CHECK(CheckKeyMap(true) );
 	BOOST_CHECK(pViewTip2->Flush() );

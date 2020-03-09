@@ -13,8 +13,6 @@
 #include "commons/util/util.h"
 #include "tx/blockrewardtx.h"
 
-#include "commons/json/json_spirit_value.h"
-
 #include <boost/foreach.hpp>
 #include <boost/assign/list_of.hpp>
 #include <boost/assign/list_of.hpp>
@@ -405,7 +403,7 @@ Value getchaininfo(const Array& params, bool fHelp) {
     }
     if (count < 1 || count > height || count > MAX_RECENT_BLOCK_COUNT)
         throw JSONRPCError(RPC_INVALID_PARAMS, strprintf("The input count out of range! count=%d, height=%d, max_count=%d",
-            count, height, chainActive.Height(), MAX_RECENT_BLOCK_COUNT));
+            count, height, MAX_RECENT_BLOCK_COUNT));
 
     CBlockIndex* pBlockIndex = chainActive[height];
     Array array;

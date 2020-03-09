@@ -13,6 +13,7 @@
 #include "entities/id.h"
 #include "entities/price.h"
 #include "tx/tx.h"
+#include "persistence/dbaccess.h"
 
 #include <map>
 #include <string>
@@ -76,6 +77,72 @@ private:
     CoinPricePointMap mapCoinPricePointCache;  // coinPriceType -> consecutiveBlockPrice
     CPricePointMemCache *pBase;
     PriceMap latest_median_prices;
+
+};
+
+class CPriceFeedCache {
+public:
+    CPriceFeedCache() {}
+    CPriceFeedCache(CDBAccess *pDbAccess)
+    : price_feed_coin_cache(pDbAccess),
+      medianPricesCache(pDbAccess),
+      price_feeders_cache(pDbAccess) {};
+public:
+    bool Flush() {
+        price_feed_coin_cache.Flush();
+        medianPricesCache.Flush();
+        price_feeders_cache.Flush();
+        return true;
+    }
+
+    uint32_t GetCacheSize() const {
+        return  price_feed_coin_cache.GetCacheSize() +
+                medianPricesCache.GetCacheSize() +
+                price_feeders_cache.GetCacheSize();
+    }
+    void SetBaseViewPtr(CPriceFeedCache *pBaseIn) {
+        price_feed_coin_cache.SetBase(&pBaseIn->price_feed_coin_cache);
+        medianPricesCache.SetBase(&pBaseIn->medianPricesCache);
+        price_feeders_cache.SetBase(&pBaseIn->price_feeders_cache);
+    };
+
+    void SetDbOpLogMap(CDBOpLogMap *pDbOpLogMapIn) {
+        price_feed_coin_cache.SetDbOpLogMap(pDbOpLogMapIn);
+        medianPricesCache.SetDbOpLogMap(pDbOpLogMapIn);
+        price_feeders_cache.SetDbOpLogMap(pDbOpLogMapIn);
+    }
+
+    void RegisterUndoFunc(UndoDataFuncMap &undoDataFuncMap) {
+        price_feed_coin_cache.RegisterUndoFunc(undoDataFuncMap);
+        medianPricesCache.RegisterUndoFunc(undoDataFuncMap);
+        price_feeders_cache.RegisterUndoFunc(undoDataFuncMap);
+    }
+
+    bool AddFeedCoinPair(TokenSymbol feedCoin, TokenSymbol baseCoin) ;
+    bool EraseFeedCoinPair(TokenSymbol feedCoin, TokenSymbol baseCoin) ;
+    bool HasFeedCoinPair(TokenSymbol feedCoin,TokenSymbol baseCoin) ;
+    bool GetFeedCoinPairs(set<pair<TokenSymbol,TokenSymbol>>& coinSet) ;
+
+    bool CheckIsPriceFeeder(const CRegID &candidateRegId) ;
+    bool SetPriceFeeders(const vector<CRegID> &governors) ;
+    bool GetPriceFeeders(vector<CRegID>& priceFeeders) ;
+
+    uint64_t GetMedianPrice(const CoinPricePair &coinPricePair) const;
+    PriceMap GetMedianPrices() const;
+    bool SetMedianPrices(const PriceMap &medianPrices);
+
+public:
+
+/*  CSimpleKVCache          prefixType          value           variable           */
+/*  -------------------- --------------------  -------------   --------------------- */
+    /////////// PriceFeedDB
+    // [prefix] -> feed pair
+    CSimpleKVCache< dbk::PRICE_FEED_COIN,      set<pair<TokenSymbol, TokenSymbol >>>     price_feed_coin_cache;
+    // [prefix] -> median price map
+    CSimpleKVCache< dbk::MEDIAN_PRICES,        PriceMap>     medianPricesCache;
+    // [prefix] -> price feeders
+    CSimpleKVCache< dbk::PRICE_FEEDERS,        vector<CRegID>>  price_feeders_cache ;
+
 };
 
 #endif  // PERSIST_PRICEFEED_H

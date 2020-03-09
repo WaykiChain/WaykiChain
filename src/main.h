@@ -194,7 +194,7 @@ extern CChain chainMostWork;
 extern CCacheDBManager *pCdMan;
 extern int32_t nSyncTipHeight;
 extern std::tuple<bool, boost::thread *> RunCoin(int32_t argc, char *argv[]);
-extern string externalIp;
+extern string publicIp;
 
 bool EraseBlockIndexFromSet(CBlockIndex *pIndex);
 
@@ -262,6 +262,5 @@ bool ActivateBestChain(CValidationState &state, CBlockIndex* pNewIndex = nullptr
 
 /** Remove invalidity status from a block and its descendants. */
 bool ReconsiderBlock(CValidationState &state, CBlockIndex *pIndex);
-
 
 #endif

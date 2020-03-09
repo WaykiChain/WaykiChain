@@ -36,13 +36,14 @@ public:
         pending_delegates_cache(pBaseIn->pending_delegates_cache),
         active_delegates_cache(pBaseIn->active_delegates_cache) {}
 
-    bool GetTopVoteDelegates(VoteDelegateVector &topVotedDelegates);
+    bool GetTopVoteDelegates(uint32_t delegateNum, VoteDelegateVector &topVotedDelegates);
 
     bool SetDelegateVotes(const CRegID &regid, const uint64_t votes);
     bool EraseDelegateVotes(const CRegID &regid, const uint64_t votes);
 
     int32_t GetLastVoteHeight();
     bool SetLastVoteHeight(int32_t height);
+    uint32_t GetActivedDelegateNum() ;
 
     bool GetPendingDelegates(PendingDelegates &delegates);
     bool SetPendingDelegates(const PendingDelegates &delegates);
@@ -85,11 +86,14 @@ public:
         pending_delegates_cache.RegisterUndoFunc(undoDataFuncMap);
         active_delegates_cache.RegisterUndoFunc(undoDataFuncMap);
     }
-private:
+public:
 /*  CCompositeKVCache  prefixType     key                              value                   variable       */
 /*  -------------------- -------------- --------------------------  ----------------------- -------------- */
     // vote{(uint64t)MAX - $votedBcoins}{$RegId} -> 1
+    // must use fixed width string as the key prefix to avoid conflict
+    // also prevent big vs little endian compatibility issues across machines when copying state db for speed sync purposes
     CCompositeKVCache<dbk::VOTE,       std::pair<string, CRegIDKey>,  uint8_t>                voteRegIdCache;
+
     CCompositeKVCache<dbk::REGID_VOTE, CRegIDKey,         vector<CCandidateReceivedVote>> regId2VoteCache;
 
     CSimpleKVCache<dbk::LAST_VOTE_HEIGHT, CVarIntValue<uint32_t>> last_vote_height_cache;

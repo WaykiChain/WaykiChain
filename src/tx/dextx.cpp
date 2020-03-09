@@ -81,9 +81,6 @@ namespace dex {
 
         if (!CheckOrderPrice(context)) return false;
 
-        if (!kPublicModeHelper.CheckEnum(public_mode))
-            return context.pState->DoS(100, ERRORMSG("%s, invalid public_mode=%s", TX_ERR_TITLE,
-                    kPublicModeHelper.GetName(public_mode)), REJECT_INVALID, "invalid-public-mode");
         IMPLEMENT_CHECK_TX_MEMO;
 
         if (!CheckOrderOperator(context)) return false;
@@ -140,12 +137,16 @@ namespace dex {
         orderDetail.coin_amount        = coinAmount;
         orderDetail.asset_amount       = asset_amount;
         orderDetail.price              = price;
-        orderDetail.public_mode        = public_mode;
         orderDetail.dex_id             = dex_id;
         orderDetail.tx_cord            = CTxCord(context.height, context.index);
         orderDetail.user_regid         = txAccount.regid;
-        if (has_operator_config)
-            orderDetail.opt_operator_fee_ratios  = operator_fee_ratios;
+        if (has_operator_config) {
+            orderDetail.opt_operator_params  = {
+                public_mode,
+                operator_fee_ratios.maker_fee_ratio,
+                operator_fee_ratios.taker_fee_ratio,
+            };
+        }
         // other fields keep the default value
 
         if (!context.pCw->dexCache.CreateActiveOrder(txid, orderDetail))
@@ -210,22 +211,13 @@ namespace dex {
 
     bool CDEXOrderBaseTx::CheckOrderSymbols(CTxExecuteContext &context, const TokenSymbol &coinSymbol,
                                             const TokenSymbol &assetSymbol) {
-
-        if (coinSymbol.empty() || coinSymbol.size() > MAX_TOKEN_SYMBOL_LEN || kCoinTypeSet.count(coinSymbol) == 0) {
+        if (!pCdMan->pAssetCache->CheckAsset(coinSymbol, AssetPermType::PERM_DEX_QUOTE))
             return context.pState->DoS(100, ERRORMSG("%s, invalid order coin symbol=%s", TX_ERR_TITLE, coinSymbol),
-                            REJECT_INVALID, "invalid-order-coin-symbol");
-        }
+                                    REJECT_INVALID, "invalid-order-coin-symbol");
 
-        if (assetSymbol.empty() || assetSymbol.size() > MAX_TOKEN_SYMBOL_LEN || kCoinTypeSet.count(assetSymbol) == 0) {
+        if (!pCdMan->pAssetCache->CheckAsset(assetSymbol, AssetPermType::PERM_DEX_BASE))
             return context.pState->DoS(100, ERRORMSG("%s, invalid order asset symbol=%s", TX_ERR_TITLE, assetSymbol),
-                            REJECT_INVALID, "invalid-order-asset-symbol");
-        }
-
-        if (kTradingPairSet.count(make_pair(assetSymbol, coinSymbol)) == 0) {
-            return context.pState->DoS(100, ERRORMSG("%s, not support the trading pair! coin_symbol=%s, asset_symbol=%s",
-                TX_ERR_TITLE, coinSymbol, assetSymbol), REJECT_INVALID, "invalid-trading-pair");
-        }
-
+                                    REJECT_INVALID, "invalid-order-asset-symbol");
         return true;
     }
 
@@ -299,6 +291,11 @@ namespace dex {
 
         if (has_operator_config) {
             const auto &hash = GetHash();
+
+            if (!kPublicModeHelper.CheckEnum(public_mode))
+                return context.pState->DoS(100, ERRORMSG("%s, invalid public_mode=%s", TX_ERR_TITLE,
+                        kPublicModeHelper.GetName(public_mode)), REJECT_INVALID, "invalid-public-mode");
+
             if (!CheckOperatorFeeRatioRange(context, hash, operator_fee_ratios.taker_fee_ratio,
                     TX_ERR_TITLE + ", taker_fee_ratio"))
                 return false;
@@ -511,6 +508,8 @@ namespace dex {
 
     #define DEAL_ITEM_TITLE ERROR_TITLE(tx.GetTxTypeName() + strprintf(", i[%d]", i))
 
+////////////////////////////////////////////////////////////////////////////////
+// class CDealItemExecuter
     class CDealItemExecuter {
     public:
         typedef CDEXSettleTx::DealItem DealItem;
@@ -533,6 +532,8 @@ namespace dex {
         shared_ptr<DexOperatorDetail> pSellOperatorDetail;
         shared_ptr<CAccount> pBuyMatchAccount;
         shared_ptr<CAccount> pSellMatchAccount;
+        COrderOperatorParams buyOrderOperatorParams;
+        COrderOperatorParams sellOrderOperatorParams;
         OrderSide takerSide;
 
         CDealItemExecuter(DealItem &dealItemIn, uint32_t index, CDEXSettleTx &txIn,
@@ -542,7 +543,27 @@ namespace dex {
             : dealItem(dealItemIn), i(index), tx(txIn), context(contextIn),
               pTxAccount(pTxAccountIn), accountMap(accountMapIn), receipts(receiptsIn) {}
 
-        /* process flow for settle tx
+        bool Execute();
+
+        COrderOperatorParams GetOrderOperatorParams(CDEXOrderDetail &order, DexOperatorDetail &operatorDetail);
+
+        bool CheckCrossExchangeTrading();
+
+        bool GetDealOrder(const uint256 &orderId, const OrderSide orderSide,
+                          CDEXOrderDetail &dealOrder);
+
+        OrderSide GetTakerOrderSide();
+
+        uint64_t GetOperatorFeeRatio(const CDEXOrderDetail &order,
+                                     const COrderOperatorParams &orderOperatorParams,
+                                     const OrderSide &takerSide);
+
+        bool GetAccount(const CRegID &regid, shared_ptr<CAccount> &pAccount);
+
+        bool CalcOrderFee(uint64_t amount, uint64_t fee_ratio, uint64_t &orderFee);
+    };
+
+    /* process flow for settle tx
         1. get and check buyDealOrder and sellDealOrder
             a. get and check active order from db
             b. get and check order detail
@@ -628,362 +649,370 @@ namespace dex {
                 } else {
                     update active order to dex db
                 }
-        */
-        bool Execute() {
-            CCacheWrapper &cw = *context.pCw; CValidationState &state = *context.pState;
+    */
+    bool CDealItemExecuter::Execute() {
+        CCacheWrapper &cw = *context.pCw; CValidationState &state = *context.pState;
 
-                //1.1 get and check buyDealOrder and sellDealOrder
-            if (!GetDealOrder(dealItem.buyOrderId, ORDER_BUY, buyOrder)) return false;
+            //1.1 get and check buyDealOrder and sellDealOrder
+        if (!GetDealOrder(dealItem.buyOrderId, ORDER_BUY, buyOrder)) return false;
 
-            if (!GetDealOrder(dealItem.sellOrderId, ORDER_SELL, sellOrder)) return false;
+        if (!GetDealOrder(dealItem.sellOrderId, ORDER_SELL, sellOrder)) return false;
 
-            // 1.2 get account of order
-            if (!GetAccount(buyOrder.user_regid, pBuyOrderAccount)) return false;
-            if (!GetAccount(sellOrder.user_regid, pSellOrderAccount)) return false;
+        // 1.2 get account of order
+        if (!GetAccount(buyOrder.user_regid, pBuyOrderAccount)) return false;
+        if (!GetAccount(sellOrder.user_regid, pSellOrderAccount)) return false;
 
-            // 1.3 get operator info
-            if (!GetDexOperator(context, buyOrder.dex_id, pBuyOperatorDetail, DEAL_ITEM_TITLE)) return false;
-            if (!GetAccount(pBuyOperatorDetail->fee_receiver_regid, pBuyMatchAccount)) return false;
+        // 1.3 get operator info
+        if (!GetDexOperator(context, buyOrder.dex_id, pBuyOperatorDetail, DEAL_ITEM_TITLE)) return false;
+        if (!GetAccount(pBuyOperatorDetail->fee_receiver_regid, pBuyMatchAccount)) return false;
 
-            if (!GetDexOperator(context, sellOrder.dex_id, pSellOperatorDetail, DEAL_ITEM_TITLE)) return false;
-            if (!GetAccount(pSellOperatorDetail->fee_receiver_regid, pSellMatchAccount)) return false;
+        if (!GetDexOperator(context, sellOrder.dex_id, pSellOperatorDetail, DEAL_ITEM_TITLE)) return false;
+        if (!GetAccount(pSellOperatorDetail->fee_receiver_regid, pSellMatchAccount)) return false;
 
-            // 1.4 get taker side
-            takerSide = GetTakerOrderSide();
+        // 1.4 get order operator params
+        buyOrderOperatorParams = GetOrderOperatorParams(buyOrder, *pBuyOperatorDetail);
+        sellOrderOperatorParams = GetOrderOperatorParams(sellOrder, *pSellOperatorDetail);
 
-            // 3. check coin type match
-            if (buyOrder.coin_symbol != sellOrder.coin_symbol) {
-                return state.DoS(100, ERRORMSG("%s, coin symbol unmatch! buyer coin_symbol=%s, " \
-                    "seller coin_symbol=%s", DEAL_ITEM_TITLE, buyOrder.coin_symbol, sellOrder.coin_symbol),
-                    REJECT_INVALID, "coin-symbol-unmatch");
+        // 1.5 get taker side
+        takerSide = GetTakerOrderSide();
+
+        // 2. check coin type match
+        if (buyOrder.coin_symbol != sellOrder.coin_symbol) {
+            return state.DoS(100, ERRORMSG("%s, coin symbol unmatch! buyer coin_symbol=%s, " \
+                "seller coin_symbol=%s", DEAL_ITEM_TITLE, buyOrder.coin_symbol, sellOrder.coin_symbol),
+                REJECT_INVALID, "coin-symbol-unmatch");
+        }
+        // 3. check asset type match
+        if (buyOrder.asset_symbol != sellOrder.asset_symbol) {
+            return state.DoS(100, ERRORMSG("%s, asset symbol unmatch! buyer asset_symbol=%s, " \
+                "seller asset_symbol=%s", DEAL_ITEM_TITLE, buyOrder.asset_symbol, sellOrder.asset_symbol),
+                REJECT_INVALID, "asset-symbol-unmatch");
+        }
+
+        // 4. check price match
+        if (buyOrder.order_type == ORDER_LIMIT_PRICE && sellOrder.order_type == ORDER_LIMIT_PRICE) {
+            if ( buyOrder.price < dealItem.dealPrice
+                || sellOrder.price > dealItem.dealPrice ) {
+                return state.DoS(100, ERRORMSG("%s, the expected price unmatch! buyer limit price=%llu, "
+                    "seller limit price=%llu, deal_price=%llu",
+                    DEAL_ITEM_TITLE, buyOrder.price, sellOrder.price, dealItem.dealPrice),
+                    REJECT_INVALID, "deal-price-unmatch");
             }
-            // 4. check asset type match
-            if (buyOrder.asset_symbol != sellOrder.asset_symbol) {
-                return state.DoS(100, ERRORMSG("%s, asset symbol unmatch! buyer asset_symbol=%s, " \
-                    "seller asset_symbol=%s", DEAL_ITEM_TITLE, buyOrder.asset_symbol, sellOrder.asset_symbol),
-                    REJECT_INVALID, "asset-symbol-unmatch");
+        } else if (buyOrder.order_type == ORDER_LIMIT_PRICE && sellOrder.order_type == ORDER_MARKET_PRICE) {
+            if (dealItem.dealPrice != buyOrder.price) {
+                return state.DoS(100, ERRORMSG("%s, the expected price unmatch! buyer limit price=%llu, "
+                    "seller market price, deal_price=%llu",
+                    DEAL_ITEM_TITLE, buyOrder.price, dealItem.dealPrice),
+                    REJECT_INVALID, "deal-price-unmatch");
             }
-
-            // 5. check price match
-            if (buyOrder.order_type == ORDER_LIMIT_PRICE && sellOrder.order_type == ORDER_LIMIT_PRICE) {
-                if ( buyOrder.price < dealItem.dealPrice
-                    || sellOrder.price > dealItem.dealPrice ) {
-                    return state.DoS(100, ERRORMSG("%s, the expected price unmatch! buyer limit price=%llu, "
-                        "seller limit price=%llu, deal_price=%llu",
-                        DEAL_ITEM_TITLE, buyOrder.price, sellOrder.price, dealItem.dealPrice),
-                        REJECT_INVALID, "deal-price-unmatch");
-                }
-            } else if (buyOrder.order_type == ORDER_LIMIT_PRICE && sellOrder.order_type == ORDER_MARKET_PRICE) {
-                if (dealItem.dealPrice != buyOrder.price) {
-                    return state.DoS(100, ERRORMSG("%s, the expected price unmatch! buyer limit price=%llu, "
-                        "seller market price, deal_price=%llu",
-                        DEAL_ITEM_TITLE, buyOrder.price, dealItem.dealPrice),
-                        REJECT_INVALID, "deal-price-unmatch");
-                }
-            } else if (buyOrder.order_type == ORDER_MARKET_PRICE && sellOrder.order_type == ORDER_LIMIT_PRICE) {
-                if (dealItem.dealPrice != sellOrder.price) {
-                    return state.DoS(100, ERRORMSG("%s, the expected price unmatch! buyer market price, "
-                        "seller limit price=%llu, deal_price=%llu",
-                        DEAL_ITEM_TITLE, sellOrder.price, dealItem.dealPrice),
-                        REJECT_INVALID, "deal-price-unmatch");
-                }
-            } else {
-                assert(buyOrder.order_type == ORDER_MARKET_PRICE && sellOrder.order_type == ORDER_MARKET_PRICE);
-                // no limit
+        } else if (buyOrder.order_type == ORDER_MARKET_PRICE && sellOrder.order_type == ORDER_LIMIT_PRICE) {
+            if (dealItem.dealPrice != sellOrder.price) {
+                return state.DoS(100, ERRORMSG("%s, the expected price unmatch! buyer market price, "
+                    "seller limit price=%llu, deal_price=%llu",
+                    DEAL_ITEM_TITLE, sellOrder.price, dealItem.dealPrice),
+                    REJECT_INVALID, "deal-price-unmatch");
             }
+        } else {
+            assert(buyOrder.order_type == ORDER_MARKET_PRICE && sellOrder.order_type == ORDER_MARKET_PRICE);
+            // no limit
+        }
 
-            // TODO: check operator fee ratio
-            // 2. check dex_id
-            if (!CheckDexOperator()) return false;
-            // TODO: check taker_side
+        // 5. check cross exchange trading with public mode
+        if (!CheckCrossExchangeTrading()) return false;
 
-            // 6. check and operate deal amount
-            uint64_t calcCoinAmount = CDEXOrderBaseTx::CalcCoinAmount(dealItem.dealAssetAmount, dealItem.dealPrice);
-            int64_t dealAmountDiff = calcCoinAmount - dealItem.dealCoinAmount;
-            bool isCoinAmountMatch = false;
-            if (buyOrder.order_type == ORDER_MARKET_PRICE) {
-                isCoinAmountMatch = (std::abs(dealAmountDiff) <= std::max<int64_t>(1, (1 * dealItem.dealPrice / PRICE_BOOST)));
-            } else {
-                isCoinAmountMatch = (dealAmountDiff == 0);
-            }
-            if (!isCoinAmountMatch)
-                return state.DoS(100, ERRORMSG("%s, the deal_coin_amount unmatch! deal_info={%s}, calcCoinAmount=%llu",
-                    DEAL_ITEM_TITLE, dealItem.ToString(), calcCoinAmount),
-                    REJECT_INVALID, "deal-coin-amount-unmatch");
+        // 6. check and operate deal amount
+        uint64_t calcCoinAmount = CDEXOrderBaseTx::CalcCoinAmount(dealItem.dealAssetAmount, dealItem.dealPrice);
+        int64_t dealAmountDiff = calcCoinAmount - dealItem.dealCoinAmount;
+        bool isCoinAmountMatch = false;
+        if (buyOrder.order_type == ORDER_MARKET_PRICE) {
+            isCoinAmountMatch = (std::abs(dealAmountDiff) <= std::max<int64_t>(1, (1 * dealItem.dealPrice / PRICE_BOOST)));
+        } else {
+            isCoinAmountMatch = (dealAmountDiff == 0);
+        }
+        if (!isCoinAmountMatch)
+            return state.DoS(100, ERRORMSG("%s, the deal_coin_amount unmatch! deal_info={%s}, calcCoinAmount=%llu",
+                DEAL_ITEM_TITLE, dealItem.ToString(), calcCoinAmount),
+                REJECT_INVALID, "deal-coin-amount-unmatch");
 
-            buyOrder.total_deal_coin_amount += dealItem.dealCoinAmount;
-            buyOrder.total_deal_asset_amount += dealItem.dealAssetAmount;
-            sellOrder.total_deal_coin_amount += dealItem.dealCoinAmount;
-            sellOrder.total_deal_asset_amount += dealItem.dealAssetAmount;
+        buyOrder.total_deal_coin_amount += dealItem.dealCoinAmount;
+        buyOrder.total_deal_asset_amount += dealItem.dealAssetAmount;
+        sellOrder.total_deal_coin_amount += dealItem.dealCoinAmount;
+        sellOrder.total_deal_asset_amount += dealItem.dealAssetAmount;
 
-            // 7. check the order amount limits and get residual amount
-            uint64_t buyResidualAmount  = 0;
-            uint64_t sellResidualAmount = 0;
+        // 7. check the order amount limits and get residual amount
+        uint64_t buyResidualAmount  = 0;
+        uint64_t sellResidualAmount = 0;
 
-            if (buyOrder.order_type == ORDER_MARKET_PRICE) {
-                uint64_t limitCoinAmount = buyOrder.coin_amount;
-                if (limitCoinAmount < buyOrder.total_deal_coin_amount) {
-                    return state.DoS(100, ERRORMSG( "%s, the total_deal_coin_amount=%llu exceed the buyer's "
-                        "coin_amount=%llu", DEAL_ITEM_TITLE, buyOrder.total_deal_coin_amount, limitCoinAmount),
-                        REJECT_INVALID, "buy-deal-coin-amount-exceeded");
-                }
-
-                buyResidualAmount = limitCoinAmount - buyOrder.total_deal_coin_amount;
-            } else {
-                uint64_t limitAssetAmount = buyOrder.asset_amount;
-                if (limitAssetAmount < buyOrder.total_deal_asset_amount) {
-                    return state.DoS(
-                        100,
-                        ERRORMSG("%s, the total_deal_asset_amount=%llu exceed the "
-                                "buyer's asset_amount=%llu",
-                                DEAL_ITEM_TITLE, buyOrder.total_deal_asset_amount, limitAssetAmount),
-                        REJECT_INVALID, "buy-deal-amount-exceeded");
-                }
-                buyResidualAmount = limitAssetAmount - buyOrder.total_deal_asset_amount;
+        if (buyOrder.order_type == ORDER_MARKET_PRICE) {
+            uint64_t limitCoinAmount = buyOrder.coin_amount;
+            if (limitCoinAmount < buyOrder.total_deal_coin_amount) {
+                return state.DoS(100, ERRORMSG( "%s, the total_deal_coin_amount=%llu exceed the buyer's "
+                    "coin_amount=%llu", DEAL_ITEM_TITLE, buyOrder.total_deal_coin_amount, limitCoinAmount),
+                    REJECT_INVALID, "buy-deal-coin-amount-exceeded");
             }
 
-            {
-                // get and check sell order residualAmount
-                uint64_t limitAssetAmount = sellOrder.asset_amount;
-                if (limitAssetAmount < sellOrder.total_deal_asset_amount) {
-                    return state.DoS(
-                        100,
-                        ERRORMSG("%s, the total_deal_asset_amount=%llu exceed the "
-                                "seller's asset_amount=%llu",
-                                DEAL_ITEM_TITLE, sellOrder.total_deal_asset_amount, limitAssetAmount),
-                        REJECT_INVALID, "sell-deal-amount-exceeded");
-                }
-                sellResidualAmount = limitAssetAmount - sellOrder.total_deal_asset_amount;
+            buyResidualAmount = limitCoinAmount - buyOrder.total_deal_coin_amount;
+        } else {
+            uint64_t limitAssetAmount = buyOrder.asset_amount;
+            if (limitAssetAmount < buyOrder.total_deal_asset_amount) {
+                return state.DoS(
+                    100,
+                    ERRORMSG("%s, the total_deal_asset_amount=%llu exceed the "
+                            "buyer's asset_amount=%llu",
+                            DEAL_ITEM_TITLE, buyOrder.total_deal_asset_amount, limitAssetAmount),
+                    REJECT_INVALID, "buy-deal-amount-exceeded");
             }
+            buyResidualAmount = limitAssetAmount - buyOrder.total_deal_asset_amount;
+        }
 
-            // 8. subtract the buyer's coins and seller's assets
-            // - unfree and subtract the coins from buyer account
-            if (   !pBuyOrderAccount->OperateBalance(buyOrder.coin_symbol, UNFREEZE, dealItem.dealCoinAmount)
-                || !pBuyOrderAccount->OperateBalance(buyOrder.coin_symbol, SUB_FREE, dealItem.dealCoinAmount)) {// - subtract buyer's coins
-                return state.DoS(100, ERRORMSG("%s, subtract coins from buyer account failed!"
-                    " deal_info={%s}, coin_symbol=%s",
-                    DEAL_ITEM_TITLE, dealItem.ToString(), buyOrder.coin_symbol),
-                    REJECT_INVALID, "operate-account-failed");
+        {
+            // get and check sell order residualAmount
+            uint64_t limitAssetAmount = sellOrder.asset_amount;
+            if (limitAssetAmount < sellOrder.total_deal_asset_amount) {
+                return state.DoS(
+                    100,
+                    ERRORMSG("%s, the total_deal_asset_amount=%llu exceed the "
+                            "seller's asset_amount=%llu",
+                            DEAL_ITEM_TITLE, sellOrder.total_deal_asset_amount, limitAssetAmount),
+                    REJECT_INVALID, "sell-deal-amount-exceeded");
             }
-            // - unfree and subtract the assets from seller account
-            if (   !pSellOrderAccount->OperateBalance(sellOrder.asset_symbol, UNFREEZE, dealItem.dealAssetAmount)
-                || !pSellOrderAccount->OperateBalance(sellOrder.asset_symbol, SUB_FREE, dealItem.dealAssetAmount)) { // - subtract seller's assets
-                return state.DoS(100, ERRORMSG("%s, subtract assets from seller account failed!"
-                    " deal_info={%s}, asset_symbol=%s",
-                    DEAL_ITEM_TITLE, dealItem.ToString(), sellOrder.asset_symbol),
-                    REJECT_INVALID, "operate-account-failed");
-            }
+            sellResidualAmount = limitAssetAmount - sellOrder.total_deal_asset_amount;
+        }
 
-            // 9. calc deal dex operator fees
-            uint64_t buyerReceivedAssets = dealItem.dealAssetAmount;
-            // 9.1 buyer pay the fee from the received assets to settler
+        // 8. subtract the buyer's coins and seller's assets
+        // - unfree and subtract the coins from buyer account
+        if (   !pBuyOrderAccount->OperateBalance(buyOrder.coin_symbol, UNFREEZE, dealItem.dealCoinAmount)
+            || !pBuyOrderAccount->OperateBalance(buyOrder.coin_symbol, SUB_FREE, dealItem.dealCoinAmount)) {// - subtract buyer's coins
+            return state.DoS(100, ERRORMSG("%s, subtract coins from buyer account failed!"
+                " deal_info={%s}, coin_symbol=%s",
+                DEAL_ITEM_TITLE, dealItem.ToString(), buyOrder.coin_symbol),
+                REJECT_INVALID, "operate-account-failed");
+        }
+        // - unfree and subtract the assets from seller account
+        if (   !pSellOrderAccount->OperateBalance(sellOrder.asset_symbol, UNFREEZE, dealItem.dealAssetAmount)
+            || !pSellOrderAccount->OperateBalance(sellOrder.asset_symbol, SUB_FREE, dealItem.dealAssetAmount)) { // - subtract seller's assets
+            return state.DoS(100, ERRORMSG("%s, subtract assets from seller account failed!"
+                " deal_info={%s}, asset_symbol=%s",
+                DEAL_ITEM_TITLE, dealItem.ToString(), sellOrder.asset_symbol),
+                REJECT_INVALID, "operate-account-failed");
+        }
 
-            uint64_t buyOperatorFeeRatio = GetOperatorFeeRatio(buyOrder, *pBuyOperatorDetail, takerSide);
-            uint64_t sellOperatorFeeRatio = GetOperatorFeeRatio(sellOrder, *pSellOperatorDetail, takerSide);
+        // 9. calc deal dex operator fees
+        uint64_t buyerReceivedAssets = dealItem.dealAssetAmount;
+        // 9.1 buyer pay the fee from the received assets to settler
 
-            if (!CheckOperatorFeeRatioRange(context, dealItem.buyOrderId, buyOperatorFeeRatio, DEAL_ITEM_TITLE))
-                return false;
+        uint64_t buyOperatorFeeRatio = GetOperatorFeeRatio(buyOrder, buyOrderOperatorParams, takerSide);
+        uint64_t sellOperatorFeeRatio = GetOperatorFeeRatio(sellOrder, sellOrderOperatorParams, takerSide);
 
-            uint64_t dealAssetFee;
-            if (!CalcOrderFee(dealItem.dealAssetAmount, buyOperatorFeeRatio, dealAssetFee)) return false;
+        if (!CheckOperatorFeeRatioRange(context, dealItem.buyOrderId, buyOperatorFeeRatio, DEAL_ITEM_TITLE))
+            return false;
 
-            buyerReceivedAssets = dealItem.dealAssetAmount - dealAssetFee;
-            // pay asset fee from seller to settler
-            if (!pBuyMatchAccount->OperateBalance(buyOrder.asset_symbol, ADD_FREE, dealAssetFee)) {
-                return state.DoS(100, ERRORMSG("%s, pay asset fee from buyer to operator account failed!"
-                    " deal_info={%s}, asset_symbol=%s, asset_fee=%llu, buy_match_regid=%s",
-                    DEAL_ITEM_TITLE, dealItem.ToString(), buyOrder.asset_symbol, dealAssetFee, pBuyMatchAccount->regid.ToString()),
-                    REJECT_INVALID, "operate-account-failed");
-            }
+        uint64_t dealAssetFee;
+        if (!CalcOrderFee(dealItem.dealAssetAmount, buyOperatorFeeRatio, dealAssetFee)) return false;
 
-            receipts.emplace_back(pBuyOrderAccount->regid, pBuyMatchAccount->regid, buyOrder.asset_symbol,
-                            dealAssetFee, ReceiptCode::DEX_ASSET_FEE_TO_SETTLER);
+        buyerReceivedAssets = dealItem.dealAssetAmount - dealAssetFee;
+        // pay asset fee from seller to settler
+        if (!pBuyMatchAccount->OperateBalance(buyOrder.asset_symbol, ADD_FREE, dealAssetFee)) {
+            return state.DoS(100, ERRORMSG("%s, pay asset fee from buyer to operator account failed!"
+                " deal_info={%s}, asset_symbol=%s, asset_fee=%llu, buy_match_regid=%s",
+                DEAL_ITEM_TITLE, dealItem.ToString(), buyOrder.asset_symbol, dealAssetFee, pBuyMatchAccount->regid.ToString()),
+                REJECT_INVALID, "operate-account-failed");
+        }
 
-            // 9.2 seller pay the fee from the received coins to settler
-            uint64_t sellerReceivedCoins = dealItem.dealCoinAmount;
-            if (!CheckOperatorFeeRatioRange(context, dealItem.sellOrderId, sellOperatorFeeRatio, DEAL_ITEM_TITLE))
-                return false;
-            uint64_t dealCoinFee;
-            if (!CalcOrderFee(dealItem.dealCoinAmount, sellOperatorFeeRatio, dealCoinFee)) return false;
+        receipts.emplace_back(pBuyOrderAccount->regid, pBuyMatchAccount->regid, buyOrder.asset_symbol,
+                        dealAssetFee, ReceiptCode::DEX_ASSET_FEE_TO_SETTLER);
 
-            sellerReceivedCoins = dealItem.dealCoinAmount - dealCoinFee;
-            // pay coin fee from buyer to settler
-            if (!pTxAccount->OperateBalance(sellOrder.coin_symbol, ADD_FREE, dealCoinFee)) {
-                return state.DoS(100, ERRORMSG("%s, pay coin fee from seller to operator account failed!"
-                    " deal_info={%s}, coin_symbol=%s, coin_fee=%llu, sell_match_regid=%s",
-                    DEAL_ITEM_TITLE, dealItem.ToString(), sellOrder.coin_symbol, dealCoinFee,
-                    pSellMatchAccount->regid.ToString()),
-                    REJECT_INVALID, "operate-account-failed");
-            }
-            receipts.emplace_back(pSellOrderAccount->regid, pTxAccount->regid, sellOrder.coin_symbol,
-                                dealCoinFee, ReceiptCode::DEX_COIN_FEE_TO_SETTLER);
+        // 9.2 seller pay the fee from the received coins to settler
+        uint64_t sellerReceivedCoins = dealItem.dealCoinAmount;
+        if (!CheckOperatorFeeRatioRange(context, dealItem.sellOrderId, sellOperatorFeeRatio, DEAL_ITEM_TITLE))
+            return false;
+        uint64_t dealCoinFee;
+        if (!CalcOrderFee(dealItem.dealCoinAmount, sellOperatorFeeRatio, dealCoinFee)) return false;
+
+        sellerReceivedCoins = dealItem.dealCoinAmount - dealCoinFee;
+        // pay coin fee from buyer to settler
+        if (!pTxAccount->OperateBalance(sellOrder.coin_symbol, ADD_FREE, dealCoinFee)) {
+            return state.DoS(100, ERRORMSG("%s, pay coin fee from seller to operator account failed!"
+                " deal_info={%s}, coin_symbol=%s, coin_fee=%llu, sell_match_regid=%s",
+                DEAL_ITEM_TITLE, dealItem.ToString(), sellOrder.coin_symbol, dealCoinFee,
+                pSellMatchAccount->regid.ToString()),
+                REJECT_INVALID, "operate-account-failed");
+        }
+        receipts.emplace_back(pSellOrderAccount->regid, pTxAccount->regid, sellOrder.coin_symbol,
+                            dealCoinFee, ReceiptCode::DEX_COIN_FEE_TO_SETTLER);
 
 
-            // 10. add the buyer's assets and seller's coins
-            if (   !pBuyOrderAccount->OperateBalance(buyOrder.asset_symbol, ADD_FREE, buyerReceivedAssets)    // + add buyer's assets
-                || !pSellOrderAccount->OperateBalance(sellOrder.coin_symbol, ADD_FREE, sellerReceivedCoins)){ // + add seller's coin
-                return state.DoS(100,ERRORMSG("%s, add assets to buyer or add coins to seller failed!"
-                    " deal_info={%s}, asset_symbol=%s, assets=%llu, coin_symbol=%s, coins=%llu",
-                    DEAL_ITEM_TITLE, dealItem.ToString(), buyOrder.asset_symbol,
-                    buyerReceivedAssets, sellOrder.coin_symbol, sellerReceivedCoins),
-                    REJECT_INVALID, "operate-account-failed");
-            }
-            receipts.emplace_back(pSellOrderAccount->regid, pBuyOrderAccount->regid, buyOrder.asset_symbol,
-                                buyerReceivedAssets, ReceiptCode::DEX_ASSET_TO_BUYER);
-            receipts.emplace_back(pBuyOrderAccount->regid, pSellOrderAccount->regid, buyOrder.coin_symbol,
-                                sellerReceivedCoins, ReceiptCode::DEX_COIN_TO_SELLER);
+        // 10. add the buyer's assets and seller's coins
+        if (   !pBuyOrderAccount->OperateBalance(buyOrder.asset_symbol, ADD_FREE, buyerReceivedAssets)    // + add buyer's assets
+            || !pSellOrderAccount->OperateBalance(sellOrder.coin_symbol, ADD_FREE, sellerReceivedCoins)){ // + add seller's coin
+            return state.DoS(100,ERRORMSG("%s, add assets to buyer or add coins to seller failed!"
+                " deal_info={%s}, asset_symbol=%s, assets=%llu, coin_symbol=%s, coins=%llu",
+                DEAL_ITEM_TITLE, dealItem.ToString(), buyOrder.asset_symbol,
+                buyerReceivedAssets, sellOrder.coin_symbol, sellerReceivedCoins),
+                REJECT_INVALID, "operate-account-failed");
+        }
+        receipts.emplace_back(pSellOrderAccount->regid, pBuyOrderAccount->regid, buyOrder.asset_symbol,
+                            buyerReceivedAssets, ReceiptCode::DEX_ASSET_TO_BUYER);
+        receipts.emplace_back(pBuyOrderAccount->regid, pSellOrderAccount->regid, buyOrder.coin_symbol,
+                            sellerReceivedCoins, ReceiptCode::DEX_COIN_TO_SELLER);
 
-            // 11. check order fullfiled or save residual amount
-            if (buyResidualAmount == 0) { // buy order fulfilled
-                if (buyOrder.order_type == ORDER_LIMIT_PRICE) {
-                    if (buyOrder.coin_amount > buyOrder.total_deal_coin_amount) {
-                        uint64_t residualCoinAmount = buyOrder.coin_amount - buyOrder.total_deal_coin_amount;
+        // 11. check order fullfiled or save residual amount
+        if (buyResidualAmount == 0) { // buy order fulfilled
+            if (buyOrder.order_type == ORDER_LIMIT_PRICE) {
+                if (buyOrder.coin_amount > buyOrder.total_deal_coin_amount) {
+                    uint64_t residualCoinAmount = buyOrder.coin_amount - buyOrder.total_deal_coin_amount;
 
-                        if (!pBuyOrderAccount->OperateBalance(buyOrder.coin_symbol, UNFREEZE, residualCoinAmount)) {
-                            return state.DoS(100, ERRORMSG("%s, unfreeze buyer's residual coins failed!"
-                                " deal_info={%s}, coin_symbol=%s, residual_coins=%llu",
-                                DEAL_ITEM_TITLE, dealItem.ToString(), buyOrder.coin_symbol, residualCoinAmount),
-                                REJECT_INVALID, "operate-account-failed");
-                        }
-                    } else {
-                        assert(buyOrder.coin_amount == buyOrder.total_deal_coin_amount);
+                    if (!pBuyOrderAccount->OperateBalance(buyOrder.coin_symbol, UNFREEZE, residualCoinAmount)) {
+                        return state.DoS(100, ERRORMSG("%s, unfreeze buyer's residual coins failed!"
+                            " deal_info={%s}, coin_symbol=%s, residual_coins=%llu",
+                            DEAL_ITEM_TITLE, dealItem.ToString(), buyOrder.coin_symbol, residualCoinAmount),
+                            REJECT_INVALID, "operate-account-failed");
                     }
-                }
-                // erase active order
-                if (!cw.dexCache.EraseActiveOrder(dealItem.buyOrderId, buyOrder)) {
-                    return state.DoS(100, ERRORMSG("%s, finish the active buy order failed! deal_info={%s}",
-                        DEAL_ITEM_TITLE, dealItem.ToString()),
-                        REJECT_INVALID, "write-dexdb-failed");
-                }
-            } else {
-                if (!cw.dexCache.UpdateActiveOrder(dealItem.buyOrderId, buyOrder)) {
-                    return state.DoS(100, ERRORMSG("%s, update active buy order failed! deal_info={%s}",
-                        DEAL_ITEM_TITLE, dealItem.ToString()),
-                        REJECT_INVALID, "write-dexdb-failed");
-                }
-            }
-
-            if (sellResidualAmount == 0) { // sell order fulfilled
-                // erase active order
-                if (!cw.dexCache.EraseActiveOrder(dealItem.sellOrderId, sellOrder)) {
-                    return state.DoS(100, ERRORMSG("%s, finish active sell order failed! deal_info={%s}",
-                        DEAL_ITEM_TITLE, dealItem.ToString()),
-                        REJECT_INVALID, "write-dexdb-failed");
-                }
-            } else {
-                if (!cw.dexCache.UpdateActiveOrder(dealItem.sellOrderId, sellOrder)) {
-                    return state.DoS(100, ERRORMSG("%s, update active sell order failed! deal_info={%s}",
-                        DEAL_ITEM_TITLE, dealItem.ToString()),
-                        REJECT_INVALID, "write-dexdb-failed");
-                }
-            }
-            return true;
-        }
-
-        bool CheckDexOperator() {
-
-            uint32_t buyDexId = buyOrder.dex_id;
-            uint32_t sellDexId = sellOrder.dex_id;
-            OrderSide makerSide = takerSide == ORDER_BUY ? ORDER_SELL : ORDER_BUY;
-            if (buyDexId != sellDexId) {
-                if (makerSide == ORDER_BUY && buyOrder.public_mode != ORDER_PUBLIC) {
-                    return context.pState->DoS(100, ERRORMSG("%s, the buy order is maker order and must be public! "
-                        "buy_dex_id=%u, sell_dex_id=%u", DEAL_ITEM_TITLE, buyDexId, sellDexId),
-                        REJECT_INVALID, "buy-maker-order-not-public");
-                }
-                if (makerSide == ORDER_SELL && buyOrder.public_mode != ORDER_PUBLIC) {
-                    return context.pState->DoS(100, ERRORMSG("%s, the sell order is maker order and must be public! "
-                        "buy_dex_id=%u, sell_dex_id=%u", DEAL_ITEM_TITLE, buyDexId, sellDexId),
-                        REJECT_INVALID, "sell-maker-order-not-public");
-                }
-            }
-            return true;
-        }
-
-        bool GetDealOrder(const uint256 &orderId, const OrderSide orderSide,
-                          CDEXOrderDetail &dealOrder) {
-            if (!context.pCw->dexCache.GetActiveOrder(orderId, dealOrder))
-                return context.pState->DoS(100, ERRORMSG("%s, get active order failed! i=%d, orderId=%s", DEAL_ITEM_TITLE,
-                    orderId.ToString()), REJECT_INVALID,
-                    strprintf("get-active-order-failed, i=%d, order_id=%s", i, orderId.ToString()));
-
-            if (dealOrder.order_side != orderSide)
-                return context.pState->DoS(100, ERRORMSG("%s, expected order_side=%s but got order_side=%s! orderId=%s",
-                        DEAL_ITEM_TITLE, kOrderSideHelper.GetName(orderSide),
-                        kOrderSideHelper.GetName(dealOrder.order_side), orderId.ToString()),
-                        REJECT_INVALID,
-                        strprintf("order-side-unmatched, i=%d, order_id=%s", i, orderId.ToString()));
-
-            return true;
-        }
-
-        OrderSide GetTakerOrderSide() {
-            OrderSide takerSide;
-            if (buyOrder.order_type != sellOrder.order_type) {
-                if (buyOrder.order_type == ORDER_MARKET_PRICE) {
-                    takerSide = OrderSide::ORDER_BUY;
                 } else {
-                    assert(sellOrder.order_type == ORDER_MARKET_PRICE);
-                    takerSide = OrderSide::ORDER_SELL;
-                }
-            } else { // buyOrder.order_type == sellOrder.order_type
-                if (buyOrder.tx_cord < sellOrder.tx_cord) {
-                    takerSide = OrderSide::ORDER_BUY;
-                } else {
-                    takerSide = OrderSide::ORDER_SELL;
+                    assert(buyOrder.coin_amount == buyOrder.total_deal_coin_amount);
                 }
             }
-            return takerSide;
-        }
-
-        uint64_t GetOperatorFeeRatio(const CDEXOrderDetail &order,
-                                     const DexOperatorDetail &operatorDetail,
-                                     const OrderSide &takerSide) {
-            uint64_t ratio;
-            OperatorFeeRatios feeRatios;
-            if (order.opt_operator_fee_ratios) {
-                feeRatios = order.opt_operator_fee_ratios.value();
-            } else {
-                feeRatios.taker_fee_ratio = operatorDetail.taker_fee_ratio;
-                feeRatios.taker_fee_ratio = operatorDetail.maker_fee_ratio;
+            // erase active order
+            if (!cw.dexCache.EraseActiveOrder(dealItem.buyOrderId, buyOrder)) {
+                return state.DoS(100, ERRORMSG("%s, finish the active buy order failed! deal_info={%s}",
+                    DEAL_ITEM_TITLE, dealItem.ToString()),
+                    REJECT_INVALID, "write-dexdb-failed");
             }
-
-            if (order.order_side == takerSide) {
-                ratio = feeRatios.taker_fee_ratio;
-            } else {
-                ratio = feeRatios.maker_fee_ratio;
+        } else {
+            if (!cw.dexCache.UpdateActiveOrder(dealItem.buyOrderId, buyOrder)) {
+                return state.DoS(100, ERRORMSG("%s, update active buy order failed! deal_info={%s}",
+                    DEAL_ITEM_TITLE, dealItem.ToString()),
+                    REJECT_INVALID, "write-dexdb-failed");
             }
-            LogPrint(BCLog::DEX, "got operator_fee_ratio=%llu, is_taker=%d, order_side=%d",
-                ratio, order.order_side == takerSide, kOrderSideHelper.GetName(order.order_side));
-            return ratio;
         }
 
-        bool GetAccount(const CRegID &regid, shared_ptr<CAccount> &pAccount) {
-
-            auto accountIt = accountMap.find(regid);
-            if (accountIt != accountMap.end()) {
-                pAccount = accountIt->second;
-            } else {
-                pAccount = make_shared<CAccount>();
-                if (!context.pCw->accountCache.GetAccount(regid, *pAccount)) {
-                    return context.pState->DoS(100, ERRORMSG("%s, read account info error! regid=%s",
-                        DEAL_ITEM_TITLE, regid.ToString()), READ_ACCOUNT_FAIL, "bad-read-accountdb");
-                }
-                accountMap[regid] = pAccount;
+        if (sellResidualAmount == 0) { // sell order fulfilled
+            // erase active order
+            if (!cw.dexCache.EraseActiveOrder(dealItem.sellOrderId, sellOrder)) {
+                return state.DoS(100, ERRORMSG("%s, finish active sell order failed! deal_info={%s}",
+                    DEAL_ITEM_TITLE, dealItem.ToString()),
+                    REJECT_INVALID, "write-dexdb-failed");
             }
-            return true;
+        } else {
+            if (!cw.dexCache.UpdateActiveOrder(dealItem.sellOrderId, sellOrder)) {
+                return state.DoS(100, ERRORMSG("%s, update active sell order failed! deal_info={%s}",
+                    DEAL_ITEM_TITLE, dealItem.ToString()),
+                    REJECT_INVALID, "write-dexdb-failed");
+            }
         }
+        return true;
+    }
 
-        bool CalcOrderFee(uint64_t amount, uint64_t fee_ratio, uint64_t &orderFee) {
-
-            uint128_t fee = amount * (uint128_t)fee_ratio / PRICE_BOOST;
-            if (fee > (uint128_t)ULLONG_MAX)
-                return context.pState->DoS(100, ERRORMSG("%s, the calc_order_fee out of range! amount=%llu, "
-                    "fee_ratio=%llu", DEAL_ITEM_TITLE,  amount, fee_ratio), REJECT_INVALID, "calc-order-fee-error");
-            orderFee = fee;
-            return true;
+    COrderOperatorParams CDealItemExecuter::GetOrderOperatorParams(CDEXOrderDetail &order,
+            DexOperatorDetail &operatorDetail) {
+        if (buyOrder.opt_operator_params) {
+            return buyOrder.opt_operator_params.value();
+        } else {
+            return {
+                pBuyOperatorDetail->public_mode,
+                pBuyOperatorDetail->maker_fee_ratio,
+                pBuyOperatorDetail->taker_fee_ratio
+            };
         }
-    };
+    }
+
+    bool CDealItemExecuter::CheckCrossExchangeTrading() {
+
+        uint32_t buyDexId = buyOrder.dex_id;
+        uint32_t sellDexId = sellOrder.dex_id;
+        PublicMode buyOrderPublicMode = buyOrderOperatorParams.public_mode;
+        PublicMode sellOrderPublicMode = sellOrderOperatorParams.public_mode;
+        OrderSide makerSide = takerSide == ORDER_BUY ? ORDER_SELL : ORDER_BUY;
+
+        if (buyDexId != sellDexId) {
+            if (makerSide == ORDER_BUY && buyOrderPublicMode != PublicMode::PUBLIC) {
+                return context.pState->DoS(100, ERRORMSG("%s, the buy order is maker order and must be public! "
+                    "buy_dex_id=%u, sell_dex_id=%u", DEAL_ITEM_TITLE, buyDexId, sellDexId),
+                    REJECT_INVALID, "buy-maker-order-not-public");
+            }
+            if (makerSide == ORDER_SELL && sellOrderPublicMode != PublicMode::PUBLIC) {
+                return context.pState->DoS(100, ERRORMSG("%s, the sell order is maker order and must be public! "
+                    "buy_dex_id=%u, sell_dex_id=%u", DEAL_ITEM_TITLE, buyDexId, sellDexId),
+                    REJECT_INVALID, "sell-maker-order-not-public");
+            }
+        }
+        return true;
+    }
+
+    bool CDealItemExecuter::GetDealOrder(const uint256 &orderId, const OrderSide orderSide,
+                                         CDEXOrderDetail &dealOrder) {
+        if (!context.pCw->dexCache.GetActiveOrder(orderId, dealOrder))
+            return context.pState->DoS(100, ERRORMSG("%s, get active order failed! i=%d, orderId=%s", DEAL_ITEM_TITLE,
+                orderId.ToString()), REJECT_INVALID,
+                strprintf("get-active-order-failed, i=%d, order_id=%s", i, orderId.ToString()));
+
+        if (dealOrder.order_side != orderSide)
+            return context.pState->DoS(100, ERRORMSG("%s, expected order_side=%s but got order_side=%s! orderId=%s",
+                    DEAL_ITEM_TITLE, kOrderSideHelper.GetName(orderSide),
+                    kOrderSideHelper.GetName(dealOrder.order_side), orderId.ToString()),
+                    REJECT_INVALID,
+                    strprintf("order-side-unmatched, i=%d, order_id=%s", i, orderId.ToString()));
+
+        return true;
+    }
+
+    OrderSide CDealItemExecuter::GetTakerOrderSide() {
+        OrderSide takerSide;
+        if (buyOrder.order_type != sellOrder.order_type) {
+            if (buyOrder.order_type == ORDER_MARKET_PRICE) {
+                takerSide = OrderSide::ORDER_BUY;
+            } else {
+                assert(sellOrder.order_type == ORDER_MARKET_PRICE);
+                takerSide = OrderSide::ORDER_SELL;
+            }
+        } else { // buyOrder.order_type == sellOrder.order_type
+            if (buyOrder.tx_cord < sellOrder.tx_cord) {
+                takerSide = OrderSide::ORDER_BUY;
+            } else {
+                takerSide = OrderSide::ORDER_SELL;
+            }
+        }
+        return takerSide;
+    }
+
+    uint64_t CDealItemExecuter::GetOperatorFeeRatio(const CDEXOrderDetail &order,
+            const COrderOperatorParams &orderOperatorParams, const OrderSide &takerSide) {
+        uint64_t ratio;
+        if (order.order_side == takerSide) {
+            ratio = orderOperatorParams.taker_fee_ratio;
+        } else {
+            ratio = orderOperatorParams.maker_fee_ratio;
+        }
+        LogPrint(BCLog::DEX, "got operator_fee_ratio=%llu, is_taker=%d, order_side=%d",
+            ratio, order.order_side == takerSide, kOrderSideHelper.GetName(order.order_side));
+        return ratio;
+    }
+
+    bool CDealItemExecuter::GetAccount(const CRegID &regid, shared_ptr<CAccount> &pAccount) {
+
+        auto accountIt = accountMap.find(regid);
+        if (accountIt != accountMap.end()) {
+            pAccount = accountIt->second;
+        } else {
+            pAccount = make_shared<CAccount>();
+            if (!context.pCw->accountCache.GetAccount(regid, *pAccount)) {
+                return context.pState->DoS(100, ERRORMSG("%s, read account info error! regid=%s",
+                    DEAL_ITEM_TITLE, regid.ToString()), READ_ACCOUNT_FAIL, "bad-read-accountdb");
+            }
+            accountMap[regid] = pAccount;
+        }
+        return true;
+    }
+
+    bool CDealItemExecuter::CalcOrderFee(uint64_t amount, uint64_t fee_ratio, uint64_t &orderFee) {
+
+        uint128_t fee = amount * (uint128_t)fee_ratio / PRICE_BOOST;
+        if (fee > (uint128_t)ULLONG_MAX)
+            return context.pState->DoS(100, ERRORMSG("%s, the calc_order_fee out of range! amount=%llu, "
+                "fee_ratio=%llu", DEAL_ITEM_TITLE,  amount, fee_ratio), REJECT_INVALID, "calc-order-fee-error");
+        orderFee = fee;
+        return true;
+    }
 
     ///////////////////////////////////////////////////////////////////////////////
     // class CDEXSettleTx
@@ -1028,7 +1057,7 @@ namespace dex {
 
     bool CDEXSettleTx::CheckTx(CTxExecuteContext &context) {
         IMPLEMENT_DEFINE_CW_STATE;
-//            IMPLEMENT_DISABLE_TX_PRE_STABLE_COIN_RELEASE;
+        IMPLEMENT_DISABLE_TX_PRE_STABLE_COIN_RELEASE;
         IMPLEMENT_CHECK_TX_REGID(txUid);
         if (!CheckFee(context)) return false;
         if (txUid.get<CRegID>() != SysCfg().GetDexMatchSvcRegId()) {
@@ -1043,7 +1072,7 @@ namespace dex {
                 REJECT_INVALID, "invalid-deal-items");
 
         for (size_t i = 0; i < dealItems.size(); i++) {
-            const DealItem & dealItem = dealItems.at(i);
+            const DealItem &dealItem = dealItems.at(i);
             if (dealItem.buyOrderId.IsEmpty() || dealItem.sellOrderId.IsEmpty())
                 return state.DoS(100, ERRORMSG("%s, deal_items[%d], buy_order_id or sell_order_id is empty",
                     i), REJECT_INVALID, "empty-order-id");

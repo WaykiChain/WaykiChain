@@ -26,7 +26,7 @@ public:
     CTxMemCache(CTxMemCache *pBaseIn) : pBase(pBaseIn) {}
 
 public:
-    bool HaveTx(const uint256 &txid);
+    bool HasTx(const uint256 &txid);
 
     bool AddBlockTx(const CBlock &block);
     bool RemoveBlockTx(const CBlock &block);

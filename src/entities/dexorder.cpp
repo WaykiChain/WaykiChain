@@ -11,15 +11,17 @@ using namespace dex;
 namespace dex {
 
     ////////////////////////////////////////////////////////////////////////////////
-    // OperatorFeeRatios
+    // COrderOperatorParams
 
-    string OperatorFeeRatios::ToString() const {
-        return  strprintf("taker_fee_ratio=%llu", taker_fee_ratio) + ", " +
+    string COrderOperatorParams::ToString() const {
+        return  strprintf("public_mode=%s", kPublicModeHelper.GetName(public_mode)) + ", " +
+                strprintf("taker_fee_ratio=%llu", taker_fee_ratio) + ", " +
                 strprintf("maker_fee_ratio=%s", maker_fee_ratio);
     }
 
-    Object OperatorFeeRatios::ToJson() const {
+    Object COrderOperatorParams::ToJson() const {
         json_spirit::Object obj;
+        obj.push_back(Pair("public_mode", kPublicModeHelper.GetName(public_mode)));
         obj.push_back(Pair("taker_fee_ratio", taker_fee_ratio));
         obj.push_back(Pair("maker_fee_ratio", maker_fee_ratio));
         return obj;
@@ -39,9 +41,8 @@ namespace dex {
                 strprintf("price=%llu", price) + ", " +
 
                 strprintf("dex_id=%u", dex_id) + ", " +
-                strprintf("public_mode=%u", dex::kPublicModeHelper.GetName(public_mode)) + ", " +
-                strprintf("has_operator_config=%d", opt_operator_fee_ratios.has_value()) + ", " +
-                strprintf("operator_fee_ratios={%s}", opt_operator_fee_ratios ? opt_operator_fee_ratios->ToString() : "") + ", " +
+                strprintf("has_operator_params=%d", opt_operator_params.has_value()) + ", " +
+                strprintf("operator_params={%s}", opt_operator_params ? opt_operator_params->ToString() : "") + ", " +
                 strprintf("tx_cord=%s", tx_cord.ToString()) + ", " +
                 strprintf("user_regid=%s", user_regid.ToString()) + ", " +
                 strprintf("total_deal_coin_amount=%llu", total_deal_coin_amount) + ", " +
@@ -59,12 +60,11 @@ namespace dex {
         obj.push_back(Pair("asset_amount",              asset_amount));
         obj.push_back(Pair("price",                     price));
         obj.push_back(Pair("dex_id",                    (int64_t)dex_id));
-        obj.push_back(Pair("public_mode",               dex::kPublicModeHelper.GetName(public_mode)));
-        obj.push_back(Pair("has_operator_config",       opt_operator_fee_ratios.has_value()));
-        if (opt_operator_fee_ratios) {
+        obj.push_back(Pair("has_operator_config",       opt_operator_params.has_value()));
+        if (opt_operator_params) {
             json_spirit::Object operatorObj;
-            operatorObj.push_back(Pair("fee_ratios",    opt_operator_fee_ratios.value().ToJson()));
-            obj.push_back(Pair("operator_config",       operatorObj));
+            operatorObj.push_back(Pair("fee_ratios",    opt_operator_params.value().ToJson()));
+            obj.push_back(Pair("operator_config",       opt_operator_params->ToJson()));
         }
         obj.push_back(Pair("tx_cord",                   tx_cord.ToString()));
         obj.push_back(Pair("user_regid",                user_regid.ToString()));
@@ -105,9 +105,8 @@ namespace dex {
         pSysOrder->coin_amount        = coiAmountIn;
         pSysOrder->asset_amount       = assetAmountIn;
         pSysOrder->price              = 0;
-        pSysOrder->public_mode        = ORDER_PUBLIC;
         pSysOrder->dex_id             = 0;
-        pSysOrder->opt_operator_fee_ratios = make_optional<OperatorFeeRatios>(0, 0); // no order fee for sys order
+        pSysOrder->opt_operator_params = {PublicMode::PUBLIC, 0, 0}; // no order fee for sys order
         pSysOrder->tx_cord            = txCord;
         pSysOrder->user_regid         = SysCfg().GetFcoinGenesisRegId();
         // other fields keep default value
@@ -115,3 +114,8 @@ namespace dex {
         return pSysOrder;
     }
 }
+
+////////////////////////////////////////////////////////////////////////////////
+// class DexOperatorDetail
+
+const DexOperatorDetail DexOperatorDetail::EMPTY_OBJ = {};

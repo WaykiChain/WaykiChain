@@ -22,27 +22,31 @@ using namespace std;
  */
 namespace db_util {
 
-#define DEFINE_NUMERIC_EMPTY(type) \
+#define DEFINE_NUMERIC_DB_FUNC(type) \
     inline bool IsEmpty(const type val) { return val == 0; } \
-    inline void SetEmpty(type &val) { val = 0; }
+    inline void SetEmpty(type &val) { val = 0; } \
+    inline string ToString(const type &val) { return std::to_string(val); }
 
     // bool
     inline bool IsEmpty(const bool val) { return val == false; }
     inline void SetEmpty(bool &val) { val = false; }
+    inline string ToString(const bool &val) { return val ? "true" : "false"; }
 
-    DEFINE_NUMERIC_EMPTY(int32_t)
-    DEFINE_NUMERIC_EMPTY(uint8_t)
-    DEFINE_NUMERIC_EMPTY(uint16_t)
-    DEFINE_NUMERIC_EMPTY(uint32_t)
-    DEFINE_NUMERIC_EMPTY(uint64_t)
+    DEFINE_NUMERIC_DB_FUNC(int32_t)
+    DEFINE_NUMERIC_DB_FUNC(uint8_t)
+    DEFINE_NUMERIC_DB_FUNC(uint16_t)
+    DEFINE_NUMERIC_DB_FUNC(uint32_t)
+    DEFINE_NUMERIC_DB_FUNC(uint64_t)
 
     // string
     template<typename C> bool IsEmpty(const basic_string<C> &val);
     template<typename C> void SetEmpty(basic_string<C> &val);
+    template<typename C> string ToString(const basic_string<C> &val);
 
     // vector
     template<typename T, typename A> bool IsEmpty(const vector<T, A>& val);
     template<typename T, typename A> void SetEmpty(vector<T, A>& val);
+    template<typename T, typename A> string ToString(const vector<T, A>& val);
     //shared_ptr
     template <typename T> bool  IsEmpty(const std::shared_ptr<T>& val) {
         return val == nullptr || (*val).IsEmpty();
@@ -55,50 +59,76 @@ namespace db_util {
     }
 
     //optional
-    template<typename T> bool IsEmpty(const std::optional<T> val) { return val == std::nullopt; }
-    template<typename T> void SetEmpty(std::optional<T>& val) { val = std::nullopt; }
+    template<typename T> bool IsEmpty(const std::optional<T> val);
+    template<typename T> void SetEmpty(std::optional<T>& val);
+    template<typename T> string ToString(const std::optional<T>& val);
 
     // set
     template<typename K, typename Pred, typename A> bool IsEmpty(const set<K, Pred, A>& val);
     template<typename K, typename Pred, typename A> void SetEmpty(set<K, Pred, A>& val);
+    template<typename K, typename Pred, typename A> string ToString(const set<K, Pred, A>& val);
 
     // map
-    template<typename K, typename T, typename Pred, typename A>
-    bool IsEmpty(const map<K, T, Pred, A>& val);
-    template<typename K, typename T, typename Pred, typename A>
-    void SetEmpty(map<K, T, Pred, A>& val);
+    template<typename K, typename T, typename Pred, typename A> bool IsEmpty(const map<K, T, Pred, A>& val);
+    template<typename K, typename T, typename Pred, typename A> void SetEmpty(map<K, T, Pred, A>& val);
+    template<typename K, typename T, typename Pred, typename A> string ToString(const map<K, T, Pred, A>& val);
 
     // 2 pair
     template<typename K, typename T> bool IsEmpty(const std::pair<K, T>& val);
     template<typename K, typename T> void SetEmpty(std::pair<K, T>& val);
+    template<typename K, typename T> string ToString(const std::pair<K, T>& val);
+
+
+    // 2 tuple
+    template<typename T0, typename T1> bool IsEmpty(const std::tuple<T0, T1>& val);
+    template<typename T0, typename T1> void SetEmpty(std::tuple<T0, T1>& val);
+    template<typename T0, typename T1> string ToString(const std::tuple<T0, T1>& val);
 
     // 3 tuple
     template<typename T0, typename T1, typename T2> bool IsEmpty(const std::tuple<T0, T1, T2>& val);
     template<typename T0, typename T1, typename T2> void SetEmpty(std::tuple<T0, T1, T2>& val);
+    template<typename T0, typename T1, typename T2> string ToString(const std::tuple<T0, T1, T2>& val);
+
+    // 4 tuple
+    template<typename T0, typename T1, typename T2, typename T3> bool IsEmpty(const std::tuple<T0, T1, T2, T3>& val);
+    template<typename T0, typename T1, typename T2, typename T3> void SetEmpty(std::tuple<T0, T1, T2, T3>& val);
+    template<typename T0, typename T1, typename T2, typename T3> string ToString(const std::tuple<T0, T1, T2, T3>& val);
 
     // common Object Type, must support T.IsEmpty() and T.SetEmpty()
     template<typename T> bool IsEmpty(const T& val);
     template<typename T> void SetEmpty(T& val);
+    template<typename T> string ToString(const T& val);
+
+    //optional
+    template<typename T> bool IsEmpty(const std::optional<T> val) { return val == std::nullopt; }
+    template<typename T> void SetEmpty(std::optional<T>& val) { val = std::nullopt; }
+    template<typename T> string ToString(const std::optional<T>& val) { return val ? ToString(val.value()) : ""; }
 
     // string
-    template<typename C>
-    bool IsEmpty(const basic_string<C> &val) {
+    template<typename C> bool IsEmpty(const basic_string<C> &val) {
         return val.empty();
     }
-
-    template<typename C>
-    void SetEmpty(basic_string<C> &val) {
+    template<typename C> void SetEmpty(basic_string<C> &val) {
         val.clear();
+    }
+    template<typename C> string ToString(const basic_string<C> &val) {
+        return val;
     }
 
     // vector
-    template<typename T, typename A>
-    bool IsEmpty(const vector<T, A>& val) {
+    template<typename T, typename A> bool IsEmpty(const vector<T, A>& val) {
         return val.empty();
     }
-    template<typename T, typename A>
-    void SetEmpty(vector<T, A>& val) {
+    template<typename T, typename A> void SetEmpty(vector<T, A>& val) {
         val.clear();
+    }
+    template<typename T, typename A> string ToString(const vector<T, A>& val) {
+        string ret;
+        for (const auto &item : val) {
+            if (!ret.empty()) ret += ",";
+            ret += "{" + ToString(item) + "}";
+        }
+        return "[" + ret + "]";
     }
 
     // set
@@ -108,51 +138,113 @@ namespace db_util {
     template<typename K, typename Pred, typename A> void SetEmpty(set<K, Pred, A>& val) {
         val.clear();
     }
-
-    template<typename K, typename T, typename Pred, typename A>
-    bool IsEmpty(const map<K, T, Pred, A>& val) {
-        return val.empty();
+    template<typename K, typename Pred, typename A> string ToString(const set<K, Pred, A>& val) {
+        string ret;
+        for (const auto &item : val) {
+            if (!ret.empty()) ret += ",";
+            ret += "{" + ToString(item) + "}";
+        }
+        return "[" + ret + "]";
     }
 
-    template<typename K, typename T, typename Pred, typename A>
-    void SetEmpty(map<K, T, Pred, A>& val) {
+    // map
+    template<typename K, typename T, typename Pred, typename A> bool IsEmpty(const map<K, T, Pred, A>& val) {
+        return val.empty();
+    }
+    template<typename K, typename T, typename Pred, typename A> void SetEmpty(map<K, T, Pred, A>& val) {
         val.clear();
+    }
+    template<typename K, typename T, typename Pred, typename A> string ToString(const map<K, T, Pred, A>& val) {
+        string ret;
+        for (const auto &item : val) {
+            if (!ret.empty()) ret += ",";
+            ret += "{" + ToString(item.first) + "=" + ToString(item.second) + "}";
+        }
+        return "[" + ret + "]";
     }
 
     // 2 pair
-    template<typename K, typename T>
-    bool IsEmpty(const std::pair<K, T>& val) {
+    template<typename K, typename T> bool IsEmpty(const std::pair<K, T>& val) {
         return IsEmpty(val.first) && IsEmpty(val.second);
     }
-    template<typename K, typename T>
-    void SetEmpty(std::pair<K, T>& val) {
+    template<typename K, typename T> void SetEmpty(std::pair<K, T>& val) {
         SetEmpty(val.first);
         SetEmpty(val.second);
     }
+    template<typename K, typename T> string ToString(const std::pair<K, T>& val) {
+        string ret = "{first=" + ToString(val.first) + "}";
+        ret += "{second=" + ToString(val.second) + "}";
+        return "{" + ret + "}";
+    }
+
+
+    // 2 tuple
+    template<typename T0, typename T1> bool IsEmpty(const std::tuple<T0, T1>& val) {
+        return IsEmpty(std::get<0>(val)) &&
+               IsEmpty(std::get<1>(val));
+    }
+    template<typename T0, typename T1> void SetEmpty(std::tuple<T0, T1>& val) {
+        SetEmpty(std::get<0>(val));
+        SetEmpty(std::get<1>(val));
+
+    }
+    template<typename T0, typename T1> string ToString(const std::tuple<T0, T1>& val) {
+        string ret = "{0=" + ToString(std::get<0>(val)) + "}";
+        ret += "{1=" + ToString(std::get<1>(val)) + "}";
+        return "{" + ret + "}";
+    }
 
     // 3 tuple
-    template<typename T0, typename T1, typename T2>
-    bool IsEmpty(const std::tuple<T0, T1, T2>& val) {
+    template<typename T0, typename T1, typename T2> bool IsEmpty(const std::tuple<T0, T1, T2>& val) {
         return IsEmpty(std::get<0>(val)) &&
                IsEmpty(std::get<1>(val)) &&
                IsEmpty(std::get<2>(val));
     }
-    template<typename T0, typename T1, typename T2>
-    void SetEmpty(std::tuple<T0, T1, T2>& val) {
+    template<typename T0, typename T1, typename T2> void SetEmpty(std::tuple<T0, T1, T2>& val) {
         SetEmpty(std::get<0>(val));
         SetEmpty(std::get<1>(val));
         SetEmpty(std::get<2>(val));
     }
-
-    // common Object Type, must support T.IsEmpty() and T.SetEmpty()
-    template<typename T>
-    bool IsEmpty(const T& val) {
-        return val.IsEmpty();
+    template<typename T0, typename T1, typename T2> string ToString(const std::tuple<T0, T1, T2>& val) {
+        string ret = "{0=" + ToString(std::get<0>(val)) + "}";
+        ret += "{1=" + ToString(std::get<1>(val)) + "}";
+        ret += "{2=" + ToString(std::get<2>(val)) + "}";
+        return "{" + ret + "}";
     }
 
-    template<typename T>
-    void SetEmpty(T& val) {
+    // 4 tuple
+    template<typename T0, typename T1, typename T2, typename T3>
+    bool IsEmpty(const std::tuple<T0, T1, T2, T3>& val) {
+        return IsEmpty(std::get<0>(val)) &&
+               IsEmpty(std::get<1>(val)) &&
+               IsEmpty(std::get<2>(val)) &&
+               IsEmpty(std::get<3>(val));
+    }
+    template<typename T0, typename T1, typename T2, typename T3>
+    void SetEmpty(std::tuple<T0, T1, T2, T3>& val) {
+        SetEmpty(std::get<0>(val));
+        SetEmpty(std::get<1>(val));
+        SetEmpty(std::get<2>(val));
+        SetEmpty(std::get<3>(val));
+    }
+    template<typename T0, typename T1, typename T2, typename T3>
+    string ToString(const std::tuple<T0, T1, T2, T3>& val) {
+        string ret = "{0=" + ToString(std::get<0>(val)) + "}";
+        ret += "{1=" + ToString(std::get<1>(val)) + "}";
+        ret += "{2=" + ToString(std::get<2>(val)) + "}";
+        ret += "{3=" + ToString(std::get<3>(val)) + "}";
+        return "{" + ret + "}";
+    }
+
+    // common Object Type, must support T.IsEmpty() and T.SetEmpty()
+    template<typename T> bool IsEmpty(const T& val) {
+        return val.IsEmpty();
+    }
+    template<typename T> void SetEmpty(T& val) {
         val.SetEmpty();
+    }
+    template<typename T> string ToString(const T& val) {
+        return val.ToString();
     }
 
     template <typename ValueType>
@@ -353,7 +445,7 @@ public:
     }
 
     template<typename KeyType, typename ValueType>
-    bool HaveData(const dbk::PrefixType prefixType, const KeyType &key) const {
+    bool HasData(const dbk::PrefixType prefixType, const KeyType &key) const {
         string keyStr = dbk::GenDbKey(prefixType, key);
         return db.Exists(keyStr);
     }
@@ -509,7 +601,7 @@ public:
         return true;
     }
 
-    bool HaveData(const KeyType &key) const {
+    bool HasData(const KeyType &key) const {
         if (db_util::IsEmpty(key)) {
             return false;
         }
@@ -825,7 +917,7 @@ public:
         return true;
     }
 
-    bool HaveData() const {
+    bool HasData() const {
         auto ptr = GetDataPtr();
         return ptr && !db_util::IsEmpty(*ptr);
     }
@@ -875,7 +967,7 @@ public:
     }
 
     dbk::PrefixType GetPrefixType() const { return PREFIX_TYPE; }
-private:
+
     std::shared_ptr<ValueType> GetDataPtr() const {
 
         if (ptrData) {
@@ -898,6 +990,7 @@ private:
         return nullptr;
     }
 
+private:
     inline void AddOpLog(const ValueType &oldValue) {
         if (pDbOpLogMap != nullptr) {
             CDbOpLog dbOpLog;

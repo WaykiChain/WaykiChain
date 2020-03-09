@@ -114,7 +114,7 @@ struct CUserCDP {
 
     void AddStake(int32_t blockHeight, uint64_t bcoinsToStake, uint64_t mintedScoins);
 
-    void LiquidatePartial(int32_t blockHeight, uint64_t bcoinsToLiquidate, uint64_t scoinsToLiquidate);
+    void PartialLiquidate(int32_t blockHeight, uint64_t bcoinsToLiquidate, uint64_t scoinsToLiquidate);
 
     bool IsFinished() const { return total_owed_scoins == 0 && total_staked_bcoins == 0; }
 
@@ -129,6 +129,78 @@ struct CUserCDP {
         total_staked_bcoins = 0;
         total_owed_scoins = 0;
     }
+
+    CCdpCoinPair GetCoinPair() const {
+        return CCdpCoinPair(bcoin_symbol, scoin_symbol);
+    }
 };
+
+class CCdpGlobalData {
+public:
+    uint64_t total_staked_assets = 0;
+    uint64_t total_owed_scoins = 0;
+
+    IMPLEMENT_SERIALIZE(
+        READWRITE(VARINT(total_staked_assets));
+        READWRITE(VARINT(total_owed_scoins));
+    )
+
+    bool IsEmpty() const {
+        return total_staked_assets == 0 && total_owed_scoins == 0;
+    }
+
+    void SetEmpty() {
+        total_staked_assets = 0;
+        total_owed_scoins = 0;
+    }
+
+    string ToString() const {
+        return strprintf("total_staked_assets=%llu", total_staked_assets) + ", " +
+        strprintf("total_owed_scoins=%llu", total_owed_scoins);
+
+    }
+
+    uint64_t GetCollateralRatio(const uint64_t assetPrice) const {
+        // If total owed scoins equal to zero, the global collateral ratio becomes infinite.
+        if (total_owed_scoins == 0) {
+            return UINT64_MAX;
+        }
+
+        return double(total_staked_assets) * assetPrice / PRICE_BOOST / total_owed_scoins * RATIO_BOOST;
+    }
+
+    // global collateral ratio floor check
+    bool CheckGlobalCollateralRatioFloorReached(const uint64_t assetPrice,
+                                                const uint64_t globalCollateralRatioLimit) const {
+        return GetCollateralRatio(assetPrice) < globalCollateralRatioLimit;
+    }
+
+    // global collateral amount ceiling check
+    bool CheckGlobalCollateralCeilingReached(const uint64_t newAssetsToStake,
+                                             const uint64_t globalCollateralCeiling) const {
+        return (newAssetsToStake + total_staked_assets) > globalCollateralCeiling * COIN;
+    }
+};
+
+enum class CdpCoinPairStatus: uint8_t {
+    NONE                = 0,  // none
+    NORMAL              = 1,  // enable all operation (stake, redeem, liquidate, feed price)
+    DISABLE_ALL         = 2,  // Disable all cdp related operation (stake, redeem, liquidate, feed price)
+    DISABLE_STAKE_CDP   = 4,  // Disable staking cdp
+};
+
+static const EnumTypeMap<CdpCoinPairStatus, string, uint8_t> kCdpCoinPairStatusNames = {
+    {CdpCoinPairStatus::NONE, "NONE"},
+    {CdpCoinPairStatus::NORMAL, "NORMAL"},
+    {CdpCoinPairStatus::DISABLE_ALL, "DISABLE_ALL"},
+    {CdpCoinPairStatus::DISABLE_STAKE_CDP, "DISABLE_STAKE_CDP"},
+};
+
+inline const string& GetCdpCoinPairStatusName(const CdpCoinPairStatus &status) {
+    auto it = kCdpCoinPairStatusNames.find(status);
+    if (it != kCdpCoinPairStatusNames.end())
+        return it->second;
+    return EMPTY_STRING;
+}
 
 #endif //ENTITIES_CDP_H

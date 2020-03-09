@@ -7,13 +7,11 @@
 
 #include "config/configuration.h"
 
-bool CDelegateDBCache::GetTopVoteDelegates(VoteDelegateVector &topVotedDelegates) {
+bool CDelegateDBCache::GetTopVoteDelegates(uint32_t delegateNum ,VoteDelegateVector &topVotedDelegates) {
 
     // votes{(uint64t)MAX - $votedBcoins}{$RegId} --> 1
     set<decltype(voteRegIdCache)::KeyType> topKeys;
-    voteRegIdCache.GetTopNElements(IniCfg().GetTotalDelegateNum(), topKeys);
-
-    // assert(regIds.size() == IniCfg().GetTotalDelegateNum());
+    voteRegIdCache.GetTopNElements(delegateNum, topKeys);
 
     for (const auto &key : topKeys) {
         const string &votesStr = std::get<0>(key);
@@ -79,6 +77,13 @@ bool CDelegateDBCache::SetPendingDelegates(const PendingDelegates &delegates) {
     return pending_delegates_cache.SetData(delegates);
 
 }
+uint32_t CDelegateDBCache::GetActivedDelegateNum() {
+    VoteDelegateVector dv ;
+    if(GetActiveDelegates(dv)){
+        return dv.size() ;
+    }
+    return 11 ;
+}
 
 bool CDelegateDBCache::IsActiveDelegate(const CRegID &regid) {
     VoteDelegate delegate;
@@ -102,7 +107,11 @@ bool CDelegateDBCache::GetActiveDelegate(const CRegID &regid, VoteDelegate &vote
 }
 
 bool CDelegateDBCache::GetActiveDelegates(VoteDelegateVector &voteDelegates) {
-    return active_delegates_cache.GetData(voteDelegates);
+     bool res =  active_delegates_cache.GetData(voteDelegates);
+     if(res){
+         assert(voteDelegates.size() != 0 );
+     }
+     return res ;
 }
 
 bool CDelegateDBCache::SetActiveDelegates(const VoteDelegateVector &voteDelegates) {

@@ -130,7 +130,7 @@ bool parseAmountAndUnit( vector<string>& comboMoneyArr, ComboMoney& comboMoney,c
 
     string strUnit = comboMoneyArr[1];
     std::for_each(strUnit.begin(), strUnit.end(), [](char &c) { c = ::tolower(c); });
-    if (!CoinUnitTypeTable.count(strUnit))
+    if (!CoinUnitTypeMap.count(strUnit))
         return false;
 
     if(!pow10(comboMoneyArr[0].c_str(), CoinUnitPrecisionTable.find(strUnit)->second, iValue))
@@ -224,7 +224,7 @@ bool ParseRpcInputMoney(const string &comboMoneyStr, ComboMoney &comboMoney, con
 
 
 Object SubmitTx(const CKeyID &keyid, CBaseTx &tx) {
-    if (!pWalletMain->HaveKey(keyid)) {
+    if (!pWalletMain->HasKey(keyid)) {
         throw JSONRPCError(RPC_WALLET_ERROR, "Sender address not found in wallet");
     }
 
@@ -355,6 +355,18 @@ const Value& JSON::GetObjectFieldValue(const Value &jsonObj, const string &field
     return jsonValue;
 }
 
+
+bool JSON::GetObjectFieldValue(const Value &jsonObj, const string &fieldName,Value& returnValue) {
+    const Value& jsonValue = find_value(jsonObj.get_obj(), fieldName);
+    if (jsonValue.type() == null_type) {
+
+        return false ;
+    }
+    returnValue = jsonValue ;
+    return true ;
+
+}
+
 const char* JSON::GetValueTypeName(const Value_type &valueType) {
     if (valueType >= 0 && valueType <= json_spirit::Value_type::null_type) {
         return json_spirit::Value_type_name[valueType];
@@ -448,7 +460,7 @@ ComboMoney RPC_PARAM::GetFee(const Array& params, const size_t index, const TxTy
         if (!GetTxMinFee(txType, chainActive.Height(), fee.symbol, minFee))
             throw JSONRPCError(RPC_INVALID_PARAMS,
                 strprintf("Can not find the min tx fee! symbol=%s", fee.symbol));
-        if (fee.GetSawiAmount() < minFee)
+        if (fee.GetAmountInSawi() < minFee)
             throw JSONRPCError(RPC_INVALID_PARAMS,
                 strprintf("The given fee is too small: %llu < %llu sawi", fee.amount, minFee));
     } else {
@@ -484,16 +496,13 @@ uint64_t RPC_PARAM::GetWiccFee(const Array& params, const size_t index, const Tx
 CUserID RPC_PARAM::ParseUserIdByAddr(const Value &jsonValue) {
     auto pUserId = CUserID::ParseUserId(jsonValue.get_str());
     if (!pUserId) {
-        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid address");
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, strprintf("Invalid address=%s", jsonValue.get_str()));
     }
     return *pUserId;
 }
 
 CUserID RPC_PARAM::GetUserId(const Value &jsonValue, const bool senderUid ) {
-    auto pUserId = CUserID::ParseUserId(jsonValue.get_str());
-    if (!pUserId) {
-        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid address");
-    }
+    auto userId = ParseUserIdByAddr(jsonValue);
 
     /**
      * Attention: feature enable in stable coin release!
@@ -514,57 +523,38 @@ CUserID RPC_PARAM::GetUserId(const Value &jsonValue, const bool senderUid ) {
      */
     CRegID regid;
     if (GetFeatureForkVersion(chainActive.Height()) >= MAJOR_VER_R2) {
-        if (pCdMan->pAccountCache->GetRegId(*pUserId, regid) && regid.IsMature(chainActive.Height())) {
+        if (pCdMan->pAccountCache->GetRegId(userId, regid) && regid.IsMature(chainActive.Height())) {
             return CUserID(regid);
         } else {
-            if (senderUid && pUserId->is<CKeyID>()) {
+            if (senderUid && userId.is<CKeyID>()) {
                 CPubKey sendPubKey;
-                if (!pWalletMain->GetPubKey(pUserId->get<CKeyID>(), sendPubKey) || !sendPubKey.IsFullyValid())
+                if (!pWalletMain->GetPubKey(userId.get<CKeyID>(), sendPubKey) || !sendPubKey.IsFullyValid())
                     throw JSONRPCError(RPC_WALLET_ERROR, "Key not found in the local wallet");
 
                 return CUserID(sendPubKey);
             } else {
-                return *pUserId;
+                return userId;
             }
         }
     } else { // MAJOR_VER_R1
-        if (pCdMan->pAccountCache->GetRegId(*pUserId, regid)) {
+        if (pCdMan->pAccountCache->GetRegId(userId, regid)) {
             return CUserID(regid);
         } else {
-            return *pUserId;
+            return userId;
         }
     }
-}
-
-CKeyID RPC_PARAM::GetKeyId(const Value &jsonValue, const bool senderUid  ){
-
-    CKeyID keyid;
-    if(!RPC_PARAM::GetKeyId(jsonValue, keyid, senderUid))
-        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid address");
-    return keyid ;
-}
-
-bool RPC_PARAM::GetKeyId(const Value &jsonValue, CKeyID& keyid, const bool senderUid  ) {
-
-    CUserID uid = RPC_PARAM::GetUserId(jsonValue, senderUid);
-    if(uid.is<CKeyID>())
-        keyid =  uid.get<CKeyID>();
-    else if( uid.is<CPubKey>()) {
-        keyid =  uid.get<CPubKey>().GetKeyId();
-    }else if(uid.is<CRegID>()){
-        keyid =  uid.get<CRegID>().GetKeyId(*pCdMan->pAccountCache);
-    }
-    return !keyid.IsEmpty();
 }
 
 CKeyID RPC_PARAM::GetUserKeyId(const CUserID &uid) {
     CKeyID keyid;
-    pCdMan->pAccountCache->GetKeyId(uid, keyid);
-    if (!keyid.IsEmpty()) {
+    if (!pCdMan->pAccountCache->GetKeyId(uid, keyid))
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
                            strprintf("Get keyid by userid=%s failed", uid.ToString()));
-    }
     return keyid;
+}
+
+CKeyID RPC_PARAM::GetKeyId(const Value &jsonValue){
+    return GetUserKeyId(ParseUserIdByAddr(jsonValue));
 }
 
 string RPC_PARAM::GetLuaContractScript(const Value &jsonValue) {
@@ -657,9 +647,10 @@ TokenSymbol RPC_PARAM::GetOrderAssetSymbol(const Value &jsonValue) {
 
 TokenSymbol RPC_PARAM::GetAssetIssueSymbol(const Value &jsonValue) {
     TokenSymbol symbol = jsonValue.get_str();
-    if (symbol.empty() || symbol.size() > MAX_TOKEN_SYMBOL_LEN)
-        throw JSONRPCError(RPC_INVALID_PARAMS,
-                           "asset_symbol=%s must be composed of 6 or 7 capital letters [A-Z]");
+    string errMsg = "";
+    if (!CAsset::CheckSymbol(AssetType::UIA, symbol, errMsg))
+        throw JSONRPCError(RPC_INVALID_PARAMS, strprintf("Err: %s", errMsg));
+
     return symbol;
 }
 
@@ -681,9 +672,8 @@ string RPC_PARAM::GetBinStrFromHex(const Value &jsonValue, const string &paramNa
 
 void RPC_PARAM::CheckAccountBalance(CAccount &account, const TokenSymbol &tokenSymbol, const BalanceOpType opType,
                                     const uint64_t value) {
-    if (pCdMan->pAssetCache->CheckTransferCoinSymbol(tokenSymbol))
+    if (!pCdMan->pAssetCache->CheckAsset(tokenSymbol))
         throw JSONRPCError(RPC_WALLET_ERROR, strprintf("Unsupported coin symbol: %s", tokenSymbol));
-
 
     if (!account.OperateBalance(tokenSymbol, opType, value))
         throw JSONRPCError(RPC_WALLET_INSUFFICIENT_FUNDS, strprintf("Account does not have enough %s", tokenSymbol));
@@ -696,18 +686,11 @@ void RPC_PARAM::CheckActiveOrderExisted(CDexDBCache &dexCache, const uint256 &or
 
 void RPC_PARAM::CheckOrderSymbols(const string &title, const TokenSymbol &coinSymbol,
                                   const TokenSymbol &assetSymbol) {
-    if (coinSymbol.empty() || coinSymbol.size() > MAX_TOKEN_SYMBOL_LEN || kCoinTypeSet.count(coinSymbol) == 0) {
-        throw JSONRPCError(RPC_INVALID_PARAMS, strprintf("%s invalid order coin symbol=%s", title, coinSymbol));
-    }
+    if (!pCdMan->pAssetCache->CheckAsset(coinSymbol))
+        throw JSONRPCError(REJECT_INVALID, strprintf("Invalid coin symbol=%s! %s", coinSymbol));
 
-    if (assetSymbol.empty() || assetSymbol.size() > MAX_TOKEN_SYMBOL_LEN || kCoinTypeSet.count(assetSymbol) == 0) {
-        throw JSONRPCError(RPC_INVALID_PARAMS, strprintf("%s invalid order asset symbol=%s", title, assetSymbol));
-    }
-
-    if (kTradingPairSet.count(make_pair(assetSymbol, coinSymbol)) == 0) {
-        throw JSONRPCError(RPC_INVALID_PARAMS, strprintf("%s unsupport trading pair! coin_symbol=%s, asset_symbol=%s",
-            title, coinSymbol, assetSymbol));
-    }
+    if (!pCdMan->pAssetCache->CheckAsset(assetSymbol))
+        throw JSONRPCError(REJECT_INVALID, strprintf("Invalid asset symbol=%s! %s", assetSymbol));
 }
 
 bool RPC_PARAM::ParseHex(const string &hexStr, string &binStrOut, string &errStrOut) {

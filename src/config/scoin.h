@@ -12,8 +12,13 @@
 #include <cstdint>
 #include <tuple>
 #include "const.h"
+#include "commons/types.h"
+#include "commons/serialize.h"
+#include "commons/util/util.h"
 
 using namespace std;
+
+#define RANGE(MIN,MAX) make_pair(MIN, MAX)
 
 static const uint16_t RATIO_BOOST          = 10000;
 static const uint32_t PRICE_BOOST          = 100000000;
@@ -31,102 +36,157 @@ static const double TRANSACTION_PRIORITY_CEILING      = 1000.0;  // Most trx pri
 static const double PRICE_MEDIAN_TRANSACTION_PRIORITY = 10000.0;
 static const double PRICE_FEED_TRANSACTION_PRIORITY   = 20000.0;
 
-static const uint64_t ASSET_RISK_FEE_RATIO  = 4000;        // 40% * 10000, the ratio of asset fee into the risk reserve
+
 static const uint64_t MIN_DEX_ORDER_AMOUNT  = 0.1 * COIN;  // min amount of dex order limit
 static const uint64_t MAX_SETTLE_ITEM_COUNT = 10000;       // max count of dex settle item limit.
 
 
-static const uint64_t DEX_OPERATOR_RISK_FEE_RATIO  = 4000; // 40% * 10000, the ratio of DEX operator fee into the risk reserve
 static const uint64_t DEX_OPERATOR_FEE_RATIO_MAX = 50 * PRICE_BOOST;
 static const uint64_t DEX_PRICE_MAX = 1000000 * PRICE_BOOST;
 
-enum SysParamType : uint8_t {
-    NULL_SYS_PARAM_TYPE                     = 0,
-    MEDIAN_PRICE_SLIDE_WINDOW_BLOCKCOUNT    = 1,
-    PRICE_FEED_BCOIN_STAKE_AMOUNT_MIN       = 2,
-    PRICE_FEED_CONTINUOUS_DEVIATE_TIMES_MAX = 3,
-    PRICE_FEED_DEVIATE_RATIO_MAX            = 4,
-    PRICE_FEED_DEVIATE_PENALTY              = 5,
-    CDP_SCOIN_RESERVE_FEE_RATIO             = 6,
-    DEX_DEAL_FEE_RATIO                      = 7,
-    CDP_GLOBAL_COLLATERAL_CEILING_AMOUNT    = 8,
-    CDP_GLOBAL_COLLATERAL_RATIO_MIN         = 9,
-    CDP_START_COLLATERAL_RATIO              = 10,
-    CDP_START_LIQUIDATE_RATIO               = 11,
-    CDP_NONRETURN_LIQUIDATE_RATIO           = 12,
-    CDP_FORCE_LIQUIDATE_RATIO               = 13,
-    CDP_LIQUIDATE_DISCOUNT_RATIO            = 14,
-    CDP_BCOINSTOSTAKE_AMOUNT_MIN_IN_SCOIN   = 15,
-    CDP_INTEREST_PARAM_A                    = 16,
-    CDP_INTEREST_PARAM_B                    = 17,
-    CDP_SYSORDER_PENALTY_FEE_MIN            = 18,
-    ASSET_ISSUE_FEE                         = 19,
-    ASSET_UPDATE_FEE                        = 20,
-    DEX_OPERATOR_REGISTER_FEE               = 21,
-    DEX_OPERATOR_UPDATE_FEE                 = 22,
-    PROPOSAL_EXPIRE_BLOCK_COUNT             = 23
+
+enum CdpParamType : uint8_t {
+    NULL_CDP_PARAM_TYPE                     = 0,
+    CDP_GLOBAL_COLLATERAL_CEILING_AMOUNT    = 2,
+    CDP_GLOBAL_COLLATERAL_RATIO_MIN         = 3,
+    CDP_START_COLLATERAL_RATIO              = 4,
+    CDP_START_LIQUIDATE_RATIO               = 5,
+    CDP_NONRETURN_LIQUIDATE_RATIO           = 6,
+    CDP_FORCE_LIQUIDATE_RATIO               = 7,
+    CDP_LIQUIDATE_DISCOUNT_RATIO            = 8,
+    CDP_BCOINSTOSTAKE_AMOUNT_MIN_IN_SCOIN   = 9,
+    CDP_INTEREST_PARAM_A                    = 10,
+    CDP_INTEREST_PARAM_B                    = 11,
+    CDP_SYSORDER_PENALTY_FEE_MIN            = 12,
 
 };
 
 
 
-static const unordered_map<string, std::tuple<string,SysParamType>> paramNameToSysParamTypeMap = {
-        {"MEDIAN_PRICE_SLIDE_WINDOW_BLOCKCOUNT",           make_tuple("A", MEDIAN_PRICE_SLIDE_WINDOW_BLOCKCOUNT)    },
-        {"PRICE_FEED_BCOIN_STAKE_AMOUNT_MIN",              make_tuple("B", PRICE_FEED_BCOIN_STAKE_AMOUNT_MIN)       },
-        {"PRICE_FEED_CONTINUOUS_DEVIATE_TIMES_MAX",        make_tuple("C", PRICE_FEED_CONTINUOUS_DEVIATE_TIMES_MAX) },
-        {"PRICE_FEED_DEVIATE_RATIO_MAX",                   make_tuple("D", PRICE_FEED_DEVIATE_RATIO_MAX)            },
-        {"PRICE_FEED_DEVIATE_PENALTY",                     make_tuple("E", PRICE_FEED_DEVIATE_PENALTY)              },
-        {"DEX_DEAL_FEE_RATIO",                             make_tuple("F", DEX_DEAL_FEE_RATIO)                      },
-        {"CDP_SCOIN_RESERVE_FEE_RATIO",                    make_tuple("G", CDP_SCOIN_RESERVE_FEE_RATIO)             },
-        {"CDP_GLOBAL_COLLATERAL_CEILING_AMOUNT",           make_tuple("H", CDP_GLOBAL_COLLATERAL_CEILING_AMOUNT)    },
-        {"CDP_GLOBAL_COLLATERAL_RATIO_MIN",                make_tuple("I", CDP_GLOBAL_COLLATERAL_RATIO_MIN)         },
-        {"CDP_START_COLLATERAL_RATIO",                     make_tuple("J", CDP_START_COLLATERAL_RATIO)              },
-        {"CDP_START_LIQUIDATE_RATIO",                      make_tuple("K", CDP_START_LIQUIDATE_RATIO)               },
-        {"CDP_NONRETURN_LIQUIDATE_RATIO",                  make_tuple("L", CDP_NONRETURN_LIQUIDATE_RATIO)           },
-        {"CDP_FORCE_LIQUIDATE_RATIO",                      make_tuple("M", CDP_FORCE_LIQUIDATE_RATIO)               },
-        {"CDP_LIQUIDATE_DISCOUNT_RATIO",                   make_tuple("N", CDP_LIQUIDATE_DISCOUNT_RATIO)            },
-        {"CDP_BCOINSTOSTAKE_AMOUNT_MIN_IN_SCOIN",          make_tuple("O", CDP_BCOINSTOSTAKE_AMOUNT_MIN_IN_SCOIN)   },
-        {"CDP_INTEREST_PARAM_A",                           make_tuple("P", CDP_INTEREST_PARAM_A)                    },
-        {"CDP_INTEREST_PARAM_B",                           make_tuple("Q", CDP_INTEREST_PARAM_B)                    },
-        {"CDP_SYSORDER_PENALTY_FEE_MIN",                   make_tuple("R", CDP_SYSORDER_PENALTY_FEE_MIN)            },
-        {"ASSET_ISSUE_FEE",                                make_tuple("S", ASSET_ISSUE_FEE)                         },
-        {"ASSET_UPDATE_FEE",                               make_tuple("T", ASSET_UPDATE_FEE)                        },
-        {"DEX_OPERATOR_REGISTER_FEE",                      make_tuple("U", DEX_OPERATOR_REGISTER_FEE)               },
-        {"DEX_OPERATOR_UPDATE_FEE",                        make_tuple("V", DEX_OPERATOR_UPDATE_FEE)                 },
-        {"PROPOSAL_EXPIRE_BLOCK_COUNT",                    make_tuple("W", PROPOSAL_EXPIRE_BLOCK_COUNT)             }
+static const unordered_map<string, CdpParamType> paramNameToCdpParamTypeMap = {
+
+        {"CDP_GLOBAL_COLLATERAL_CEILING_AMOUNT",            CDP_GLOBAL_COLLATERAL_CEILING_AMOUNT    },
+        {"CDP_GLOBAL_COLLATERAL_RATIO_MIN",                 CDP_GLOBAL_COLLATERAL_RATIO_MIN         },
+        {"CDP_START_COLLATERAL_RATIO",                      CDP_START_COLLATERAL_RATIO              },
+        {"CDP_START_LIQUIDATE_RATIO",                       CDP_START_LIQUIDATE_RATIO               },
+        {"CDP_NONRETURN_LIQUIDATE_RATIO",                   CDP_NONRETURN_LIQUIDATE_RATIO           },
+        {"CDP_FORCE_LIQUIDATE_RATIO",                       CDP_FORCE_LIQUIDATE_RATIO               },
+        {"CDP_LIQUIDATE_DISCOUNT_RATIO",                    CDP_LIQUIDATE_DISCOUNT_RATIO            },
+        {"CDP_BCOINSTOSTAKE_AMOUNT_MIN_IN_SCOIN",           CDP_BCOINSTOSTAKE_AMOUNT_MIN_IN_SCOIN   },
+        {"CDP_INTEREST_PARAM_A",                            CDP_INTEREST_PARAM_A                    },
+        {"CDP_INTEREST_PARAM_B",                            CDP_INTEREST_PARAM_B                    },
+        {"CDP_SYSORDER_PENALTY_FEE_MIN",                    CDP_SYSORDER_PENALTY_FEE_MIN            }
 };
 
-struct SysParamTypeHash {
-    size_t operator()(const SysParamType &type) const noexcept {
+struct CdpParamTypeHash {
+    size_t operator()(const CdpParamType &type) const noexcept {
         return std::hash<uint8_t>{}(type);
     }
 };
 
-static const unordered_map<SysParamType, std::tuple<string, uint64_t,string >, SysParamTypeHash> SysParamTable = {
-    { MEDIAN_PRICE_SLIDE_WINDOW_BLOCKCOUNT,     make_tuple("A",  11,           "MEDIAN_PRICE_SLIDE_WINDOW_BLOCKCOUNT")    },
-    { PRICE_FEED_BCOIN_STAKE_AMOUNT_MIN,        make_tuple("B",  210000,       "PRICE_FEED_BCOIN_STAKE_AMOUNT_MIN")       },  // 1%: min 210K bcoins staked to be a price feeder for miner
-    { PRICE_FEED_CONTINUOUS_DEVIATE_TIMES_MAX,  make_tuple("C",  10,           "PRICE_FEED_CONTINUOUS_DEVIATE_TIMES_MAX") },  // after 10 times continuous deviate limit penetration all deposit be deducted
-    { PRICE_FEED_DEVIATE_RATIO_MAX,             make_tuple("D",  3000,         "PRICE_FEED_DEVIATE_RATIO_MAX")            },  // must be < 30% * 10000, otherwise penalized
-    { PRICE_FEED_DEVIATE_PENALTY,               make_tuple("E",  1000,         "PRICE_FEED_DEVIATE_PENALTY")              },  // deduct 1000 staked bcoins as penalty
-    { DEX_DEAL_FEE_RATIO,                       make_tuple("F",  40000,        "DEX_DEAL_FEE_RATIO")                      },  // 0.04% * 100000000
-    { CDP_SCOIN_RESERVE_FEE_RATIO,              make_tuple("G",  0,            "CDP_SCOIN_RESERVE_FEE_RATIO")             },  // WUSD friction fee to risk reserve
-    { CDP_GLOBAL_COLLATERAL_CEILING_AMOUNT,     make_tuple("H",  52500000,     "CDP_GLOBAL_COLLATERAL_CEILING_AMOUNT")    },  // 25% * 210000000
-    { CDP_GLOBAL_COLLATERAL_RATIO_MIN,          make_tuple("I",  8000,         "CDP_GLOBAL_COLLATERAL_RATIO_MIN")         },  // 80% * 10000
-    { CDP_START_COLLATERAL_RATIO,               make_tuple("J",  19000,        "CDP_START_COLLATERAL_RATIO")              },  // 190% * 10000 : starting collateral ratio
-    { CDP_START_LIQUIDATE_RATIO,                make_tuple("K",  15000,        "CDP_START_LIQUIDATE_RATIO")               },  // 1.13 ~ 1.5  : common liquidation
-    { CDP_NONRETURN_LIQUIDATE_RATIO,            make_tuple("L",  11300,        "CDP_NONRETURN_LIQUIDATE_RATIO")           },  // 1.04 ~ 1.13 : Non-return to CDP owner
-    { CDP_FORCE_LIQUIDATE_RATIO,                make_tuple("M",  10400,        "CDP_FORCE_LIQUIDATE_RATIO")               },  // 0 ~ 1.04    : forced liquidation only
-    { CDP_LIQUIDATE_DISCOUNT_RATIO,             make_tuple("N",  9700,         "CDP_LIQUIDATE_DISCOUNT_RATIO")            },  // discount: 97%
-    { CDP_BCOINSTOSTAKE_AMOUNT_MIN_IN_SCOIN,    make_tuple("O",  90000000,     "CDP_BCOINSTOSTAKE_AMOUNT_MIN_IN_SCOIN")   },  // 0.9 WUSD, dust amount (<0.9) rejected
-    { CDP_INTEREST_PARAM_A,                     make_tuple("P",  2,            "CDP_INTEREST_PARAM_A")                    },  // a = 2
-    { CDP_INTEREST_PARAM_B,                     make_tuple("Q",  1,            "CDP_INTEREST_PARAM_B")                    },  // b = 1
-    { CDP_SYSORDER_PENALTY_FEE_MIN,             make_tuple("R",  10,           "CDP_SYSORDER_PENALTY_FEE_MIN")            },  // min penalty fee = 10
-    { ASSET_ISSUE_FEE,                          make_tuple("S",  550 * COIN,   "ASSET_ISSUE_FEE")                         },  // asset issuance fee = 550 WICC
-    { ASSET_UPDATE_FEE,                         make_tuple("T",  110 * COIN,   "ASSET_UPDATE_FEE")                        },  // asset update fee = 110 WICC
-    { DEX_OPERATOR_REGISTER_FEE,                make_tuple("U",  1100 * COIN,  "DEX_OPERATOR_REGISTER_FEE")               }, // dex operator register fee = 1100 WICC
-    { DEX_OPERATOR_UPDATE_FEE,                  make_tuple("V",  110 * COIN,   "DEX_OPERATOR_UPDATE_FEE")                 },  // dex operator update fee = 110 WICC
-    { PROPOSAL_EXPIRE_BLOCK_COUNT,              make_tuple("W",  1200,         "PROPOSAL_EXPIRE_BLOCK_COUNT")             }   //
+static const unordered_map<CdpParamType, std::tuple< uint64_t,string >, CdpParamTypeHash> CdpParamTable = {
+        { CDP_GLOBAL_COLLATERAL_CEILING_AMOUNT,     make_tuple(  52500000,     "CDP_GLOBAL_COLLATERAL_CEILING_AMOUNT")    },  // 25% * 210000000
+        { CDP_GLOBAL_COLLATERAL_RATIO_MIN,          make_tuple(  8000,         "CDP_GLOBAL_COLLATERAL_RATIO_MIN")         },  // 80% * 10000
+        { CDP_START_COLLATERAL_RATIO,               make_tuple(  19000,        "CDP_START_COLLATERAL_RATIO")              },  // 190% * 10000 : starting collateral ratio
+        { CDP_START_LIQUIDATE_RATIO,                make_tuple(  15000,        "CDP_START_LIQUIDATE_RATIO")               },  // 1.13 ~ 1.5  : common liquidation
+        { CDP_NONRETURN_LIQUIDATE_RATIO,            make_tuple(  11300,        "CDP_NONRETURN_LIQUIDATE_RATIO")           },  // 1.04 ~ 1.13 : Non-return to CDP owner
+        { CDP_FORCE_LIQUIDATE_RATIO,                make_tuple(  10400,        "CDP_FORCE_LIQUIDATE_RATIO")               },  // 0 ~ 1.04    : forced liquidation only
+        { CDP_LIQUIDATE_DISCOUNT_RATIO,             make_tuple(  9700,         "CDP_LIQUIDATE_DISCOUNT_RATIO")            },  // discount: 97%
+        { CDP_BCOINSTOSTAKE_AMOUNT_MIN_IN_SCOIN,    make_tuple(  90000000,     "CDP_BCOINSTOSTAKE_AMOUNT_MIN_IN_SCOIN")   },  // 0.9 WUSD, dust amount (<0.9) rejected
+        { CDP_INTEREST_PARAM_A,                     make_tuple(  2,            "CDP_INTEREST_PARAM_A")                    },  // a = 2
+        { CDP_INTEREST_PARAM_B,                     make_tuple(  1,            "CDP_INTEREST_PARAM_B")                    },  // b = 1
+        { CDP_SYSORDER_PENALTY_FEE_MIN,             make_tuple(  10,           "CDP_SYSORDER_PENALTY_FEE_MIN")            }  // min penalty fee = 10
+};
 
+static const unordered_map<CdpParamType, std::pair<uint64_t,uint64_t>, CdpParamTypeHash> cdpParamRangeTable = {
+        { CDP_GLOBAL_COLLATERAL_CEILING_AMOUNT,     RANGE(0,0)        },  // 25% * 210000000
+        { CDP_GLOBAL_COLLATERAL_RATIO_MIN,          RANGE(0,0)        },  // 80% * 10000
+        { CDP_START_COLLATERAL_RATIO,               RANGE(0,0)        },  // 190% * 10000 : starting collateral ratio
+        { CDP_START_LIQUIDATE_RATIO,                RANGE(0,0)        },  // 1.13 ~ 1.5  : common liquidation
+        { CDP_NONRETURN_LIQUIDATE_RATIO,            RANGE(0,0)        },  // 1.04 ~ 1.13 : Non-return to CDP owner
+        { CDP_FORCE_LIQUIDATE_RATIO,                RANGE(0,0)        },  // 0 ~ 1.04    : forced liquidation only
+        { CDP_LIQUIDATE_DISCOUNT_RATIO,             RANGE(0,0)        },  // discount: 97%
+        { CDP_BCOINSTOSTAKE_AMOUNT_MIN_IN_SCOIN,    RANGE(0,0)        },  // 0.9 WUSD, dust amount (<0.9) rejected
+        { CDP_INTEREST_PARAM_A,                     RANGE(0,0)        },  // a = 2
+        { CDP_INTEREST_PARAM_B,                     RANGE(0,0)        },  // b = 1
+        { CDP_SYSORDER_PENALTY_FEE_MIN,             RANGE(0,0)        }  // min penalty fee = 10
+};
+
+
+inline string CheckCdpParamValue(const CdpParamType paramType, uint64_t value){
+    if(cdpParamRangeTable.count(paramType) == 0)
+        return strprintf("check param scope error:don't find param type (%d)", paramType);
+    auto itr = cdpParamRangeTable.find(paramType) ;
+
+    auto min = std::get<0>(itr->second);
+    auto max = std::get<1>(itr->second);
+    if(min == 0 && max == 0)
+        return EMPTY_STRING;
+    if( value < min || value >max)
+        return strprintf("check param scope error: the scope of param type(%d) "
+                         "is [%d,%d],but the value you submited is %d", paramType, min,max,value );
+    return EMPTY_STRING;
+
+}
+
+inline uint64_t GetCdpParamDefaultValue(CdpParamType paramType) {
+    auto it = CdpParamTable.find(paramType);
+    if (it != CdpParamTable.end())
+        return std::get<0>(it->second);
+    return 0;
+}
+
+inline const string& GetCdpParamName(CdpParamType paramType) {
+    auto it = CdpParamTable.find(paramType);
+    if (it != CdpParamTable.end())
+        return std::get<1>(it->second);
+    return EMPTY_STRING;
+}
+
+inline CdpParamType  GetCdpParamType(const string  paramName){
+    auto itr = paramNameToCdpParamTypeMap.find(paramName);
+    if(itr == paramNameToCdpParamTypeMap.end())
+        return NULL_CDP_PARAM_TYPE;
+    else
+        return itr->second;
+
+}
+
+
+class CCdpCoinPair {
+public:
+    TokenSymbol bcoin_symbol;
+    TokenSymbol scoin_symbol;
+
+public:
+    CCdpCoinPair() {}
+
+    CCdpCoinPair(const TokenSymbol& bcoinSymbol, const TokenSymbol& scoinSymbol) :
+            bcoin_symbol(bcoinSymbol), scoin_symbol(scoinSymbol) {}
+
+    IMPLEMENT_SERIALIZE(
+            READWRITE(bcoin_symbol);
+            READWRITE(scoin_symbol);
+    )
+
+    friend bool operator<(const CCdpCoinPair& a, const CCdpCoinPair& b) {
+        return a.bcoin_symbol < b.bcoin_symbol || a.scoin_symbol < b.scoin_symbol;
+    }
+
+    friend bool operator==(const CCdpCoinPair& a , const CCdpCoinPair& b) {
+        return a.bcoin_symbol == b.bcoin_symbol && a.scoin_symbol == b.scoin_symbol;
+    }
+
+    string ToString() const {
+        return strprintf("%s-%s", bcoin_symbol, scoin_symbol);
+    }
+
+    bool IsEmpty() const { return bcoin_symbol.empty() && scoin_symbol.empty(); }
+
+    void SetEmpty() {
+        bcoin_symbol.clear();
+        scoin_symbol.clear();
+    }
 };
 
 #endif

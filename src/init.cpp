@@ -135,7 +135,7 @@ void Shutdown() {
 
     StopRPCServer();
 
-    GenerateCoinBlock(false, nullptr, 0);
+    GenerateProduceBlockThread(false, nullptr, 0);
     StartCommonGeneration(0, 0);
     StartContractGeneration("", 0, 0);
 
@@ -160,8 +160,7 @@ void Shutdown() {
     boost::filesystem::remove(GetPidFile());
     UnregisterAllWallets();
 
-    if (pWalletMain)
-        delete pWalletMain;
+    delete pWalletMain;
 
     // Uninitialize elliptic curve code
     globalVerifyHandle.reset();
@@ -317,7 +316,8 @@ string HelpMessage() {
     strUsage += "  -rpcsslprivatekeyfile=<file.pem>         " + _("Server private key (default: server.pem)") + "\n";
     strUsage += "  -rpcsslciphers=<ciphers>                 " + _("Acceptable ciphers (default: TLSv1.2+HIGH:TLSv1+HIGH:!SSLv2:!aNULL:!eNULL:!3DES:@STRENGTH)") + "\n";
 
-    strUsage += "  -rpcblacklist=<method>          " + _("Add Banned RPC method to blacklist ") + "\n";
+    strUsage += "  -rpcwhitelistcmd=<method>          " + _("Add permitted RPC method to whitelist") + "\n";
+    strUsage += "  -rpcblacklistcmd=<method>          " + _("Add Banned RPC method to blacklist") + "\n";
     return strUsage;
 }
 
@@ -864,7 +864,7 @@ bool AppInit(boost::thread_group &threadGroup) {
 
     // Generate coins in the background
     if (pWalletMain) {
-        GenerateCoinBlock(SysCfg().GetBoolArg("-genblock", false), pWalletMain, SysCfg().GetArg("-genblocklimit", -1));
+        GenerateProduceBlockThread(SysCfg().GetBoolArg("-genblock", false), pWalletMain, SysCfg().GetArg("-genblocklimit", -1));
         pWalletMain->ResendWalletTransactions();
         threadGroup.create_thread(boost::bind(&ThreadFlushWalletDB, boost::ref(pWalletMain->strWalletFile)));
 

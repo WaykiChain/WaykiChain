@@ -66,7 +66,7 @@ bool CKeyCombi::CleanAll() {
     return true;
 }
 
-bool CKeyCombi::CleanMainKey() { return mMainCkey.Clear(); }
+bool CKeyCombi::PurgeMainKey() { return mMainCkey.Clear(); }
 
 CKeyCombi::CKeyCombi(const CKey& key, int32_t nVersion) {
     assert(key.IsValid());
@@ -145,7 +145,7 @@ CKeyID CKeyCombi::GetCKeyID() const {
 void CKeyCombi::SetMainKey(CKey& mainKey) { mMainCkey = mainKey; }
 void CKeyCombi::SetMinerKey(CKey& minerKey) { mMinerCkey = minerKey; }
 bool CKeyCombi::HaveMinerKey() const { return mMinerCkey.IsValid(); }
-bool CKeyCombi::HaveMainKey() const { return mMainCkey.IsValid(); }
+bool CKeyCombi::HasMainKey() const { return mMainCkey.IsValid(); }
 
 bool CKeyStore::GetPubKey(const CKeyID& address, CPubKey& vchPubKeyOut, bool IsMine) const {
     CKey key;

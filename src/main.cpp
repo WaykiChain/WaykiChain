@@ -55,7 +55,7 @@ CCriticalSection cs_main;
 CTxMemPool mempool;
 map<uint256, CBlockIndex *> mapBlockIndex;
 int32_t nSyncTipHeight = 0;
-string externalIp;
+string publicIp;
 map<uint256/* blockhash */, std::shared_ptr<CCacheWrapper>> mapForkCache;
 CSignatureCache signatureCache;
 CChain chainActive;
@@ -1056,7 +1056,8 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
     }
 
     VoteDelegate curDelegate;
-    if (!VerifyRewardTx(&block, cw, false, curDelegate))
+    uint32_t totalDelegateNum;
+    if (!VerifyRewardTx(&block, cw, false, curDelegate, totalDelegateNum))
         return state.DoS(100, ERRORMSG("ConnectBlock() : verify reward tx error"), REJECT_INVALID, "bad-reward-tx");
 
     CBlockUndo blockUndo;
@@ -1081,7 +1082,7 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
 
         for (int32_t index = 1; index < (int32_t)block.vptx.size(); ++index) {
             std::shared_ptr<CBaseTx> &pBaseTx = block.vptx[index];
-            if (cw.txCache.HaveTx((pBaseTx->GetHash())))
+            if (cw.txCache.HasTx((pBaseTx->GetHash())))
                 return state.DoS(100, ERRORMSG("ConnectBlock() : txid=%s duplicated", pBaseTx->GetHash().GetHex()),
                                  REJECT_INVALID, "tx-duplicated");
 
@@ -1155,7 +1156,7 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
         }
 
         // Verify profits
-        uint64_t profits = delegateAccount.ComputeBlockInflateInterest(block.GetHeight(), curDelegate);
+        uint64_t profits = delegateAccount.ComputeBlockInflateInterest(block.GetHeight(), curDelegate, totalDelegateNum);
         if (pRewardTx->inflated_bcoins != profits) {
             return state.DoS(100, ERRORMSG("ConnectBlock() : invalid coinbase profits amount(actual=%d vs valid=%d)",
                              pRewardTx->inflated_bcoins, profits), REJECT_INVALID, "bad-reward-amount");
@@ -1877,7 +1878,8 @@ bool ProcessForkedChain(const CBlock &block, CBlockIndex *pPreBlockIndex, CValid
     }
 
     VoteDelegate curDelegate;
-    if (!VerifyRewardTx(&block, *spCW, false, curDelegate))
+    uint32_t totalDelegateNum ;
+    if (!VerifyRewardTx(&block, *spCW, false, curDelegate, totalDelegateNum))
         return state.DoS(100, ERRORMSG("ProcessForkedChain() : block[%u]: %s verify reward tx error",
             block.GetHeight(), block.GetHash().GetHex()), REJECT_INVALID, "bad-reward-tx");
 

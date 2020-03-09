@@ -115,11 +115,9 @@ bool CCoinTransferTx::CheckTx(CTxExecuteContext &context) {
 
     for (size_t i = 0; i < transfers.size(); i++) {
         IMPLEMENT_CHECK_TX_REGID_OR_KEYID(transfers[i].to_uid);
-        auto pSymbolErr = cw.assetCache.CheckTransferCoinSymbol(transfers[i].coin_symbol);
-        if (pSymbolErr) {
-            return state.DoS(100, ERRORMSG("CCoinTransferTx::CheckTx, transfers[%d], invalid coin_symbol=%s, %s",
-                i, transfers[i].coin_symbol, *pSymbolErr), REJECT_INVALID, "invalid-coin-symbol");
-        }
+        if (!cw.assetCache.CheckAsset(transfers[i].coin_symbol))
+            return state.DoS(100, ERRORMSG("CCoinTransferTx::CheckTx, transfers[%d], invalid coin_symbol=%s", i,
+                            transfers[i].coin_symbol), REJECT_INVALID, "invalid-coin-symbol");
 
         if (transfers[i].coin_amount < DUST_AMOUNT_THRESHOLD)
             return state.DoS(100, ERRORMSG("CCoinTransferTx::CheckTx, transfers[%d], dust amount, %llu < %llu",
@@ -186,8 +184,9 @@ bool CCoinTransferTx::ExecuteTx(CTxExecuteContext &context) {
         uint64_t actualCoinsToSend = transfer.coin_amount;
         if (transfer.coin_symbol == SYMB::WUSD) {  // if transferring WUSD, must pay friction fees to the risk reserve
             uint64_t riskReserveFeeRatio;
-            if (!cw.sysParamCache.GetParam(CDP_SCOIN_RESERVE_FEE_RATIO, riskReserveFeeRatio)) {
-                return state.DoS(100, ERRORMSG("CCoinTransferTx::ExecuteTx, transfers[%d], read CDP_SCOIN_RESERVE_FEE_RATIO error", i),
+            CCdpCoinPair cdpCoinPair();
+            if (!cw.sysParamCache.GetParam(TRANSFER_SCOIN_RESERVE_FEE_RATIO, riskReserveFeeRatio)) {
+                return state.DoS(100, ERRORMSG("CCoinTransferTx::ExecuteTx, transfers[%d], read TRANSFER_SCOIN_RESERVE_FEE_RATIO error", i),
                                 READ_SYS_PARAM_FAIL, "bad-read-sysparamdb");
             }
             uint64_t reserveFeeScoins = transfer.coin_amount * riskReserveFeeRatio / RATIO_BOOST;

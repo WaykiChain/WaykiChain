@@ -173,6 +173,7 @@ static const EnumTypeMap<BCLog::LogFlags, std::string, uint32_t> LOG_CATEGORY_MA
     {BCLog::WALLET,     "WALLET"    },
     {BCLog::LIBEVENT,   "LIBEVENT"  },
     {BCLog::DEX,        "DEX"       },
+    {BCLog::RPCCMD,     "RPCCMD"    },
     {BCLog::ALL,        "1"         },
     {BCLog::ALL,        "ALL"       },
 };

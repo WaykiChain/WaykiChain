@@ -18,6 +18,7 @@
 #include "sysparamdb.h"
 #include "txdb.h"
 #include "txreceiptdb.h"
+#include "txutxodb.h"
 #include "sysgoverndb.h"
 #include "logdb.h"
 
@@ -28,17 +29,19 @@ public:
     CSysParamDBCache    sysParamCache;
     CBlockDBCache       blockCache;
     CAccountDBCache     accountCache;
-    CAssetDBCache       assetCache;
+    CAssetDbCache       assetCache;
     CContractDBCache    contractCache;
     CDelegateDBCache    delegateCache;
     CCdpDBCache         cdpCache;
     CClosedCdpDBCache   closedCdpCache;
     CDexDBCache         dexCache;
     CTxReceiptDBCache   txReceiptCache;
+    CTxUTXODBCache      txUtxoCache;
     CSysGovernDBCache   sysGovernCache;
 
     CTxMemCache         txCache;
     CPricePointMemCache ppCache;
+    CPriceFeedCache     priceFeedCache;
 public:
     static std::shared_ptr<CCacheWrapper> NewCopyFrom(CCacheDBManager* pCdMan);
 public:
@@ -71,7 +74,7 @@ public:
     CAccountDBCache     *pAccountCache;
 
     CDBAccess           *pAssetDb;
-    CAssetDBCache       *pAssetCache;
+    CAssetDbCache       *pAssetCache;
 
     CDBAccess           *pContractDb;
     CContractDBCache    *pContractCache;
@@ -99,9 +102,14 @@ public:
     CDBAccess           *pReceiptDb;
     CTxReceiptDBCache   *pReceiptCache;
 
+    CDBAccess           *pUtxoDb;
+    CTxUTXODBCache      *pUtxoCache;
+
     CDBAccess           *pSysGovernDb;
     CSysGovernDBCache   *pSysGovernCache;
 
+    CDBAccess           *pPriceFeedDb;
+    CPriceFeedCache     *pPriceFeedCache;
 
     CTxMemCache         *pTxCache;
     CPricePointMemCache *pPpCache;

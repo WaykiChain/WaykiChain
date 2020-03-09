@@ -143,9 +143,7 @@ Value addmulsigaddr(const Array& params, bool fHelp) {
     CPubKey pubKey;
     set<CPubKey> pubKeys;
     for (uint32_t i = 0; i < keys.size(); i++) {
-        if (!RPC_PARAM::GetKeyId(keys[i], keyId)) {
-            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Failed to get keyId.");
-        }
+        keyId = RPC_PARAM::GetKeyId(keys[i]);
 
         if (!pWalletMain->GetPubKey(keyId, pubKey)) {
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Failed to get pubKey.");
@@ -217,9 +215,7 @@ Value createmulsig(const Array& params, bool fHelp) {
     CPubKey pubKey;
     set<CPubKey> pubKeys;
     for (uint32_t i = 0; i < keys.size(); i++) {
-        if (!RPC_PARAM::GetKeyId(keys[i], keyId)) {
-            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Failed to get keyId.");
-        }
+        keyId = RPC_PARAM::GetKeyId(keys[i]);
 
         if (!pWalletMain->GetPubKey(keyId, pubKey)) {
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Failed to get pubKey.");
@@ -314,16 +310,15 @@ Value submitsendtx(const Array& params, bool fHelp) {
     ComboMoney cmCoin  = RPC_PARAM::GetComboMoney(params[2], SYMB::WICC);
     ComboMoney cmFee   = RPC_PARAM::GetFee(params, 3, UCOIN_TRANSFER_TX);
 
-    auto pSymbolErr = pCdMan->pAssetCache->CheckTransferCoinSymbol(cmCoin.symbol);
-    if (pSymbolErr)
-        throw JSONRPCError(REJECT_INVALID, strprintf("Invalid coin symbol=%s! %s", cmCoin.symbol, *pSymbolErr));
+    if (!pCdMan->pAssetCache->CheckAsset(cmCoin.symbol))
+        throw JSONRPCError(REJECT_INVALID, strprintf("Invalid coin symbol=%s!", cmCoin.symbol));
 
     if (cmCoin.amount == 0)
         throw JSONRPCError(RPC_INVALID_PARAMETER, "Coins is zero!");
 
     CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, sendUserId);
-    RPC_PARAM::CheckAccountBalance(account, cmCoin.symbol, SUB_FREE, cmCoin.GetSawiAmount());
-    RPC_PARAM::CheckAccountBalance(account, cmFee.symbol, SUB_FREE, cmFee.GetSawiAmount());
+    RPC_PARAM::CheckAccountBalance(account, cmCoin.symbol, SUB_FREE, cmCoin.GetAmountInSawi());
+    RPC_PARAM::CheckAccountBalance(account, cmFee.symbol, SUB_FREE, cmFee.GetAmountInSawi());
 
     string memo    = params.size() == 5 ? params[4].get_str() : "";
     int32_t height = chainActive.Height();
@@ -331,7 +326,7 @@ Value submitsendtx(const Array& params, bool fHelp) {
 
     if (GetFeatureForkVersion(height) >= MAJOR_VER_R2) {
         pBaseTx = std::make_shared<CCoinTransferTx>(sendUserId, recvUserId, height, cmCoin.symbol,
-            cmCoin.GetSawiAmount(), cmFee.symbol, cmFee.GetSawiAmount(), memo);
+            cmCoin.GetAmountInSawi(), cmFee.symbol, cmFee.GetAmountInSawi(), memo);
     } else { // MAJOR_VER_R1
         if (cmCoin.symbol != SYMB::WICC || cmFee.symbol != SYMB::WICC)
             throw JSONRPCError(REJECT_INVALID, strprintf("Only support WICC for coin symbol or fee symbol before "
@@ -341,12 +336,17 @@ Value submitsendtx(const Array& params, bool fHelp) {
             throw JSONRPCError(REJECT_INVALID, strprintf("%s is unregistered, should register first",
                                                          sendUserId.get<CKeyID>().ToAddress()));
 
-        pBaseTx = std::make_shared<CBaseCoinTransferTx>(sendUserId, recvUserId, height, cmCoin.GetSawiAmount(),
-            cmFee.GetSawiAmount(), memo);
+        pBaseTx = std::make_shared<CBaseCoinTransferTx>(sendUserId, recvUserId, height, cmCoin.GetAmountInSawi(),
+            cmFee.GetAmountInSawi(), memo);
     }
+
+    LogPrint(BCLog::RPCCMD, "submitsendtx: from=%s, to=%s, coin=%s, fee=%s", sendUserId.ToString(), 
+            recvUserId.ToString(), cmCoin.ToString(), cmFee.ToString());
 
     return SubmitTx(account.keyid, *pBaseTx);
 }
+
+
 
 Value genmulsigtx(const Array& params, bool fHelp) {
     if (fHelp || (params.size() != 4 && params.size() != 5))
@@ -363,12 +363,13 @@ Value genmulsigtx(const Array& params, bool fHelp) {
             "\nResult:\n"
             "\"rawtx\"                  (string) The raw transaction without any signatures\n"
             "\nExamples:\n" +
-            HelpExampleCli("genmulsigtx",
-                           "\"0203210233e68ec1402f875af47201efca7c9f210c93f10016ad73d6cd789212d5571"
-                           "e9521031f3d66a05bf20e83e046b74d9073d925f5dce29970623595bc4d66ed81781dd5"
-                           "21034819476f12ac0e53bd82bc3205c91c40e9c569b08af8db04503afdebceb7134c\" "
-                           "\"wNDue1jHcgRSioSDL4o1AzXz3D72gCMkP6\" \"WICC:1000000:sawi\" \"WICC:10000:sawi\" \"Hello, "
-                           "WaykiChain!\"") +
+            HelpExampleCli(
+                "genmulsigtx",
+                "\"0203210233e68ec1402f875af47201efca7c9f210c93f10016ad73d6cd789212d5571"
+                "e9521031f3d66a05bf20e83e046b74d9073d925f5dce29970623595bc4d66ed81781dd5"
+                "21034819476f12ac0e53bd82bc3205c91c40e9c569b08af8db04503afdebceb7134c\" "
+                "\"wNDue1jHcgRSioSDL4o1AzXz3D72gCMkP6\" \"WICC:1000000:sawi\" \"WICC:10000:sawi\" \"Hello, "
+                "WaykiChain!\"") +
             "\nAs json rpc call\n" +
             HelpExampleRpc(
                 "genmulsigtx",
@@ -409,9 +410,8 @@ Value genmulsigtx(const Array& params, bool fHelp) {
     ComboMoney cmCoin  = RPC_PARAM::GetComboMoney(params[2], SYMB::WICC);
     ComboMoney cmFee   = RPC_PARAM::GetFee(params, 3, UCOIN_TRANSFER_MTX);
 
-    auto pSymbolErr = pCdMan->pAssetCache->CheckTransferCoinSymbol(cmCoin.symbol);
-    if (pSymbolErr)
-        throw JSONRPCError(REJECT_INVALID, strprintf("Invalid coin symbol=%s! %s", cmCoin.symbol, *pSymbolErr));
+    if (!pCdMan->pAssetCache->CheckAsset(cmCoin.symbol))
+        throw JSONRPCError(REJECT_INVALID, strprintf("Invalid coin symbol=%s!", cmCoin.symbol));
 
     if (cmCoin.amount == 0)
         throw JSONRPCError(RPC_INVALID_PARAMETER, "Coins is zero!");
@@ -420,8 +420,8 @@ Value genmulsigtx(const Array& params, bool fHelp) {
     int32_t height = chainActive.Height();
 
     std::shared_ptr<CBaseTx> pBaseTx;
-    pBaseTx = std::make_shared<CMulsigTx>(recvUserId, height, cmCoin.symbol, cmCoin.GetSawiAmount(), cmFee.symbol,
-                                          cmFee.GetSawiAmount(), memo, required, signaturePairs);
+    pBaseTx = std::make_shared<CMulsigTx>(recvUserId, height, cmCoin.symbol, cmCoin.GetAmountInSawi(), cmFee.symbol,
+                                          cmFee.GetAmountInSawi(), memo, required, signaturePairs);
 
     CDataStream ds(SER_DISK, CLIENT_VERSION);
     ds << pBaseTx;
