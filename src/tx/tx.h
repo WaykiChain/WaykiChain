@@ -174,7 +174,7 @@ public:
     bool IsCoinRewardTx() { return nTxType == UCOIN_REWARD_TX; }
 
     const string& GetTxTypeName() const { return ::GetTxTypeName(nTxType); }
-    
+
 public:
     static unsigned int GetSerializePtrSize(const std::shared_ptr<CBaseTx> &pBaseTx, int nType, int nVersion){
         return pBaseTx->GetSerializeSize(nType, nVersion) + 1;
@@ -188,6 +188,8 @@ public:
 
     bool CheckFee(CTxExecuteContext &context, function<bool(CTxExecuteContext&, uint64_t)> = nullptr) const;
     bool CheckMinFee(CTxExecuteContext &context, uint64_t minFee) const;
+
+    bool CheckTxAvailableFromVer(CTxExecuteContext &context, FeatureForkVersionEnum ver);
 
     bool VerifySignature(CTxExecuteContext &context, const CPubKey &pubkey);
 protected:

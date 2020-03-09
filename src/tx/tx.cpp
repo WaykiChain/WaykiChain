@@ -193,6 +193,13 @@ bool CBaseTx::CheckMinFee(CTxExecuteContext &context, uint64_t minFee) const {
     return true;
 }
 
+bool CBaseTx::CheckTxAvailableFromVer(CTxExecuteContext &context, FeatureForkVersionEnum ver) {
+    if (GetFeatureForkVersion(context.height) < ver)
+        return context.pState->DoS(100, ERRORMSG("%s, tx type=%s is unavailable before height=%d",
+                __func__, GetTxTypeName(), context.height),
+                REJECT_INVALID, "unavailable-tx");
+    return true;
+}
 
 bool CBaseTx::VerifySignature(CTxExecuteContext &context, const CPubKey &pubkey) {
     if (!CheckSignatureSize(signature)) {
