@@ -347,6 +347,7 @@ namespace dex {
         }
 
         virtual std::shared_ptr<CBaseTx> GetNewInstance() const { return std::make_shared<CDEXOrderTx>(*this); }
+        virtual bool CheckTx(CTxExecuteContext &context);
     private:
         OrderDataSerializer order_data_ser = OrderDataSerializer(this);
     };
@@ -424,6 +425,7 @@ namespace dex {
         }
 
         virtual std::shared_ptr<CBaseTx> GetNewInstance() const { return std::make_shared<CDEXOperatorOrderTx>(*this); }
+        virtual bool CheckTx(CTxExecuteContext &context);
     private:
         OrderDataSerializer order_data_ser = OrderDataSerializer(this);
     };

@@ -389,6 +389,22 @@ namespace dex {
     }
 
     ///////////////////////////////////////////////////////////////////////////////
+    // class CDEXOrderTx
+
+    bool CDEXOrderTx::CheckTx(CTxExecuteContext &context) {
+        if (!CheckTxAvailableFromVer(context, MAJOR_VER_R3)) return false;
+        return CDEXOrderBaseTx::CheckTx(context);
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////
+    // class CDEXOperatorOrderTx
+
+    bool CDEXOperatorOrderTx::CheckTx(CTxExecuteContext &context) {
+        if (!CheckTxAvailableFromVer(context, MAJOR_VER_R3)) return false;
+        return CDEXOrderBaseTx::CheckTx(context);
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////
     // class CDEXCancelOrderTx
 
     string CDEXCancelOrderTx::ToString(CAccountDBCache &accountCache) {
