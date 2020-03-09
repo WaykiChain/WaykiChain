@@ -36,21 +36,23 @@ enum AccountPermType : uint64_t {
     PERM_UNSTAKE_COIN   = (1 << 3 ),
     PERM_SEND_VOTE      = (1 << 4 ),
     PERM_RECV_VOTE      = (1 << 5 ),
-    PERM_SEND_UTXO      = (1 << 6 ),      
+    PERM_SEND_UTXO      = (1 << 6 ),
     PERM_RECV_UTXO      = (1 << 7 ),
-    PERM_PROPOSE        = (1 << 8 ), //DeGov propose
-    PERM_MINE_BLOCK     = (1 << 9 ), //elected BP can mine blocks
-    PERM_DEX            = (1 << 10), //freeze | unfreeze
-    PERM_CDP            = (1 << 12), //pledge | unpledge
-    PERM_XCHAIN         = (1 << 12), //swap in | out
-    
+    PERM_DEPLOY_SC      = (1 << 8 ), //Deploy smart contract
+    PERM_UPGRADE_SC     = (1 << 9 ), //Upgrade smart contract
+    PERM_PROPOSE        = (1 << 10), //DeGov propose
+    PERM_MINE_BLOCK     = (1 << 11), //elected BP can mine blocks
+    PERM_DEX            = (1 << 12), //freeze | unfreeze
+    PERM_CDP            = (1 << 13), //pledge | unpledge
+    PERM_XCHAIN         = (1 << 14), //swap in | out
+
 };
 
-const uint64_t kAccountCommonPerms =  
-                  AccountPermType::PERM_SEND_COIN   + AccountPermType::PERM_RECV_COIN 
-                + AccountPermType::PERM_STAKE_COIN  + AccountPermType::PERM_UNSTAKE_COIN   
-                + AccountPermType::PERM_SEND_VOTE   + AccountPermType::PERM_RECV_VOTE 
-                + AccountPermType::PERM_SEND_UTXO   + AccountPermType::PERM_RECV_UTXO 
+const uint64_t kAccountCommonPerms =
+                  AccountPermType::PERM_SEND_COIN   + AccountPermType::PERM_RECV_COIN
+                + AccountPermType::PERM_STAKE_COIN  + AccountPermType::PERM_UNSTAKE_COIN
+                + AccountPermType::PERM_SEND_VOTE   + AccountPermType::PERM_RECV_VOTE
+                + AccountPermType::PERM_SEND_UTXO   + AccountPermType::PERM_RECV_UTXO
                 + AccountPermType::PERM_PROPOSE     + AccountPermType::PERM_MINE_BLOCK;
 
 enum BalanceType : uint8_t {
@@ -109,9 +111,9 @@ public:
 public:
     CAccountToken() : free_amount(0), frozen_amount(0), staked_amount(0), voted_amount(0), pledged_amount(0) { }
 
-    CAccountToken(uint64_t& freeAmount, uint64_t& frozenAmount, uint64_t& stakedAmount, 
+    CAccountToken(uint64_t& freeAmount, uint64_t& frozenAmount, uint64_t& stakedAmount,
                 uint64_t& votedAmount, uint64_t& pledgedAmount )
-        : free_amount(freeAmount), frozen_amount(frozenAmount), staked_amount(stakedAmount), 
+        : free_amount(freeAmount), frozen_amount(frozenAmount), staked_amount(stakedAmount),
             voted_amount(votedAmount), pledged_amount(pledgedAmount) {}
 
     CAccountToken& operator=(const CAccountToken& other) {
