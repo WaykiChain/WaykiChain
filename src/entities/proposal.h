@@ -61,7 +61,7 @@ struct CProposal {
 
     CProposal() {}
     CProposal(ProposalType proposalTypeIn) : proposal_type(proposalTypeIn) {}
-
+    virtual shared_ptr<CProposal> GetNewInstance() { return nullptr; } ;
     virtual bool CheckProposal(CTxExecuteContext& context ) {return true ;};
     virtual bool ExecuteProposal(CTxExecuteContext& context) { return true ;};
     virtual std::string ToString() {
@@ -121,6 +121,7 @@ struct CGovSysParamProposal: public CProposal {
         }
         return baseString ;
     }
+    shared_ptr<CProposal> GetNewInstance() override { return make_shared<CGovSysParamProposal>(*this); } ;
 
     bool CheckProposal(CTxExecuteContext& context ) override;
     bool ExecuteProposal(CTxExecuteContext& context) override;
@@ -155,6 +156,7 @@ struct CGovBpMcListProposal: public CProposal{
                 governor_regid.ToString(),op_type) ;
 
     }
+    shared_ptr<CProposal> GetNewInstance() override { return make_shared<CGovBpMcListProposal>(*this); }
 
     bool CheckProposal(CTxExecuteContext& context ) override;
     bool ExecuteProposal(CTxExecuteContext& context) override;
@@ -175,6 +177,7 @@ struct CGovBpSizeProposal: public CProposal {
         READWRITE(VARINT(effective_height));
     );
 
+    shared_ptr<CProposal> GetNewInstance() override { return make_shared<CGovBpSizeProposal>(*this); }
 
     virtual Object ToJson() override {
         Object o = CProposal::ToJson();
@@ -208,6 +211,7 @@ struct CGovMinerFeeProposal: public CProposal {
         READWRITE(fee_symbol);
         READWRITE(VARINT(fee_sawi_amount));
     )
+    shared_ptr<CProposal> GetNewInstance() override { return make_shared<CGovMinerFeeProposal>(*this); }
 
     bool CheckProposal(CTxExecuteContext& context ) override;
     bool ExecuteProposal(CTxExecuteContext& context) override;
@@ -248,6 +252,8 @@ struct CGovCoinTransferProposal: public CProposal {
 
 
     CGovCoinTransferProposal(): CProposal(ProposalType::GOV_COIN_TRANSFER) {}
+
+    shared_ptr<CProposal> GetNewInstance() override { return make_shared<CGovCoinTransferProposal>(*this); } ;
 
     bool CheckProposal(CTxExecuteContext& context ) override;
     bool ExecuteProposal(CTxExecuteContext& context) override;
@@ -294,6 +300,10 @@ struct CAccountPermProposal: public CProposal {
                         account_uid.ToString(), proposed_account_perms_sums);
     }
 
+
+    shared_ptr<CProposal> GetNewInstance() override { return make_shared<CAccountPermProposal>(*this); } ;
+
+
     bool CheckProposal(CTxExecuteContext& context) override;
     bool ExecuteProposal(CTxExecuteContext& context) override;
 
@@ -325,6 +335,9 @@ struct CAssetPermProposal: public CProposal {
                         asset_symbol, proposed_asset_perms_sums);
     }
 
+
+    shared_ptr<CProposal> GetNewInstance() override { return make_shared<CAssetPermProposal>(*this); } ;
+
     bool CheckProposal(CTxExecuteContext& context) override;
     bool ExecuteProposal(CTxExecuteContext& context) override;
 
@@ -355,6 +368,7 @@ struct CGovCoinPairProposal: public CProposal {
                 strprintf("status=%s", GetCdpCoinPairStatusName(status));
     }
 
+    shared_ptr<CProposal> GetNewInstance() override { return make_shared<CGovCoinPairProposal>(*this); } ;
     bool CheckProposal(CTxExecuteContext& context) override;
     bool ExecuteProposal(CTxExecuteContext& context) override;
 
@@ -402,6 +416,8 @@ struct CGovCdpParamProposal: public CProposal {
         }
         return baseString ;
     }
+
+    shared_ptr<CProposal> GetNewInstance() override { return make_shared<CGovCdpParamProposal>(*this); } ;
 
     bool CheckProposal(CTxExecuteContext& context ) override;
     bool ExecuteProposal(CTxExecuteContext& context) override;
@@ -465,6 +481,8 @@ struct CGovDexQuoteProposal: public CProposal {
         return  strprintf("coin_symbol=%s",coin_symbol ) + ", " +
                 strprintf("op_type=%d", op_type);
     }
+    shared_ptr<CProposal> GetNewInstance() override { return make_shared<CGovDexQuoteProposal>(*this); }
+
 
     bool CheckProposal(CTxExecuteContext& context ) override;
     bool ExecuteProposal(CTxExecuteContext& context) override;
@@ -501,6 +519,7 @@ struct CGovFeedCoinPairProposal: public CProposal {
         return  strprintf("feed_symbol=%s,quote_symbol=%s",feed_symbol, quote_symbol ) + ", " +
                 strprintf("op_type=%d", op_type);
     }
+    shared_ptr<CProposal> GetNewInstance() override { return make_shared<CGovFeedCoinPairProposal>(*this); }
 
     bool CheckProposal(CTxExecuteContext& context ) override;
     bool ExecuteProposal(CTxExecuteContext& context) override;
@@ -554,7 +573,8 @@ struct CGovAxcInProposal: public CProposal {
         return  strprintf("peer_chain_type=%d, peer_chain_token_symbol=%s, peer_chain_uid=%, peer_chain_txid=%, self_chain_uid=%s, swap_amount=%llu",
                         peer_chain_type, peer_chain_token_symbol, peer_chain_uid, peer_chain_txid, self_chain_uid.ToString(), swap_amount);
     }
-    
+    shared_ptr<CProposal> GetNewInstance() override { return make_shared<CGovAxcInProposal>(*this); }
+
     bool CheckProposal(CTxExecuteContext& context) override;
     bool ExecuteProposal(CTxExecuteContext& context) override;
 
@@ -604,6 +624,8 @@ public:
         return  strprintf("self_chain_uid=%s, self_chain_token_symbol=%s, peer_chain_type=%d, peer_chain_uid=%, swap_amount=%llu",
                         self_chain_uid.ToString(), self_chain_token_symbol, peer_chain_type, peer_chain_uid, swap_amount);
     }
+
+    shared_ptr<CProposal> GetNewInstance() override { return make_shared<CGovAxcOutProposal>(*this); } ;
 
     bool CheckProposal(CTxExecuteContext& context) override;
     bool ExecuteProposal(CTxExecuteContext& context) override;

@@ -101,16 +101,17 @@ Object CProposalRequestTx::ToJson(const CAccountDBCache &accountCache) const {
          return state.DoS(100, ERRORMSG("CProposalRequestTx::ExecuteTx, set account info error"),
                         WRITE_ACCOUNT_FAIL, "bad-write-accountdb");
 
-     uint64_t expireBlockCount ;
-     if(!cw.sysParamCache.GetParam(PROPOSAL_EXPIRE_BLOCK_COUNT, expireBlockCount))
+     uint64_t expiryBlockCount ;
+     if(!cw.sysParamCache.GetParam(PROPOSAL_EXPIRE_BLOCK_COUNT, expiryBlockCount))
         return state.DoS(100, ERRORMSG("CProposalRequestTx::ExecuteTx,get proposal expire block count error"),
                         WRITE_ACCOUNT_FAIL, "get-expire-block-count-error");
 
-     proposal.sp_proposal->expiry_block_height = context.height + expireBlockCount ;
-     proposal.sp_proposal->approval_min_count = GetGovernorApprovalMinCount(proposal.sp_proposal->proposal_type, cw);
+     auto newProposal = proposal.sp_proposal->GetNewInstance() ;
+     newProposal->expiry_block_height = context.height + expiryBlockCount ;
+     newProposal->approval_min_count = GetGovernorApprovalMinCount(proposal.sp_proposal->proposal_type, cw);
 
-     if (!cw.sysGovernCache.SetProposal(GetHash(), proposal.sp_proposal))
-        return state.DoS(100, ERRORMSG("CProposalRequestTx::ExecuteTx, set proposal info error"),
+     if (!cw.sysGovernCache.SetProposal(GetHash(), newProposal))
+         return state.DoS(100, ERRORMSG("CProposalRequestTx::ExecuteTx, set proposal info error"),
                         WRITE_ACCOUNT_FAIL, "bad-write-proposaldb");
 
     return true ;
