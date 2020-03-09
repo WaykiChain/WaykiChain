@@ -24,12 +24,6 @@ namespace dex {
         DEX_CANCEL_ORDER_TX
     };
 
-    struct OrderOperatorData {
-        OperatorFeeRatios fee_ratios;           //!< operator fee ratios
-        CUserID operator_uid;                   //!< dex operator uid
-        UnsignedCharArray operator_signature;   //!< dex operator signature
-    };
-
     class CDEXOrderBaseTx : public CBaseTx {
     public:
         OrderType order_type   = ORDER_LIMIT_PRICE; //!< order type
@@ -43,8 +37,9 @@ namespace dex {
         string memo                 = "";                   //!< memo
 
         bool has_operator_config      = false;          //! has operator config
-        PublicMode public_mode = PublicMode::PUBLIC;     //!< order public mode
-        OperatorFeeRatios operator_fee_ratios;           //!< operator fee ratios
+        PublicMode public_mode = PublicMode::PUBLIC;    //!< order public mode
+        uint64_t maker_fee_ratio = 0;                   //!< match fee ratio
+        uint64_t taker_fee_ratio = 0;                   //!< taker fee ratio
         CUserID operator_uid        = CUserID();            //!< dex operator uid
         UnsignedCharArray operator_signature;               //!< dex operator signature
 
@@ -377,7 +372,8 @@ namespace dex {
                 READWRITE(VARINT(tx.dex_id));
                 READWRITE_ENUM(tx.public_mode, uint8_t);
                 READWRITE(tx.memo);
-                READWRITE(tx.operator_fee_ratios);
+                READWRITE(VARINT(tx.maker_fee_ratio));
+                READWRITE(VARINT(tx.taker_fee_ratio));
                 READWRITE(tx.operator_uid);
             )
         };
@@ -390,7 +386,7 @@ namespace dex {
                             const TokenSymbol &coinSymbolIn, const TokenSymbol &assetSymbolIn,
                             uint64_t coinAmountIn, uint64_t assetAmountIn, uint64_t priceIn,
                             DexID dexIdIn, PublicMode publicModeIn, const string &memoIn,
-                            const OperatorFeeRatios &operatorFeeRatiosIn, const CUserID &operatorUidIn)
+                            uint64_t makerFeeRatioIn, uint64_t takerFeeRatioIn, const CUserID &operatorUidIn)
             : CDEXOrderBaseTx(DEX_ORDER_TX, txUidIn, validHeightIn, feeSymbol, fees) {
             order_type          = orderTypeIn;
             order_side          = orderSideIn;
@@ -403,7 +399,8 @@ namespace dex {
             public_mode         = publicModeIn;
             memo                = memoIn;
             has_operator_config = true;
-            operator_fee_ratios = operatorFeeRatiosIn;
+            maker_fee_ratio     = makerFeeRatioIn;
+            taker_fee_ratio     = takerFeeRatioIn;
             operator_uid        = operatorUidIn;
         }
 

@@ -204,7 +204,7 @@ bool CCDPStakeTx::ExecuteTx(CTxExecuteContext &context) {
                         READ_SYS_PARAM_FAIL, "read-sysparamdb-error");
 
     vector<CReceipt> receipts;
-    uint64_t mintScoinForInterest = 0;
+    uint64_t newMintScoins = scoins_to_mint;
 
     if (cdp_txid.IsEmpty()) { // 1st-time CDP creation
         if (assetAmount == 0 || scoins_to_mint == 0) {
@@ -275,12 +275,14 @@ bool CCDPStakeTx::ExecuteTx(CTxExecuteContext &context) {
         }
 
         uint64_t ownerScoins = account.GetToken(scoin_symbol).free_amount;
+        uint64_t mintScoinForInterest = 0;
         if (scoinsInterestToRepay > ownerScoins) {
             mintScoinForInterest = scoinsInterestToRepay - ownerScoins;
+            account.OperateBalance(scoin_symbol, BalanceOpType::ADD_FREE, mintScoinForInterest);
             LogPrint(BCLog::CDP, "Mint scoins=%llu for interest!\n", mintScoinForInterest);
         }
 
-        uint64_t newMintScoins          = scoins_to_mint + mintScoinForInterest;
+        newMintScoins          = scoins_to_mint + mintScoinForInterest;
         uint64_t totalBcoinsToStake     = cdp.total_staked_bcoins + assetAmount;
         uint64_t totalScoinsToOwe       = cdp.total_owed_scoins + newMintScoins;
         uint64_t partialCollateralRatio = CalcCollateralRatio(assetAmount, newMintScoins, bcoinMedianPrice);
@@ -298,7 +300,7 @@ bool CCDPStakeTx::ExecuteTx(CTxExecuteContext &context) {
         if (!SellInterestForFcoins(CTxCord(context.height, context.index), cdp, scoinsInterestToRepay, cw, state, receipts))
             return false;
 
-        if (!account.OperateBalance(scoin_symbol, BalanceOpType::SUB_FREE, ownerScoins)) {
+        if (!account.OperateBalance(scoin_symbol, BalanceOpType::SUB_FREE, scoinsInterestToRepay)) {
             return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, scoins balance < scoinsInterestToRepay: %llu",
                             scoinsInterestToRepay), UPDATE_ACCOUNT_FAIL,
                             strprintf("deduct-interest(%llu)-error", scoinsInterestToRepay));
@@ -327,7 +329,7 @@ bool CCDPStakeTx::ExecuteTx(CTxExecuteContext &context) {
     }
 
     receipts.emplace_back(txUid, nullId, assetSymbol, assetAmount, ReceiptCode::CDP_STAKED_ASSET_FROM_OWNER);
-    receipts.emplace_back(nullId, txUid, scoin_symbol, scoins_to_mint + mintScoinForInterest,
+    receipts.emplace_back(nullId, txUid, scoin_symbol, newMintScoins,
                         ReceiptCode::CDP_MINTED_SCOIN_TO_OWNER);
 
     if (!cw.txReceiptCache.SetTxReceipts(GetHash(), receipts))

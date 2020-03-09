@@ -85,25 +85,6 @@ namespace dex {
         return EMPTY_STRING;
     }
 
-    struct OperatorFeeRatios {
-        uint64_t maker_fee_ratio = 0; //!< match fee ratio
-        uint64_t taker_fee_ratio = 0; //!< match fee ratio
-
-
-        OperatorFeeRatios() {}
-        OperatorFeeRatios(uint64_t makerFeeRatio, uint64_t takerFeeRatio)
-            : maker_fee_ratio(makerFeeRatio), taker_fee_ratio(takerFeeRatio) {}
-
-
-        IMPLEMENT_SERIALIZE(
-            READWRITE(VARINT(maker_fee_ratio));
-            READWRITE(VARINT(taker_fee_ratio));
-        )
-
-        string ToString() const;
-        Object ToJson() const;
-    };
-
     struct COrderOperatorParams {
         PublicMode public_mode   = PublicMode::PUBLIC;//!< order public mode
         uint64_t maker_fee_ratio = 0; //!< match fee ratio

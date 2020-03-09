@@ -68,11 +68,11 @@ static const unordered_map<string, pair<TokenSymbol, TokenSymbol>> kCdpCoinPairM
 };
 
 // default setting, to be expanded thru deGov
-static const std::map<TokenSymbol, TokenSymbol> kXChainSwapTokenMap =  {
+static const unordered_map<TokenSymbol, TokenSymbol> kXChainSwapTokenMap =  {
     { SYMB::BTC,     SYMB::WBTC  },
     { SYMB::ETH,     SYMB::WETH  },
     { SYMB::WBTC,    SYMB::BTC   },
-    { SYMB::WETH,    SYMB::ETH   },   
+    { SYMB::WETH,    SYMB::ETH   }
     // {SYMB::ETH_USDT, SYMB::WETH_USDT},
 };
 
