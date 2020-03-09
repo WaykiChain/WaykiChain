@@ -238,7 +238,7 @@ bool CGovMinerFeeProposal:: ExecuteProposal(CTxExecuteContext& context) {
     return cw.sysParamCache.SetMinerFee(tx_type,fee_symbol,fee_sawi_amount);
 }
 
-bool CGovCoinPairProposal::CheckProposal(CTxExecuteContext& context ) {
+bool CGovCdpCoinPairProposal::CheckProposal(CTxExecuteContext& context ) {
     IMPLEMENT_DEFINE_CW_STATE
 
     if (kScoinSymbolSet.count(cdp_coinpair.bcoin_symbol) == 0)
@@ -255,7 +255,7 @@ bool CGovCoinPairProposal::CheckProposal(CTxExecuteContext& context ) {
     return true ;
 }
 
-bool CGovCoinPairProposal::ExecuteProposal(CTxExecuteContext& context) {
+bool CGovCdpCoinPairProposal::ExecuteProposal(CTxExecuteContext& context) {
 
     if (!context.pCw->cdpCache.SetCdpCoinPairStatus(cdp_coinpair, status)) {
         return context.pState->DoS(100, ERRORMSG("%s(), save cdp coin pair failed! coin_pair=%s, status=%s",

@@ -343,11 +343,11 @@ struct CAssetPermProposal: public CProposal {
 
 };
 
-struct CGovCoinPairProposal: public CProposal {
+struct CGovCdpCoinPairProposal: public CProposal {
     CCdpCoinPair cdp_coinpair;
     CdpCoinPairStatus status; // cdp coin pair status, can not be NONE
 
-    CGovCoinPairProposal(): CProposal(ProposalType::GOV_CDP_COINPAIR){}
+    CGovCdpCoinPairProposal(): CProposal(ProposalType::GOV_CDP_COINPAIR){}
 
     IMPLEMENT_SERIALIZE(
         READWRITE(cdp_coinpair);
@@ -368,7 +368,7 @@ struct CGovCoinPairProposal: public CProposal {
                 strprintf("status=%s", GetCdpCoinPairStatusName(status));
     }
 
-    shared_ptr<CProposal> GetNewInstance() override { return make_shared<CGovCoinPairProposal>(*this); } ;
+    shared_ptr<CProposal> GetNewInstance() override { return make_shared<CGovCdpCoinPairProposal>(*this); } ;
     bool CheckProposal(CTxExecuteContext& context) override;
     bool ExecuteProposal(CTxExecuteContext& context) override;
 
@@ -500,7 +500,6 @@ struct CGovFeedCoinPairProposal: public CProposal {
     IMPLEMENT_SERIALIZE(
         READWRITE(VARINT(expiry_block_height));
         READWRITE(approval_min_count);
-
         READWRITE(feed_symbol);
         READWRITE(quote_symbol);
         READWRITE((uint8_t&)op_type);
@@ -673,7 +672,7 @@ public:
                 ::Serialize(os, *((CGovSysParamProposal   *) (sp_proposal.get())), nType, nVersion);
                 break;
             case GOV_CDP_COINPAIR:
-                ::Serialize(os, *((CGovCoinPairProposal    *) (sp_proposal.get())), nType, nVersion);
+                ::Serialize(os, *((CGovCdpCoinPairProposal    *) (sp_proposal.get())), nType, nVersion);
                 break;
             case GOV_CDP_PARAM:
                 ::Serialize(os, *((CGovCdpParamProposal *) (sp_proposal.get())), nType, nVersion);
@@ -729,8 +728,8 @@ public:
             }
 
             case GOV_CDP_COINPAIR: {
-                sp_proposal = std::make_shared<CGovCoinPairProposal>();
-                ::Unserialize(is, *((CGovCoinPairProposal *)(sp_proposal.get())), nType, nVersion);
+                sp_proposal = std::make_shared<CGovCdpCoinPairProposal>();
+                ::Unserialize(is, *((CGovCdpCoinPairProposal *)(sp_proposal.get())), nType, nVersion);
                 break;
             }
 
