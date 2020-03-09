@@ -29,7 +29,7 @@ class CAccountDBCache;
 
 // perms for an account
 enum AccountPermType : uint64_t {
-    NULL_ACCOUNT_PERM   = 0,        // no perm at all w/ the account
+    NULL_ACCOUNT_PERM   = 0,        // no perm at all w/ the account, even for smart contract account
     PERM_SEND_COIN      = (1 << 0 ),
     PERM_RECV_COIN      = (1 << 1 ),
     PERM_STAKE_COIN     = (1 << 2 ),
@@ -44,16 +44,20 @@ enum AccountPermType : uint64_t {
     PERM_MINE_BLOCK     = (1 << 11), //elected BP can mine blocks
     PERM_DEX            = (1 << 12), //freeze | unfreeze
     PERM_CDP            = (1 << 13), //pledge | unpledge
-    PERM_XCHAIN         = (1 << 14), //swap in | out
+    PERM_AXC_IN         = (1 << 14), //atomic-cross-chain swap in
+    PERM_AXC_OUT        = (1 << 15), //atomic-cross-chain swap out
 
 };
 
-const uint64_t kAccountCommonPerms =
+const uint64_t kAccountAllPerms =
                   AccountPermType::PERM_SEND_COIN   + AccountPermType::PERM_RECV_COIN
                 + AccountPermType::PERM_STAKE_COIN  + AccountPermType::PERM_UNSTAKE_COIN
                 + AccountPermType::PERM_SEND_VOTE   + AccountPermType::PERM_RECV_VOTE
                 + AccountPermType::PERM_SEND_UTXO   + AccountPermType::PERM_RECV_UTXO
-                + AccountPermType::PERM_PROPOSE     + AccountPermType::PERM_MINE_BLOCK;
+                + AccountPermType::PERM_DEPLOY_SC   + AccountPermType::PERM_UPGRADE_SC
+                + AccountPermType::PERM_PROPOSE     + AccountPermType::PERM_MINE_BLOCK
+                + AccountPermType::PERM_DEX         + AccountPermType::PERM_CDP
+                + AccountPermType::PERM_AXC_IN      + AccountPermType::PERM_AXC_OUT;
 
 enum BalanceType : uint8_t {
     NULL_TYPE    = 0,  //!< invalid type
