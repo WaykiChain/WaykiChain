@@ -276,7 +276,7 @@ struct CGovCoinTransferProposal: CProposal {
 
 struct CAccountPermProposal: CProposal {
     CUserID account_uid;
-    uint64_t proposed_account_perms_sums;
+    uint64_t proposed_perms_sum;
 
     CAccountPermProposal(): CProposal(ProposalType::GOV_ACCOUNT_PERM){}
 
@@ -285,19 +285,19 @@ struct CAccountPermProposal: CProposal {
         READWRITE(approval_min_count);
 
         READWRITE(account_uid);
-        READWRITE(VARINT((uint64_t&)proposed_account_perms_sums));
+        READWRITE(VARINT((uint64_t&)proposed_perms_sum));
     );
 
     Object ToJson() override {
         Object o = CProposal::ToJson();
         o.push_back(Pair("account_uid", account_uid.ToString())) ;
-        o.push_back(Pair("proposed_account_perms_sums", proposed_account_perms_sums)) ;
+        o.push_back(Pair("proposed_perms_sum", proposed_perms_sum)) ;
         return o ;
     }
 
     std::string ToString() override {
-        return  strprintf("account_uid=%s, proposed_account_perms_sums=%llu",
-                        account_uid.ToString(), proposed_account_perms_sums);
+        return  strprintf("account_uid=%s, proposed_perms_sum=%llu",
+                        account_uid.ToString(), proposed_perms_sum);
     }
 
 
@@ -311,7 +311,7 @@ struct CAccountPermProposal: CProposal {
 
 struct CAssetPermProposal: CProposal {
     TokenSymbol asset_symbol;
-    uint64_t proposed_asset_perms_sums;
+    uint64_t proposed_perms_sum;
 
     CAssetPermProposal(): CProposal(ProposalType::GOV_ASSET_PERM){}
 
@@ -320,19 +320,19 @@ struct CAssetPermProposal: CProposal {
         READWRITE(approval_min_count);
 
         READWRITE(asset_symbol);
-        READWRITE(VARINT((uint64_t&)proposed_asset_perms_sums));
+        READWRITE(VARINT((uint64_t&)proposed_perms_sum));
     );
 
     Object ToJson() override {
         Object o = CProposal::ToJson();
         o.push_back(Pair("asset_symbol", asset_symbol));
-        o.push_back(Pair("proposed_asset_perms_sums", proposed_asset_perms_sums)) ;
+        o.push_back(Pair("proposed_perms_sum", proposed_perms_sum)) ;
         return o ;
     }
 
     std::string ToString() override {
-        return  strprintf("asset_symbol=%s, proposed_asset_perms_sums=%llu",
-                        asset_symbol, proposed_asset_perms_sums);
+        return  strprintf("asset_symbol=%s, proposed_perms_sum=%llu",
+                        asset_symbol, proposed_perms_sum);
     }
 
 

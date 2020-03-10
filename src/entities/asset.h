@@ -45,6 +45,7 @@ enum AssetPermType : uint64_t {
 
 };
 
+
 ////////////////////////////////////////////////////////////////////
 /// Common Asset Definition, used when persisted inside state DB
 ////////////////////////////////////////////////////////////////////
@@ -53,24 +54,24 @@ public:
     TokenSymbol asset_symbol;       //asset symbol, E.g WICC | WUSD
     TokenName   asset_name;         //asset long name, E.g WaykiChain coin
     AssetType   asset_type;         //asset type
-    uint64_t    asset_perms_sum = 0;//a sum of asset perms
+    uint64_t    perms_sum = 0;//a sum of asset perms
     CUserID     owner_uid;          //creator or owner user id of the asset, null for NIA/DIA/MPA
     uint64_t    total_supply;       //boosted by 10^8 for the decimal part, max is 90 billion.
     bool        mintable;           //whether this token can be minted in the future.
 
 public:
-    CAsset(): asset_type(AssetType::NULL_ASSET), asset_perms_sum(AssetPermType::PERM_DEX_BASE) {}
+    CAsset(): asset_type(AssetType::NULL_ASSET), perms_sum(AssetPermType::PERM_DEX_BASE) {}
 
     CAsset(const TokenSymbol& assetSymbol, const TokenName& assetName, const AssetType AssetType, uint64_t assetPermsSum,
             const CUserID& ownerUid, uint64_t totalSupply, bool mintableIn)
-        : asset_symbol(assetSymbol), asset_name(assetName), asset_type(AssetType), asset_perms_sum(assetPermsSum),
+        : asset_symbol(assetSymbol), asset_name(assetName), asset_type(AssetType), perms_sum(assetPermsSum),
         owner_uid(ownerUid), total_supply(totalSupply), mintable(mintableIn) {};
 
     IMPLEMENT_SERIALIZE(
         READWRITE(asset_symbol);
         READWRITE(asset_name);
         READWRITE((uint8_t &) asset_type);
-        READWRITE(VARINT(asset_perms_sum));
+        READWRITE(VARINT(perms_sum));
         READWRITE(owner_uid);
         READWRITE(VARINT(total_supply));
         READWRITE(mintable);
@@ -82,15 +83,15 @@ public:
         asset_symbol.clear();
         asset_name.clear();
         asset_type = AssetType::NULL_ASSET;
-        asset_perms_sum = 0;
+        perms_sum = 0;
         owner_uid.SetEmpty();
         total_supply = 0;
         mintable = false;
     }
 
     string ToString() const {
-        return strprintf("asset_symbol=%s, asset_name=%s, asset_type=%d, asset_perms_sum=%llu, owner_uid=%s, total_supply=%llu, mintable=%d",
-                asset_symbol, asset_name, asset_type, asset_perms_sum, owner_uid.ToString(), total_supply, mintable);
+        return strprintf("asset_symbol=%s, asset_name=%s, asset_type=%d, perms_sum=%llu, owner_uid=%s, total_supply=%llu, mintable=%d",
+                asset_symbol, asset_name, asset_type, perms_sum, owner_uid.ToString(), total_supply, mintable);
     }
 
     // Check it when supplied from external like Tx or RPC calls
@@ -109,7 +110,7 @@ public:
 
         size_t symbolSize = assetSymbol.size();
         if (symbolSize < symbolSizeMin || symbolSize > symbolSizeMax) {
-            errMsg = strprintf("symbol len=%d, beyond range[%d, %d]", 
+            errMsg = strprintf("symbol len=%d, beyond range[%d, %d]",
                                 symbolSize, symbolSizeMin, symbolSizeMax);
             return false;
         }
@@ -118,7 +119,7 @@ public:
         for (auto ch : assetSymbol) {
             valid = (ch >= '0' && ch <= '9') || (ch >= 'A' && ch <= 'Z');
 
-            if (assetType == AssetType::UIA) 
+            if (assetType == AssetType::UIA)
                 valid = valid || (ch == '#' || ch == '.' || ch == '@' || ch == '_');
 
             if (!valid) {
@@ -126,7 +127,7 @@ public:
                 return false;
             }
         }
-        
+
         return true;
     }
 };
@@ -150,7 +151,7 @@ struct ComboMoney {
         auto it = CoinUnitTypeMap.find(unit);
         if (it != CoinUnitTypeMap.end())
             return amount * it->second;
-        
+
         assert(false && "coin unit not found");
         return amount;
     }

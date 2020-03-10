@@ -37,7 +37,6 @@ bool CGovSysParamProposal::CheckProposal(CTxExecuteContext& context ) {
 
      return true ;
 }
-
 bool CGovSysParamProposal::ExecuteProposal(CTxExecuteContext& context){
     CCacheWrapper &cw       = *context.pCw;
 
@@ -88,7 +87,6 @@ bool CGovBpMcListProposal::ExecuteProposal(CTxExecuteContext& context) {
     return false  ;
 
 }
-
 bool CGovBpMcListProposal::CheckProposal(CTxExecuteContext& context ){
     IMPLEMENT_DEFINE_CW_STATE
 
@@ -128,7 +126,6 @@ bool CGovBpSizeProposal:: ExecuteProposal(CTxExecuteContext& context) {
     return true ;
 
 }
-
 bool CGovBpSizeProposal:: CheckProposal(CTxExecuteContext& context ) {
     CValidationState& state = *context.pState ;
 
@@ -172,7 +169,6 @@ bool CGovMinerFeeProposal:: CheckProposal(CTxExecuteContext& context ) {
     }
     return true ;
 }
-
 bool CGovMinerFeeProposal:: ExecuteProposal(CTxExecuteContext& context) {
     CCacheWrapper &cw       = *context.pCw;
     return cw.sysParamCache.SetMinerFee(tx_type,fee_symbol,fee_sawi_amount);
@@ -192,7 +188,6 @@ bool CGovCoinTransferProposal:: CheckProposal(CTxExecuteContext& context ) {
 
     return true ;
 }
-
 bool CGovCoinTransferProposal:: ExecuteProposal(CTxExecuteContext& context) {
     IMPLEMENT_DEFINE_CW_STATE;
 
@@ -235,7 +230,6 @@ bool CGovCoinTransferProposal:: ExecuteProposal(CTxExecuteContext& context) {
     return true ;
 }
 
-
 bool CGovAccountPermProposal::CheckProposal(CTxExecuteContext& context ) {
     CValidationState &state = *context.pState;
 
@@ -243,13 +237,11 @@ bool CGovAccountPermProposal::CheckProposal(CTxExecuteContext& context ) {
         return state.DoS(100, ERRORMSG("CGovAccountPermProposal::CheckTx, target account_uid is empty"),
                         REJECT_INVALID, "account-uid-empty");
 
-    if (proposed_account_perms_sums == 0 || proposed_asset_perms_sums > kAccountAllPerms)
+    if (proposed_perms_sum == 0 || proposed_perms_sum > kAccountAllPerms)
         return state.DoS(100, ERRORMSG("CGovAccountPermProposal::CheckTx, proposed perms is invalid: %llu",
-                        proposed_account_perms_sums), REJECT_INVALID, "account-uid-empty");
+                        proposed_perms_sum), REJECT_INVALID, "account-uid-empty");
 
 }
-
-
 bool CGovAccountPermProposal::ExecuteProposal(CTxExecuteContext& context) {
     CCacheWrapper &cw       = *context.pCw;
 
@@ -257,7 +249,7 @@ bool CGovAccountPermProposal::ExecuteProposal(CTxExecuteContext& context) {
     if (!cw.accountCache.GetAccount(account_uid, acct))
         return false;
 
-    acct.perms_sum = proposed_account_perms_sums;
+    acct.perms_sum = proposed_perms_sum;
     if (!cw.accountCache.SetAccount(acct))
         return false;
 
@@ -265,6 +257,35 @@ bool CGovAccountPermProposal::ExecuteProposal(CTxExecuteContext& context) {
 
 }
 
+
+bool CGovAssetPermProposal::CheckProposal(CTxExecuteContext& context ) {
+    CValidationState &state = *context.pState;
+    CCacheWrapper &cw       = *context.pCw;
+
+    CAsset asset;
+    if (!cw.assetCache.GetAsset(asset_symbol, asset))
+        return state.DoS(100, ERRORMSG("CGovAssetPermProposal::CheckTx, asset symbol not found"),
+                        REJECT_INVALID, "asset-symbol-invalid");
+
+    if (proposed_perms_sum == 0)
+        return state.DoS(100, ERRORMSG("CGovAssetPermProposal::CheckTx, proposed perms is invalid: %llu",
+                        proposed_perms_sum), REJECT_INVALID, "asset-perms-invalid");
+
+}
+bool CGovAssetPermProposal::ExecuteProposal(CTxExecuteContext& context) {
+    CCacheWrapper &cw       = *context.pCw;
+
+    CAsset asset;
+    if (!cw.assetCache.GetAsset(account_uid, asset))
+        return false;
+
+    asset.perms_sum = proposed_perms_sum;
+    if (!cw.assetCache.SetAsset(asset))
+        return false;
+
+    return true;
+
+}
 bool CGovCdpParamProposal::CheckProposal(CTxExecuteContext& context ) {
     CValidationState &state = *context.pState;
 
@@ -286,6 +307,7 @@ bool CGovCdpParamProposal::CheckProposal(CTxExecuteContext& context ) {
 
     return true;
 }
+
 
 bool CGovCdpParamProposal::ExecuteProposal(CTxExecuteContext& context) {
     CCacheWrapper &cw       = *context.pCw;
