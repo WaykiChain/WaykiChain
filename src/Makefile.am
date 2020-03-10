@@ -364,6 +364,7 @@ libcoin_server_a_SOURCES = \
   rpc/rpcnet.cpp \
   rpc/rpcscoin.cpp \
   rpc/rpctx.cpp \
+  rpc/rpcutxo.cpp \
   rpc/rpcvm.cpp \
   rpc/rpcwallet.cpp \
   rpc/rpcgenrawtx.cpp \

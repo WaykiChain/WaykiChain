@@ -204,6 +204,8 @@ extern Value getsysparam(const Array& params, bool fHelp) ;
 extern Value getdexquotecoins(const Array& params, bool fHelp);
 extern Value getbpcount(const Array& params, bool fHelp);
 
+extern Value submitutxotransfertx(const Array& params, bool fHelp);
+extern Value submitpasswordprooftx(const Array& params, bool fHelp);
 // debug
 Value dumpdb(const Array& params, bool fHelp);
 
