@@ -274,11 +274,11 @@ struct CGovCoinTransferProposal: CProposal {
 };
 
 
-struct CAccountPermProposal: CProposal {
+struct CGovAccountPermProposal: CProposal {
     CUserID account_uid;
     uint64_t proposed_perms_sum;
 
-    CAccountPermProposal(): CProposal(ProposalType::GOV_ACCOUNT_PERM){}
+    CGovAccountPermProposal(): CProposal(ProposalType::GOV_ACCOUNT_PERM){}
 
     IMPLEMENT_SERIALIZE(
         READWRITE(VARINT(expiry_block_height));
@@ -301,7 +301,7 @@ struct CAccountPermProposal: CProposal {
     }
 
 
-    shared_ptr<CProposal> GetNewInstance() override { return make_shared<CAccountPermProposal>(*this); } ;
+    shared_ptr<CProposal> GetNewInstance() override { return make_shared<CGovAccountPermProposal>(*this); } ;
 
 
     bool CheckProposal(CTxExecuteContext& context) override;
@@ -309,11 +309,11 @@ struct CAccountPermProposal: CProposal {
 
 };
 
-struct CAssetPermProposal: CProposal {
+struct CGovAssetPermProposal: CProposal {
     TokenSymbol asset_symbol;
     uint64_t proposed_perms_sum;
 
-    CAssetPermProposal(): CProposal(ProposalType::GOV_ASSET_PERM){}
+    CGovAssetPermProposal(): CProposal(ProposalType::GOV_ASSET_PERM){}
 
     IMPLEMENT_SERIALIZE(
         READWRITE(VARINT(expiry_block_height));
@@ -336,7 +336,7 @@ struct CAssetPermProposal: CProposal {
     }
 
 
-    shared_ptr<CProposal> GetNewInstance() override { return make_shared<CAssetPermProposal>(*this); } ;
+    shared_ptr<CProposal> GetNewInstance() override { return make_shared<CGovAssetPermProposal>(*this); } ;
 
     bool CheckProposal(CTxExecuteContext& context) override;
     bool ExecuteProposal(CTxExecuteContext& context) override;
