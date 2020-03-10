@@ -129,6 +129,8 @@ namespace BCLog { //blockchain log
 
         /** Start logging (and flush all buffered messages) */
         bool StartLogging();
+        /** make sure the logs are saved to the dest storage */
+        void Flush();
         /** Only for testing */
         void DisconnectTestLogger();
 
