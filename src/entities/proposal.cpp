@@ -276,7 +276,7 @@ bool CGovAssetPermProposal::ExecuteProposal(CTxExecuteContext& context) {
     CCacheWrapper &cw       = *context.pCw;
 
     CAsset asset;
-    if (!cw.assetCache.GetAsset(account_uid, asset))
+    if (!cw.assetCache.GetAsset(asset_symbol, asset))
         return false;
 
     asset.perms_sum = proposed_perms_sum;
