@@ -250,7 +250,7 @@ bool CGovAccountPermProposal::ExecuteProposal(CTxExecuteContext& context) {
         return false;
 
     acct.perms_sum = proposed_perms_sum;
-    if (!cw.accountCache.SetAccount(acct))
+    if (!cw.accountCache.SetAccount(account_uid, acct))
         return false;
 
     return true;
