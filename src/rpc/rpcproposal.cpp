@@ -690,7 +690,11 @@ Value listmintxfees(const Array& params, bool fHelp) {
 Value getdexquotecoins(const Array& params, bool fHelp) {
 
     if(fHelp || params.size() !=0){
-        throw runtime_error("") ;
+        throw runtime_error(
+                "getdexquotecoins\n"
+                "\nget all dex quote coins.\n"
+                "\nExamples:\n" +
+                HelpExampleCli("getdexquotecoins", "") + "\nAs json rpc\n" + HelpExampleRpc("getdexquotecoins", ""));
     }
 
     set<TokenSymbol> coins ;
@@ -707,7 +711,11 @@ Value getdexquotecoins(const Array& params, bool fHelp) {
 
 Value getbpcount(const Array& params, bool fHelp) {
     if(fHelp || params.size() != 0 ){
-        throw runtime_error("") ;
+        throw runtime_error(
+                "getbpcount\n"
+                "\nget the count of bp(delegate).\n"
+                "\nExamples:\n" +
+                HelpExampleCli("getbpcount", "") + "\nAs json rpc\n" + HelpExampleRpc("getbpcount", ""));
     }
     auto co =  pCdMan->pSysParamCache->GetBpCount(chainActive.Height());
     Object o ;
