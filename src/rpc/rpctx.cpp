@@ -1555,7 +1555,7 @@ Value listdelegates(const Array& params, bool fHelp) {
             HelpExampleCli("listdelegates", "11") + "\nAs json rpc call\n" + HelpExampleRpc("listdelegates", "11"));
     }
 
-    uint32_t defaultDelegateNum = pCdMan->pDelegateCache->GetActivedDelegateNum() ;
+    int32_t defaultDelegateNum = pCdMan->pDelegateCache->GetActivedDelegateNum() ;
 
     int32_t delegateNum = (params.size() == 1) ? params[0].get_int() : defaultDelegateNum;
     if (delegateNum < 1 || delegateNum > defaultDelegateNum) {
