@@ -27,7 +27,7 @@ CoinPricePairStatus GetPricePairStatusFromDb(CCacheWrapper &cw, const CoinPriceP
     if (scoinSymbol.empty())
         return CoinPricePairStatus::NONE;
     else
-        scoinSymbol = "W" + scoinSymbol;
+        scoinSymbol = TokenSymbol(strprintf("W%s", scoinSymbol);
 
 
     CCdpCoinPair cdpCoinPair(GetPriceBaseSymbol(coinPricePair), scoinSymbol);
