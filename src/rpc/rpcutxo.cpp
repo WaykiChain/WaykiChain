@@ -21,7 +21,7 @@ enum CondDirection: uint8_t {
 void ParseCond(const Array& arr, vector<shared_ptr<CUtxoCond>>& vCond);
 void ParseInput(const Array& arr, vector<CUtxoInput>& vInput);
 void ParseOutput(const Array& arr, vector<CUtxoOutput>& vOutput);
-void CheckCondDirection(const vector<CUtxoCond>& vCond, CondDirection direction);
+void CheckCondDirection(const vector<shared_ptr<CUtxoCond>>& vCond, CondDirection direction);
 
 Value submitpasswordprooftx(const Array& params, bool fHelp) {
 
@@ -126,8 +126,7 @@ Value submitutxotransfertx(const Array& params, bool fHelp) {
 
 void TransToStorageBean(const vector<shared_ptr<CUtxoCond>>& vCond, vector<CUtxoCondStorageBean>& vCondStorageBean) {
 
-    for(auto& cond: vCond ) {
-
+    for (auto& cond: vCond ) {
         auto bean = CUtxoCondStorageBean(cond);
         vCondStorageBean.push_back(bean);
     }
@@ -146,8 +145,7 @@ void ParseInput(const Array& arr, vector<CUtxoInput>& vInput){
         vector<CUtxoCondStorageBean> vCondStorageBean ;
         vector<shared_ptr<CUtxoCond>> vCond ;
         ParseCond(condArray, vCond) ;
-       // CheckCondDirection(vCond, CondDirection::IN);
-
+        CheckCondDirection(vCond, CondDirection::IN);
         TransToStorageBean(vCond, vCondStorageBean) ;
         CUtxoInput input = CUtxoInput(prevUtxoTxid,preUoutIndex,vCondStorageBean);
         vInput.push_back(input);
@@ -167,7 +165,7 @@ void ParseOutput(const Array& arr, vector<CUtxoOutput>& vOutput) {
         vector<CUtxoCondStorageBean> vCondStorageBean;
         vector<shared_ptr<CUtxoCond>> vCond;
         ParseCond(condArray, vCond);
-       // CheckCondDirection(vCond, CondDirection::OUT);
+        CheckCondDirection(vCond, CondDirection::OUT);
         TransToStorageBean(vCond, vCondStorageBean);
         CUtxoOutput output = CUtxoOutput(coinAmount, vCondStorageBean);
         vOutput.push_back(output);
@@ -176,11 +174,11 @@ void ParseOutput(const Array& arr, vector<CUtxoOutput>& vOutput) {
 }
 
 
-void CheckCondDirection(const vector<CUtxoCond>& vCond, CondDirection direction) {
+void CheckCondDirection(const vector<shared_ptr<CUtxoCond>>& vCond, CondDirection direction) {
 
 
     for (auto& cond:vCond) {
-        switch (cond.cond_type) {
+        switch (cond->cond_type) {
             case IP2MA:
             case IP2PH:
             case IP2SA:

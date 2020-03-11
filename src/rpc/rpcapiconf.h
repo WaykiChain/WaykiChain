@@ -104,7 +104,7 @@ static const CRPCCommand vRPCCommands[] =
     { "submitucontractcalltx",          &submitucontractcalltx,             false,      false,      true    },
     { "submitparamgovernproposal",      &submitparamgovernproposal,         false,      false,      true    },
     { "submitcdpparamgovernproposal",   &submitcdpparamgovernproposal,      false,      false,      true    },
-    { "submitbpcountupdateproposal",    &submitbpcountupdateproposal,       false,      false,      true    },
+    { "submittotalbpssizeupdateproposal",&submittotalbpssizeupdateproposal, false,      false,      true    },
     { "submitcointransferproposal",     &submitcointransferproposal,        false,      false,      true    },
 
     { "submitgovernorupdateproposal",   &submitgovernorupdateproposal,      false,      false,      true    },
@@ -146,7 +146,7 @@ static const CRPCCommand vRPCCommands[] =
     { "getdexoperatorbyowner",          &getdexoperatorbyowner,             true,       false,      false   },
     { "getdexorderfee",                 &getdexorderfee,                    true,       false,      false   },
     { "getdexquotecoins",               &getdexquotecoins,                  true,       false,      false   },
-    { "getbpcount",                     &getbpcount,                        true,       false,      false   },
+    { "gettotalbpssize",                &gettotalbpssize,                        true,       false,      false   },
     { "getfeedcoinpairs",               &getfeedcoinpairs,                  true,       false,      false   },
         /* for asset */
     { "submitassetissuetx",             &submitassetissuetx,                false,      false,      false   },

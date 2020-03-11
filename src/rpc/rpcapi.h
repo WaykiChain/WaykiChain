@@ -99,7 +99,7 @@ extern Value submitdexswitchproposal(const Array& params, bool fHelp) ;
 extern Value submitdexquotecoinproposal(const Array& params, bool fHelp) ;
 extern Value submitfeedcoinpairproposal(const Array& params, bool fHelp);
 extern Value submitminerfeeproposal(const Array& params, bool fHelp) ;
-extern Value submitbpcountupdateproposal(const Array& params, bool fHelp) ;
+extern Value submittotalbpssizeupdateproposal(const Array& params, bool fHelp) ;
 extern Value submitcointransferproposal( const Array& params, bool fHelp);
 extern Value submitgovernorupdateproposal(const Array& params, bool fHelp) ;
 extern Value submitproposalapprovaltx(const Array& params, bool fHelp) ;
@@ -193,7 +193,7 @@ extern Value abidefjsontobinwasm(const Array& params, bool fHelp);
 extern Value getsysparam(const Array& params, bool fHelp) ;
 
 extern Value getdexquotecoins(const Array& params, bool fHelp);
-extern Value getbpcount(const Array& params, bool fHelp);
+extern Value gettotalbpssize(const Array& params, bool fHelp);
 extern Value getfeedcoinpairs(const Array& params, bool fHelp);
 
 extern Value submitutxotransfertx(const Array& params, bool fHelp);

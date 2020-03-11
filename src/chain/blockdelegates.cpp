@@ -78,7 +78,7 @@ bool chain::ProcessBlockDelegates(CBlock &block, CCacheWrapper &cw, CValidationS
 
         int32_t lastVoteHeight = cw.delegateCache.GetLastVoteHeight();
         int32_t activedDelegateNum = cw.delegateCache.GetActivedDelegateNum() ;
-        auto    newestDelegateNum = cw.sysParamCache.GetBpCount(block.GetHeight()) ;
+        auto    newestDelegateNum = cw.sysParamCache.GetTotalBpsSize(block.GetHeight()) ;
 
         if (pendingDelegates.counted_vote_height == 0 ||
             lastVoteHeight > (int32_t)pendingDelegates.counted_vote_height

@@ -414,20 +414,20 @@ Value submitproposalapprovaltx(const Array& params, bool fHelp){
 
 }
 
-Value submitbpcountupdateproposal(const Array& params,bool fHelp) {
+Value submittotalbpssizeupdateproposal(const Array& params,bool fHelp) {
     if(fHelp || params.size() < 3 || params.size() > 4){
         throw runtime_error(
-                "submitbpcountupdateproposal \"addr\" \"total_bps_size\" \"effective_height\"  [\"fee\"]\n"
+                "submittotalbpssizeupdateproposal \"addr\" \"total_bps_size\" \"effective_height\"  [\"fee\"]\n"
                 "create proposal about update total delegate(bp) count\n"
                 "\nArguments:\n"
                 "1.\"addr\":                (string,     required) the tx submitor's address\n"
-                "2.\"total_bps_size\":            (numberic,   required) the count of block producer(miner)  \n"
+                "2.\"total_bps_size\":      (numberic,   required) the count of block producer(miner)  \n"
                 "3.\"effective_height\":    (numberic,   required) the height of the proposal launch \n"
                 "4.\"fee\":                 (combomoney, optional) the tx fee \n"
                 "\nExamples:\n"
-                + HelpExampleCli("submitbpcountupdateproposal", "0-1 21 45002020202  WICC:1:WI")
+                + HelpExampleCli("submittotalbpssizeupdateproposal", "0-1 21 45002020202  WICC:1:WI")
                 + "\nAs json rpc call\n"
-                + HelpExampleRpc("submitbpcountupdateproposal", "0-1 4332222233223  WICC:1:WI")
+                + HelpExampleRpc("submittotalbpssizeupdateproposal", "0-1 4332222233223  WICC:1:WI")
 
         );
 
@@ -435,18 +435,18 @@ Value submitbpcountupdateproposal(const Array& params,bool fHelp) {
 
     EnsureWalletIsUnlocked();
     const CUserID& txUid = RPC_PARAM::GetUserId(params[0], true ) ;
-    uint32_t bpCount = params[1].get_int() ;
+    uint32_t totalBpsSize = params[1].get_int() ;
     uint32_t effectiveHeight = params[2].get_int() ;
     ComboMoney fee = RPC_PARAM::GetFee(params, 3, PROPOSAL_REQUEST_TX);
     int32_t validHeight  = chainActive.Height();
     CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, txUid);
     RPC_PARAM::CheckAccountBalance(account, fee.symbol, SUB_FREE, fee.GetAmountInSawi());
 
-    if(bpCount <=0 || bpCount > BP_MAX_COUNT)
+    if(totalBpsSize <=0 || totalBpsSize > BP_MAX_COUNT)
         throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("the range of total_bps_size is [0,%d]", BP_MAX_COUNT));
 
     CGovBpSizeProposal proposal ;
-    proposal.total_bps_size = bpCount ;
+    proposal.total_bps_size = totalBpsSize ;
     proposal.effective_height = effectiveHeight ;
 
     CProposalRequestTx tx ;
@@ -709,15 +709,15 @@ Value getdexquotecoins(const Array& params, bool fHelp) {
 }
 
 
-Value getbpcount(const Array& params, bool fHelp) {
+Value gettotalbpssize(const Array& params, bool fHelp) {
     if(fHelp || params.size() != 0 ){
         throw runtime_error(
-                "getbpcount\n"
-                "\nget the count of bp(delegate).\n"
+                "gettotalbpssize\n"
+                "\nget the total size of bps(delegates).\n"
                 "\nExamples:\n" +
-                HelpExampleCli("getbpcount", "") + "\nAs json rpc\n" + HelpExampleRpc("getbpcount", ""));
+                HelpExampleCli("gettotalbpssize", "") + "\nAs json rpc\n" + HelpExampleRpc("gettotalbpssize", ""));
     }
-    auto co =  pCdMan->pSysParamCache->GetBpCount(chainActive.Height());
+    auto co =  pCdMan->pSysParamCache->GetTotalBpsSize(chainActive.Height());
     Object o ;
     o.push_back(Pair("total_bps_size", co)) ;
     return o;
