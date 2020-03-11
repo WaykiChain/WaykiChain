@@ -301,7 +301,7 @@ bool CGovAssetPermProposal::ExecuteProposal(CTxExecuteContext& context, const Tx
 bool CGovCdpCoinPairProposal::CheckProposal(CTxExecuteContext& context ) {
     IMPLEMENT_DEFINE_CW_STATE
 
-    if (kScoinSymbolSet.count(cdp_coinpair.bcoin_symbol) == 0)
+    if (kCdpScoinSymbolSet.count(cdp_coinpair.bcoin_symbol) == 0)
         return state.DoS(100, ERRORMSG("%s, the scoin_symbol=%s of cdp coin pair does not support!",
                 __func__, cdp_coinpair.bcoin_symbol), REJECT_INVALID, "unsupported_scoin_symbol");
 

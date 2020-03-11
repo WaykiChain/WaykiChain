@@ -46,28 +46,37 @@ static const unordered_set<TokenSymbol> kCoinTypeSet = {
     SYMB::WICC, SYMB::WGRT, SYMB::WUSD
 };
 
+// can be expanded thru DevGov
+static const unordered_map<TokenSymbol, TokenSymbol> kDexQuoteSymbolSet = {
+    SYMB::WICC, SYMB::WUSD
+};
 
-// must only be specified in code below
-static const unordered_set<string> kScoinSymbolSet = {
-    SYMB::WUSD, SYMB::WCNY
+// can be expanded thru DevGov
+static const unordered_set<TokenSymbol> kPriceFeedSymbolSet = {
+    SYMB:WICC
 };
-// cdp scoin symbol -> price quote symbol
-static const unordered_map<TokenSymbol, TokenSymbol> kScoinPriceQuoteMap = {
-    {SYMB::WUSD, SYMB::USD},
-};
+// hard code below only
 static const unordered_set<TokenSymbol> kPriceQuoteSymbolSet = {
-    SYMB::USD, 
+    SYMB::USD,
     //SYMB::CNY, SYMB::EUR, SYMB::BTC, SYMB::BTC_USDT, SYMB::ETH_USDT, SYMB::GOLD, SYMB::KWH
 };
-
-//default list below, can be also expanded thru DeGov
-static const unordered_map<string, pair<TokenSymbol, TokenSymbol>> kCdpCoinPairMap = {
-    {"WICC:WUSD", make_pair(SYMB::WICC, SYMB::WUSD) },
-    {"WBTC:WUSD", make_pair(SYMB::WBTC, SYMB::WUSD) },
-    {"WETH:WUSD", make_pair(SYMB::WETH, SYMB::WUSD) },
+// can be expanded thru DeGov
+static const unordered_map<string, pair<TokenSymbol, TokenSymbol>> kPriceFeedCoinPairMap = {
+    {"WICC:USD", make_pair(SYMB::WICC, SYMB::USD) },
+    // {"WBTC:USD", make_pair(SYMB::WBTC, SYMB::USD) },
+    // {"WETH:USD", make_pair(SYMB::WETH, SYMB::USD) },
 };
 
-// default setting, to be expanded thru deGov
+//can be expanded thru DeGov
+static const unordered_set<string> kCdpBcoinSymbolSet = {
+    SYMB::WICC
+};
+// hard code below only
+static const unordered_set<string> kCdpScoinSymbolSet = {
+    SYMB::WUSD, SYMB::WCNY
+};
+
+//can be expanded thru DeGov
 static const unordered_map<TokenSymbol, TokenSymbol> kXChainSwapTokenMap =  {
     { SYMB::BTC,     SYMB::WBTC  },
     { SYMB::ETH,     SYMB::WETH  },

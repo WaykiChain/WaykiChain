@@ -233,7 +233,6 @@ struct CGovMinerFeeProposal: CProposal {
     }
 };
 
-
 struct CGovCoinTransferProposal: CProposal {
     uint64_t amount ;
     TokenSymbol token ;

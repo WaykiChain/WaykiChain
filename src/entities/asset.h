@@ -54,7 +54,7 @@ public:
     TokenSymbol asset_symbol;       //asset symbol, E.g WICC | WUSD
     TokenName   asset_name;         //asset long name, E.g WaykiChain coin
     AssetType   asset_type;         //asset type
-    uint64_t    perms_sum = 0;//a sum of asset perms
+    uint64_t    perms_sum = 0;      //a sum of asset perms
     CUserID     owner_uid;          //creator or owner user id of the asset, null for NIA/DIA/MPA
     uint64_t    total_supply;       //boosted by 10^8 for the decimal part, max is 90 billion.
     bool        mintable;           //whether this token can be minted in the future.
