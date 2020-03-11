@@ -426,7 +426,7 @@ bool CGovDexQuoteProposal::CheckProposal(CTxExecuteContext& context) {
         return state.DoS(100, ERRORMSG("CGovDexQuoteProposal:: checkProposal: CheckSymbol failed: %s", errMsg),
                         REJECT_INVALID, "bad-symbol") ;
 
-    bool hasCoin = cw.dexCache.HaveDexQuoteCoin(coin_symbol);
+    bool hasCoin = cw.dexCache.HasDexQuoteCoin(coin_symbol);
     if (hasCoin && op_type == ProposalOperateType::ENABLE)
         return state.DoS(100, ERRORMSG("CGovDexQuoteProposal:: checkProposal:coin_symbol(%s) "
                                        "is dex quote coin symbol already",coin_symbol),

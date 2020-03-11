@@ -60,12 +60,12 @@ const uint64_t kAccountAllPerms =
                 + AccountPermType::PERM_AXC_IN      + AccountPermType::PERM_AXC_OUT;
 
 enum BalanceType : uint8_t {
-    NULL_TYPE    = 0,  //!< invalid type
-    FREE_VALUE   = 1,
-    STAKED_VALUE = 2,
-    FROZEN_VALUE = 3,
-    VOTED_VALUE  = 4,
-    PLEDGED_VALUE= 5
+    NULL_TYPE    = 0,   //!< invalid type
+    FREE_VALUE   = 1,   //!< free & available
+    STAKED_VALUE = 2,   //!< staked for pricefeed qualification etc
+    FROZEN_VALUE = 3,   //!< frozen in DEX
+    VOTED_VALUE  = 4,   //!< voted for other account(s)
+    PLEDGED_VALUE= 5    //!< collateralized in CDP
 };
 
 enum BalanceOpType : uint8_t {
