@@ -123,9 +123,9 @@ void ParseOutput(const Array& arr, vector<CUtxoOutput>& vOutput) {
         const Value& coinAmountObj  = JSON::GetObjectFieldValue(obj, "coin_amount");
         uint64_t coinAmount = AmountToRawValue(coinAmountObj);
         const Array& condArray = JSON::GetObjectFieldValue(obj, "conds").get_array();
-        vector<CUtxoCondStorageBean> vCondStorageBean ;
+        vector<CUtxoCondStorageBean> vCondStorageBean;
         vector<shared_ptr<CUtxoCond>> vCond;
-        ParseCond(condArray, vCond) ;
+        ParseCond(condArray, vCond);
        // CheckCondDirection(vCond, CondDirection::OUT);
         TransToStorageBean(vCond, vCondStorageBean);
         CUtxoOutput output = CUtxoOutput(coinAmount, vCondStorageBean);
@@ -152,7 +152,7 @@ void CheckCondDirection(const vector<CUtxoCond>& vCond, CondDirection direction)
             case OP2SA:
             case OCLAIM_LOCK:
             case ORECLAIM_LOCK:
-                if(direction != CondDirection::OUT){
+                if(direction != CondDirection::OUT) {
                     throw JSONRPCError(RPC_INVALID_PARAMETER,"cond direction is error");
                 }
                 break;
