@@ -149,6 +149,7 @@ static const CRPCCommand vRPCCommands[] =
     { "getdexorderfee",                 &getdexorderfee,                    true,       false,      false   },
     { "getdexquotecoins",               &getdexquotecoins,                  true,       false,      false   },
     { "getbpcount",                     &getbpcount,                        true,       false,      false   },
+    { "getfeedcoinpairs",               &getfeedcoinpairs,                  true,       false,      false   },
         /* for asset */
     { "submitassetissuetx",             &submitassetissuetx,                false,      false,      false   },
     { "submitassetupdatetx",            &submitassetupdatetx,               false,      false,      false   },

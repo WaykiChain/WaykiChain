@@ -49,20 +49,22 @@ Value submitpasswordprooftx(const Array& params, bool fHelp) {
 
 Value submitutxotransfertx(const Array& params, bool fHelp) {
 
-    if(fHelp || params.size() <4 || params.size() > 6){
+    if(fHelp || params.size() <4 || params.size() > 6) {
         throw  runtime_error("");
     }
 
     EnsureWalletIsUnlocked();
 
-    CUserID txUid = RPC_PARAM::GetUserId(params[0], true );
-    TokenSymbol coinSymbol = params[1].get_str() ;
-    Array inputArray  = params[2].get_array() ;
-    Array outputArray = params[3].get_array() ;
-    string memo ;
-    if(params.size() > 4)
+    CUserID txUid = RPC_PARAM::GetUserId(params[0], true);
+    TokenSymbol coinSymbol = params[1].get_str();
+    Array inputArray  = params[2].get_array();
+    Array outputArray = params[3].get_array();
+    string memo;
+    if(params.size() > 4) {
         memo = params[4].get_str();
-    ComboMoney fee = RPC_PARAM::GetFee(params,5 ,TxType::UTXO_TRANSFER_TX) ;
+    }
+
+    ComboMoney fee = RPC_PARAM::GetFee(params,5 ,TxType::UTXO_TRANSFER_TX);
     CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, txUid);
     RPC_PARAM::CheckAccountBalance(account, fee.symbol, SUB_FREE, fee.GetAmountInSawi());
 
@@ -76,7 +78,7 @@ Value submitutxotransfertx(const Array& params, bool fHelp) {
     CCoinUtxoTransferTx utxoTransferTx(txUid,validHeight,fee.symbol,fee.GetAmountInSawi(),
                                   coinSymbol,vins,vouts,memo);
 
-    return SubmitTx(account.keyid, utxoTransferTx) ;
+    return SubmitTx(account.keyid, utxoTransferTx);
 
 }
 
