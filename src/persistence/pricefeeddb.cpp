@@ -286,20 +286,19 @@ bool CPriceFeedCache::SetMedianPrices(const PriceMap &medianPrices) {
 }
 
 bool CPriceFeedCache::AddFeedCoinPair(TokenSymbol feedCoin, TokenSymbol quoteCoin) {
-
     if(feedCoin == SYMB::WICC && quoteCoin == SYMB::USD)
         return true ;
 
-    set<pair<TokenSymbol,TokenSymbol>> coinPairs ;
+    set<pair<TokenSymbol,TokenSymbol>> coinPairs;
     price_feed_coin_cache.GetData(coinPairs);
-    if(coinPairs.count(make_pair(feedCoin, quoteCoin)) != 0 )
-        return true ;
-    coinPairs.insert(make_pair(feedCoin,quoteCoin)) ;
+    if(coinPairs.count(make_pair(feedCoin, quoteCoin)) > 0 )
+        return true;
+
+    coinPairs.insert(make_pair(feedCoin, quoteCoin));
     return price_feed_coin_cache.SetData(coinPairs);
 }
 
 bool CPriceFeedCache::EraseFeedCoinPair(TokenSymbol feedCoin, TokenSymbol quoteCoin) {
-
     if(feedCoin == SYMB::WICC && quoteCoin == SYMB::USD)
         return true ;
 
@@ -308,6 +307,7 @@ bool CPriceFeedCache::EraseFeedCoinPair(TokenSymbol feedCoin, TokenSymbol quoteC
     price_feed_coin_cache.GetData(coins);
     if(coins.count(coinPair) == 0 )
         return true ;
+
     coins.erase(coinPair) ;
     return price_feed_coin_cache.SetData(coins);
 }
