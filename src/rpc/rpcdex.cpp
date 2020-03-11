@@ -168,6 +168,18 @@ Object SubmitOrderTx(const CKeyID &txKeyid, const DexOperatorDetail &operatorDet
     return obj;
 }
 
+static void CheckDexId0BeforeV3(uint64_t dexId, int32_t height) {
+    if (dexId != 0)
+        throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("dex_id must be 0 before v3! tip_height=%d, v3_height=%d",
+            height, SysCfg().GetVer3ForkHeight()));
+}
+
+static void CheckMemoEmptyBeforeV3(const string &memo, int32_t height) {
+    if (!memo.empty())
+        throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("memo must be empty before v3! tip_height=%d, v3_height=%d",
+            height, SysCfg().GetVer3ForkHeight()));
+}
+
 /*************************************************<< DEX >>**************************************************/
 Value submitdexbuylimitordertx(const Array& params, bool fHelp) {
     if (fHelp || params.size() < 4 || params.size() > 8) {
@@ -219,8 +231,8 @@ Value submitdexbuylimitordertx(const Array& params, bool fHelp) {
 
     shared_ptr<CDEXOrderBaseTx> pOrderBaseTx;
     if (version < MAJOR_VER_R3) {
-        // TODO: check dex_id must be 0
-        // TODO: check memo must be empty
+        CheckDexId0BeforeV3(dexId, validHeight);
+        CheckMemoEmptyBeforeV3(memo, validHeight);
         pOrderBaseTx = make_shared<CDEXBuyLimitOrderTx>(
             userId, validHeight, cmFee.symbol, cmFee.GetAmountInSawi(), coinSymbol, assetInfo.symbol,
             assetInfo.GetAmountInSawi(), price);
@@ -281,8 +293,8 @@ Value submitdexselllimitordertx(const Array& params, bool fHelp) {
 
     shared_ptr<CDEXOrderBaseTx> pOrderBaseTx;
     if (version < MAJOR_VER_R3) {
-        // TODO: check dex_id must be 0
-        // TODO: check memo must be empty
+        CheckDexId0BeforeV3(dexId, validHeight);
+        CheckMemoEmptyBeforeV3(memo, validHeight);
         pOrderBaseTx = make_shared<CDEXSellLimitOrderTx>(
             userId, validHeight, cmFee.symbol, cmFee.GetAmountInSawi(), coinSymbol, assetInfo.symbol,
             assetInfo.GetAmountInSawi(), price);
@@ -343,8 +355,8 @@ Value submitdexbuymarketordertx(const Array& params, bool fHelp) {
 
     shared_ptr<CDEXOrderBaseTx> pOrderBaseTx;
     if (version < MAJOR_VER_R3) {
-        // TODO: check dex_id must be 0
-        // TODO: check memo must be empty
+        CheckDexId0BeforeV3(dexId, validHeight);
+        CheckMemoEmptyBeforeV3(memo, validHeight);
         pOrderBaseTx = make_shared<CDEXBuyMarketOrderTx>(userId, validHeight, cmFee.symbol,
                                                          cmFee.GetAmountInSawi(), coinInfo.symbol,
                                                          assetSymbol, coinInfo.GetAmountInSawi());
@@ -404,8 +416,8 @@ Value submitdexsellmarketordertx(const Array& params, bool fHelp) {
 
     shared_ptr<CDEXOrderBaseTx> pOrderBaseTx;
     if (version < MAJOR_VER_R3) {
-        // TODO: check dex_id must be 0
-        // TODO: check memo must be empty
+        CheckDexId0BeforeV3(dexId, validHeight);
+        CheckMemoEmptyBeforeV3(memo, validHeight);
         pOrderBaseTx = make_shared<CDEXSellMarketOrderTx>(
             userId, validHeight, cmFee.symbol, cmFee.GetAmountInSawi(), coinSymbol, assetInfo.symbol,
             assetInfo.GetAmountInSawi());
