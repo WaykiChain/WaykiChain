@@ -131,11 +131,11 @@ public:
     }
 };
 
-inline const TokenSymbol& GetQuoteSymbolByCdpScoin(const TokenSymbol &scoinSymbol) {
+inline const TokenSymbol GetQuoteSymbolByCdpScoin(const TokenSymbol &scoinSymbol) {
     if (scoinSymbol[0] == 'W')
-        return scoinSymbol.substr(1, scoinSymbol.size() - 1);
+        return TokenSymbol(scoinSymbol.substr(1, scoinSymbol.size() - 1));
     else
-        return EMPTY_STRING;
+        return TokenSymbol(EMPTY_STRING);
 }
 
 struct ComboMoney {
