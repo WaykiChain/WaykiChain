@@ -14,11 +14,11 @@ bool CDelegateDBCache::GetTopVoteDelegates(uint32_t delegateNum ,VoteDelegateVec
     voteRegIdCache.GetTopNElements(delegateNum, topKeys);
 
     for (const auto &key : topKeys) {
-        const string &votesStr = std::get<0>(key);
+        const auto &votesKey = std::get<0>(key);
         const CRegIDKey &regIdKey = std::get<1>(key);
         VoteDelegate votedDelegate;
         votedDelegate.regid = regIdKey.regid;
-        votedDelegate.votes = std::strtoull(votesStr.c_str(), nullptr, 10);
+        votedDelegate.votes = ULONG_MAX - votesKey.value;
         topVotedDelegates.push_back(votedDelegate);
     }
 
@@ -30,15 +30,9 @@ bool CDelegateDBCache::SetDelegateVotes(const CRegID &regId, const uint64_t vote
     if (regId.IsEmpty()) {
         return true;
     }
-
-    delegateRegIds.clear();
-
-    static uint64_t maxNumber = 0xFFFFFFFFFFFFFFFF;
-    string strVotes           = strprintf("%016x", maxNumber - votes);
-    auto key                  = std::make_pair(strVotes, CRegIDKey(regId));
-    static uint8_t value      = 1;
-
-    return voteRegIdCache.SetData(key, value);
+    static_assert(ULONG_MAX == 0xFFFFFFFFFFFFFFFF, "ULONG_MAX == 0xFFFFFFFFFFFFFFFF");
+    auto key = std::make_pair(CFixedUInt64(ULONG_MAX - votes), CRegIDKey(regId));
+    return voteRegIdCache.SetData(key, 1);
 }
 
 bool CDelegateDBCache::EraseDelegateVotes(const CRegID &regId, const uint64_t votes) {
@@ -47,13 +41,10 @@ bool CDelegateDBCache::EraseDelegateVotes(const CRegID &regId, const uint64_t vo
         return true;
     }
 
-    delegateRegIds.clear();
+    static_assert(ULONG_MAX == 0xFFFFFFFFFFFFFFFF, "ULONG_MAX == 0xFFFFFFFFFFFFFFFF");
+    auto key = std::make_pair(CFixedUInt64(ULONG_MAX - votes), CRegIDKey(regId));
 
-    static uint64_t maxNumber = 0xFFFFFFFFFFFFFFFF;
-    string strVotes           = strprintf("%016x", maxNumber - votes);
-    auto oldKey               = std::make_pair(strVotes, CRegIDKey(regId));
-
-    return voteRegIdCache.EraseData(oldKey);
+    return voteRegIdCache.EraseData(key);
 }
 
 
