@@ -70,7 +70,7 @@ Value submitpricefeedtx(const Array& params, bool fHelp) {
         string coinStr = coinValue.get_str();
         if (!pCdMan->pAssetCache->CheckAsset(coinStr, AssetPermType::PERM_PRICE_FEED))
             throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("Invalid price feed symbol: %s", coinStr));
-    
+
         string currencyStr = currencyValue.get_str();
         if (!kPriceQuoteSymbolSet.count(currencyStr))
             throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("Invalid currency type: %s", currencyStr));
@@ -730,38 +730,5 @@ extern Value listassets(const Array& params, bool fHelp) {
     Object obj;
     obj.push_back(Pair("count",     arrAssets.size()));
     obj.push_back(Pair("assets",    arrAssets));
-    return obj;
-}
-
-
-extern Value listcdpcoinpairs(const Array& params, bool fHelp) {
-     if (fHelp || params.size() > 0) {
-        throw runtime_error(
-            "listcdpcoinpairs\n"
-            "\nget all cdp coin pair.\n"
-            "\nArguments:\n"
-            "\nResult: a list of UPDATE_CDP_COINPAIRs\n"
-            "\nExamples:\n"
-            + HelpExampleCli("listcdpcoinpairs", "")
-            + "\nAs json rpc call\n"
-            + HelpExampleRpc("listcdpcoinpairs", "")
-        );
-    }
-
-    const map<CCdpCoinPair, CdpCoinPairStatus> &cdpCoinPairMap = pCdMan->pCdpCache->GetCdpCoinPairMap();
-
-    Array arrCoinPairs;
-    for (const auto &item : cdpCoinPairMap) {
-        Object coinPairObj;
-        coinPairObj.push_back(Pair("asset_symbol", item.first.bcoin_symbol));
-        coinPairObj.push_back(Pair("scoin_symbol", item.first.scoin_symbol));
-        coinPairObj.push_back(Pair("status",       GetCdpCoinPairStatusName(item.second)));
-
-        arrCoinPairs.push_back(coinPairObj);
-    }
-
-    Object obj;
-    obj.push_back(Pair("count",             arrCoinPairs.size()));
-    obj.push_back(Pair("UPDATE_CDP_COINPAIRs",    arrCoinPairs));
     return obj;
 }

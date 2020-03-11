@@ -14,12 +14,6 @@
 #include "commons/util/util.h"
 #include "config/version.h"
 
-enum class CoinPricePairStatus: uint8_t {
-    NONE,
-    ENABLED,
-    DISABLED
-};
-
 string CoinPricePairToString(const CoinPricePair &coinPricePair) {
     return strprintf("%s:%s", GetPriceBaseSymbol(coinPricePair), GetPriceQuoteSymbol(coinPricePair));
 }

@@ -255,11 +255,11 @@ public:
 /*  ----------------   -------------------------   -----------------------  ------------------   ------------------------ */
     /////////// SysParamDB
     // order tx id -> active order
-    CCompositeKVCache< dbk::SYS_PARAM,     uint8_t,      CVarIntValue<uint64_t> >              sys_param_chache;
-    CCompositeKVCache< dbk::MINER_FEE,     pair<uint8_t, string>,  CVarIntValue<uint64_t> >          miner_fee_cache;
-    CCompositeKVCache< dbk::CDP_PARAM,     pair<CCdpCoinPair,uint8_t>, CVarIntValue<uint64_t> >      cdp_param_cache;
-    // [prefix]GOV_CDP_COINPAIR -> cdp_interest_param_changes (contain all changes)
-    CCompositeKVCache< dbk::CDP_INTEREST_PARAMS, CCdpCoinPair, CCdpInterestParamChangeMap> cdp_interest_param_changes_cache;
-    CSimpleKVCache<dbk:: TOTAL_BPS_SIZE, uint8_t>             current_total_bps_size_cache ;
-    CSimpleKVCache<dbk:: NEW_TOTAL_BPS_SIZE, pair<CVarIntValue<uint32_t>,uint8_t>>  new_total_bps_size_cache ;
+    CCompositeKVCache< dbk::SYS_PARAM,     uint8_t,      CVarIntValue<uint64_t> >               sys_param_chache;
+    CCompositeKVCache< dbk::MINER_FEE,     pair<uint8_t, string>,  CVarIntValue<uint64_t> >     miner_fee_cache;
+    CCompositeKVCache< dbk::CDP_PARAM,     pair<CCdpCoinPair,uint8_t>, CVarIntValue<uint64_t> > cdp_param_cache;
+    // [prefix]cdpCoinPair -> cdp_interest_param_changes (contain all changes)
+    CCompositeKVCache< dbk::CDP_INTEREST_PARAMS, CCdpCoinPair, CCdpInterestParamChangeMap>      cdp_interest_param_changes_cache;
+    CSimpleKVCache<dbk:: TOTAL_BPS_SIZE, uint8_t>                                               current_total_bps_size_cache ;
+    CSimpleKVCache<dbk:: NEW_TOTAL_BPS_SIZE, pair<CVarIntValue<uint32_t>,uint8_t>>              new_total_bps_size_cache ;
 };

@@ -37,13 +37,12 @@ enum ProposalType: uint8_t {
     GOV_COIN_TRANSFER   = 5 , // for private-key loss, account robbery or for CFT/AML etc purposes
     GOV_ACCOUNT_PERM    = 6 , // update account perms
     GOV_ASSET_PERM      = 7 , // update asset perms
-    GOV_CDP_COINPAIR    = 8 , // govern GOV_CDP_COINPAIR, set GOV_CDP_COINPAIR status
-    GOV_CDP_PARAM       = 9 , // CDP parameters
-    GOV_DEX_OP          = 10, // turn on/off DEX operator
-    GOV_DEX_QUOTE       = 11, // DEX quote coin
-    GOV_FEED_COINPAIR   = 12, // BaseSymbol/QuoteSymbol
-    GOV_AXC_IN          = 13, // atomic-cross-chain swap in
-    GOV_AXC_OUT         = 14, // atomic-cross-chain swap out
+    GOV_CDP_PARAM       = 8 , // CDP parameters
+    GOV_DEX_OP          = 9 , // turn on/off DEX operator
+    GOV_DEX_QUOTE       = 10, // DEX quote coin
+    GOV_FEED_COINPAIR   = 11, // BaseSymbol/QuoteSymbol
+    GOV_AXC_IN          = 12, // atomic-cross-chain swap in
+    GOV_AXC_OUT         = 13, // atomic-cross-chain swap out
 
 };
 
@@ -336,37 +335,6 @@ struct CGovAssetPermProposal: CProposal {
 
     shared_ptr<CProposal> GetNewInstance() override { return make_shared<CGovAssetPermProposal>(*this); } ;
 
-    bool CheckProposal(CTxExecuteContext& context) override;
-    bool ExecuteProposal(CTxExecuteContext& context, const TxID& proposalId) override;
-
-};
-
-struct CGovCdpCoinPairProposal: CProposal {
-    CCdpCoinPair cdp_coinpair;
-    CdpCoinPairStatus status; // cdp coin pair status, can not be NONE
-
-    CGovCdpCoinPairProposal(): CProposal(ProposalType::GOV_CDP_COINPAIR) {}
-
-    IMPLEMENT_SERIALIZE(
-        READWRITE(cdp_coinpair);
-        READWRITE(VARINT((uint8_t&)status));
-    );
-
-
-    Object ToJson() override {
-        Object o = CProposal::ToJson();
-        o.push_back(Pair("cdp_coinpair", cdp_coinpair.ToString()));
-
-        o.push_back(Pair("status", GetCdpCoinPairStatusName(status))) ;
-        return o ;
-    }
-
-    std::string ToString() override {
-        return  strprintf("cdp_coinpair=%s", cdp_coinpair.ToString()) + ", " +
-                strprintf("status=%s", GetCdpCoinPairStatusName(status));
-    }
-
-    shared_ptr<CProposal> GetNewInstance() override { return make_shared<CGovCdpCoinPairProposal>(*this); } ;
     bool CheckProposal(CTxExecuteContext& context) override;
     bool ExecuteProposal(CTxExecuteContext& context, const TxID& proposalId) override;
 
@@ -665,12 +633,8 @@ public:
             return ;
 
         switch (sp_proposal->proposal_type) {
-
             case GOV_SYS_PARAM:
                 ::Serialize(os, *((CGovSysParamProposal   *) (sp_proposal.get())), nType, nVersion);
-                break;
-            case GOV_CDP_COINPAIR:
-                ::Serialize(os, *((CGovCdpCoinPairProposal    *) (sp_proposal.get())), nType, nVersion);
                 break;
             case GOV_CDP_PARAM:
                 ::Serialize(os, *((CGovCdpParamProposal *) (sp_proposal.get())), nType, nVersion);
@@ -722,12 +686,6 @@ public:
             case GOV_SYS_PARAM: {
                 sp_proposal = std::make_shared<CGovSysParamProposal>();
                 ::Unserialize(is, *((CGovSysParamProposal *)(sp_proposal.get())), nType, nVersion);
-                break;
-            }
-
-            case GOV_CDP_COINPAIR: {
-                sp_proposal = std::make_shared<CGovCdpCoinPairProposal>();
-                ::Unserialize(is, *((CGovCdpCoinPairProposal *)(sp_proposal.get())), nType, nVersion);
                 break;
             }
 
