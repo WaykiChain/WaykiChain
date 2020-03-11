@@ -17,8 +17,8 @@ extern CWallet *pWalletMain;
 extern CCacheDBManager *pCdMan;
 
 uint32_t GetFinalBlockMinerCount() {
-    uint32_t totalBpCount =  pCdMan->pDelegateCache->GetActivedDelegateNum() ;
-    return totalBpCount - totalBpCount/3 ;
+    uint32_t totalBpsSize =  pCdMan->pDelegateCache->GetActivedDelegateNum() ;
+    return totalBpsSize - totalBpsSize/3 ;
 }
 
 CBlockIndex* CPBFTMan::GetLocalFinIndex(){

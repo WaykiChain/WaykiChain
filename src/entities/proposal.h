@@ -63,7 +63,7 @@ struct CProposal {
     CProposal(ProposalType proposalTypeIn) : proposal_type(proposalTypeIn) {}
     virtual shared_ptr<CProposal> GetNewInstance() { return nullptr; } ;
     virtual bool CheckProposal(CTxExecuteContext& context ) {return true ;};
-    virtual bool ExecuteProposal(CTxExecuteContext& context) { return true ;};
+    virtual bool ExecuteProposal(CTxExecuteContext& context, const TxID& proposalId) { return true ;};
     virtual std::string ToString() {
         return strprintf("proposal_type=%d,approval_min_count=%d,expiry_block_height=%d",
                         proposal_type, approval_min_count, expiry_block_height) ;
@@ -124,7 +124,7 @@ struct CGovSysParamProposal: CProposal {
     shared_ptr<CProposal> GetNewInstance() override { return make_shared<CGovSysParamProposal>(*this); } ;
 
     bool CheckProposal(CTxExecuteContext& context ) override;
-    bool ExecuteProposal(CTxExecuteContext& context) override;
+    bool ExecuteProposal(CTxExecuteContext& context, const TxID& proposalId) override;
 
 };
 
@@ -159,12 +159,12 @@ struct CGovBpMcListProposal: CProposal{
     shared_ptr<CProposal> GetNewInstance() override { return make_shared<CGovBpMcListProposal>(*this); }
 
     bool CheckProposal(CTxExecuteContext& context ) override;
-    bool ExecuteProposal(CTxExecuteContext& context) override;
+    bool ExecuteProposal(CTxExecuteContext& context, const TxID& proposalId) override;
 
 };
 
 struct CGovBpSizeProposal: CProposal {
-    uint8_t bp_count ;
+    uint8_t total_bps_size ;
     uint32_t effective_height ;
 
     CGovBpSizeProposal(): CProposal(GOV_BP_SIZE) {}
@@ -173,7 +173,7 @@ struct CGovBpSizeProposal: CProposal {
         READWRITE(VARINT(expiry_block_height));
         READWRITE(approval_min_count);
 
-        READWRITE(bp_count);
+        READWRITE(total_bps_size);
         READWRITE(VARINT(effective_height));
     );
 
@@ -181,7 +181,7 @@ struct CGovBpSizeProposal: CProposal {
 
     virtual Object ToJson() override {
         Object o = CProposal::ToJson();
-        o.push_back(Pair("bp_count", (uint64_t)bp_count));
+        o.push_back(Pair("total_bps_size", (uint64_t)total_bps_size));
         o.push_back(Pair("effective_height",(uint64_t)effective_height));
         return o ;
     }
@@ -192,7 +192,7 @@ struct CGovBpSizeProposal: CProposal {
     }
 
     bool CheckProposal(CTxExecuteContext& context) override;
-    bool ExecuteProposal(CTxExecuteContext& context) override;
+    bool ExecuteProposal(CTxExecuteContext& context, const TxID& proposalId) override;
 
 };
 
@@ -214,7 +214,7 @@ struct CGovMinerFeeProposal: CProposal {
     shared_ptr<CProposal> GetNewInstance() override { return make_shared<CGovMinerFeeProposal>(*this); }
 
     bool CheckProposal(CTxExecuteContext& context ) override;
-    bool ExecuteProposal(CTxExecuteContext& context) override;
+    bool ExecuteProposal(CTxExecuteContext& context, const TxID& proposalId) override;
 
     Object ToJson() override {
         Object o = CProposal::ToJson();
@@ -232,7 +232,6 @@ struct CGovMinerFeeProposal: CProposal {
 
     }
 };
-
 
 struct CGovCoinTransferProposal: CProposal {
     uint64_t amount ;
@@ -256,7 +255,7 @@ struct CGovCoinTransferProposal: CProposal {
     shared_ptr<CProposal> GetNewInstance() override { return make_shared<CGovCoinTransferProposal>(*this); } ;
 
     bool CheckProposal(CTxExecuteContext& context ) override;
-    bool ExecuteProposal(CTxExecuteContext& context) override;
+    bool ExecuteProposal(CTxExecuteContext& context, const TxID& proposalId) override;
 
     virtual Object ToJson() override {
         Object o = CProposal::ToJson();
@@ -305,7 +304,7 @@ struct CGovAccountPermProposal: CProposal {
 
 
     bool CheckProposal(CTxExecuteContext& context) override;
-    bool ExecuteProposal(CTxExecuteContext& context) override;
+    bool ExecuteProposal(CTxExecuteContext& context, const TxID& proposalId) override;
 
 };
 
@@ -339,7 +338,7 @@ struct CGovAssetPermProposal: CProposal {
     shared_ptr<CProposal> GetNewInstance() override { return make_shared<CGovAssetPermProposal>(*this); } ;
 
     bool CheckProposal(CTxExecuteContext& context) override;
-    bool ExecuteProposal(CTxExecuteContext& context) override;
+    bool ExecuteProposal(CTxExecuteContext& context, const TxID& proposalId) override;
 
 };
 
@@ -370,7 +369,7 @@ struct CGovCdpCoinPairProposal: CProposal {
 
     shared_ptr<CProposal> GetNewInstance() override { return make_shared<CGovCdpCoinPairProposal>(*this); } ;
     bool CheckProposal(CTxExecuteContext& context) override;
-    bool ExecuteProposal(CTxExecuteContext& context) override;
+    bool ExecuteProposal(CTxExecuteContext& context, const TxID& proposalId) override;
 
 };
 
@@ -420,7 +419,7 @@ struct CGovCdpParamProposal: CProposal {
     shared_ptr<CProposal> GetNewInstance() override { return make_shared<CGovCdpParamProposal>(*this); } ;
 
     bool CheckProposal(CTxExecuteContext& context ) override;
-    bool ExecuteProposal(CTxExecuteContext& context) override;
+    bool ExecuteProposal(CTxExecuteContext& context, const TxID& proposalId) override;
 
 };
 
@@ -439,7 +438,7 @@ struct CGovDexOpProposal: CProposal{
     CGovDexOpProposal(): CProposal(ProposalType::GOV_DEX_OP) {}
 
     bool CheckProposal(CTxExecuteContext& context ) override;
-    bool ExecuteProposal(CTxExecuteContext& context ) override;
+    bool ExecuteProposal(CTxExecuteContext& context, const TxID& proposalId ) override;
 
     Object ToJson() override {
         Object o = CProposal::ToJson();
@@ -485,7 +484,7 @@ struct CGovDexQuoteProposal: CProposal {
 
 
     bool CheckProposal(CTxExecuteContext& context ) override;
-    bool ExecuteProposal(CTxExecuteContext& context) override;
+    bool ExecuteProposal(CTxExecuteContext& context, const TxID& proposalId) override;
 
 };
 
@@ -521,7 +520,7 @@ struct CGovFeedCoinPairProposal: CProposal {
     shared_ptr<CProposal> GetNewInstance() override { return make_shared<CGovFeedCoinPairProposal>(*this); }
 
     bool CheckProposal(CTxExecuteContext& context ) override;
-    bool ExecuteProposal(CTxExecuteContext& context) override;
+    bool ExecuteProposal(CTxExecuteContext& context, const TxID& proposalId) override;
 
 };
 
@@ -575,7 +574,7 @@ struct CGovAxcInProposal: CProposal {
     shared_ptr<CProposal> GetNewInstance() override { return make_shared<CGovAxcInProposal>(*this); }
 
     bool CheckProposal(CTxExecuteContext& context) override;
-    bool ExecuteProposal(CTxExecuteContext& context) override;
+    bool ExecuteProposal(CTxExecuteContext& context, const TxID& proposalId) override;
 
 };
 
@@ -627,7 +626,7 @@ public:
     shared_ptr<CProposal> GetNewInstance() override { return make_shared<CGovAxcOutProposal>(*this); } ;
 
     bool CheckProposal(CTxExecuteContext& context) override;
-    bool ExecuteProposal(CTxExecuteContext& context) override;
+    bool ExecuteProposal(CTxExecuteContext& context, const TxID& proposalId) override;
 
 };
 

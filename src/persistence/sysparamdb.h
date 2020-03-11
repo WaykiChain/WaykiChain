@@ -47,15 +47,15 @@ public:
                                              miner_fee_cache(pDbAccess),
                                              cdp_param_cache(pDbAccess),
                                              cdp_interest_param_changes_cache(pDbAccess),
-                                             current_bp_count_cache(pDbAccess),
-                                             new_bp_count_cache(pDbAccess){}
+                                             current_total_bps_size_cache(pDbAccess),
+                                             new_total_bps_size_cache(pDbAccess){}
 
     CSysParamDBCache(CSysParamDBCache *pBaseIn) : sys_param_chache(pBaseIn->sys_param_chache),
                                                   miner_fee_cache(pBaseIn->miner_fee_cache),
                                                   cdp_param_cache(pBaseIn->cdp_param_cache),
                                                   cdp_interest_param_changes_cache(pBaseIn->cdp_interest_param_changes_cache),
-                                                  current_bp_count_cache(pBaseIn->current_bp_count_cache),
-                                                  new_bp_count_cache(pBaseIn->new_bp_count_cache){}
+                                                  current_total_bps_size_cache(pBaseIn->current_total_bps_size_cache),
+                                                  new_total_bps_size_cache(pBaseIn->new_total_bps_size_cache){}
 
     bool GetParam(const SysParamType &paramType, uint64_t& paramValue) {
         if (SysParamTable.count(paramType) == 0)
@@ -93,24 +93,24 @@ public:
         miner_fee_cache.Flush();
         cdp_param_cache.Flush();
         cdp_interest_param_changes_cache.Flush();
-        current_bp_count_cache.Flush();
-        new_bp_count_cache.Flush();
+        current_total_bps_size_cache.Flush();
+        new_total_bps_size_cache.Flush();
         return true;
     }
 
     uint32_t GetCacheSize() const { return sys_param_chache.GetCacheSize() +
                                     miner_fee_cache.GetCacheSize() +
                 cdp_interest_param_changes_cache.GetCacheSize() +
-                                    current_bp_count_cache.GetCacheSize() +
-                                    new_bp_count_cache.GetCacheSize(); }
+                                    current_total_bps_size_cache.GetCacheSize() +
+                                    new_total_bps_size_cache.GetCacheSize(); }
 
     void SetBaseViewPtr(CSysParamDBCache *pBaseIn) {
         sys_param_chache.SetBase(&pBaseIn->sys_param_chache);
         miner_fee_cache.SetBase(&pBaseIn->miner_fee_cache);
         cdp_param_cache.SetBase(&pBaseIn->cdp_param_cache);
         cdp_interest_param_changes_cache.SetBase(&pBaseIn->cdp_interest_param_changes_cache);
-        current_bp_count_cache.SetBase(&pBaseIn->current_bp_count_cache);
-        new_bp_count_cache.SetBase(&pBaseIn->new_bp_count_cache);
+        current_total_bps_size_cache.SetBase(&pBaseIn->current_total_bps_size_cache);
+        new_total_bps_size_cache.SetBase(&pBaseIn->new_total_bps_size_cache);
     }
 
     void SetDbOpLogMap(CDBOpLogMap *pDbOpLogMapIn) {
@@ -118,8 +118,8 @@ public:
         miner_fee_cache.SetDbOpLogMap(pDbOpLogMapIn);
         cdp_param_cache.SetDbOpLogMap(pDbOpLogMapIn);
         cdp_interest_param_changes_cache.SetDbOpLogMap(pDbOpLogMapIn);
-        current_bp_count_cache.SetDbOpLogMap(pDbOpLogMapIn);
-        new_bp_count_cache.SetDbOpLogMap(pDbOpLogMapIn);
+        current_total_bps_size_cache.SetDbOpLogMap(pDbOpLogMapIn);
+        new_total_bps_size_cache.SetDbOpLogMap(pDbOpLogMapIn);
 
     }
 
@@ -128,8 +128,8 @@ public:
         miner_fee_cache.RegisterUndoFunc(undoDataFuncMap);
         cdp_param_cache.RegisterUndoFunc(undoDataFuncMap);
         cdp_interest_param_changes_cache.RegisterUndoFunc(undoDataFuncMap);
-        current_bp_count_cache.RegisterUndoFunc(undoDataFuncMap);
-        new_bp_count_cache.RegisterUndoFunc(undoDataFuncMap);
+        current_total_bps_size_cache.RegisterUndoFunc(undoDataFuncMap);
+        new_total_bps_size_cache.RegisterUndoFunc(undoDataFuncMap);
     }
     bool SetParam(const SysParamType& key, const uint64_t& value){
         return sys_param_chache.SetData(key, CVarIntValue(value)) ;
@@ -224,25 +224,25 @@ public:
 
 
 public:
-    bool SetNewBpCount(uint8_t newBpCount, uint32_t effectiveHeight) {
-        return new_bp_count_cache.SetData(std::make_pair(CVarIntValue(effectiveHeight), newBpCount)) ;
+    bool SetNewTotalBpsSize(uint8_t newTotalBpsSize, uint32_t effectiveHeight) {
+        return new_total_bps_size_cache.SetData(std::make_pair(CVarIntValue(effectiveHeight), newTotalBpsSize)) ;
     }
-    bool SetCurrentBpCount(uint8_t bpCount) {
+    bool SetCurrentTotalBpsSize(uint8_t totalBpsSize) {
 
-        return current_bp_count_cache.SetData(bpCount) ;
+        return current_total_bps_size_cache.SetData(totalBpsSize) ;
     }
-    uint8_t GetBpCount(uint32_t height) {
+    uint8_t GetTotalBpsSize(uint32_t height) {
 
         pair<CVarIntValue<uint32_t>,uint8_t> value ;
-        if(new_bp_count_cache.GetData(value)){
+        if(new_total_bps_size_cache.GetData(value)){
             auto effectiveHeight = std::get<0>(value);
             if(height >= effectiveHeight.get()) {
                 return std::get<1>(value) ;
             }
         }
-        uint8_t bpCount ;
-        if(current_bp_count_cache.GetData(bpCount)){
-            return bpCount;
+        uint8_t totalBpsSize ;
+        if(current_total_bps_size_cache.GetData(totalBpsSize)){
+            return totalBpsSize;
         }
 
         return IniCfg().GetTotalDelegateNum() ;
@@ -260,6 +260,6 @@ public:
     CCompositeKVCache< dbk::CDP_PARAM,     pair<CCdpCoinPair,uint8_t>, CVarIntValue<uint64_t> >      cdp_param_cache;
     // [prefix]GOV_CDP_COINPAIR -> cdp_interest_param_changes (contain all changes)
     CCompositeKVCache< dbk::CDP_INTEREST_PARAMS, CCdpCoinPair, CCdpInterestParamChangeMap> cdp_interest_param_changes_cache;
-    CSimpleKVCache<dbk:: BP_COUNT, uint8_t>             current_bp_count_cache ;
-    CSimpleKVCache<dbk:: NEW_BP_COUNT, pair<CVarIntValue<uint32_t>,uint8_t>>  new_bp_count_cache ;
+    CSimpleKVCache<dbk:: TOTAL_BPS_SIZE, uint8_t>             current_total_bps_size_cache ;
+    CSimpleKVCache<dbk:: NEW_TOTAL_BPS_SIZE, pair<CVarIntValue<uint32_t>,uint8_t>>  new_total_bps_size_cache ;
 };

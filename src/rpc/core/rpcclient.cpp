@@ -197,11 +197,11 @@ Array RPCConvertValues(const string &strMethod, const vector<string> &strParams)
     if (strMethod == "submitdexoperatorupdatetx"   && n > 1) ConvertTo<int32_t>(params[1]) ;
     if (strMethod == "submitdexoperatorupdatetx"   && n > 2) ConvertTo<int32_t>(params[2]) ;
 
-    if (strMethod == "getdexsysorders"              && n > 0) ConvertTo<int64_t>(params[0]);
+    if (strMethod == "listdexsysorders"              && n > 0) ConvertTo<int64_t>(params[0]);
 
-    if (strMethod == "getdexorders"              && n > 0) ConvertTo<int64_t>(params[0]);
-    if (strMethod == "getdexorders"              && n > 1) ConvertTo<int64_t>(params[1]);
-    if (strMethod == "getdexorders"              && n > 2) ConvertTo<int64_t>(params[2]);
+    if (strMethod == "listdexorders"              && n > 0) ConvertTo<int64_t>(params[0]);
+    if (strMethod == "listdexorders"              && n > 1) ConvertTo<int64_t>(params[1]);
+    if (strMethod == "listdexorders"              && n > 2) ConvertTo<int64_t>(params[2]);
     if (strMethod == "getdexoperator"            && n > 0) ConvertTo<int64_t>(params[0]);
 
     if (strMethod == "startcommontpstest"       && n > 0)    ConvertTo<int64_t>(params[0]);
@@ -234,8 +234,8 @@ Array RPCConvertValues(const string &strMethod, const vector<string> &strParams)
     if (strMethod == "submitfeedcoinpairproposal"   && n>3) ConvertTo<int64_t>(params[3]) ;
     if (strMethod == "submitminerfeeproposal"   && n > 1) ConvertTo<int64_t>(params[1]) ;
 
-    if (strMethod == "submitbpcountupdateproposal"   && n > 1) ConvertTo<int64_t>(params[1]) ;
-    if (strMethod == "submitbpcountupdateproposal"   && n > 2) ConvertTo<int64_t>(params[2]) ;
+    if (strMethod == "submittotalbpssizeupdateproposal"   && n > 1) ConvertTo<int64_t>(params[1]) ;
+    if (strMethod == "submittotalbpssizeupdateproposal"   && n > 2) ConvertTo<int64_t>(params[2]) ;
 
 
     /* vm functions work in vm simulator */

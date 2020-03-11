@@ -154,7 +154,7 @@ bool CCdpForceLiquidator::Execute() {
     cw.accountCache.GetFcoinGenesisAccount(fcoinGenesisAccount);
 
 
-    const TokenSymbol &quoteSymbol = GetPriceQuoteByCdpScoin(scoinSymbol);
+    const TokenSymbol &quoteSymbol = GetQuoteSymbolByCdpScoin(scoinSymbol);
     if (quoteSymbol.empty()) {
         return state.DoS(100, ERRORMSG("%s(), get price quote by cdp scoin=%s failed!", __func__, scoinSymbol),
                         REJECT_INVALID, "get-price-quote-by-cdp-scoin-failed");
@@ -164,13 +164,13 @@ bool CCdpForceLiquidator::Execute() {
     // TODO: multi stable coin
     uint64_t bcoinMedianPrice = tx.median_prices[CoinPricePair(assetSymbol, quoteSymbol)];
     if (bcoinMedianPrice == 0) {
-        LogPrint(BCLog::CDP, "%s(), price of %s/%s is 0, ignore\n", assetSymbol, quoteSymbol);
+        LogPrint(BCLog::CDP, "%s(), price of %s:%s is 0, ignore\n", __func__, assetSymbol, quoteSymbol);
         return true;
     }
 
     uint64_t fcoinMedianPrice = tx.median_prices[CoinPricePair(SYMB::WGRT, quoteSymbol)];
     if (fcoinMedianPrice == 0) {
-        LogPrint(BCLog::CDP, "%s(), price of fcoin(WGRT/USD) is 0, ignore\n");
+        LogPrint(BCLog::CDP, "%s(), price of fcoin(WGRT:USD) is 0, ignore\n", __func__);
         return true;
     }
 

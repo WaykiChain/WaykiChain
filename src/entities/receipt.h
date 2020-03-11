@@ -26,6 +26,7 @@ static CUserID nullId;
     DEFINE(TRANSFER_FEE_TO_RESERVE,             201, "transferred fee to risk reserve") \
     DEFINE(TRANSFER_ACTUAL_COINS,               202, "actual transferred coins") \
     DEFINE(TRANSFER_UTXO_COINS,                 203, "transferred utxo coins") \
+    DEFINE(TRANSFER_PROPOSAL,                   204, "transfered coins in proposal") \
     /**** delegate */ \
     DEFINE(DELEGATE_ADD_VOTE,                   301, "delegate add votes") \
     DEFINE(DELEGATE_SUB_VOTE,                   302, "delegate sub votes") \

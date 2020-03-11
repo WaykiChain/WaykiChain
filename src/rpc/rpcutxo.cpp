@@ -21,12 +21,32 @@ enum CondDirection: uint8_t {
 void ParseCond(const Array& arr, vector<shared_ptr<CUtxoCond>>& vCond);
 void ParseInput(const Array& arr, vector<CUtxoInput>& vInput);
 void ParseOutput(const Array& arr, vector<CUtxoOutput>& vOutput);
-void CheckCondDirection(const vector<CUtxoCond>& vCond, CondDirection direction);
+void CheckCondDirection(const vector<shared_ptr<CUtxoCond>>& vCond, CondDirection direction);
 
 Value submitpasswordprooftx(const Array& params, bool fHelp) {
 
     if(fHelp || params.size() < 4 || params.size() > 5) {
-        throw runtime_error("");
+        throw runtime_error(
+                "submitpasswordprooftx \"addr\" \"utxo_txid\" \"utxo_vout_index\" \"password_proof\" \"symbol:fee:unit\" \n"
+                "\nSubmit a password proof.\n" +
+                HelpRequiringPassphrase() +
+                "\nArguments:\n"
+                "1.\"addr\":                (string, required) the addr submit this tx\n"
+                "2.\"utxo_txid\":           (string, required) The utxo txid you want to spend\n"
+                "3.\"utxo_vout_index\":     (string, required) The index of utxo output \n"
+                "4.\"password_proof\":      (symbol:amount:unit, required) password proof\n"
+                "5.\"symbol:fee:unit\":     (symbol:amount:unit, optinal) fee paid to miner\n"
+                "\nResult:\n"
+                "\"txid\"                   (string) The transaction id.\n"
+                "\nExamples:\n" +
+                HelpExampleCli("submitpasswordprooftx",
+                               "\"wLKf2NqwtHk3BfzK5wMDfbKYN1SC3weyR4\" \"23ewf90203ew000ds0lwsdpoxewdokwesdxcoekdleds\" "
+                               "\"5\" \"eowdswd0-eowpds23ewdswwedscde\" \"WICC:10000:sawi\"") +
+                "\nAs json rpc call\n" +
+                HelpExampleRpc("submitpasswordprooftx",
+                               "\"wLKf2NqwtHk3BfzK5wMDfbKYN1SC3weyR4\", \"23ewf90203ew000ds0lwsdpoxewdokwesdxcoekdleds\", "
+                               "\"5\", \"eowdswd0-eowpds23ewdswwedscde\", \"WICC:10000:sawi\"")
+                );
     }
 
     EnsureWalletIsUnlocked();
@@ -50,7 +70,28 @@ Value submitpasswordprooftx(const Array& params, bool fHelp) {
 Value submitutxotransfertx(const Array& params, bool fHelp) {
 
     if(fHelp || params.size() <4 || params.size() > 6) {
-        throw  runtime_error("");
+        throw runtime_error(
+                "submitutxotransfertx \"addr\" \"coin_symbol\" \"vins\" \"vouts\" \"symbol:fee:unit\" \"memo\" \n"
+                "\nSubmit a password proof.\n" +
+                HelpRequiringPassphrase() +
+                "\nArguments:\n"
+                "1.\"addr\":              (string, required) the addr submit this tx\n"
+                "2.\"coin_symbol\":       (string, required) The utxo transfer coin symbole\n"
+                "3.\"vins\":              (string(json), required) The utxo inputs \n"
+                "4.\"vouts\":             (string(json), required) the utxo outputs \n"
+                "5.\"symbol:fee:unit\":   (symbol:amount:unit, optional) fee paid to miner\n"
+                "5.\"memo\":              (string,optinal) tx memo\n"
+                "\nResult:\n"
+                "\"txid\"                   (string) The transaction id.\n"
+                "\nExamples:\n" +
+                HelpExampleCli("submitutxotransfertx",
+                               "\"wLKf2NqwtHk3BfzK5wMDfbKYN1SC3weyR4\" \"WICC\" \"[{}]\" "
+                               " \"[{}]\" \"WICC:10000:sawi\" \"xx\"") +
+                "\nAs json rpc call\n" +
+                HelpExampleRpc("submitutxotransfertx",
+                               "\"wLKf2NqwtHk3BfzK5wMDfbKYN1SC3weyR4\", \"23ewf90203ew000ds0lwsdpoxewdokwesdxcoekdleds\", "
+                               "\"5\", \"eowdswd0-eowpds23ewdswwedscde\", \"WICC:10000:sawi\"")
+        );
     }
 
     EnsureWalletIsUnlocked();
@@ -85,8 +126,7 @@ Value submitutxotransfertx(const Array& params, bool fHelp) {
 
 void TransToStorageBean(const vector<shared_ptr<CUtxoCond>>& vCond, vector<CUtxoCondStorageBean>& vCondStorageBean) {
 
-    for(auto& cond: vCond ) {
-
+    for (auto& cond: vCond ) {
         auto bean = CUtxoCondStorageBean(cond);
         vCondStorageBean.push_back(bean);
     }
@@ -105,8 +145,7 @@ void ParseInput(const Array& arr, vector<CUtxoInput>& vInput){
         vector<CUtxoCondStorageBean> vCondStorageBean ;
         vector<shared_ptr<CUtxoCond>> vCond ;
         ParseCond(condArray, vCond) ;
-       // CheckCondDirection(vCond, CondDirection::IN);
-
+        CheckCondDirection(vCond, CondDirection::IN);
         TransToStorageBean(vCond, vCondStorageBean) ;
         CUtxoInput input = CUtxoInput(prevUtxoTxid,preUoutIndex,vCondStorageBean);
         vInput.push_back(input);
@@ -123,10 +162,10 @@ void ParseOutput(const Array& arr, vector<CUtxoOutput>& vOutput) {
         const Value& coinAmountObj  = JSON::GetObjectFieldValue(obj, "coin_amount");
         uint64_t coinAmount = AmountToRawValue(coinAmountObj);
         const Array& condArray = JSON::GetObjectFieldValue(obj, "conds").get_array();
-        vector<CUtxoCondStorageBean> vCondStorageBean ;
+        vector<CUtxoCondStorageBean> vCondStorageBean;
         vector<shared_ptr<CUtxoCond>> vCond;
-        ParseCond(condArray, vCond) ;
-       // CheckCondDirection(vCond, CondDirection::OUT);
+        ParseCond(condArray, vCond);
+        CheckCondDirection(vCond, CondDirection::OUT);
         TransToStorageBean(vCond, vCondStorageBean);
         CUtxoOutput output = CUtxoOutput(coinAmount, vCondStorageBean);
         vOutput.push_back(output);
@@ -135,11 +174,11 @@ void ParseOutput(const Array& arr, vector<CUtxoOutput>& vOutput) {
 }
 
 
-void CheckCondDirection(const vector<CUtxoCond>& vCond, CondDirection direction) {
+void CheckCondDirection(const vector<shared_ptr<CUtxoCond>>& vCond, CondDirection direction) {
 
 
     for (auto& cond:vCond) {
-        switch (cond.cond_type) {
+        switch (cond->cond_type) {
             case IP2MA:
             case IP2PH:
             case IP2SA:
@@ -152,7 +191,7 @@ void CheckCondDirection(const vector<CUtxoCond>& vCond, CondDirection direction)
             case OP2SA:
             case OCLAIM_LOCK:
             case ORECLAIM_LOCK:
-                if(direction != CondDirection::OUT){
+                if(direction != CondDirection::OUT) {
                     throw JSONRPCError(RPC_INVALID_PARAMETER,"cond direction is error");
                 }
                 break;

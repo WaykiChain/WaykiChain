@@ -168,6 +168,18 @@ Object SubmitOrderTx(const CKeyID &txKeyid, const DexOperatorDetail &operatorDet
     return obj;
 }
 
+static void CheckDexId0BeforeV3(uint64_t dexId, int32_t height) {
+    if (dexId != 0)
+        throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("dex_id must be 0 before v3! tip_height=%d, v3_height=%d",
+            height, SysCfg().GetVer3ForkHeight()));
+}
+
+static void CheckMemoEmptyBeforeV3(const string &memo, int32_t height) {
+    if (!memo.empty())
+        throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("memo must be empty before v3! tip_height=%d, v3_height=%d",
+            height, SysCfg().GetVer3ForkHeight()));
+}
+
 /*************************************************<< DEX >>**************************************************/
 Value submitdexbuylimitordertx(const Array& params, bool fHelp) {
     if (fHelp || params.size() < 4 || params.size() > 8) {
@@ -219,8 +231,8 @@ Value submitdexbuylimitordertx(const Array& params, bool fHelp) {
 
     shared_ptr<CDEXOrderBaseTx> pOrderBaseTx;
     if (version < MAJOR_VER_R3) {
-        // TODO: check dex_id must be 0
-        // TODO: check memo must be empty
+        CheckDexId0BeforeV3(dexId, validHeight);
+        CheckMemoEmptyBeforeV3(memo, validHeight);
         pOrderBaseTx = make_shared<CDEXBuyLimitOrderTx>(
             userId, validHeight, cmFee.symbol, cmFee.GetAmountInSawi(), coinSymbol, assetInfo.symbol,
             assetInfo.GetAmountInSawi(), price);
@@ -281,8 +293,8 @@ Value submitdexselllimitordertx(const Array& params, bool fHelp) {
 
     shared_ptr<CDEXOrderBaseTx> pOrderBaseTx;
     if (version < MAJOR_VER_R3) {
-        // TODO: check dex_id must be 0
-        // TODO: check memo must be empty
+        CheckDexId0BeforeV3(dexId, validHeight);
+        CheckMemoEmptyBeforeV3(memo, validHeight);
         pOrderBaseTx = make_shared<CDEXSellLimitOrderTx>(
             userId, validHeight, cmFee.symbol, cmFee.GetAmountInSawi(), coinSymbol, assetInfo.symbol,
             assetInfo.GetAmountInSawi(), price);
@@ -343,8 +355,8 @@ Value submitdexbuymarketordertx(const Array& params, bool fHelp) {
 
     shared_ptr<CDEXOrderBaseTx> pOrderBaseTx;
     if (version < MAJOR_VER_R3) {
-        // TODO: check dex_id must be 0
-        // TODO: check memo must be empty
+        CheckDexId0BeforeV3(dexId, validHeight);
+        CheckMemoEmptyBeforeV3(memo, validHeight);
         pOrderBaseTx = make_shared<CDEXBuyMarketOrderTx>(userId, validHeight, cmFee.symbol,
                                                          cmFee.GetAmountInSawi(), coinInfo.symbol,
                                                          assetSymbol, coinInfo.GetAmountInSawi());
@@ -404,8 +416,8 @@ Value submitdexsellmarketordertx(const Array& params, bool fHelp) {
 
     shared_ptr<CDEXOrderBaseTx> pOrderBaseTx;
     if (version < MAJOR_VER_R3) {
-        // TODO: check dex_id must be 0
-        // TODO: check memo must be empty
+        CheckDexId0BeforeV3(dexId, validHeight);
+        CheckMemoEmptyBeforeV3(memo, validHeight);
         pOrderBaseTx = make_shared<CDEXSellMarketOrderTx>(
             userId, validHeight, cmFee.symbol, cmFee.GetAmountInSawi(), coinSymbol, assetInfo.symbol,
             assetInfo.GetAmountInSawi());
@@ -672,10 +684,10 @@ Value getdexorder(const Array& params, bool fHelp) {
     return obj;
 }
 
-extern Value getdexsysorders(const Array& params, bool fHelp) {
+extern Value listdexsysorders(const Array& params, bool fHelp) {
      if (fHelp || params.size() > 1) {
         throw runtime_error(
-            "getdexsysorders [\"height\"]\n"
+            "listdexsysorders [\"height\"]\n"
             "\nget dex system-generated active orders by block height.\n"
             "\nArguments:\n"
             "1.\"height\":  (numeric, optional) block height, default is current tip block height\n"
@@ -683,9 +695,9 @@ extern Value getdexsysorders(const Array& params, bool fHelp) {
             "\"height\"     (string) the specified block height.\n"
             "\"orders\"     (string) a list of system-generated DEX orders.\n"
             "\nExamples:\n"
-            + HelpExampleCli("getdexsysorders", "10")
+            + HelpExampleCli("listdexsysorders", "10")
             + "\nAs json rpc call\n"
-            + HelpExampleRpc("getdexsysorders", "10")
+            + HelpExampleRpc("listdexsysorders", "10")
         );
     }
 
@@ -710,10 +722,10 @@ extern Value getdexsysorders(const Array& params, bool fHelp) {
     return obj;
 }
 
-extern Value getdexorders(const Array& params, bool fHelp) {
+extern Value listdexorders(const Array& params, bool fHelp) {
      if (fHelp || params.size() > 4) {
         throw runtime_error(
-            "getdexorders [\"begin_height\"] [\"end_height\"] [\"max_count\"] [\"last_pos_info\"]\n"
+            "listdexorders [\"begin_height\"] [\"end_height\"] [\"max_count\"] [\"last_pos_info\"]\n"
             "\nget dex all active orders by block height range.\n"
             "\nArguments:\n"
             "1.\"begin_height\":    (numeric, optional) the begin block height, default is 0\n"
@@ -728,9 +740,9 @@ extern Value getdexorders(const Array& params, bool fHelp) {
             "\"count\"              (numeric) the count of returned orders.\n"
             "\"orders\"             (string) a list of system-generated DEX orders.\n"
             "\nExamples:\n"
-            + HelpExampleCli("getdexorders", "0 100 500")
+            + HelpExampleCli("listdexorders", "0 100 500")
             + "\nAs json rpc call\n"
-            + HelpExampleRpc("getdexorders", "0, 100, 500")
+            + HelpExampleRpc("listdexorders", "0, 100, 500")
         );
     }
 

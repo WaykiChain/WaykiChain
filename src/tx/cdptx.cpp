@@ -117,10 +117,13 @@ bool CCDPStakeTx::CheckTx(CTxExecuteContext &context) {
     }
 
     const TokenSymbol &assetSymbol = assets_to_stake.begin()->first;
-    if (!kCdpCoinPairMap.count(strprintf("%s:%s", assetSymbol, scoin_symbol))) {
-        return state.DoS(100, ERRORMSG("CCDPStakeTx::CheckTx, invalid bcoin-scoin CDPCoinPair!"),
-                        REJECT_INVALID, "invalid-CDPCoinPair-symbol");
-    }
+    if (!kCdpScoinSymbolSet.count(scoin_symbol))
+        return state.DoS(100, ERRORMSG("CCDPStakeTx::CheckTx, invalid scoin=%s", scoin_symbol),
+                        REJECT_INVALID, "invalid-CDP-SCoin-Symbol");
+
+    if (!cw.assetCache.CheckAsset(assetSymbol, AssetPermType::PERM_CDP_BCOIN))
+        return state.DoS(100, ERRORMSG("CCDPStakeTx::CheckTx, bcoin=%s has no CDP perm ", assetSymbol),
+                        REJECT_INVALID, "invalid-CDP-BCoin-Symbol");
 
     CAccount account;
     if (!cw.accountCache.GetAccount(txUid, account)) {
@@ -143,7 +146,7 @@ bool CCDPStakeTx::ExecuteTx(CTxExecuteContext &context) {
     uint64_t assetAmount = assets_to_stake.begin()->second.get();
     CCdpCoinPair cdpCoinPair(assetSymbol, scoin_symbol);
 
-    const TokenSymbol &quoteSymbol = GetPriceQuoteByCdpScoin(scoin_symbol);
+    const TokenSymbol &quoteSymbol = GetQuoteSymbolByCdpScoin(scoin_symbol);
     if (quoteSymbol.empty()) {
         return state.DoS(100, ERRORMSG("%s(), get price quote by cdp scoin=%s failed!", __func__, scoin_symbol),
                         REJECT_INVALID, "get-price-quote-by-cdp-scoin-failed");

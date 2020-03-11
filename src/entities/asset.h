@@ -35,13 +35,12 @@ enum AssetType : uint8_t {
 
 // perms for an asset group
 enum AssetPermType : uint64_t {
-    NULL_ASSET_PERM     = 0,        // no perm at all w/ the asset including coin transfer etc.
+    NULL_ASSET_PERM     = 0,         // no perm at all w/ the asset including coin transfer etc.
     PERM_DEX_BASE       = (1 << 1 ),
     PERM_DEX_QUOTE      = (1 << 2 ),
-    PERM_CDP_BCOIN      = (1 << 3 ),
-    PERM_CDP_SCOIN      = (1 << 4 ),
-    PERM_PRICE_FEED     = (1 << 5 ),
-    PERM_XCHAIN_SWAP    = (1 << 6 ),
+    PERM_CDP_BCOIN      = (1 << 3 ), //bcoins must have the perm while stable coins are only hard coded
+    PERM_PRICE_FEED     = (1 << 4 ),
+    PERM_XCHAIN_SWAP    = (1 << 5 ),
 
 };
 
@@ -54,7 +53,7 @@ public:
     TokenSymbol asset_symbol;       //asset symbol, E.g WICC | WUSD
     TokenName   asset_name;         //asset long name, E.g WaykiChain coin
     AssetType   asset_type;         //asset type
-    uint64_t    perms_sum = 0;//a sum of asset perms
+    uint64_t    perms_sum = 0;      //a sum of asset perms
     CUserID     owner_uid;          //creator or owner user id of the asset, null for NIA/DIA/MPA
     uint64_t    total_supply;       //boosted by 10^8 for the decimal part, max is 90 billion.
     bool        mintable;           //whether this token can be minted in the future.
@@ -132,12 +131,11 @@ public:
     }
 };
 
-inline const TokenSymbol& GetPriceQuoteByCdpScoin(const TokenSymbol &scoinSymbol) {
-    auto it = kScoinPriceQuoteMap.find(scoinSymbol);
-    if (it != kScoinPriceQuoteMap.end())
-        return it->second;
-
-    return EMPTY_STRING;
+inline const TokenSymbol GetQuoteSymbolByCdpScoin(const TokenSymbol &scoinSymbol) {
+    if (scoinSymbol[0] == 'W')
+        return TokenSymbol(scoinSymbol.substr(1, scoinSymbol.size() - 1));
+    else
+        return TokenSymbol(EMPTY_STRING);
 }
 
 struct ComboMoney {
