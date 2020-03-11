@@ -140,7 +140,7 @@ static const CRPCCommand vRPCCommands[] =
     { "submitdexoperatorregtx",         &submitdexoperatorregtx,            false,      false,      false   },
     { "submitdexoperatorupdatetx",      &submitdexoperatorupdatetx,         false,      false,      false   },
     { "getdexorder",                    &getdexorder,                       true,       false,      false   },
-    { "getdexsysorders",                &getdexsysorders,                   true,       false,      false   },
+    { "listdexsysorders",                &listdexsysorders,                   true,       false,      false   },
     { "listdexorders",                   &listdexorders,                      true,       false,      false   },
     { "getdexoperator",                 &getdexoperator,                    true,       false,      false   },
     { "getdexoperatorbyowner",          &getdexoperatorbyowner,             true,       false,      false   },

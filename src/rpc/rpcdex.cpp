@@ -684,10 +684,10 @@ Value getdexorder(const Array& params, bool fHelp) {
     return obj;
 }
 
-extern Value getdexsysorders(const Array& params, bool fHelp) {
+extern Value listdexsysorders(const Array& params, bool fHelp) {
      if (fHelp || params.size() > 1) {
         throw runtime_error(
-            "getdexsysorders [\"height\"]\n"
+            "listdexsysorders [\"height\"]\n"
             "\nget dex system-generated active orders by block height.\n"
             "\nArguments:\n"
             "1.\"height\":  (numeric, optional) block height, default is current tip block height\n"
@@ -695,9 +695,9 @@ extern Value getdexsysorders(const Array& params, bool fHelp) {
             "\"height\"     (string) the specified block height.\n"
             "\"orders\"     (string) a list of system-generated DEX orders.\n"
             "\nExamples:\n"
-            + HelpExampleCli("getdexsysorders", "10")
+            + HelpExampleCli("listdexsysorders", "10")
             + "\nAs json rpc call\n"
-            + HelpExampleRpc("getdexsysorders", "10")
+            + HelpExampleRpc("listdexsysorders", "10")
         );
     }
 

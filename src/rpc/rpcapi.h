@@ -85,7 +85,7 @@ extern Value submitdexsettletx(const Array& params, bool fHelp);
 
 extern Value getdexorder(const Array& params, bool fHelp);
 extern Value listdexorders(const Array& params, bool fHelp);
-extern Value getdexsysorders(const Array& params, bool fHelp);
+extern Value listdexsysorders(const Array& params, bool fHelp);
 extern Value getdexoperator(const Array& params, bool fHelp);
 extern Value getdexoperatorbyowner(const Array& params, bool fHelp);
 
