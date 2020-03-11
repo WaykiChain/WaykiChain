@@ -134,7 +134,7 @@ public:
 
 inline const TokenSymbol& GetQuoteSymbolByCdpScoin(const TokenSymbol &scoinSymbol) {
     return (scoinSymbol[0] == 'W') ?
-            substr(scoinSymbol, 1, scoinSymbol.size() - 1) :
+            scoinSymbol.substr(1, scoinSymbol.size() - 1) :
             EMPTY_STRING;
 }
 
