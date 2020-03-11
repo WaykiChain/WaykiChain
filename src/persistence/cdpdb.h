@@ -46,10 +46,8 @@ public:
     inline uint64_t GetGlobalOwedScoins() const;
     CCdpGlobalData GetCdpGlobalData(const CCdpCoinPair &cdpCoinPair) const;
 
-    bool GetCdpCoinPairStatus(const CCdpCoinPair &cdpCoinPair, CdpCoinPairStatus &status);
     //bool HaveCdpCoinPairStatus(const CCdpCoinPair &cdpCoinPair);
     bool SetCdpCoinPairStatus(const CCdpCoinPair &cdpCoinPair, const CdpCoinPairStatus &status);
-    map<CCdpCoinPair, CdpCoinPairStatus> GetCdpCoinPairMap();
 
     void SetBaseViewPtr(CCdpDBCache *pBaseIn);
     void SetDbOpLogMap(CDBOpLogMap * pDbOpLogMapIn);

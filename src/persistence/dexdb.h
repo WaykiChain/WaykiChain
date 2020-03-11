@@ -119,7 +119,7 @@ public:
 
     bool AddDexQuoteCoin(TokenSymbol coin);
     bool EraseDexQuoteCoin(TokenSymbol coin);
-    bool HaveDexQuoteCoin(TokenSymbol coin);
+    bool HasDexQuoteCoin(TokenSymbol coin);
     bool GetDexQuoteCoins(set<TokenSymbol>& coinSet) ;
 
 

@@ -541,7 +541,7 @@ bool CDexDBCache::EraseDexQuoteCoin(TokenSymbol coin) {
     return dex_quote_coin_cache.SetData(coins);
 }
 
-bool CDexDBCache::HaveDexQuoteCoin(TokenSymbol coin) {
+bool CDexDBCache::HasDexQuoteCoin(TokenSymbol coin) {
     if(coin == SYMB::WUSD)
         return true ;
     set<TokenSymbol> coins ;
