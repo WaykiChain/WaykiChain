@@ -166,6 +166,8 @@ public:
     uint64_t last_vote_height;      //!< account's last vote block height used for computing interest
     uint64_t last_vote_epoch;       //!< account's last vote epoch used for computing interest
 
+    uint64_t perms_sum = kAccountAllPerms; //! a sum of granted perms to the account
+
     mutable uint256 sigHash;        //!< in-memory only
 
 public:
@@ -175,15 +177,16 @@ public:
         if (this == &other)
             return *this;
 
-        this->keyid            = other.keyid;
-        this->regid            = other.regid;
-        this->nickid           = other.nickid;
-        this->owner_pubkey     = other.owner_pubkey;
-        this->miner_pubkey     = other.miner_pubkey;
-        this->tokens           = other.tokens;
-        this->received_votes   = other.received_votes;
-        this->last_vote_height = other.last_vote_height;
-        this->last_vote_epoch  = other.last_vote_epoch;
+        this->keyid             = other.keyid;
+        this->regid             = other.regid;
+        this->nickid            = other.nickid;
+        this->owner_pubkey      = other.owner_pubkey;
+        this->miner_pubkey      = other.miner_pubkey;
+        this->tokens            = other.tokens;
+        this->received_votes    = other.received_votes;
+        this->last_vote_height  = other.last_vote_height;
+        this->last_vote_epoch   = other.last_vote_epoch;
+        this->perms_sum         = other.perms_sum;
 
         return *this;
     }
@@ -209,6 +212,7 @@ public:
         READWRITE(VARINT(received_votes));
         READWRITE(VARINT(last_vote_height));
         READWRITE(VARINT(last_vote_epoch));
+        READWRITE(VARINT(perms_sum));
     )
 
     CAccountToken GetToken(const TokenSymbol &tokenSymbol) const;
