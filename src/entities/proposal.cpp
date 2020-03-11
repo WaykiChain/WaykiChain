@@ -300,32 +300,6 @@ bool CGovAssetPermProposal::ExecuteProposal(CTxExecuteContext& context, const Tx
 
 }
 
-bool CGovCdpCoinPairProposal::CheckProposal(CTxExecuteContext& context ) {
-    IMPLEMENT_DEFINE_CW_STATE
-
-    if (kCdpScoinSymbolSet.count(cdp_coinpair.bcoin_symbol) == 0)
-        return state.DoS(100, ERRORMSG("%s, the scoin_symbol=%s of cdp coin pair does not support!",
-                __func__, cdp_coinpair.bcoin_symbol), REJECT_INVALID, "unsupported_scoin_symbol");
-
-    if (!cw.assetCache.CheckAsset(cdp_coinpair.bcoin_symbol, AssetPermType::PERM_CDP_BCOIN))
-        return state.DoS(100, ERRORMSG("%s(), unsupported cdp bcoin symbol=%s!", cdp_coinpair.bcoin_symbol),
-            REJECT_INVALID, "unsupported-asset-bcoin-symbol");
-
-    if (status == CdpCoinPairStatus::NONE || kCdpCoinPairStatusNames.count(status) == 0 )
-        return state.DoS(100, ERRORMSG("%s(), unsupport status=%d", (uint8_t)status), REJECT_INVALID, "unsupported-status");
-
-    return true ;
-}
-bool CGovCdpCoinPairProposal::ExecuteProposal(CTxExecuteContext& context, const TxID& proposalId) {
-
-    if (!context.pCw->cdpCache.SetCdpCoinPairStatus(cdp_coinpair, status)) {
-        return context.pState->DoS(100, ERRORMSG("%s(), save cdp coin pair failed! coin_pair=%s, status=%s",
-                cdp_coinpair.ToString(), GetCdpCoinPairStatusName(status)),
-            REJECT_INVALID, "unsupported-asset-symbol");
-    }
-    return true;
-}
-
 bool CGovCdpParamProposal::CheckProposal(CTxExecuteContext& context) {
     CValidationState &state = *context.pState;
 
