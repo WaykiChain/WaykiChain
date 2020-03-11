@@ -133,9 +133,9 @@ public:
 };
 
 inline const TokenSymbol& GetQuoteSymbolByCdpScoin(const TokenSymbol &scoinSymbol) {
-    return (scoinSymbol[0] == 'W') ?
-            scoinSymbol.substr(1, scoinSymbol.size() - 1) :
-            EMPTY_STRING;
+    string quote = (scoinSymbol[0] == 'W') ? scoinSymbol.substr(1, scoinSymbol.size() - 1) : EMPTY_STRING;
+
+    return quote;
 }
 
 struct ComboMoney {
