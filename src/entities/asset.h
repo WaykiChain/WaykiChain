@@ -35,13 +35,12 @@ enum AssetType : uint8_t {
 
 // perms for an asset group
 enum AssetPermType : uint64_t {
-    NULL_ASSET_PERM     = 0,        // no perm at all w/ the asset including coin transfer etc.
+    NULL_ASSET_PERM     = 0,         // no perm at all w/ the asset including coin transfer etc.
     PERM_DEX_BASE       = (1 << 1 ),
     PERM_DEX_QUOTE      = (1 << 2 ),
-    PERM_CDP_BCOIN      = (1 << 3 ),
-    PERM_CDP_SCOIN      = (1 << 4 ),
-    PERM_PRICE_FEED     = (1 << 5 ),
-    PERM_XCHAIN_SWAP    = (1 << 6 ),
+    PERM_CDP_BCOIN      = (1 << 3 ), //bcoins must have the perm while stable coins are only hard coded
+    PERM_PRICE_FEED     = (1 << 4 ),
+    PERM_XCHAIN_SWAP    = (1 << 5 ),
 
 };
 
