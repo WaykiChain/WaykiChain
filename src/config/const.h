@@ -47,7 +47,7 @@ static const unordered_set<TokenSymbol> kCoinTypeSet = {
 };
 
 // can be expanded thru DevGov
-static const unordered_map<TokenSymbol, TokenSymbol> kDexQuoteSymbolSet = {
+static const unordered_set<TokenSymbol> kDexQuoteSymbolSet = {
     SYMB::WICC, SYMB::WUSD
 };
 
