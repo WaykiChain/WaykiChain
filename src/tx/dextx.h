@@ -380,7 +380,7 @@ namespace dex {
         };
 
     public:
-        CDEXOperatorOrderTx() : CDEXOrderBaseTx(DEX_ORDER_TX) {}
+        CDEXOperatorOrderTx() : CDEXOrderBaseTx(DEX_OPERATOR_ORDER_TX) {}
 
         CDEXOperatorOrderTx(const CUserID &txUidIn, int32_t validHeightIn, const TokenSymbol &feeSymbol,
                             uint64_t fees, OrderType orderTypeIn, OrderSide orderSideIn,
@@ -388,7 +388,7 @@ namespace dex {
                             uint64_t coinAmountIn, uint64_t assetAmountIn, uint64_t priceIn,
                             DexID dexIdIn, PublicMode publicModeIn, const string &memoIn,
                             uint64_t makerFeeRatioIn, uint64_t takerFeeRatioIn, const CUserID &operatorUidIn)
-            : CDEXOrderBaseTx(DEX_ORDER_TX, txUidIn, validHeightIn, feeSymbol, fees) {
+            : CDEXOrderBaseTx(DEX_OPERATOR_ORDER_TX, txUidIn, validHeightIn, feeSymbol, fees) {
             order_type          = orderTypeIn;
             order_side          = orderSideIn;
             coin_symbol         = coinSymbolIn;
