@@ -44,10 +44,10 @@ static const CRPCCommand vRPCCommands[] =
     { "invalidateblock",                &invalidateblock,                   true,      true,        false   },
     { "reconsiderblock",                &reconsiderblock,                   true,      true,        false   },
     /* Mining */
-    { "getmininginfo",                  &getmininginfo,                     true,      false,       false    },
-    { "submitblock",                    &submitblock,                       true,      false,       false    },
-    { "getminedblocks",                 &getminedblocks,                    true,      true,        false    },
-    { "getminerbyblocktime",            &getminerbyblocktime,               true,      true,        false    },
+    { "getmininginfo",                  &getmininginfo,                     true,      false,       false   },
+    { "submitblock",                    &submitblock,                       true,      false,       false   },
+    { "getminedblocks",                 &getminedblocks,                    true,      true,        false   },
+    { "getminerbyblocktime",            &getminerbyblocktime,               true,      true,        false   },
     /* Raw transactions */
     { "genmulsigtx",                    &genmulsigtx,                       true,      false,       false   },
     /* uses wallet if enabled */
@@ -60,7 +60,7 @@ static const CRPCCommand vRPCCommands[] =
 
     { "dumpprivkey",                    &dumpprivkey,                       false,     false,       true    },
     { "importprivkey",                  &importprivkey,                     false,     false,       true    },
-    { "dropminermainkeys",                  &dropminermainkeys,                     false,     false,       true    },
+    { "dropminermainkeys",              &dropminermainkeys,                 false,     false,       true    },
     { "dropprivkey",                    &dropprivkey,                       false,     false,       true    },
     { "backupwallet",                   &backupwallet,                      false,     false,       true    },
     { "dumpwallet",                     &dumpwallet,                        false,     false,       true    },
@@ -92,8 +92,7 @@ static const CRPCCommand vRPCCommands[] =
     { "submittxraw",                    &submittxraw,                       true,       false,      false   },
     /* basic tx */
     { "submitsendtx",                   &submitsendtx,                      false,      false,      true    },
-    { "submitcreateutxotx",             &submitcreateutxotx,                false,      false,      true    },
-    { "submitutxospendtx",              &submitutxospendtx,                 false,      false,      true    },
+    { "submitpasswordprooftx",          &submitpasswordprooftx,             false,      false,      true    },
     { "submitutxotransfertx",           &submitutxotransfertx,              false,      false,      true    },
     { "submitaccountregistertx",        &submitaccountregistertx,           false,      false,      true    },
     { "submitnickidregistertx",         &submitnickidregistertx,            false,      false,      true    },
@@ -122,15 +121,14 @@ static const CRPCCommand vRPCCommands[] =
     { "submitcdpredeemtx",              &submitcdpredeemtx,                 false,      false,      true    },
     { "submitcdpliquidatetx",           &submitcdpliquidatetx,              false,      false,      true    },
     { "getscoininfo",                   &getscoininfo,                      true,       false,      false   },
-    { "getcdpinfo",                     &getcdpinfo,                            true,       false,      false   },
+    { "getcdpinfo",                     &getcdpinfo,                        true,       false,      false   },
     { "getusercdp",                     &getusercdp,                        true,       false,      false   },
-    { "listcdpcoinpairs",                &listcdpcoinpairs,                   true,       false,      false   },
-
+    { "listcdpcoinpairs",               &listcdpcoinpairs,                  true,       false,      false   },
     { "getsysparam",                    &getsysparam,                       true,       false,      false   },
     { "getcdpparam",                    &getcdpparam,                       true,       false,      false   },
     { "getproposal",                    &getproposal,                       true,       false,      false   },
     { "getgovernors",                   &getgovernors,                      true,       false,      false   },
-    { "listmintxfees",                 &listmintxfees,                    true,       false,      false   },
+    { "listmintxfees",                  &listmintxfees,                     true,       false,      false   },
     /* for dex */
     { "submitdexbuylimitordertx",       &submitdexbuylimitordertx,          false,      false,      false   },
     { "submitdexselllimitordertx",      &submitdexselllimitordertx,         false,      false,      false   },
@@ -176,7 +174,6 @@ static const CRPCCommand vRPCCommands[] =
     { "getblockfailures",               &getblockfailures,                  true,       false,      false   },
     /* vm functions work in vm simulator */
     { "vmexecutescript",                &vmexecutescript,                   true,       true,       true    },
-
     /* debug */
     { "dumpdb",                         &dumpdb,                            true,       true,       true    },
 };

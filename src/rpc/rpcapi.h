@@ -162,8 +162,6 @@ extern Value getnetworkinfo(const Array& params, bool fHelp);
 extern Value signmessage(const Array& params, bool fHelp);
 extern Value getcontractassets(const  Array& params, bool fHelp);
 extern Value submitsendtx(const Array& params, bool fHelp);
-extern Value submitcreateutxotx(const Array& params, bool fHelp);
-extern Value submitutxospendtx(const Array& params, bool fHelp) ;
 extern Value genmulsigtx(const Array& params, bool fHelp);
 
 extern Value submittxraw(const Array& params, bool fHelp);
