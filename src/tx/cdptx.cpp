@@ -143,7 +143,7 @@ bool CCDPStakeTx::ExecuteTx(CTxExecuteContext &context) {
     uint64_t assetAmount = assets_to_stake.begin()->second.get();
     CCdpCoinPair cdpCoinPair(assetSymbol, scoin_symbol);
 
-    const TokenSymbol &quoteSymbol = GetPriceQuoteByCdpScoin(scoin_symbol);
+    const TokenSymbol &quoteSymbol = GetQuoteSymbolByCdpScoin(scoin_symbol);
     if (quoteSymbol.empty()) {
         return state.DoS(100, ERRORMSG("%s(), get price quote by cdp scoin=%s failed!", __func__, scoin_symbol),
                         REJECT_INVALID, "get-price-quote-by-cdp-scoin-failed");

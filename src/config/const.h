@@ -53,7 +53,7 @@ static const unordered_map<TokenSymbol, TokenSymbol> kDexQuoteSymbolSet = {
 
 // can be expanded thru DevGov
 static const unordered_set<TokenSymbol> kPriceFeedSymbolSet = {
-    SYMB:WICC
+    SYMB::WICC
 };
 // hard code below only
 static const unordered_set<TokenSymbol> kPriceQuoteSymbolSet = {

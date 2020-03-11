@@ -154,7 +154,7 @@ bool CCdpForceLiquidator::Execute() {
     cw.accountCache.GetFcoinGenesisAccount(fcoinGenesisAccount);
 
 
-    const TokenSymbol &quoteSymbol = GetPriceQuoteByCdpScoin(scoinSymbol);
+    const TokenSymbol &quoteSymbol = GetQuoteSymbolByCdpScoin(scoinSymbol);
     if (quoteSymbol.empty()) {
         return state.DoS(100, ERRORMSG("%s(), get price quote by cdp scoin=%s failed!", __func__, scoinSymbol),
                         REJECT_INVALID, "get-price-quote-by-cdp-scoin-failed");

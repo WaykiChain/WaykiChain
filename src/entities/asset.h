@@ -132,12 +132,10 @@ public:
     }
 };
 
-inline const TokenSymbol& GetPriceQuoteByCdpScoin(const TokenSymbol &scoinSymbol) {
-    auto it = kScoinPriceQuoteMap.find(scoinSymbol);
-    if (it != kScoinPriceQuoteMap.end())
-        return it->second;
-
-    return EMPTY_STRING;
+inline const TokenSymbol& GetQuoteSymbolByCdpScoin(const TokenSymbol &scoinSymbol) {
+    return (scoinSymbol[0] == 'W') ?
+            substr(scoinSymbol, 1, scoinSymbol.size() - 1) :
+            EMPTY_STRING;
 }
 
 struct ComboMoney {

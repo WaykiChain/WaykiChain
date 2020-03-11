@@ -23,9 +23,12 @@ enum class CoinPricePairStatus: uint8_t {
 CoinPricePairStatus GetPricePairStatusFromDb(CCacheWrapper &cw, const CoinPricePair &coinPricePair) {
 
     // auto cdpCoinPairMap = cw.cdpCache.GetCdpCoinPairMap();
-    const auto& scoinSymbol = GetPriceQuoteByCdpScoin(GetPriceQuoteSymbol(coinPricePair));
+    const auto& scoinSymbol = GetPriceQuoteSymbol(coinPricePair);
     if (scoinSymbol.empty())
         return CoinPricePairStatus::NONE;
+    else
+        scoinSymbol = 'W' + scoinSymbol;
+
 
     CCdpCoinPair cdpCoinPair(GetPriceBaseSymbol(coinPricePair), scoinSymbol);
     CdpCoinPairStatus cdpCoinPairstatus;
