@@ -417,11 +417,11 @@ Value submitproposalapprovaltx(const Array& params, bool fHelp){
 Value submitbpcountupdateproposal(const Array& params,bool fHelp) {
     if(fHelp || params.size() < 3 || params.size() > 4){
         throw runtime_error(
-                "submitbpcountupdateproposal \"addr\" \"bp_count\" \"effective_height\"  [\"fee\"]\n"
+                "submitbpcountupdateproposal \"addr\" \"total_bps_size\" \"effective_height\"  [\"fee\"]\n"
                 "create proposal about update total delegate(bp) count\n"
                 "\nArguments:\n"
                 "1.\"addr\":                (string,     required) the tx submitor's address\n"
-                "2.\"bp_count\":            (numberic,   required) the count of block producer(miner)  \n"
+                "2.\"total_bps_size\":            (numberic,   required) the count of block producer(miner)  \n"
                 "3.\"effective_height\":    (numberic,   required) the height of the proposal launch \n"
                 "4.\"fee\":                 (combomoney, optional) the tx fee \n"
                 "\nExamples:\n"
@@ -443,10 +443,10 @@ Value submitbpcountupdateproposal(const Array& params,bool fHelp) {
     RPC_PARAM::CheckAccountBalance(account, fee.symbol, SUB_FREE, fee.GetAmountInSawi());
 
     if(bpCount <=0 || bpCount > BP_MAX_COUNT)
-        throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("the range of bp_count is [0,%d]", BP_MAX_COUNT));
+        throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("the range of total_bps_size is [0,%d]", BP_MAX_COUNT));
 
     CGovBpSizeProposal proposal ;
-    proposal.bp_count = bpCount ;
+    proposal.total_bps_size = bpCount ;
     proposal.effective_height = effectiveHeight ;
 
     CProposalRequestTx tx ;
@@ -719,7 +719,7 @@ Value getbpcount(const Array& params, bool fHelp) {
     }
     auto co =  pCdMan->pSysParamCache->GetBpCount(chainActive.Height());
     Object o ;
-    o.push_back(Pair("bp_count", co)) ;
+    o.push_back(Pair("total_bps_size", co)) ;
     return o;
 
 }

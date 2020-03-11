@@ -72,7 +72,7 @@ namespace dbk {
         DEFINE( MINER_FEE,            "minf",   SYSPARAM )         \
         DEFINE( CDP_PARAM,            "cdpp",   SYSPARAM )         \
         DEFINE( CDP_INTEREST_PARAMS,  "cips",   SYSPARAM )       /* [prefix]*/  \
-        DEFINE( BP_COUNT,             "bpct",   SYSPARAM )           \
+        DEFINE( total_bps_size,             "bpct",   SYSPARAM )           \
         DEFINE( NEW_BP_COUNT,         "nbpc",   SYSPARAM )           \
         DEFINE( SYS_GOVERN,           "govn",   SYSGOVERN )       /* govn --> $list of governors */ \
         DEFINE( GOVN_PROP,            "pgvn",   SYSGOVERN )       /* pgvn{propid} --> proposal */ \

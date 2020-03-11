@@ -164,7 +164,7 @@ struct CGovBpMcListProposal: CProposal{
 };
 
 struct CGovBpSizeProposal: CProposal {
-    uint8_t bp_count ;
+    uint8_t total_bps_size ;
     uint32_t effective_height ;
 
     CGovBpSizeProposal(): CProposal(GOV_BP_SIZE) {}
@@ -173,7 +173,7 @@ struct CGovBpSizeProposal: CProposal {
         READWRITE(VARINT(expiry_block_height));
         READWRITE(approval_min_count);
 
-        READWRITE(bp_count);
+        READWRITE(total_bps_size);
         READWRITE(VARINT(effective_height));
     );
 
@@ -181,7 +181,7 @@ struct CGovBpSizeProposal: CProposal {
 
     virtual Object ToJson() override {
         Object o = CProposal::ToJson();
-        o.push_back(Pair("bp_count", (uint64_t)bp_count));
+        o.push_back(Pair("total_bps_size", (uint64_t)total_bps_size));
         o.push_back(Pair("effective_height",(uint64_t)effective_height));
         return o ;
     }

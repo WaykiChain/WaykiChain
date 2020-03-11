@@ -115,8 +115,8 @@ bool CGovBpMcListProposal::ExecuteProposal(CTxExecuteContext& context, const TxI
 bool CGovBpSizeProposal:: CheckProposal(CTxExecuteContext& context ) {
     CValidationState& state = *context.pState ;
 
-    if (bp_count == 0) //bp_count > BP_MAX_COUNT: always false
-        return state.DoS(100, ERRORMSG("CGovBpSizeProposal::CheckProposal, bp_count must be between 1 and 255"),
+    if (total_bps_size == 0) //total_bps_size > BP_MAX_COUNT: always false
+        return state.DoS(100, ERRORMSG("CGovBpSizeProposal::CheckProposal, total_bps_size must be between 1 and 255"),
                          REJECT_INVALID,"bad-bp-count") ;
 
     if (effective_height < (uint32_t) context.height + GOVERN_EFFECTIVE_AFTER_BLOCK_COUNT)
@@ -135,7 +135,7 @@ bool CGovBpSizeProposal:: ExecuteProposal(CTxExecuteContext& context, const TxID
                 REJECT_INVALID, "save-currbpcount-failed");
     }
 
-    if(!cw.sysParamCache.SetNewBpCount(bp_count,effective_height)){
+    if(!cw.sysParamCache.SetNewBpCount(total_bps_size,effective_height)){
         return state.DoS(100, ERRORMSG("CGovBpSizeProposal::ExecuteProposal, save new bp count failed!"),
                 REJECT_INVALID, "save-newbpcount-failed");
     }
