@@ -118,20 +118,6 @@ CCdpGlobalData CCdpDBCache::GetCdpGlobalData(const CCdpCoinPair &cdpCoinPair) co
     return ret;
 }
 
-bool CCdpDBCache::GetCdpCoinPairStatus(const CCdpCoinPair &cdpCoinPair, CdpCoinPairStatus &status) {
-    // TODO: GetDefaultData
-    uint8_t value;
-    if (!cdpCoinPairsCache.GetData(cdpCoinPair, value)) {
-        if (kCdpCoinPairMap.count(strprintf("%s:%s", cdpCoinPair.bcoin_symbol, cdpCoinPair.scoin_symbol)) > 0) {
-            status = CdpCoinPairStatus::NORMAL;
-            return true;
-        }
-        return false;
-    }
-    status = (CdpCoinPairStatus)value;
-    return true;
-}
-
 map<CCdpCoinPair, CdpCoinPairStatus> CCdpDBCache::GetCdpCoinPairMap() {
     map<CCdpCoinPair, CdpCoinPairStatus> ret;
     for (auto item : kCdpCoinPairMap) {
