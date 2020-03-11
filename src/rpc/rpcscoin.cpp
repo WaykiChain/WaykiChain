@@ -387,9 +387,6 @@ Value getscoininfo(const Array& params, bool fHelp){
     return obj;
 }
 
-Value listcdps(const Array& params, bool fHelp);
-Value listcdpstoliquidate(const Array& params, bool fHelp);
-
 Value getusercdp(const Array& params, bool fHelp){
     if (fHelp || params.size() < 1 || params.size() > 2) {
         throw runtime_error(

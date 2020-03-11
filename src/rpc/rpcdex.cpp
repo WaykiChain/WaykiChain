@@ -188,10 +188,10 @@ Value submitdexbuylimitordertx(const Array& params, bool fHelp) {
             "\"txid\" (string) The transaction id.\n"
             "\nExamples:\n"
             + HelpExampleCli("submitdexbuylimitordertx", "\"10-3\" \"WUSD\" \"WICC:1000000000:sawi\""
-                             " 100000000 1 \"PRIVATE\"\n")
+                             " 100000000 1\n")
             + "\nAs json rpc call\n"
             + HelpExampleRpc("submitdexbuylimitordertx", "\"10-3\", \"WUSD\", \"WICC:1000000000:sawi\","
-                             " 100000000, 1, \"PRIVATE\"\n")
+                             " 100000000, 1\n")
         );
     }
 
@@ -251,10 +251,10 @@ Value submitdexselllimitordertx(const Array& params, bool fHelp) {
             "\"txid\" (string) The transaction id.\n"
             "\nExamples:\n"
             + HelpExampleCli("submitdexselllimitordertx", "\"10-3\" \"WUSD\" \"WICC:1000000000:sawi\""
-                             " 100000000 1 \"PRIVATE\"\n")
+                             " 100000000 1\n")
             + "\nAs json rpc call\n"
             + HelpExampleRpc("submitdexselllimitordertx", "\"10-3\", \"WUSD\", \"WICC:1000000000:sawi\","
-                             " 100000000, 1, \"PRIVATE\"\n")
+                             " 100000000, 1\n")
         );
     }
 
@@ -314,10 +314,10 @@ Value submitdexbuymarketordertx(const Array& params, bool fHelp) {
             "\"txid\" (string) The transaction id.\n"
             "\nExamples:\n"
             + HelpExampleCli("submitdexbuymarketordertx", "\"10-3\" \"WUSD:200000000:sawi\"  \"WICC\""
-                             " 1 \"PRIVATE\"\n")
+                             " 1\n")
             + "\nAs json rpc call\n"
             + HelpExampleRpc("submitdexbuymarketordertx", "\"10-3\", \"WUSD:200000000:sawi\", \"WICC\","
-                             " 1, \"PRIVATE\"\n")
+                             " 1\n")
         );
     }
 
@@ -375,10 +375,10 @@ Value submitdexsellmarketordertx(const Array& params, bool fHelp) {
             "\"txid\" (string) The transaction id.\n"
             "\nExamples:\n"
             + HelpExampleCli("submitdexsellmarketordertx", "\"10-3\" \"WUSD\" \"WICC:200000000:sawi\""
-                             " 1 \"PRIVATE\"\n")
+                             " 1\n")
             + "\nAs json rpc call\n"
             + HelpExampleRpc("submitdexsellmarketordertx", "\"10-3\", \"WUSD\", \"WICC:200000000:sawi\","
-                             " 1, \"PRIVATE\"\n")
+                             " 1\n")
         );
     }
 

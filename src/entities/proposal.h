@@ -81,10 +81,10 @@ struct CProposal {
 };
 
 
-struct CGovSysParamProposal: public CProposal {
+struct CGovSysParamProposal: CProposal {
     vector<std::pair<uint8_t, uint64_t>> param_values;
 
-    CGovSysParamProposal(): CProposal(ProposalType::GOV_SYS_PARAM){}
+    CGovSysParamProposal(): CProposal(ProposalType::GOV_SYS_PARAM) {}
 
     IMPLEMENT_SERIALIZE(
         READWRITE(VARINT(expiry_block_height));
@@ -129,7 +129,7 @@ struct CGovSysParamProposal: public CProposal {
 };
 
 
-struct CGovBpMcListProposal: public CProposal{
+struct CGovBpMcListProposal: CProposal{
     CRegID governor_regid ;
     ProposalOperateType op_type  = ProposalOperateType::NULL_PROPOSAL_OP;
 
@@ -163,7 +163,7 @@ struct CGovBpMcListProposal: public CProposal{
 
 };
 
-struct CGovBpSizeProposal: public CProposal {
+struct CGovBpSizeProposal: CProposal {
     uint8_t bp_count ;
     uint32_t effective_height ;
 
@@ -196,7 +196,7 @@ struct CGovBpSizeProposal: public CProposal {
 
 };
 
-struct CGovMinerFeeProposal: public CProposal {
+struct CGovMinerFeeProposal: CProposal {
     TxType tx_type = TxType::NULL_TX ;
     std::string  fee_symbol = "" ;
     uint64_t  fee_sawi_amount = 0 ;
@@ -234,7 +234,7 @@ struct CGovMinerFeeProposal: public CProposal {
 };
 
 
-struct CGovCoinTransferProposal: public CProposal {
+struct CGovCoinTransferProposal: CProposal {
     uint64_t amount ;
     TokenSymbol token ;
     CUserID from_uid ;
@@ -274,34 +274,34 @@ struct CGovCoinTransferProposal: public CProposal {
 };
 
 
-struct CAccountPermProposal: public CProposal {
+struct CGovAccountPermProposal: CProposal {
     CUserID account_uid;
-    uint64_t proposed_account_perms_sums;
+    uint64_t proposed_perms_sum;
 
-    CAccountPermProposal(): CProposal(ProposalType::GOV_ACCOUNT_PERM){}
+    CGovAccountPermProposal(): CProposal(ProposalType::GOV_ACCOUNT_PERM){}
 
     IMPLEMENT_SERIALIZE(
         READWRITE(VARINT(expiry_block_height));
         READWRITE(approval_min_count);
 
         READWRITE(account_uid);
-        READWRITE(VARINT((uint64_t&)proposed_account_perms_sums));
+        READWRITE(VARINT((uint64_t&)proposed_perms_sum));
     );
 
     Object ToJson() override {
         Object o = CProposal::ToJson();
         o.push_back(Pair("account_uid", account_uid.ToString())) ;
-        o.push_back(Pair("proposed_account_perms_sums", proposed_account_perms_sums)) ;
+        o.push_back(Pair("proposed_perms_sum", proposed_perms_sum)) ;
         return o ;
     }
 
     std::string ToString() override {
-        return  strprintf("account_uid=%s, proposed_account_perms_sums=%llu", 
-                        account_uid.ToString(), proposed_account_perms_sums);
+        return  strprintf("account_uid=%s, proposed_perms_sum=%llu",
+                        account_uid.ToString(), proposed_perms_sum);
     }
 
 
-    shared_ptr<CProposal> GetNewInstance() override { return make_shared<CAccountPermProposal>(*this); } ;
+    shared_ptr<CProposal> GetNewInstance() override { return make_shared<CGovAccountPermProposal>(*this); } ;
 
 
     bool CheckProposal(CTxExecuteContext& context) override;
@@ -309,41 +309,41 @@ struct CAccountPermProposal: public CProposal {
 
 };
 
-struct CAssetPermProposal: public CProposal {
+struct CGovAssetPermProposal: CProposal {
     TokenSymbol asset_symbol;
-    uint64_t proposed_asset_perms_sums;
+    uint64_t proposed_perms_sum;
 
-    CAssetPermProposal(): CProposal(ProposalType::GOV_ASSET_PERM){}
+    CGovAssetPermProposal(): CProposal(ProposalType::GOV_ASSET_PERM){}
 
     IMPLEMENT_SERIALIZE(
         READWRITE(VARINT(expiry_block_height));
         READWRITE(approval_min_count);
 
         READWRITE(asset_symbol);
-        READWRITE(VARINT((uint64_t&)proposed_asset_perms_sums));
+        READWRITE(VARINT((uint64_t&)proposed_perms_sum));
     );
 
     Object ToJson() override {
         Object o = CProposal::ToJson();
         o.push_back(Pair("asset_symbol", asset_symbol));
-        o.push_back(Pair("proposed_asset_perms_sums", proposed_asset_perms_sums)) ;
+        o.push_back(Pair("proposed_perms_sum", proposed_perms_sum)) ;
         return o ;
     }
 
     std::string ToString() override {
-        return  strprintf("asset_symbol=%s, proposed_asset_perms_sums=%llu", 
-                        asset_symbol, proposed_asset_perms_sums);
+        return  strprintf("asset_symbol=%s, proposed_perms_sum=%llu",
+                        asset_symbol, proposed_perms_sum);
     }
 
 
-    shared_ptr<CProposal> GetNewInstance() override { return make_shared<CAssetPermProposal>(*this); } ;
+    shared_ptr<CProposal> GetNewInstance() override { return make_shared<CGovAssetPermProposal>(*this); } ;
 
     bool CheckProposal(CTxExecuteContext& context) override;
     bool ExecuteProposal(CTxExecuteContext& context) override;
 
 };
 
-struct CGovCdpCoinPairProposal: public CProposal {
+struct CGovCdpCoinPairProposal: CProposal {
     CCdpCoinPair cdp_coinpair;
     CdpCoinPairStatus status; // cdp coin pair status, can not be NONE
 
@@ -374,7 +374,7 @@ struct CGovCdpCoinPairProposal: public CProposal {
 
 };
 
-struct CGovCdpParamProposal: public CProposal {
+struct CGovCdpParamProposal: CProposal {
     vector<std::pair<uint8_t, uint64_t>> param_values;
     CCdpCoinPair coin_pair ;
 
@@ -424,7 +424,7 @@ struct CGovCdpParamProposal: public CProposal {
 
 };
 
-struct CGovDexOpProposal: public CProposal{
+struct CGovDexOpProposal: CProposal{
     uint32_t dexid;
     ProposalOperateType operate_type = ProposalOperateType::ENABLE;
 
@@ -436,7 +436,7 @@ struct CGovDexOpProposal: public CProposal{
         READWRITE((uint8_t&)operate_type);
     );
 
-    CGovDexOpProposal(): CProposal(ProposalType::GOV_DEX_OP){}
+    CGovDexOpProposal(): CProposal(ProposalType::GOV_DEX_OP) {}
 
     bool CheckProposal(CTxExecuteContext& context ) override;
     bool ExecuteProposal(CTxExecuteContext& context ) override;
@@ -455,7 +455,7 @@ struct CGovDexOpProposal: public CProposal{
 
 };
 
-struct CGovDexQuoteProposal: public CProposal {
+struct CGovDexQuoteProposal: CProposal {
     TokenSymbol  coin_symbol ;
     ProposalOperateType op_type  = ProposalOperateType::NULL_PROPOSAL_OP;
 
@@ -490,7 +490,7 @@ struct CGovDexQuoteProposal: public CProposal {
 };
 
 // base currency -> quote currency
-struct CGovFeedCoinPairProposal: public CProposal {
+struct CGovFeedCoinPairProposal: CProposal {
     TokenSymbol  feed_symbol;
     TokenSymbol  quote_symbol = SYMB::USD;
     ProposalOperateType op_type = ProposalOperateType::NULL_PROPOSAL_OP;
@@ -526,23 +526,23 @@ struct CGovFeedCoinPairProposal: public CProposal {
 };
 
 
-struct CGovAxcInProposal: public CProposal {
+struct CGovAxcInProposal: CProposal {
     ChainType   peer_chain_type = ChainType::BITCOIN;  //redudant, reference only
     TokenSymbol peer_chain_token_symbol; // from kXChainSwapTokenMap to get the target token symbol
     string      peer_chain_uid;  // initiator's address at peer chain
     string      peer_chain_txid; // a proof from the peer chain (non-HTLC version)
-    
+
     CUserID     self_chain_uid;
     uint64_t    swap_amount;
 
     CGovAxcInProposal(): CProposal(ProposalType::GOV_AXC_IN) {}
     CGovAxcInProposal(ChainType peerChainType, TokenSymbol peerChainTokenSymbol, string &peerChainUid, string &peerChainTxid,
-                        CUserID &selfChainUid, uint64_t &swapAmount): CProposal(ProposalType::GOV_AXC_IN), 
-                        peer_chain_type(peerChainType), 
-                        peer_chain_token_symbol(peerChainTokenSymbol), 
+                        CUserID &selfChainUid, uint64_t &swapAmount): CProposal(ProposalType::GOV_AXC_IN),
+                        peer_chain_type(peerChainType),
+                        peer_chain_token_symbol(peerChainTokenSymbol),
                         peer_chain_uid(peerChainUid),
                         peer_chain_txid(peerChainTxid),
-                        self_chain_uid(selfChainUid), 
+                        self_chain_uid(selfChainUid),
                         swap_amount(swapAmount) {}
 
     IMPLEMENT_SERIALIZE(
@@ -579,21 +579,21 @@ struct CGovAxcInProposal: public CProposal {
 
 };
 
-struct CGovAxcOutProposal: public CProposal {
+struct CGovAxcOutProposal: CProposal {
 public:
-    CUserID     self_chain_uid;  // swap-out initiator's address 
+    CUserID     self_chain_uid;  // swap-out initiator's address
     TokenSymbol self_chain_token_symbol; // from kXChainSwapTokenMap to get the target token symbol
 
     ChainType   peer_chain_type = ChainType::BITCOIN; //redudant, reference only
     string      peer_chain_uid;  // swap-out peer-chain address
     uint64_t    swap_amount;
-    
-    
+
+
     CGovAxcOutProposal(): CProposal(ProposalType::GOV_AXC_OUT) {}
     CGovAxcOutProposal(CUserID &uid, TokenSymbol selfChainTokenSymbol, ChainType peerChainType, string &peerChainUid,
-                        uint64_t &swapAmount): CProposal(ProposalType::GOV_AXC_OUT), 
-                        self_chain_uid(uid), 
-                        self_chain_token_symbol(selfChainTokenSymbol), 
+                        uint64_t &swapAmount): CProposal(ProposalType::GOV_AXC_OUT),
+                        self_chain_uid(uid),
+                        self_chain_token_symbol(selfChainTokenSymbol),
                         peer_chain_type(peerChainType),
                         peer_chain_uid(peerChainUid),
                         swap_amount(swapAmount) {}
@@ -650,7 +650,7 @@ public:
     unsigned int GetSerializeSize(int nType, int nVersion) const {
         if(IsEmpty())
             return 1 ;
-  
+
         return (*sp_proposal).GetSerializeSize(nType, nVersion) + 1 ;
     }
 

@@ -510,7 +510,7 @@ Value submitcointransferproposal( const Array& params, bool fHelp) {
     if(fHelp || params.size() < 4 || params.size() > 5){
         throw runtime_error(
                 "submitcointransferproposal $tx_uid $from_uid $to_uid $transfer_amount [$fee]\n"
-                "create proposal about enable/disable dexoperator\n"
+                "create proposal about trans coin from an account to another account\n"
                 "\nArguments:\n"
                 "1.$tx_uid:                (string,     required) the submitor's address\n"
                 "2.$from_uid:              (string,     required) the address that transfer from\n"
@@ -518,9 +518,9 @@ Value submitcointransferproposal( const Array& params, bool fHelp) {
                 "4.$transfer_amount:       (combomoney, required) the tansfer amount\n"
                 "5.$fee:                   (combomoney, optional) the tx fee \n"
                 "\nExamples:\n"
-                + HelpExampleCli("submitminerfeeproposal", "0-1 100-1 200-1 WICC:1000:wi WICC:0.001:wi")
+                + HelpExampleCli("submitcointransferproposal", "0-1 100-1 200-1 WICC:1000:wi WICC:0.001:wi")
                 + "\nAs json rpc call\n"
-                + HelpExampleRpc("submitminerfeeproposal", "0-1 100-1 200-1 WICC:1000:wi WICC:0.001:wi")
+                + HelpExampleRpc("submitcointransferproposal", "0-1 100-1 200-1 WICC:1000:wi WICC:0.001:wi")
 
         );
     }
@@ -690,7 +690,11 @@ Value listmintxfees(const Array& params, bool fHelp) {
 Value getdexquotecoins(const Array& params, bool fHelp) {
 
     if(fHelp || params.size() !=0){
-        throw runtime_error("") ;
+        throw runtime_error(
+                "getdexquotecoins\n"
+                "\nget all dex quote coins.\n"
+                "\nExamples:\n" +
+                HelpExampleCli("getdexquotecoins", "") + "\nAs json rpc\n" + HelpExampleRpc("getdexquotecoins", ""));
     }
 
     set<TokenSymbol> coins ;
@@ -707,11 +711,38 @@ Value getdexquotecoins(const Array& params, bool fHelp) {
 
 Value getbpcount(const Array& params, bool fHelp) {
     if(fHelp || params.size() != 0 ){
-        throw runtime_error("") ;
+        throw runtime_error(
+                "getbpcount\n"
+                "\nget the count of bp(delegate).\n"
+                "\nExamples:\n" +
+                HelpExampleCli("getbpcount", "") + "\nAs json rpc\n" + HelpExampleRpc("getbpcount", ""));
     }
     auto co =  pCdMan->pSysParamCache->GetBpCount(chainActive.Height());
     Object o ;
     o.push_back(Pair("bp_count", co)) ;
+    return o;
+
+}
+
+Value getfeedcoinpairs(const Array& params, bool fHelp) {
+
+    if(fHelp || params.size() != 0) {
+        throw runtime_error(
+                "getfeedcoinpairs\n"
+                "\nget all price feed coin pairs.\n"
+                "\nExamples:\n" +
+                HelpExampleCli("getfeedcoinpairs", "") + "\nAs json rpc\n" + HelpExampleRpc("getfeedcoinpairs", ""));
+    }
+
+    set<pair<TokenSymbol, TokenSymbol>> feedPairs;
+    pCdMan->pPriceFeedCache->GetFeedCoinPairs(feedPairs);
+
+    Array feedPairArray ;
+    for (auto feedPair: feedPairs) {
+        feedPairArray.push_back(strprintf("%s-%s",feedPair.first,feedPair.second)) ;
+    }
+    Object o ;
+    o.push_back(Pair("feed_coin_pairs", feedPairArray)) ;
     return o;
 
 }

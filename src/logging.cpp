@@ -81,6 +81,14 @@ bool BCLog::Logger::StartLogging()
     return true;
 }
 
+void BCLog::Logger::Flush() {
+    if (Enabled()) {
+        if (m_print_to_file && m_fileout != nullptr) {
+            fflush(stdout);
+        }
+    }
+}
+
 void BCLog::Logger::DisconnectTestLogger()
 {
     std::lock_guard<std::mutex> scoped_lock(m_cs);

@@ -35,10 +35,10 @@ bool CAssetDbCache::CheckAsset(const TokenSymbol &symbol, uint64_t permsSum) {
     if (GetAsset(symbol, asset))
         return true;
 
-    if (permsSum > asset.asset_perms_sum)
+    if (permsSum > asset.perms_sum)
         return false;
 
-    return (permsSum == (asset.asset_perms_sum & permsSum));
+    return (permsSum == (asset.perms_sum & permsSum));
 }
 
 bool CAssetDbCache::Flush() {

@@ -1555,10 +1555,11 @@ Value listdelegates(const Array& params, bool fHelp) {
             HelpExampleCli("listdelegates", "11") + "\nAs json rpc call\n" + HelpExampleRpc("listdelegates", "11"));
     }
 
-    uint32_t defaultDelegateNum = pCdMan->pDelegateCache->GetActivedDelegateNum() ;
 
-    int32_t delegateNum = (params.size() == 1) ? params[0].get_int() : defaultDelegateNum; //IniCfg().GetTotalDelegateNum();
-    if (delegateNum < 1 || delegateNum > 11) {
+    int32_t defaultDelegateNum = pCdMan->pDelegateCache->GetActivedDelegateNum() ;
+
+    int32_t delegateNum = (params.size() == 1) ? params[0].get_int() : defaultDelegateNum;
+    if (delegateNum < 1 || delegateNum > defaultDelegateNum) {
         throw JSONRPCError(RPC_INVALID_PARAMETER,
                            strprintf("Delegate number not between 1 and %u", defaultDelegateNum));
     }
@@ -1572,13 +1573,17 @@ Value listdelegates(const Array& params, bool fHelp) {
     Array delegateArray;
 
     CAccount account;
+    int i = 0 ;
     for (const auto& delegate : delegates) {
+
         if (!pCdMan->pAccountCache->GetAccount(delegate.regid, account)) {
             throw JSONRPCError(RPC_INTERNAL_ERROR, "Failed to get account info");
         }
         Object accountObj = account.ToJsonObj();
         accountObj.push_back(Pair("active_votes", delegate.votes));
         delegateArray.push_back(accountObj);
+        if(++i == delegateNum)
+            break ;
     }
 
     obj.push_back(Pair("delegates", delegateArray));

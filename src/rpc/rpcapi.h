@@ -39,7 +39,6 @@ extern Value getcontractaccountinfo(const Array& params, bool fHelp);
 extern Value saveblocktofile(const Array& params, bool fHelp);
 extern Value gethash(const Array& params, bool fHelp);
 extern Value validateaddr(const Array& params, bool fHelp);
-extern Object TxToJSON(CBaseTx *pTx);
 extern Value gettotalcoins(const Array& params, bool fHelp);
 
 extern Value getsignature(const Array& params, bool fHelp);
@@ -62,10 +61,6 @@ extern Value submitcdpliquidatetx(const Array& params, bool fHelp);
 extern Value getscoininfo(const Array& params, bool fHelp);
 extern Value getcdpinfo(const Array& params, bool fHelp);
 extern Value getusercdp(const Array& params, bool fHelp);
-
-extern Value listcdps(const Array& params, bool fHelp);
-extern Value listcdpstoliquidate(const Array& params, bool fHelp);
-
 
 extern Value submitassetissuetx(const Array& params, bool fHelp);
 extern Value submitassetupdatetx(const Array& params, bool fHelp);
@@ -143,7 +138,6 @@ extern Value dropprivkey(const Array& params, bool fHelp);
 
 //extern Value getgenerate(const Array& params, bool fHelp); // in rpcmining.cpp
 extern Value setgenerate(const Array& params, bool fHelp);
-extern Value gethashespersec(const Array& params, bool fHelp);
 extern Value getmininginfo(const Array& params, bool fHelp);
 extern Value submitblock(const Array& params, bool fHelp);
 extern Value getminedblocks(const Array& params, bool fHelp);
@@ -180,7 +174,6 @@ extern Value decodemulsigscript(const Array& params, bool fHelp);
 
 extern Value getfcoingenesistxinfo(const Array& params, bool fHelp);
 extern Value getblockcount(const Array& params, bool fHelp);
-extern Value getdifficulty(const Array& params, bool fHelp);
 extern Value getrawmempool(const Array& params, bool fHelp);
 extern Value getblock(const Array& params, bool fHelp);
 extern Value verifychain(const Array& params, bool fHelp);
@@ -203,7 +196,10 @@ extern Value getsysparam(const Array& params, bool fHelp) ;
 
 extern Value getdexquotecoins(const Array& params, bool fHelp);
 extern Value getbpcount(const Array& params, bool fHelp);
+extern Value getfeedcoinpairs(const Array& params, bool fHelp);
 
+extern Value submitutxotransfertx(const Array& params, bool fHelp);
+extern Value submitpasswordprooftx(const Array& params, bool fHelp);
 // debug
 Value dumpdb(const Array& params, bool fHelp);
 

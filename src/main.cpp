@@ -2032,6 +2032,7 @@ bool AcceptBlock(CBlock &block, CValidationState &state, CDiskBlockPos *dbp, boo
             return ERRORMSG("AcceptBlock() : AddToBlockIndex failed");
 
     } catch (std::runtime_error &e) {
+        ERRORMSG("AcceptBlock() : catch exception: %s", e.what());
         return state.Abort(_("System error: ") + e.what());
     }
 

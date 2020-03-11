@@ -94,6 +94,7 @@ static const CRPCCommand vRPCCommands[] =
     { "submitsendtx",                   &submitsendtx,                      false,      false,      true    },
     { "submitcreateutxotx",             &submitcreateutxotx,                false,      false,      true    },
     { "submitutxospendtx",              &submitutxospendtx,                 false,      false,      true    },
+    { "submitutxotransfertx",           &submitutxotransfertx,              false,      false,      true    },
     { "submitaccountregistertx",        &submitaccountregistertx,           false,      false,      true    },
     { "submitnickidregistertx",         &submitnickidregistertx,            false,      false,      true    },
 
@@ -148,6 +149,7 @@ static const CRPCCommand vRPCCommands[] =
     { "getdexorderfee",                 &getdexorderfee,                    true,       false,      false   },
     { "getdexquotecoins",               &getdexquotecoins,                  true,       false,      false   },
     { "getbpcount",                     &getbpcount,                        true,       false,      false   },
+    { "getfeedcoinpairs",               &getfeedcoinpairs,                  true,       false,      false   },
         /* for asset */
     { "submitassetissuetx",             &submitassetissuetx,                false,      false,      false   },
     { "submitassetupdatetx",            &submitassetupdatetx,               false,      false,      false   },

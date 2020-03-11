@@ -40,6 +40,8 @@ struct CUtxoCond {
     virtual ~CUtxoCond(){};
 
     virtual uint32_t GetSerializeSize(int32_t nType, int32_t nVersion) const { return 0; }
+
+    virtual std::string ToString() const = 0;
 };
 
 struct CUtxoInput {
@@ -91,7 +93,7 @@ struct CSingleAddressCondIn : CUtxoCond {
         READWRITE((uint8_t&) cond_type);
     )
 
-    std::string ToString() { return "cond_type=\"IP2SA\""; }
+    std::string ToString() const override { return "cond_type=\"IP2SA\""; }
 };
 struct CSingleAddressCondOut : CUtxoCond {
     CUserID  uid;
@@ -104,7 +106,7 @@ struct CSingleAddressCondOut : CUtxoCond {
         READWRITE(uid);
     )
 
-    std::string ToString() { return strprintf("cond_type=\"OP2SA\", uid=%s", uid.ToString()); }
+    std::string ToString() const override { return strprintf("cond_type=\"OP2SA\", uid=%s", uid.ToString()); }
 };
 
 //////////////////////////////////////////////////
@@ -165,7 +167,7 @@ struct CMultiSignAddressCondIn : CUtxoCond {
         READWRITE(signatures);
     )
 
-    std::string ToString() {
+    std::string ToString() const override {
         return strprintf("cond_type=\"IP2MA\", m=%d, n=%d, uids=%s, signatures=[omitted]",
                         m, n, db_util::ToString(uids));
     }
@@ -181,7 +183,7 @@ struct CMultiSignAddressCondOut : CUtxoCond {
         READWRITE(uid);
     )
 
-    std::string ToString() { return strprintf("cond_type=\"OP2MA\",uid=\"%s\"", uid.ToString()); }
+    std::string ToString() const override { return strprintf("cond_type=\"OP2MA\",uid=\"%s\"", uid.ToString()); }
 
 };
 
@@ -197,7 +199,7 @@ struct CPasswordHashLockCondIn : CUtxoCond {
         READWRITE(password);
     )
 
-    std::string ToString() { return strprintf("cond_type=\"IP2PH\",password=\"%s\"", password); }
+    std::string ToString() const override { return strprintf("cond_type=\"IP2PH\",password=\"%s\"", password); }
 };
 struct CPasswordHashLockCondOut: CUtxoCond {
     bool password_proof_required;
@@ -213,8 +215,8 @@ struct CPasswordHashLockCondOut: CUtxoCond {
         READWRITE(password_hash);
     )
 
-    std::string ToString() { 
-        return strprintf("cond_type=\"OP2PH\",password_proof_required=%d, password_hash=\"%s\"", 
+    std::string ToString() const override {
+        return strprintf("cond_type=\"OP2PH\",password_proof_required=%d, password_hash=\"%s\"",
                         password_proof_required, password_hash.ToString());
     }
 };
@@ -230,7 +232,7 @@ struct CClaimLockCondOut : CUtxoCond {
         READWRITE(VARINT(height));
     )
 
-    std::string ToString() { return strprintf("cond_type=\"OCLAIM_LOCK\", height=%llu", height); }
+    std::string ToString() const override { return strprintf("cond_type=\"OCLAIM_LOCK\", height=%llu", height); }
 };
 
 struct CReClaimLockCondOut : CUtxoCond {
@@ -244,7 +246,7 @@ struct CReClaimLockCondOut : CUtxoCond {
         READWRITE(VARINT(height));
     )
 
-    std::string ToString() { return strprintf("cond_type=\"ORECLAIM_LOCK\", height=%llu", height); }
+    std::string ToString() const override { return strprintf("cond_type=\"ORECLAIM_LOCK\", height=%llu", height); }
 };
 
 struct CUtxoCondStorageBean {
@@ -376,26 +378,7 @@ struct CUtxoCondStorageBean {
     }
 
     std::string ToString() const {
-        switch (sp_utxo_cond->cond_type) {
-            case UtxoCondType::IP2SA:
-                return ((CSingleAddressCondIn *) sp_utxo_cond.get())->ToString();
-            case UtxoCondType::IP2MA:
-                return ((CMultiSignAddressCondIn *) sp_utxo_cond.get())->ToString();
-            case UtxoCondType::IP2PH:
-                return ((CPasswordHashLockCondIn *) sp_utxo_cond.get())->ToString();
-            case UtxoCondType::OP2SA:
-                return ((CSingleAddressCondOut *) sp_utxo_cond.get())->ToString();
-            case UtxoCondType::OP2MA:
-                return ((CMultiSignAddressCondOut *) sp_utxo_cond.get())->ToString();
-            case UtxoCondType::OP2PH:
-                return ((CPasswordHashLockCondOut *) sp_utxo_cond.get())->ToString();
-            case UtxoCondType::OCLAIM_LOCK:
-                return ((CClaimLockCondOut *) sp_utxo_cond.get())->ToString();
-            case UtxoCondType::ORECLAIM_LOCK:
-                return ((CReClaimLockCondOut *) sp_utxo_cond.get())->ToString();
-            default:
-                throw ios_base::failure(strprintf("ToString: utxoCondType(%d) error.", sp_utxo_cond->cond_type));
-        }
+        return sp_utxo_cond->ToString();
     }
 
 };

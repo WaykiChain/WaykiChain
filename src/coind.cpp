@@ -159,6 +159,8 @@ int main(int argc, char* argv[]) {
 
     Shutdown();
 
+    LogInstance().Flush(); // make sure the logs are saved to storage!
+
 #ifndef WIN32
     fDaemon = SysCfg().GetBoolArg("-daemon", false);
 #endif
