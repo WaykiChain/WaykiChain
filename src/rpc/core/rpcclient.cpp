@@ -199,9 +199,9 @@ Array RPCConvertValues(const string &strMethod, const vector<string> &strParams)
 
     if (strMethod == "getdexsysorders"              && n > 0) ConvertTo<int64_t>(params[0]);
 
-    if (strMethod == "getdexorders"              && n > 0) ConvertTo<int64_t>(params[0]);
-    if (strMethod == "getdexorders"              && n > 1) ConvertTo<int64_t>(params[1]);
-    if (strMethod == "getdexorders"              && n > 2) ConvertTo<int64_t>(params[2]);
+    if (strMethod == "listdexorders"              && n > 0) ConvertTo<int64_t>(params[0]);
+    if (strMethod == "listdexorders"              && n > 1) ConvertTo<int64_t>(params[1]);
+    if (strMethod == "listdexorders"              && n > 2) ConvertTo<int64_t>(params[2]);
     if (strMethod == "getdexoperator"            && n > 0) ConvertTo<int64_t>(params[0]);
 
     if (strMethod == "startcommontpstest"       && n > 0)    ConvertTo<int64_t>(params[0]);
