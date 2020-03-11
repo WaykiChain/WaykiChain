@@ -272,7 +272,6 @@ struct CGovCoinTransferProposal: CProposal {
     }
 };
 
-
 struct CGovAccountPermProposal: CProposal {
     CUserID account_uid;
     uint64_t proposed_perms_sum;
@@ -346,7 +345,7 @@ struct CGovCdpCoinPairProposal: CProposal {
     CCdpCoinPair cdp_coinpair;
     CdpCoinPairStatus status; // cdp coin pair status, can not be NONE
 
-    CGovCdpCoinPairProposal(): CProposal(ProposalType::GOV_CDP_COINPAIR){}
+    CGovCdpCoinPairProposal(): CProposal(ProposalType::GOV_CDP_COINPAIR) {}
 
     IMPLEMENT_SERIALIZE(
         READWRITE(cdp_coinpair);

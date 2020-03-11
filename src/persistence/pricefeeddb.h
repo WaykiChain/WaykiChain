@@ -85,42 +85,36 @@ public:
     CPriceFeedCache() {}
     CPriceFeedCache(CDBAccess *pDbAccess)
     : price_feed_coin_cache(pDbAccess),
-      medianPricesCache(pDbAccess),
-      price_feeders_cache(pDbAccess) {};
+      median_price_cache(pDbAccess) {};
 public:
     bool Flush() {
         price_feed_coin_cache.Flush();
-        medianPricesCache.Flush();
-        price_feeders_cache.Flush();
+        median_price_cache.Flush();
         return true;
     }
 
     uint32_t GetCacheSize() const {
         return  price_feed_coin_cache.GetCacheSize() +
-                medianPricesCache.GetCacheSize() +
-                price_feeders_cache.GetCacheSize();
+                median_price_cache.GetCacheSize();
     }
     void SetBaseViewPtr(CPriceFeedCache *pBaseIn) {
         price_feed_coin_cache.SetBase(&pBaseIn->price_feed_coin_cache);
-        medianPricesCache.SetBase(&pBaseIn->medianPricesCache);
-        price_feeders_cache.SetBase(&pBaseIn->price_feeders_cache);
+        median_price_cache.SetBase(&pBaseIn->median_price_cache);
     };
 
     void SetDbOpLogMap(CDBOpLogMap *pDbOpLogMapIn) {
         price_feed_coin_cache.SetDbOpLogMap(pDbOpLogMapIn);
-        medianPricesCache.SetDbOpLogMap(pDbOpLogMapIn);
-        price_feeders_cache.SetDbOpLogMap(pDbOpLogMapIn);
+        median_price_cache.SetDbOpLogMap(pDbOpLogMapIn);
     }
 
     void RegisterUndoFunc(UndoDataFuncMap &undoDataFuncMap) {
         price_feed_coin_cache.RegisterUndoFunc(undoDataFuncMap);
-        medianPricesCache.RegisterUndoFunc(undoDataFuncMap);
-        price_feeders_cache.RegisterUndoFunc(undoDataFuncMap);
+        median_price_cache.RegisterUndoFunc(undoDataFuncMap);
     }
 
-    bool AddFeedCoinPair(TokenSymbol feedCoin, TokenSymbol baseCoin) ;
-    bool EraseFeedCoinPair(TokenSymbol feedCoin, TokenSymbol baseCoin) ;
-    bool HasFeedCoinPair(TokenSymbol feedCoin,TokenSymbol baseCoin) ;
+    bool AddFeedCoinPair(TokenSymbol feedCoin, TokenSymbol quoteCoin) ;
+    bool EraseFeedCoinPair(TokenSymbol feedCoin, TokenSymbol quoteCoin) ;
+    bool HasFeedCoinPair(TokenSymbol feedCoin,TokenSymbol quoteCoin) ;
     bool GetFeedCoinPairs(set<pair<TokenSymbol,TokenSymbol>>& coinSet) ;
 
     bool CheckIsPriceFeeder(const CRegID &candidateRegId) ;
@@ -139,10 +133,7 @@ public:
     // [prefix] -> feed pair
     CSimpleKVCache< dbk::PRICE_FEED_COIN,      set<pair<TokenSymbol, TokenSymbol >>>     price_feed_coin_cache;
     // [prefix] -> median price map
-    CSimpleKVCache< dbk::MEDIAN_PRICES,        PriceMap>     medianPricesCache;
-    // [prefix] -> price feeders
-    CSimpleKVCache< dbk::PRICE_FEEDERS,        vector<CRegID>>  price_feeders_cache ;
-
+    CSimpleKVCache< dbk::MEDIAN_PRICES,        PriceMap>     median_price_cache;
 };
 
 #endif  // PERSIST_PRICEFEED_H

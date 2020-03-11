@@ -191,7 +191,7 @@ bool CGovCoinTransferProposal:: CheckProposal(CTxExecuteContext& context ) {
         return state.DoS(100, ERRORMSG("CGovCoinTransferProposal::CheckProposal, read account failed"), REJECT_INVALID,
                          "bad-getaccount");
 
-    return true ;
+    return true;
 }
 
 bool CGovCoinTransferProposal:: ExecuteProposal(CTxExecuteContext& context, const TxID& proposalId) {

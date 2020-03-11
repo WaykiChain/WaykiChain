@@ -93,10 +93,11 @@ inline const string& GetPriceQuoteSymbol(const CoinPricePair &pricePair) {
 inline shared_ptr<string> CheckPricePair(const CoinPricePair &pricePair) {
     // TODO: support more price pair
     if (GetPriceBaseSymbol(pricePair) != SYMB::WICC && GetPriceBaseSymbol(pricePair) != SYMB::WGRT)
-        return make_shared<string>("unsupport base symbol " + GetPriceBaseSymbol(pricePair) + " of price pair");
+        return make_shared<string>("unsupported base symbol " + GetPriceBaseSymbol(pricePair) + " of price pair");
 
     if (GetPriceQuoteSymbol(pricePair) != SYMB::USD)
-        return make_shared<string>("unsupport quote symbol " + GetPriceQuoteSymbol(pricePair) + " of price pair");
+        return make_shared<string>("unsupported quote symbol " + GetPriceQuoteSymbol(pricePair) + " of price pair");
+
     return nullptr;
 }
 

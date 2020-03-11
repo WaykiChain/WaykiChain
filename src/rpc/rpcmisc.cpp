@@ -239,9 +239,8 @@ Value verifymessage(const Array& params, bool fHelp) {
     DEFINE( DEX_OPERATOR_OWNER_MAP, pDexCache, operator_owner_map_cache) \
     DEFINE( DEX_OPERATOR_TRADE_PAIR, pDexCache, operator_trade_pair_cache) \
     /**** price feed */ \
-    DEFINE( MEDIAN_PRICES,        pPriceFeedCache, medianPricesCache) \
+    DEFINE( MEDIAN_PRICES,        pPriceFeedCache, median_price_cache) \
     DEFINE( PRICE_FEED_COIN,      pPriceFeedCache,price_feed_coin_cache) \
-    DEFINE( PRICE_FEEDERS,        pPriceFeedCache,price_feeders_cache)  \
     /**** log db                                                                    */ \
     DEFINE( TX_EXECUTE_FAIL,      pLogCache,  executeFailCache ) \
     /**** tx receipt db                                                                    */ \
