@@ -129,15 +129,15 @@ bool CGovBpSizeProposal:: CheckProposal(CTxExecuteContext& context ) {
 bool CGovBpSizeProposal:: ExecuteProposal(CTxExecuteContext& context, const TxID& proposalId) {
     IMPLEMENT_DEFINE_CW_STATE;
 
-    auto currentBpCount = cw.delegateCache.GetActivedDelegateNum() ;
-    if(!cw.sysParamCache.SetCurrentBpCount(currentBpCount)) {
+    auto currentTotalBpsSize = cw.delegateCache.GetActivedDelegateNum() ;
+    if(!cw.sysParamCache.SetCurrentTotalBpsSize(currentTotalBpsSize)) {
         return state.DoS(100, ERRORMSG("CGovBpSizeProposal::ExecuteProposal, save current bp count failed!"),
-                REJECT_INVALID, "save-currbpcount-failed");
+                REJECT_INVALID, "save-currtotalbpssize-failed");
     }
 
-    if(!cw.sysParamCache.SetNewBpCount(total_bps_size,effective_height)){
+    if(!cw.sysParamCache.SetNewTotalBpsSize(total_bps_size,effective_height)){
         return state.DoS(100, ERRORMSG("CGovBpSizeProposal::ExecuteProposal, save new bp count failed!"),
-                REJECT_INVALID, "save-newbpcount-failed");
+                REJECT_INVALID, "save-newtotalbpssize-failed");
     }
 
     return true ;
@@ -252,6 +252,7 @@ bool CGovAccountPermProposal::CheckProposal(CTxExecuteContext& context ) {
     if (proposed_perms_sum == 0 || proposed_perms_sum > kAccountAllPerms)
         return state.DoS(100, ERRORMSG("CGovAccountPermProposal::CheckTx, proposed perms is invalid: %llu",
                         proposed_perms_sum), REJECT_INVALID, "account-uid-empty");
+    return true;
 
 }
 bool CGovAccountPermProposal::ExecuteProposal(CTxExecuteContext& context, const TxID& proposalId) {
@@ -281,6 +282,7 @@ bool CGovAssetPermProposal::CheckProposal(CTxExecuteContext& context ) {
     if (proposed_perms_sum == 0)
         return state.DoS(100, ERRORMSG("CGovAssetPermProposal::CheckTx, proposed perms is invalid: %llu",
                         proposed_perms_sum), REJECT_INVALID, "asset-perms-invalid");
+    return true;
 
 }
 bool CGovAssetPermProposal::ExecuteProposal(CTxExecuteContext& context, const TxID& proposalId) {

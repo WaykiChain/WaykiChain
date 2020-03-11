@@ -253,8 +253,8 @@ Value verifymessage(const Array& params, bool fHelp) {
     DEFINE(MINER_FEE,             pSysParamCache, miner_fee_cache) \
     DEFINE(CDP_PARAM,             pSysParamCache, cdp_param_cache) \
     DEFINE(CDP_INTEREST_PARAMS,   pSysParamCache, cdp_interest_param_changes_cache) \
-    DEFINE(total_bps_size,              pSysParamCache, current_bp_count_cache) \
-    DEFINE(NEW_BP_COUNT,          pSysParamCache, new_bp_count_cache)    \
+    DEFINE(TOTAL_BPS_SIZE,        pSysParamCache, current_total_bps_size_cache) \
+    DEFINE(NEW_TOTAL_BPS_SIZE,    pSysParamCache, new_total_bps_size_cache)    \
     /**** sys govern db                                                */\
     DEFINE(SYS_GOVERN,            pSysGovernCache, governors_cache)      \
     DEFINE(GOVN_PROP,             pSysGovernCache, proposals_cache)      \
