@@ -13,15 +13,15 @@
 #include "main.h"
 using namespace std;
 
-enum CondDirection: uint8_t {
+enum UtxoCondDirection: uint8_t {
     IN,
     OUT
 };
 
-void ParseCond(const Array& arr, vector<shared_ptr<CUtxoCond>>& vCond);
-void ParseInput(const Array& arr, vector<CUtxoInput>& vInput);
-void ParseOutput(const Array& arr, vector<CUtxoOutput>& vOutput);
-void CheckCondDirection(const vector<shared_ptr<CUtxoCond>>& vCond, CondDirection direction);
+static void ParseUtxoCond(const Array& arr, vector<shared_ptr<CUtxoCond>>& vCond);
+static void ParseUtxoInput(const Array& arr, vector<CUtxoInput>& vInput);
+static void ParseUtxoOutput(const Array& arr, vector<CUtxoOutput>& vOutput);
+static void CheckUtxoCondDirection(const vector<shared_ptr<CUtxoCond>>& vCond, UtxoCondDirection direction);
 
 Value submitpasswordprooftx(const Array& params, bool fHelp) {
 
@@ -111,8 +111,8 @@ Value submitutxotransfertx(const Array& params, bool fHelp) {
 
     std::vector<CUtxoInput> vins;
     std::vector<CUtxoOutput> vouts;
-    ParseInput(inputArray, vins);
-    ParseOutput(outputArray, vouts);
+    ParseUtxoInput(inputArray, vins);
+    ParseUtxoOutput(outputArray, vouts);
 
 
     int32_t validHeight  = chainActive.Height();
@@ -124,7 +124,7 @@ Value submitutxotransfertx(const Array& params, bool fHelp) {
 }
 
 
-void TransToStorageBean(const vector<shared_ptr<CUtxoCond>>& vCond, vector<CUtxoCondStorageBean>& vCondStorageBean) {
+static void TransToStorageBean(const vector<shared_ptr<CUtxoCond>>& vCond, vector<CUtxoCondStorageBean>& vCondStorageBean) {
 
     for (auto& cond: vCond ) {
         auto bean = CUtxoCondStorageBean(cond);
@@ -132,7 +132,7 @@ void TransToStorageBean(const vector<shared_ptr<CUtxoCond>>& vCond, vector<CUtxo
     }
 }
 
-void ParseInput(const Array& arr, vector<CUtxoInput>& vInput){
+static void ParseUtxoInput(const Array& arr, vector<CUtxoInput>& vInput){
 
 
     for (auto obj : arr) {
@@ -144,8 +144,8 @@ void ParseInput(const Array& arr, vector<CUtxoInput>& vInput){
         const Array& condArray = JSON::GetObjectFieldValue(obj, "conds").get_array();
         vector<CUtxoCondStorageBean> vCondStorageBean ;
         vector<shared_ptr<CUtxoCond>> vCond ;
-        ParseCond(condArray, vCond) ;
-        CheckCondDirection(vCond, CondDirection::IN);
+        ParseUtxoCond(condArray, vCond) ;
+        CheckUtxoCondDirection(vCond, UtxoCondDirection::IN);
         TransToStorageBean(vCond, vCondStorageBean) ;
         CUtxoInput input = CUtxoInput(prevUtxoTxid,preUoutIndex,vCondStorageBean);
         vInput.push_back(input);
@@ -155,7 +155,7 @@ void ParseInput(const Array& arr, vector<CUtxoInput>& vInput){
 }
 
 
-void ParseOutput(const Array& arr, vector<CUtxoOutput>& vOutput) {
+static void ParseUtxoOutput(const Array& arr, vector<CUtxoOutput>& vOutput) {
 
     for (auto& obj : arr) {
 
@@ -164,8 +164,8 @@ void ParseOutput(const Array& arr, vector<CUtxoOutput>& vOutput) {
         const Array& condArray = JSON::GetObjectFieldValue(obj, "conds").get_array();
         vector<CUtxoCondStorageBean> vCondStorageBean;
         vector<shared_ptr<CUtxoCond>> vCond;
-        ParseCond(condArray, vCond);
-        CheckCondDirection(vCond, CondDirection::OUT);
+        ParseUtxoCond(condArray, vCond);
+        CheckUtxoCondDirection(vCond, UtxoCondDirection::OUT);
         TransToStorageBean(vCond, vCondStorageBean);
         CUtxoOutput output = CUtxoOutput(coinAmount, vCondStorageBean);
         vOutput.push_back(output);
@@ -174,7 +174,7 @@ void ParseOutput(const Array& arr, vector<CUtxoOutput>& vOutput) {
 }
 
 
-void CheckCondDirection(const vector<shared_ptr<CUtxoCond>>& vCond, CondDirection direction) {
+static void CheckUtxoCondDirection(const vector<shared_ptr<CUtxoCond>>& vCond, UtxoCondDirection direction) {
 
 
     for (auto& cond:vCond) {
@@ -182,7 +182,7 @@ void CheckCondDirection(const vector<shared_ptr<CUtxoCond>>& vCond, CondDirectio
             case IP2MA:
             case IP2PH:
             case IP2SA:
-                if(direction != CondDirection::IN){
+                if(direction != UtxoCondDirection::IN){
                     throw JSONRPCError(RPC_INVALID_PARAMETER,"cond direction is error");
                 }
                 break;
@@ -191,7 +191,7 @@ void CheckCondDirection(const vector<shared_ptr<CUtxoCond>>& vCond, CondDirectio
             case OP2SA:
             case OCLAIM_LOCK:
             case ORECLAIM_LOCK:
-                if(direction != CondDirection::OUT) {
+                if(direction != UtxoCondDirection::OUT) {
                     throw JSONRPCError(RPC_INVALID_PARAMETER,"cond direction is error");
                 }
                 break;
@@ -204,7 +204,7 @@ void CheckCondDirection(const vector<shared_ptr<CUtxoCond>>& vCond, CondDirectio
     }
 
 }
-void ParseCond(const Array& arr, vector<shared_ptr<CUtxoCond>>& vCond) {
+static void ParseUtxoCond(const Array& arr, vector<shared_ptr<CUtxoCond>>& vCond) {
 
     for (auto& obj : arr) {
         const Value& typeObj = JSON::GetObjectFieldValue(obj, "cond_type");
