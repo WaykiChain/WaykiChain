@@ -183,6 +183,7 @@ class wasm_context : public wasm_context_interface {
         void require_auth2(const uint64_t& account, const uint64_t& permission ) const {}
         bool has_authorization( const uint64_t& account ) const {return true;}
         uint64_t pending_block_time() { return 0;      }
+        TxID get_txid() { return uint256{}; }
         void     exit() { wasmif.exit(); }
 
 
@@ -192,12 +193,8 @@ class wasm_context : public wasm_context_interface {
 
         std::vector<uint64_t>    get_active_producers() { return std::vector<uint64_t>(); }
         vm::wasm_allocator*      get_wasm_allocator()   { return &wasm_alloc; }
-        // bool                     is_memory_in_wasm_allocator( const char* p ) { 
-        //     WASM_TRACE("%ld", reinterpret_cast<uint64_t>(p))
-        //     return wasm_alloc.is_in_range(p); 
-        // }
-        virtual bool              is_memory_in_wasm_allocator ( const uint64_t& p ) { 
-            //WASM_TRACE("%ld:", p)
+
+        bool                     is_memory_in_wasm_allocator ( const uint64_t& p ) { 
             return wasm_alloc.is_in_range(reinterpret_cast<const char*>(p)); 
         }
         std::chrono::milliseconds get_max_transaction_duration(){ return std::chrono::milliseconds(wasm::max_wasm_execute_time_infinite); }

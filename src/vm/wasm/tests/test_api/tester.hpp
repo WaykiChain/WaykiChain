@@ -126,7 +126,7 @@ shared_ptr<transaction_trace> CallFunction( validating_tester &test, T ac, const
         try {
             test.ctrl.ExecuteTx(*trx_trace, trx);
         } catch (wasm_chain::exception &e) {
-            WASM_TRACE("%s", e.to_detail_string())
+            //WASM_TRACE("%s", e.to_detail_string())
             //WASM_CHECK(false, e.detail())
             throw;
         }

@@ -130,6 +130,7 @@ BOOST_FIXTURE_TEST_CASE( print_tests, validating_tester ) {
    start = end + 1; end = tx10_act_cnsl.find('\n', start);
    BOOST_CHECK_EQUAL( tx10_act_cnsl.substr(start, end-start), expect3 );
 
+
 }
 
 BOOST_FIXTURE_TEST_CASE( types_tests, validating_tester ) {
@@ -137,11 +138,13 @@ BOOST_FIXTURE_TEST_CASE( types_tests, validating_tester ) {
 	CALL_TEST_FUNCTION( *this, "test_types", "types_size", {});
 	CALL_TEST_FUNCTION( *this, "test_types", "char_to_symbol", {});
 	CALL_TEST_FUNCTION( *this, "test_types", "string_to_name", {});
+
 }
 
 BOOST_FIXTURE_TEST_CASE( datastream_tests, validating_tester ) {
 	set_code(*this, N(testapi), "wasm/test_api.wasm");
 	CALL_TEST_FUNCTION( *this, "test_datastream", "test_basic", {} );
+
 }
 
 #define DUMMY_ACTION_DEFAULT_A 0x45
@@ -149,27 +152,26 @@ BOOST_FIXTURE_TEST_CASE( datastream_tests, validating_tester ) {
 #define DUMMY_ACTION_DEFAULT_C 0x7451ae12
 
 BOOST_FIXTURE_TEST_CASE( action_tests, validating_tester ) {
+
     set_code(*this, N(testapi), "wasm/test_api.wasm");
     CALL_TEST_FUNCTION( *this, "test_action", "assert_true", {} );
 
-    // WASM_TRACE("action_tests")
     bool passed;
+    // test assert_false
     CHECK_EXCEPTION(CALL_TEST_FUNCTION( *this, "test_action", "assert_false", {} ), passed, wasm_assert_exception, "test_action::assert_false")
-    // WASM_TRACE("action_tests")
 
+    // test read_action_normal
     dummy_action dummy13{DUMMY_ACTION_DEFAULT_A, DUMMY_ACTION_DEFAULT_B, DUMMY_ACTION_DEFAULT_C};
     CALL_TEST_FUNCTION( *this, "test_action", "read_action_normal", wasm::pack(dummy13));
 
-    // WASM_TRACE("action_tests")
-    // // test read_action_to_0
+    // test read_action_to_0
     std::vector<char> raw_bytes((1<<16));
     CALL_TEST_FUNCTION( *this, "test_action", "read_action_to_0", raw_bytes );
 
-    // std::vector<char> raw_bytes;
     raw_bytes.resize((1<<16)+1);
-    CHECK_EXCEPTION(CALL_TEST_FUNCTION( *this, "test_action", "read_action_to_0", raw_bytes), passed, wasm_chain::wasm_memory_exception, "access violation")
+    CHECK_EXCEPTION(CALL_TEST_FUNCTION( *this, "test_action", "read_action_to_0", raw_bytes), passed, wasm_chain::wasm_api_data_size_exceeds_exception, "size")
 
-    // // test read_action_to_64k
+    // test read_action_to_64k
     raw_bytes.resize(1);
     CALL_TEST_FUNCTION( *this, "test_action", "read_action_to_64k", raw_bytes );
 
@@ -177,7 +179,7 @@ BOOST_FIXTURE_TEST_CASE( action_tests, validating_tester ) {
     raw_bytes.resize(3);
     CHECK_EXCEPTION(CALL_TEST_FUNCTION( *this, "test_action", "read_action_to_64k", raw_bytes), passed, wasm_chain::wasm_memory_exception, "access violation")
 
-    // test require_notice
+    //test require_notice
     auto test_require_notice = [](auto& test, std::vector<char>& data){
       CALL_TEST_FUNCTION( test, "test_action", "require_notice", data);
     };
@@ -189,14 +191,16 @@ BOOST_FIXTURE_TEST_CASE( action_tests, validating_tester ) {
 
     // test test_abort
     CHECK_EXCEPTION(CALL_TEST_FUNCTION( *this, "test_action", "test_abort", {} ), passed, abort_called, "abort() called")
+
+    wasm_code_cache_free();
 }
 
-BOOST_FIXTURE_TEST_CASE( require_notice_tests, validating_tester ) {
-  set_code(*this, N(testapi), "wasm/test_api.wasm");
-  set_code(*this, N(acc5),    "wasm/test_api.wasm");
-  CALL_TEST_FUNCTION( *this, "test_action", "require_notice_tests", {});
+// BOOST_FIXTURE_TEST_CASE( require_notice_tests, validating_tester ) {
+//   set_code(*this, N(testapi), "wasm/test_api.wasm");
+//   set_code(*this, N(acc5),    "wasm/test_api.wasm");
+//   CALL_TEST_FUNCTION( *this, "test_action", "require_notice_tests", {});
 
-  wasm_code_cache_free();
-}
+//   wasm_code_cache_free();
+// }
 
 BOOST_AUTO_TEST_SUITE_END()

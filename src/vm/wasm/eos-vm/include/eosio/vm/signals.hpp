@@ -82,14 +82,16 @@ namespace eosio { namespace vm {
       sa.sa_sigaction = &signal_handler;
       sigemptyset(&sa.sa_mask);
       sa.sa_flags = SA_NODEFER | SA_SIGINFO;
-      sigaction(SIGSEGV, &sa, &prev_signal_handler<SIGSEGV>);
+      int ret;
+      ret = sigaction(SIGSEGV, &sa, &prev_signal_handler<SIGSEGV>);
       sigaction(SIGBUS, &sa, &prev_signal_handler<SIGBUS>);
       sigaction(SIGFPE, &sa, &prev_signal_handler<SIGFPE>);
    }
 
    inline void setup_signal_handler() {
-      static int init_helper = (setup_signal_handler_impl(), 0);
-      ignore_unused_variable_warning(init_helper);
+      //static int init_helper = (setup_signal_handler_impl(), 0);
+      //ignore_unused_variable_warning(init_helper);
+      setup_signal_handler_impl();
       static_assert(std::atomic<sigjmp_buf*>::is_always_lock_free, "Atomic pointers must be lock-free to be async signal safe.");
    }
 
@@ -106,6 +108,7 @@ namespace eosio { namespace vm {
    // this and f are inlined and f modifies locals from the caller.
    template<typename F, typename E>
    [[gnu::noinline]] auto invoke_with_signal_handler(F&& f, E&& e) {
+
       setup_signal_handler();
       sigjmp_buf dest;
       sigjmp_buf* volatile old_signal_handler = nullptr;

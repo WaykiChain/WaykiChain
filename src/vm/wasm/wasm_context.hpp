@@ -68,7 +68,7 @@ namespace wasm {
         void        require_auth2(const uint64_t& account, const uint64_t& permission) const {}
         bool        has_authorization(const uint64_t& account) const ;
         uint64_t    pending_block_time() { return control_trx.pending_block_time; }
-        TxID        gettxid()  { return control_trx.GetHash();}
+        TxID        get_txid()  { return control_trx.GetHash();}
         void        exit      () { wasmif.exit(); }
 
         bool set_data( const uint64_t& contract, const string& k, const string& v ) {

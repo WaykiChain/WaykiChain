@@ -10,6 +10,7 @@ WASM_DIR      = ../..
 VM_DIR        = ../../..
 WAYKI_SRC_DIR = ../../../..
 BERKELEY_SOFTFLOAT = ../../../../external/softfloat
+COMMONS_SRC_DIR = ../../../../commons
 
 WASM_TYPES        = $(WASM_DIR)/types
 EOSVM_INCLUDE_DIR = $(WASM_DIR)/eos-vm/include
@@ -19,6 +20,8 @@ EXCEPTION_DIR     = $(WASM_DIR)/exception
 WASM_INTERFACE = $(WASM_DIR)/wasm_interface.cpp
 WASM_RUNTIME   = $(WASM_DIR)/wasm_runtime.cpp
 UINT128_SRC    = $(WASM_TYPES)/uint128.cpp
+UINT256_SRC    = $(COMMONS_SRC_DIR)/uint256.cpp
+
 
 EXCEPTION_SRC = \
 ${EXCEPTION_DIR}/log_message.cpp \
@@ -358,7 +361,7 @@ CXXFLAGS += -std=gnu++1z -fPIC ${PLATFORM_CXXFLAGS} -I. -I$(EOSVM_INCLUDE_DIR) \
 								                      -I$(VM_DIR) \
 								                      -I$(WAYKI_SRC_DIR)
 
-LDFLAGS += $(PLATFORM_LDFLAGS) -lboost_unit_test_framework -lboost_system -lssl -lcrypto
+LDFLAGS += $(PLATFORM_LDFLAGS) -lboost_unit_test_framework -lboost_system -lssl -lcrypto -g
 
 WASM_EMPTY = 
 COMPILER_BUILTINS_PATH_SOURCE = $(COMPILER_BUILTINS)/
@@ -372,6 +375,7 @@ BERKELEY_SOFTFLOAT_OBJECTS= $(subst $(BERKELEY_SOFTFLOAT_PATH_SOURCE), $(WASM_EM
 EOSVM_OBJECTS    =  wasm_interface.o wasm_runtime.o
 UINT128_OBJECTS  =  uint128.o
 EXCEPTION_OBJECT =  exception.o log_message.o
+UINT256_OBJECTS  =  uint256.o
 
 test:libwasm.a test_api.cpp wasm_context.cpp
 	@echo "building tests"
@@ -383,9 +387,10 @@ libwasm.a:$(WASM_INTERFACE)
 	@${CC}  -c ${LDFLAGS} ${C_FLAGS} ${SOFTFLOAT_SRC}
 	@${CC}  -c ${LDFLAGS} ${C_FLAGS} ${OPT} ${COMPILER_BUILTINS_SRC}
 	@${CXX} -c ${LDFLAGS} ${CXXFLAGS} ${OPT} ${UINT128_SRC}
+	@${CXX} -c ${LDFLAGS} ${CXXFLAGS} ${OPT} ${UINT256_SRC}
 	@${CXX} -c ${LDFLAGS} ${CXXFLAGS} ${OPT} ${EXCEPTION_SRC}
 	@${CXX} -c ${LDFLAGS} ${CXXFLAGS} ${OPT} ${WASM_INTERFACE} ${WASM_RUNTIME}
-	@${AR} rcs $@  ${EOSVM_OBJECTS} ${UINT128_OBJECTS} ${BERKELEY_SOFTFLOAT_OBJECTS} ${COMPILER_BUILTINS_OBJECTS} ${EXCEPTION_OBJECT}
+	@${AR} rcs $@  ${EOSVM_OBJECTS} ${UINT128_OBJECTS} ${UINT256_OBJECTS} ${BERKELEY_SOFTFLOAT_OBJECTS} ${COMPILER_BUILTINS_OBJECTS} ${EXCEPTION_OBJECT}
 # 	@${AR} rcs $@ ${COMPILER_BUILTINS_OBJECTS} ${BERKELEY_SOFTFLOAT_OBJECTS} ${UINT128_OBJECTS} ${EOSVM_OBJECTS}
 
 clean:

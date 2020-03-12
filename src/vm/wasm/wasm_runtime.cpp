@@ -54,6 +54,7 @@ namespace wasm {
             } catch (vm::timeout_exception &) {
                 CHAIN_THROW(wasm_chain::wasm_timeout_exception, "timeout exception");
             } catch (vm::wasm_memory_exception &e) {
+                WASM_TRACE("%s", "access violation")
                 CHAIN_THROW(wasm_chain::wasm_memory_exception, "access violation");
             } catch ( vm::exception &e ) {
                 // FIXME: Do better translation

@@ -29,7 +29,7 @@ using namespace eosio::vm;
 #define CHECK_WASM_DATA_SIZE(LENGTH, DATA_NAME ) \
     CHAIN_ASSERT( LENGTH <= max_wasm_api_data_bytes,                 \
                   wasm_chain::wasm_api_data_size_exceeds_exception,  \
-                  "%s size must be < %ld, but get %ld",              \
+                  "%s size must be <= %ld, but get %ld",              \
                   DATA_NAME, max_wasm_api_data_bytes, LENGTH )
 
 namespace wasm {
@@ -142,7 +142,7 @@ namespace wasm {
 
         void wasm_assert_message( uint32_t test,  const void *msg, uint32_t msg_len ) {
             if (!test) {             
-                CHECK_WASM_IN_MEMORY( msg,     msg_len)
+                //CHECK_WASM_IN_MEMORY( msg,     msg_len)
                 CHECK_WASM_DATA_SIZE( msg_len, "msg"  )
 
                 std::string str = string((const char *) msg, msg_len);
@@ -176,7 +176,7 @@ namespace wasm {
    
             uint32_t copy_len = std::min(data_len, s);
 
-            CHECK_WASM_IN_MEMORY(data,     copy_len)
+            //CHECK_WASM_IN_MEMORY(data,     copy_len)
             CHECK_WASM_DATA_SIZE(copy_len, "data"  )
 
             std::memcpy(data, pWasmContext->get_action_data(), copy_len);
@@ -194,8 +194,8 @@ namespace wasm {
 
 
         void assert_sha1(const void * data, uint32_t data_len, void* hash_val) {
-            CHECK_WASM_IN_MEMORY(data,     data_len)
-            CHECK_WASM_IN_MEMORY(hash_val, 20      )
+            //CHECK_WASM_IN_MEMORY(data,     data_len)
+            //CHECK_WASM_IN_MEMORY(hash_val, 20      )
             CHECK_WASM_DATA_SIZE(data_len, "data"  )
 
             checksum160_type checksum;
@@ -204,8 +204,8 @@ namespace wasm {
         }
 
         void assert_sha256(const void * data, uint32_t data_len, void* hash_val) {
-            CHECK_WASM_IN_MEMORY(data,     data_len)
-            CHECK_WASM_IN_MEMORY(hash_val, 32      )
+            //CHECK_WASM_IN_MEMORY(data,     data_len)
+            //CHECK_WASM_IN_MEMORY(hash_val, 32      )
             CHECK_WASM_DATA_SIZE(data_len, "data"  )
 
             checksum256_type checksum;
@@ -214,8 +214,8 @@ namespace wasm {
         }
 
         void assert_sha512(const void * data, uint32_t data_len, void* hash_val) {
-            CHECK_WASM_IN_MEMORY(data,     data_len)
-            CHECK_WASM_IN_MEMORY(hash_val, 64      )
+            //CHECK_WASM_IN_MEMORY(data,     data_len)
+            //CHECK_WASM_IN_MEMORY(hash_val, 64      )
             CHECK_WASM_DATA_SIZE(data_len, "data"  )
 
             checksum512_type checksum;
@@ -224,8 +224,8 @@ namespace wasm {
         }
 
         void assert_ripemd160(const void * data, uint32_t data_len, void* hash_val) {
-            CHECK_WASM_IN_MEMORY(data,     data_len)
-            CHECK_WASM_IN_MEMORY(hash_val, 20      )
+            //CHECK_WASM_IN_MEMORY(data,     data_len)
+            //CHECK_WASM_IN_MEMORY(hash_val, 20      )
             CHECK_WASM_DATA_SIZE(data_len, "data"  )
 
             checksum160_type checksum;
@@ -234,32 +234,32 @@ namespace wasm {
         }
 
         void sha1( const void *data, uint32_t data_len, void *hash_val ) {
-            CHECK_WASM_IN_MEMORY(data,     data_len)
-            CHECK_WASM_IN_MEMORY(hash_val, 20      )
+            //CHECK_WASM_IN_MEMORY(data,     data_len)
+            //CHECK_WASM_IN_MEMORY(hash_val, 20      )
             CHECK_WASM_DATA_SIZE(data_len, "data"  )
 
             SHA1((const unsigned char*)data, data_len, (unsigned char *)hash_val);
         }
 
         void sha256( const void *data, uint32_t data_len, void *hash_val ) {
-            CHECK_WASM_IN_MEMORY(data,     data_len)
-            CHECK_WASM_IN_MEMORY(hash_val, 32      )
+            //CHECK_WASM_IN_MEMORY(data,     data_len)
+            //CHECK_WASM_IN_MEMORY(hash_val, 32      )
             CHECK_WASM_DATA_SIZE(data_len, "data"  )
 
             SHA256((const unsigned char*)data, data_len, (unsigned char *)hash_val);
         }
 
         void sha512( const void *data, uint32_t data_len, void *hash_val ) {
-            CHECK_WASM_IN_MEMORY(data,     data_len)
-            CHECK_WASM_IN_MEMORY(hash_val, 64      )
+            //CHECK_WASM_IN_MEMORY(data,     data_len)
+            //CHECK_WASM_IN_MEMORY(hash_val, 64      )
             CHECK_WASM_DATA_SIZE(data_len, "data"  )
 
             SHA512((const unsigned char*)data, data_len, (unsigned char *)hash_val);
         }
 
         void ripemd160( const void *data, uint32_t data_len, void *hash_val ) {
-            CHECK_WASM_IN_MEMORY(data,     data_len)
-            CHECK_WASM_IN_MEMORY(hash_val, 20      )
+            //CHECK_WASM_IN_MEMORY(data,     data_len)
+            //CHECK_WASM_IN_MEMORY(hash_val, 20      )
             CHECK_WASM_DATA_SIZE(data_len, "data"  )            
 
             RIPEMD160((const unsigned char*)data, data_len, (unsigned char *)hash_val);
@@ -268,8 +268,8 @@ namespace wasm {
         //database
         int32_t db_store( const uint64_t payer, const void *key, uint32_t key_len, const void *val, uint32_t val_len ) {
 
-            CHECK_WASM_IN_MEMORY(key, key_len)
-            CHECK_WASM_IN_MEMORY(val, val_len)
+            //CHECK_WASM_IN_MEMORY(key, key_len)
+            //CHECK_WASM_IN_MEMORY(val, val_len)
 
             CHECK_WASM_DATA_SIZE(key_len, "key"  )  
             CHECK_WASM_DATA_SIZE(val_len, "value") 
@@ -290,7 +290,7 @@ namespace wasm {
 
         int32_t db_remove( const uint64_t payer, const void *key, uint32_t key_len ) {
 
-            CHECK_WASM_IN_MEMORY(key,     key_len)
+            //CHECK_WASM_IN_MEMORY(key,     key_len)
             CHECK_WASM_DATA_SIZE(key_len, "key"  ) 
 
             string k        = string((const char *) key, key_len);
@@ -307,7 +307,7 @@ namespace wasm {
 
         int32_t db_get( const void *key, uint32_t key_len, void *val, uint32_t val_len ) {
 
-            CHECK_WASM_IN_MEMORY(key,     key_len)
+            //CHECK_WASM_IN_MEMORY(key,     key_len)
             CHECK_WASM_DATA_SIZE(key_len, "key"  )          
 
             string k        = string((const char *) key, key_len);
@@ -320,7 +320,7 @@ namespace wasm {
             auto size    = v.size();
             if (val_len == 0) return size;
 
-            CHECK_WASM_IN_MEMORY(val,     val_len)
+            //CHECK_WASM_IN_MEMORY(val,     val_len)
             CHECK_WASM_DATA_SIZE(val_len, "value")  
 
             auto val_size = val_len > size ? size : val_len;
@@ -332,8 +332,8 @@ namespace wasm {
 
         int32_t db_update( const uint64_t payer, const void *key, uint32_t key_len, const void *val, uint32_t val_len ) {
 
-            CHECK_WASM_IN_MEMORY(key,     key_len)
-            CHECK_WASM_IN_MEMORY(val,     val_len)
+            //CHECK_WASM_IN_MEMORY(key,     key_len)
+            //CHECK_WASM_IN_MEMORY(val,     val_len)
             CHECK_WASM_DATA_SIZE(key_len, "key"  )  
             CHECK_WASM_DATA_SIZE(val_len, "value")            
 
@@ -357,22 +357,22 @@ namespace wasm {
                           wasm_chain::overlapping_memory_error, 
                           "memcpy can only accept non-aliasing pointers");
 
-            CHECK_WASM_IN_MEMORY(dest, len)
-            CHECK_WASM_IN_MEMORY(src,  len)
+            //CHECK_WASM_IN_MEMORY(dest, len)
+            //CHECK_WASM_IN_MEMORY(src,  len)
 
             return (char *) std::memcpy(dest, src, len);
         }
 
         void *memmove( void *dest, const void *src, int len ) {
-            CHECK_WASM_IN_MEMORY(dest, len)
-            CHECK_WASM_IN_MEMORY(src,  len)
+            //CHECK_WASM_IN_MEMORY(dest, len)
+            //CHECK_WASM_IN_MEMORY(src,  len)
 
             return (char *) std::memmove(dest, src, len);
         }
 
         int memcmp( const void *dest, const void *src, int len ) {
-            CHECK_WASM_IN_MEMORY(dest, len)
-            CHECK_WASM_IN_MEMORY(src,  len)
+            //CHECK_WASM_IN_MEMORY(dest, len)
+            //CHECK_WASM_IN_MEMORY(src,  len)
 
             int ret = std::memcmp(dest, src, len);
             if (ret < 0)
@@ -383,7 +383,7 @@ namespace wasm {
         }
 
         void *memset( void *dest, int val, int len ) {
-            CHECK_WASM_IN_MEMORY(dest, len)
+            //CHECK_WASM_IN_MEMORY(dest, len)
 
             return (char *) std::memset(dest, val, len);
         }
@@ -414,7 +414,7 @@ namespace wasm {
 
             //fixme:should be have the limited of the length str
             auto size = strlen((const char*)str); 
-            CHECK_WASM_IN_MEMORY(str,  size )
+            //CHECK_WASM_IN_MEMORY(str,  size )
             CHECK_WASM_DATA_SIZE(size, "str") 
 
             if (!print_ignore) {
@@ -426,7 +426,7 @@ namespace wasm {
 
         void prints_l( const void *str, uint32_t str_len ) {
 
-            CHECK_WASM_IN_MEMORY(str,     str_len)
+            //CHECK_WASM_IN_MEMORY(str,     str_len)
             CHECK_WASM_DATA_SIZE(str_len, "str"  ) 
 
             if (!print_ignore) {
@@ -520,7 +520,7 @@ namespace wasm {
 
         void printhex( const char *data, uint32_t data_len ) {
 
-            CHECK_WASM_IN_MEMORY(data,     data_len)
+            //CHECK_WASM_IN_MEMORY(data,     data_len)
             CHECK_WASM_DATA_SIZE(data_len, "data"  ) 
 
             if (!print_ignore) {
@@ -559,7 +559,7 @@ namespace wasm {
         //transaction
         void send_inline( void *data, uint32_t data_len ) {
 
-            CHECK_WASM_IN_MEMORY(data,     data_len)
+            //CHECK_WASM_IN_MEMORY(data,     data_len)
             CHECK_WASM_DATA_SIZE(data_len, "data"  ) 
 
             inline_transaction trx = wasm::unpack<inline_transaction>((const char *) data, data_len);
@@ -578,7 +578,7 @@ namespace wasm {
 
             auto copy_len = std::min( static_cast<size_t>(data_len), len );
 
-            CHECK_WASM_IN_MEMORY(producers, copy_len)
+            //CHECK_WASM_IN_MEMORY(producers, copy_len)
             CHECK_WASM_DATA_SIZE(copy_len,  "data"  ) 
 
             std::memcpy(producers, active_producers.data(), copy_len);
@@ -587,7 +587,7 @@ namespace wasm {
 
         uint32_t get_txid(void *data, uint32_t data_len) {
 
-            TxID txid = pWasmContext->gettxid();
+            TxID txid = pWasmContext->get_txid();
             std::string strtxid = txid.ToString();
 
             size_t len = strtxid.size();
@@ -595,7 +595,7 @@ namespace wasm {
 
             auto copy_len = std::min( static_cast<size_t>(data_len), len );
 
-            CHECK_WASM_IN_MEMORY(data, copy_len);
+            //CHECK_WASM_IN_MEMORY(data, copy_len);
             CHECK_WASM_DATA_SIZE(copy_len,  "data");
 
             std::memcpy(data, strtxid.c_str(), copy_len);

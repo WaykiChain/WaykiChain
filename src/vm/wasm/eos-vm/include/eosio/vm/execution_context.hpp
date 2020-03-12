@@ -108,6 +108,7 @@ namespace eosio { namespace vm {
             /* TODO fix this */
             assert(!"??????");
          }
+         
          throw wasm_memory_exception{ "wasm memory out-of-bounds" };
       }
 
