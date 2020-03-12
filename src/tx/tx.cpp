@@ -177,11 +177,11 @@ bool CBaseTx::CheckBaseTx(CTxExecuteContext &context) {
             case UCOIN_TRANSFER_MTX:        return ((txAccount.perms_sum & AccountPermType::PERM_SEND_COIN) > 0);
             case UCOIN_STAKE_TX:            return ((txAccount.perms_sum & AccountPermType::PERM_STAKE_COIN) > 0);
             case ASSET_ISSUE_TX:            IMPLEMENT_CHECK_TX_REGID(txUid);
-            case UIA_UPDATE_TX:
+            case UIA_UPDATE_TX:             [[fallthrough]];
             case UTXO_TRANSFER_TX:          IMPLEMENT_DISABLE_TX_PRE_STABLE_COIN_RELEASE;
                                             IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid);
                                             return ((txAccount.perms_sum & AccountPermType::PERM_SEND_UTXO) > 0);
-            case UTXO_PASSWORD_PROOF_TX:    IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid);
+            case UTXO_PASSWORD_PROOF_TX:    IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid); [[fallthrough]];
             case UCOIN_TRANSFER_TX:         IMPLEMENT_DISABLE_TX_PRE_STABLE_COIN_RELEASE;
                                             IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid);
                                             return ((txAccount.perms_sum & AccountPermType::PERM_SEND_COIN) > 0);
