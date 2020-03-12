@@ -108,7 +108,7 @@ bool CBaseTx::CheckBaseTx(CTxExecuteContext &context) {
     IMPLEMENT_DEFINE_CW_STATE;
 
     CAccount txAccount;
-    bool foundAccount = cw.accountCache.GetAccount(txUid, txAccount));
+    bool foundAccount = cw.accountCache.GetAccount(txUid, txAccount);
 
     bool signatureValid = false;
 
@@ -117,7 +117,7 @@ bool CBaseTx::CheckBaseTx(CTxExecuteContext &context) {
             case BLOCK_REWARD_TX:
             case PRICE_MEDIAN_TX:
             case UCOIN_REWARD_TX:
-            case UCOIN_BLOCK_REWARD_TX: break;
+            case UCOIN_BLOCK_REWARD_TX: signatureValid = true; break;
             default: {
                 if (GetFeatureForkVersion(context.height) < MAJOR_VER_R2) {
                     signatureValid = true; //due to a pre-existing bug and illegally issued unsigned vote Tx
@@ -130,8 +130,8 @@ bool CBaseTx::CheckBaseTx(CTxExecuteContext &context) {
                             return state.DoS(100, ERRORMSG("CheckBaseTx::CheckTx, read txUid %s account info error",
                                         txUid.ToString()), READ_ACCOUNT_FAIL, "bad-read-accountdb");
 
-                        if (txAccount.perms_sum == AccountPermType::NULL_ACCOUNT_PERM)
-                            return state.DoS(100, ERRORMSG("CheckBaseTx::CheckTx, verify txUid %s sign failed",
+                        if (txAccount.perms_sum == 0)
+                            return state.DoS(100, ERRORMSG("CheckBaseTx::CheckTx, perms_sum is zero error: txUid %s",
                                         txUid.ToString()), READ_ACCOUNT_FAIL, "bad-tx-sign");
 
                             pubKey = txAccount.owner_pubkey;
