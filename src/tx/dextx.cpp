@@ -1055,8 +1055,7 @@ namespace dex {
     bool CDEXSettleTx::CheckTx(CTxExecuteContext &context) {
         IMPLEMENT_DEFINE_CW_STATE;
         if (!CheckTxAvailableFromVer(context, MAJOR_VER_R2)) return false;
-        IMPLEMENT_CHECK_TX_REGID(txUid);
-        if (!CheckFee(context)) return false;
+
         if (txUid.get<CRegID>() != SysCfg().GetDexMatchSvcRegId()) {
             return state.DoS(100, ERRORMSG("%s, account regid=%s is not authorized dex match-svc regId=%s",
                 TX_ERR_TITLE, txUid.ToString(), SysCfg().GetDexMatchSvcRegId().ToString()),
@@ -1080,16 +1079,6 @@ namespace dex {
                 return state.DoS(100, ERRORMSG("%s, deal_items[%d], deal_coin_amount or deal_asset_amount or deal_price is zero",
                     TX_ERR_TITLE, i), REJECT_INVALID, "zero_order_amount");
         }
-
-        CAccount txAccount;
-        if (!cw.accountCache.GetAccount(txUid, txAccount))
-            return state.DoS(100, ERRORMSG("%s, read account failed", TX_ERR_TITLE), REJECT_INVALID,
-                            "bad-getaccount");
-        if (txUid.is<CRegID>() && !txAccount.HaveOwnerPubKey())
-            return state.DoS(100, ERRORMSG("%s, account unregistered", TX_ERR_TITLE),
-                            REJECT_INVALID, "bad-account-unregistered");
-
-        if (!VerifySignature(context, txAccount.owner_pubkey)) return false;
 
         return true;
     }

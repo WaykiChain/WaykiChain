@@ -160,7 +160,7 @@ public:
 
     virtual bool GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds);
 
-    virtual bool CheckBaseTx(CTxExecuteContext &context);
+    bool CheckBaseTx(CTxExecuteContext &context);
     virtual bool CheckTx(CTxExecuteContext &context) = 0;
 
     virtual bool ExecuteTx(CTxExecuteContext &context) = 0;
@@ -282,7 +282,7 @@ public:
             100, ERRORMSG("%s, txUid must be CRegID pre-stable coin release", __FUNCTION__),       \
             REJECT_INVALID, "txUid-type-error");                                                   \
     }                                                                                              \
-    if ((!uid.is<CRegID>()) && (!uid.is<CPubKey>())) {                                               \
+    if ((!uid.is<CRegID>()) && (!uid.is<CPubKey>())) {                                             \
         return state.DoS(100, ERRORMSG("%s, txUid must be CRegID or CPubKey", __FUNCTION__),       \
                          REJECT_INVALID, "txUid-type-error");                                      \
     }

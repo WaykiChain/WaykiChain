@@ -108,116 +108,122 @@ bool CBaseTx::CheckBaseTx(CTxExecuteContext &context) {
     IMPLEMENT_DEFINE_CW_STATE;
 
     CAccount txAccount;
+    bool foundAccount = cw.accountCache.GetAccount(txUid, txAccount));
+
     bool signatureValid = false;
 
-    switch (nTxType) {
-        case BLOCK_REWARD_TX:
-        case PRICE_MEDIAN_TX:
-        case UCOIN_REWARD_TX: 
-        case UCOIN_BLOCK_REWARD_TX: break;
-        default: {
-            if (GetFeatureForkVersion(context.height) < MAJOR_VER_R2) {
-                signatureValid = true; //due to a pre-existing bug and illegally issued unsigned vote Tx
-            } else {
-                CPubKey pubKey;
-                if (txUid.is<CPubKey>()) {
-                    pubKey = txUid.get<CPubKey>();
+    { //1. Tx signature check
+        switch (nTxType) {
+            case BLOCK_REWARD_TX:
+            case PRICE_MEDIAN_TX:
+            case UCOIN_REWARD_TX:
+            case UCOIN_BLOCK_REWARD_TX: break;
+            default: {
+                if (GetFeatureForkVersion(context.height) < MAJOR_VER_R2) {
+                    signatureValid = true; //due to a pre-existing bug and illegally issued unsigned vote Tx
                 } else {
-                    if (!cw.accountCache.GetAccount(txUid, txAccount))
-                        return state.DoS(100, ERRORMSG("CdpLiquidateTx::CheckTx, read txUid %s account info error", 
-                                    txUid.ToString()), READ_ACCOUNT_FAIL, "bad-read-accountdb");
+                    CPubKey pubKey;
+                    if (txUid.is<CPubKey>()) {
+                        pubKey = txUid.get<CPubKey>();
+                    } else {
+                        if (!foundAccount)
+                            return state.DoS(100, ERRORMSG("CheckBaseTx::CheckTx, read txUid %s account info error",
+                                        txUid.ToString()), READ_ACCOUNT_FAIL, "bad-read-accountdb");
 
-                    if (txAccount.perms_sum == AccountPermType::NULL_ACCOUNT_PERM)
-                        return state.DoS(100, ERRORMSG("CdpLiquidateTx::CheckTx, verify txUid %s sign failed", 
-                                    txUid.ToString()), READ_ACCOUNT_FAIL, "bad-tx-sign");
+                        if (txAccount.perms_sum == AccountPermType::NULL_ACCOUNT_PERM)
+                            return state.DoS(100, ERRORMSG("CheckBaseTx::CheckTx, verify txUid %s sign failed",
+                                        txUid.ToString()), READ_ACCOUNT_FAIL, "bad-tx-sign");
 
-                        pubKey = txAccount.owner_pubkey;
+                            pubKey = txAccount.owner_pubkey;
+                    }
+
+                    signatureValid = VerifySignature(context, pubKey);
                 }
-
-                signatureValid = VerifySignature(context, pubKey);
             }
-        } 
-    }
-    if (!signatureValid)
-        return state.DoS(100, ERRORMSG("CdpLiquidateTx::CheckTx, verify txUid %s sign failed", txUid.ToString()),
-                         READ_ACCOUNT_FAIL, "bad-tx-sign");
-    
-    // check Tx fee
-     switch (nTxType) {
-        case BLOCK_REWARD_TX:
-        case PRICE_MEDIAN_TX:
-        case UCOIN_REWARD_TX: 
-        case UCOIN_BLOCK_REWARD_TX: break; //no fee required
-        case LCONTRACT_DEPLOY_TX:
-        case LCONTRACT_INVOKE_TX: 
-        case UCOIN_TRANSFER_TX: break;      //to be checked in Tx but not here
-        default:
-            if (!CheckFee(context)) return false;
+        }
+        if (!signatureValid)
+            return state.DoS(100, ERRORMSG("CheckBaseTx::CheckTx, verify txUid %s sign failed", txUid.ToString()),
+                            READ_ACCOUNT_FAIL, "bad-tx-sign");
     }
 
-    switch (nTxType) {
-        // case BLOCK_REWARD_TX:
-        // case ACCOUNT_REGISTER_TX:
-        case BCOIN_TRANSFER_TX:         IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid);
-                                        return (txAccount.perms_sum & AccountPermType::PERM_SEND_COIN > 0);
-         case LCONTRACT_DEPLOY_TX:      IMPLEMENT_CHECK_TX_REGID(txUid);
-                                        return (txAccount.perms_sum & AccountPermType::PERM_DEPLOY_SC > 0);
-        case LCONTRACT_INVOKE_TX:       IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid);
-                                        return (txAccount.perms_sum & AccountPermType::PERM_INVOKE_SC > 0);
-        case DELEGATE_VOTE_TX:          IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid);
-                                        return (txAccount.perms_sum & AccountPermType::PERM_SEND_VOTE > 0);
-        case UCOIN_TRANSFER_MTX:        return (txAccount.perms_sum & AccountPermType::PERM_SEND_COIN > 0);
-        case UCOIN_STAKE_TX:            return (txAccount.perms_sum & AccountPermType::PERM_STAKE_COIN > 0);
-        case ASSET_ISSUE_TX:            if (!CheckFee(context)) return false; IMPLEMENT_CHECK_TX_REGID(txUid);       
-        case UIA_UPDATE_TX:             IMPLEMENT_DISABLE_TX_PRE_STABLE_COIN_RELEASE; 
-        case UTXO_TRANSFER_TX:          IMPLEMENT_DISABLE_TX_PRE_STABLE_COIN_RELEASE;
-                                        IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid);
-                                        return (txAccount.perms_sum & AccountPermType::PERM_SEND_UTXO > 0);
-        case UTXO_PASSWORD_PROOF_TX:    IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid);
-        case UCOIN_TRANSFER_TX:         IMPLEMENT_DISABLE_TX_PRE_STABLE_COIN_RELEASE;
-                                        IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid);
-                                        return (txAccount.perms_sum & AccountPermType::PERM_SEND_COIN > 0);
-        // case UCOIN_REWARD_TX:
-        // case UCOIN_BLOCK_REWARD_TX:
-        case UCONTRACT_DEPLOY_TX:       IMPLEMENT_CHECK_TX_REGID(txUid);
-                                        IMPLEMENT_DISABLE_TX_PRE_STABLE_COIN_RELEASE;
-                                        return (txAccount.perms_sum & AccountPermType::PERM_DEPLOY_SC > 0);
-        case UCONTRACT_INVOKE_TX:       IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid);
-                                        IMPLEMENT_DISABLE_TX_PRE_STABLE_COIN_RELEASE;
-                                        return (txAccount.perms_sum & AccountPermType::PERM_INVOKE_SC > 0);
-        case PRICE_FEED_TX:             IMPLEMENT_CHECK_TX_REGID(txUid);
-                                        return (txAccount.perms_sum & AccountPermType::PERM_FEED_PRICE > 0);
-        // case PRICE_MEDIAN_TX:
-        case CDP_STAKE_TX:              IMPLEMENT_DISABLE_TX_PRE_STABLE_COIN_RELEASE; 
-                                        IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid);
-        case CDP_REDEEM_TX: 
-        case CDP_LIQUIDATE_TX:          IMPLEMENT_DISABLE_TX_PRE_STABLE_COIN_RELEASE; 
-                                        IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid);
-                                        if (!CheckFee(context)) return false;
-                                        return (txAccount.perms_sum & AccountPermType::PERM_CDP > 0);
-        // case NICKID_REGISTER_TX:
-        case WASM_CONTRACT_TX:          return (txAccount.perms_sum & AccountPermType::PERM_INVOKE_SC > 0);
-        // case DEX_TRADE_SETTLE_TX:
-        // case DEX_CANCEL_ORDER_TX:
-        case DEX_LIMIT_BUY_ORDER_TX:
-        case DEX_LIMIT_SELL_ORDER_TX:
-        case DEX_MARKET_BUY_ORDER_TX:
-        case DEX_MARKET_SELL_ORDER_TX:
-        case DEX_CANCEL_ORDER_TX:       IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid);
-        case DEX_ORDER_TX:
-        case DEX_OPERATOR_ORDER_TX:
-        case DEX_OPERATOR_UPDATE_TX:
-        case DEX_OPERATOR_REGISTER_TX:  IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid);
-                                        IMPLEMENT_DISABLE_TX_PRE_STABLE_COIN_RELEASE; 
-                                        if (!CheckFee(context)) return false;
-                                        return (txAccount.perms_sum & AccountPermType::PERM_DEX > 0);
-        case PROPOSAL_REQUEST_TX:       IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid);
-        case PROPOSAL_APPROVAL_TX:      IMPLEMENT_CHECK_TX_REGID(txUid); 
-                                        return (txAccount.perms_sum & AccountPermType::PERM_PROPOSE > 0);
-        case NICKID_REGISTER_TX:        IMPLEMENT_DISABLE_TX_PRE_STABLE_COIN_RELEASE;
-                                        IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid);
-        default:
-            return false;
+    { //2. check Tx fee
+        switch (nTxType) {
+            case BLOCK_REWARD_TX:
+            case PRICE_MEDIAN_TX:
+            case UCOIN_REWARD_TX:
+            case UCOIN_BLOCK_REWARD_TX: break; //no fee required
+            case LCONTRACT_DEPLOY_TX:
+            case LCONTRACT_INVOKE_TX:
+            case UCOIN_TRANSFER_TX: break;      //to be checked in Tx but not here
+            default:
+                if (!CheckFee(context)) return false;
+        }
+    }
+
+    {
+        switch (nTxType) {
+            // case BLOCK_REWARD_TX:
+            // case ACCOUNT_REGISTER_TX:
+            case BCOIN_TRANSFER_TX:         IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid);
+                                            return (txAccount.perms_sum & AccountPermType::PERM_SEND_COIN > 0);
+            case LCONTRACT_DEPLOY_TX:       IMPLEMENT_CHECK_TX_REGID(txUid);
+                                            return (txAccount.perms_sum & AccountPermType::PERM_DEPLOY_SC > 0);
+            case LCONTRACT_INVOKE_TX:       IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid);
+                                            return (txAccount.perms_sum & AccountPermType::PERM_INVOKE_SC > 0);
+            case DELEGATE_VOTE_TX:          IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid);
+                                            return (txAccount.perms_sum & AccountPermType::PERM_SEND_VOTE > 0);
+            case UCOIN_TRANSFER_MTX:        return (txAccount.perms_sum & AccountPermType::PERM_SEND_COIN > 0);
+            case UCOIN_STAKE_TX:            return (txAccount.perms_sum & AccountPermType::PERM_STAKE_COIN > 0);
+            case ASSET_ISSUE_TX:            IMPLEMENT_CHECK_TX_REGID(txUid);
+            case UIA_UPDATE_TX:             IMPLEMENT_DISABLE_TX_PRE_STABLE_COIN_RELEASE;
+            case UTXO_TRANSFER_TX:          IMPLEMENT_DISABLE_TX_PRE_STABLE_COIN_RELEASE;
+                                            IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid);
+                                            return (txAccount.perms_sum & AccountPermType::PERM_SEND_UTXO > 0);
+            case UTXO_PASSWORD_PROOF_TX:    IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid);
+            case UCOIN_TRANSFER_TX:         IMPLEMENT_DISABLE_TX_PRE_STABLE_COIN_RELEASE;
+                                            IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid);
+                                            return (txAccount.perms_sum & AccountPermType::PERM_SEND_COIN > 0);
+            // case UCOIN_REWARD_TX:
+            // case UCOIN_BLOCK_REWARD_TX:
+            case UCONTRACT_DEPLOY_TX:       IMPLEMENT_CHECK_TX_REGID(txUid);
+                                            IMPLEMENT_DISABLE_TX_PRE_STABLE_COIN_RELEASE;
+                                            return (txAccount.perms_sum & AccountPermType::PERM_DEPLOY_SC > 0);
+            case UCONTRACT_INVOKE_TX:       IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid);
+                                            IMPLEMENT_DISABLE_TX_PRE_STABLE_COIN_RELEASE;
+                                            return (txAccount.perms_sum & AccountPermType::PERM_INVOKE_SC > 0);
+            case PRICE_FEED_TX:             IMPLEMENT_CHECK_TX_REGID(txUid);
+                                            return (txAccount.perms_sum & AccountPermType::PERM_FEED_PRICE > 0);
+            // case PRICE_MEDIAN_TX:
+            case CDP_STAKE_TX:              IMPLEMENT_DISABLE_TX_PRE_STABLE_COIN_RELEASE;
+                                            IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid);
+            case CDP_REDEEM_TX:
+            case CDP_LIQUIDATE_TX:          IMPLEMENT_DISABLE_TX_PRE_STABLE_COIN_RELEASE;
+                                            IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid);
+                                            return (txAccount.perms_sum & AccountPermType::PERM_CDP > 0);
+            // case NICKID_REGISTER_TX:
+            case WASM_CONTRACT_TX:          return (txAccount.perms_sum & AccountPermType::PERM_INVOKE_SC > 0);
+            // case DEX_TRADE_SETTLE_TX:
+            // case DEX_CANCEL_ORDER_TX:
+            case DEX_LIMIT_BUY_ORDER_TX:
+            case DEX_LIMIT_SELL_ORDER_TX:
+            case DEX_MARKET_BUY_ORDER_TX:
+            case DEX_MARKET_SELL_ORDER_TX:
+            case DEX_CANCEL_ORDER_TX:
+            case DEX_ORDER_TX:
+            case DEX_OPERATOR_ORDER_TX:
+            case DEX_OPERATOR_UPDATE_TX:
+            case DEX_OPERATOR_REGISTER_TX:  IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid);
+            case DEX_TRADE_SETTLE_TX:       IMPLEMENT_DISABLE_TX_PRE_STABLE_COIN_RELEASE;
+                                            IMPLEMENT_CHECK_TX_REGID(txUid);
+                                            return (txAccount.perms_sum & AccountPermType::PERM_DEX > 0);
+            case PROPOSAL_REQUEST_TX:       IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid);
+            case PROPOSAL_APPROVAL_TX:      IMPLEMENT_CHECK_TX_REGID(txUid);
+                                            return (txAccount.perms_sum & AccountPermType::PERM_PROPOSE > 0);
+            case NICKID_REGISTER_TX:        IMPLEMENT_DISABLE_TX_PRE_STABLE_COIN_RELEASE;
+                                            IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid);
+            default:
+                return true;
+        }
     }
 }
 
