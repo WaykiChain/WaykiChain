@@ -8,6 +8,7 @@
 
 #include "config/configuration.h"
 #include "main.h"
+#include "persistence/assetdb.h"
 
 bool CCoinStakeTx::CheckTx(CTxExecuteContext &context) {
     IMPLEMENT_DEFINE_CW_STATE;
