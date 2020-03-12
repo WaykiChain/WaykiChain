@@ -1923,7 +1923,7 @@ bool CheckBlock(const CBlock &block, CValidationState &state, CCacheWrapper &cw,
 
         uint32_t prevBlockTime = block.GetTime(); // the prev block maybe unkown when checking block
         CTxExecuteContext context(block.GetHeight(), i + 1, block.GetFuelRate(), block.GetTime(), prevBlockTime, &cw, &state);
-        if (fCheckTx && (!block.vptx[i]->CheckBaseTx(context) || !block.vptx[i]->CheckTx(context))
+        if (fCheckTx && (!block.vptx[i]->CheckBaseTx(context) || !block.vptx[i]->CheckTx(context)))
             return ERRORMSG("CheckBlock() : CheckTx failed, txid: %s", block.vptx[i]->GetHash().GetHex());
 
         if (block.GetHeight() != 0 || block.GetHash() != SysCfg().GetGenesisBlockHash()) {
