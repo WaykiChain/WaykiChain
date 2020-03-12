@@ -470,16 +470,16 @@ Value gendexoperatorordertx(const Array& params, bool fHelp) {
 
     const CUserID &userId    = RPC_PARAM::GetUserId(params[0], true);
     OrderType orderType      = RPC_PARAM::GetOrderType(params[1]);
-    OrderSide orderSide      = RPC_PARAM::GetOrderSide(params[1]);
-    const ComboMoney &coins  = RPC_PARAM::GetComboMoney(params[1]);
-    const ComboMoney &assets = RPC_PARAM::GetComboMoney(params[2], SYMB::WICC);
-    uint64_t price           = RPC_PARAM::GetPrice(params[3]);
-    DexID dexId              = RPC_PARAM::GetDexId(params[3]);
-    PublicMode publicMode    = RPC_PARAM::GetOrderPublicMode(params[4]);
-    uint64_t takerFeeRatio   = RPC_PARAM::GetOperatorFeeRatio(params[5]);
-    uint64_t makerFeeRatio   = RPC_PARAM::GetOperatorFeeRatio(params[6]);
-    ComboMoney cmFee         = RPC_PARAM::GetFee(params, 7, txType);
-    string memo              = RPC_PARAM::GetMemo(params, 8);
+    OrderSide orderSide      = RPC_PARAM::GetOrderSide(params[2]);
+    const ComboMoney &coins  = RPC_PARAM::GetComboMoney(params[3]);
+    const ComboMoney &assets = RPC_PARAM::GetComboMoney(params[4], SYMB::WICC);
+    uint64_t price           = RPC_PARAM::GetPrice(params[5]);
+    DexID dexId              = RPC_PARAM::GetDexId(params[6]);
+    PublicMode publicMode    = RPC_PARAM::GetOrderPublicMode(params[7]);
+    uint64_t takerFeeRatio   = RPC_PARAM::GetOperatorFeeRatio(params[8]);
+    uint64_t makerFeeRatio   = RPC_PARAM::GetOperatorFeeRatio(params[9]);
+    ComboMoney cmFee         = RPC_PARAM::GetFee(params, 10, txType);
+    string memo              = RPC_PARAM::GetMemo(params, 11);
 
     RPC_PARAM::CheckOrderSymbols(__func__, coins.symbol, assets.symbol);
 

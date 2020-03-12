@@ -188,7 +188,10 @@ Array RPCConvertValues(const string &strMethod, const vector<string> &strParams)
 
     if (strMethod == "submitdexsellmarketordertx"     && n > 3) ConvertTo<int64_t>(params[3]);
 
-    if (strMethod == "gendexoperatorordertx"     && n > 3) ConvertTo<int64_t>(params[3]);
+    if (strMethod == "gendexoperatorordertx"     && n > 5) ConvertTo<int64_t>(params[5]);
+    if (strMethod == "gendexoperatorordertx"     && n > 6) ConvertTo<int64_t>(params[6]);
+    if (strMethod == "gendexoperatorordertx"     && n > 8) ConvertTo<int64_t>(params[8]);
+    if (strMethod == "gendexoperatorordertx"     && n > 9) ConvertTo<int64_t>(params[9]);
 
     if (strMethod == "submitdexsettletx"            && n > 1) ConvertTo<Array>(params[1]);
 
