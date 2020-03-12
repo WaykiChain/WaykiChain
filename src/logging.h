@@ -181,7 +181,8 @@ static inline void LogPrintf(const BCLog::LogFlags& category, const char* file, 
             log_msg = tfm::format(fmt, args...);
         } catch (tinyformat::format_error& fmterr) {
             /* Original format string will have newline so don't add one here */
-            log_msg = "Error \"" + std::string(fmterr.what()) + "\" while formatting log message: " + fmt;
+            log_msg = "[" + std::string(file) + ":" + std::to_string(line) + "] " \
+                      "Error \"" + std::string(fmterr.what()) + "\" while formatting log message: " + fmt;
         }
         LogInstance().LogPrintStr(category, file, line, log_msg);
     }
