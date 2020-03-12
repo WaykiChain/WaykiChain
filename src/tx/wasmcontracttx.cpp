@@ -161,7 +161,8 @@ CWasmContractTx::get_accounts_from_signatures(CCacheWrapper& database, std::vect
 }
 
 bool CWasmContractTx::CheckTx(CTxExecuteContext& context) {
-    IMPLEMENT_DEFINE_CW_STATE;
+    auto &database = *context.pCw;
+    auto &check_tx_to_return = *context.pState;
 
     try {
         CHAIN_ASSERT( signatures.size() > 0 && signatures.size() <= max_signatures_size, 
@@ -190,9 +191,6 @@ bool CWasmContractTx::CheckTx(CTxExecuteContext& context) {
                       wasm_chain::missing_auth_exception,
                       "can not find the signature by payer %s",
                       payer.nickid.ToString())
-
-        spTxSenderAccount = std::make_share<CAccount>(payer);
-        spTxSenderPubKey = std::make_share<CPubKey>(payer.owner_pubkey);
 
     } catch (wasm_chain::exception &e) {
         return check_tx_to_return.DoS(100, ERRORMSG(e.what()), e.code(), e.to_detail_string());
