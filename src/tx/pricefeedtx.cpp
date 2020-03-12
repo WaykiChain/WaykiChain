@@ -34,7 +34,7 @@ bool CPriceFeedTx::CheckTx(CTxExecuteContext &context) {
             return state.DoS(100, ERRORMSG("CPriceFeedTx::CheckTx, invalid price"), REJECT_INVALID, "bad-tx-invalid-price");
 
         if (!cw.priceFeedCache.HasFeedCoinPair(pricePoint.coin_price_pair.first, pricePoint.coin_price_pair.second))
-            return state.DoS(100, ERRORMSG("CPriceFeedTx::CheckTx, unsupported coin price pair={%s:%s}",
+            return state.DoS(100, ERRORMSG("CPriceFeedTx::CheckTx, unsupported coin price pair={%s}",
                             CoinPricePairToString(pricePoint.coin_price_pair)), REJECT_INVALID, "unsupported-coin-price-pair");
     }
 
