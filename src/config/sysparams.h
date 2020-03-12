@@ -22,7 +22,6 @@ enum SysParamType : uint8_t {
     PRICE_FEED_CONTINUOUS_DEVIATE_TIMES_MAX = 3,
     PRICE_FEED_DEVIATE_RATIO_MAX            = 4,
     PRICE_FEED_DEVIATE_PENALTY              = 5,
-    DEX_DEAL_FEE_RATIO                      = 7,
     ASSET_ISSUE_FEE                         = 19,
     ASSET_UPDATE_FEE                        = 20,
     DEX_OPERATOR_REGISTER_FEE               = 21,
@@ -41,7 +40,6 @@ static const unordered_map<string, SysParamType> paramNameToSysParamTypeMap = {
         {"PRICE_FEED_CONTINUOUS_DEVIATE_TIMES_MAX",        PRICE_FEED_CONTINUOUS_DEVIATE_TIMES_MAX },
         {"PRICE_FEED_DEVIATE_RATIO_MAX",                   PRICE_FEED_DEVIATE_RATIO_MAX            },
         {"PRICE_FEED_DEVIATE_PENALTY",                     PRICE_FEED_DEVIATE_PENALTY              },
-        {"DEX_DEAL_FEE_RATIO",                             DEX_DEAL_FEE_RATIO                      },
         {"ASSET_ISSUE_FEE",                                ASSET_ISSUE_FEE                         },
         {"ASSET_UPDATE_FEE",                               ASSET_UPDATE_FEE                        },
         {"DEX_OPERATOR_REGISTER_FEE",                      DEX_OPERATOR_REGISTER_FEE               },
@@ -65,7 +63,6 @@ static const unordered_map<SysParamType, std::tuple< uint64_t,string >, SysParam
         { PRICE_FEED_CONTINUOUS_DEVIATE_TIMES_MAX,  make_tuple( 10,           "PRICE_FEED_CONTINUOUS_DEVIATE_TIMES_MAX") },  // after 10 times continuous deviate limit penetration all deposit be deducted
         { PRICE_FEED_DEVIATE_RATIO_MAX,             make_tuple( 3000,         "PRICE_FEED_DEVIATE_RATIO_MAX")            },  // must be < 30% * 10000, otherwise penalized
         { PRICE_FEED_DEVIATE_PENALTY,               make_tuple( 1000,         "PRICE_FEED_DEVIATE_PENALTY")              },  // deduct 1000 staked bcoins as penalty
-        { DEX_DEAL_FEE_RATIO,                       make_tuple( 40000,        "DEX_DEAL_FEE_RATIO")                      },  // 0.04% * 100000000
         { ASSET_ISSUE_FEE,                          make_tuple( 550 * COIN,   "ASSET_ISSUE_FEE")                         },  // asset issuance fee = 550 WICC
         { ASSET_UPDATE_FEE,                         make_tuple( 110 * COIN,   "ASSET_UPDATE_FEE")                        },  // asset update fee = 110 WICC
         { DEX_OPERATOR_REGISTER_FEE,                make_tuple( 1100 * COIN,  "DEX_OPERATOR_REGISTER_FEE")               }, // dex operator register fee = 1100 WICC
@@ -84,7 +81,6 @@ static const unordered_map<SysParamType, std::pair<uint64_t, uint64_t>, SysParam
         { PRICE_FEED_CONTINUOUS_DEVIATE_TIMES_MAX,   RANGE(0,0)        },  // after 10 times continuous deviate limit penetration all deposit be deducted
         { PRICE_FEED_DEVIATE_RATIO_MAX,              RANGE(0,0)        },  // must be < 30% * 10000, otherwise penalized
         { PRICE_FEED_DEVIATE_PENALTY,                RANGE(0,0)        },  // deduct 1000 staked bcoins as penalty
-        { DEX_DEAL_FEE_RATIO,                        RANGE(0,0)        },  // 0.04% * 100000000
         { ASSET_ISSUE_FEE,                           RANGE(0,0)        },  // asset issuance fee = 550 WICC
         { ASSET_UPDATE_FEE,                          RANGE(0,0)        },  // asset update fee = 110 WICC
         { DEX_OPERATOR_REGISTER_FEE,                 RANGE(0,0)        },  // dex operator register fee = 1100 WICC
