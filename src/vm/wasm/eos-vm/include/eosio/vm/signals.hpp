@@ -82,8 +82,7 @@ namespace eosio { namespace vm {
       sa.sa_sigaction = &signal_handler;
       sigemptyset(&sa.sa_mask);
       sa.sa_flags = SA_NODEFER | SA_SIGINFO;
-      int ret;
-      ret = sigaction(SIGSEGV, &sa, &prev_signal_handler<SIGSEGV>);
+      sigaction(SIGSEGV, &sa, &prev_signal_handler<SIGSEGV>);
       sigaction(SIGBUS, &sa, &prev_signal_handler<SIGBUS>);
       sigaction(SIGFPE, &sa, &prev_signal_handler<SIGFPE>);
    }
@@ -108,7 +107,6 @@ namespace eosio { namespace vm {
    // this and f are inlined and f modifies locals from the caller.
    template<typename F, typename E>
    [[gnu::noinline]] auto invoke_with_signal_handler(F&& f, E&& e) {
-
       setup_signal_handler();
       sigjmp_buf dest;
       sigjmp_buf* volatile old_signal_handler = nullptr;
