@@ -160,8 +160,8 @@ public:
 
     virtual bool GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds);
 
-    virtual bool CheckBaseTx(CTxExecuteContext &context)   = 0;
-    virtual bool CheckTx(CTxExecuteContext &context);
+    virtual bool CheckBaseTx(CTxExecuteContext &context);
+    virtual bool CheckTx(CTxExecuteContext &context) = 0;
 
     virtual bool ExecuteTx(CTxExecuteContext &context) = 0;
 
