@@ -35,6 +35,9 @@ bool CAssetDbCache::CheckAsset(const TokenSymbol &symbol, uint64_t permsSum) {
     if (GetAsset(symbol, asset))
         return true;
 
+    if (permsSum == 0)
+        return true;
+        
     if (permsSum > asset.perms_sum)
         return false;
 

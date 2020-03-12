@@ -15,10 +15,8 @@ bool CCoinStakeTx::CheckTx(CTxExecuteContext &context) {
     if (stake_type != BalanceOpType::STAKE && stake_type != BalanceOpType::UNSTAKE)
         return state.DoS(100, ERRORMSG("CCoinStakeTx::CheckTx, invalid stakeType"), REJECT_INVALID, "bad-stake-type");
 
-    // TODO: use issued asset registry in future to replace below hard-coding
-    CheckSymbol()
-    if (coin_symbol != SYMB::WICC && coin_symbol != SYMB::WUSD && coin_symbol != SYMB::WGRT)
-        return state.DoS(100, ERRORMSG("CCoinStakeTx::CheckTx, invalid coin_symbol"), REJECT_INVALID,
+    if (!CheckAsset(coin_symbol))
+        return state.DoS(100, ERRORMSG("CCoinStakeTx::CheckTx, invalid %s", coin_symbol), REJECT_INVALID,
                          "bad-coin-symbol");
 
     if (coin_amount == 0 || !CheckCoinRange(coin_symbol, coin_amount))
