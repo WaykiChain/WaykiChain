@@ -16,7 +16,7 @@ bool CCoinStakeTx::CheckTx(CTxExecuteContext &context) {
     if (stake_type != BalanceOpType::STAKE && stake_type != BalanceOpType::UNSTAKE)
         return state.DoS(100, ERRORMSG("CCoinStakeTx::CheckTx, invalid stakeType"), REJECT_INVALID, "bad-stake-type");
 
-    if (!CheckAsset(coin_symbol))
+    if (!CheckAsset(coin_symbol, 0))
         return state.DoS(100, ERRORMSG("CCoinStakeTx::CheckTx, invalid %s", coin_symbol), REJECT_INVALID,
                          "bad-coin-symbol");
 
