@@ -447,7 +447,7 @@ Value gendexoperatorordertx(const Array& params, bool fHelp) {
                                                   "default symbol is WICC, default unit is sawi.\n"
             "6.\"price\": (numeric, required) expected price of order\n"
             "7.\"dex_id\": (numeric, required) Decentralized Exchange(DEX) ID, default is 0\n"
-            "8.\"public_mode\": (string, required) indicate the order is PUBLIC or PRIVATE, defualt is PUBLIC\n"
+            "8.\"public_mode\": (string, required) indicate the order is PUBLIC or PRIVATE\n"
             "9.\"taker_fee_ratio\": (numeric, required) taker fee ratio config by operator, boost 100000000\n"
             "10.\"maker_fee_ratio\": (numeric, required) maker fee ratio config by operator, boost 100000000\n"
             "11.\"symbol:fee:unit\":(string:numeric:string, optional) fee paid for miner, default is WICC:10000:sawi\n"
@@ -822,56 +822,54 @@ Value submitdexoperatorregtx(const Array& params, bool fHelp){
 
     if(fHelp || params.size()< 7  || params.size()>9){
         throw runtime_error(
-                "submitdexoperatorregtx  \"addr\" \"owner_uid\" \"fee_receiver_uid\" \"dex_name\" \"portal_url\" \"maker_fee_ratio\" \"taker_fee_ratio\" \"fees\" \"memo\"  "
-                "\n register a dex operator\n"
-                "\nArguments:\n"
-                "1.\"addr\":            (string, required) the dex creator's address\n"
-                "2.\"owner_uid\":       (string, required) the dexoperator 's owner account \n"
-                "3.\"fee_receiver_uid\":(string, required) the dexoperator 's fee receiver account \n"
-                "4.\"dex_name\":        (string, required) dex operator's name \n"
-                "5.\"portal_url\":      (string, required) the dex operator's website url \n"
-                "6.\"maker_fee_ratio\": (number, required) range is 0 ~ 50000000, 50000000 stand for 50% \n"
-                "7.\"taker_fee_ratio\": (number, required) range is 0 ~ 50000000, 50000000 stand for 50% \n"
-                "8.\"fee\":             (symbol:fee:unit, optional) tx fee,default is the min fee for the tx type  \n"
-                "9 \"memo\":            (string, optional) dex memo \n"
-                "\nResult:\n"
-                "\"txHash\"             (string) The transaction id.\n"
+            "submitdexoperatorregtx  \"addr\" \"owner_uid\" \"fee_receiver_uid\" \"dex_name\" \"portal_url\" "
+            "\"public_mode\" maker_fee_ratio taker_fee_ratio [\"fees\"] [\"memo\"]\n"
+            "\nregister a dex operator\n"
+            "\nArguments:\n"
+            "1.\"addr\":            (string, required) the dex creator's address\n"
+            "2.\"owner_uid\":       (string, required) the dexoperator 's owner account \n"
+            "3.\"fee_receiver_uid\":(string, required) the dexoperator 's fee receiver account \n"
+            "4.\"dex_name\":        (string, required) dex operator's name \n"
+            "5.\"portal_url\":      (string, required) the dex operator's website url \n"
+            "8.\"public_mode\":     (string, required) indicate the order is PUBLIC or PRIVATE\n"
+            "7.\"maker_fee_ratio\": (number, required) range is 0 ~ 50000000, 50000000 stand for 50% \n"
+            "8.\"taker_fee_ratio\": (number, required) range is 0 ~ 50000000, 50000000 stand for 50% \n"
+            "9.\"fee\":             (symbol:fee:unit, optional) tx fee,default is the min fee for the tx type  \n"
+            "10 \"memo\":            (string, optional) dex memo \n"
+            "\nResult:\n"
+            "\"txHash\"             (string) The transaction id.\n"
 
-                "\nExamples:\n"
-                + HelpExampleCli("submitdexoperatorregtx", "0-1 0-1 0-2 wayki-dex http://www.wayki-dex.com 2000000 2000000")
-                + "\nAs json rpc call\n"
-                + HelpExampleRpc("submitdexoperatorregtx", "0-1 0-1 0-2 wayki-dex http://www.wayki-dex.com 2000000 2000000")
+            "\nExamples:\n"
+            + HelpExampleCli("submitdexoperatorregtx", "\"0-1\" \"0-1\" \"0-2\" \"wayki-dex\""
+                            "\"http://www.wayki-dex.com\" 2000000 2000000")
+            + "\nAs json rpc call\n"
+            + HelpExampleRpc("submitdexoperatorregtx", "\"0-1\", \"0-1\", \"0-2\", \"wayki-dex\", "
+                            "\"http://www.wayki-dex.com\", \"PUBLIC\", 2000000, 2000000")
 
-                ) ;
+            ) ;
     }
 
     EnsureWalletIsUnlocked();
     const CUserID &userId = RPC_PARAM::GetUserId(params[0].get_str(),true);
-    CDEXOperatorRegisterTx::Data ddata ;
-    ddata.owner_uid = RPC_PARAM::GetUserId(params[1].get_str()) ;
-    ddata.fee_receiver_uid = RPC_PARAM::GetUserId(params[2].get_str()) ;
-    checkAccountRegId(ddata.owner_uid, "owner_uid");
-    checkAccountRegId(ddata.fee_receiver_uid, "fee_receiver_uid");
-    ddata.name = params[3].get_str() ;
-    ddata.portal_url = params[4].get_str() ;
-    ddata.maker_fee_ratio = AmountToRawValue(params[5]) ;
-    ddata.taker_fee_ratio = AmountToRawValue(params[6]) ;
-    ComboMoney fee  = RPC_PARAM::GetFee(params, 7, DEX_OPERATOR_REGISTER_TX);
-    if(params.size()>= 9 ){
-        ddata.memo = params[8].get_str() ;
-    }
-
-    if(ddata.memo.size()> MAX_COMMON_TX_MEMO_SIZE){
-        throw JSONRPCError(RPC_INVALID_PARAMS,
-                strprintf("memo size is too long, its size is %d ,but max memo size is %d ", ddata.memo.size(), MAX_COMMON_TX_MEMO_SIZE)) ;
-    }
+    CDEXOperatorRegisterTx::Data data ;
+    data.owner_uid = RPC_PARAM::GetUserId(params[1].get_str());
+    data.fee_receiver_uid = RPC_PARAM::GetUserId(params[2].get_str());
+    checkAccountRegId(data.owner_uid, "owner_uid");
+    checkAccountRegId(data.fee_receiver_uid, "fee_receiver_uid");
+    data.name = params[3].get_str();
+    data.portal_url = params[4].get_str();
+    data.public_mode    = RPC_PARAM::GetOrderPublicMode(params[5]);
+    data.maker_fee_ratio = AmountToRawValue(params[6]);
+    data.taker_fee_ratio = AmountToRawValue(params[7]);
+    ComboMoney fee  = RPC_PARAM::GetFee(params, 8, DEX_OPERATOR_REGISTER_TX);
+    data.memo = RPC_PARAM::GetMemo(params, 9);
 
     // Get account for checking balance
     CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, userId);
     RPC_PARAM::CheckAccountBalance(account, fee.symbol, SUB_FREE, fee.GetAmountInSawi());
     int32_t validHeight = chainActive.Height();
 
-    CDEXOperatorRegisterTx tx(userId, validHeight, fee.symbol, fee.GetAmountInSawi(), ddata);
+    CDEXOperatorRegisterTx tx(userId, validHeight, fee.symbol, fee.GetAmountInSawi(), data);
     return SubmitTx(account.keyid, tx);
 }
 
