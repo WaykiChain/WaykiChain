@@ -21,7 +21,7 @@ Value getproposal(const Array& params, bool fHelp){
                 "\nExamples:\n"
                 + HelpExampleCli("getproposal", "02sov0efs3ewdsxcfresdfdsadfgdsasdfdsadfdsdfsdfsddfge32ewsrewsowekdsx")
                 + "\nAs json rpc call\n"
-                + HelpExampleRpc("getproposal", "02sov0efs3ewdsxcfresdfdsadfgdsasdfdsadfdsdfsdfsddfge32ewsrewsowekdsx")
+                + HelpExampleRpc("getproposal", "\"02sov0efs3ewdsxcfresdfdsadfgdsasdfdsadfdsdfsdfsddfge32ewsrewsowekdsx\"")
 
         );
     }
@@ -90,7 +90,7 @@ Value submitparamgovernproposal(const Array& params, bool fHelp){
                 "\nExamples:\n"
                 + HelpExampleCli("submitparamgovernproposal", "0-1 ASSET_ISSUE_FEE  10000 WICC:1:WI")
                 + "\nAs json rpc call\n"
-                + HelpExampleRpc("submitparamgovernproposal", "0-1 ASSET_ISSUE_FEE  10000 WICC:1:WI")
+                + HelpExampleRpc("submitparamgovernproposal", R"("0-1","ASSET_ISSUE_FEE"  10000 "WICC:1:WI")")
 
                 );
 
@@ -148,7 +148,8 @@ Value submitcdpparamgovernproposal(const Array& params, bool fHelp){
                 "\nExamples:\n"
                 + HelpExampleCli("submitcdpparamgovernproposal", "0-1 CDP_INTEREST_PARAM_A  10000 WICC WUSD WICC:1:WI")
                 + "\nAs json rpc call\n"
-                + HelpExampleRpc("submitcdpparamgovernproposal", "0-1 CDP_INTEREST_PARAM_A  10000 WICC WUSD WICC:1:WI")
+                + HelpExampleRpc("submitcdpparamgovernproposal",
+                                 R"("0-1", "CDP_INTEREST_PARAM_A",  "10000", "WICC", "WUSD", "WICC:1:WI")")
 
         );
 
@@ -208,7 +209,7 @@ Value submitgovernorupdateproposal(const Array& params , bool fHelp) {
                 "\nExamples:\n"
                 + HelpExampleCli("submitgovernorupdateproposal", "0-1 100-2 1  WICC:1:WI")
                 + "\nAs json rpc call\n"
-                + HelpExampleRpc("submitgovernorupdateproposal", "0-1 100-2 1  WICC:1:WI")
+                + HelpExampleRpc("submitgovernorupdateproposal", R"("0-1", "100-2", 1,  "WICC:1:WI")")
 
         );
 
@@ -256,7 +257,7 @@ Value submitdexquotecoinproposal(const Array& params, bool fHelp) {
                 "\nExamples:\n"
                 + HelpExampleCli("submitdexquotecoinproposal", "0-1 WUSD 1  WICC:1:WI")
                 + "\nAs json rpc call\n"
-                + HelpExampleRpc("submitdexquotecoinproposal", "0-1 WUSD 1  WICC:1:WI")
+                + HelpExampleRpc("submitdexquotecoinproposal", R"("0-1", "WUSD", 1 , "WICC:1:WI")")
 
                 );
     }
@@ -302,7 +303,7 @@ Value submitfeedcoinpairproposal(const Array& params, bool fHelp) {
                 "\nExamples:\n"
                 + HelpExampleCli("submitfeedcoinpairproposal", "0-1 WICC WUSD 1  WICC:1:WI")
                 + "\nAs json rpc call\n"
-                + HelpExampleRpc("submitfeedcoinpairproposal", "0-1 WICC WUSD 1  WICC:1:WI")
+                + HelpExampleRpc("submitfeedcoinpairproposal", R"("0-1", "WICC", "WUSD", 1,  "WICC:1:WI")")
 
         );
     }
@@ -349,7 +350,7 @@ Value submitdexswitchproposal(const Array& params, bool fHelp) {
                 "\nExamples:\n"
                 + HelpExampleCli("submitdexswitchproposal", "0-1 1 1  WICC:1:WI")
                 + "\nAs json rpc call\n"
-                + HelpExampleRpc("submitdexswitchproposal", "0-1 1 1  WICC:1:WI")
+                + HelpExampleRpc("submitdexswitchproposal", R"("0-1", 1 ,1, "WICC:1:WI")")
 
         );
 
@@ -390,7 +391,7 @@ Value submitproposalapprovaltx(const Array& params, bool fHelp){
                 "\nExamples:\n"
                 + HelpExampleCli("submitproposalapprovaltx", "0-1 1 1  WICC:1:WI")
                 + "\nAs json rpc call\n"
-                + HelpExampleRpc("submitproposalapprovaltx", "0-1 1 1  WICC:1:WI")
+                + HelpExampleRpc("submitproposalapprovaltx", R"("0-1", 1, 1, "WICC:1:WI")")
 
         );
     }
@@ -425,9 +426,9 @@ Value submittotalbpssizeupdateproposal(const Array& params,bool fHelp) {
                 "3.\"effective_height\":    (numberic,   required) the height of the proposal launch \n"
                 "4.\"fee\":                 (combomoney, optional) the tx fee \n"
                 "\nExamples:\n"
-                + HelpExampleCli("submittotalbpssizeupdateproposal", "0-1 21 45002020202  WICC:1:WI")
+                + HelpExampleCli("submittotalbpssizeupdateproposal", "0-1 21 450020202  WICC:1:WI")
                 + "\nAs json rpc call\n"
-                + HelpExampleRpc("submittotalbpssizeupdateproposal", "0-1 4332222233223  WICC:1:WI")
+                + HelpExampleRpc("submittotalbpssizeupdateproposal", R"("0-1", 21, 433222223, "WICC:1:WI")")
 
         );
 
@@ -474,7 +475,7 @@ Value submitminerfeeproposal(const Array& params, bool fHelp) {
                 "\nExamples:\n"
                 + HelpExampleCli("submitminerfeeproposal", "0-1 1 WICC:1:WI  WICC:1:WI")
                 + "\nAs json rpc call\n"
-                + HelpExampleRpc("submitminerfeeproposal", "0-1 1 WICC:1:WI  WICC:1:WI")
+                + HelpExampleRpc("submitminerfeeproposal", R"("0-1", 1, "WICC:1:WI", "WICC:1:WI")")
 
         );
 
@@ -520,7 +521,7 @@ Value submitcointransferproposal( const Array& params, bool fHelp) {
                 "\nExamples:\n"
                 + HelpExampleCli("submitcointransferproposal", "0-1 100-1 200-1 WICC:1000:wi WICC:0.001:wi")
                 + "\nAs json rpc call\n"
-                + HelpExampleRpc("submitcointransferproposal", "0-1 100-1 200-1 WICC:1000:wi WICC:0.001:wi")
+                + HelpExampleRpc("submitcointransferproposal", R"("0-1", "100-1", "200-1", "WICC:1000:wi", "WICC:0.001:wi")")
 
         );
     }

@@ -41,11 +41,11 @@ Value submitpasswordprooftx(const Array& params, bool fHelp) {
                 "\nExamples:\n" +
                 HelpExampleCli("submitpasswordprooftx",
                                "\"wLKf2NqwtHk3BfzK5wMDfbKYN1SC3weyR4\" \"23ewf90203ew000ds0lwsdpoxewdokwesdxcoekdleds\" "
-                               "\"5\" \"eowdswd0-eowpds23ewdswwedscde\" \"WICC:10000:sawi\"") +
+                               "5 \"eowdswd0-eowpds23ewdswwedscde\" \"WICC:10000:sawi\"") +
                 "\nAs json rpc call\n" +
                 HelpExampleRpc("submitpasswordprooftx",
-                               "\"wLKf2NqwtHk3BfzK5wMDfbKYN1SC3weyR4\", \"23ewf90203ew000ds0lwsdpoxewdokwesdxcoekdleds\", "
-                               "\"5\", \"eowdswd0-eowpds23ewdswwedscde\", \"WICC:10000:sawi\"")
+                               "\"wLKf2NqwtHk3BfzK5wMDfbKYN1SC3weyR4\", \"23ewf90203ew000ds0lwsdpoxewdokwesdxcoekdleds\","
+                               " 5, \"eowdswd0-eowpds23ewdswwedscde\", \"WICC:10000:sawi\"")
                 );
     }
 
@@ -82,15 +82,15 @@ Value submitutxotransfertx(const Array& params, bool fHelp) {
                 "5.\"symbol:fee:unit\":   (symbol:amount:unit, optional) fee paid to miner\n"
                 "5.\"memo\":              (string,optinal) tx memo\n"
                 "\nResult:\n"
-                "\"txid\"                   (string) The transaction id.\n"
+                "\"txid\"                 (string) The transaction id.\n"
                 "\nExamples:\n" +
                 HelpExampleCli("submitutxotransfertx",
                                "\"wLKf2NqwtHk3BfzK5wMDfbKYN1SC3weyR4\" \"WICC\" \"[{}]\" "
                                " \"[{}]\" \"WICC:10000:sawi\" \"xx\"") +
                 "\nAs json rpc call\n" +
                 HelpExampleRpc("submitutxotransfertx",
-                               "\"wLKf2NqwtHk3BfzK5wMDfbKYN1SC3weyR4\", \"23ewf90203ew000ds0lwsdpoxewdokwesdxcoekdleds\", "
-                               "\"5\", \"eowdswd0-eowpds23ewdswwedscde\", \"WICC:10000:sawi\"")
+                               "\"wLKf2NqwtHk3BfzK5wMDfbKYN1SC3weyR4\", \"WICC\", \"[{}]\", "
+                               "\"[{}]\", \"WICC:10000:sawi\", \"xx\"")
         );
     }
 
