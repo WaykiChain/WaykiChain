@@ -546,7 +546,6 @@ struct CGovAxcInProposal: CProposal {
 };
 
 struct CGovAxcOutProposal: CProposal {
-public:
     CUserID     self_chain_uid;  // swap-out initiator's address
     TokenSymbol self_chain_token_symbol; // from kXChainSwapTokenMap to get the target token symbol
 
@@ -597,9 +596,7 @@ public:
 
 };
 
-class CProposalStorageBean {
-
-public:
+struct CProposalStorageBean {
     shared_ptr<CProposal> sp_proposal ;
 
     CProposalStorageBean() {}
