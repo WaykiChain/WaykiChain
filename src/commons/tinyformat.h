@@ -1063,7 +1063,27 @@ std::string format(const std::string &fmt, const Args&... args)
 
 } // namespace tinyformat
 
+/** Added for Bitcoin Core
+ * Format arguments and return the string or write to given std::ostream (see tinyformat::format doc for details)
+ */
+template<typename... Args>
+inline std::string __strprintf(const char* fmt, const char* file, int line, const Args&... args) {
+    std::ostringstream oss;
+    try {
+        tinyformat::format(oss, fmt, args...);
+    } catch (tinyformat::format_error& fmterr) {
+        throw tinyformat::format_error("[" + std::string(file) + ":" + std::to_string(line) + "] " +
+            fmterr.what());
+    }
+    return oss.str();
+}
+
+template<typename... Args>
+inline std::string __strprintf(const std::string &fmt, const char* file, int line, const Args&... args) {
+    return __strprintf(fmt.c_str(), file, line, args...);
+}
+
 /** Format arguments and return the string or write to given std::ostream (see tinyformat::format doc for details) */
-#define strprintf tfm::format
+#define strprintf(fmt, ...) __strprintf(fmt, __FILE__, __LINE__, __VA_ARGS__)
 
 #endif // TINYFORMAT_H_INCLUDED

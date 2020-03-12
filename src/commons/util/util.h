@@ -115,8 +115,6 @@ void RandAddSeed();
 void RandAddSeedPerfmon();
 void SetupEnvironment();
 
-#define strprintf tfm::format
-
 void PrintExceptionContinue(std::exception* pex, const char* pszThread);
 string FormatMoney(int64_t n, bool fPlus = false);
 bool ParseMoney(const string& str, int64_t& nRet);
