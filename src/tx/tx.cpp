@@ -159,7 +159,6 @@ bool CBaseTx::CheckBaseTx(CTxExecuteContext &context) {
         // case BLOCK_REWARD_TX:
         // case ACCOUNT_REGISTER_TX:
         case BCOIN_TRANSFER_TX:         IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid);
-                                        IMPLEMENT_CHECK_TX_REGID_OR_KEYID(toUid);
                                         return (txAccount.perms_sum & AccountPermType::PERM_SEND_COIN > 0);
          case LCONTRACT_DEPLOY_TX:      IMPLEMENT_CHECK_TX_REGID(txUid);
                                         return (txAccount.perms_sum & AccountPermType::PERM_DEPLOY_SC > 0);

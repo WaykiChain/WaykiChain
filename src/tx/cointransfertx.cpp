@@ -13,6 +13,8 @@ bool CBaseCoinTransferTx::CheckTx(CTxExecuteContext &context) {
     IMPLEMENT_DEFINE_CW_STATE;
     IMPLEMENT_CHECK_TX_MEMO;
 
+    IMPLEMENT_CHECK_TX_REGID_OR_KEYID(toUid);
+
     if (coin_amount < DUST_AMOUNT_THRESHOLD)
         return state.DoS(100, ERRORMSG("CBaseCoinTransferTx::CheckTx, dust amount, %llu < %llu", coin_amount,
                          DUST_AMOUNT_THRESHOLD), REJECT_DUST, "invalid-coin-amount");
@@ -25,8 +27,7 @@ bool CBaseCoinTransferTx::CheckTx(CTxExecuteContext &context) {
 }
 
 bool CBaseCoinTransferTx::ExecuteTx(CTxExecuteContext &context) {
-    CCacheWrapper &cw       = *context.pCw;
-    CValidationState &state = *context.pState;
+    IMPLEMENT_DEFINE_CW_STATE;
 
     CAccount srcAccount;
     if (!cw.accountCache.GetAccount(txUid, srcAccount)) {
