@@ -299,7 +299,7 @@ Object GetTxDetailJSON(const uint256& txid) {
                      }
 
                 } catch (std::exception &e) {
-                    throw runtime_error(tfm::format("%s : Deserialize or I/O error - %s", __func__, e.what()).c_str());
+                    throw runtime_error(strprintf("%s : Deserialize or I/O error - %s", __func__, e.what()).c_str());
                 }
 
                 return obj;

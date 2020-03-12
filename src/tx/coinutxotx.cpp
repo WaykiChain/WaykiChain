@@ -25,7 +25,7 @@ bool GetUtxoTxFromChain(TxID &txid, std::shared_ptr<CBaseTx> &pBaseTx) {
             file >> pBaseTx;
 
         } catch (std::exception &e) {
-            throw runtime_error(tfm::format("%s : Deserialize or I/O error - %s", __func__, e.what()).c_str());
+            throw runtime_error(strprintf("%s : Deserialize or I/O error - %s", __func__, e.what()).c_str());
         }
     }
     return true;
@@ -300,7 +300,7 @@ bool CCoinUtxoTransferTx::ExecuteTx(CTxExecuteContext &context) {
         if (!context.pCw->txUtxoCache.DelUtoxTx(std::make_pair(input.prev_utxo_txid, CFixedUInt16(input.prev_utxo_vout_index))))
             return state.DoS(100, ERRORMSG("CCoinUtxoTransferTx::CheckTx, del prev utxo error!"), REJECT_INVALID,
                             "del-prev-utxo-err");
-        
+
         uint256 proof = uint256();
         CRegIDKey regIdKey(txUid.get<CRegID>());
         auto proofKey = std::make_tuple(input.prev_utxo_txid, CFixedUInt16(input.prev_utxo_vout_index), regIdKey);

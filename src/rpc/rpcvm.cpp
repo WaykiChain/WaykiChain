@@ -209,7 +209,7 @@ Value vmexecutescript(const Array& params, bool fHelp) {
 
     {
         if (!spCW->contractCache.HaveContract(appId)) {
-            throw runtime_error(tinyformat::format("AppId %s is not exist\n", appId.ToString()));
+            throw runtime_error(strprintf("AppId %s is not exist\n", appId.ToString()));
         }
         contractInvokeTx.nTxType      = LCONTRACT_INVOKE_TX;
         contractInvokeTx.txUid        = srcRegId;
