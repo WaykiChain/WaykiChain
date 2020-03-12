@@ -392,7 +392,7 @@ bool CCDPStakeTx::SellInterestForFcoins(const CTxCord &txCord, const CUserCDP &c
 }
 
 /************************************<< CCDPRedeemTx >>***********************************************/
-bool CCDPRedeemTx::CheckTx(CTxExecuteContext &context)) {
+bool CCDPRedeemTx::CheckTx(CTxExecuteContext &context) {
     IMPLEMENT_DEFINE_CW_STATE;
 
     if (cdp_txid.IsEmpty())

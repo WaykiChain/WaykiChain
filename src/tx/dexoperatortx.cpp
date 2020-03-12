@@ -123,25 +123,21 @@ Object CDEXOperatorRegisterTx::ToJson(const CAccountDBCache &accountCache) const
 bool CDEXOperatorRegisterTx::CheckTx(CTxExecuteContext &context) {
     IMPLEMENT_DEFINE_CW_STATE;
 
-    if (!data.owner_uid.is<CRegID>()) {
+    if (!data.owner_uid.is<CRegID>())
         return state.DoS(100, ERRORMSG("%s, owner_uid must be regid", __func__), REJECT_INVALID,
             "owner-uid-type-error");
-    }
 
-    if (!data.fee_receiver_uid.is<CRegID>()) {
+    if (!data.fee_receiver_uid.is<CRegID>())
         return state.DoS(100, ERRORMSG("%s, fee_receiver_uid must be regid", __func__), REJECT_INVALID,
             "match-uid-type-error");
-    }
 
-    if (data.name.size() > MAX_NAME_LEN) {
+    if (data.name.size() > MAX_NAME_LEN) 
         return state.DoS(100, ERRORMSG("%s, name len=%d greater than %d", __func__,
             data.name.size(), MAX_NAME_LEN), REJECT_INVALID, "invalid-name");
-    }
 
-    if(data.memo.size() > MAX_COMMON_TX_MEMO_SIZE){
+    if(data.memo.size() > MAX_COMMON_TX_MEMO_SIZE)
         return state.DoS(100, ERRORMSG("%s, memo len=%d greater than %d", __func__,
                                        data.memo.size(), MAX_COMMON_TX_MEMO_SIZE), REJECT_INVALID, "invalid-memo");
-    }
 
     if (data.maker_fee_ratio > MAX_MATCH_FEE_RATIO_VALUE)
         return state.DoS(100, ERRORMSG("%s, maker_fee_ratio=%d is greater than %d", __func__,
@@ -150,14 +146,6 @@ bool CDEXOperatorRegisterTx::CheckTx(CTxExecuteContext &context) {
     if (data.taker_fee_ratio > MAX_MATCH_FEE_RATIO_VALUE)
         return state.DoS(100, ERRORMSG("%s, taker_fee_ratio=%d is greater than %d", __func__,
             data.taker_fee_ratio, MAX_MATCH_FEE_RATIO_VALUE), REJECT_INVALID, "invalid-match-fee-ratio-type");
-
-    CAccount txAccount;
-    if (!cw.accountCache.GetAccount(txUid, txAccount))
-        return state.DoS(100, ERRORMSG("CDEXOperatorRegisterTx::CheckTx, read account failed! tx account not exist, txUid=%s",
-                     txUid.ToDebugString()), REJECT_INVALID, "bad-getaccount");
-
-    spTxSenderAccount = std::make_share<CAccount>(txAccount);
-    spTxSenderPubKey = std::make_share<CPubKey>(txAccount.owner_pubkey);
 
     return true;
 }
