@@ -108,7 +108,7 @@ bool CBaseTx::CheckBaseTx(CTxExecuteContext &context) {
     IMPLEMENT_DEFINE_CW_STATE;
 
     CAccount txAccount;
-    bool signed = false;
+    bool signatureValid = false;
 
     switch (nTxType) {
         case BLOCK_REWARD_TX:
@@ -117,7 +117,7 @@ bool CBaseTx::CheckBaseTx(CTxExecuteContext &context) {
         case UCOIN_BLOCK_REWARD_TX: break;
         default: {
             if (GetFeatureForkVersion(context.height) < MAJOR_VER_R2) {
-                signed = true; //due to a pre-existing bug and illegally issued unsigned vote Tx
+                signatureValid = true; //due to a pre-existing bug and illegally issued unsigned vote Tx
             } else {
                 CPubKey pubKey;
                 if (txUid.is<CPubKey>()) {
@@ -134,11 +134,11 @@ bool CBaseTx::CheckBaseTx(CTxExecuteContext &context) {
                         pubKey = txAccount.owner_pubkey;
                 }
 
-                signed = VerifySignature(context, pubKey);
+                signatureValid = VerifySignature(context, pubKey);
             }
         } 
     }
-    if (!signed)
+    if (!signatureValid)
         return state.DoS(100, ERRORMSG("CdpLiquidateTx::CheckTx, verify txUid %s sign failed", txUid.ToString()),
                          READ_ACCOUNT_FAIL, "bad-tx-sign");
     
