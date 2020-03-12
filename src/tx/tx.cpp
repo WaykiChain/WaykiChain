@@ -126,15 +126,17 @@ bool CBaseTx::CheckBaseTx(CTxExecuteContext &context) {
                     if (txUid.is<CPubKey>()) {
                         pubKey = txUid.get<CPubKey>();
                     } else {
-                        if (!foundAccount)
+                        if (!foundAccount) {
                             return state.DoS(100, ERRORMSG("CheckBaseTx::CheckTx, read txUid %s account info error",
                                         txUid.ToString()), READ_ACCOUNT_FAIL, "bad-read-accountdb");
+                        }
 
-                        if (txAccount.perms_sum == 0)
+                        if (txAccount.perms_sum == 0) {
                             return state.DoS(100, ERRORMSG("CheckBaseTx::CheckTx, perms_sum is zero error: txUid %s",
                                         txUid.ToString()), READ_ACCOUNT_FAIL, "bad-tx-sign");
+                        }
 
-                            pubKey = txAccount.owner_pubkey;
+                        pubKey = txAccount.owner_pubkey;
                     }
 
                     signatureValid = VerifySignature(context, pubKey);
@@ -165,43 +167,43 @@ bool CBaseTx::CheckBaseTx(CTxExecuteContext &context) {
             // case BLOCK_REWARD_TX:
             // case ACCOUNT_REGISTER_TX:
             case BCOIN_TRANSFER_TX:         IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid);
-                                            return (txAccount.perms_sum & AccountPermType::PERM_SEND_COIN > 0);
+                                            return ((txAccount.perms_sum & AccountPermType::PERM_SEND_COIN) > 0);
             case LCONTRACT_DEPLOY_TX:       IMPLEMENT_CHECK_TX_REGID(txUid);
-                                            return (txAccount.perms_sum & AccountPermType::PERM_DEPLOY_SC > 0);
+                                            return ((txAccount.perms_sum & AccountPermType::PERM_DEPLOY_SC) > 0);
             case LCONTRACT_INVOKE_TX:       IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid);
-                                            return (txAccount.perms_sum & AccountPermType::PERM_INVOKE_SC > 0);
+                                            return ((txAccount.perms_sum & AccountPermType::PERM_INVOKE_SC) > 0);
             case DELEGATE_VOTE_TX:          IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid);
-                                            return (txAccount.perms_sum & AccountPermType::PERM_SEND_VOTE > 0);
-            case UCOIN_TRANSFER_MTX:        return (txAccount.perms_sum & AccountPermType::PERM_SEND_COIN > 0);
-            case UCOIN_STAKE_TX:            return (txAccount.perms_sum & AccountPermType::PERM_STAKE_COIN > 0);
+                                            return ((txAccount.perms_sum & AccountPermType::PERM_SEND_VOTE) > 0);
+            case UCOIN_TRANSFER_MTX:        return ((txAccount.perms_sum & AccountPermType::PERM_SEND_COIN) > 0);
+            case UCOIN_STAKE_TX:            return ((txAccount.perms_sum & AccountPermType::PERM_STAKE_COIN) > 0);
             case ASSET_ISSUE_TX:            IMPLEMENT_CHECK_TX_REGID(txUid);
-            case UIA_UPDATE_TX:             IMPLEMENT_DISABLE_TX_PRE_STABLE_COIN_RELEASE;
+            case UIA_UPDATE_TX:
             case UTXO_TRANSFER_TX:          IMPLEMENT_DISABLE_TX_PRE_STABLE_COIN_RELEASE;
                                             IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid);
-                                            return (txAccount.perms_sum & AccountPermType::PERM_SEND_UTXO > 0);
+                                            return ((txAccount.perms_sum & AccountPermType::PERM_SEND_UTXO) > 0);
             case UTXO_PASSWORD_PROOF_TX:    IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid);
             case UCOIN_TRANSFER_TX:         IMPLEMENT_DISABLE_TX_PRE_STABLE_COIN_RELEASE;
                                             IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid);
-                                            return (txAccount.perms_sum & AccountPermType::PERM_SEND_COIN > 0);
+                                            return ((txAccount.perms_sum & AccountPermType::PERM_SEND_COIN) > 0);
             // case UCOIN_REWARD_TX:
             // case UCOIN_BLOCK_REWARD_TX:
             case UCONTRACT_DEPLOY_TX:       IMPLEMENT_CHECK_TX_REGID(txUid);
                                             IMPLEMENT_DISABLE_TX_PRE_STABLE_COIN_RELEASE;
-                                            return (txAccount.perms_sum & AccountPermType::PERM_DEPLOY_SC > 0);
+                                            return ((txAccount.perms_sum & AccountPermType::PERM_DEPLOY_SC) > 0);
             case UCONTRACT_INVOKE_TX:       IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid);
                                             IMPLEMENT_DISABLE_TX_PRE_STABLE_COIN_RELEASE;
-                                            return (txAccount.perms_sum & AccountPermType::PERM_INVOKE_SC > 0);
+                                            return ((txAccount.perms_sum & AccountPermType::PERM_INVOKE_SC) > 0);
             case PRICE_FEED_TX:             IMPLEMENT_CHECK_TX_REGID(txUid);
-                                            return (txAccount.perms_sum & AccountPermType::PERM_FEED_PRICE > 0);
+                                            return ((txAccount.perms_sum & AccountPermType::PERM_FEED_PRICE) > 0);
             // case PRICE_MEDIAN_TX:
             case CDP_STAKE_TX:              IMPLEMENT_DISABLE_TX_PRE_STABLE_COIN_RELEASE;
                                             IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid);
             case CDP_REDEEM_TX:
             case CDP_LIQUIDATE_TX:          IMPLEMENT_DISABLE_TX_PRE_STABLE_COIN_RELEASE;
                                             IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid);
-                                            return (txAccount.perms_sum & AccountPermType::PERM_CDP > 0);
+                                            return ((txAccount.perms_sum & AccountPermType::PERM_CDP) > 0);
             // case NICKID_REGISTER_TX:
-            case WASM_CONTRACT_TX:          return (txAccount.perms_sum & AccountPermType::PERM_INVOKE_SC > 0);
+            case WASM_CONTRACT_TX:          return ((txAccount.perms_sum & AccountPermType::PERM_INVOKE_SC) > 0);
             // case DEX_TRADE_SETTLE_TX:
             // case DEX_CANCEL_ORDER_TX:
             case DEX_LIMIT_BUY_ORDER_TX:
@@ -215,10 +217,10 @@ bool CBaseTx::CheckBaseTx(CTxExecuteContext &context) {
             case DEX_OPERATOR_REGISTER_TX:  IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid);
             case DEX_TRADE_SETTLE_TX:       IMPLEMENT_DISABLE_TX_PRE_STABLE_COIN_RELEASE;
                                             IMPLEMENT_CHECK_TX_REGID(txUid);
-                                            return (txAccount.perms_sum & AccountPermType::PERM_DEX > 0);
+                                            return ((txAccount.perms_sum & AccountPermType::PERM_DEX) > 0);
             case PROPOSAL_REQUEST_TX:       IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid);
             case PROPOSAL_APPROVAL_TX:      IMPLEMENT_CHECK_TX_REGID(txUid);
-                                            return (txAccount.perms_sum & AccountPermType::PERM_PROPOSE > 0);
+                                            return ((txAccount.perms_sum & AccountPermType::PERM_PROPOSE) > 0);
             case NICKID_REGISTER_TX:        IMPLEMENT_DISABLE_TX_PRE_STABLE_COIN_RELEASE;
                                             IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid);
             default:
