@@ -18,12 +18,7 @@
 #include "vm/wasm/types/name.hpp"
 
 bool CNickIdRegisterTx::CheckTx(CTxExecuteContext &context) {
-
     IMPLEMENT_DEFINE_CW_STATE;
-    IMPLEMENT_DISABLE_TX_PRE_STABLE_COIN_RELEASE;
-    IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid);
-    if (!CheckFee(context)) return false;
-
 
     if(cw.accountCache.HasAccount(CNickID(nickId))){
         return state.DoS(100, ERRORMSG("CNickIdRegisterTx::CheckTx, nickId is exist"), REJECT_INVALID, "nickid-exist");
@@ -33,11 +28,12 @@ bool CNickIdRegisterTx::CheckTx(CTxExecuteContext &context) {
         if (nickId.size() != 12)
             return state.DoS(100,ERRORMSG("Nickname length must be 12, but %s length = %d", nickId, nickId.size()),
                              REJECT_INVALID, "bad_nickid_length");
-        if(wasm::name(nickId).value == 0){
+
+        if(wasm::name(nickId).value == 0)
             return state.DoS(100, ERRORMSG("CNickIdRegisterTx::CheckTx, nickid is invalid,for zero"), REJECT_INVALID,
                              "bad-nickid");
-        }
-    }catch (const wasm_chain::exception& e ){
+
+    } catch (const wasm_chain::exception &e) {
         return state.DoS(100, ERRORMSG("CNickIdRegisterTx::CheckTx, nickid is invalid"), REJECT_INVALID,
                          "bad-nickid");
     }
@@ -46,21 +42,11 @@ bool CNickIdRegisterTx::CheckTx(CTxExecuteContext &context) {
         return state.DoS(100, ERRORMSG("CNickIdRegisterTx::CheckTx, public key is invalid"), REJECT_INVALID,
                          "bad-publickey");
 
-    CAccount srcAccount;
-    if (!cw.accountCache.GetAccount(txUid, srcAccount))
-        return state.DoS(100, ERRORMSG("CNickIdRegisterTx::CheckTx, read account failed"), REJECT_INVALID,
-                         "bad-getaccount");
-
-    CPubKey pubKey = (txUid.is<CPubKey>() ? txUid.get<CPubKey>() : srcAccount.owner_pubkey);
-    IMPLEMENT_CHECK_TX_SIGNATURE(pubKey);
-
     return true;
-
 }
 
 
 bool CNickIdRegisterTx::ExecuteTx(CTxExecuteContext &context) {
-
     IMPLEMENT_DEFINE_CW_STATE;
 
     CAccount account;

@@ -160,7 +160,9 @@ public:
 
     virtual bool GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds);
 
-    virtual bool CheckTx(CTxExecuteContext &context)   = 0;
+    virtual bool CheckBaseTx(CTxExecuteContext &context)   = 0;
+    virtual bool CheckTx(CTxExecuteContext &context);
+
     virtual bool ExecuteTx(CTxExecuteContext &context) = 0;
 
     bool IsValidHeight(int32_t nCurHeight, int32_t nTxCacheHeight) const;
@@ -168,10 +170,10 @@ public:
     // If the sender has no regid before, generate a regid for the sender.
     bool GenerateRegID(CTxExecuteContext &context, CAccount &account);
 
-    bool IsBlockRewardTx() { return nTxType == BLOCK_REWARD_TX || nTxType == UCOIN_BLOCK_REWARD_TX; }
-    bool IsPriceMedianTx() { return nTxType == PRICE_MEDIAN_TX; }
-    bool IsPriceFeedTx() { return nTxType == PRICE_FEED_TX; }
-    bool IsCoinRewardTx() { return nTxType == UCOIN_REWARD_TX; }
+    bool IsBlockRewardTx()  { return nTxType == BLOCK_REWARD_TX || nTxType == UCOIN_BLOCK_REWARD_TX; }
+    bool IsPriceMedianTx()  { return nTxType == PRICE_MEDIAN_TX; }
+    bool IsPriceFeedTx()    { return nTxType == PRICE_FEED_TX; }
+    bool IsCoinRewardTx()   { return nTxType == UCOIN_REWARD_TX; }
 
     const string& GetTxTypeName() const { return ::GetTxTypeName(nTxType); }
 
@@ -297,7 +299,5 @@ public:
                          REJECT_INVALID, "toUid-type-error");                                      \
     }
 
-#define IMPLEMENT_CHECK_TX_SIGNATURE(signatureVerifyPubKey)                                                          \
-    if (!VerifySignature(context, signatureVerifyPubKey)) return false;
 
 #endif //COIN_BASETX_H

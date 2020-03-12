@@ -23,16 +23,13 @@ bool CAccountRegisterTx::CheckTx(CTxExecuteContext &context) {
         return state.DoS(100, ERRORMSG("CAccountRegisterTx::CheckTx, userId must be CPubKey"), REJECT_INVALID,
                          "uid-type-error");
 
-    if ((!minerUid.is<CPubKey>()) && (!minerUid.is<CNullID>()))
+    if (!minerUid.is<CPubKey>() && !minerUid.is<CNullID>())
         return state.DoS(100, ERRORMSG("CAccountRegisterTx::CheckTx, minerId must be CPubKey or CNullID"),
                          REJECT_INVALID, "minerUid-type-error");
 
     if (!txUid.get<CPubKey>().IsFullyValid())
         return state.DoS(100, ERRORMSG("CAccountRegisterTx::CheckTx, register tx public key is invalid"),
                          REJECT_INVALID, "bad-tx-publickey");
-
-    if (!CheckFee(context)) return false;
-    IMPLEMENT_CHECK_TX_SIGNATURE(txUid.get<CPubKey>());
 
     return true;
 }

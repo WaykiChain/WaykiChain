@@ -10,34 +10,20 @@
 #include "main.h"
 
 bool CCoinStakeTx::CheckTx(CTxExecuteContext &context) {
-    CCacheWrapper &cw = *context.pCw; CValidationState &state = *context.pState;
-    IMPLEMENT_DISABLE_TX_PRE_STABLE_COIN_RELEASE;
-    IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid);
-    if (!CheckFee(context)) return false;
+    IMPLEMENT_DEFINE_CW_STATE;
 
-    if (stake_type != BalanceOpType::STAKE && stake_type != BalanceOpType::UNSTAKE) {
+    if (stake_type != BalanceOpType::STAKE && stake_type != BalanceOpType::UNSTAKE)
         return state.DoS(100, ERRORMSG("CCoinStakeTx::CheckTx, invalid stakeType"), REJECT_INVALID, "bad-stake-type");
-    }
 
     // TODO: use issued asset registry in future to replace below hard-coding
-    if (coin_symbol != SYMB::WICC && coin_symbol != SYMB::WUSD && coin_symbol != SYMB::WGRT) {
+    CheckSymbol()
+    if (coin_symbol != SYMB::WICC && coin_symbol != SYMB::WUSD && coin_symbol != SYMB::WGRT)
         return state.DoS(100, ERRORMSG("CCoinStakeTx::CheckTx, invalid coin_symbol"), REJECT_INVALID,
                          "bad-coin-symbol");
-    }
 
-    if (coin_amount == 0 || !CheckCoinRange(coin_symbol, coin_amount)) {
+    if (coin_amount == 0 || !CheckCoinRange(coin_symbol, coin_amount))
         return state.DoS(100, ERRORMSG("CCoinStakeTx::CheckTx, coinsToStake out of range"), REJECT_INVALID,
                          "bad-tx-coins-outofrange");
-    }
-
-    CAccount account;
-    if (!cw.accountCache.GetAccount(txUid, account)) {
-        return state.DoS(100, ERRORMSG("CCoinStakeTx::CheckTx, read txUid %s account info error", txUid.ToString()),
-                         READ_ACCOUNT_FAIL, "bad-read-accountdb");
-    }
-
-    CPubKey pubKey = (txUid.is<CPubKey>() ? txUid.get<CPubKey>() : account.owner_pubkey);
-    IMPLEMENT_CHECK_TX_SIGNATURE(pubKey);
 
     return true;
 }

@@ -115,10 +115,7 @@ static bool ProcessAssetFee(CCacheWrapper &cw, CValidationState &state, const st
 
 bool CUserIssueAssetTx::CheckTx(CTxExecuteContext &context) {
     IMPLEMENT_DEFINE_CW_STATE;
-    IMPLEMENT_DISABLE_TX_PRE_STABLE_COIN_RELEASE;
-    IMPLEMENT_CHECK_TX_REGID(txUid);
-    if (!CheckFee(context)) return false;
-
+    
     string errMsg = "";
     if (!CAsset::CheckSymbol(AssetType::UIA, asset.asset_symbol, errMsg))
         return state.DoS(100, ERRORMSG("CUserIssueAssetTx::CheckTx, invlid asset symbol! %s", errMsg),
@@ -149,23 +146,21 @@ bool CUserIssueAssetTx::CheckTx(CTxExecuteContext &context) {
         return state.DoS(100, ERRORMSG("CUserIssueAssetTx::CheckTx, account unregistered or immature"),
                          REJECT_INVALID, "account-unregistered-or-immature");
 
-    IMPLEMENT_CHECK_TX_SIGNATURE(txAccount.owner_pubkey);
-
     return true;
 }
 
 bool CUserIssueAssetTx::ExecuteTx(CTxExecuteContext &context) {
-    CCacheWrapper &cw = *context.pCw; CValidationState &state = *context.pState;
+    IMPLEMENT_DEFINE_CW_STATE;
+
     vector<CReceipt> receipts;
     shared_ptr<CAccount> pTxAccount = make_shared<CAccount>();
     if (pTxAccount == nullptr || !cw.accountCache.GetAccount(txUid, *pTxAccount))
         return state.DoS(100, ERRORMSG("CUserIssueAssetTx::ExecuteTx, read source txUid %s account info error",
             txUid.ToDebugString()), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
 
-    if (!pTxAccount->OperateBalance(fee_symbol, BalanceOpType::SUB_FREE, llFees)) {
+    if (!pTxAccount->OperateBalance(fee_symbol, BalanceOpType::SUB_FREE, llFees))
         return state.DoS(100, ERRORMSG("CUserIssueAssetTx::ExecuteTx, insufficient funds in account to sub fees, fees=%llu, txUid=%s",
                         llFees, txUid.ToDebugString()), UPDATE_ACCOUNT_FAIL, "insufficent-funds");
-    }
 
     if (cw.assetCache.HasAsset(asset.asset_symbol))
         return state.DoS(100, ERRORMSG("CUserIssueAssetTx::ExecuteTx, the asset has been issued! symbol=%s",
@@ -329,9 +324,6 @@ Object CUserUpdateAssetTx::ToJson(const CAccountDBCache &accountCache) const {
 
 bool CUserUpdateAssetTx::CheckTx(CTxExecuteContext &context) {
     IMPLEMENT_DEFINE_CW_STATE;
-    IMPLEMENT_DISABLE_TX_PRE_STABLE_COIN_RELEASE;
-    IMPLEMENT_CHECK_TX_REGID(txUid);
-    if (!CheckFee(context)) return false;
 
     string errMsg = "";
     if (!CAsset::CheckSymbol(AssetType::UIA, asset_symbol, errMsg))
@@ -372,18 +364,17 @@ bool CUserUpdateAssetTx::CheckTx(CTxExecuteContext &context) {
     if (!cw.accountCache.GetAccount(txUid, account))
         return state.DoS(100, ERRORMSG("CUserUpdateAssetTx::CheckTx, read account failed"), REJECT_INVALID,
                          "bad-getaccount");
+
     if (!account.IsRegistered() || !txUid.get<CRegID>().IsMature(context.height))
         return state.DoS(100, ERRORMSG("CUserUpdateAssetTx::CheckTx, account unregistered or immature"),
                          REJECT_INVALID, "account-unregistered-or-immature");
-
-    IMPLEMENT_CHECK_TX_SIGNATURE(account.owner_pubkey);
 
     return true;
 }
 
 
 bool CUserUpdateAssetTx::ExecuteTx(CTxExecuteContext &context) {
-    CCacheWrapper &cw = *context.pCw; CValidationState &state = *context.pState;
+    IMPLEMENT_DEFINE_CW_STATE;
     vector<CReceipt> receipts;
     CAccount account;
     if (!cw.accountCache.GetAccount(txUid, account))

@@ -337,13 +337,21 @@ static bool CreateNewBlockPreStableCoinRelease(CCacheWrapper &cwIn, std::unique_
                 CValidationState state;
                 pBaseTx->nFuelRate = fuelRate;
                 uint32_t prevBlockTime = pIndexPrev->GetBlockTime();
-                CTxExecuteContext context(height, index + 1, fuelRate, blockTime, prevBlockTime, spCW.get(), &state, transaction_status_type::mining);
-                if (!pBaseTx->CheckTx(context) || !pBaseTx->ExecuteTx(context)) {
-                    LogPrint(BCLog::MINER, "CreateNewBlockPreStableCoinRelease() : failed to pack transaction, txid: %s\n",
+                CTxExecuteContext context(height, index + 1, fuelRate, blockTime, prevBlockTime, spCW.get(), &state, 
+                                        transaction_status_type::mining);
+
+                std::shared_ptr<CPubKey> spTxSenderPubKey;
+                std::shared_ptr<CAccount> spTtxSenderAccount;
+
+                if (!pBaseTx->CheckBaseTx(context) ||
+                    !pBaseTx->CheckTx(context) ||
+                    !pBaseTx->ExecuteTx(context)) {
+                    LogPrint(BCLog::MINER, "CreateNewBlockPreStableCoinRelease() : Check/ExecuteTx failed, txid: %s\n",
                             pBaseTx->GetHash().GetHex());
 
                     pCdMan->pLogCache->SetExecuteFail(height, pBaseTx->GetHash(), state.GetRejectCode(),
                                                       state.GetRejectReason());
+
                     continue;
                 }
 
@@ -495,9 +503,16 @@ static bool CreateNewBlockStableCoinRelease(int64_t startMiningMs, CCacheWrapper
                          pBaseTx->ToString(spCW->accountCache));
 
                 uint32_t prevBlockTime = pIndexPrev->GetBlockTime();
-                CTxExecuteContext context(height, index + 1, fuelRate, blockTime, prevBlockTime, spCW.get(), &state, transaction_status_type::mining);
-                if (!pBaseTx->CheckTx(context) || !pBaseTx->ExecuteTx(context)) {
-                    LogPrint(BCLog::MINER, "CreateNewBlockStableCoinRelease() : failed to pack transaction: %s\n",
+                CTxExecuteContext context(height, index + 1, fuelRate, blockTime, prevBlockTime, spCW.get(), &state, 
+                                        transaction_status_type::mining);
+
+                std::shared_ptr<CPubKey> spTxSenderPubKey;
+                std::shared_ptr<CAccount> spTtxSenderAccount;
+
+                if (!pBaseTx->CheckBaseTx(context) ||
+                    !pBaseTx->CheckTx(context) ||
+                    !pBaseTx->ExecuteTx(context)) {
+                    LogPrint(BCLog::MINER, "CreateNewBlockStableCoinRelease() : failed to check/exec tx: %s\n",
                              pBaseTx->ToString(spCW->accountCache));
 
                     pCdMan->pLogCache->SetExecuteFail(height, pBaseTx->GetHash(), state.GetRejectCode(),

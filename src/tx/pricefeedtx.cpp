@@ -22,10 +22,7 @@ string CoinPricePairToString(const CoinPricePair &coinPricePair) {
 // class CPriceFeedTx
 
 bool CPriceFeedTx::CheckTx(CTxExecuteContext &context) {
-    IMPLEMENT_DEFINE_CW_STATE
-    IMPLEMENT_DISABLE_TX_PRE_STABLE_COIN_RELEASE;
-    IMPLEMENT_CHECK_TX_REGID(txUid);
-    if (!CheckFee(context)) return false;
+    IMPLEMENT_DEFINE_CW_STATE;
 
     if (price_points.size() == 0 || price_points.size() > COIN_PRICE_PAIR_COUNT_MAX)
         return state.DoS(100, ERRORMSG("CPriceFeedTx::CheckTx, the count=%u of price_points is 0 or larger than %u",
@@ -41,12 +38,6 @@ bool CPriceFeedTx::CheckTx(CTxExecuteContext &context) {
                             CoinPricePairToString(pricePoint.coin_price_pair)), REJECT_INVALID, "unsupported-coin-price-pair");
     }
 
-    CAccount account;
-    if (!cw.accountCache.GetAccount(txUid, account))
-        return state.DoS(100, ERRORMSG("CPriceFeedTx::CheckTx, read txUid %s account info error",
-                        txUid.ToString()), PRICE_FEED_FAIL, "bad-read-accountdb");
-
-    IMPLEMENT_CHECK_TX_SIGNATURE(account.owner_pubkey);
     return true;
 }
 

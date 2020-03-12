@@ -54,7 +54,7 @@ bool CBlockPriceMedianTx::CheckTx(CTxExecuteContext &context) { return true; }
  *  force settle/liquidate any under-collateralized CDP (collateral ratio <= 104%)
  */
 bool CBlockPriceMedianTx::ExecuteTx(CTxExecuteContext &context) {
-    CCacheWrapper &cw = *context.pCw; CValidationState &state = *context.pState;
+    IMPLEMENT_DEFINE_CW_STATE;
 
     PriceMap medianPrices;
     if (!cw.ppCache.CalcBlockMedianPrices(cw, context.height, medianPrices)) {

@@ -191,19 +191,11 @@ inline bool CheckUtxoOutCondition( const CTxExecuteContext &context, const bool 
 
 bool CCoinUtxoTransferTx::CheckTx(CTxExecuteContext &context) {
     IMPLEMENT_DEFINE_CW_STATE;
-    IMPLEMENT_DISABLE_TX_PRE_STABLE_COIN_RELEASE;
     IMPLEMENT_CHECK_TX_MEMO;
-    IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid);
-    if (!CheckFee(context)) return false;
 
     if ((txUid.is<CPubKey>()) && !txUid.get<CPubKey>().IsFullyValid())
         return state.DoS(100, ERRORMSG("CCoinUtxoTransferTx::CheckTx, public key is invalid"), REJECT_INVALID,
                         "bad-publickey");
-
-    CAccount srcAccount;
-    if (!cw.accountCache.GetAccount(txUid, srcAccount)) //unrecorded account not allowed to participate
-        return state.DoS(100, ERRORMSG("CCoinUtxoTransferTx::CheckTx, read account failed"), REJECT_INVALID,
-                        "bad-getaccount");
 
     if (vins.size() > 100) //FIXME: need to use sysparam to replace 100
         return state.DoS(100, ERRORMSG("CCoinUtxoTransferTx::CheckTx, vins size > 100 error"), REJECT_INVALID,
@@ -258,14 +250,15 @@ bool CCoinUtxoTransferTx::CheckTx(CTxExecuteContext &context) {
         totalOutAmount += output.coin_amount;
     }
 
-    uint64_t accountBalance = srcAccount.GetBalance(coin_symbol, BalanceType::FREE_VALUE);
-    if (accountBalance + totalInAmount < totalOutAmount + llFees) {
-        return state.DoS(100, ERRORMSG("CCoinUtxoTransferTx::CheckTx, account balance coin_amount insufficient!"), REJECT_INVALID,
-                        "insufficient-account-coin-amount");
-    }
+    CAccount srcAccount;
+    if (!cw.accountCache.GetAccount(txUid, srcAccount)) //unrecorded account not allowed to participate
+        return state.DoS(100, ERRORMSG("CCoinUtxoTransferTx::CheckTx, read account failed"), REJECT_INVALID,
+                        "bad-getaccount");
 
-    CPubKey pubKey = (txUid.is<CPubKey>() ? txUid.get<CPubKey>() : srcAccount.owner_pubkey);
-    IMPLEMENT_CHECK_TX_SIGNATURE(pubKey);
+    uint64_t accountBalance = srcAccount.GetBalance(coin_symbol, BalanceType::FREE_VALUE);
+    if (accountBalance + totalInAmount < totalOutAmount + llFees)
+        return state.DoS(100, ERRORMSG("CCoinUtxoTransferTx::CheckTx, account balance coin_amount insufficient!"), 
+                        REJECT_INVALID, "insufficient-account-coin-amount");
 
     return true;
 }
@@ -361,18 +354,10 @@ bool CCoinUtxoTransferTx::ExecuteTx(CTxExecuteContext &context) {
 ////////////////////////////////////////
 bool CCoinUtxoPasswordProofTx::CheckTx(CTxExecuteContext &context) {
     IMPLEMENT_DEFINE_CW_STATE;
-    IMPLEMENT_DISABLE_TX_PRE_STABLE_COIN_RELEASE;
-    IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid);
-    if (!CheckFee(context)) return false;
-
+    
     if ((txUid.is<CPubKey>()) && !txUid.get<CPubKey>().IsFullyValid())
         return state.DoS(100, ERRORMSG("CCoinUtxoTransferTx::CheckTx, public key is invalid"), REJECT_INVALID,
                         "bad-publickey");
-
-    CAccount srcAccount;
-    if (!cw.accountCache.GetAccount(txUid, srcAccount)) //unrecorded account not allowed to participate
-        return state.DoS(100, ERRORMSG("CCoinUtxoTransferTx::CheckTx, read account failed"), REJECT_INVALID,
-                        "bad-getaccount");
 
     uint64_t minFee;
     if (!GetTxMinFee(nTxType, context.height, fee_symbol, minFee)) { assert(false); }
@@ -388,9 +373,6 @@ bool CCoinUtxoPasswordProofTx::CheckTx(CTxExecuteContext &context) {
         return state.DoS(100, ERRORMSG("CCoinUtxoTransferTx::CheckTx, utxo password proof empty error!"), REJECT_INVALID,
                         "utxo-password-proof-empty-err");
 
-
-    CPubKey pubKey = (txUid.is<CPubKey>() ? txUid.get<CPubKey>() : srcAccount.owner_pubkey);
-    IMPLEMENT_CHECK_TX_SIGNATURE(pubKey);
     return true;
 }
 

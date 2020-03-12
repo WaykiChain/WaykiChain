@@ -11,9 +11,6 @@
 /**################################ Base Coin (WICC) Transfer ########################################**/
 bool CBaseCoinTransferTx::CheckTx(CTxExecuteContext &context) {
     IMPLEMENT_DEFINE_CW_STATE;
-    IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid);
-    IMPLEMENT_CHECK_TX_REGID_OR_KEYID(toUid);
-    if (!CheckFee(context)) return false;
     IMPLEMENT_CHECK_TX_MEMO;
 
     if (coin_amount < DUST_AMOUNT_THRESHOLD)
@@ -23,14 +20,6 @@ bool CBaseCoinTransferTx::CheckTx(CTxExecuteContext &context) {
     if ((txUid.is<CPubKey>()) && !txUid.get<CPubKey>().IsFullyValid())
         return state.DoS(100, ERRORMSG("CBaseCoinTransferTx::CheckTx, public key is invalid"), REJECT_INVALID,
                          "bad-publickey");
-
-    CAccount srcAccount;
-    if (!cw.accountCache.GetAccount(txUid, srcAccount))
-        return state.DoS(100, ERRORMSG("CBaseCoinTransferTx::CheckTx, read account failed"), REJECT_INVALID,
-                         "bad-getaccount");
-
-    CPubKey pubKey = (txUid.is<CPubKey>() ? txUid.get<CPubKey>() : srcAccount.owner_pubkey);
-    IMPLEMENT_CHECK_TX_SIGNATURE(pubKey);
 
     return true;
 }
@@ -102,10 +91,7 @@ Object CBaseCoinTransferTx::ToJson(const CAccountDBCache &accountCache) const {
 
 bool CCoinTransferTx::CheckTx(CTxExecuteContext &context) {
     IMPLEMENT_DEFINE_CW_STATE;
-    IMPLEMENT_DISABLE_TX_PRE_STABLE_COIN_RELEASE;
     IMPLEMENT_CHECK_TX_MEMO;
-    IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid);
-    if (!CheckFee(context)) return false;
 
     if (transfers.empty() || transfers.size() > MAX_TRANSFER_SIZE) {
         return state.DoS(100, ERRORMSG("CCoinTransferTx::CheckTx, transfers is empty or too large count=%d than %d",
@@ -141,14 +127,6 @@ bool CCoinTransferTx::CheckTx(CTxExecuteContext &context) {
     if ((txUid.is<CPubKey>()) && !txUid.get<CPubKey>().IsFullyValid())
         return state.DoS(100, ERRORMSG("CCoinTransferTx::CheckTx, public key is invalid"), REJECT_INVALID,
                          "bad-publickey");
-
-    CAccount srcAccount;
-    if (!cw.accountCache.GetAccount(txUid, srcAccount))
-        return state.DoS(100, ERRORMSG("CCoinTransferTx::CheckTx, read account failed"), REJECT_INVALID,
-                         "bad-getaccount");
-
-    CPubKey pubKey = (txUid.is<CPubKey>() ? txUid.get<CPubKey>() : srcAccount.owner_pubkey);
-    IMPLEMENT_CHECK_TX_SIGNATURE(pubKey);
 
     return true;
 }

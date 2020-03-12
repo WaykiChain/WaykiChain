@@ -280,13 +280,16 @@ bool AcceptToMemoryPool(CTxMemPool &pool, CValidationState &state, CBaseTx *pBas
     uint32_t prevBlockTime = pTip->pprev != nullptr ? pTip->pprev->GetBlockTime() : pTip->GetBlockTime();
 
     CTxExecuteContext context(chainActive.Height(), 0, fuelRate, blockTime, prevBlockTime, spCW.get(), &state);
+    if (!pBaseTx->CheckBaseTx(context))
+        return ERRORMSG("AcceptToMemoryPool() : CheckBaseTx failed, txid: %s", hash.GetHex());
+
     if (!pBaseTx->CheckTx(context))
         return ERRORMSG("AcceptToMemoryPool() : CheckTx failed, txid: %s", hash.GetHex());
 
     CTxMemPoolEntry entry(pBaseTx, GetTime(), chainActive.Height());
     auto nFees = std::get<1>(entry.GetFees());
     auto nSize = entry.GetTxSize();
-    // Continuously rate-limit free transactions
+    // Continuously rate-limit free trx
     // This mitigates 'penny-flooding' -- sending thousands of free transactions just to
     // be annoying or make others' transactions take longer to confirm.
     if (fLimitFree && nFees < MIN_RELAY_TX_FEE) {
@@ -1920,7 +1923,7 @@ bool CheckBlock(const CBlock &block, CValidationState &state, CCacheWrapper &cw,
 
         uint32_t prevBlockTime = block.GetTime(); // the prev block maybe unkown when checking block
         CTxExecuteContext context(block.GetHeight(), i + 1, block.GetFuelRate(), block.GetTime(), prevBlockTime, &cw, &state);
-        if (fCheckTx && !block.vptx[i]->CheckTx(context))
+        if (fCheckTx && (!block.vptx[i]->CheckBaseTx(context) || !block.vptx[i]->CheckTx(context))
             return ERRORMSG("CheckBlock() : CheckTx failed, txid: %s", block.vptx[i]->GetHash().GetHex());
 
         if (block.GetHeight() != 0 || block.GetHash() != SysCfg().GetGenesisBlockHash()) {

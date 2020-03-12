@@ -122,9 +122,6 @@ Object CDEXOperatorRegisterTx::ToJson(const CAccountDBCache &accountCache) const
 
 bool CDEXOperatorRegisterTx::CheckTx(CTxExecuteContext &context) {
     IMPLEMENT_DEFINE_CW_STATE;
-    IMPLEMENT_DISABLE_TX_PRE_STABLE_COIN_RELEASE;
-    IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid);
-    if (!CheckFee(context)) return false;
 
     if (!data.owner_uid.is<CRegID>()) {
         return state.DoS(100, ERRORMSG("%s, owner_uid must be regid", __func__), REJECT_INVALID,
@@ -149,6 +146,7 @@ bool CDEXOperatorRegisterTx::CheckTx(CTxExecuteContext &context) {
     if (data.maker_fee_ratio > MAX_MATCH_FEE_RATIO_VALUE)
         return state.DoS(100, ERRORMSG("%s, maker_fee_ratio=%d is greater than %d", __func__,
             data.maker_fee_ratio, MAX_MATCH_FEE_RATIO_VALUE), REJECT_INVALID, "invalid-match-fee-ratio-type");
+
     if (data.taker_fee_ratio > MAX_MATCH_FEE_RATIO_VALUE)
         return state.DoS(100, ERRORMSG("%s, taker_fee_ratio=%d is greater than %d", __func__,
             data.taker_fee_ratio, MAX_MATCH_FEE_RATIO_VALUE), REJECT_INVALID, "invalid-match-fee-ratio-type");
@@ -158,11 +156,12 @@ bool CDEXOperatorRegisterTx::CheckTx(CTxExecuteContext &context) {
         return state.DoS(100, ERRORMSG("CDEXOperatorRegisterTx::CheckTx, read account failed! tx account not exist, txUid=%s",
                      txUid.ToDebugString()), REJECT_INVALID, "bad-getaccount");
 
-    CPubKey pubKey = (txUid.is<CPubKey>() ? txUid.get<CPubKey>() : txAccount.owner_pubkey);
-    IMPLEMENT_CHECK_TX_SIGNATURE(pubKey);
+    spTxSenderAccount = std::make_share<CAccount>(txAccount);
+    spTxSenderPubKey = std::make_share<CPubKey>(txAccount.owner_pubkey);
 
     return true;
 }
+
 bool CDEXOperatorRegisterTx::ExecuteTx(CTxExecuteContext &context) {
     CCacheWrapper &cw = *context.pCw; CValidationState &state = *context.pState;
     vector<CReceipt> receipts;
@@ -347,9 +346,6 @@ Object CDEXOperatorUpdateTx::ToJson(const CAccountDBCache &accountCache) const {
 }
 bool CDEXOperatorUpdateTx::CheckTx(CTxExecuteContext &context) {
     IMPLEMENT_DEFINE_CW_STATE;
-    IMPLEMENT_DISABLE_TX_PRE_STABLE_COIN_RELEASE;
-    IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid);
-    if (!CheckFee(context)) return false;
 
     string errmsg ;
     string errcode ;
@@ -362,14 +358,6 @@ bool CDEXOperatorUpdateTx::CheckTx(CTxExecuteContext &context) {
             return state.DoS(100, ERRORMSG("%s, the owner already has a dex operator! owner_regid=%s", __func__,
                                            update_data.ValueToString()), REJECT_INVALID, "owner-had-dexoperator");
     }
-
-    CAccount txAccount;
-    if (!cw.accountCache.GetAccount(txUid, txAccount))
-        return state.DoS(100, ERRORMSG("CDEXOperatorUpdateTx::CheckTx, read account failed! tx account not exist, txUid=%s",
-                                       txUid.ToDebugString()), REJECT_INVALID, "bad-getaccount");
-
-    CPubKey pubKey = (txUid.is<CPubKey>() ? txUid.get<CPubKey>() : txAccount.owner_pubkey);
-    IMPLEMENT_CHECK_TX_SIGNATURE(pubKey);
 
     return true ;
 }

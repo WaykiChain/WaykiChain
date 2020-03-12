@@ -63,7 +63,6 @@ namespace dex {
 
     bool CDEXOrderBaseTx::CheckTx(CTxExecuteContext &context) {
         IMPLEMENT_DEFINE_CW_STATE;
-        IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid);
 
         if (!kOrderTypeHelper.CheckEnum(order_type))
             return context.pState->DoS(100, ERRORMSG("%s, invalid order_type=%u", TX_ERR_TITLE,
@@ -82,14 +81,6 @@ namespace dex {
         IMPLEMENT_CHECK_TX_MEMO;
 
         if (!CheckOrderOperator(context)) return false;
-
-        CAccount txAccount;
-        if (!cw.accountCache.GetAccount(txUid, txAccount))
-            return state.DoS(100, ERRORMSG("%s, read account failed", ERROR_TITLE(GetTxTypeName())),
-                REJECT_INVALID, "bad-getaccount");
-
-        CPubKey pubKey = (txUid.is<CPubKey>() ? txUid.get<CPubKey>() : txAccount.owner_pubkey);
-        IMPLEMENT_CHECK_TX_SIGNATURE(pubKey);
 
         return true;
     }
@@ -422,8 +413,6 @@ namespace dex {
 
     bool CDEXCancelOrderTx::CheckTx(CTxExecuteContext &context) {
         IMPLEMENT_DEFINE_CW_STATE;
-        if (!CheckTxAvailableFromVer(context, MAJOR_VER_R2)) return false;
-        IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid);
 
         if (order_id.IsEmpty())
             return state.DoS(100, ERRORMSG("CDEXCancelOrderTx::CheckTx, order_id is empty"), REJECT_INVALID,
@@ -434,8 +423,6 @@ namespace dex {
                             "bad-getaccount");
 
         if (!CheckOrderFee(*this, context, txAccount)) return false;
-        CPubKey pubKey = (txUid.is<CPubKey>() ? txUid.get<CPubKey>() : txAccount.owner_pubkey);
-        IMPLEMENT_CHECK_TX_SIGNATURE(pubKey);
 
         return true;
     }

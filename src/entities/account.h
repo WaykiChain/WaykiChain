@@ -40,12 +40,14 @@ enum AccountPermType : uint64_t {
     PERM_RECV_UTXO      = (1 << 7 ),
     PERM_DEPLOY_SC      = (1 << 8 ), //Deploy smart contract
     PERM_UPGRADE_SC     = (1 << 9 ), //Upgrade smart contract
-    PERM_PROPOSE        = (1 << 10), //DeGov propose
-    PERM_MINE_BLOCK     = (1 << 11), //elected BP can mine blocks
-    PERM_DEX            = (1 << 12), //freeze | unfreeze
-    PERM_CDP            = (1 << 13), //pledge | unpledge
-    PERM_AXC_IN         = (1 << 14), //atomic-cross-chain swap in
-    PERM_AXC_OUT        = (1 << 15), //atomic-cross-chain swap out
+    PERM_INVOKE_SC      = (1 << 10),
+    PERM_PROPOSE        = (1 << 11), //DeGov propose
+    PERM_MINE_BLOCK     = (1 << 12), //elected BP can mine blocks
+    PERM_FEED_PRICE     = (1 << 13), //feed price
+    PERM_DEX            = (1 << 14), //freeze | unfreeze
+    PERM_CDP            = (1 << 15), //pledge | unpledge
+    PERM_AXC_IN         = (1 << 16), //atomic-cross-chain swap in
+    PERM_AXC_OUT        = (1 << 17), //atomic-cross-chain swap out
 
 };
 
@@ -116,7 +118,7 @@ public:
     CAccountToken() : free_amount(0), frozen_amount(0), staked_amount(0), voted_amount(0), pledged_amount(0) { }
 
     CAccountToken(uint64_t& freeAmount, uint64_t& frozenAmount, uint64_t& stakedAmount,
-                uint64_t& votedAmount, uint64_t& pledgedAmount )
+                uint64_t& votedAmount, uint64_t& pledgedAmount)
         : free_amount(freeAmount), frozen_amount(frozenAmount), staked_amount(stakedAmount),
             voted_amount(votedAmount), pledged_amount(pledgedAmount) {}
 
@@ -199,6 +201,14 @@ public:
     }
 
     std::shared_ptr<CAccount> GetNewInstance() const { return std::make_shared<CAccount>(*this); }
+
+    bool CheckPerms(const uint64_t permsSum) {
+        if (permsSum > perms_sum)
+            return false;
+
+        return (permsSum == (perms_sum & permsSum));
+    }
+
 
 public:
 

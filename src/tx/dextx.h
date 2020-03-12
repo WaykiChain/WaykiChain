@@ -26,22 +26,22 @@ namespace dex {
 
     class CDEXOrderBaseTx : public CBaseTx {
     public:
-        OrderType order_type   = ORDER_LIMIT_PRICE; //!< order type
-        OrderSide order_side        = ORDER_BUY;         //!< order side
-        TokenSymbol coin_symbol     = "";                //!< coin symbol
-        TokenSymbol asset_symbol    = "";                //!< asset symbol
-        uint64_t coin_amount        = 0;                 //!< amount of coin to buy/sell asset
-        uint64_t asset_amount       = 0;                 //!< amount of asset to buy/sell
-        uint64_t price              = 0;                 //!< price in coinType want to buy/sell asset
-        DexID dex_id                = 0;                 //!< dex id
-        string memo                 = "";                   //!< memo
+        OrderType order_type        = ORDER_LIMIT_PRICE;//!< order type
+        OrderSide order_side        = ORDER_BUY;        //!< order side
+        TokenSymbol coin_symbol     = "";               //!< coin symbol
+        TokenSymbol asset_symbol    = "";               //!< asset symbol
+        uint64_t coin_amount        = 0;                //!< amount of coin to buy/sell asset
+        uint64_t asset_amount       = 0;                //!< amount of asset to buy/sell
+        uint64_t price              = 0;                //!< price in coinType want to buy/sell asset
+        DexID dex_id                = 0;                //!< dex id
+        string memo                 = "";               //!< memo
 
         bool has_operator_config      = false;          //! has operator config
         PublicMode public_mode = PublicMode::PUBLIC;    //!< order public mode
         uint64_t maker_fee_ratio = 0;                   //!< match fee ratio
         uint64_t taker_fee_ratio = 0;                   //!< taker fee ratio
-        CUserID operator_uid        = CUserID();            //!< dex operator uid
-        UnsignedCharArray operator_signature;               //!< dex operator signature
+        CUserID operator_uid        = CUserID();        //!< dex operator uid
+        UnsignedCharArray operator_signature;           //!< dex operator signature
 
         using CBaseTx::CBaseTx;
     public:

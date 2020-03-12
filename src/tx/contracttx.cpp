@@ -46,19 +46,15 @@ static bool GetFuelLimit(CBaseTx &tx, CTxExecuteContext &context, uint64_t &fuel
 
 bool CLuaContractDeployTx::CheckTx(CTxExecuteContext &context) {
     IMPLEMENT_DEFINE_CW_STATE;
-    IMPLEMENT_CHECK_TX_REGID(txUid);
-    if (!CheckFee(context)) return false;
-
-    if (!contract.IsValid()) {
+    
+    if (!contract.IsValid())
         return state.DoS(100, ERRORMSG("CLuaContractDeployTx::CheckTx, contract is invalid"),
                          REJECT_INVALID, "vmscript-invalid");
-    }
 
     uint64_t llFuel = GetFuel(context.height, context.fuel_rate);
-    if (llFees < llFuel) {
+    if (llFees < llFuel)
         return state.DoS(100, ERRORMSG("CLuaContractDeployTx::CheckTx, fee too small to cover fuel: %llu < %llu",
                         llFees, llFuel), REJECT_INVALID, "fee-too-small-to-cover-fuel");
-    }
 
     if (GetFeatureForkVersion(context.height) >= MAJOR_VER_R2) {
         int32_t txSize  = ::GetSerializeSize(GetNewInstance(), SER_NETWORK, PROTOCOL_VERSION);
@@ -72,17 +68,13 @@ bool CLuaContractDeployTx::CheckTx(CTxExecuteContext &context) {
     }
 
     CAccount account;
-    if (!cw.accountCache.GetAccount(txUid, account)) {
+    if (!cw.accountCache.GetAccount(txUid, account))
         return state.DoS(100, ERRORMSG("CLuaContractDeployTx::CheckTx, get account failed"),
                          REJECT_INVALID, "bad-getaccount");
-    }
 
-    if (!account.HaveOwnerPubKey()) {
+    if (!account.HaveOwnerPubKey())
         return state.DoS(100, ERRORMSG("CLuaContractDeployTx::CheckTx, account unregistered"), REJECT_INVALID,
                          "bad-account-unregistered");
-    }
-
-    IMPLEMENT_CHECK_TX_SIGNATURE(account.owner_pubkey);
 
     return true;
 }
@@ -165,26 +157,17 @@ Object CLuaContractDeployTx::ToJson(const CAccountDBCache &accountCache) const {
 bool CLuaContractInvokeTx::CheckTx(CTxExecuteContext &context) {
     IMPLEMENT_DEFINE_CW_STATE;
     IMPLEMENT_CHECK_TX_ARGUMENTS;
-    IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid);
+
     IMPLEMENT_CHECK_TX_APPID(app_uid);
-    if (!CheckFee(context)) return false;
 
     if ((txUid.is<CPubKey>()) && !txUid.get<CPubKey>().IsFullyValid())
         return state.DoS(100, ERRORMSG("CLuaContractInvokeTx::CheckTx, public key is invalid"), REJECT_INVALID,
                          "bad-publickey");
 
-    CAccount srcAccount;
-    if (!cw.accountCache.GetAccount(txUid, srcAccount))
-        return state.DoS(100, ERRORMSG("CLuaContractInvokeTx::CheckTx, read account failed, tx_uid=%s",
-                        txUid.ToDebugString()), REJECT_INVALID, "bad-getaccount");
-
     CUniversalContract contract;
     if (!cw.contractCache.GetContract(app_uid.get<CRegID>(), contract))
         return state.DoS(100, ERRORMSG("CLuaContractInvokeTx::CheckTx, read script failed, regId=%s",
                         app_uid.get<CRegID>().ToString()), REJECT_INVALID, "bad-read-script");
-
-    CPubKey pubKey = (txUid.is<CPubKey>() ? txUid.get<CPubKey>() : srcAccount.owner_pubkey);
-    IMPLEMENT_CHECK_TX_SIGNATURE(pubKey);
 
     return true;
 }
@@ -294,25 +277,19 @@ Object CLuaContractInvokeTx::ToJson(const CAccountDBCache &accountCache) const {
 
 bool CUniversalContractDeployTx::CheckTx(CTxExecuteContext &context) {
     IMPLEMENT_DEFINE_CW_STATE;
-    IMPLEMENT_DISABLE_TX_PRE_STABLE_COIN_RELEASE;
-    IMPLEMENT_CHECK_TX_REGID(txUid);
-    if (!CheckFee(context)) return false;
-
-    if (contract.vm_type != VMType::LUA_VM) {
+    
+    if (contract.vm_type != VMType::LUA_VM)
         return state.DoS(100, ERRORMSG("CUniversalContractDeployTx::CheckTx, support LuaVM only"), REJECT_INVALID,
                          "vm-type-error");
-    }
 
-    if (!contract.IsValid()) {
+    if (!contract.IsValid())
         return state.DoS(100, ERRORMSG("CUniversalContractDeployTx::CheckTx, contract is invalid"),
                          REJECT_INVALID, "vmscript-invalid");
-    }
 
     uint64_t llFuel = GetFuel(context.height, context.fuel_rate);
-    if (llFees < llFuel) {
+    if (llFees < llFuel)
         return state.DoS(100, ERRORMSG("CUniversalContractDeployTx::CheckTx, fee too small to cover fuel: %llu < %llu",
                         llFees, llFuel), REJECT_INVALID, "fee-too-small-to-cover-fuel");
-    }
 
     int32_t txSize  = ::GetSerializeSize(GetNewInstance(), SER_NETWORK, PROTOCOL_VERSION);
     double feePerKb = double(llFees - llFuel) / txSize * 1000.0;
@@ -333,8 +310,6 @@ bool CUniversalContractDeployTx::CheckTx(CTxExecuteContext &context) {
         return state.DoS(100, ERRORMSG("CUniversalContractDeployTx::CheckTx, account unregistered"),
             REJECT_INVALID, "bad-account-unregistered");
     }
-
-    IMPLEMENT_CHECK_TX_SIGNATURE(account.owner_pubkey);
 
     return true;
 }
@@ -441,36 +416,22 @@ Object CUniversalContractDeployTx::ToJson(const CAccountDBCache &accountCache) c
 
 bool CUniversalContractInvokeTx::CheckTx(CTxExecuteContext &context) {
     IMPLEMENT_DEFINE_CW_STATE;
-    IMPLEMENT_DISABLE_TX_PRE_STABLE_COIN_RELEASE;
+    
     IMPLEMENT_CHECK_TX_ARGUMENTS;
-    IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid);
     IMPLEMENT_CHECK_TX_APPID(app_uid);
-    if (!CheckFee(context)) return false;
 
     if ((txUid.is<CPubKey>()) && !txUid.get<CPubKey>().IsFullyValid())
         return state.DoS(100, ERRORMSG("CUniversalContractInvokeTx::CheckTx, public key is invalid"), REJECT_INVALID,
                          "bad-publickey");
 
-    CAccount srcAccount;
-    if (!cw.accountCache.GetAccount(txUid, srcAccount))
-        return state.DoS(100, ERRORMSG("CUniversalContractInvokeTx::CheckTx, read account failed, txUid=%s",
-                        txUid.ToDebugString()), REJECT_INVALID, "bad-getaccount");
-
-    if (SysCfg().NetworkID() == TEST_NET && context.height < 260000) {
-        // TODO: remove me if reset testnet.
-    } else {
-        if (!cw.assetCache.CheckAsset(coin_symbol))
-            return state.DoS(100, ERRORMSG("CUniversalContractInvokeTx::CheckTx, invalid coin_symbol=%s", coin_symbol),
-                            REJECT_INVALID, "invalid-coin-symbol");
-    }
-
+    if (!cw.assetCache.CheckAsset(coin_symbol))
+        return state.DoS(100, ERRORMSG("CUniversalContractInvokeTx::CheckTx, invalid coin_symbol=%s", coin_symbol),
+                        REJECT_INVALID, "invalid-coin-symbol");
+    
     CUniversalContract contract;
     if (!cw.contractCache.GetContract(app_uid.get<CRegID>(), contract))
         return state.DoS(100, ERRORMSG("CUniversalContractInvokeTx::CheckTx, read script failed, regId=%s",
                         app_uid.get<CRegID>().ToString()), REJECT_INVALID, "bad-read-script");
-
-    CPubKey pubKey = (txUid.is<CPubKey>() ? txUid.get<CPubKey>() : srcAccount.owner_pubkey);
-    IMPLEMENT_CHECK_TX_SIGNATURE(pubKey);
 
     return true;
 }

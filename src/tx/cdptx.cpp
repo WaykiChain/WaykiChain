@@ -107,14 +107,10 @@ bool ComputeCDPInterest(CTxExecuteContext &context, const CCdpCoinPair& coinPair
 // CDP owner can redeem his or her CDP that are in liquidation list
 bool CCDPStakeTx::CheckTx(CTxExecuteContext &context) {
     IMPLEMENT_DEFINE_CW_STATE;
-    IMPLEMENT_DISABLE_TX_PRE_STABLE_COIN_RELEASE;
-    IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid);
-    if (!CheckFee(context)) return false;
-
-    if (assets_to_stake.size() != 1) {
+    
+    if (assets_to_stake.size() != 1)
         return state.DoS(100, ERRORMSG("CCDPStakeTx::CheckTx, only support to stake one asset!"),
                         REJECT_INVALID, "invalid-stake-asset");
-    }
 
     const TokenSymbol &assetSymbol = assets_to_stake.begin()->first;
     if (!kCdpScoinSymbolSet.count(scoin_symbol))
@@ -124,15 +120,6 @@ bool CCDPStakeTx::CheckTx(CTxExecuteContext &context) {
     if (!cw.assetCache.CheckAsset(assetSymbol, AssetPermType::PERM_CDP_BCOIN))
         return state.DoS(100, ERRORMSG("CCDPStakeTx::CheckTx, bcoin=%s has no CDP perm ", assetSymbol),
                         REJECT_INVALID, "invalid-CDP-BCoin-Symbol");
-
-    CAccount account;
-    if (!cw.accountCache.GetAccount(txUid, account)) {
-        return state.DoS(100, ERRORMSG("CCDPStakeTx::CheckTx, read txUid %s account info error",
-                        txUid.ToString()), READ_ACCOUNT_FAIL, "bad-read-accountdb");
-    }
-
-    CPubKey pubKey = (txUid.is<CPubKey>() ? txUid.get<CPubKey>() : account.owner_pubkey);
-    IMPLEMENT_CHECK_TX_SIGNATURE(pubKey);
 
     return true;
 }
@@ -405,26 +392,13 @@ bool CCDPStakeTx::SellInterestForFcoins(const CTxCord &txCord, const CUserCDP &c
 }
 
 /************************************<< CCDPRedeemTx >>***********************************************/
-bool CCDPRedeemTx::CheckTx(CTxExecuteContext &context) {
+bool CCDPRedeemTx::CheckTx(CTxExecuteContext &context)) {
     IMPLEMENT_DEFINE_CW_STATE;
-    IMPLEMENT_DISABLE_TX_PRE_STABLE_COIN_RELEASE;
-    IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid);
-    if (!CheckFee(context)) return false;
 
-    CAccount account;
-    if (!cw.accountCache.GetAccount(txUid, account)) {
-        return state.DoS(100, ERRORMSG("CCDPRedeemTx::CheckTx, read txUid %s account info error",
-                        txUid.ToString()), READ_ACCOUNT_FAIL, "bad-read-accountdb");
-    }
-
-    if (cdp_txid.IsEmpty()) {
+    if (cdp_txid.IsEmpty())
         return state.DoS(100, ERRORMSG("CCDPRedeemTx::CheckTx, cdp_txid is empty"),
                         REJECT_INVALID, "empty-cdpid");
-    }
-
-    CPubKey pubKey = (txUid.is<CPubKey>() ? txUid.get<CPubKey>() : account.owner_pubkey);
-    IMPLEMENT_CHECK_TX_SIGNATURE(pubKey);
-
+    
     return true;
 }
 
@@ -671,26 +645,13 @@ bool CCDPRedeemTx::SellInterestForFcoins(const CTxCord &txCord, const CUserCDP &
  /************************************<< CdpLiquidateTx >>***********************************************/
  bool CCDPLiquidateTx::CheckTx(CTxExecuteContext &context) {
     IMPLEMENT_DEFINE_CW_STATE;
-    IMPLEMENT_DISABLE_TX_PRE_STABLE_COIN_RELEASE;
-    IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid);
-    if (!CheckFee(context)) return false;
-
-    if (scoins_to_liquidate == 0) {
+    
+    if (scoins_to_liquidate == 0) 
         return state.DoS(100, ERRORMSG("CCDPLiquidateTx::CheckTx, invalid liquidate amount(0)"), REJECT_INVALID,
                          "invalid-liquidate-amount");
-    }
 
-    if (cdp_txid.IsEmpty()) {
+    if (cdp_txid.IsEmpty())
         return state.DoS(100, ERRORMSG("CCDPLiquidateTx::CheckTx, cdp_txid is empty"), REJECT_INVALID, "empty-cdpid");
-    }
-
-    CAccount account;
-    if (!cw.accountCache.GetAccount(txUid, account))
-        return state.DoS(100, ERRORMSG("CdpLiquidateTx::CheckTx, read txUid %s account info error", txUid.ToString()),
-                         READ_ACCOUNT_FAIL, "bad-read-accountdb");
-
-    CPubKey pubKey = (txUid.is<CPubKey>() ? txUid.get<CPubKey>() : account.owner_pubkey);
-    IMPLEMENT_CHECK_TX_SIGNATURE(pubKey);
 
     return true;
 }

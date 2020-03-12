@@ -10,7 +10,7 @@
 
 bool CCoinRewardTx::CheckTx(CTxExecuteContext &context) {
     // Only used in stable coin genesis.
-    return context.height == (int32_t)SysCfg().GetStableCoinGenesisHeight() ? true : false;
+    return context.height == (int32_t) SysCfg().GetStableCoinGenesisHeight() ? true : false;
 }
 
 bool CCoinRewardTx::ExecuteTx(CTxExecuteContext &context) {

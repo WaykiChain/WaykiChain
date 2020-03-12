@@ -67,26 +67,17 @@ Object CProposalRequestTx::ToJson(const CAccountDBCache &accountCache) const {
 }  // json-rpc usage
 
  bool CProposalRequestTx::CheckTx(CTxExecuteContext &context) {
-     IMPLEMENT_DEFINE_CW_STATE
-     IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid);
-     if (!CheckFee(context)) return false;
-
+     IMPLEMENT_DEFINE_CW_STATE;
+     
      if (!proposal.sp_proposal->CheckProposal(context))
          return false ;
 
-     CAccount srcAccount;
-     if (!cw.accountCache.GetAccount(txUid, srcAccount))
-         return state.DoS(100, ERRORMSG("CProposalRequestTx::CheckTx, read account failed"), REJECT_INVALID,
-                          "bad-getaccount");
-
-     CPubKey pubKey = (txUid.is<CPubKey>() ? txUid.get<CPubKey>() : srcAccount.owner_pubkey);
-     IMPLEMENT_CHECK_TX_SIGNATURE(pubKey);
      return true ;
 }
 
 
  bool CProposalRequestTx::ExecuteTx(CTxExecuteContext &context) {
-     IMPLEMENT_DEFINE_CW_STATE
+     IMPLEMENT_DEFINE_CW_STATE;
 
      CAccount srcAccount;
      if (!cw.accountCache.GetAccount(txUid, srcAccount))
@@ -132,29 +123,18 @@ Object CProposalApprovalTx::ToJson(const CAccountDBCache &accountCache) const {
 } // json-rpc usage
 
  bool CProposalApprovalTx::CheckTx(CTxExecuteContext &context) {
+    IMPLEMENT_DEFINE_CW_STATE;
 
-     IMPLEMENT_DEFINE_CW_STATE
-     IMPLEMENT_CHECK_TX_REGID(txUid);
-     if (!CheckFee(context)) return false;
-
-     shared_ptr<CProposal> proposal ;
-     if(!cw.sysGovernCache.GetProposal(txid,proposal)){
-         return state.DoS(100, ERRORMSG("CProposalApprovalTx::CheckTx, proposal(id=%s)  not found", txid.ToString()),
+    shared_ptr<CProposal> proposal ;
+    if(!cw.sysGovernCache.GetProposal(txid,proposal)){
+        return state.DoS(100, ERRORMSG("CProposalApprovalTx::CheckTx, proposal(id=%s)  not found", txid.ToString()),
                           WRITE_ACCOUNT_FAIL, "proposal-not-found");
      }
 
-     if(!CheckIsGovernor(txUid.get<CRegID>(), proposal->proposal_type,cw)){
-         return state.DoS(100, ERRORMSG("CProposalApprovalTx::CheckTx, the tx commiter(%s) is not a governor", txid.ToString()),
+    if(!CheckIsGovernor(txUid.get<CRegID>(), proposal->proposal_type,cw)){
+        return state.DoS(100, ERRORMSG("CProposalApprovalTx::CheckTx, the tx commiter(%s) is not a governor", txid.ToString()),
                           WRITE_ACCOUNT_FAIL, "permission-deney");
-     }
-
-     CAccount srcAccount;
-     if (!cw.accountCache.GetAccount(txUid, srcAccount))
-         return state.DoS(100, ERRORMSG("CProposalApprovalTx::CheckTx, read account failed"), REJECT_INVALID,
-                          "bad-getaccount");
-
-     CPubKey pubKey = (txUid.is<CPubKey>() ? txUid.get<CPubKey>() : srcAccount.owner_pubkey);
-     IMPLEMENT_CHECK_TX_SIGNATURE(pubKey);
+    }
 
     return true ;
 }
