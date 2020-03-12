@@ -43,7 +43,7 @@ public:
 
     int32_t GetLastVoteHeight();
     bool SetLastVoteHeight(int32_t height);
-    uint32_t GetActivedDelegateNum() ;
+    uint32_t GetActivedDelegateNum();
 
     bool GetPendingDelegates(PendingDelegates &delegates);
     bool SetPendingDelegates(const PendingDelegates &delegates);
