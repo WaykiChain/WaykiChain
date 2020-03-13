@@ -67,8 +67,6 @@ Object CProposalRequestTx::ToJson(const CAccountDBCache &accountCache) const {
 }  // json-rpc usage
 
  bool CProposalRequestTx::CheckTx(CTxExecuteContext &context) {
-     IMPLEMENT_DEFINE_CW_STATE;
-     
      if (!proposal.sp_proposal->CheckProposal(context))
          return false ;
 
@@ -83,7 +81,7 @@ Object CProposalRequestTx::ToJson(const CAccountDBCache &accountCache) const {
      if (!cw.accountCache.GetAccount(txUid, srcAccount))
         return state.DoS(100, ERRORMSG("CProposalRequestTx::ExecuteTx, read source addr account info error"),
                         READ_ACCOUNT_FAIL, "bad-read-accountdb");
-    
+
      if (!srcAccount.OperateBalance(fee_symbol, SUB_FREE, llFees))
         return state.DoS(100, ERRORMSG("CProposalRequestTx::ExecuteTx, account has insufficient funds"),
                         UPDATE_ACCOUNT_FAIL, "operate-minus-account-failed");

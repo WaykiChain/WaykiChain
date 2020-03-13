@@ -62,7 +62,9 @@ namespace dex {
     // class CDEXOrderBaseTx
 
     bool CDEXOrderBaseTx::CheckTx(CTxExecuteContext &context) {
-        IMPLEMENT_DEFINE_CW_STATE;
+        CValidationState &state = *context.pState;
+
+        IMPLEMENT_CHECK_TX_MEMO;
 
         if (!kOrderTypeHelper.CheckEnum(order_type))
             return context.pState->DoS(100, ERRORMSG("%s, invalid order_type=%u", TX_ERR_TITLE,
@@ -77,8 +79,6 @@ namespace dex {
         if (!CheckOrderAmounts(context)) return false;
 
         if (!CheckOrderPrice(context)) return false;
-
-        IMPLEMENT_CHECK_TX_MEMO;
 
         if (!CheckOrderOperator(context)) return false;
 
@@ -412,7 +412,7 @@ namespace dex {
     }
 
     bool CDEXCancelOrderTx::CheckTx(CTxExecuteContext &context) {
-        IMPLEMENT_DEFINE_CW_STATE;
+        CValidationState &state = *context.pState;
 
         if (order_id.IsEmpty())
             return state.DoS(100, ERRORMSG("CDEXCancelOrderTx::CheckTx, order_id is empty"), REJECT_INVALID,
@@ -428,8 +428,7 @@ namespace dex {
     }
 
     bool CDEXCancelOrderTx::ExecuteTx(CTxExecuteContext &context) {
-        CCacheWrapper &cw       = *context.pCw;
-        CValidationState &state = *context.pState;
+        IMPLEMENT_DEFINE_CW_STATE;
 
         CAccount txAccount;
         if (!cw.accountCache.GetAccount(txUid, txAccount)) {
@@ -973,20 +972,18 @@ namespace dex {
     }
 
     uint64_t CDealItemExecuter::GetOperatorFeeRatio(const CDEXOrderDetail &order,
-            const COrderOperatorParams &orderOperatorParams, const OrderSide &takerSide) {
-        uint64_t ratio;
-        if (order.order_side == takerSide) {
-            ratio = orderOperatorParams.taker_fee_ratio;
-        } else {
-            ratio = orderOperatorParams.maker_fee_ratio;
-        }
-        LogPrint(BCLog::DEX, "got operator_fee_ratio=%llu, is_taker=%d, order_side=%d",
-            ratio, order.order_side == takerSide, kOrderSideHelper.GetName(order.order_side));
+                                                    const COrderOperatorParams &orderOperatorParams,
+                                                    const OrderSide &takerSide) {
+        uint64_t ratio = (order.order_side == takerSide) ? orderOperatorParams.taker_fee_ratio :
+                        orderOperatorParams.maker_fee_ratio;
+
+        LogPrint(BCLog::DEX, "got operator_fee_ratio=%llu, is_taker=%d, order_side=%d", ratio,
+                order.order_side == takerSide, kOrderSideHelper.GetName(order.order_side));
+
         return ratio;
     }
 
     bool CDealItemExecuter::GetAccount(const CRegID &regid, shared_ptr<CAccount> &pAccount) {
-
         auto accountIt = accountMap.find(regid);
         if (accountIt != accountMap.end()) {
             pAccount = accountIt->second;
@@ -1002,7 +999,6 @@ namespace dex {
     }
 
     bool CDealItemExecuter::CalcOrderFee(uint64_t amount, uint64_t fee_ratio, uint64_t &orderFee) {
-
         uint128_t fee = amount * (uint128_t)fee_ratio / PRICE_BOOST;
         if (fee > (uint128_t)ULLONG_MAX)
             return context.pState->DoS(100, ERRORMSG("%s, the calc_order_fee out of range! amount=%llu, "
@@ -1015,11 +1011,11 @@ namespace dex {
     // class CDEXSettleTx
 
     string CDEXSettleTx::DealItem::ToString() const {
-        return  strprintf("buy_order_id=%s", buyOrderId.ToString()) + ", " +
-                strprintf("sell_order_id=%s", sellOrderId.ToString()) + ", " +
-                strprintf("price=%llu", dealPrice) + ", " +
-                strprintf("coin_amount=%llu", dealCoinAmount) + ", " +
-                strprintf("asset_amount=%llu", dealAssetAmount);
+        return  strprintf("buy_order_id=%s",    buyOrderId.ToString()) + ", " +
+                strprintf("sell_order_id=%s",   sellOrderId.ToString()) + ", " +
+                strprintf("price=%llu",         dealPrice) + ", " +
+                strprintf("coin_amount=%llu",   dealCoinAmount) + ", " +
+                strprintf("asset_amount=%llu",  dealAssetAmount);
     }
 
     string CDEXSettleTx::ToString(CAccountDBCache &accountCache) {
@@ -1053,13 +1049,13 @@ namespace dex {
     }
 
     bool CDEXSettleTx::CheckTx(CTxExecuteContext &context) {
-        IMPLEMENT_DEFINE_CW_STATE;
+        CValidationState &state = *context.pState;
+
         if (!CheckTxAvailableFromVer(context, MAJOR_VER_R2)) return false;
 
         if (txUid.get<CRegID>() != SysCfg().GetDexMatchSvcRegId()) {
-            return state.DoS(100, ERRORMSG("%s, account regid=%s is not authorized dex match-svc regId=%s",
-                TX_ERR_TITLE, txUid.ToString(), SysCfg().GetDexMatchSvcRegId().ToString()),
-                REJECT_INVALID, "unauthorized-settle-account");
+            return state.DoS(100, ERRORMSG("%s, account regid=%s is not authorized dex match-svc regId=%s", TX_ERR_TITLE,
+                            txUid.ToString(), SysCfg().GetDexMatchSvcRegId().ToString()), REJECT_INVALID, "unauthorized-settle-account");
         }
 
         if (dealItems.empty() || dealItems.size() > MAX_SETTLE_ITEM_COUNT)
@@ -1070,22 +1066,23 @@ namespace dex {
         for (size_t i = 0; i < dealItems.size(); i++) {
             const DealItem &dealItem = dealItems.at(i);
             if (dealItem.buyOrderId.IsEmpty() || dealItem.sellOrderId.IsEmpty())
-                return state.DoS(100, ERRORMSG("%s, deal_items[%d], buy_order_id or sell_order_id is empty",
-                    i), REJECT_INVALID, "empty-order-id");
+                return state.DoS(100, ERRORMSG("%s, deal_items[%d], buy_order_id or sell_order_id is empty", i),
+                                REJECT_INVALID, "empty-order-id");
+
             if (dealItem.buyOrderId == dealItem.sellOrderId)
-                return state.DoS(100, ERRORMSG("%s, deal_items[%d], buy_order_id cannot equal to sell_order_id",
-                    TX_ERR_TITLE, i), REJECT_INVALID, "same_order_id");
+                return state.DoS(100, ERRORMSG("%s, deal_items[%d], buy_order_id cannot equal to sell_order_id", TX_ERR_TITLE, i),
+                                REJECT_INVALID, "same_order_id");
+
             if (dealItem.dealCoinAmount == 0 || dealItem.dealAssetAmount == 0 || dealItem.dealPrice == 0)
-                return state.DoS(100, ERRORMSG("%s, deal_items[%d], deal_coin_amount or deal_asset_amount or deal_price is zero",
-                    TX_ERR_TITLE, i), REJECT_INVALID, "zero_order_amount");
+                return state.DoS(100, ERRORMSG("%s, deal_items[%d], deal_coin_amount or deal_asset_amount or deal_price is zero", TX_ERR_TITLE, i),
+                                REJECT_INVALID, "zero_order_amount");
         }
 
         return true;
     }
 
     bool CDEXSettleTx::ExecuteTx(CTxExecuteContext &context) {
-
-        CCacheWrapper &cw = *context.pCw; CValidationState &state = *context.pState;
+        IMPLEMENT_DEFINE_CW_STATE;
         vector<CReceipt> receipts;
 
         shared_ptr<CAccount> pTxAccount = make_shared<CAccount>();
@@ -1102,6 +1099,7 @@ namespace dex {
         map<CRegID, shared_ptr<CAccount>> accountMap = {
             {pTxAccount->regid, pTxAccount}
         };
+
         for (size_t i = 0; i < dealItems.size(); i++) {
             auto &dealItem = dealItems[i];
             CDealItemExecuter dealItemExec(dealItem, i, *this, context, pTxAccount, accountMap, receipts);
