@@ -34,7 +34,7 @@ enum TxType: uint8_t {
     UCOIN_STAKE_TX              = 8,    //!< Stake Fund Coin Tx in order to become a price feeder
 
     ASSET_ISSUE_TX              = 9,    //!< a user issues onchain asset
-    UIA_UPDATE_TX             = 10,   //!< a user update onchain asset
+    UIA_UPDATE_TX               = 10,   //!< a user update onchain asset
 
     UCOIN_TRANSFER_TX           = 11,   //!< Universal Coin Transfer Tx
     UCOIN_REWARD_TX             = 12,   //!< Universal Coin Reward Tx
@@ -73,6 +73,7 @@ enum TxType: uint8_t {
     DEX_OPERATOR_REGISTER_TX    = 100,  //!< dex operator register tx
     DEX_OPERATOR_UPDATE_TX      = 101, //!< dex operator update tx
 };
+
 
 struct TxTypeHash {
     size_t operator()(const TxType &type) const noexcept { return std::hash<uint8_t>{}(type); }

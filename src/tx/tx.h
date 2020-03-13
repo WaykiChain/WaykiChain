@@ -26,11 +26,11 @@
 using namespace std;
 
 // namespace wasm{
-  enum class transaction_status_type {
+enum class transaction_status_type {
     mining     = 0,
     validating = 1,
     syncing    = 2,
-  };
+};
 
 
 inline string to_string(transaction_status_type type){
