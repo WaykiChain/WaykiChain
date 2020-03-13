@@ -62,11 +62,11 @@ bool chain::ProcessBlockDelegates(CBlock &block, CCacheWrapper &cw, CValidationS
     // TODO: move to sysconf
     FeatureForkVersionEnum version = GetFeatureForkVersion(block.GetHeight());
     if (version >= MAJOR_VER_R3) {
-        countVoteInterval = 8;
-        activateDelegateInterval = 24;
+        countVoteInterval = COUNT_VOTE_INTERVAL_AFTER_V3;
+        activateDelegateInterval = ACTIVATE_DELEGATE_DELAY_AFTER_V3;
     } else {
-        countVoteInterval = 0;
-        activateDelegateInterval = 0;
+        countVoteInterval = COUNT_VOTE_INTERVAL_BEFORE_V3;
+        activateDelegateInterval = COUNT_VOTE_INTERVAL_AFTER_V3;
     }
 
     PendingDelegates pendingDelegates;
