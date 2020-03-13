@@ -275,18 +275,20 @@ bool AcceptToMemoryPool(CTxMemPool &pool, CValidationState &state, CBaseTx *pBas
     auto spCW = std::make_shared<CCacheWrapper>(mempool.cw.get());
 
     CBlockIndex *pTip =  chainActive.Tip();
+    if (pTip == nullptr) throw runtime_error("CheckTxInMemPool(), pChainTip is nullptr");
+    HeightType newHeight = pTip->height + 1;
     uint32_t fuelRate  = GetElementForBurn(pTip);
     uint32_t blockTime = pTip->GetBlockTime();
     uint32_t prevBlockTime = pTip->pprev != nullptr ? pTip->pprev->GetBlockTime() : pTip->GetBlockTime();
 
-    CTxExecuteContext context(chainActive.Height(), 0, fuelRate, blockTime, prevBlockTime, spCW.get(), &state);
+    CTxExecuteContext context(newHeight, 0, fuelRate, blockTime, prevBlockTime, spCW.get(), &state);
     if (!pBaseTx->CheckBaseTx(context))
         return ERRORMSG("AcceptToMemoryPool() : CheckBaseTx failed, txid: %s", hash.GetHex());
 
     if (!pBaseTx->CheckTx(context))
         return ERRORMSG("AcceptToMemoryPool() : CheckTx failed, txid: %s", hash.GetHex());
 
-    CTxMemPoolEntry entry(pBaseTx, GetTime(), chainActive.Height());
+    CTxMemPoolEntry entry(pBaseTx, GetTime(), newHeight);
     auto nFees = std::get<1>(entry.GetFees());
     auto nSize = entry.GetTxSize();
     // Continuously rate-limit free trx

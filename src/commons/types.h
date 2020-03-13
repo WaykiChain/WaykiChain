@@ -55,4 +55,7 @@ namespace container {
     }
 };
 
+typedef uint32_t HeightType;
+typedef uint32_t TxIndex;
+
 #endif //COMMONS_TYPES_H

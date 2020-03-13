@@ -81,9 +81,12 @@ void CTxMemPool::QueryHash(vector<uint256> &txids) {
 
 bool CTxMemPool::CheckTxInMemPool(const uint256 &txid, const CTxMemPoolEntry &memPoolEntry, CValidationState &state,
                                   bool bExecute) {
+    CBlockIndex *pTip =  chainActive.Tip();
+    if (pTip == nullptr) throw runtime_error("CheckTxInMemPool(), pChainTip is nullptr");
+    HeightType newHeight = pTip->height + 1;
     // is it within valid height
     static int validHeight = SysCfg().GetTxCacheHeight();
-    if (!memPoolEntry.GetTransaction()->IsValidHeight(chainActive.Height(), validHeight))
+    if (!memPoolEntry.GetTransaction()->IsValidHeight(newHeight, validHeight))
         return state.Invalid(ERRORMSG("CheckTxInMemPool() : txid: %s beyond the scope of valid height", txid.GetHex()),
                              REJECT_INVALID, "tx-invalid-height");
 
@@ -95,13 +98,12 @@ bool CTxMemPool::CheckTxInMemPool(const uint256 &txid, const CTxMemPoolEntry &me
     auto spCW = std::make_shared<CCacheWrapper>(cw.get());
 
     if (bExecute) {
-        CBlockIndex *pTip =  chainActive.Tip();
         uint32_t fuelRate  = GetElementForBurn(pTip);
         uint32_t blockTime = pTip->GetBlockTime();
         uint32_t prevBlockTime = pTip->pprev != nullptr ? pTip->pprev->GetBlockTime() : pTip->GetBlockTime();
-        CTxExecuteContext context(chainActive.Height(), 0, fuelRate, blockTime, prevBlockTime, spCW.get(), &state, transaction_status_type::validating);
+        CTxExecuteContext context(newHeight, 0, fuelRate, blockTime, prevBlockTime, spCW.get(), &state, transaction_status_type::validating);
         if (!memPoolEntry.GetTransaction()->ExecuteTx(context)) {
-            pCdMan->pLogCache->SetExecuteFail(chainActive.Height(), memPoolEntry.GetTransaction()->GetHash(),
+            pCdMan->pLogCache->SetExecuteFail(newHeight, memPoolEntry.GetTransaction()->GetHash(),
                                               state.GetRejectCode(), state.GetRejectReason());
             return false;
         }
