@@ -31,7 +31,6 @@ extern CCacheDBManager *pCdMan;
 #define ERROR_TITLE(msg) (std::string(__FUNCTION__) + "(), " + msg)
 #define BASE_TX_TITLE ERROR_TITLE(GetTxTypeName())
 
-AccountPermType kTxPerms[18] = { AccountPermType::NULL_ACCOUNT_PERM };
 kTxPerms[BCOIN_TRANSFER_TX]             = AccountPermType::PERM_SEND_COIN;
 kTxPerms[LCONTRACT_DEPLOY_TX]           = AccountPermType::PERM_DEPLOY_SC;
 kTxPerms[LCONTRACT_INVOKE_TX]           = AccountPermType::PERM_INVOKE_SC;

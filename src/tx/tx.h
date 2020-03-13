@@ -53,6 +53,8 @@ inline string to_string(transaction_status_type type){
 class CCacheWrapper;
 class CValidationState;
 
+AccountPermType kTxPerms[18] = { AccountPermType::NULL_ACCOUNT_PERM };
+
 string GetTxType(const TxType txType);
 bool GetTxMinFee(const TxType nTxType, int height, const TokenSymbol &symbol, uint64_t &feeOut);
 
