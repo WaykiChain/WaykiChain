@@ -51,15 +51,7 @@ enum AccountPermType : uint64_t {
 
 };
 
-const uint64_t kAccountAllPerms =
-                  AccountPermType::PERM_SEND_COIN   + AccountPermType::PERM_RECV_COIN
-                + AccountPermType::PERM_STAKE_COIN  + AccountPermType::PERM_UNSTAKE_COIN
-                + AccountPermType::PERM_SEND_VOTE   + AccountPermType::PERM_RECV_VOTE
-                + AccountPermType::PERM_SEND_UTXO   + AccountPermType::PERM_RECV_UTXO
-                + AccountPermType::PERM_DEPLOY_SC   + AccountPermType::PERM_UPGRADE_SC
-                + AccountPermType::PERM_PROPOSE     + AccountPermType::PERM_MINE_BLOCK
-                + AccountPermType::PERM_DEX         + AccountPermType::PERM_CDP
-                + AccountPermType::PERM_AXC_IN      + AccountPermType::PERM_AXC_OUT;
+const uint64_t kAccountAllPerms = uint64_t(-1); // == 0xFFFFFFFFFFFFFFFF enable all perms
 
 enum BalanceType : uint8_t {
     NULL_TYPE    = 0,   //!< invalid type
