@@ -1521,7 +1521,7 @@ void static FindMostWorkChain() {
     chainMostWork.SetTip(pIndexNew);
 }
 
-bool connectBlockOnFinChain(CBlockIndex* pNewIndex, CValidationState& state){
+bool ConnectBlockOnFinChain(CBlockIndex* pNewIndex, CValidationState& state){
 
     if(pNewIndex && chainActive.Tip() == pNewIndex->pprev){
         if (!ConnectTip(state, pNewIndex)) {
@@ -1567,14 +1567,14 @@ bool ActivateBestChain(CValidationState &state, CBlockIndex* pNewIndex) {
                         pbftMan.SetLocalFinTimeout() ;
                     } else{
                         LogPrint(BCLog::INFO, "connect block on fin chain\n") ;
-                        return connectBlockOnFinChain(pNewIndex, state) ;
+                        return ConnectBlockOnFinChain(pNewIndex, state) ;
                     }
                 }
 
                 uint256 globalFinIndexHash = pbftMan.GetGlobalFinBlockHash() ;
                 if( chainIndex->GetBlockHash() == globalFinIndexHash){
                     LogPrint(BCLog::INFO, "globalfinality block can't be reverse\n");
-                    return connectBlockOnFinChain(pNewIndex, state) ;
+                    return ConnectBlockOnFinChain(pNewIndex, state) ;
                 }
 
                 height-- ;
