@@ -412,7 +412,7 @@ namespace dex {
     }
 
     bool CDEXCancelOrderTx::CheckTx(CTxExecuteContext &context) {
-        CValidationState &state = *context.pState;
+        IMPLEMENT_DEFINE_CW_STATE;
 
         if (order_id.IsEmpty())
             return state.DoS(100, ERRORMSG("CDEXCancelOrderTx::CheckTx, order_id is empty"), REJECT_INVALID,
