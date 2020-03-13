@@ -380,7 +380,9 @@ namespace dex {
         };
 
     public:
-        CDEXOperatorOrderTx() : CDEXOrderBaseTx(DEX_OPERATOR_ORDER_TX) {}
+        CDEXOperatorOrderTx() : CDEXOrderBaseTx(DEX_OPERATOR_ORDER_TX) {
+            has_operator_config = true;
+        }
 
         CDEXOperatorOrderTx(const CUserID &txUidIn, int32_t validHeightIn, const TokenSymbol &feeSymbol,
                             uint64_t fees, OrderType orderTypeIn, OrderSide orderSideIn,
