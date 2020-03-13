@@ -210,7 +210,7 @@ bool CBaseTx::CheckBaseTx(CTxExecuteContext &context) {
     }
 
     { //5. check account perm
-        return (txAccount.perms_sum & kTxPerms[nTxType]) > 0);
+        return ((txAccount.perms_sum & kTxPerms[nTxType]) > 0);
     }
 }
 
