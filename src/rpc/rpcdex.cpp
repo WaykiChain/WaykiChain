@@ -820,7 +820,7 @@ void checkAccountRegId(const CUserID uid , const string field){
 
 Value submitdexoperatorregtx(const Array& params, bool fHelp){
 
-    if(fHelp || params.size()< 7  || params.size()>9){
+    if (fHelp || params.size() < 8  || params.size() > 10){
         throw runtime_error(
             "submitdexoperatorregtx  \"addr\" \"owner_uid\" \"fee_receiver_uid\" \"dex_name\" \"portal_url\" "
             "\"public_mode\" maker_fee_ratio taker_fee_ratio [\"fees\"] [\"memo\"]\n"
