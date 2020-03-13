@@ -257,7 +257,7 @@ bool CCoinUtxoTransferTx::CheckTx(CTxExecuteContext &context) {
 
     uint64_t accountBalance = srcAccount.GetBalance(coin_symbol, BalanceType::FREE_VALUE);
     if (accountBalance + totalInAmount < totalOutAmount + llFees)
-        return state.DoS(100, ERRORMSG("CCoinUtxoTransferTx::CheckTx, account balance coin_amount insufficient!"), 
+        return state.DoS(100, ERRORMSG("CCoinUtxoTransferTx::CheckTx, account balance coin_amount insufficient!"),
                         REJECT_INVALID, "insufficient-account-coin-amount");
 
     return true;
@@ -353,8 +353,8 @@ bool CCoinUtxoTransferTx::ExecuteTx(CTxExecuteContext &context) {
 /// class CCoinUtxoPasswordProofTx
 ////////////////////////////////////////
 bool CCoinUtxoPasswordProofTx::CheckTx(CTxExecuteContext &context) {
-    IMPLEMENT_DEFINE_CW_STATE;
-    
+    CValidationState &state = *context.pState;
+
     if ((txUid.is<CPubKey>()) && !txUid.get<CPubKey>().IsFullyValid())
         return state.DoS(100, ERRORMSG("CCoinUtxoTransferTx::CheckTx, public key is invalid"), REJECT_INVALID,
                         "bad-publickey");
