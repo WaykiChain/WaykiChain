@@ -422,8 +422,8 @@ Value submittotalbpssizeupdateproposal(const Array& params,bool fHelp) {
                 "create proposal about update total delegate(bp) count\n"
                 "\nArguments:\n"
                 "1.\"addr\":                (string,     required) the tx submitor's address\n"
-                "2.\"total_bps_size\":      (numberic,   required) the count of block producer(miner)  \n"
-                "3.\"effective_height\":    (numberic,   required) the height of the proposal launch \n"
+                "2.\"total_bps_size\":      (numberic,   required) the count of block producer(miner) range is [1,255] \n"
+                "3.\"effective_height\":    (numberic,   required) the effective height of the totalbpssize  \n"
                 "4.\"fee\":                 (combomoney, optional) the tx fee \n"
                 "\nExamples:\n"
                 + HelpExampleCli("submittotalbpssizeupdateproposal", "0-1 21 450020202  WICC:1:WI")
