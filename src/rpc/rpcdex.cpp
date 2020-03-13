@@ -841,10 +841,10 @@ Value submitdexoperatorregtx(const Array& params, bool fHelp){
 
             "\nExamples:\n"
             + HelpExampleCli("submitdexoperatorregtx", "\"0-1\" \"0-1\" \"0-2\" \"wayki-dex\""
-                            "\"http://www.wayki-dex.com\" 2000000 2000000")
+                            "\"http://www.wayki-dex.com\" \"PRIVATE\" 2000000 2000000")
             + "\nAs json rpc call\n"
             + HelpExampleRpc("submitdexoperatorregtx", "\"0-1\", \"0-1\", \"0-2\", \"wayki-dex\", "
-                            "\"http://www.wayki-dex.com\", \"PUBLIC\", 2000000, 2000000")
+                            "\"http://www.wayki-dex.com\", \"PRIVATE\", 2000000, 2000000")
 
             ) ;
     }
