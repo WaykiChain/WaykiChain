@@ -173,7 +173,6 @@ namespace wasm {
             if (native) {
                 (*native)(*this);
             } else {
-
                 vector <uint8_t> code = get_code(_receiver);
                 if (code.size() > 0) {
                     wasmif.execute(code, this);
@@ -186,7 +185,7 @@ namespace wasm {
                                      name(contract()).to_string(),
                                      name(action()).to_string(),
                                      name(receiver()).to_string(),
-                                    console_output );
+                                     console_output );
         } catch (...) {
             string console_output = (_pending_console_output.str().size() == 0)?string(""):string(", console: ") + _pending_console_output.str();
             CHAIN_THROW( wasm_chain::chain_exception, 

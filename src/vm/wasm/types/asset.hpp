@@ -390,7 +390,6 @@ namespace wasm {
                 // Parse symbol
                 string precision_digit_str;
                 if (dot_pos != string::npos) {
-                    //precision_digit_str = eosio::chain::to_string(amount_str.size() - dot_pos - 1);
                     char c[8];
                     sprintf(c, "%ld", amount_str.size() - dot_pos - 1);
 

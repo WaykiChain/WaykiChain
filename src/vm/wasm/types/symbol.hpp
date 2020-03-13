@@ -315,8 +315,9 @@ namespace wasm {
          *
          */
         constexpr symbol( symbol_code sc, uint8_t precision )
-                : value((sc.raw() << 8) | static_cast<uint64_t>(precision)) {}
-
+                : value((sc.raw() << 8) | static_cast<uint64_t>(precision)) {                    
+                    CHAIN_ASSERT( precision <= max_precision, symbol_type_exception, "precision '%d' should be <= 18", precision);
+                }
         /**
          * Construct a new symbol given a string and a uint8_t precision.
          *
@@ -326,12 +327,14 @@ namespace wasm {
          *
          */
         constexpr symbol( std::string_view ss, uint8_t precision )
-                : value((symbol_code(ss).raw() << 8) | static_cast<uint64_t>(precision)) {}
+                : value((symbol_code(ss).raw() << 8) | static_cast<uint64_t>(precision)) {
+                    CHAIN_ASSERT( precision <= max_precision, symbol_type_exception, "precision '%d' should be <= 18", precision);
+                }
 
         /**
          * Is this symbol valid
          */
-        constexpr bool is_valid() const { return code().is_valid(); }
+        constexpr bool is_valid() const { return code().is_valid() && precision() <= max_precision; }
 
         /**
          * This symbol's precision
@@ -350,9 +353,9 @@ namespace wasm {
 
         constexpr explicit operator bool() const { return value != 0; }
 
-        uint8_t decimals() const { return value & 0xFF; }
+        // uint8_t decimals() const { return value & 0xFF; }
         uint64_t precision_in_10() const {
-            CHAIN_ASSERT( precision() <= max_precision, symbol_type_exception, "precision %d should be <= 18", decimals() );
+            CHAIN_ASSERT( precision() <= max_precision, symbol_type_exception, "precision %d should be <= 18", precision() );
             uint64_t p10 = 1;
             uint64_t p = precision();
             while (p > 0) {
