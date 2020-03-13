@@ -531,24 +531,22 @@ Value gendexoperatorordertx(const Array& params, bool fHelp) {
         RPC_PARAM::CheckAccountBalance(txAccount, assets.symbol, FREEZE, assets.GetAmountInSawi());
     }
 
-
-    shared_ptr<CDEXOrderBaseTx> pOrderBaseTx;
     if (version < MAJOR_VER_R3) {
         throw JSONRPCError(RPC_INVALID_PARAMS, strprintf("unsupport to call %s() before height=%d",
             __func__, SysCfg().GetVer3ForkHeight()));
     }
 
-    shared_ptr<CBaseTx> pTx = make_shared<CDEXOperatorOrderTx>(
+    shared_ptr<CDEXOrderBaseTx> pOrderBaseTx = make_shared<CDEXOperatorOrderTx>(
         userId, validHeight, cmFee.symbol, cmFee.GetAmountInSawi(), orderType, orderSide,
         coins.symbol, assets.symbol, coins.GetAmountInSawi(), assets.GetAmountInSawi(), price, dexId,
         publicMode, memo, makerFeeRatio, takerFeeRatio, operatorDetail.fee_receiver_regid);
 
     CDataStream ds(SER_DISK, CLIENT_VERSION);
-    ds << pTx;
+    ds << pOrderBaseTx;
 
     Object obj;
     obj.push_back(Pair("rawtx", HexStr(ds.begin(), ds.end())));
-    return SubmitOrderTx(txAccount.keyid, operatorDetail, pOrderBaseTx);
+    return obj;
 }
 
 Value submitdexcancelordertx(const Array& params, bool fHelp) {
