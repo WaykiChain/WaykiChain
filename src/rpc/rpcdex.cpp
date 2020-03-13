@@ -41,7 +41,7 @@ namespace RPC_PARAM {
 
     OrderType GetOrderType(const Value &jsonValue) {
         OrderType ret = OrderType::ORDER_TYPE_NULL;
-        if (kOrderTypeHelper.Parse(jsonValue.get_str(), ret))
+        if (!kOrderTypeHelper.Parse(jsonValue.get_str(), ret))
             throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("order_type=%s is invalid",
                 jsonValue.get_str()));
         return ret;
