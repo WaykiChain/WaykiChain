@@ -62,7 +62,7 @@ Value getgovernors(const Array& params, bool fHelp) {
 
 
     Object o ;
-    vector<CRegID> governors ;
+    set<CRegID> governors ;
     pCdMan->pSysGovernCache->GetGovernors(governors) ;
     Array arr ;
     for(auto id: governors) {

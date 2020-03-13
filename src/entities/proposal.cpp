@@ -75,6 +75,11 @@ bool CGovBpMcListProposal::CheckProposal(CTxExecuteContext& context ){
         return state.DoS(100, ERRORMSG("CProposalRequestTx::CheckTx, regid(%s) is not a governor!", governor_regid.ToString()), REJECT_INVALID,
                          "regid-not-governor");
     }
+
+    if(op_type == ProposalOperateType ::ENABLE&&cw.sysGovernCache.CheckIsGovernor(governor_regid)){
+        return state.DoS(100, ERRORMSG("CProposalRequestTx::CheckTx, regid(%s) is a governor already!", governor_regid.ToString()), REJECT_INVALID,
+                         "regid-is-governor");
+    }
     return true ;
 }
 
@@ -82,29 +87,9 @@ bool CGovBpMcListProposal::ExecuteProposal(CTxExecuteContext& context, const TxI
     CCacheWrapper &cw       = *context.pCw;
 
     if (op_type == ProposalOperateType::DISABLE) {
-        vector<CRegID> governors;
-        if (cw.sysGovernCache.GetGovernors(governors)) {
-            for (auto itr = governors.begin(); itr != governors.end();) {
-                if (*itr == governor_regid) {
-                    governors.erase(itr);
-                    break ;
-                } else
-                    itr++ ;
-            }
-            return cw.sysGovernCache.SetGovernors(governors) ;
-        }
-
-        return false ;
-
+        return cw.sysGovernCache.EraseGovernor(governor_regid);
     } else if (op_type == ProposalOperateType::ENABLE) {
-        vector<CRegID> governors ;
-        cw.sysGovernCache.GetGovernors(governors);
-
-        if (find(governors.begin(),governors.end(),governor_regid) != governors.end())
-            return false ;
-
-        governors.push_back(governor_regid) ;
-        return cw.sysGovernCache.SetGovernors(governors) ;
+        return cw.sysGovernCache.AddGovernor(governor_regid);
     }
 
     return false  ;

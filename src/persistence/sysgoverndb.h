@@ -55,9 +55,9 @@ public:
 
     uint8_t GetGovernorApprovalMinCount(){
 
-        vector<CRegID> regids;
-        if (governors_cache.GetData(regids)) {
-            return regids.size() * 2 / 3 + regids.size()%3;
+        set<CRegID> regids;
+        if (GetGovernors(regids)) {
+            return (regids.size() / 3) * 2 + regids.size()%3;
         }
 
         return 1 ;
@@ -81,7 +81,7 @@ public:
     int GetApprovalCount(const uint256 &proposalId){
         vector<CRegID> v ;
         approvals_cache.GetData(proposalId, v) ;
-        return  v.size();
+        return static_cast<int>(v.size());
     }
 
     bool GetApprovalList(const uint256& proposalId, vector<CRegID>& v){
@@ -102,27 +102,37 @@ public:
     }
 
     bool CheckIsGovernor(const CRegID &candidateRegId) {
-        if (!governors_cache.HasData())
-            return (candidateRegId == CRegID(SysCfg().GetStableCoinGenesisHeight(), 2));
-
-        vector<CRegID> regids;
-        if(governors_cache.GetData(regids)){
-            auto itr = find(regids.begin(), regids.end(), candidateRegId);
-            return ( itr != regids.end() );
+        set<CRegID> regids;
+        if(GetGovernors(regids)){
+           return regids.count(candidateRegId) > 0;
         }
 
         return false ;
     }
 
-    bool SetGovernors(const vector<CRegID> &governors){
-        return governors_cache.SetData(governors) ;
-    }
-    bool GetGovernors(vector<CRegID>& governors){
+
+
+    bool GetGovernors(set<CRegID>& governors){
 
         governors_cache.GetData(governors);
         if(governors.empty())
-            governors.emplace_back(CRegID(SysCfg().GetStableCoinGenesisHeight(), 2));
+            governors.insert(CRegID(SysCfg().GetStableCoinGenesisHeight(), 2));
         return true;
+    }
+
+    bool AddGovernor(const CRegID governor){
+        set<CRegID> governors;
+        governors_cache.GetData(governors);
+        governors.insert(governor);
+        return governors_cache.SetData(governors) ;
+    }
+
+    bool EraseGovernor(const CRegID governor){
+        set<CRegID> governors;
+        governors_cache.GetData(governors);
+
+        governors.erase(governor);
+        return governors_cache.SetData(governors) ;
     }
 
     void RegisterUndoFunc(UndoDataFuncMap &undoDataFuncMap) {
@@ -134,7 +144,7 @@ public:
 public:
 /*  CSimpleKVCache          prefixType             value           variable           */
 /*  -------------------- --------------------   -------------   --------------------- */
-    CSimpleKVCache< dbk::SYS_GOVERN,            vector<CRegID>>        governors_cache;    // list of governors
+    CSimpleKVCache< dbk::SYS_GOVERN,            set<CRegID>>        governors_cache;    // list of governors
 
 /*       type               prefixType               key                     value                 variable               */
 /*  ----------------   -------------------------   -----------------------  ------------------   ------------------------ */
