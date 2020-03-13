@@ -107,42 +107,43 @@ uint64_t CBaseTx::GetFuel(int32_t height, uint32_t fuelRate) {
 bool CBaseTx::CheckBaseTx(CTxExecuteContext &context) {
     IMPLEMENT_DEFINE_CW_STATE;
 
+    if(nTxType == BLOCK_REWARD_TX
+    || nTxType == PRICE_MEDIAN_TX
+    || nTxType == UCOIN_REWARD_TX
+    || nTxType == UCOIN_BLOCK_REWARD_TX) {
+        return true;
+    }
+
+
     CAccount txAccount;
     bool foundAccount = cw.accountCache.GetAccount(txUid, txAccount);
 
-    bool signatureValid = false;
 
     { //1. Tx signature check
-        switch (nTxType) {
-            case BLOCK_REWARD_TX:
-            case PRICE_MEDIAN_TX:
-            case UCOIN_REWARD_TX:
-            case UCOIN_BLOCK_REWARD_TX: signatureValid = true; break;
-            default: {
-                if (GetFeatureForkVersion(context.height) < MAJOR_VER_R2) {
-                    signatureValid = true; //due to a pre-existing bug and illegally issued unsigned vote Tx
-                } else {
-                    CPubKey pubKey;
-                    if (txUid.is<CPubKey>()) {
-                        pubKey = txUid.get<CPubKey>();
-                    } else {
-                        if (!foundAccount) {
-                            return state.DoS(100, ERRORMSG("CheckBaseTx::CheckTx, read txUid %s account info error",
-                                        txUid.ToString()), READ_ACCOUNT_FAIL, "bad-read-accountdb");
-                        }
-
-                        if (txAccount.perms_sum == 0) {
-                            return state.DoS(100, ERRORMSG("CheckBaseTx::CheckTx, perms_sum is zero error: txUid %s",
-                                        txUid.ToString()), READ_ACCOUNT_FAIL, "bad-tx-sign");
-                        }
-
-                        pubKey = txAccount.owner_pubkey;
-                    }
-
-                    signatureValid = VerifySignature(context, pubKey);
+        bool signatureValid = false;
+        if (GetFeatureForkVersion(context.height) < MAJOR_VER_R2) {
+            signatureValid = true; //due to a pre-existing bug and illegally issued unsigned vote Tx
+        } else {
+            CPubKey pubKey;
+            if (txUid.is<CPubKey>()) {
+                pubKey = txUid.get<CPubKey>();
+            } else {
+                if (!foundAccount) {
+                    return state.DoS(100, ERRORMSG("CheckBaseTx::CheckTx, read txUid %s account info error",
+                                txUid.ToString()), READ_ACCOUNT_FAIL, "bad-read-accountdb");
                 }
+
+                if (txAccount.perms_sum == 0) {
+                    return state.DoS(100, ERRORMSG("CheckBaseTx::CheckTx, perms_sum is zero error: txUid %s",
+                                txUid.ToString()), READ_ACCOUNT_FAIL, "bad-tx-sign");
+                }
+
+                pubKey = txAccount.owner_pubkey;
             }
+
+            signatureValid = VerifySignature(context, pubKey);
         }
+
         if (!signatureValid)
             return state.DoS(100, ERRORMSG("CheckBaseTx::CheckTx, verify txUid %s sign failed", txUid.ToString()),
                             READ_ACCOUNT_FAIL, "bad-tx-sign");
@@ -150,22 +151,17 @@ bool CBaseTx::CheckBaseTx(CTxExecuteContext &context) {
 
     { //2. check Tx fee
         switch (nTxType) {
-            case BLOCK_REWARD_TX:
-            case PRICE_MEDIAN_TX:
-            case UCOIN_REWARD_TX:
-            case UCOIN_BLOCK_REWARD_TX: break; //no fee required
             case LCONTRACT_DEPLOY_TX:
             case LCONTRACT_INVOKE_TX:
             case UCOIN_TRANSFER_TX: break;      //to be checked in Tx but not here
             default:
-                if (!CheckFee(context)) return false;
+                if(!CheckFee(context)) return false;
         }
     }
 
     {
         switch (nTxType) {
-            // case BLOCK_REWARD_TX:
-            // case ACCOUNT_REGISTER_TX:
+
             case BCOIN_TRANSFER_TX:         IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid);
                                             return ((txAccount.perms_sum & AccountPermType::PERM_SEND_COIN) > 0);
             case LCONTRACT_DEPLOY_TX:       IMPLEMENT_CHECK_TX_REGID(txUid);
@@ -185,8 +181,7 @@ bool CBaseTx::CheckBaseTx(CTxExecuteContext &context) {
             case UCOIN_TRANSFER_TX:         IMPLEMENT_DISABLE_TX_PRE_STABLE_COIN_RELEASE;
                                             IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid);
                                             return ((txAccount.perms_sum & AccountPermType::PERM_SEND_COIN) > 0);
-            // case UCOIN_REWARD_TX:
-            // case UCOIN_BLOCK_REWARD_TX:
+
             case UCONTRACT_DEPLOY_TX:       IMPLEMENT_CHECK_TX_REGID(txUid);
                                             IMPLEMENT_DISABLE_TX_PRE_STABLE_COIN_RELEASE;
                                             return ((txAccount.perms_sum & AccountPermType::PERM_DEPLOY_SC) > 0);

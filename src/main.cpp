@@ -1556,7 +1556,7 @@ bool ActivateBestChain(CValidationState &state, CBlockIndex* pNewIndex) {
         if (chainMostWork.Tip() == nullptr)
             break;
 
-        auto height = chainActive.Height() ;
+        auto height = chainActive.Height();
         while(height >= 0 ){
             auto chainIndex = chainActive[height] ;
             if( chainIndex &&!chainMostWork.Contains(chainIndex)){
@@ -1623,8 +1623,6 @@ bool ActivateBestChain(CValidationState &state, CBlockIndex* pNewIndex) {
             boost::replace_all(strCmd, "%s", chainActive.Tip()->GetBlockHash().GetHex());
             boost::thread t(runCommand, strCmd);  // thread runs free
         }
-
-       // chainActive.UpdateFinalityBlock();
     }
 
     return true;
