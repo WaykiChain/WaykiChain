@@ -1031,8 +1031,6 @@ extern Value getdexorderfee(const Array& params, bool fHelp) {
 
     CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, userId);
 
-    const TokenSymbol& assetSymbol = RPC_PARAM::GetAssetIssueSymbol(params[0]);
-
     int32_t height = chainActive.Height();
     uint64_t minFee = 0;
     uint64_t defaultMinFee = 0;
