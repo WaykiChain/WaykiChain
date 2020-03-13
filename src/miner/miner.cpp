@@ -337,7 +337,7 @@ static bool CreateNewBlockPreStableCoinRelease(CCacheWrapper &cwIn, std::unique_
                 CValidationState state;
                 pBaseTx->nFuelRate = fuelRate;
                 uint32_t prevBlockTime = pIndexPrev->GetBlockTime();
-                CTxExecuteContext context(height, index + 1, fuelRate, blockTime, prevBlockTime, spCW.get(), &state, 
+                CTxExecuteContext context(height, index + 1, fuelRate, blockTime, prevBlockTime, spCW.get(), &state,
                                         transaction_status_type::mining);
 
                 std::shared_ptr<CPubKey> spTxSenderPubKey;
@@ -503,7 +503,7 @@ static bool CreateNewBlockStableCoinRelease(int64_t startMiningMs, CCacheWrapper
                          pBaseTx->ToString(spCW->accountCache));
 
                 uint32_t prevBlockTime = pIndexPrev->GetBlockTime();
-                CTxExecuteContext context(height, index + 1, fuelRate, blockTime, prevBlockTime, spCW.get(), &state, 
+                CTxExecuteContext context(height, index + 1, fuelRate, blockTime, prevBlockTime, spCW.get(), &state,
                                         transaction_status_type::mining);
 
                 std::shared_ptr<CPubKey> spTxSenderPubKey;
@@ -629,7 +629,7 @@ static bool GetMiner(int64_t startMiningMs, const int32_t blockHeight, Miner &mi
             return false;
         }
     }
-    LogPrint(BCLog::DEBUG, "GetMiner(): on-duty miner, height=%d, time_ms=%lld, regid=%s, addr=%s, use_miner_key=%d\n",
+    LogPrint(BCLog::DEBUG, "GetMiner(): on-duty miner, height=%d, time_ms=%lld, regid=%s, addr=%s, is_miner_key=%d\n",
         blockHeight, startMiningMs, miner.delegate.regid.ToString(), miner.account.keyid.ToAddress(), isMinerKey);
 
     return true;
