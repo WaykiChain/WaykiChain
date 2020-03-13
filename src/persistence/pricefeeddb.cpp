@@ -313,7 +313,9 @@ bool CPriceFeedCache::EraseFeedCoinPair(TokenSymbol feedCoin, TokenSymbol quoteC
 }
 
 bool CPriceFeedCache::HasFeedCoinPair(TokenSymbol feedCoin,TokenSymbol quoteCoin) {
-    if(feedCoin == SYMB::WICC && quoteCoin == SYMB::USD)
+    // WICC:USD is the default staked coin pair of cdp
+    // WGRT:USD is need by forced-liquidate cdp for inflating WGRT
+    if((feedCoin == SYMB::WICC || feedCoin == SYMB::WGRT) && quoteCoin == SYMB::USD)
         return true ;
 
     set<pair<TokenSymbol, TokenSymbol>> coins ;
