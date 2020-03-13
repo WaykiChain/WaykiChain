@@ -10,7 +10,7 @@
 
 /**################################ Base Coin (WICC) Transfer ########################################**/
 bool CBaseCoinTransferTx::CheckTx(CTxExecuteContext &context) {
-    IMPLEMENT_DEFINE_CW_STATE;
+    CValidationState &state = *context.pState;
     IMPLEMENT_CHECK_TX_MEMO;
 
     IMPLEMENT_CHECK_TX_REGID_OR_KEYID(toUid);

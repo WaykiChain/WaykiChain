@@ -121,7 +121,7 @@ Object CDEXOperatorRegisterTx::ToJson(const CAccountDBCache &accountCache) const
 }
 
 bool CDEXOperatorRegisterTx::CheckTx(CTxExecuteContext &context) {
-    IMPLEMENT_DEFINE_CW_STATE;
+    CValidationState &state = *context.pState;
 
     if (!data.owner_uid.is<CRegID>())
         return state.DoS(100, ERRORMSG("%s, owner_uid must be regid", __func__), REJECT_INVALID,
@@ -131,7 +131,7 @@ bool CDEXOperatorRegisterTx::CheckTx(CTxExecuteContext &context) {
         return state.DoS(100, ERRORMSG("%s, fee_receiver_uid must be regid", __func__), REJECT_INVALID,
             "match-uid-type-error");
 
-    if (data.name.size() > MAX_NAME_LEN) 
+    if (data.name.size() > MAX_NAME_LEN)
         return state.DoS(100, ERRORMSG("%s, name len=%d greater than %d", __func__,
             data.name.size(), MAX_NAME_LEN), REJECT_INVALID, "invalid-name");
 

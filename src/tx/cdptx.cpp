@@ -107,7 +107,7 @@ bool ComputeCDPInterest(CTxExecuteContext &context, const CCdpCoinPair& coinPair
 // CDP owner can redeem his or her CDP that are in liquidation list
 bool CCDPStakeTx::CheckTx(CTxExecuteContext &context) {
     IMPLEMENT_DEFINE_CW_STATE;
-    
+
     if (assets_to_stake.size() != 1)
         return state.DoS(100, ERRORMSG("CCDPStakeTx::CheckTx, only support to stake one asset!"),
                         REJECT_INVALID, "invalid-stake-asset");
@@ -393,12 +393,12 @@ bool CCDPStakeTx::SellInterestForFcoins(const CTxCord &txCord, const CUserCDP &c
 
 /************************************<< CCDPRedeemTx >>***********************************************/
 bool CCDPRedeemTx::CheckTx(CTxExecuteContext &context) {
-    IMPLEMENT_DEFINE_CW_STATE;
+    CValidationState &state = *context.pState;
 
     if (cdp_txid.IsEmpty())
         return state.DoS(100, ERRORMSG("CCDPRedeemTx::CheckTx, cdp_txid is empty"),
                         REJECT_INVALID, "empty-cdpid");
-    
+
     return true;
 }
 
@@ -644,9 +644,9 @@ bool CCDPRedeemTx::SellInterestForFcoins(const CTxCord &txCord, const CUserCDP &
 
  /************************************<< CdpLiquidateTx >>***********************************************/
  bool CCDPLiquidateTx::CheckTx(CTxExecuteContext &context) {
-    IMPLEMENT_DEFINE_CW_STATE;
-    
-    if (scoins_to_liquidate == 0) 
+     CValidationState &state = *context.pState;
+
+    if (scoins_to_liquidate == 0)
         return state.DoS(100, ERRORMSG("CCDPLiquidateTx::CheckTx, invalid liquidate amount(0)"), REJECT_INVALID,
                          "invalid-liquidate-amount");
 
