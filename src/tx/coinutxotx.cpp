@@ -69,11 +69,11 @@ inline bool CheckUtxoOutCondition( const CTxExecuteContext &context, const bool 
                             return state.DoS(100, ERRORMSG("CCoinUtxoTransferTx::CheckTx, cond multisig m/n too large!"), REJECT_INVALID,
                                             "cond-multsig-mn-too-large-err");
                         }
-                        if (p2maCondIn.keyids.size() != p2maCondIn.n) {
-                             return state.DoS(100, ERRORMSG("CCoinUtxoTransferTx::CheckTx, cond multisig keyids size mismatch!"), REJECT_INVALID,
-                                            "cond-multsig-keyids-size-mismatch-err");
+                        if (p2maCondIn.uids.size() != p2maCondIn.n) {
+                             return state.DoS(100, ERRORMSG("CCoinUtxoTransferTx::CheckTx, cond multisig uids size mismatch!"), REJECT_INVALID,
+                                            "cond-multsig-uids-size-mismatch-err");
                         }
-                        CKeyId multiSignKeyId;
+                        CKeyID multiSignKeyId;
                         p2maCondIn.ComputeMultiSignKeyId(multiSignKeyId);
                         if (theCond.dest_multisign_keyid != multiSignKeyId) {
                             return state.DoS(100, ERRORMSG("CCoinUtxoTransferTx::CheckTx, cond multisig keyid mismatch error!"), REJECT_INVALID,
