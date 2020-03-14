@@ -76,7 +76,7 @@ bool VerifyMultiSig(const CTxExecuteContext &context, uint256 &utxoMultiSignHash
             if (!cw.accountCache.GetAccount(uid, acct))
                 return false;
 
-            if (VerifySignature(utxoMultiSignHash, signature, account.keyid.get<CPubKey>())) {
+            if (VerifySignature(utxoMultiSignHash, signature, acct.keyid.get<CPubKey>())) {
                 verifyPassNum++;
                 break;
             }
