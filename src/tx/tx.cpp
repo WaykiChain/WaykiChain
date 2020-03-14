@@ -151,7 +151,7 @@ bool CBaseTx::CheckBaseTx(CTxExecuteContext &context) {
         switch (nTxType) {
             case LCONTRACT_DEPLOY_TX:
             case LCONTRACT_INVOKE_TX:
-            case UCOIN_TRANSFER_TX: break;      //to be checked in Tx but not here
+            case UCOIN_TRANSFER_TX: break; //to be checked in Tx Code but not here
             default:
                 if(!CheckFee(context)) return false;
         }
@@ -169,7 +169,7 @@ bool CBaseTx::CheckBaseTx(CTxExecuteContext &context) {
         }
     }
 
-    { //4. IMPLEMENT_DISABLE_TX_PRE_STABLE_COIN_RELEASE
+    { //4. IMPLEMENT_DISABLE_TX_PRE_STABLE_COIN_RELEASE , for testnet/regtest backward compatibility
         switch (nTxType) {
             case BCOIN_TRANSFER_TX:
             case LCONTRACT_DEPLOY_TX:
