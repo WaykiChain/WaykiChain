@@ -45,6 +45,7 @@ public:
         : pBase(pBaseIn) {}
 
 public:
+    bool ReloadPrices(CBlockIndex *pTipBlockIdx);
     bool AddPrice(const int32_t blockHeight, const CRegID &regId, const vector<CPricePoint> &pps);
     bool AddPriceByBlock(const CBlock &block);
     // delete block price point by specific block height.

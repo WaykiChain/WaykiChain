@@ -8,6 +8,7 @@
 #include "config/scoin.h"
 #include "main.h"
 #include "tx/pricefeedtx.h"
+#include "commons/types.h"
 
 void CConsecutiveBlockPrice::AddUserPrice(const int32_t blockHeight, const CRegID &regId, const uint64_t price) {
     mapBlockUserPrices[blockHeight][regId] = price;
@@ -23,6 +24,32 @@ bool CConsecutiveBlockPrice::ExistBlockUserPrice(const int32_t blockHeight, cons
         return false;
 
     return mapBlockUserPrices[blockHeight].count(regId);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+//CPricePointMemCache
+
+bool CPricePointMemCache::ReloadPrices(CBlockIndex *pTipBlockIdx) {
+
+    int64_t start       = GetTimeMillis();
+    CBlockIndex *pBlockIdx  = pTipBlockIdx;
+
+    const uint32_t MAX_COUNT = 11;  // TODO: parameterize 11.
+    uint32_t count       = 0;
+
+    while (pBlockIdx && count < MAX_COUNT ) {
+        CBlock block;
+        if (!ReadBlockFromDisk(pBlockIdx, block))
+            return ERRORMSG("%s(), read block from disk failed", __func__);
+
+        if (!pCdMan->pPpCache->AddPriceByBlock(block))
+            return ERRORMSG("%d(), add block to price point memory cache failed", __func__);
+
+        pBlockIdx = pBlockIdx->pprev;
+        ++count;
+    }
+    LogPrint(BCLog::INFO, "Reload the latest %d blocks to price point memory cache (%d ms)\n", count, GetTimeMillis() - start);
+    return true;
 }
 
 bool CPricePointMemCache::AddPrice(const int32_t blockHeight, const CRegID &regId,

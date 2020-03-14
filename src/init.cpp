@@ -788,45 +788,9 @@ bool AppInit(boost::thread_group &threadGroup) {
     if (!ActivateBestChain(state))
         return InitError("Failed to connect best block");
 
-    nStart                   = GetTimeMillis();
-    CBlockIndex *pBlockIndex = chainActive.Tip();
-    int32_t nCacheHeight     = SysCfg().GetTxCacheHeight();
-    int32_t nCount           = 0;
-    CBlock block;
-    while (pBlockIndex && nCacheHeight-- > 0) {
-        if (!ReadBlockFromDisk(pBlockIndex, block))
-            return InitError("Failed to read block from disk");
-
-        if (!pCdMan->pTxCache->AddBlockTx(block))
-            return InitError("Failed to add block to transaction memory cache");
-
-        pBlockIndex = pBlockIndex->pprev;
-        ++nCount;
+    if (!pCdMan->pPpCache->ReloadPrices(chainActive.Tip())) {
+        return InitError("Init prices of PriceFeedMemCache failed");
     }
-    LogPrint(BCLog::INFO, "Added the latest %d blocks to transaction memory cache (%dms)\n", nCount, GetTimeMillis() - nStart);
-
-    nStart       = GetTimeMillis();
-    pBlockIndex  = chainActive.Tip();
-    nCacheHeight = 11;  // TODO: parameterize 11.
-    nCount       = 0;
-
-
-    if (pBlockIndex) {
-        if (!ReadBlockFromDisk(pBlockIndex, block))
-            return InitError("Failed to read block from disk");
-    }
-
-    while (pBlockIndex && nCacheHeight-- > 0) {
-        if (!ReadBlockFromDisk(pBlockIndex, block))
-            return InitError("Failed to read block from disk");
-
-        if (!pCdMan->pPpCache->AddPriceByBlock(block))
-            return InitError("Failed to add block to price point memory cache");
-
-        pBlockIndex = pBlockIndex->pprev;
-        ++nCount;
-    }
-    LogPrint(BCLog::INFO, "Added the latest %d blocks to price point memory cache (%dms)\n", nCount, GetTimeMillis() - nStart);
 
     vector<boost::filesystem::path> vImportFiles;
     if (SysCfg().IsArgCount("-loadblock")) {
