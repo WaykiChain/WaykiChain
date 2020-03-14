@@ -31,7 +31,7 @@ bool GetUtxoTxFromChain(TxID &txid, std::shared_ptr<CBaseTx> &pBaseTx) {
     return true;
 }
 
-bool ComputeRedeemScript(const CTxExecuteContext &context, CMultiSignAddressCondIn &p2maIn, string &redeemScript) {
+bool ComputeRedeemScript(const CTxExecuteContext &context, const CMultiSignAddressCondIn &p2maIn, string &redeemScript) {
     CCacheWrapper &cw = *context.pCw;
 
     CAccount acct;
@@ -45,7 +45,7 @@ bool ComputeRedeemScript(const CTxExecuteContext &context, CMultiSignAddressCond
     return true;
 }
 
-bool ComputeMultiSignKeyId(string redeemScript, CKeyID &keyId) {
+bool ComputeMultiSignKeyId(const string &redeemScript, CKeyID &keyId) {
     uint160 redeemScriptHash = Hash160(redeemScript); //equal to RIPEMD160(SHAR256(redeemScript))
     keyId = CKeyID(redeemScriptHash);
     return true;
@@ -59,14 +59,14 @@ bool ComputeUtxoMultisignHash(const TxID &prevUtxoTxId, uint16_t prevUtxoTxVoutI
     return true;
 }
 
-bool VerifyMultiSig(const CTxExecuteContext &context, uint256 &utxoMultiSignHash, CMultiSignAddressCondIn &p2maIn) {
+bool VerifyMultiSig(const CTxExecuteContext &context, const uint256 &utxoMultiSignHash, const CMultiSignAddressCondIn &p2maIn) {
     if (p2maIn.signatures.size() < p2maIn.m)
         return false;
 
     CCacheWrapper &cw = *context.pCw;
 
     string redeemScript("");
-    if (!ComputeRedeemScript(context, p2maIn.uids, redeemScript))
+    if (!ComputeRedeemScript(context, p2maIn, redeemScript))
         return false;
 
     int verifyPassNum = 0;
