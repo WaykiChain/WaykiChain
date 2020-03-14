@@ -132,7 +132,7 @@ struct CMultiSignAddressCondIn : CUtxoCond {
         string redeemScript("");
         ComputeRedeemScript(redeemScript);
         uint160 redeemScriptHash = Hash160(redeemScript);
-        keyID = CKeyID(redeemScriptHash);
+        keyId = CKeyID(redeemScriptHash);
         return true;
     }
 
