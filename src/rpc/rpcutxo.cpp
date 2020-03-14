@@ -347,9 +347,15 @@ static void ParseUtxoCond(const Array& arr, vector<shared_ptr<CUtxoCond>>& vCond
                 break;
             }
             case UtxoCondType::OP2MA: {
-               /* const Value& uidV = JSON::GetObjectFieldValue(obj,"uid") ;
-                CUserID uid = RPC_PARAM::GetUserId(uidV) ;
-                vCond.push_back(make_shared<CMultiSignAddressCondOut>(uid)) ;*/
+
+
+                const Value& addrV = JSON::GetObjectFieldValue(obj,"multisign_address") ;
+                CKeyID multiSignKeyId(addrV.get_str()) ;
+                if (multiSignKeyId.IsNull()) {
+                    throw  JSONRPCError(RPC_INVALID_PARAMETER,
+                            strprintf("the multi sign address (%s) is illegal",addrV.get_str()));
+                }
+                vCond.push_back(make_shared<CMultiSignAddressCondOut>(multiSignKeyId)) ;
                 break;
             }
 
