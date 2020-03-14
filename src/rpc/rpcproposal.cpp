@@ -386,12 +386,12 @@ Value submitproposalapprovaltx(const Array& params, bool fHelp){
                 "approval a proposal\n"
                 "\nArguments:\n"
                 "1.\"addr\":             (string,     required) the tx submitor's address\n"
-                "2.\"proposalid\":       (numberic,   required) the dexoperator's id\n"
+                "2.\"proposalid\":       (string,   required) the proposal's id\n"
                 "3.\"fee\":              (combomoney, optional) the tx fee \n"
                 "\nExamples:\n"
-                + HelpExampleCli("submitproposalapprovaltx", "0-1 1 1  WICC:1:WI")
+                + HelpExampleCli("submitproposalapprovaltx", "0-1 2390ewdosd0wfsdi0wfwefweiojwofwe0fw212wasewd  WICC:1:WI")
                 + "\nAs json rpc call\n"
-                + HelpExampleRpc("submitproposalapprovaltx", R"("0-1", 1, 1, "WICC:1:WI")")
+                + HelpExampleRpc("submitproposalapprovaltx", R"("0-1", "2390ewdosd0wfsdi0wfwefweiojwofwe0fw212wasewd", 1, "WICC:1:WI")")
 
         );
     }

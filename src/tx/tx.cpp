@@ -30,7 +30,7 @@ extern CCacheDBManager *pCdMan;
 
 #define ERROR_TITLE(msg) (std::string(__FUNCTION__) + "(), " + msg)
 #define BASE_TX_TITLE ERROR_TITLE(GetTxTypeName())
-   
+
 string GetTxType(const TxType txType) {
     auto it = kTxFeeTable.find(txType);
     if (it != kTxFeeTable.end())

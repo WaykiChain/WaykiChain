@@ -11,17 +11,100 @@
 #include "rpc/core/rpcserver.h"
 #include "rpc/core/rpccommons.h"
 #include "main.h"
+#include "wallet/wallet.h"
 using namespace std;
+
 
 enum UtxoCondDirection: uint8_t {
     IN,
     OUT
 };
 
+extern CWallet* pWalletMain;
+
 static void ParseUtxoCond(const Array& arr, vector<shared_ptr<CUtxoCond>>& vCond);
 static void ParseUtxoInput(const Array& arr, vector<CUtxoInput>& vInput);
 static void ParseUtxoOutput(const Array& arr, vector<CUtxoOutput>& vOutput);
 static void CheckUtxoCondDirection(const vector<shared_ptr<CUtxoCond>>& vCond, UtxoCondDirection direction);
+
+Value signutxomultiaddress(const Array& params, bool fHelp) {
+    if (fHelp || params.size() != 2) {
+        throw runtime_error(
+                "submitpasswordprooftx \"addr\" \"utxo_txid\" \"utxo_vout_index\" \"password_proof\" \"symbol:fee:unit\" \n"
+                "\nSubmit a password proof.\n" +
+                HelpRequiringPassphrase() +
+                "\nArguments:\n"
+                "1.\"addr\":                (string, required) the addr of signee\n"
+                "2.\"utxo_txid\":           (string, required) The utxo info hash\n"
+                "\nResult:\n"
+                "\"signature\"              (string) signature hex.\n"
+                "\nExamples:\n" +
+                HelpExampleCli("submitpasswordprooftx",
+                               "\"wLKf2NqwtHk3BfzK5wMDfbKYN1SC3weyR4\" \"23ewf90203ew000ds0lwsdpoxewdokwesdxcoekdleds\" "
+                               "5 \"eowdswd0-eowpds23ewdswwedscde\" \"WICC:10000:sawi\"") +
+                "\nAs json rpc call\n" +
+                HelpExampleRpc("submitpasswordprooftx",
+                               "\"wLKf2NqwtHk3BfzK5wMDfbKYN1SC3weyR4\", \"23ewf90203ew000ds0lwsdpoxewdokwesdxcoekdleds\","
+                               " 5, \"eowdswd0-eowpds23ewdswwedscde\", \"WICC:10000:sawi\"")
+        );
+    }
+
+    CUserID uid = RPC_PARAM::GetUserId(params[0]);
+    CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, uid);
+    uint256 hash  = uint256S(params[1].get_str());
+
+    UnsignedCharArray signature;
+
+    if (!pWalletMain->HasKey(account.keyid)) {
+        throw JSONRPCError(RPC_WALLET_ERROR, "signee address not found in wallet");
+    }
+
+    if (!pWalletMain->Sign(account.keyid, hash, signature)) {
+        throw JSONRPCError(RPC_WALLET_ERROR, "Sign failed");
+    }
+
+    Object obj;
+    obj.push_back(Pair("signature", HexStr(signature.begin(), signature.end())));
+    return obj;
+
+}
+
+Value genutxomultiaddresshash(const Array& params, bool fHelp) {
+    if(fHelp || params.size() != 2) {
+        throw runtime_error(
+                "submitpasswordprooftx \"addr\" \"utxo_txid\" \"utxo_vout_index\" \"password_proof\" \"symbol:fee:unit\" \n"
+                "\nSubmit a password proof.\n" +
+                HelpRequiringPassphrase() +
+                "\nArguments:\n"
+                "1.\"addr\":                (string, required) the addr submit this tx\n"
+                "2.\"utxo_txid\":           (string, required) The utxo txid you want to spend\n"
+                "3.\"utxo_vout_index\":     (string, required) The index of utxo output \n"
+                "4.\"password_proof\":      (symbol:amount:unit, required) password proof\n"
+                "5.\"symbol:fee:unit\":     (symbol:amount:unit, optinal) fee paid to miner\n"
+                "\nResult:\n"
+                "\"txid\"                   (string) The transaction id.\n"
+                "\nExamples:\n" +
+                HelpExampleCli("submitpasswordprooftx",
+                               "\"wLKf2NqwtHk3BfzK5wMDfbKYN1SC3weyR4\" \"23ewf90203ew000ds0lwsdpoxewdokwesdxcoekdleds\" "
+                               "5 \"eowdswd0-eowpds23ewdswwedscde\" \"WICC:10000:sawi\"") +
+                "\nAs json rpc call\n" +
+                HelpExampleRpc("submitpasswordprooftx",
+                               "\"wLKf2NqwtHk3BfzK5wMDfbKYN1SC3weyR4\", \"23ewf90203ew000ds0lwsdpoxewdokwesdxcoekdleds\","
+                               " 5, \"eowdswd0-eowpds23ewdswwedscde\", \"WICC:10000:sawi\"")
+        );
+    }
+
+/*
+
+    string redeemScript = strprintf("u%s%s%u", m, db_util::ToString(uids), n);
+
+    CHashWriter ss(SER_GETHASH, CLIENT_VERSION);
+    ss << prevUtxoTxId.ToString() << prevUtxoTxVoutIndex << txUid.ToString() << redeemScript;
+*/
+
+    return Object();
+
+}
 
 Value submitpasswordprooftx(const Array& params, bool fHelp) {
 
@@ -264,9 +347,9 @@ static void ParseUtxoCond(const Array& arr, vector<shared_ptr<CUtxoCond>>& vCond
                 break;
             }
             case UtxoCondType::OP2MA: {
-                const Value& uidV = JSON::GetObjectFieldValue(obj,"uid") ;
+               /* const Value& uidV = JSON::GetObjectFieldValue(obj,"uid") ;
                 CUserID uid = RPC_PARAM::GetUserId(uidV) ;
-                vCond.push_back(make_shared<CMultiSignAddressCondOut>(uid)) ;
+                vCond.push_back(make_shared<CMultiSignAddressCondOut>(uid)) ;*/
                 break;
             }
 

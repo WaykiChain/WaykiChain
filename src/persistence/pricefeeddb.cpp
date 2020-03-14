@@ -286,7 +286,7 @@ bool CPriceFeedCache::SetMedianPrices(const PriceMap &medianPrices) {
 }
 
 bool CPriceFeedCache::AddFeedCoinPair(TokenSymbol feedCoin, TokenSymbol quoteCoin) {
-    if(feedCoin == SYMB::WICC && quoteCoin == SYMB::USD)
+    if((feedCoin == SYMB::WICC || feedCoin == SYMB::WGRT) && quoteCoin == SYMB::USD)
         return true ;
 
     set<pair<TokenSymbol,TokenSymbol>> coinPairs;
@@ -299,7 +299,8 @@ bool CPriceFeedCache::AddFeedCoinPair(TokenSymbol feedCoin, TokenSymbol quoteCoi
 }
 
 bool CPriceFeedCache::EraseFeedCoinPair(TokenSymbol feedCoin, TokenSymbol quoteCoin) {
-    if(feedCoin == SYMB::WICC && quoteCoin == SYMB::USD)
+
+    if((feedCoin == SYMB::WICC || feedCoin == SYMB::WGRT) && quoteCoin == SYMB::USD)
         return true ;
 
     auto coinPair = std::make_pair(feedCoin, quoteCoin);
@@ -326,5 +327,6 @@ bool CPriceFeedCache::HasFeedCoinPair(TokenSymbol feedCoin,TokenSymbol quoteCoin
 bool CPriceFeedCache::GetFeedCoinPairs(set<pair<TokenSymbol,TokenSymbol>>& coinSet) {
     price_feed_coin_cache.GetData(coinSet) ;
     coinSet.insert(make_pair(SYMB::WICC, SYMB::USD));
+    coinSet.insert(make_pair(SYMB::WGRT, SYMB::USD));
     return true ;
 }
