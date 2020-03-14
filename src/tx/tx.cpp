@@ -183,7 +183,7 @@ bool CBaseTx::CheckBaseTx(CTxExecuteContext &context) {
         if (kTxTypePermMap.find(nTxType) == kTxTypePermMap.end())
             return true;
 
-        return ((txAccount.perms_sum & kTxTypePermMap[nTxType]) > 0);
+        return ((txAccount.perms_sum & kTxTypePermMap.at(nTxType)) > 0);
     }
 }
 
