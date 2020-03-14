@@ -31,10 +31,65 @@ bool GetUtxoTxFromChain(TxID &txid, std::shared_ptr<CBaseTx> &pBaseTx) {
     return true;
 }
 
-inline bool CheckUtxoOutCondition( const CTxExecuteContext &context, const bool isPrevUtxoOut,
+bool ComputeRedeemScript(const CTxExecuteContext &context, std::vector<CUserID> uids, string &redeemScript) {
+    CCacheWrapper &cw = *context.pCw;
+
+    CAccount acct;
+    for (const auto &uid : uids) {
+        if (!cw.accountCache.GetAccount(uid, acct))
+            return false;
+
+        redeemScript += acct.keyid.ToAddress();
+    }
+    redeemScript = strprintf("%c%u%s%s%u", '0xFF', m, redeemScript, n); //0xFF is the magic no to avoid conflict with PubKey Hash
+    return true;
+}
+
+bool ComputeMultiSignKeyId(string redeemScript, CKeyID &keyId) {
+    uint160 redeemScriptHash = Hash160(redeemScript); //equal to RIPEMD160(SHAR256(redeemScript))
+    keyId = CKeyID(redeemScriptHash);
+    return true;
+}
+
+bool ComputeUtxoMultisignHash(const TxID &prevUtxoTxId, uint16_t prevUtxoTxVoutIndex, const CUserID &txUid, uint256 &hash) {
+    CHashWriter ss(SER_GETHASH, CLIENT_VERSION);
+    ss << prevUtxoTxId.ToString() << prevUtxoTxVoutIndex << txUid.ToString() << redeemScript;
+    hash = ss.GetHash();
+
+    return true;
+}
+
+bool VerifyMultiSig(const CTxExecuteContext &context, uint256 &utxoMultiSignHash, std::vector<UnsignedCharArray> &signatures) {
+    if (signatures.size() < m)
+        return false;
+
+    CCacheWrapper &cw = *context.pCw;
+
+    string redeemScript("");
+    if (!ComputeRedeemScript(context, redeemScript))
+        return false;
+
+    int verifyPassNum = 0;
+    for (const auto &signature : signatures) {
+        for (const auto uid : uids) {
+            if (!cw.accountCache.GetAccount(uid.GetKeyId()))
+                return false;
+
+            if (VerifySignature(utxoMultiSignHash, signature, uid.get<CPubKey>())) {
+                verifyPassNum++;
+                break;
+            }
+        }
+    }
+    bool verified = (verifyPassNum >= m);
+
+    return verified;
+}
+
+inline bool CheckUtxoOutCondition(const CTxExecuteContext &context, const bool isPrevUtxoOut,
                                 const CUserID &prevUtxoTxUid, const CUserID &txUid,
                                 const CUtxoInput &input, CUtxoCondStorageBean &cond) {
-    CValidationState &state = *context.pState;
+    IMPLEMENT_DEFINE_CW_STATE;
 
     switch (cond.sp_utxo_cond->cond_type) {
         case UtxoCondType::OP2SA : {
@@ -74,12 +129,17 @@ inline bool CheckUtxoOutCondition( const CTxExecuteContext &context, const bool 
                                             "cond-multsig-uids-size-mismatch-err");
                         }
                         CKeyID multiSignKeyId;
-                        p2maCondIn.ComputeMultiSignKeyId(multiSignKeyId);
-                        if (theCond.dest_multisign_keyid != multiSignKeyId) {
+                        string redeemScript("");
+                        if (!ComputeRedeemScript(context, p2maCondIn.uids, redeemScript) ||
+                            !ComputeMultiSignKeyId(redeemScript, multiSignKeyId) ||
+                            theCond.dest_multisign_keyid != multiSignKeyId) {
                             return state.DoS(100, ERRORMSG("CCoinUtxoTransferTx::CheckTx, cond multisig keyid mismatch error!"), REJECT_INVALID,
                                             "cond-multsig-keyid-mismatch-err");
                         }
-                        if (!p2maCondIn.VerifyMultiSig(input.prev_utxo_txid, input.prev_utxo_vout_index, txUid)) {
+
+                        uint256 utxoMultiSignHash;
+                        if (!ComputeUtxoMultisignHash(input.prev_utxo_txid, input.prev_utxo_vout_index, txUid, utxoMultiSignHash) ||
+                            !VerifyMultiSig(context, utxoMultiSignHash, p2maCondIn.signatures)) {
                             return state.DoS(100, ERRORMSG("CCoinUtxoTransferTx::CheckTx, cond multisig verify failed!"), REJECT_INVALID,
                                             "cond-multsig-verify-fail");
                         }

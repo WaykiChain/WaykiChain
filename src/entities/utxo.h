@@ -113,28 +113,12 @@ struct CSingleAddressCondOut : CUtxoCond {
 struct CMultiSignAddressCondIn : CUtxoCond {
     uint8_t m = 0;
     uint8_t n = 0; // m <= n
-    std::vector<CUserID> uids; //a list of uids from users who enaged in a multisign process
+    std::vector<CUserID> uids; //a list of uids (CRegID or CNickID only) from users who enaged in a multisign process
     std::vector<UnsignedCharArray> signatures; //m signatures, each of which corresponds to redeemscript signature
 
     CMultiSignAddressCondIn() {};
     CMultiSignAddressCondIn(uint8_t mIn, uint8_t nIn, std::vector<CUserID> &uidsIn, std::vector<UnsignedCharArray> &signaturesIn):
         CUtxoCond(UtxoCondType::IP2MA), m(mIn),n(nIn), uids(uidsIn), signatures(signaturesIn) {};
-
-    bool ComputeRedeemScript(string &redeemScript) {
-        for (const auto &uid : uids) {
-            redeemScript += uid.get<CKeyID>().ToAddress();
-        }
-        redeemScript = strprintf("u%s%s%u", m, redeemScript, n);
-        return true;
-    }
-
-    bool ComputeMultiSignKeyId(CKeyID &keyId) {
-        string redeemScript("");
-        ComputeRedeemScript(redeemScript);
-        uint160 redeemScriptHash = Hash160(redeemScript);
-        keyId = CKeyID(redeemScriptHash);
-        return true;
-    }
 
     bool VerifySignature(const uint256 &sigHash, const std::vector<uint8_t> &signature, const CPubKey &pubKey) {
         // if (signatureCache.Get(sigHash, signature, pubKey))
@@ -145,30 +129,6 @@ struct CMultiSignAddressCondIn : CUtxoCond {
 
         // signatureCache.Set(sigHash, signature, pubKey);
         return true;
-    }
-
-    bool VerifyMultiSig(const TxID &prevUtxoTxId, uint16_t prevUtxoTxVoutIndex, const CUserID &txUid) {
-        if (signatures.size() < m)
-            return false;
-
-        string redeemScript("");
-        ComputeRedeemScript(redeemScript);
-
-        CHashWriter ss(SER_GETHASH, CLIENT_VERSION);
-        ss << prevUtxoTxId.ToString() << prevUtxoTxVoutIndex << txUid.ToString() << redeemScript;
-
-        int verifyPassNum = 0;
-        for (const auto &signature : signatures) {
-            for (const auto uid : uids) {
-                if (VerifySignature(ss.GetHash(), signature, uid.get<CPubKey>())) {
-                    verifyPassNum++;
-                    break;
-                }
-            }
-        }
-        bool verified = (verifyPassNum >= m);
-
-        return verified;
     }
 
     IMPLEMENT_SERIALIZE(
