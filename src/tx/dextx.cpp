@@ -169,8 +169,8 @@ namespace dex {
                 strprintf("operator_taker_fee_ratio=%llu", taker_fee_ratio) + ", " +
                 strprintf("operator_maker_fee_ratio=%llu", maker_fee_ratio) + ", " +
                 strprintf("operator_uid=%s", operator_uid.ToDebugString()) + ", " +
-                strprintf("memo_hex=%s", nVersion) + ", " +
-                strprintf("operator_signature=%s", HexStr(operator_signature));
+                strprintf("operator_signature=%s", HexStr(operator_signature)) + ", " +
+                strprintf("memo_hex=%s", nVersion);
     }
 
     Object CDEXOrderBaseTx::ToJson(const CAccountDBCache &accountCache) const {
@@ -184,8 +184,6 @@ namespace dex {
         result.push_back(Pair("price",              price));
         result.push_back(Pair("dex_id",             (uint64_t)dex_id));
         result.push_back(Pair("has_operator_config",  has_operator_config));
-        result.push_back(Pair("memo",               memo));
-        result.push_back(Pair("memo_hex",           HexStr(memo)));
         if (has_operator_config) {
             CKeyID operatorKeyid;
             accountCache.GetKeyId(operator_uid, operatorKeyid);
@@ -195,6 +193,8 @@ namespace dex {
             result.push_back(Pair("operator_addr",      operatorKeyid.ToAddress()));
             result.push_back(Pair("operator_signature", HexStr(operator_signature)));
         }
+        result.push_back(Pair("memo",               memo));
+        result.push_back(Pair("memo_hex",           HexStr(memo)));
         return result;
     }
 
