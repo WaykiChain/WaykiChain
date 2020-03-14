@@ -189,7 +189,7 @@ namespace dex {
             accountCache.GetKeyId(operator_uid, operatorKeyid);
             result.push_back(Pair("taker_fee_ratio",    taker_fee_ratio));
             result.push_back(Pair("maker_fee_ratio",    maker_fee_ratio));
-            result.push_back(Pair("operator_uid",       operator_uid.ToDebugString()));
+            result.push_back(Pair("operator_uid",       operator_uid.ToString()));
             result.push_back(Pair("operator_addr",      operatorKeyid.ToAddress()));
             result.push_back(Pair("operator_signature", HexStr(operator_signature)));
         }

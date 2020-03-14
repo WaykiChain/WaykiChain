@@ -1051,7 +1051,8 @@ Value signtxraw(const Array& params, bool fHelp) {
     }
 
     const Array& addresses = params[1].get_array();
-    if (pBaseTx.get()->nTxType != UCOIN_TRANSFER_MTX && addresses.size() != 1) {
+    if (pBaseTx.get()->nTxType != UCOIN_TRANSFER_MTX && pBaseTx.get()->nTxType != DEX_OPERATOR_ORDER_TX
+        &&addresses.size() != 1) {
         throw JSONRPCError(RPC_INVALID_PARAMETER, "To many addresses provided");
     }
 
