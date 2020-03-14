@@ -967,17 +967,18 @@ public:
 
     struct Signedtem {
         CKeyID keyid;
+        string addr_str;
         UnsignedCharArray *pSignature;
     };
 
 private:
     CBaseTx &tx;
-    set<CKeyID> &user_keyids;
+    map<CKeyID, string> &user_map;
 public:
     vector<Signedtem> signed_list;
 
-    CTxMultiSigner(CBaseTx &txIn, set<CKeyID> &userKeyidsIn)
-        : tx(txIn), user_keyids(userKeyidsIn) {}
+    CTxMultiSigner(CBaseTx &txIn, map<CKeyID, string> &userMapIn)
+        : tx(txIn), user_map(userMapIn) {}
 
     void Sign(vector<SigningItem> &signingList) {
 
@@ -986,17 +987,17 @@ public:
             signingKeyids[i] = RPC_PARAM::GetUserKeyId(signingList[i].uid);
         }
 
-        for (auto& keyid : user_keyids) {
+        for (auto& userItem : user_map) {
             bool found = false;
             for (size_t i = 0; i < signingList.size(); i++) {
-                if (signingKeyids[i] == keyid) {
-                    signed_list.push_back({signingKeyids[i], signingList[i].pSignature});
+                if (signingKeyids[i] == userItem.first) {
+                    signed_list.push_back({signingKeyids[i], userItem.second, signingList[i].pSignature});
                     found = true;
                 }
             }
             if (!found) {
                 throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("the user address=%s is not in the signing list",
-                    keyid.ToAddress()));
+                    userItem.second));
             }
         }
 
@@ -1054,10 +1055,11 @@ Value signtxraw(const Array& params, bool fHelp) {
         throw JSONRPCError(RPC_INVALID_PARAMETER, "To many addresses provided");
     }
 
-    set<CKeyID> users;
-    for (uint32_t i = 0; i < addresses.size(); i++) {
-        CUserID uid = RPC_PARAM::ParseUserIdByAddr(addresses[i]);
-        users.insert(RPC_PARAM::GetUserKeyId(uid));
+    map<CKeyID, string> users;
+    for (const auto &addr : addresses) {
+        CUserID uid = RPC_PARAM::ParseUserIdByAddr(addr);
+        CKeyID keyid = RPC_PARAM::GetUserKeyId(uid);
+        users.emplace(keyid, addr.get_str());
     }
 
     if (users.empty()) {
@@ -1101,7 +1103,7 @@ Value signtxraw(const Array& params, bool fHelp) {
     Array signatureArray;
     for (auto item : signer.signed_list) {
         Object itemObj;
-        itemObj.push_back(Pair("addr", item.keyid.ToAddress()));
+        itemObj.push_back(Pair("addr", item.addr_str));
         itemObj.push_back(Pair("signature", HexStr(*item.pSignature)));
         signatureArray.push_back(itemObj);
     }
