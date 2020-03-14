@@ -587,10 +587,11 @@ namespace wasm {
 
         uint32_t get_txid(void *data, uint32_t data_len) {
 
-            TxID txid = pWasmContext->get_txid();
-            std::string strtxid = txid.ToString();
+            // TxID txid = pWasmContext->get_txid();
+            // std::string strtxid = txid.ToString();
+            std::string txid = pWasmContext->get_txid();
 
-            size_t len = strtxid.size();
+            size_t len = txid.size();
             if(data_len == 0) return len;
 
             auto copy_len = std::min( static_cast<size_t>(data_len), len );
@@ -598,7 +599,23 @@ namespace wasm {
             //CHECK_WASM_IN_MEMORY(data, copy_len);
             CHECK_WASM_DATA_SIZE(copy_len,  "data");
 
-            std::memcpy(data, strtxid.c_str(), copy_len);
+            std::memcpy(data, txid.c_str(), copy_len);
+            return copy_len;
+        }
+
+        uint32_t get_system_asset_price(uint64_t base_symble, uint64_t quote_symble, void* data, uint32_t data_len ) {
+
+            std::vector<char> price;
+            bool success = pWasmContext->get_system_asset_price(base_symble, quote_symble, price);
+            if(!success) return 0;
+
+            size_t len = price.size();
+            if(data_len == 0) return len;
+
+            auto copy_len = std::min( static_cast<size_t>(data_len), len );
+            CHECK_WASM_DATA_SIZE(copy_len,  "data") 
+
+            std::memcpy(data, price.data(), copy_len);
             return copy_len;
         }
 
@@ -949,8 +966,9 @@ namespace wasm {
     REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, require_auth, require_auth)
     REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, require_recipient,    require_recipient) 
     REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, has_authorization,    has_auth)
-    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, get_active_producers, get_active_producers) 
-    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, get_txid, get_txid) 
+    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, get_active_producers,   get_active_producers) 
+    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, get_txid,               get_txid) 
+    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, get_system_asset_price, get_system_asset_price) 
 
     REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, __ashlti3, __ashlti3)
     REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, __ashrti3, __ashrti3)

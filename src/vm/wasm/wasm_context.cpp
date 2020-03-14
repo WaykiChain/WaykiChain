@@ -280,6 +280,26 @@ namespace wasm {
         return active_producers;
     }
 
+    bool wasm_context::get_system_asset_price(uint64_t base, uint64_t quote, std::vector<char>& price){
+
+        wasm::symbol base_symbol  = wasm::symbol(base);
+        wasm::symbol quote_symbol = wasm::symbol(quote);
+
+        if(quote_symbol.precision() != 8) return false;//the precision of system asset must be 8
+        if(base_symbol.precision()  != 8) return false;//the precision of system asset must be 8
+
+        CoinPricePair price_pair(base_symbol.code().to_string(), quote_symbol.code().to_string());
+
+        //if(CheckPricePair(pricePair) != nullptr) return 0;
+        auto &database_pricefeed  = database.priceFeedCache;
+        uint64_t price_amount = database_pricefeed.GetMedianPrice(price_pair);
+        if(price_amount == 0) return false;
+
+        asset asset_price(price_amount, base_symbol);
+        price = wasm::pack<asset>(asset_price);
+        return true;
+    }
+
     void wasm_context::update_storage_usage(const uint64_t& account, const int64_t& size_in_bytes){
 
         int64_t disk_usage    = size_in_bytes * store_fuel_fee_per_byte;

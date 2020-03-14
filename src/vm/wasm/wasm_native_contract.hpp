@@ -32,7 +32,7 @@ namespace wasm {
 
         CHAIN_ASSERT( owner.OperateBalance(symbol, BalanceOpType::SUB_FREE, quantity.amount),
                       account_access_exception,
-                      "Operate account %s failed",
+                      "Account %s overdrawn balance",
                       owner.nickid.ToString())
 
         CHAIN_ASSERT( database.SetAccount(owner.regid, owner), account_access_exception,
