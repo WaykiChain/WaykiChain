@@ -31,17 +31,17 @@ bool GetUtxoTxFromChain(TxID &txid, std::shared_ptr<CBaseTx> &pBaseTx) {
     return true;
 }
 
-bool ComputeRedeemScript(const CTxExecuteContext &context, std::vector<CUserID> uids, string &redeemScript) {
+bool ComputeRedeemScript(const CTxExecuteContext &context, CMultiSignAddressCondIn &p2maIn, string &redeemScript) {
     CCacheWrapper &cw = *context.pCw;
 
     CAccount acct;
-    for (const auto &uid : uids) {
+    for (const auto &uid : p2maIn.uids) {
         if (!cw.accountCache.GetAccount(uid, acct))
             return false;
 
         redeemScript += acct.keyid.ToAddress();
     }
-    redeemScript = strprintf("%c%u%s%s%u", '0xFF', m, redeemScript, n); //0xFF is the magic no to avoid conflict with PubKey Hash
+    redeemScript = strprintf("%c%u%s%s%u", '0xFF', p2maIn.m, redeemScript, p2maIn.n); //0xFF is the magic no to avoid conflict with PubKey Hash
     return true;
 }
 
