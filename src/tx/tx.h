@@ -53,7 +53,7 @@ inline string to_string(transaction_status_type type){
 class CCacheWrapper;
 class CValidationState;
 
-std::unordered_map<TxType, AccountPermType> kTxTypePermMap {
+static const std::unordered_map<TxType, AccountPermType> kTxTypePermMap = {
     { BCOIN_TRANSFER_TX,            AccountPermType::PERM_SEND_COIN  },
     { LCONTRACT_DEPLOY_TX,          AccountPermType::PERM_DEPLOY_SC  },
     { LCONTRACT_INVOKE_TX,          AccountPermType::PERM_INVOKE_SC  },
