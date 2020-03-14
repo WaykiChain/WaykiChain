@@ -94,17 +94,28 @@ Value genutxomultiaddresshash(const Array& params, bool fHelp) {
         );
     }
 
-/*
 
+    uint8_t m = params[0].get_int();
+    uint8_t n = params[1].get_int();
+    uint256 prevUtxoTxId = uint256S(params[2].get_str());
+    uint16_t prevUtxoTxVoutIndex = params[3].get_int();
+    Array uidStringArray = params[4].get_array();
+    vector<CUserID> uids;
+    for(auto v: uidStringArray){
+        CUserID  uid = RPC_PARAM::GetUserId(v);
+        uids.push_back(uid);
+    }
     string redeemScript = strprintf("u%s%s%u", m, db_util::ToString(uids), n);
 
     CHashWriter ss(SER_GETHASH, CLIENT_VERSION);
-    ss << prevUtxoTxId.ToString() << prevUtxoTxVoutIndex << txUid.ToString() << redeemScript;
-*/
+    ss << prevUtxoTxId.ToString() << prevUtxoTxVoutIndex << redeemScript;
 
-    return Object();
+    Object o;
+    o.push_back(Pair("hash", ss.GetHash().GetHex()));
+    return o;
 
 }
+
 
 Value submitpasswordprooftx(const Array& params, bool fHelp) {
 

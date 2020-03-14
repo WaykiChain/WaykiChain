@@ -41,7 +41,7 @@ bool ComputeRedeemScript(const CTxExecuteContext &context, const CMultiSignAddre
 
         redeemScript += acct.keyid.ToAddress();
     }
-    redeemScript = strprintf("%c%u%s%s%u", '0xFF', p2maIn.m, redeemScript, p2maIn.n); //0xFF is the magic no to avoid conflict with PubKey Hash
+    redeemScript = strprintf("%c%u%s%s%u", '\255', p2maIn.m, redeemScript, p2maIn.n); //0xFF is the magic no to avoid conflict with PubKey Hash
     return true;
 }
 
@@ -91,7 +91,7 @@ bool VerifyMultiSig(const CTxExecuteContext &context, const uint256 &utxoMultiSi
 inline bool CheckUtxoOutCondition(const CTxExecuteContext &context, const bool isPrevUtxoOut,
                                 const CUserID &prevUtxoTxUid, const CUserID &txUid,
                                 const CUtxoInput &input, CUtxoCondStorageBean &cond) {
-    IMPLEMENT_DEFINE_CW_STATE;
+    CValidationState &state = *context.pState;
 
     switch (cond.sp_utxo_cond->cond_type) {
         case UtxoCondType::OP2SA : {
