@@ -60,7 +60,7 @@ bool ComputeUtxoMultisignHash(const TxID &prevUtxoTxId, uint16_t prevUtxoTxVoutI
 }
 
 bool VerifyMultiSig(const CTxExecuteContext &context, uint256 &utxoMultiSignHash, CMultiSignAddressCondIn &p2maIn) {
-    if (p2maIn.signatures.size() < m)
+    if (p2maIn.signatures.size() < p2maIn.m)
         return false;
 
     CCacheWrapper &cw = *context.pCw;
@@ -82,7 +82,7 @@ bool VerifyMultiSig(const CTxExecuteContext &context, uint256 &utxoMultiSignHash
             }
         }
     }
-    bool verified = (verifyPassNum >= m);
+    bool verified = (verifyPassNum >= p2maIn.m);
 
     return verified;
 }
