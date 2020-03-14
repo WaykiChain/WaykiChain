@@ -73,10 +73,11 @@ bool VerifyMultiSig(const CTxExecuteContext &context, const uint256 &utxoMultiSi
     CAccount acct;
     for (const auto &signature : p2maIn.signatures) {
         for (const auto uid : p2maIn.uids) {
-            if (!cw.accountCache.GetAccount(uid, acct))
+            if (!cw.accountCache.GetAccount(uid, acct) ||
+                !acct.HaveOwnerPubKey())
                 return false;
 
-            if (VerifySignature(utxoMultiSignHash, signature, acct.keyid.get<CPubKey>())) {
+            if (VerifySignature(utxoMultiSignHash, signature, acct.owner_pubkey)) {
                 verifyPassNum++;
                 break;
             }
@@ -131,7 +132,7 @@ inline bool CheckUtxoOutCondition(const CTxExecuteContext &context, const bool i
                         }
                         CKeyID multiSignKeyId;
                         string redeemScript("");
-                        if (!ComputeRedeemScript(context, p2maCondIn.uids, redeemScript) ||
+                        if (!ComputeRedeemScript(context, p2maCondIn, redeemScript) ||
                             !ComputeMultiSignKeyId(redeemScript, multiSignKeyId) ||
                             theCond.dest_multisign_keyid != multiSignKeyId) {
                             return state.DoS(100, ERRORMSG("CCoinUtxoTransferTx::CheckTx, cond multisig keyid mismatch error!"), REJECT_INVALID,
