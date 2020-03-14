@@ -31,17 +31,26 @@ bool GetUtxoTxFromChain(TxID &txid, std::shared_ptr<CBaseTx> &pBaseTx) {
     return true;
 }
 
+
+string ComputeRedeemScript(const uint8_t m, const uint8_t n,vector<string>& addresses) {
+    string redeemScript;
+    for(const string addr: addresses)
+        redeemScript += addr;
+    return strprintf("%c%u%s%u", '\xFF', m, redeemScript, n); //0xFF is the magic no to avoid conflict with PubKey Hash
+
+}
+
 bool ComputeRedeemScript(const CTxExecuteContext &context, const CMultiSignAddressCondIn &p2maIn, string &redeemScript) {
     CCacheWrapper &cw = *context.pCw;
 
     CAccount acct;
+    vector<string> vAddress;
     for (const auto &uid : p2maIn.uids) {
         if (!cw.accountCache.GetAccount(uid, acct))
             return false;
-
-        redeemScript += acct.keyid.ToAddress();
+        vAddress.push_back(acct.keyid.ToAddress());
     }
-    redeemScript = strprintf("%c%u%s%s%u", '\255', p2maIn.m, redeemScript, p2maIn.n); //0xFF is the magic no to avoid conflict with PubKey Hash
+    redeemScript = ComputeRedeemScript(p2maIn.m,p2maIn.n,vAddress);
     return true;
 }
 
@@ -51,12 +60,28 @@ bool ComputeMultiSignKeyId(const string &redeemScript, CKeyID &keyId) {
     return true;
 }
 
-bool ComputeUtxoMultisignHash(const TxID &prevUtxoTxId, uint16_t prevUtxoTxVoutIndex, const CUserID &txUid, string &redeemScript, uint256 &hash) {
+
+bool ComputeUtxoMultisignHash(const TxID &prevUtxoTxId, uint16_t prevUtxoTxVoutIndex, const CKeyID &txUid, string &redeemScript, uint256 &hash) {
     CHashWriter ss(SER_GETHASH, CLIENT_VERSION);
     ss << prevUtxoTxId.ToString() << prevUtxoTxVoutIndex << txUid.ToString() << redeemScript;
     hash = ss.GetHash();
-
     return true;
+}
+
+bool ComputeUtxoMultisignHash(const CTxExecuteContext& context,const TxID &prevUtxoTxId, uint16_t prevUtxoTxVoutIndex, const CUserID &txUid, string &redeemScript, uint256 &hash) {
+
+    CKeyID txKeyID;
+    if(txUid.is<CKeyID>()) {
+        txKeyID = txUid.get<CKeyID>();
+    } else {
+        CAccount acct;
+        CCacheWrapper &cw       = *context.pCw;
+        if(!cw.accountCache.GetAccount(txUid, acct)){
+            return false;
+        }
+        txKeyID = acct.keyid;
+    }
+    return ComputeUtxoMultisignHash(prevUtxoTxId, prevUtxoTxVoutIndex, txKeyID, redeemScript, hash);
 }
 
 bool VerifyMultiSig(const CTxExecuteContext &context, const uint256 &utxoMultiSignHash, const CMultiSignAddressCondIn &p2maIn) {
@@ -88,7 +113,7 @@ bool VerifyMultiSig(const CTxExecuteContext &context, const uint256 &utxoMultiSi
     return verified;
 }
 
-inline bool CheckUtxoOutCondition(const CTxExecuteContext &context, const bool isPrevUtxoOut,
+inline bool CheckUtxoOutCondition( const CTxExecuteContext &context, const bool isPrevUtxoOut,
                                 const CUserID &prevUtxoTxUid, const CUserID &txUid,
                                 const CUtxoInput &input, CUtxoCondStorageBean &cond) {
     CValidationState &state = *context.pState;
@@ -140,7 +165,7 @@ inline bool CheckUtxoOutCondition(const CTxExecuteContext &context, const bool i
                         }
 
                         uint256 utxoMultiSignHash;
-                        if (!ComputeUtxoMultisignHash(input.prev_utxo_txid, input.prev_utxo_vout_index, txUid, redeemScript, utxoMultiSignHash) ||
+                        if (!ComputeUtxoMultisignHash(context, input.prev_utxo_txid, input.prev_utxo_vout_index, txUid, redeemScript, utxoMultiSignHash) ||
                             !VerifyMultiSig(context, utxoMultiSignHash, p2maCondIn)) {
                             return state.DoS(100, ERRORMSG("CCoinUtxoTransferTx::CheckTx, cond multisig verify failed!"), REJECT_INVALID,
                                             "cond-multsig-verify-fail");
@@ -441,8 +466,8 @@ bool CCoinUtxoPasswordProofTx::CheckTx(CTxExecuteContext &context) {
 }
 
 bool CCoinUtxoPasswordProofTx::ExecuteTx(CTxExecuteContext &context) {
-    CCacheWrapper &cw       = *context.pCw;
-    CValidationState &state = *context.pState;
+
+    IMPLEMENT_DEFINE_CW_STATE
 
     CAccount srcAccount;
     if (!cw.accountCache.GetAccount(txUid, srcAccount))

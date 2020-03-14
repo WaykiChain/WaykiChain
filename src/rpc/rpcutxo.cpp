@@ -27,7 +27,19 @@ static void ParseUtxoInput(const Array& arr, vector<CUtxoInput>& vInput);
 static void ParseUtxoOutput(const Array& arr, vector<CUtxoOutput>& vOutput);
 static void CheckUtxoCondDirection(const vector<shared_ptr<CUtxoCond>>& vCond, UtxoCondDirection direction);
 
-Value signutxomultiaddress(const Array& params, bool fHelp) {
+/**
+ *
+ *
+ * bool ComputeRedeemScript(const CTxExecuteContext &context, const CMultiSignAddressCondIn &p2maIn, string &redeemScript);
+bool ComputeMultiSignKeyId(const string &redeemScript, CKeyID &keyId);
+bool ComputeUtxoMultisignHash(const TxID &prevUtxoTxId, uint16_t prevUtxoTxVoutIndex,
+        const CUserID &txUid, string &redeemScript, uint256 &hash) ;
+ * @param params
+ * @param fHelp
+ * @return
+ */
+
+Value genutxomultisignature(const Array& params, bool fHelp) {
     if (fHelp || params.size() != 2) {
         throw runtime_error(
                 "submitpasswordprooftx \"addr\" \"utxo_txid\" \"utxo_vout_index\" \"password_proof\" \"symbol:fee:unit\" \n"
@@ -100,18 +112,33 @@ Value genutxomultiaddresshash(const Array& params, bool fHelp) {
     uint256 prevUtxoTxId = uint256S(params[2].get_str());
     uint16_t prevUtxoTxVoutIndex = params[3].get_int();
     Array uidStringArray = params[4].get_array();
-    vector<CUserID> uids;
+    CUserID txUid = RPC_PARAM::GetUserId(params[5]);
+    CKeyID txKeyID;
+    if(txUid.is<CKeyID>()){
+        txKeyID = txUid.get<CKeyID>();
+    } else {
+        CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, txUid);
+        txKeyID = account.keyid;
+
+    }
+
+    vector<string> vAddr;
     for(auto v: uidStringArray){
         CUserID  uid = RPC_PARAM::GetUserId(v);
-        uids.push_back(uid);
+        CAccount acct ;
+        if (!pCdMan->pAccountCache->GetAccount(uid, acct))
+            throw JSONRPCError(RPC_INVALID_PARAMETER, "the uid is not on chain");
+        vAddr.push_back(acct.keyid.ToAddress());
     }
-    string redeemScript = strprintf("u%s%s%u", m, db_util::ToString(uids), n);
 
-    CHashWriter ss(SER_GETHASH, CLIENT_VERSION);
-    ss << prevUtxoTxId.ToString() << prevUtxoTxVoutIndex << redeemScript;
+    string redeemScript = ComputeRedeemScript(m, n,vAddr);
+    uint256 multiSignHash;
+    if (!ComputeUtxoMultisignHash(prevUtxoTxId,prevUtxoTxVoutIndex,txKeyID,redeemScript,multiSignHash)){
+        throw JSONRPCError(RPC_WALLET_ERROR, "create hash error");
+    }
 
     Object o;
-    o.push_back(Pair("hash", ss.GetHash().GetHex()));
+    o.push_back(Pair("hash", multiSignHash.GetHex()));
     return o;
 
 }

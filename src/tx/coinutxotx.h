@@ -24,6 +24,12 @@
  *      3.2 Time Lock, after which it can be recollected by the originator
  *
  */
+
+string ComputeRedeemScript(const uint8_t m, const uint8_t n,vector<string>& addresses);
+bool ComputeMultiSignKeyId(const string &redeemScript, CKeyID &keyId);
+bool ComputeUtxoMultisignHash(const TxID &prevUtxoTxId, uint16_t prevUtxoTxVoutIndex,
+        const CKeyID &txUid, string &redeemScript, uint256 &hash) ;
+
 class CCoinUtxoTransferTx: public CBaseTx {
 public:
     TokenSymbol coin_symbol;
