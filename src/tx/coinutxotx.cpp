@@ -51,7 +51,7 @@ bool ComputeMultiSignKeyId(string redeemScript, CKeyID &keyId) {
     return true;
 }
 
-bool ComputeUtxoMultisignHash(const TxID &prevUtxoTxId, uint16_t prevUtxoTxVoutIndex, const CUserID &txUid, uint256 &hash) {
+bool ComputeUtxoMultisignHash(const TxID &prevUtxoTxId, uint16_t prevUtxoTxVoutIndex, const CUserID &txUid, string &redeemScript, uint256 &hash) {
     CHashWriter ss(SER_GETHASH, CLIENT_VERSION);
     ss << prevUtxoTxId.ToString() << prevUtxoTxVoutIndex << txUid.ToString() << redeemScript;
     hash = ss.GetHash();
@@ -139,7 +139,7 @@ inline bool CheckUtxoOutCondition(const CTxExecuteContext &context, const bool i
                         }
 
                         uint256 utxoMultiSignHash;
-                        if (!ComputeUtxoMultisignHash(input.prev_utxo_txid, input.prev_utxo_vout_index, txUid, utxoMultiSignHash) ||
+                        if (!ComputeUtxoMultisignHash(input.prev_utxo_txid, input.prev_utxo_vout_index, txUid, redeemScript, utxoMultiSignHash) ||
                             !VerifyMultiSig(context, utxoMultiSignHash, p2maCondIn)) {
                             return state.DoS(100, ERRORMSG("CCoinUtxoTransferTx::CheckTx, cond multisig verify failed!"), REJECT_INVALID,
                                             "cond-multsig-verify-fail");
