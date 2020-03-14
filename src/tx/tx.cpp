@@ -30,36 +30,7 @@ extern CCacheDBManager *pCdMan;
 
 #define ERROR_TITLE(msg) (std::string(__FUNCTION__) + "(), " + msg)
 #define BASE_TX_TITLE ERROR_TITLE(GetTxTypeName())
-
-kTxPerms[BCOIN_TRANSFER_TX]             = AccountPermType::PERM_SEND_COIN;
-kTxPerms[LCONTRACT_DEPLOY_TX]           = AccountPermType::PERM_DEPLOY_SC;
-kTxPerms[LCONTRACT_INVOKE_TX]           = AccountPermType::PERM_INVOKE_SC;
-kTxPerms[DELEGATE_VOTE_TX]              = AccountPermType::PERM_SEND_VOTE;
-kTxPerms[UCOIN_TRANSFER_TX]             = AccountPermType::PERM_SEND_COIN;
-kTxPerms[UCOIN_TRANSFER_MTX]            = AccountPermType::PERM_SEND_COIN;
-kTxPerms[UCOIN_STAKE_TX]                = AccountPermType::PERM_STAKE_COIN;
-kTxPerms[UTXO_PASSWORD_PROOF_TX]        = AccountPermType::PERM_SEND_UTXO;
-kTxPerms[UCONTRACT_DEPLOY_TX]           = AccountPermType::PERM_DEPLOY_SC;
-kTxPerms[UCONTRACT_INVOKE_TX]           = AccountPermType::PERM_INVOKE_SC;
-kTxPerms[PRICE_FEED_TX]                 = AccountPermType::PERM_FEED_PRICE;
-kTxPerms[CDP_STAKE_TX]                  = AccountPermType::PERM_CDP;
-kTxPerms[CDP_REDEEM_TX]                 = AccountPermType::PERM_CDP;
-kTxPerms[CDP_LIQUIDATE_TX]              = AccountPermType::PERM_CDP;
-kTxPerms[WASM_CONTRACT_TX]              = AccountPermType::PERM_INVOKE_SC;
-kTxPerms[DEX_LIMIT_BUY_ORDER_TX]        = AccountPermType::PERM_DEX;
-kTxPerms[DEX_LIMIT_SELL_ORDER_TX]       = AccountPermType::PERM_DEX;
-kTxPerms[DEX_MARKET_BUY_ORDER_TX]       = AccountPermType::PERM_DEX;
-kTxPerms[DEX_MARKET_SELL_ORDER_TX]      = AccountPermType::PERM_DEX;
-kTxPerms[DEX_CANCEL_ORDER_TX]           = AccountPermType::PERM_DEX;
-kTxPerms[DEX_ORDER_TX]                  = AccountPermType::PERM_DEX;
-kTxPerms[DEX_OPERATOR_ORDER_TX]         = AccountPermType::PERM_DEX;
-kTxPerms[DEX_OPERATOR_UPDATE_TX]        = AccountPermType::PERM_DEX;
-kTxPerms[DEX_OPERATOR_REGISTER_TX]      = AccountPermType::PERM_DEX;
-kTxPerms[DEX_OPERATOR_REGISTER_TX]      = AccountPermType::PERM_DEX;
-kTxPerms[DEX_TRADE_SETTLE_TX]           = AccountPermType::PERM_DEX;
-kTxPerms[PROPOSAL_REQUEST_TX]           = AccountPermType::PERM_PROPOSE;
-kTxPerms[PROPOSAL_APPROVAL_TX]          = AccountPermType::PERM_PROPOSE;
-
+   
 string GetTxType(const TxType txType) {
     auto it = kTxFeeTable.find(txType);
     if (it != kTxFeeTable.end())
@@ -143,7 +114,6 @@ bool CBaseTx::CheckBaseTx(CTxExecuteContext &context) {
         return true;
     }
 
-
     CAccount txAccount;
     bool foundAccount = cw.accountCache.GetAccount(txUid, txAccount);
 
@@ -210,7 +180,10 @@ bool CBaseTx::CheckBaseTx(CTxExecuteContext &context) {
     }
 
     { //5. check account perm
-        return ((txAccount.perms_sum & kTxPerms[nTxType]) > 0);
+        if (kTxTypePermMap.find(nTxType) == kTxTypePermMap.end())
+            return true;
+
+        return ((txAccount.perms_sum & kTxTypePermMap[nTxType]) > 0);
     }
 }
 
