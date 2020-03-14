@@ -55,7 +55,7 @@ inline bool CheckUtxoOutCondition( const CTxExecuteContext &context, const bool 
         case UtxoCondType::OP2MA : {
             CMultiSignAddressCondOut& theCond = dynamic_cast< CMultiSignAddressCondOut& > (*cond.sp_utxo_cond);
 
-            if (isPrevUtxoOut) { //theCond is the previous UTXO output
+            if (isPrevUtxoOut) { //previous UTXO output
                 bool found = false;
                 for (auto inputCond : input.conds) {
                     if (inputCond.sp_utxo_cond->cond_type == UtxoCondType::IP2MA) {
@@ -69,13 +69,15 @@ inline bool CheckUtxoOutCondition( const CTxExecuteContext &context, const bool 
                             return state.DoS(100, ERRORMSG("CCoinUtxoTransferTx::CheckTx, cond multisig m/n too large!"), REJECT_INVALID,
                                             "cond-multsig-mn-too-large-err");
                         }
-                        if (p2maCondIn.uids.size() != p2maCondIn.n) {
-                             return state.DoS(100, ERRORMSG("CCoinUtxoTransferTx::CheckTx, cond multisig uids size mismatch!"), REJECT_INVALID,
-                                            "cond-multsig-uids-size-mismatch-err");
+                        if (p2maCondIn.keyids.size() != p2maCondIn.n) {
+                             return state.DoS(100, ERRORMSG("CCoinUtxoTransferTx::CheckTx, cond multisig keyids size mismatch!"), REJECT_INVALID,
+                                            "cond-multsig-keyids-size-mismatch-err");
                         }
-                        if ((uint160) theCond.uid.get<CKeyID>() != p2maCondIn.GetRedeemScriptHash()) {
-                            return state.DoS(100, ERRORMSG("CCoinUtxoTransferTx::CheckTx, cond multisig addr mismatch error!"), REJECT_INVALID,
-                                            "cond-multsig-addr-mismatch-err");
+                        CKeyId multiSignKeyId;
+                        p2maCondIn.ComputeMultiSignKeyId(multiSignKeyId);
+                        if (theCond.dest_multisign_keyid != multiSignKeyId) {
+                            return state.DoS(100, ERRORMSG("CCoinUtxoTransferTx::CheckTx, cond multisig keyid mismatch error!"), REJECT_INVALID,
+                                            "cond-multsig-keyid-mismatch-err");
                         }
                         if (!p2maCondIn.VerifyMultiSig(input.prev_utxo_txid, input.prev_utxo_vout_index, txUid)) {
                             return state.DoS(100, ERRORMSG("CCoinUtxoTransferTx::CheckTx, cond multisig verify failed!"), REJECT_INVALID,
@@ -89,10 +91,10 @@ inline bool CheckUtxoOutCondition( const CTxExecuteContext &context, const bool 
                      return state.DoS(100, ERRORMSG("CCoinUtxoTransferTx::CheckTx, cond multisign missing error!"), REJECT_INVALID,
                                     "cond-multsign-missing-err");
                 }
-            } else {
-                if (theCond.uid.IsEmpty()) {
-                    return state.DoS(100, ERRORMSG("CCoinUtxoTransferTx::CheckTx, uid empty error!"), REJECT_INVALID,
-                                    "uid-empty-err");
+            } else { //current UTXO output
+                if (theCond.dest_multisign_keyid.IsEmpty()) {
+                    return state.DoS(100, ERRORMSG("CCoinUtxoTransferTx::CheckTx, dest_multisign_keyid empty error!"), REJECT_INVALID,
+                                    "dest_multisign_keyid-empty-err");
                 }
             }
             break;

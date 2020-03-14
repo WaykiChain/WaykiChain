@@ -113,16 +113,27 @@ struct CSingleAddressCondOut : CUtxoCond {
 struct CMultiSignAddressCondIn : CUtxoCond {
     uint8_t m = 0;
     uint8_t n = 0; // m <= n
-    std::vector<CUserID> uids;
+    std::vector<CUserID> uids; //a list of uids from users who enaged in a multisign process
     std::vector<UnsignedCharArray> signatures; //m signatures, each of which corresponds to redeemscript signature
 
     CMultiSignAddressCondIn() {};
     CMultiSignAddressCondIn(uint8_t mIn, uint8_t nIn, std::vector<CUserID> &uidsIn, std::vector<UnsignedCharArray> &signaturesIn):
-        CUtxoCond(UtxoCondType::IP2MA), m(mIn),n(nIn),uids(uidsIn),signatures(signaturesIn) {};
+        CUtxoCond(UtxoCondType::IP2MA), m(mIn),n(nIn), uids(uidsIn), signatures(signaturesIn) {};
 
-    uint160 GetRedeemScriptHash() {
-        string redeemScript = strprintf("%u%s%u", m, db_util::ToString(uids), n);
-        return Hash160(redeemScript); //redeemScriptHash = RIPEMD160(SHA256(redeemScript): TODO doublecheck hash algorithm
+    bool ComputeRedeemScript(string &redeemScript) {
+        for (const auto &uid : uids) {
+            redeemScript += uid.get<CKeyID>().ToAddress();
+        }
+        redeemScript = strprintf("u%s%s%u", m, redeemScript, n);
+        retrun true;
+    }
+
+    bool ComputeMultiSignKeyId(CKeyID &keyId) {
+        string redeemScript("");
+        ComputeRedeemScript(redeemScript);
+        redeemScriptHash = RIPEMD160(SHA256(redeemScript));
+        keyID = CKeyID(redeemScriptHash);
+        return true;
     }
 
     bool VerifySignature(const uint256 &sigHash, const std::vector<uint8_t> &signature, const CPubKey &pubKey) {
@@ -140,13 +151,14 @@ struct CMultiSignAddressCondIn : CUtxoCond {
         if (signatures.size() < m)
             return false;
 
-        string redeemScript = strprintf("u%s%s%u", m, db_util::ToString(uids), n);
+        string redeemScript("");
+        ComputeRedeemScript(redeemScript);
 
         CHashWriter ss(SER_GETHASH, CLIENT_VERSION);
         ss << prevUtxoTxId.ToString() << prevUtxoTxVoutIndex << txUid.ToString() << redeemScript;
 
         int verifyPassNum = 0;
-        for (const auto signature : signatures) {
+        for (const auto &signature : signatures) {
             for (const auto uid : uids) {
                 if (VerifySignature(ss.GetHash(), signature, uid.get<CPubKey>())) {
                     verifyPassNum++;
@@ -173,17 +185,17 @@ struct CMultiSignAddressCondIn : CUtxoCond {
     }
 };
 struct CMultiSignAddressCondOut : CUtxoCond {
-    CUserID uid;
+    CKeyID dest_multisign_keyid;    //KeyID = RIPEMD160(SHA256(redeemScript))
 
     CMultiSignAddressCondOut() {};
-    CMultiSignAddressCondOut(CUserID &uidIn) : CUtxoCond(UtxoCondType::OP2MA), uid(uidIn) {};
+    CMultiSignAddressCondOut(CKeyID destMultisignKeyId) : CUtxoCond(UtxoCondType::OP2MA), dest_multisign_keyid(destMultisignKeyId) {};
 
     IMPLEMENT_SERIALIZE(
         READWRITE((uint8_t&) cond_type);
-        READWRITE(uid);
+        READWRITE(dest_multisign_keyid);
     )
 
-    std::string ToString() const override { return strprintf("cond_type=\"OP2MA\",uid=\"%s\"", uid.ToString()); }
+    std::string ToString() const override { return strprintf("cond_type=\"OP2MA\", dest_multisign_keyid=\"%s\"", dest_multisign_keyid.ToString()); }
 
 };
 

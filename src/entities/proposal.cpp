@@ -438,7 +438,6 @@ bool CGovFeedCoinPairProposal::CheckProposal(CTxExecuteContext& context ) {
     return true ;
 }
 bool CGovFeedCoinPairProposal::ExecuteProposal(CTxExecuteContext& context, const TxID& proposalId) {
-
     CCacheWrapper& cw = *context.pCw ;
 
     if (ProposalOperateType::ENABLE == op_type)
@@ -449,7 +448,6 @@ bool CGovFeedCoinPairProposal::ExecuteProposal(CTxExecuteContext& context, const
 }
 
 bool CGovAxcInProposal::CheckProposal(CTxExecuteContext& context ) {
-
     CValidationState& state = *context.pState ;
 
     return true  ;
