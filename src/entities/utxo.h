@@ -125,13 +125,13 @@ struct CMultiSignAddressCondIn : CUtxoCond {
             redeemScript += uid.get<CKeyID>().ToAddress();
         }
         redeemScript = strprintf("u%s%s%u", m, redeemScript, n);
-        retrun true;
+        return true;
     }
 
     bool ComputeMultiSignKeyId(CKeyID &keyId) {
         string redeemScript("");
         ComputeRedeemScript(redeemScript);
-        redeemScriptHash = RIPEMD160(SHA256(redeemScript));
+        uint160 redeemScriptHash = Hash160(redeemScript);
         keyID = CKeyID(redeemScriptHash);
         return true;
     }
@@ -185,7 +185,7 @@ struct CMultiSignAddressCondIn : CUtxoCond {
     }
 };
 struct CMultiSignAddressCondOut : CUtxoCond {
-    CKeyID dest_multisign_keyid;    //KeyID = RIPEMD160(SHA256(redeemScript))
+    CKeyID dest_multisign_keyid;    //KeyID = Hash160(redeemScript)
 
     CMultiSignAddressCondOut() {};
     CMultiSignAddressCondOut(CKeyID destMultisignKeyId) : CUtxoCond(UtxoCondType::OP2MA), dest_multisign_keyid(destMultisignKeyId) {};
