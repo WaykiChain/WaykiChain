@@ -59,23 +59,24 @@ bool ComputeUtxoMultisignHash(const TxID &prevUtxoTxId, uint16_t prevUtxoTxVoutI
     return true;
 }
 
-bool VerifyMultiSig(const CTxExecuteContext &context, uint256 &utxoMultiSignHash, std::vector<UnsignedCharArray> &signatures) {
-    if (signatures.size() < m)
+bool VerifyMultiSig(const CTxExecuteContext &context, uint256 &utxoMultiSignHash, CMultiSignAddressCondIn &p2maIn) {
+    if (p2maIn.signatures.size() < m)
         return false;
 
     CCacheWrapper &cw = *context.pCw;
 
     string redeemScript("");
-    if (!ComputeRedeemScript(context, redeemScript))
+    if (!ComputeRedeemScript(context, p2maIn.uids, redeemScript))
         return false;
 
     int verifyPassNum = 0;
-    for (const auto &signature : signatures) {
-        for (const auto uid : uids) {
-            if (!cw.accountCache.GetAccount(uid.GetKeyId()))
+    CAccount acct;
+    for (const auto &signature : p2maIn.signatures) {
+        for (const auto uid : p2maIn.uids) {
+            if (!cw.accountCache.GetAccount(uid, acct))
                 return false;
 
-            if (VerifySignature(utxoMultiSignHash, signature, uid.get<CPubKey>())) {
+            if (VerifySignature(utxoMultiSignHash, signature, account.keyid.get<CPubKey>())) {
                 verifyPassNum++;
                 break;
             }
@@ -139,7 +140,7 @@ inline bool CheckUtxoOutCondition(const CTxExecuteContext &context, const bool i
 
                         uint256 utxoMultiSignHash;
                         if (!ComputeUtxoMultisignHash(input.prev_utxo_txid, input.prev_utxo_vout_index, txUid, utxoMultiSignHash) ||
-                            !VerifyMultiSig(context, utxoMultiSignHash, p2maCondIn.signatures)) {
+                            !VerifyMultiSig(context, utxoMultiSignHash, p2maCondIn)) {
                             return state.DoS(100, ERRORMSG("CCoinUtxoTransferTx::CheckTx, cond multisig verify failed!"), REJECT_INVALID,
                                             "cond-multsig-verify-fail");
                         }
