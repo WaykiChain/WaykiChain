@@ -73,7 +73,7 @@ Value genutxomultisignature(const Array& params, bool fHelp) {
 Value genutxomultiaddresshash(const Array& params, bool fHelp) {
     if(fHelp || params.size() != 2) {
         throw runtime_error(
-                "submitpasswordprooftx \"addr\" \"utxo_txid\" \"utxo_vout_index\" \"password_proof\" \"symbol:fee:unit\" \n"
+                "genutxomultiaddresshash \"addr\" \"utxo_txid\" \"utxo_vout_index\" \"password_proof\" \"symbol:fee:unit\" \n"
                 "\nSubmit a password proof.\n" +
                 HelpRequiringPassphrase() +
                 "\nArguments:\n"
@@ -85,11 +85,11 @@ Value genutxomultiaddresshash(const Array& params, bool fHelp) {
                 "\nResult:\n"
                 "\"txid\"                   (string) The transaction id.\n"
                 "\nExamples:\n" +
-                HelpExampleCli("submitpasswordprooftx",
+                HelpExampleCli("genutxomultiaddresshash",
                                "\"wLKf2NqwtHk3BfzK5wMDfbKYN1SC3weyR4\" \"23ewf90203ew000ds0lwsdpoxewdokwesdxcoekdleds\" "
                                "5 \"eowdswd0-eowpds23ewdswwedscde\" \"WICC:10000:sawi\"") +
                 "\nAs json rpc call\n" +
-                HelpExampleRpc("submitpasswordprooftx",
+                HelpExampleRpc("genutxomultiaddresshash",
                                "\"wLKf2NqwtHk3BfzK5wMDfbKYN1SC3weyR4\", \"23ewf90203ew000ds0lwsdpoxewdokwesdxcoekdleds\","
                                " 5, \"eowdswd0-eowpds23ewdswwedscde\", \"WICC:10000:sawi\"")
         );
@@ -116,15 +116,15 @@ Value genutxomultiaddresshash(const Array& params, bool fHelp) {
         CUserID  uid = RPC_PARAM::GetUserId(v);
         CAccount acct ;
         if (!pCdMan->pAccountCache->GetAccount(uid, acct))
-            throw JSONRPCError(RPC_INVALID_PARAMETER, "the uid is not on chain");
+            throw JSONRPCError(RPC_INVALID_PARAMETER, "the uid is not onchain");
+
         vAddr.push_back(acct.keyid.ToAddress());
     }
-
-    string redeemScript = ComputeRedeemScript(m, n,vAddr);
+    string redeemScript = ComputeRedeemScript(m, n, vAddr);
+    
     uint256 multiSignHash;
-    if (!ComputeUtxoMultisignHash(prevUtxoTxId,prevUtxoTxVoutIndex,txKeyID,redeemScript,multiSignHash)){
+    if (!ComputeUtxoMultisignHash(prevUtxoTxId, prevUtxoTxVoutIndex,txKeyID, redeemScript, multiSignHash))
         throw JSONRPCError(RPC_WALLET_ERROR, "create hash error");
-    }
 
     Object o;
     o.push_back(Pair("hash", multiSignHash.GetHex()));

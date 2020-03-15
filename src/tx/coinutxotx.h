@@ -25,7 +25,7 @@
  *
  */
 
-string ComputeRedeemScript(const uint8_t m, const uint8_t n,vector<string>& addresses);
+bool ComputeRedeemScript(const uint8_t m, const uint8_t n, vector<string>& addresses, string &redeemScript) 
 bool ComputeMultiSignKeyId(const string &redeemScript, CKeyID &keyId);
 bool ComputeUtxoMultisignHash(const TxID &prevUtxoTxId, uint16_t prevUtxoTxVoutIndex,
         const CKeyID &txUid, string &redeemScript, uint256 &hash) ;
