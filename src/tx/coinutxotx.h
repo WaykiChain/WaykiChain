@@ -8,28 +8,19 @@
 
 #include <string>
 #include <cstdint>
+
 #include "tx.h"
 #include "entities/utxo.h"
 
 
+bool ComputeRedeemScript(const uint8_t m, const uint8_t n, vector<string>& addresses, string &redeemScript);
+bool ComputeMultiSignKeyId(const string &redeemScript, CKeyID &keyId);
+bool ComputeUtxoMultisignHash(const TxID &prevUtxoTxId, uint16_t prevUtxoTxVoutIndex, const CKeyID &txUid, 
+                            string &redeemScript, uint256 &hash);
+
 ////////////////////////////////////////
 /// class CCoinUtxoTransferTx
 ////////////////////////////////////////
-/**
- * Coin UTXO Trx that supports following features:
- *    1. UTXO - modify only the balance of the originator account but not the destination account
- *    2. Lock duration - None can collect the amount within the period
- *    3. HTLC (collect secret hash, collect address (optional), expiry block-height)
- *      3.1 Hash Lock, must match with the hash in order to collect the coins within
- *      3.2 Time Lock, after which it can be recollected by the originator
- *
- */
-
-bool ComputeRedeemScript(const uint8_t m, const uint8_t n, vector<string>& addresses, string &redeemScript) 
-bool ComputeMultiSignKeyId(const string &redeemScript, CKeyID &keyId);
-bool ComputeUtxoMultisignHash(const TxID &prevUtxoTxId, uint16_t prevUtxoTxVoutIndex,
-        const CKeyID &txUid, string &redeemScript, uint256 &hash) ;
-
 class CCoinUtxoTransferTx: public CBaseTx {
 public:
     TokenSymbol coin_symbol;
