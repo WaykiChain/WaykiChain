@@ -30,25 +30,27 @@ enum SysParamType : uint8_t {
     TOTAL_DELEGATE_COUNT                    = 24,
     TRANSFER_SCOIN_RESERVE_FEE_RATIO        = 25,
     ASSET_RISK_FEE_RATIO                    = 26,
-    DEX_OPERATOR_RISK_FEE_RATIO             = 27
+    DEX_OPERATOR_RISK_FEE_RATIO             = 27,
+    AXC_SWAP_FEE_RATIO                      = 28,
 
 };
 
 static const unordered_map<string, SysParamType> paramNameToSysParamTypeMap = {
-        {"MEDIAN_PRICE_SLIDE_WINDOW_BLOCKCOUNT",           MEDIAN_PRICE_SLIDE_WINDOW_BLOCKCOUNT    },
-        {"PRICE_FEED_BCOIN_STAKE_AMOUNT_MIN",              PRICE_FEED_BCOIN_STAKE_AMOUNT_MIN       },
-        {"PRICE_FEED_CONTINUOUS_DEVIATE_TIMES_MAX",        PRICE_FEED_CONTINUOUS_DEVIATE_TIMES_MAX },
-        // {"PRICE_FEED_DEVIATE_RATIO_MAX",                   PRICE_FEED_DEVIATE_RATIO_MAX            },
-        // {"PRICE_FEED_DEVIATE_PENALTY",                     PRICE_FEED_DEVIATE_PENALTY              },
-        {"ASSET_ISSUE_FEE",                                ASSET_ISSUE_FEE                         },
-        {"ASSET_UPDATE_FEE",                               ASSET_UPDATE_FEE                        },
-        {"DEX_OPERATOR_REGISTER_FEE",                      DEX_OPERATOR_REGISTER_FEE               },
-        {"DEX_OPERATOR_UPDATE_FEE",                        DEX_OPERATOR_UPDATE_FEE                 },
-        {"PROPOSAL_EXPIRE_BLOCK_COUNT",                    PROPOSAL_EXPIRE_BLOCK_COUNT             },
-        {"TOTAL_DELEGATE_COUNT",                           TOTAL_DELEGATE_COUNT                    },
-        {"TRANSFER_SCOIN_RESERVE_FEE_RATIO",               TRANSFER_SCOIN_RESERVE_FEE_RATIO        },
-        {"ASSET_RISK_FEE_RATIO",                           ASSET_RISK_FEE_RATIO                    },
-        {"DEX_OPERATOR_RISK_FEE_RATIO",                    DEX_OPERATOR_RISK_FEE_RATIO             },
+        {"MEDIAN_PRICE_SLIDE_WINDOW_BLOCKCOUNT",        MEDIAN_PRICE_SLIDE_WINDOW_BLOCKCOUNT        },
+        {"PRICE_FEED_BCOIN_STAKE_AMOUNT_MIN",           PRICE_FEED_BCOIN_STAKE_AMOUNT_MIN           },
+        {"PRICE_FEED_CONTINUOUS_DEVIATE_TIMES_MAX",     PRICE_FEED_CONTINUOUS_DEVIATE_TIMES_MAX     },
+        // {"PRICE_FEED_DEVIATE_RATIO_MAX",                PRICE_FEED_DEVIATE_RATIO_MAX             },
+        // {"PRICE_FEED_DEVIATE_PENALTY",                  PRICE_FEED_DEVIATE_PENALTY               },
+        {"ASSET_ISSUE_FEE",                             ASSET_ISSUE_FEE                             },
+        {"ASSET_UPDATE_FEE",                            ASSET_UPDATE_FEE                            },
+        {"DEX_OPERATOR_REGISTER_FEE",                   DEX_OPERATOR_REGISTER_FEE                   },
+        {"DEX_OPERATOR_UPDATE_FEE",                     DEX_OPERATOR_UPDATE_FEE                     },
+        {"PROPOSAL_EXPIRE_BLOCK_COUNT",                 PROPOSAL_EXPIRE_BLOCK_COUNT                 },
+        {"TOTAL_DELEGATE_COUNT",                        TOTAL_DELEGATE_COUNT                        },
+        {"TRANSFER_SCOIN_RESERVE_FEE_RATIO",            TRANSFER_SCOIN_RESERVE_FEE_RATIO            },
+        {"ASSET_RISK_FEE_RATIO",                        ASSET_RISK_FEE_RATIO                        },
+        {"DEX_OPERATOR_RISK_FEE_RATIO",                 DEX_OPERATOR_RISK_FEE_RATIO                 },
+        {"AXC_SWAP_FEE_RATIO",                          AXC_SWAP_FEE_RATIO                          },
 };
 
 struct SysParamTypeHash {
@@ -58,38 +60,40 @@ struct SysParamTypeHash {
 };
 
 static const unordered_map<SysParamType, std::tuple< uint64_t,string >, SysParamTypeHash> SysParamTable = {
-        { MEDIAN_PRICE_SLIDE_WINDOW_BLOCKCOUNT,     make_tuple( 11,           "MEDIAN_PRICE_SLIDE_WINDOW_BLOCKCOUNT")    },
-        { PRICE_FEED_BCOIN_STAKE_AMOUNT_MIN,        make_tuple( 210000,       "PRICE_FEED_BCOIN_STAKE_AMOUNT_MIN")       },  // 1%: min 210K bcoins staked to be a price feeder for miner
-        { PRICE_FEED_CONTINUOUS_DEVIATE_TIMES_MAX,  make_tuple( 10,           "PRICE_FEED_CONTINUOUS_DEVIATE_TIMES_MAX") },  // after 10 times continuous deviate limit penetration all deposit be deducted
-        // { PRICE_FEED_DEVIATE_RATIO_MAX,             make_tuple( 3000,         "PRICE_FEED_DEVIATE_RATIO_MAX")            },  // must be < 30% * 10000, otherwise penalized
-        // { PRICE_FEED_DEVIATE_PENALTY,               make_tuple( 1000,         "PRICE_FEED_DEVIATE_PENALTY")              },  // deduct 1000 staked bcoins as penalty
-        { ASSET_ISSUE_FEE,                          make_tuple( 550 * COIN,   "ASSET_ISSUE_FEE")                         },  // asset issuance fee = 550 WICC
-        { ASSET_UPDATE_FEE,                         make_tuple( 110 * COIN,   "ASSET_UPDATE_FEE")                        },  // asset update fee = 110 WICC
-        { DEX_OPERATOR_REGISTER_FEE,                make_tuple( 1100 * COIN,  "DEX_OPERATOR_REGISTER_FEE")               }, // dex operator register fee = 1100 WICC
-        { DEX_OPERATOR_UPDATE_FEE,                  make_tuple( 110 * COIN,   "DEX_OPERATOR_UPDATE_FEE")                 },  // dex operator update fee = 110 WICC
-        { PROPOSAL_EXPIRE_BLOCK_COUNT,              make_tuple( 1200,         "PROPOSAL_EXPIRE_BLOCK_COUNT")             },   //
-        { TOTAL_DELEGATE_COUNT,                     make_tuple( 11,           "TOTAL_DELEGATE_COUNT")                    },
-        { TRANSFER_SCOIN_RESERVE_FEE_RATIO,         make_tuple( 0,            "TRANSFER_SCOIN_RESERVE_FEE_RATIO")        },  // WUSD friction fee to risk reserve
-        { ASSET_RISK_FEE_RATIO,                     make_tuple( 4000,         "ASSET_RISK_FEE_RATIO")                    },
-        { DEX_OPERATOR_RISK_FEE_RATIO,              make_tuple( 4000,         "DEX_OPERATOR_RISK_FEE_RATIO")             }
+    { MEDIAN_PRICE_SLIDE_WINDOW_BLOCKCOUNT,     make_tuple( 11,         "MEDIAN_PRICE_SLIDE_WINDOW_BLOCKCOUNT")    },
+    { PRICE_FEED_BCOIN_STAKE_AMOUNT_MIN,        make_tuple( 210000,     "PRICE_FEED_BCOIN_STAKE_AMOUNT_MIN")       },  // 1%: min 210K bcoins staked to be a price feeder for miner
+    { PRICE_FEED_CONTINUOUS_DEVIATE_TIMES_MAX,  make_tuple( 10,         "PRICE_FEED_CONTINUOUS_DEVIATE_TIMES_MAX") },  // after 10 times continuous deviate limit penetration all deposit be deducted
+    // { PRICE_FEED_DEVIATE_RATIO_MAX,             make_tuple( 3000,         "PRICE_FEED_DEVIATE_RATIO_MAX")            },  // must be < 30% * 10000, otherwise penalized
+    // { PRICE_FEED_DEVIATE_PENALTY,               make_tuple( 1000,         "PRICE_FEED_DEVIATE_PENALTY")              },  // deduct 1000 staked bcoins as penalty
+    { ASSET_ISSUE_FEE,                          make_tuple( 550 * COIN,  "ASSET_ISSUE_FEE")                         },  // asset issuance fee = 550 WICC
+    { ASSET_UPDATE_FEE,                         make_tuple( 110 * COIN,  "ASSET_UPDATE_FEE")                        },  // asset update fee = 110 WICC
+    { DEX_OPERATOR_REGISTER_FEE,                make_tuple( 1100 * COIN, "DEX_OPERATOR_REGISTER_FEE")               }, // dex operator register fee = 1100 WICC
+    { DEX_OPERATOR_UPDATE_FEE,                  make_tuple( 110 * COIN,  "DEX_OPERATOR_UPDATE_FEE")                 },  // dex operator update fee = 110 WICC
+    { PROPOSAL_EXPIRE_BLOCK_COUNT,              make_tuple( 1200,        "PROPOSAL_EXPIRE_BLOCK_COUNT")             },   //
+    { TOTAL_DELEGATE_COUNT,                     make_tuple( 11,          "TOTAL_DELEGATE_COUNT")                    },
+    { TRANSFER_SCOIN_RESERVE_FEE_RATIO,         make_tuple( 0,           "TRANSFER_SCOIN_RESERVE_FEE_RATIO")        },  // WUSD friction fee to risk reserve
+    { ASSET_RISK_FEE_RATIO,                     make_tuple( 4000,        "ASSET_RISK_FEE_RATIO")                    },
+    { DEX_OPERATOR_RISK_FEE_RATIO,              make_tuple( 4000,        "DEX_OPERATOR_RISK_FEE_RATIO")             },
+    { AXC_SWAP_FEE_RATIO,                       make_tuple( 20,          "AXC_SWAP_FEE_RATIO")                      },  // 0.2%, boosted by 10000
 
 };
 
 static const unordered_map<SysParamType, std::pair<uint64_t, uint64_t>, SysParamTypeHash> sysParamScopeTable = {
-        { MEDIAN_PRICE_SLIDE_WINDOW_BLOCKCOUNT,      RANGE(0,0)        },
-        { PRICE_FEED_BCOIN_STAKE_AMOUNT_MIN,         RANGE(0,0)        },  // 1%: min 210K bcoins staked to be a price feeder for miner
-        { PRICE_FEED_CONTINUOUS_DEVIATE_TIMES_MAX,   RANGE(0,0)        },  // after 10 times continuous deviate limit penetration all deposit be deducted
-        // { PRICE_FEED_DEVIATE_RATIO_MAX,              RANGE(0,0)        },  // must be < 30% * 10000, otherwise penalized
-        // { PRICE_FEED_DEVIATE_PENALTY,                RANGE(0,0)        },  // deduct 1000 staked bcoins as penalty
-        { ASSET_ISSUE_FEE,                           RANGE(0,0)        },  // asset issuance fee = 550 WICC
-        { ASSET_UPDATE_FEE,                          RANGE(0,0)        },  // asset update fee = 110 WICC
-        { DEX_OPERATOR_REGISTER_FEE,                 RANGE(0,0)        },  // dex operator register fee = 1100 WICC
-        { DEX_OPERATOR_UPDATE_FEE,                   RANGE(0,0)        },  // dex operator update fee = 110 WICC
-        { PROPOSAL_EXPIRE_BLOCK_COUNT,               RANGE(0,0)        },  //
-        { TOTAL_DELEGATE_COUNT,                      RANGE(0,0)        },
-        { TRANSFER_SCOIN_RESERVE_FEE_RATIO,          RANGE(0,0)        },  // WUSD friction fee to risk reserve
-        { ASSET_RISK_FEE_RATIO,                      RANGE(0,10000)    },
-        { DEX_OPERATOR_RISK_FEE_RATIO,               RANGE(0,10000)    }
+    { MEDIAN_PRICE_SLIDE_WINDOW_BLOCKCOUNT,      RANGE(0,0)        },
+    { PRICE_FEED_BCOIN_STAKE_AMOUNT_MIN,         RANGE(0,0)        },  // 1%: min 210K bcoins staked to be a price feeder for miner
+    { PRICE_FEED_CONTINUOUS_DEVIATE_TIMES_MAX,   RANGE(0,0)        },  // after 10 times continuous deviate limit penetration all deposit be deducted
+    // { PRICE_FEED_DEVIATE_RATIO_MAX,              RANGE(0,0)        },  // must be < 30% * 10000, otherwise penalized
+    // { PRICE_FEED_DEVIATE_PENALTY,                RANGE(0,0)        },  // deduct 1000 staked bcoins as penalty
+    { ASSET_ISSUE_FEE,                           RANGE(0,0)        },  // asset issuance fee = 550 WICC
+    { ASSET_UPDATE_FEE,                          RANGE(0,0)        },  // asset update fee = 110 WICC
+    { DEX_OPERATOR_REGISTER_FEE,                 RANGE(0,0)        },  // dex operator register fee = 1100 WICC
+    { DEX_OPERATOR_UPDATE_FEE,                   RANGE(0,0)        },  // dex operator update fee = 110 WICC
+    { PROPOSAL_EXPIRE_BLOCK_COUNT,               RANGE(0,0)        },  //
+    { TOTAL_DELEGATE_COUNT,                      RANGE(0,0)        },
+    { TRANSFER_SCOIN_RESERVE_FEE_RATIO,          RANGE(0,0)        },  // WUSD friction fee to risk reserve
+    { ASSET_RISK_FEE_RATIO,                      RANGE(0,10000)    },
+    { DEX_OPERATOR_RISK_FEE_RATIO,               RANGE(0,10000)    },
+    { AXC_SWAP_FEE_RATIO,                        RANGE(0,100)      }    //max 10%
 
 };
 

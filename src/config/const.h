@@ -77,12 +77,15 @@ static const unordered_set<string> kCdpScoinSymbolSet = {
 };
 
 //can be expanded thru DeGov
-static const unordered_map<TokenSymbol, TokenSymbol> kXChainSwapTokenMap =  {
-    { SYMB::BTC,     SYMB::WBTC  },
-    { SYMB::ETH,     SYMB::WETH  },
-    { SYMB::WBTC,    SYMB::BTC   },
-    { SYMB::WETH,    SYMB::ETH   }
-    // {SYMB::ETH_USDT, SYMB::WETH_USDT},
+static const unordered_map<TokenSymbol, TokenSymbol> kXChainSwapInTokenMap =  {
+    { SYMB::BTC,        SYMB::WBTC          },
+    { SYMB::ETH,        SYMB::WETH          },
+    { SYMB::ETH_USDT,   SYMB::WETH_USDT     },
+};
+static const unordered_map<TokenSymbol, TokenSymbol> kXChainSwapOutTokenMap =  {
+    { SYMB::WBTC,       SYMB::BTC           },
+    { SYMB::WETH,       SYMB::ETH           }
+    { SYMB::WETH_USDT,  SYMB::ETH_USDT      }
 };
 
 struct CoinUnitTypeHash {

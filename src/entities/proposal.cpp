@@ -48,11 +48,9 @@ bool CGovSysParamProposal::ExecuteProposal(CTxExecuteContext& context, const TxI
         if(!cw.sysParamCache.SetParam(SysParamType(pa.first), pa.second)){
             return false ;
         }
-
     }
 
     return true ;
-
 }
 
 
@@ -115,12 +113,12 @@ bool CGovBpSizeProposal:: ExecuteProposal(CTxExecuteContext& context, const TxID
     IMPLEMENT_DEFINE_CW_STATE;
 
     auto currentTotalBpsSize = cw.delegateCache.GetActivedDelegateNum() ;
-    if(!cw.sysParamCache.SetCurrentTotalBpsSize(currentTotalBpsSize)) {
+    if (!cw.sysParamCache.SetCurrentTotalBpsSize(currentTotalBpsSize)) {
         return state.DoS(100, ERRORMSG("CGovBpSizeProposal::ExecuteProposal, save current bp count failed!"),
                 REJECT_INVALID, "save-currtotalbpssize-failed");
     }
 
-    if(!cw.sysParamCache.SetNewTotalBpsSize(total_bps_size,effective_height)){
+    if (!cw.sysParamCache.SetNewTotalBpsSize(total_bps_size, effective_height)) {
         return state.DoS(100, ERRORMSG("CGovBpSizeProposal::ExecuteProposal, save new bp count failed!"),
                 REJECT_INVALID, "save-newtotalbpssize-failed");
     }
@@ -161,7 +159,7 @@ bool CGovMinerFeeProposal:: CheckProposal(CTxExecuteContext& context ) {
 
 bool CGovMinerFeeProposal:: ExecuteProposal(CTxExecuteContext& context, const TxID& proposalId) {
     CCacheWrapper &cw       = *context.pCw;
-    return cw.sysParamCache.SetMinerFee(tx_type,fee_symbol,fee_sawi_amount);
+    return cw.sysParamCache.SetMinerFee(tx_type, fee_symbol, fee_sawi_amount);
 }
 
 bool CGovCoinTransferProposal:: CheckProposal(CTxExecuteContext& context ) {
@@ -448,13 +446,64 @@ bool CGovFeedCoinPairProposal::ExecuteProposal(CTxExecuteContext& context, const
 }
 
 bool CGovAxcInProposal::CheckProposal(CTxExecuteContext& context ) {
-    CValidationState& state = *context.pState ;
+    CValidationState& state = *context.pState;
 
-    return true  ;
+    if ( (kXChainSwapInTokenMap.find(peer_chain_token_symbol) == kXChainSwapInTokenMap.end()) &&
+         (!cw.assetCache.CheckAsset(self_chain_token_symbol, AssetPermType::PERM_XCHAIN_SWAP)) )
+        return state.DoS(100, ERRORMSG("CGovAxcInProposal::CheckProposal: self_chain_token_symbol=%s is invalid", 
+                                        self_chain_token_symbol), REJECT_INVALID, "self_chain_token_symbol-not-valid");
+
+    if ((peer_chain_type == ChainType::BITCOIN && (peer_chain_addr.size() < 26 || peer_chain_addr.size() > 35)) ||
+        (peer_chain_type == ChainType::ETHEREUM && (peer_chain_addr.size() > 42)))
+        return state.DoS(100, ERRORMSG("CGovAxcInProposal::CheckProposal: peer_chain_addr=%s invalid", 
+                                        peer_chain_addr), REJECT_INVALID, "peer_chain_addr-invalid");
+
+    if ( (peer_chain_type == ChainType::BITCOIN && (peer_chain_txid.size() != 65)) ||
+         (peer_chain_type == ChainType::ETHEREUM && (peer_chain_txid.size() != 65)) )
+        return state.DoS(100, ERRORMSG("CGovAxcInProposal::CheckProposal: peer_chain_txid=%s invalid", 
+                                        peer_chain_txid), REJECT_INVALID, "peer_chain_txid-invalid");
+
+    if (self_chain_uid.IsEmpty())
+        return state.DoS(100, ERRORMSG("CGovAxcInProposal::CheckProposal: self_chain_uid empty", 
+                                        peer_chain_txid), REJECT_INVALID, "self_chain_uid-empty");
+
+    CAccount acct;
+    if (!cw.accountCache.GetAccount(self_chain_uid, acct))
+        return state.DoS(100, ERRORMSG("CGovAxcInProposal::CheckProposal: read account failed"), REJECT_INVALID,
+                        "bad-getaccount");
+
+    if (swap_amount < DUST_AMOUNT_THRESHOLD)
+        return state.DoS(100, ERRORMSG("CGovAxcInProposal::CheckProposal: swap_amount=%llu too small", 
+                                        swap_amount), REJECT_INVALID, "swap_amount-dust");
+
+    return true;
 }
 bool CGovAxcInProposal::ExecuteProposal(CTxExecuteContext& context, const TxID& proposalId) {
+    IMPLEMENT_DEFINE_CW_STATE;
 
-    CValidationState& state = *context.pState ;
+    CAccount acct;
+    if (!cw.accountCache.GetAccount(self_chain_uid, acct))
+        return state.DoS(100, ERRORMSG("CGovAxcInProposal::ExecuteProposal, read account failed"), REJECT_INVALID,
+                        "bad-getaccount");
+
+    if ( (kXChainSwapInTokenMap.find(peer_chain_token_symbol) == kXChainSwapInTokenMap.end()) &&
+         (!cw.assetCache.CheckAsset(self_chain_token_symbol, AssetPermType::PERM_XCHAIN_SWAP)) )
+        return state.DoS(100, ERRORMSG("CGovAxcInProposal::ExecuteProposal: self_chain_token_symbol=%s is invalid", 
+                                        self_chain_token_symbol), REJECT_INVALID, "self_chain_token_symbol-not-valid");
+
+    uint64_t swap_fee_ratio;
+    if (!cw.sysParamCache.GetParam(AXC_SWAP_FEE_RATIO, swap_fee_ratio))
+        return state.DoS(100, ERRORMSG("CGovAxcInProposal::ExecuteProposal, get sysparam: axc_swap_fee_ratio failed"), 
+                        REJECT_INVALID, "bad-get-swap_fee_ratio");
+
+    uint64_t swap_amount_after_fees = swap_amount * (1 - swap_fee_ratio/PERCENT_BOOST);
+    if ((kXChainSwapInTokenMap.find(peer_chain_token_symbol) == kXChainSwapInTokenMap.end())
+        self_chain_token_symbol = kXChainSwapInTokenMap.at(peer_chain_token_symbol);
+
+    // mint the new mirro-coin (self_chain_token_symbol) out of thin air
+    if (!acct.OperateBalance(self_chain_token_symbol, BalanceOpType::ADD_FREE, swap_amount_after_fees))
+        return state.DoS(100, ERRORMSG("CGovAxcInProposal::ExecuteProposal, opreate balance failed, swap_amount_after_fees=%llu",
+                        swap_amount_after_fees), REJECT_INVALID, "bad-operate-balance")
 
     return true  ;
 }
