@@ -174,9 +174,10 @@ bool CProposalApprovalTx::ExecuteTx(CTxExecuteContext &context) {
                         WRITE_ACCOUNT_FAIL, "proposal-execute-error");
 
     if (proposal->proposal_type == ProposalType::GOV_AXC_OUT) {
-        proposal.peer_chain_tx_multisigs.push_back(axc_signature);
+        std::unique_ptr<CGovAxcOutProposal> pAxcOutProposal = dynamic_cast<CGovAxcOutProposal>(*proposal);
+        pAxcOutProposal->peer_chain_tx_multisigs.push_back(axc_signature);
 
-        if (!cw.sysGovernCache.SetProposal(txid, proposal)
+        if (!cw.sysGovernCache.SetProposal(txid, proposal))
             return state.DoS(100, ERRORMSG("CProposalApprovalTx::ExecuteTx, set proposal info error"),
                         WRITE_ACCOUNT_FAIL, "bad-write-proposaldb");
        
