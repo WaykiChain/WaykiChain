@@ -27,23 +27,12 @@ static void ParseUtxoInput(const Array& arr, vector<CUtxoInput>& vInput);
 static void ParseUtxoOutput(const Array& arr, vector<CUtxoOutput>& vOutput);
 static void CheckUtxoCondDirection(const vector<shared_ptr<CUtxoCond>>& vCond, UtxoCondDirection direction);
 
-/**
- *
- *
- * bool ComputeRedeemScript(const CTxExecuteContext &context, const CMultiSignAddressCondIn &p2maIn, string &redeemScript);
-bool ComputeMultiSignKeyId(const string &redeemScript, CKeyID &keyId);
-bool ComputeUtxoMultisignHash(const TxID &prevUtxoTxId, uint16_t prevUtxoTxVoutIndex,
-        const CUserID &txUid, string &redeemScript, uint256 &hash) ;
- * @param params
- * @param fHelp
- * @return
- */
 
 Value genutxomultisignature(const Array& params, bool fHelp) {
     if (fHelp || params.size() != 2) {
         throw runtime_error(
-                "submitpasswordprooftx \"addr\" \"utxo_txid\" \"utxo_vout_index\" \"password_proof\" \"symbol:fee:unit\" \n"
-                "\nSubmit a password proof.\n" +
+                "genutxomultisignature \"addr\" \"utxo_txid\" \"utxo_vout_index\" \"password_proof\" \"symbol:fee:unit\" \n"
+                "\nGenerate a UTXO MultiSign Singature.\n" +
                 HelpRequiringPassphrase() +
                 "\nArguments:\n"
                 "1.\"addr\":                (string, required) the addr of signee\n"
@@ -51,11 +40,11 @@ Value genutxomultisignature(const Array& params, bool fHelp) {
                 "\nResult:\n"
                 "\"signature\"              (string) signature hex.\n"
                 "\nExamples:\n" +
-                HelpExampleCli("submitpasswordprooftx",
+                HelpExampleCli("genutxomultisignature",
                                "\"wLKf2NqwtHk3BfzK5wMDfbKYN1SC3weyR4\" \"23ewf90203ew000ds0lwsdpoxewdokwesdxcoekdleds\" "
                                "5 \"eowdswd0-eowpds23ewdswwedscde\" \"WICC:10000:sawi\"") +
                 "\nAs json rpc call\n" +
-                HelpExampleRpc("submitpasswordprooftx",
+                HelpExampleRpc("genutxomultisignature",
                                "\"wLKf2NqwtHk3BfzK5wMDfbKYN1SC3weyR4\", \"23ewf90203ew000ds0lwsdpoxewdokwesdxcoekdleds\","
                                " 5, \"eowdswd0-eowpds23ewdswwedscde\", \"WICC:10000:sawi\"")
         );
