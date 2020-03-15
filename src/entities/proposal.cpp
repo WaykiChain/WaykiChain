@@ -407,7 +407,7 @@ bool CGovDexQuoteProposal::ExecuteProposal(CTxExecuteContext& context, const TxI
 }
 
 bool CGovFeedCoinPairProposal::CheckProposal(CTxExecuteContext& context ) {
-    IMPLEMENT_DEFINE_CW_STATE
+    IMPLEMENT_DEFINE_CW_STATE;
 
     if(op_type == ProposalOperateType::NULL_PROPOSAL_OP)
         return state.DoS(100, ERRORMSG("CGovDexQuoteProposal:: checkProposal: op_type is null "),
@@ -446,7 +446,7 @@ bool CGovFeedCoinPairProposal::ExecuteProposal(CTxExecuteContext& context, const
 }
 
 bool CGovAxcInProposal::CheckProposal(CTxExecuteContext& context ) {
-    CValidationState& state = *context.pState;
+    IMPLEMENT_DEFINE_CW_STATE;
 
     if ( (kXChainSwapInTokenMap.find(peer_chain_token_symbol) == kXChainSwapInTokenMap.end()) &&
          (!cw.assetCache.CheckAsset(self_chain_token_symbol, AssetPermType::PERM_XCHAIN_SWAP)) )
@@ -496,8 +496,9 @@ bool CGovAxcInProposal::ExecuteProposal(CTxExecuteContext& context, const TxID& 
         return state.DoS(100, ERRORMSG("CGovAxcInProposal::ExecuteProposal, get sysparam: axc_swap_fee_ratio failed"), 
                         REJECT_INVALID, "bad-get-swap_fee_ratio");
 
-    uint64_t swap_amount_after_fees = swap_amount * (1 - swap_fee_ratio/PERCENT_BOOST);
-    if ((kXChainSwapInTokenMap.find(peer_chain_token_symbol) == kXChainSwapInTokenMap.end())
+    uint64_t swap_amount_after_fees = swap_amount * (1 - swap_fee_ratio * 1.0 / RATIO_BOOST);
+    
+    if (kXChainSwapInTokenMap.find(peer_chain_token_symbol) == kXChainSwapInTokenMap.end())
         self_chain_token_symbol = kXChainSwapInTokenMap.at(peer_chain_token_symbol);
 
     // mint the new mirro-coin (self_chain_token_symbol) out of thin air

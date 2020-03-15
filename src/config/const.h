@@ -148,6 +148,7 @@ enum ChainType: uint8_t {
     EOS             = 3
 };
 
+static const uint16_t RATIO_BOOST = 10000;
 static const uint64_t COIN = 100000000;  //10^8 = 1 WICC
 static const uint64_t CENT = 1000000;    //10^6 = 0.01 WICC
 

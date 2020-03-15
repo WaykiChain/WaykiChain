@@ -20,7 +20,6 @@ using namespace std;
 
 #define RANGE(MIN,MAX) make_pair(MIN, MAX)
 
-static const uint16_t RATIO_BOOST          = 10000;
 static const uint32_t PRICE_BOOST          = 100000000;
 static const uint32_t CDP_BASE_RATIO_BOOST = 100000000;
 
