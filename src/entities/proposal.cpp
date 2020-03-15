@@ -481,11 +481,6 @@ bool CGovAxcInProposal::CheckProposal(CTxExecuteContext& context ) {
 bool CGovAxcInProposal::ExecuteProposal(CTxExecuteContext& context, const TxID& proposalId) {
     IMPLEMENT_DEFINE_CW_STATE;
 
-    CAccount acct;
-    if (!cw.accountCache.GetAccount(self_chain_uid, acct))
-        return state.DoS(100, ERRORMSG("CGovAxcInProposal::ExecuteProposal, read account failed"), REJECT_INVALID,
-                        "bad-getaccount");
-
     if ( (kXChainSwapInTokenMap.find(peer_chain_token_symbol) == kXChainSwapInTokenMap.end()) &&
          (!cw.assetCache.CheckAsset(self_chain_token_symbol, AssetPermType::PERM_XCHAIN_SWAP)) )
         return state.DoS(100, ERRORMSG("CGovAxcInProposal::ExecuteProposal: self_chain_token_symbol=%s is invalid", 
@@ -501,6 +496,11 @@ bool CGovAxcInProposal::ExecuteProposal(CTxExecuteContext& context, const TxID& 
     if (kXChainSwapInTokenMap.find(peer_chain_token_symbol) == kXChainSwapInTokenMap.end())
         self_chain_token_symbol = kXChainSwapInTokenMap.at(peer_chain_token_symbol);
 
+    CAccount acct;
+    if (!cw.accountCache.GetAccount(self_chain_uid, acct))
+        return state.DoS(100, ERRORMSG("CGovAxcInProposal::ExecuteProposal, read account failed"), REJECT_INVALID,
+                        "bad-getaccount");
+                        
     // mint the new mirro-coin (self_chain_token_symbol) out of thin air
     if (!acct.OperateBalance(self_chain_token_symbol, BalanceOpType::ADD_FREE, swap_amount_after_fees))
         return state.DoS(100, ERRORMSG("CGovAxcInProposal::ExecuteProposal, opreate balance failed, swap_amount_after_fees=%llu",
@@ -545,6 +545,11 @@ bool CGovAxcOutProposal::ExecuteProposal(CTxExecuteContext& context, const TxID&
         return state.DoS(100, ERRORMSG("CGovAxcOutProposal::ExecuteProposal, get sysparam: axc_swap_fee_ratio failed"), 
                         REJECT_INVALID, "bad-get-swap_fee_ratio");
 
+    CAccount acct;
+    if (!cw.accountCache.GetAccount(self_chain_uid, acct))
+        return state.DoS(100, ERRORMSG("CGovAxcInProposal::ExecuteProposal, read account failed"), REJECT_INVALID,
+                        "bad-getaccount");
+    
     // burn the mirroed tokens from self-chain
     if (!acct.OperateBalance(self_chain_token_symbol, BalanceOpType::SUB_FREE, swap_amount))
         return state.DoS(100, ERRORMSG("CGovAxcOutProposal::ExecuteProposal, opreate balance failed, swap_amount=%llu",
