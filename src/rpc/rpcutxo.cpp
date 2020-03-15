@@ -120,7 +120,8 @@ Value genutxomultiaddresshash(const Array& params, bool fHelp) {
 
         vAddr.push_back(acct.keyid.ToAddress());
     }
-    string redeemScript = ComputeRedeemScript(m, n, vAddr);
+    string redeemScript("");
+    ComputeRedeemScript(m, n, vAddr, redeemScript);
     
     uint256 multiSignHash;
     if (!ComputeUtxoMultisignHash(prevUtxoTxId, prevUtxoTxVoutIndex,txKeyID, redeemScript, multiSignHash))
