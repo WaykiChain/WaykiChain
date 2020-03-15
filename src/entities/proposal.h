@@ -557,17 +557,18 @@ struct CGovAxcOutProposal: CProposal {
     TokenSymbol self_chain_token_symbol; // from kXChainSwapOutTokenMap to get the target token symbol
 
     ChainType   peer_chain_type = ChainType::BITCOIN; //redudant, reference only
-    string      peer_chain_uid;  // swap-out peer-chain address
+    string      peer_chain_addr;  // swap-out peer-chain address (usually different from swap-in fromAddr for bitcoin)
     uint64_t    swap_amount;
 
+    vector<UnsignedCharArray> peer_chain_tx_multisigs; //only filled by approver
 
     CGovAxcOutProposal(): CProposal(ProposalType::GOV_AXC_OUT) {}
-    CGovAxcOutProposal(CUserID &uid, TokenSymbol selfChainTokenSymbol, ChainType peerChainType, string &peerChainUid,
+    CGovAxcOutProposal(CUserID &uid, TokenSymbol selfChainTokenSymbol, ChainType peerChainType, string &peerChainAddr,
                         uint64_t &swapAmount): CProposal(ProposalType::GOV_AXC_OUT),
                         self_chain_uid(uid),
                         self_chain_token_symbol(selfChainTokenSymbol),
                         peer_chain_type(peerChainType),
-                        peer_chain_uid(peerChainUid),
+                        peer_chain_addr(peerChainAddr),
                         swap_amount(swapAmount) {}
 
     IMPLEMENT_SERIALIZE(
@@ -577,23 +578,24 @@ struct CGovAxcOutProposal: CProposal {
         READWRITE(self_chain_uid);
         READWRITE(self_chain_token_symbol);
         READWRITE((uint8_t &)peer_chain_type);
-        READWRITE(peer_chain_uid);
+        READWRITE(peer_chain_addr);
         READWRITE(VARINT(swap_amount));
+        READWRITE(peer_chain_tx_multisigs);
     );
 
-     Object ToJson() override {
+    Object ToJson() override {
         Object obj = CProposal::ToJson();
         obj.push_back(Pair("self_chain_uid", self_chain_uid.ToString()));
         obj.push_back(Pair("self_chain_token_symbol", self_chain_token_symbol));
         obj.push_back(Pair("peer_chain_type", peer_chain_type));
-        obj.push_back(Pair("peer_chain_uid", peer_chain_uid));
+        obj.push_back(Pair("peer_chain_addr", peer_chain_addr));
         obj.push_back(Pair("swap_amount", ValueFromAmount(swap_amount)));
         return obj;
     }
 
     std::string ToString() override {
-        return  strprintf("self_chain_uid=%s, self_chain_token_symbol=%s, peer_chain_type=%d, peer_chain_uid=%, swap_amount=%llu",
-                        self_chain_uid.ToString(), self_chain_token_symbol, peer_chain_type, peer_chain_uid, swap_amount);
+        return  strprintf("self_chain_uid=%s, self_chain_token_symbol=%s, peer_chain_type=%d, peer_chain_addr=%, swap_amount=%llu",
+                        self_chain_uid.ToString(), self_chain_token_symbol, peer_chain_type, peer_chain_addr, swap_amount);
     }
 
     shared_ptr<CProposal> GetNewInstance() override { return make_shared<CGovAxcOutProposal>(*this); } ;

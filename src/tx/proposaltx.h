@@ -51,6 +51,8 @@ class CProposalApprovalTx: public CBaseTx {
 public:
     TxID txid;
 
+    UnsignedCharArray axc_signature; //only applicable for AXC with multiple UTXO
+
 public:
     CProposalApprovalTx(): CBaseTx(PROPOSAL_APPROVAL_TX) {}
 

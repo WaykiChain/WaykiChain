@@ -63,8 +63,8 @@ public:
         return 1 ;
     }
 
-    bool SetProposal(const uint256& txid,  shared_ptr<CProposal>& proposal ){
-        return proposals_cache.SetData(txid, CProposalStorageBean(proposal)) ;
+    bool SetProposal(const uint256& txid,  shared_ptr<CProposal>& proposal) {
+        return proposals_cache.SetData(txid, CProposalStorageBean(proposal));
     }
 
     bool GetProposal(const uint256& txid, shared_ptr<CProposal>& proposal) {
@@ -109,8 +109,6 @@ public:
 
         return false ;
     }
-
-
 
     bool GetGovernors(set<CRegID>& governors){
 

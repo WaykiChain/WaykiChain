@@ -117,65 +117,70 @@ Object CProposalApprovalTx::ToJson(const CAccountDBCache &accountCache) const {
      return result;
 } // json-rpc usage
 
- bool CProposalApprovalTx::CheckTx(CTxExecuteContext &context) {
+bool CProposalApprovalTx::CheckTx(CTxExecuteContext &context) {
     IMPLEMENT_DEFINE_CW_STATE;
 
     shared_ptr<CProposal> proposal ;
-    if(!cw.sysGovernCache.GetProposal(txid,proposal)){
+    if (!cw.sysGovernCache.GetProposal(txid, proposal)) {
         return state.DoS(100, ERRORMSG("CProposalApprovalTx::CheckTx, proposal(id=%s)  not found", txid.ToString()),
-                          WRITE_ACCOUNT_FAIL, "proposal-not-found");
-     }
-
-    if(!CheckIsGovernor(txUid.get<CRegID>(), proposal->proposal_type,cw)){
-        return state.DoS(100, ERRORMSG("CProposalApprovalTx::CheckTx, the tx commiter(%s) is not a governor", txid.ToString()),
-                          WRITE_ACCOUNT_FAIL, "permission-deney");
+                          READ_ACCOUNT_FAIL, "proposal-not-found");
     }
 
+    if(!CheckIsGovernor(txUid.get<CRegID>(), proposal->proposal_type, cw)){
+        return state.DoS(100, ERRORMSG("CProposalApprovalTx::CheckTx, the tx commiter(%s) is not a governor", txid.ToString()),
+                          READ_ACCOUNT_FAIL, "permission-deney");
+    }
+
+    if (proposal->proposal_type == ProposalType::GOV_AXC_OUT &&
+        axc_signature.size() < 64 ) {
+        return state.DoS(100, ERRORMSG("CProposalApprovalTx::CheckTx, AXC signature invalid"),
+                          READ_ACCOUNT_FAIL, "axc-signature-invalid");
+       
+    }
     return true ;
 }
 
 bool CProposalApprovalTx::ExecuteTx(CTxExecuteContext &context) {
-    IMPLEMENT_DEFINE_CW_STATE
+    IMPLEMENT_DEFINE_CW_STATE;
 
-    shared_ptr<CProposal> proposal ;
-    if (!cw.sysGovernCache.GetProposal(txid,proposal))
+    shared_ptr<CProposal> proposal;
+    if (!cw.sysGovernCache.GetProposal(txid, proposal))
         return state.DoS(100, ERRORMSG("CProposalApprovalTx::CheckTx, proposal(id=%s)  not found", txid.ToString()),
-                         WRITE_ACCOUNT_FAIL, "proposal-not-found");
+                        WRITE_ACCOUNT_FAIL, "proposal-not-found");
 
     auto assentedCount = cw.sysGovernCache.GetApprovalCount(txid);
     if (assentedCount >= proposal->approval_min_count)
         return state.DoS(100, ERRORMSG("CProposalApprovalTx::ExecuteTx, proposal executed already"),
-                         WRITE_ACCOUNT_FAIL, "proposal-executed-already");
+                        WRITE_ACCOUNT_FAIL, "proposal-executed-already");
 
-     CAccount srcAccount;
-     if (!cw.accountCache.GetAccount(txUid, srcAccount))
-         return state.DoS(100, ERRORMSG("CProposalApprovalTx::ExecuteTx, read source addr account info error"),
-                          READ_ACCOUNT_FAIL, "bad-read-accountdb");
+    CAccount srcAccount;
+    if (!cw.accountCache.GetAccount(txUid, srcAccount))
+        return state.DoS(100, ERRORMSG("CProposalApprovalTx::ExecuteTx, read source addr account info error"),
+                        READ_ACCOUNT_FAIL, "bad-read-accountdb");
+    if (!srcAccount.OperateBalance(fee_symbol, SUB_FREE, llFees))
+        return state.DoS(100, ERRORMSG("CProposalApprovalTx::ExecuteTx, account has insufficient funds"),
+                        UPDATE_ACCOUNT_FAIL, "operate-minus-account-failed");
+    if (proposal->expiry_block_height < context.height)
+        return state.DoS(100, ERRORMSG("CProposalApprovalTx::ExecuteTx, proposal(id=%s)  is expired", txid.ToString()),
+                        WRITE_ACCOUNT_FAIL, "proposal-expired");
+    if (!cw.accountCache.SetAccount(CUserID(srcAccount.keyid), srcAccount))
+        return state.DoS(100, ERRORMSG("CProposalApprovalTx::ExecuteTx, set account info error"),
+                        WRITE_ACCOUNT_FAIL, "bad-write-accountdb");
+    if (!cw.sysGovernCache.SetApproval(txid, txUid.get<CRegID>()))
+        return state.DoS(100, ERRORMSG("CProposalApprovalTx::ExecuteTx, set proposal approval info error"),
+                        WRITE_ACCOUNT_FAIL, "bad-write-proposaldb");
+    if ((assentedCount + 1 == proposal->approval_min_count) && (!proposal->ExecuteProposal(context, txid)))
+        return state.DoS(100, ERRORMSG("CProposalApprovalTx::ExecuteTx, proposal execute error"),
+                        WRITE_ACCOUNT_FAIL, "proposal-execute-error");
 
-     if (!srcAccount.OperateBalance(fee_symbol, SUB_FREE, llFees))
-         return state.DoS(100, ERRORMSG("CProposalApprovalTx::ExecuteTx, account has insufficient funds"),
-                          UPDATE_ACCOUNT_FAIL, "operate-minus-account-failed");
+    if (proposal->proposal_type == ProposalType::GOV_AXC_OUT) {
+        proposal.peer_chain_tx_multisigs.push_back(axc_signature);
 
-     if (proposal->expiry_block_height < context.height)
-         return state.DoS(100, ERRORMSG("CProposalApprovalTx::ExecuteTx, proposal(id=%s)  is expired", txid.ToString()),
-                          WRITE_ACCOUNT_FAIL, "proposal-expired");
-
-     if (!cw.accountCache.SetAccount(CUserID(srcAccount.keyid), srcAccount))
-         return state.DoS(100, ERRORMSG("CProposalApprovalTx::ExecuteTx, set account info error"),
-                          WRITE_ACCOUNT_FAIL, "bad-write-accountdb");
-
-     if (!cw.sysGovernCache.SetApproval(txid, txUid.get<CRegID>()))
-         return state.DoS(100, ERRORMSG("CProposalApprovalTx::ExecuteTx, set proposal approval info error"),
-                          WRITE_ACCOUNT_FAIL, "bad-write-proposaldb");
-
-     if (assentedCount + 1 == proposal->approval_min_count) {
-         if (!proposal->ExecuteProposal(context,txid))
-             return state.DoS(100, ERRORMSG("CProposalApprovalTx::ExecuteTx, proposal execute error"),
-                              WRITE_ACCOUNT_FAIL, "proposal-execute-error");
-
-
-     }
-
+        if (!cw.sysGovernCache.SetProposal(txid, proposal)
+            return state.DoS(100, ERRORMSG("CProposalApprovalTx::ExecuteTx, set proposal info error"),
+                        WRITE_ACCOUNT_FAIL, "bad-write-proposaldb");
+       
+    }
 
      return true ;
 }
