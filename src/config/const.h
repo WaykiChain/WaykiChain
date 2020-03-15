@@ -37,6 +37,10 @@ namespace SYMB {
     static const string ETH_USDT    = "ETH_USDT";   //ERC20 USDT
     static const string ETH_DAI     = "ETH_DAI";    //ERC20 DAI
 
+    static const string BTC_USDT    = "WBTC_USDT";   //BTC USDT mirrored
+    static const string ETH_USDT    = "WETH_USDT";   //ERC20 USDT mirrored
+    static const string ETH_DAI     = "WETH_DAI";    //ERC20 DAI mirrored
+
     static const string GOLD        = "GOLD";
     static const string KWH         = "KWH";
 };
@@ -84,8 +88,8 @@ static const unordered_map<TokenSymbol, TokenSymbol> kXChainSwapInTokenMap =  {
 };
 static const unordered_map<TokenSymbol, TokenSymbol> kXChainSwapOutTokenMap =  {
     { SYMB::WBTC,       SYMB::BTC           },
-    { SYMB::WETH,       SYMB::ETH           }
-    { SYMB::WETH_USDT,  SYMB::ETH_USDT      }
+    { SYMB::WETH,       SYMB::ETH           },
+    { SYMB::WETH_USDT,  SYMB::ETH_USDT      },
 };
 
 struct CoinUnitTypeHash {
