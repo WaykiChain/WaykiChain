@@ -169,7 +169,7 @@ bool CProposalApprovalTx::ExecuteTx(CTxExecuteContext &context) {
     if (!cw.sysGovernCache.SetApproval(txid, txUid.get<CRegID>()))
         return state.DoS(100, ERRORMSG("CProposalApprovalTx::ExecuteTx, set proposal approval info error"),
                         WRITE_ACCOUNT_FAIL, "bad-write-proposaldb");
-    if ((assentedCount + 1 == spProposal->approval_min_count) && (!proposal->ExecuteProposal(context, txid)))
+    if ((assentedCount + 1 == spProposal->approval_min_count) && (!spProposal->ExecuteProposal(context, txid)))
         return state.DoS(100, ERRORMSG("CProposalApprovalTx::ExecuteTx, proposal execute error"),
                         WRITE_ACCOUNT_FAIL, "proposal-execute-error");
 
