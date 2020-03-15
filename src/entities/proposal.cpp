@@ -497,16 +497,16 @@ bool CGovAxcInProposal::ExecuteProposal(CTxExecuteContext& context, const TxID& 
                         REJECT_INVALID, "bad-get-swap_fee_ratio");
 
     uint64_t swap_amount_after_fees = swap_amount * (1 - swap_fee_ratio * 1.0 / RATIO_BOOST);
-    
+
     if (kXChainSwapInTokenMap.find(peer_chain_token_symbol) == kXChainSwapInTokenMap.end())
         self_chain_token_symbol = kXChainSwapInTokenMap.at(peer_chain_token_symbol);
 
     // mint the new mirro-coin (self_chain_token_symbol) out of thin air
     if (!acct.OperateBalance(self_chain_token_symbol, BalanceOpType::ADD_FREE, swap_amount_after_fees))
         return state.DoS(100, ERRORMSG("CGovAxcInProposal::ExecuteProposal, opreate balance failed, swap_amount_after_fees=%llu",
-                        swap_amount_after_fees), REJECT_INVALID, "bad-operate-balance")
+                        swap_amount_after_fees), REJECT_INVALID, "bad-operate-balance");
 
-    return true  ;
+    return true;
 }
 
 bool CGovAxcOutProposal::CheckProposal(CTxExecuteContext& context ) {
