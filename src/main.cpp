@@ -2303,7 +2303,7 @@ bool static LoadBlockIndexDB() {
     uint256 bestBlockHash = pCdMan->pBlockCache->GetBestBlockHash();
     const auto &it = mapBlockIndex.find(bestBlockHash);
     if (it == mapBlockIndex.end()) {
-        return ERRORMSG("The best block hash in db not found in block index! hash=%s\n",
+        return ERRORMSG("%s(), the best block hash in db not found in block index! hash=%s\n",
             __FUNCTION__, bestBlockHash.ToString());
     }
 

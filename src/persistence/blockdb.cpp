@@ -94,7 +94,7 @@ CBlockIndex *InsertBlockIndex(uint256 hash) {
     // Create new
     CBlockIndex *pIndexNew = new CBlockIndex();
     if (!pIndexNew)
-        throw runtime_error("LoadBlockIndex() : new CBlockIndex failed");
+        throw runtime_error(strprintf("%s() : new CBlockIndex failed", __func__));
     mi                    = mapBlockIndex.insert(make_pair(hash, pIndexNew)).first;
     pIndexNew->pBlockHash = &((*mi).first);
 
