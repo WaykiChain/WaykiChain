@@ -174,7 +174,7 @@ bool CProposalApprovalTx::ExecuteTx(CTxExecuteContext &context) {
                         WRITE_ACCOUNT_FAIL, "proposal-execute-error");
 
     if (spProposal->proposal_type == ProposalType::GOV_AXC_OUT) {
-        auto axcOutProposal = dynamic_cast<CGovAxcOutProposal>(*spProposal);
+        auto axcOutProposal = dynamic_cast<CGovAxcOutProposal&>(*spProposal);
         axcOutProposal.peer_chain_tx_multisigs.push_back(axc_signature);
 
         if (!cw.sysGovernCache.SetProposal(txid, spProposal))
