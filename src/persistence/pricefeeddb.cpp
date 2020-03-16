@@ -10,6 +10,13 @@
 #include "tx/pricefeedtx.h"
 #include "commons/types.h"
 
+static inline bool ReadSlideWindow(CSysParamDBCache &sysParamCache, uint64_t &slideWindow, const char* pTitle) {
+    if (!sysParamCache.GetParam(SysParamType::MEDIAN_PRICE_SLIDE_WINDOW_BLOCKCOUNT, slideWindow)) {
+        return ERRORMSG("%s, read sys param MEDIAN_PRICE_SLIDE_WINDOW_BLOCKCOUNT error", pTitle);
+    }
+    return true;
+}
+
 void CConsecutiveBlockPrice::AddUserPrice(const int32_t blockHeight, const CRegID &regId, const uint64_t price) {
     mapBlockUserPrices[blockHeight][regId] = price;
 }
@@ -29,15 +36,16 @@ bool CConsecutiveBlockPrice::ExistBlockUserPrice(const int32_t blockHeight, cons
 ////////////////////////////////////////////////////////////////////////////////
 //CPricePointMemCache
 
-bool CPricePointMemCache::ReleadBlocks(CBlockIndex *pTipBlockIdx) {
+bool CPricePointMemCache::ReleadBlocks(CSysParamDBCache &sysParamCache, CBlockIndex *pTipBlockIdx) {
 
     int64_t start       = GetTimeMillis();
     CBlockIndex *pBlockIdx  = pTipBlockIdx;
 
-    const uint32_t MAX_COUNT = 11;  // TODO: parameterize 11.
+    uint64_t slideWindow = 0;
+    if (!ReadSlideWindow(sysParamCache, slideWindow, __func__)) return false;
     uint32_t count       = 0;
 
-    while (pBlockIdx && count < MAX_COUNT ) {
+    while (pBlockIdx && count < slideWindow ) {
         CBlock block;
         if (!ReadBlockFromDisk(pBlockIdx, block))
             return ERRORMSG("%s() : read block=[%d]%s failed", __func__, pBlockIdx->height,
@@ -54,12 +62,14 @@ bool CPricePointMemCache::ReleadBlocks(CBlockIndex *pTipBlockIdx) {
     return true;
 }
 
-bool CPricePointMemCache::PushBlock(CBlockIndex *pTipBlockIdx) {
-    const uint32_t MAX_COUNT = 11;  // TODO: parameterize 11.
+bool CPricePointMemCache::PushBlock(CSysParamDBCache &sysParamCache, CBlockIndex *pTipBlockIdx) {
+
+    uint64_t slideWindow = 0;
+    if (!ReadSlideWindow(sysParamCache, slideWindow, __func__)) return false;
     // remove the oldest block
-    if (pTipBlockIdx->height > (int32_t)MAX_COUNT) {
+    if (pTipBlockIdx->height > (int32_t)slideWindow) {
         CBlockIndex *pDeleteBlockIndex = pTipBlockIdx;
-        int32_t height           = MAX_COUNT;
+        int32_t height           = slideWindow;
         while (pDeleteBlockIndex && height-- > 0) {
             pDeleteBlockIndex = pDeleteBlockIndex->pprev;
         }
@@ -78,16 +88,18 @@ bool CPricePointMemCache::PushBlock(CBlockIndex *pTipBlockIdx) {
     return true;
 }
 
-bool CPricePointMemCache::UndoBlock(CBlockIndex *pTipBlockIdx) {
-    const uint32_t MAX_COUNT = 11;  // TODO: parameterize 11.
+bool CPricePointMemCache::UndoBlock(CSysParamDBCache &sysParamCache, CBlockIndex *pTipBlockIdx) {
+
+    uint64_t slideWindow = 0;
+    if (!ReadSlideWindow(sysParamCache, slideWindow, __func__)) return false;
     // Delete the disconnected block's pricefeed items from price point memory cache.
     if (!DeleteBlockPricePoint(pTipBlockIdx->height)) {
         return ERRORMSG("%s() : delete block=[%d]%s from price point memory cache failed",
                 __func__, pTipBlockIdx->height, pTipBlockIdx->GetBlockHash().ToString());
     }
-    if (pTipBlockIdx->height > (int32_t)MAX_COUNT) {
+    if (pTipBlockIdx->height > (int32_t)slideWindow) {
         CBlockIndex *pReLoadBlockIndex = pTipBlockIdx;
-        int32_t nCacheHeight           = MAX_COUNT;
+        int32_t nCacheHeight           = slideWindow;
         while (pReLoadBlockIndex && nCacheHeight-- > 0) {
             pReLoadBlockIndex = pReLoadBlockIndex->pprev;
         }
@@ -320,9 +332,7 @@ bool CPricePointMemCache::CalcBlockMedianPrices(CCacheWrapper &cw, const int32_t
                                                 PriceMap &medianPrices) {
     // TODO: support more price pair
     uint64_t slideWindow = 0;
-    if (!cw.sysParamCache.GetParam(SysParamType::MEDIAN_PRICE_SLIDE_WINDOW_BLOCKCOUNT, slideWindow)) {
-        return ERRORMSG("%s, read sys param MEDIAN_PRICE_SLIDE_WINDOW_BLOCKCOUNT error", __func__);
-    }
+    if (!ReadSlideWindow(cw.sysParamCache, slideWindow, __func__)) return false;
 
     latest_median_prices = cw.priceFeedCache.GetMedianPrices();
 

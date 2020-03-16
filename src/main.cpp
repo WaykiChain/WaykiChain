@@ -736,7 +736,7 @@ bool DisconnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CVal
     }
 
     // undo block prices of price point memory cache.
-    if (!cw.ppCache.UndoBlock(pIndex))
+    if (!cw.ppCache.UndoBlock(cw.sysParamCache, pIndex))
         return state.Abort(_("DisconnectBlock() : undo block prices of memory cache"));
 
     if (pfClean) {
@@ -1260,7 +1260,7 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
         }
     }
 
-    if (!cw.ppCache.PushBlock(pIndex))
+    if (!cw.ppCache.PushBlock(cw.sysParamCache, pIndex))
         return state.Abort(_("ConnectBlock() : push block to price point memory cache failed"));
 
     // Set best block to current account cache.

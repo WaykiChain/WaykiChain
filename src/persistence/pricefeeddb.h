@@ -21,6 +21,7 @@
 
 using namespace std;
 
+class CSysParamDBCache; // need to read slide window param
 class CConsecutiveBlockPrice;
 
 typedef map<int32_t /* block height */, map<CRegID, uint64_t /* price */>> BlockUserPriceMap;
@@ -45,9 +46,9 @@ public:
         : pBase(pBaseIn) {}
 
 public:
-    bool ReleadBlocks(CBlockIndex *pTipBlockIdx);
-    bool PushBlock(CBlockIndex *pTipBlockIdx);
-    bool UndoBlock(CBlockIndex *pTipBlockIdx);
+    bool ReleadBlocks(CSysParamDBCache &sysParamCache, CBlockIndex *pTipBlockIdx);
+    bool PushBlock(CSysParamDBCache &sysParamCache, CBlockIndex *pTipBlockIdx);
+    bool UndoBlock(CSysParamDBCache &sysParamCache, CBlockIndex *pTipBlockIdx);
     bool AddPrice(const int32_t blockHeight, const CRegID &regId, const vector<CPricePoint> &pps);
     bool AddPriceByBlock(const CBlock &block);
     // delete block price point by specific block height.

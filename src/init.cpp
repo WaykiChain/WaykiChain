@@ -788,7 +788,7 @@ bool AppInit(boost::thread_group &threadGroup) {
     if (!ActivateBestChain(state))
         return InitError("Failed to connect best block");
 
-    if (!pCdMan->pPpCache->ReleadBlocks(chainActive.Tip())) {
+    if (!pCdMan->pPpCache->ReleadBlocks(*pCdMan->pSysParamCache, chainActive.Tip())) {
         return InitError("Init prices of PriceFeedMemCache failed");
     }
 
