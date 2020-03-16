@@ -275,7 +275,7 @@ bool AcceptToMemoryPool(CTxMemPool &pool, CValidationState &state, CBaseTx *pBas
     auto spCW = std::make_shared<CCacheWrapper>(mempool.cw.get());
 
     CBlockIndex *pTip =  chainActive.Tip();
-    if (pTip == nullptr) throw runtime_error("CheckTxInMemPool(), pChainTip is nullptr");
+    if (pTip == nullptr) throw runtime_error("AcceptToMemoryPool(), pChainTip is nullptr");
     HeightType newHeight = pTip->height + 1;
     uint32_t fuelRate  = GetElementForBurn(pTip);
     uint32_t blockTime = pTip->GetBlockTime();
