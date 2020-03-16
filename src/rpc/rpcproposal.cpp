@@ -242,6 +242,93 @@ Value submitgovernorupdateproposal(const Array& params , bool fHelp) {
 
 }
 
+
+Value submitaccountpermproposal(const Array& params , bool fHelp) {
+
+    if(fHelp || params.size() < 3 || params.size() > 4){
+
+        throw runtime_error(
+                "submitaccountpermproposal \"addr\" \"account_uid\" \"proposed_perms_sum\" [\"fee\"]\n"
+                "create proposal about  updating account's permits \n"
+                "\nArguments:\n"
+                "1.\"addr\":               (string,     required) the tx submitor's address\n"
+                "2.\"account_uid\":        (string,     required) the account uid that need to update\n"
+                "3.\"proposed_perms_sum\": (numberic,   required) the proposed perms sum\n"
+                "4.\"fee\":                (combomoney, optional) the tx fee \n"
+                "\nExamples:\n"
+                + HelpExampleCli("submitaccountpermproposal", "0-1 100-2 3  WICC:1:WI")
+                + "\nAs json rpc call\n"
+                + HelpExampleRpc("submitaccountpermproposal", R"("0-1", "100-2", 3,  "WICC:1:WI")")
+
+        );
+
+    }
+
+    EnsureWalletIsUnlocked();
+
+    const CUserID& txUid = RPC_PARAM::GetUserId(params[0], true);
+    CUserID accountUid = RPC_PARAM::GetUserId(params[1]);
+    uint64_t permsSum = AmountToRawValue(params[2]) ;
+    ComboMoney fee          = RPC_PARAM::GetFee(params, 3, PROPOSAL_REQUEST_TX);
+    int32_t validHeight  = chainActive.Height();
+    CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, txUid);
+    RPC_PARAM::CheckAccountBalance(account, fee.symbol, SUB_FREE, fee.GetAmountInSawi());
+
+    CGovAccountPermProposal proposal(accountUid,permsSum);
+
+    CProposalRequestTx tx ;
+    tx.txUid        = txUid;
+    tx.llFees       = fee.GetAmountInSawi();
+    tx.fee_symbol    = fee.symbol ;
+    tx.valid_height = validHeight;
+    tx.proposal = CProposalStorageBean(std::make_shared<CGovAccountPermProposal>(proposal)) ;
+    return SubmitTx(account.keyid, tx) ;
+
+}
+
+
+Value submitassetpermproposal(const Array& params , bool fHelp) {
+
+    if(fHelp || params.size() < 3 || params.size() > 4){
+
+        throw runtime_error(
+                "submitassetpermproposal \"addr\" \"asset_symbol\" \"proposed_perms_sum\" [\"fee\"]\n"
+                "create proposal about  updating asset permits \n"
+                "\nArguments:\n"
+                "1.\"addr\":               (string,     required) the tx submitor's address\n"
+                "2.\"asset_symbol\":       (string,     required) the asset that need to update\n"
+                "3.\"proposed_perms_sum\": (numberic,   required) the proposed perms sum\n"
+                "4.\"fee\":                (combomoney, optional) the tx fee \n"
+                "\nExamples:\n"
+                + HelpExampleCli("submitassetpermproposal", "0-1 WICC 3  WICC:1:WI")
+                + "\nAs json rpc call\n"
+                + HelpExampleRpc("submitassetpermproposal", R"("0-1", "WICC", 1,  "WICC:1:WI")")
+
+        );
+
+    }
+
+    EnsureWalletIsUnlocked();
+
+    const CUserID& txUid = RPC_PARAM::GetUserId(params[0], true);
+    const string assetSymbol = params[1].get_str();
+    uint64_t permsSum = AmountToRawValue(params[2]) ;
+    ComboMoney fee          = RPC_PARAM::GetFee(params, 3, PROPOSAL_REQUEST_TX);
+    int32_t validHeight  = chainActive.Height();
+    CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, txUid);
+    RPC_PARAM::CheckAccountBalance(account, fee.symbol, SUB_FREE, fee.GetAmountInSawi());
+
+    CGovAssetPermProposal proposal(assetSymbol, permsSum);
+    CProposalRequestTx tx ;
+    tx.txUid        = txUid;
+    tx.llFees       = fee.GetAmountInSawi();
+    tx.fee_symbol    = fee.symbol ;
+    tx.valid_height = validHeight;
+    tx.proposal = CProposalStorageBean(std::make_shared<CGovAssetPermProposal>(proposal)) ;
+    return SubmitTx(account.keyid, tx) ;
+
+}
+
 Value submitdexquotecoinproposal(const Array& params, bool fHelp) {
     if(fHelp || params.size() < 3 || params.size() > 4) {
         throw runtime_error(
@@ -331,8 +418,8 @@ Value submitfeedcoinpairproposal(const Array& params, bool fHelp) {
     tx.proposal = CProposalStorageBean(std::make_shared<CGovFeedCoinPairProposal>(proposal)) ;
     return SubmitTx(account.keyid, tx) ;
 
-
 }
+
 Value submitdexswitchproposal(const Array& params, bool fHelp) {
 
     if(fHelp || params.size() < 3 || params.size() > 4){
@@ -507,6 +594,127 @@ Value submitminerfeeproposal(const Array& params, bool fHelp) {
 
 }
 
+
+Value submitaxcinproposal(const Array& params, bool fHelp) {
+
+
+    if(fHelp || params.size() < 8 || params.size() > 9){
+
+        throw runtime_error(
+                "submitminerfeeproposal \"addr\" \"tx_type\" \"fee_info\"  [\"fee\"]\n"
+                "create proposal about updating the min miner fee\n"
+                "\nArguments:\n"
+                "1.\"addr\":                        (string,     required) the tx submitor's address\n"
+                "2.\"peer_chain_type\":             (numberic,   required) the chain type that swap from \n"
+                                                    "1: stand for bitcoin\n"
+                                                    "2: stand for ethereum\n"
+                                                    "3: stand for eos\n"
+                "3.\"peer_chain_token_symbol\":     (string, required) the coin symbol that swap from, such as BTC,ETH,EOS \n"
+                "4.\"self_chain_token_symbol\":     (string, required) the coin symbol that swap to, such as WBTC,WETC,WEOS \n"
+                "5.\"peer_chain_addr\":             (string, required) initiator's address at peer chain \n"
+                "6.\"peer_chain_txid\":             (string, required) a proof from the peer chain (non-HTLC version), such as wisvisof932wq392wospal230ewopdsxl\n"
+                "7.\"self_chain_uid\":              (string, required) initiator's uid at waykichain \n"
+                "8.\"swap_amount\":                 (numberic, required) the coin amount that swap in \n"
+                "9.\"fee\":                         (combomoney, optional) the tx fee \n"
+                "\nExamples:\n"
+                + HelpExampleCli("submitminerfeeproposal", "0-1 1 WICC:1:WI  WICC:1:WI")
+                + "\nAs json rpc call\n"
+                + HelpExampleRpc("submitminerfeeproposal", R"("0-1", 1, "WICC:1:WI", "WICC:1:WI")")
+
+        );
+
+    }
+
+    EnsureWalletIsUnlocked();
+    const CUserID& txUid = RPC_PARAM::GetUserId(params[0], true);
+    ChainType peerChainType = ChainType((uint8_t)params[1].get_int());
+    TokenSymbol peerTokenSymbol = TokenSymbol(params[2].get_str());
+    TokenSymbol selfToeknSymbol = TokenSymbol(params[3].get_str());
+    string peerAddr = params[4].get_str();
+    string peerTxid =params[5].get_str();
+    CUserID selfUid = RPC_PARAM::GetUserId(params[6]);
+    uint64_t swapCoinAmount = AmountToRawValue(params[7]);
+    ComboMoney fee          = RPC_PARAM::GetFee(params, 8, PROPOSAL_REQUEST_TX);
+    int32_t validHeight  = chainActive.Height();
+    CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, txUid);
+    RPC_PARAM::CheckAccountBalance(account, fee.symbol, SUB_FREE, fee.GetAmountInSawi());
+
+   CGovAxcInProposal proposal(peerChainType,peerTokenSymbol,selfToeknSymbol,peerAddr,peerTxid,selfUid,swapCoinAmount);
+    CProposalRequestTx tx ;
+    tx.txUid        = txUid;
+    tx.llFees       = fee.GetAmountInSawi();
+    tx.fee_symbol    = fee.symbol ;
+    tx.valid_height = validHeight;
+    tx.proposal = CProposalStorageBean(std::make_shared<CGovAxcInProposal>(proposal)) ;
+
+
+    return SubmitTx(account.keyid, tx) ;
+
+}
+
+Value submitaxcoutproposal(const Array& params, bool fHelp) {
+
+    if(fHelp || params.size() < 7 || params.size() > 8){
+
+        throw runtime_error(
+                "submitminerfeeproposal \"addr\" \"tx_type\" \"fee_info\"  [\"fee\"]\n"
+                "create proposal about updating the min miner fee\n"
+                "\nArguments:\n"
+                "1.\"addr\":                    (string,   required) the tx submitor's address\n"
+                "2.\"self_chain_uid\":          (string,   required)  initiator's uid at waykichain \n"
+                "3.\"self_chain_token_symbol\": (string, required) the coin symbol that swap out, such as WBTC,WETC,WEOS \n"
+                "4.\"peer_chain_type\":         (numberic,   required) the chain type that swap to \n"
+                                                "1: stand for bitcoin\n"
+                                                "2: stand for ethereum\n"
+                                                "3: stand for eos\n"
+                "5.\"peer_chain_addr\":         (string, optional) initiator's address at peer chain \n"
+                "6.\"swap_amount\":             (numberic,   required) the coin amount that swap out \n"
+                "7.\"peer_chain_tx_multisigs\": (array<string>, required) the multi signatures at peer chain\n"
+                "8.\"fee\":                     (combomoney, optional) the tx fee \n"
+                "\nExamples:\n"
+                + HelpExampleCli("submitminerfeeproposal", "0-1 1 WICC:1:WI  WICC:1:WI")
+                + "\nAs json rpc call\n"
+                + HelpExampleRpc("submitminerfeeproposal", R"("0-1", 1, "WICC:1:WI", "WICC:1:WI")")
+
+        );
+
+    }
+
+    EnsureWalletIsUnlocked();
+    const CUserID& txUid = RPC_PARAM::GetUserId(params[0], true);
+    CUserID selfChainUid = RPC_PARAM::GetUserId(params[1]);
+    TokenSymbol selfChainTokenSymbol(params[2].get_str());
+    ChainType peerChainType = ChainType((uint8_t)params[2].get_int());
+    string peerAddr = params[3].get_str();
+
+    Array signArr = params[4].get_array();
+    vector<UnsignedCharArray> vSign ;
+    for (auto s: signArr) {
+        UnsignedCharArray unsignedCharArray = ParseHex(s.get_str());
+        vSign.push_back(unsignedCharArray);
+    }
+
+    uint64_t swapCoinAmount = AmountToRawValue(params[5]);
+    ComboMoney fee          = RPC_PARAM::GetFee(params, 6, PROPOSAL_REQUEST_TX);
+
+    int32_t validHeight  = chainActive.Height();
+    CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, txUid);
+    RPC_PARAM::CheckAccountBalance(account, fee.symbol, SUB_FREE, fee.GetAmountInSawi());
+
+    CGovAxcOutProposal proposal(selfChainUid,selfChainTokenSymbol,peerChainType,peerAddr,swapCoinAmount) ;
+
+    CProposalRequestTx tx ;
+    tx.txUid        = txUid;
+    tx.llFees       = fee.GetAmountInSawi();
+    tx.fee_symbol    = fee.symbol ;
+    tx.valid_height = validHeight;
+    tx.proposal = CProposalStorageBean(std::make_shared<CGovAxcOutProposal>(proposal)) ;
+
+
+    return SubmitTx(account.keyid, tx) ;
+
+}
+
 Value submitcointransferproposal( const Array& params, bool fHelp) {
     if(fHelp || params.size() < 4 || params.size() > 5){
         throw runtime_error(
@@ -528,8 +736,8 @@ Value submitcointransferproposal( const Array& params, bool fHelp) {
 
     EnsureWalletIsUnlocked();
     const CUserID& txUid    = RPC_PARAM::GetUserId(params[0], true);
-    const CUserID& fromUid  = RPC_PARAM::GetUserId(params[1]) ;
-    const CUserID& toUid    = RPC_PARAM::GetUserId(params[2]) ;
+    const CUserID& fromUid  = RPC_PARAM::GetUserId(params[1]);
+    const CUserID& toUid    = RPC_PARAM::GetUserId(params[2]);
 
     ComboMoney transferInfo = RPC_PARAM::GetComboMoney(params[3],SYMB::WICC);
     ComboMoney fee          = RPC_PARAM::GetFee(params, 4, PROPOSAL_REQUEST_TX);
