@@ -28,7 +28,11 @@ bool CNickIdRegisterTx::CheckTx(CTxExecuteContext &context) {
         if (nickId.size() != 12)
             return state.DoS(100,ERRORMSG("Nickname length must be 12, but %s length = %d", nickId, nickId.size()),
                              REJECT_INVALID, "bad_nickid_length");
-
+        string prefix = "wasmio";
+        if (strcmp(nickId.c_str(),prefix.c_str()) != 0 ){
+            return state.DoS(100, ERRORMSG("CNickIdRegisterTx::CheckTx, nickid is can't be start with 'wasmio'"), REJECT_INVALID,
+                             "bad-nickid");
+        }
         if(wasm::name(nickId).value == 0)
             return state.DoS(100, ERRORMSG("CNickIdRegisterTx::CheckTx, nickid is invalid,for zero"), REJECT_INVALID,
                              "bad-nickid");
