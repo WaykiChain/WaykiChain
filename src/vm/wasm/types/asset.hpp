@@ -30,7 +30,7 @@ namespace wasm {
         /**
          * The symbol name of the asset
          */
-        symbol sym;
+        class symbol symbol;
 
         /**
          * Maximum amount possible for this asset. It's capped to 2^62 - 1
@@ -46,9 +46,9 @@ namespace wasm {
          * @param s - The name of the symbol
          */
         asset( int64_t a, class symbol s )
-                : amount(a), sym{s} {
+                : amount(a), symbol{s} {
             check(is_amount_within_range(), "magnitude of asset amount must be less than 2^62");
-            check(sym.is_valid(), "invalid symbol name");
+            check(symbol.is_valid(), "invalid symbol name");
         }
 
         /**
@@ -65,7 +65,7 @@ namespace wasm {
          * @return true - if the asset is valid
          * @return false - otherwise
          */
-        bool is_valid() const { return is_amount_within_range() && sym.is_valid(); }
+        bool is_valid() const { return is_amount_within_range() && symbol.is_valid(); }
 
         /**
          * Set the amount of the asset
@@ -96,7 +96,7 @@ namespace wasm {
          * @post The amount of this asset is subtracted by the amount of asset a
          */
         asset &operator-=( const asset &a ) {
-            check(a.sym == sym, "attempt to subtract asset with different symbol");
+            check(a.symbol == symbol, "attempt to subtract asset with different symbol");
             amount -= a.amount;
             check(-max_amount <= amount, "subtraction underflow");
             check(amount <= max_amount, "subtraction overflow");
@@ -127,7 +127,7 @@ namespace wasm {
          * @post The amount of this asset is added with the amount of asset a
          */
         asset &operator+=( const asset &a ) {
-            check(a.sym == sym, "attempt to add asset with different symbol");
+            check(a.symbol == symbol, "attempt to add asset with different symbol");
             amount += a.amount;
             check(-max_amount <= amount, "addition underflow");
             check(amount <= max_amount, "addition overflow");
@@ -243,7 +243,7 @@ namespace wasm {
          */
         friend int64_t operator/( const asset &a, const asset &b ) {
             check(b.amount != 0, "divide by zero");
-            check(a.sym == b.sym, "comparison of assets with different symbols is not allowed");
+            check(a.symbol == b.symbol, "comparison of assets with different symbols is not allowed");
             return a.amount / b.amount;
         }
 
@@ -257,7 +257,7 @@ namespace wasm {
          * @pre Both asset must have the same symbol
          */
         friend bool operator==( const asset &a, const asset &b ) {
-            check(a.sym == b.sym, "comparison of assets with different symbols is not allowed");
+            check(a.symbol == b.symbol, "comparison of assets with different symbols is not allowed");
             return a.amount == b.amount;
         }
 
@@ -284,7 +284,7 @@ namespace wasm {
          * @pre Both asset must have the same symbol
          */
         friend bool operator<( const asset &a, const asset &b ) {
-            check(a.sym == b.sym, "comparison of assets with different symbols is not allowed");
+            check(a.symbol == b.symbol, "comparison of assets with different symbols is not allowed");
             return a.amount < b.amount;
         }
 
@@ -298,7 +298,7 @@ namespace wasm {
          * @pre Both asset must have the same symbol
          */
         friend bool operator<=( const asset &a, const asset &b ) {
-            check(a.sym == b.sym, "comparison of assets with different symbols is not allowed");
+            check(a.symbol == b.symbol, "comparison of assets with different symbols is not allowed");
             return a.amount <= b.amount;
         }
 
@@ -312,7 +312,7 @@ namespace wasm {
          * @pre Both asset must have the same symbol
          */
         friend bool operator>( const asset &a, const asset &b ) {
-            check(a.sym == b.sym, "comparison of assets with different symbols is not allowed");
+            check(a.symbol == b.symbol, "comparison of assets with different symbols is not allowed");
             return a.amount > b.amount;
         }
 
@@ -326,7 +326,7 @@ namespace wasm {
          * @pre Both asset must have the same symbol
          */
         friend bool operator>=( const asset &a, const asset &b ) {
-            check(a.sym == b.sym, "comparison of assets with different symbols is not allowed");
+            check(a.symbol == b.symbol, "comparison of assets with different symbols is not allowed");
             return a.amount >= b.amount;
         }
 
@@ -336,14 +336,14 @@ namespace wasm {
          * @brief %asset to std::string
          */
         std::string to_string() const {
-            uint8_t p =  sym.precision();
+            uint8_t p =  symbol.precision();
 
             //bool negative = false;
             int64_t invert = 1;
 
-            int64_t p10 = sym.precision_in_10();
+            int64_t p10 = symbol.precision_in_10();
 
-            p =  sym.precision();
+            p =  symbol.precision();
 
             char fraction[256];
             fraction[p] = '\0';
@@ -364,7 +364,7 @@ namespace wasm {
                      (int64_t)(amount / p10),
                      (fraction[0]) ? "." : "",
                      fraction,
-                     sym.code().to_string().c_str());
+                     symbol.code().to_string().c_str());
             return {str};
         }
 
@@ -399,7 +399,7 @@ namespace wasm {
                 }
 
                 string symbol_part = precision_digit_str + ',' + symbol_str;
-                symbol sym = symbol::from_string(symbol_part);
+                class symbol sym = symbol::from_string(symbol_part);
 
                 // Parse amount
                 int64_t int_part, fract_part = 0;
@@ -423,7 +423,7 @@ namespace wasm {
         }
 
 
-        WASM_REFLECT( asset, (amount)(sym) )
+        WASM_REFLECT( asset, (amount)(symbol) )
 
         // /**
         // *  Serialize a asset into a stream

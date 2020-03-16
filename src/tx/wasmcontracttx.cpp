@@ -251,7 +251,7 @@ static void inline_trace_to_receipts(const wasm::inline_transaction_trace& trace
 
             receipt.from_uid    = CUserID(CNickID(from));
             receipt.to_uid      = CUserID(CNickID(to));
-            receipt.coin_symbol = quantity.sym.code().to_string();
+            receipt.coin_symbol = quantity.symbol.code().to_string();
             receipt.coin_amount = quantity.amount;
 
             receipts.push_back(receipt);

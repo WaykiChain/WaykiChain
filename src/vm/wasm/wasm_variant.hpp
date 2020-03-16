@@ -593,7 +593,7 @@ namespace wasm {
                         break;
                     }
                     case ID_Symbol : {
-                        from_variant(Config_type::get_value(*i), t.sym);
+                        from_variant(Config_type::get_value(*i), t.symbol);
                         //std::cout << t.sym.to_string() <<std::endl ;
                         break;
                     }

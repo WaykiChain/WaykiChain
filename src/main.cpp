@@ -1224,8 +1224,21 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
             if (!FindUndoPos(state, pIndex->nFile, pos, ::GetSerializeSize(blockUndo, SER_DISK, CLIENT_VERSION) + 40))
                 return state.Abort(_("ConnectBlock() : failed to find undo data's position"));
 
+            // uint256 preHash;
+            // if(pIndex->previous != nullptr){
+            //     CBlock preBlock;
+            //     if (!ReadBlockFromDisk(pDeleteBlockIndex, deleteBlock)) {
+            //         return state.Abort(_("ConnectBlock() : failed to read block"));
+            //     }
+            //     preHash = preBlock.GetMerkleRootHash();
+            // }else{
+            //     preHash = uint256{};
+            // }
+
             if (!blockUndo.WriteToDisk(pos, pIndex->pprev->GetBlockHash()))
                 return state.Abort(_("ConnectBlock() : failed to write undo data"));
+
+            //block.SetMerkleRootHash(blockUndo.CalcStateHash(preHash));
 
             // Update nUndoPos in block index
             pIndex->nUndoPos = pos.nPos;

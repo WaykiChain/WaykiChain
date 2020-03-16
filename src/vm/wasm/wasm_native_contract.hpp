@@ -23,8 +23,8 @@ namespace wasm {
 
     inline void sub_balance(CAccount& owner, const wasm::asset& quantity, CAccountDBCache &database){
 
-        string symbol     = quantity.sym.code().to_string();
-        uint8_t precision = quantity.sym.precision();
+        string symbol     = quantity.symbol.code().to_string();
+        uint8_t precision = quantity.symbol.precision();
         CHAIN_ASSERT( precision == 8,
                       account_access_exception,
                       "The precision of system coin %s must be %d",
@@ -41,8 +41,8 @@ namespace wasm {
 
     inline void add_balance(CAccount& owner, const wasm::asset& quantity, CAccountDBCache &database){
 
-        string symbol     = quantity.sym.code().to_string();
-        uint8_t precision = quantity.sym.precision();
+        string symbol     = quantity.symbol.code().to_string();
+        uint8_t precision = quantity.symbol.precision();
         CHAIN_ASSERT( precision == 8,
                       account_access_exception,
                       "The precision of system coin %s must be %d",

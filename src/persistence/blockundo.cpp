@@ -13,7 +13,6 @@ FILE *OpenUndoFile(const CDiskBlockPos &pos, bool fReadOnly) {
 
 ////////////////////////////////////////////////////////////////////////////////
 // class CTxUndo
-
 string CTxUndo::ToString() const {
     string str;
     str += "txid:" + txid.GetHex() + "\n";
@@ -21,8 +20,24 @@ string CTxUndo::ToString() const {
     return str;
 }
 
+// uint256 CTxUndo::CalcStateHash(){
+//     CHashWriter hasher(SER_GETHASH, PROTOCOL_VERSION);
+//     hasher << dbOpLogMap.ToString();
+//     return hasher.GetHash();
+// }
+
 ////////////////////////////////////////////////////////////////////////////////
 // class CBlockUndo
+
+
+// uint256 CBlockUndo::CalcStateHash(uint256 preHash){
+//     CHashWriter hasher(SER_GETHASH, PROTOCOL_VERSION);
+//     hasher << preHash;
+//     for(auto undo:vtxundo){
+//         hasher << undo.CalcStateHash();
+//     }
+//     return hasher.GetHash();
+// }
 
 bool CBlockUndo::WriteToDisk(CDiskBlockPos &pos, const uint256 &blockHash) {
     // Open history file to append

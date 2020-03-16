@@ -17,7 +17,7 @@
 
 class CTxUndo {
 public:
-    uint256 txid;
+    uint256     txid;
     CDBOpLogMap dbOpLogMap; // dbPrefix -> dbOpLogs
 
     IMPLEMENT_SERIALIZE(
@@ -30,10 +30,11 @@ public:
 
     CTxUndo(const uint256 &txidIn): txid(txidIn) {}
 
+    // uint256 CalcStateHash();
     void SetTxID(const TxID &txidIn) { txid = txidIn; }
 
     void Clear() {
-        txid = uint256();
+        txid       = uint256();
         dbOpLogMap.Clear();
     }
 
@@ -49,6 +50,7 @@ public:
         READWRITE(vtxundo);
     )
 
+    // uint256 CalcStateHash(uint256 preHash);
     bool WriteToDisk(CDiskBlockPos &pos, const uint256 &blockHash);
 
     bool ReadFromDisk(const CDiskBlockPos &pos, const uint256 &blockHash);
