@@ -239,6 +239,18 @@ Array RPCConvertValues(const string &strMethod, const vector<string> &strParams)
     if (strMethod == "submittotalbpssizeupdateproposal"   && n > 1) ConvertTo<int64_t>(params[1]) ;
     if (strMethod == "submittotalbpssizeupdateproposal"   && n > 2) ConvertTo<int64_t>(params[2]) ;
 
+    if (strMethod == "genutxomultisignaddr"   && n > 0) ConvertTo<int64_t>(params[0]) ;
+    if (strMethod == "genutxomultisignaddr"   && n > 1) ConvertTo<int64_t>(params[1]) ;
+    if (strMethod == "genutxomultisignaddr"   && n > 2) ConvertTo<Array>(params[2]) ;
+
+
+    if (strMethod == "genutxomultiinputcondhash"   && n > 0) ConvertTo<int64_t>(params[0]) ;
+    if (strMethod == "genutxomultiinputcondhash"   && n > 1) ConvertTo<int64_t>(params[1]) ;
+    if (strMethod == "genutxomultiinputcondhash"   && n > 3) ConvertTo<int64_t>(params[3]) ;
+    if (strMethod == "genutxomultiinputcondhash"   && n > 4) ConvertTo<Array>(params[4]) ;
+
+    if (strMethod == "submitaccountpermproposal"   && n > 2) ConvertTo<int64_t>(params[2]) ;
+    if (strMethod == "submitassetpermproposal"     && n > 2) ConvertTo<int64_t>(params[2]) ;
 
     /* vm functions work in vm simulator */
     if (strMethod == "vmexecutescript"          && n > 3) ConvertTo<int64_t>(params[3]);

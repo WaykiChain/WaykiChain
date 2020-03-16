@@ -276,6 +276,9 @@ struct CGovAccountPermProposal: CProposal {
     uint64_t proposed_perms_sum;
 
     CGovAccountPermProposal(): CProposal(ProposalType::GOV_ACCOUNT_PERM){}
+    CGovAccountPermProposal(const CUserID& accountUid, const uint64_t& permsSum): CProposal(ProposalType::GOV_ACCOUNT_PERM),
+                                 account_uid(accountUid),
+                                 proposed_perms_sum(permsSum){}
 
     IMPLEMENT_SERIALIZE(
         READWRITE(VARINT(expiry_block_height));
@@ -311,6 +314,9 @@ struct CGovAssetPermProposal: CProposal {
     uint64_t proposed_perms_sum;
 
     CGovAssetPermProposal(): CProposal(ProposalType::GOV_ASSET_PERM){}
+    CGovAssetPermProposal(const string assetSymbol, const uint64_t permsSum):CProposal(ProposalType::GOV_ASSET_PERM),
+                                    asset_symbol(assetSymbol),
+                                    proposed_perms_sum(permsSum){}
 
     IMPLEMENT_SERIALIZE(
         READWRITE(VARINT(expiry_block_height));
@@ -362,8 +368,8 @@ struct CGovCdpParamProposal: CProposal {
             subItem.push_back(Pair("param_code", item.first));
 
             std::string param_name = "" ;
-            auto itr = SysParamTable.find(SysParamType(item.first)) ;
-            if(itr != SysParamTable.end())
+            auto itr = CdpParamTable.find(CdpParamType(item.first)) ;
+            if(itr != CdpParamTable.end())
                 param_name = std::get<1>(itr->second);
 
             subItem.push_back(Pair("param_name", param_name));
@@ -756,7 +762,7 @@ struct CProposalStorageBean {
             }
 
             default:
-                throw ios_base::failure(strprintf("Unserialize: nTxType(%d) error.",
+                throw ios_base::failure(strprintf("Unserialize: proposalType(%d) error.",
                                                   nProposalTye));
         }
 

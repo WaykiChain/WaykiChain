@@ -355,6 +355,7 @@ void ThreadImport(vector<boost::filesystem::path> vImportFiles) {
         LogPrint(BCLog::INFO, "Reindexing finished\n");
         // To avoid ending up in a situation without genesis block, re-try initializing (no-op if reindexing worked):
         InitBlockIndex();
+        pWalletMain->ResendWalletTransactions();
     }
 
     // hardcoded $DATADIR/bootstrap.dat
@@ -788,6 +789,23 @@ bool AppInit(boost::thread_group &threadGroup) {
     if (!ActivateBestChain(state))
         return InitError("Failed to connect best block");
 
+    nStart                   = GetTimeMillis();
+    CBlockIndex *pBlockIndex = chainActive.Tip();
+    int32_t nCacheHeight     = SysCfg().GetTxCacheHeight();
+    int32_t nCount           = 0;
+    CBlock block;
+    while (pBlockIndex && nCacheHeight-- > 0) {
+        if (!ReadBlockFromDisk(pBlockIndex, block))
+            return InitError("Failed to read block from disk");
+
+        if (!pCdMan->pTxCache->AddBlockTx(block))
+            return InitError("Failed to add block to transaction memory cache");
+
+        pBlockIndex = pBlockIndex->pprev;
+        ++nCount;
+    }
+    LogPrint(BCLog::INFO, "Added the latest %d blocks to transaction memory cache (%dms)\n", nCount, GetTimeMillis() - nStart);
+
     if (!pCdMan->pPpCache->ReleadBlocks(*pCdMan->pSysParamCache, chainActive.Tip())) {
         return InitError("Init prices of PriceFeedMemCache failed");
     }
@@ -829,7 +847,10 @@ bool AppInit(boost::thread_group &threadGroup) {
     // Generate coins in the background
     if (pWalletMain) {
         GenerateProduceBlockThread(SysCfg().GetBoolArg("-genblock", false), pWalletMain, SysCfg().GetArg("-genblocklimit", -1));
-        pWalletMain->ResendWalletTransactions();
+
+        if (!SysCfg().IsReindex()) {
+            pWalletMain->ResendWalletTransactions();
+        }
         threadGroup.create_thread(boost::bind(&ThreadFlushWalletDB, boost::ref(pWalletMain->strWalletFile)));
 
         //resend unconfirmed tx

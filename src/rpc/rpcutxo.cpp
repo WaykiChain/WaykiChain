@@ -27,26 +27,23 @@ static void ParseUtxoInput(const Array& arr, vector<CUtxoInput>& vInput);
 static void ParseUtxoOutput(const Array& arr, vector<CUtxoOutput>& vOutput);
 static void CheckUtxoCondDirection(const vector<shared_ptr<CUtxoCond>>& vCond, UtxoCondDirection direction);
 
-
 Value genutxomultisignature(const Array& params, bool fHelp) {
     if (fHelp || params.size() != 2) {
         throw runtime_error(
-                "genutxomultisignature \"addr\" \"utxo_txid\" \"utxo_vout_index\" \"password_proof\" \"symbol:fee:unit\" \n"
+                "genutxomultisignature \"addr\" \"utxo_content_hash\" \n"
                 "\nGenerate a UTXO MultiSign Singature.\n" +
                 HelpRequiringPassphrase() +
                 "\nArguments:\n"
                 "1.\"addr\":                (string, required) the addr of signee\n"
-                "2.\"utxo_txid\":           (string, required) The utxo info hash\n"
+                "2.\"utxo_content_hash\":   (string, required) The utxo content hash\n"
                 "\nResult:\n"
                 "\"signature\"              (string) signature hex.\n"
                 "\nExamples:\n" +
                 HelpExampleCli("genutxomultisignature",
-                               "\"wLKf2NqwtHk3BfzK5wMDfbKYN1SC3weyR4\" \"23ewf90203ew000ds0lwsdpoxewdokwesdxcoekdleds\" "
-                               "5 \"eowdswd0-eowpds23ewdswwedscde\" \"WICC:10000:sawi\"") +
+                               R"("0-5" "23ewf90203ew000ds0lwsdpoxewdokwesdxcoekdleds" )") +
                 "\nAs json rpc call\n" +
                 HelpExampleRpc("genutxomultisignature",
-                               "\"wLKf2NqwtHk3BfzK5wMDfbKYN1SC3weyR4\", \"23ewf90203ew000ds0lwsdpoxewdokwesdxcoekdleds\","
-                               " 5, \"eowdswd0-eowpds23ewdswwedscde\", \"WICC:10000:sawi\"")
+                               R"("0-5", "23ewf90203ew000ds0lwsdpoxewdokwesdxcoekdleds")")
         );
     }
 
@@ -70,27 +67,108 @@ Value genutxomultisignature(const Array& params, bool fHelp) {
 
 }
 
-Value genutxomultiaddresshash(const Array& params, bool fHelp) {
+Value genutxomultisignaddr( const Array& params, bool fHelp) {
+    if(fHelp || params.size() != 3) {
+        throw runtime_error(
+                "genutxomultisignaddr \"m\" \"n\" \"signee_uids\" \n"
+                "\nSubmit a multi sign address.\n" +
+                HelpRequiringPassphrase() +
+                "\nArguments:\n"
+                "1.\"m\":                       (numberic, required) the total signee size\n"
+                "2.\"n\":                       (numberic, required) the min signee size \n"
+                "3.\"signee_uids\":             (array<string> the signee uid\n"
+                "\nResult:\n"
+                "\"txid\"                       (string) The multi address hash.\n"
+                "\nExamples:\n" +
+                HelpExampleCli("genutxomultiinputcondhash",
+                               "\"0-3\" \"23ewf90203ew000ds0lwsdpoxewdokwesdxcoekdleds\" "
+                               "5 \"eowdswd0-eowpds23ewdswwedscde\" \"WICC:10000:sawi\"") +
+                "\nAs json rpc call\n" +
+                HelpExampleRpc("genutxomultiinputcondhash",
+                               "\"0-3\", \"23ewf90203ew000ds0lwsdpoxewdokwesdxcoekdleds\","
+                               " 5, \"eowdswd0-eowpds23ewdswwedscde\", \"WICC:10000:sawi\"")
+        );
+    }
+
+    uint8_t m = params[0].get_int();
+    uint8_t n = params[1].get_int();
+    Array uidStringArray = params[2].get_array();
+
+    vector<string> vAddr;
+    for(auto v: uidStringArray){
+        CUserID  uid = RPC_PARAM::GetUserId(v);
+        CAccount acct ;
+        if (!pCdMan->pAccountCache->GetAccount(uid, acct))
+            throw JSONRPCError(RPC_INVALID_PARAMETER, "the uid is not onchain");
+
+        vAddr.push_back(acct.keyid.ToAddress());
+    }
+
+    string redeemScript("");
+    CKeyID multiKeyID;
+    if( ComputeRedeemScript(m,n,vAddr, redeemScript) && ComputeMultiSignKeyId(redeemScript, multiKeyID)) {
+        Object o;
+        o.push_back(Pair("multi_addr", multiKeyID.ToString()));
+        return o;
+    } else {
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "gen multi addr error");
+    }
+
+}
+
+Value genutxooutuputpasswordhash(const Array& params, bool fHelp) {
     if(fHelp || params.size() != 2) {
         throw runtime_error(
-                "genutxomultiaddresshash \"addr\" \"utxo_txid\" \"utxo_vout_index\" \"password_proof\" \"symbol:fee:unit\" \n"
+                "genutxooutuputpasswordhash \"m\" \"n\" \"signee_uids\" \n"
+                "\nSubmit a multi sign address.\n" +
+                HelpRequiringPassphrase() +
+                "\nArguments:\n"
+                "1.\"preUtxoTxUid\":            (string, required) the txUid of prev utxotx that provide prevOutput \n"
+                "2.\"password\":                (string, required) password  \n"
+                "\nResult:\n"
+                "\"password_hash\"              (string) The password hash.\n"
+                "\nExamples:\n" +
+                HelpExampleCli("genutxomultiinputcondhash",
+                               R"(0-3 123456 )") +
+                "\nAs json rpc call\n" +
+                HelpExampleRpc("genutxomultiinputcondhash",
+                               R"("0-3", "123455")")
+        );
+    }
+
+    CUserID txId = RPC_PARAM::GetUserId(params[0]);
+    string password = params[1].get_str();
+    string text = strprintf("%s%s", txId.ToString(), password);
+    uint256 hash = Hash(text);
+    Object o ;
+    o.push_back(Pair("password_hash", hash.ToString()));
+    return o;
+
+}
+
+
+Value genutxomultiinputcondhash(const Array& params, bool fHelp) {
+    if(fHelp || params.size() != 6) {
+        throw runtime_error(
+                "genutxomultiinputcondhash \"m\" \"n\" \"pre_utxo_txid\" \"pre_utxo_tx_vout_index\" \"signee_uids\",\"spend_txuid\" \n"
                 "\nSubmit a password proof.\n" +
                 HelpRequiringPassphrase() +
                 "\nArguments:\n"
-                "1.\"addr\":                (string, required) the addr submit this tx\n"
-                "2.\"utxo_txid\":           (string, required) The utxo txid you want to spend\n"
-                "3.\"utxo_vout_index\":     (string, required) The index of utxo output \n"
-                "4.\"password_proof\":      (symbol:amount:unit, required) password proof\n"
-                "5.\"symbol:fee:unit\":     (symbol:amount:unit, optinal) fee paid to miner\n"
+                "1.\"m\":                       (numberic, required) the total signee size\n"
+                "2.\"n\":                       (numberic, required) the min signee size \n"
+                "3.\"pre_utxo_txid\":           (string, required) The utxo txid you want to spend\n"
+                "4.\"pre_utxo_tx_vout_index\":  (string, required) The index of pre utxo output \n"
+                "5.\"signee_uids\":             (array<string> the signee uid\n"
+                "6.\"spend_txuid\":             (string, required) the uid that well submit utxotransfertx to spend\n"
                 "\nResult:\n"
-                "\"txid\"                   (string) The transaction id.\n"
+                "\"txid\"                       (string) The multi input cond hash.\n"
                 "\nExamples:\n" +
-                HelpExampleCli("genutxomultiaddresshash",
-                               "\"wLKf2NqwtHk3BfzK5wMDfbKYN1SC3weyR4\" \"23ewf90203ew000ds0lwsdpoxewdokwesdxcoekdleds\" "
+                HelpExampleCli("genutxomultiinputcondhash",
+                               "\"0-3\" \"23ewf90203ew000ds0lwsdpoxewdokwesdxcoekdleds\" "
                                "5 \"eowdswd0-eowpds23ewdswwedscde\" \"WICC:10000:sawi\"") +
                 "\nAs json rpc call\n" +
-                HelpExampleRpc("genutxomultiaddresshash",
-                               "\"wLKf2NqwtHk3BfzK5wMDfbKYN1SC3weyR4\", \"23ewf90203ew000ds0lwsdpoxewdokwesdxcoekdleds\","
+                HelpExampleRpc("genutxomultiinputcondhash",
+                               "\"0-3\", \"23ewf90203ew000ds0lwsdpoxewdokwesdxcoekdleds\","
                                " 5, \"eowdswd0-eowpds23ewdswwedscde\", \"WICC:10000:sawi\"")
         );
     }
@@ -132,7 +210,6 @@ Value genutxomultiaddresshash(const Array& params, bool fHelp) {
     return o;
 
 }
-
 
 Value submitpasswordprooftx(const Array& params, bool fHelp) {
 

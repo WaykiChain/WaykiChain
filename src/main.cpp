@@ -275,7 +275,7 @@ bool AcceptToMemoryPool(CTxMemPool &pool, CValidationState &state, CBaseTx *pBas
     auto spCW = std::make_shared<CCacheWrapper>(mempool.cw.get());
 
     CBlockIndex *pTip =  chainActive.Tip();
-    if (pTip == nullptr) throw runtime_error("CheckTxInMemPool(), pChainTip is nullptr");
+    if (pTip == nullptr) throw runtime_error("AcceptToMemoryPool(), pChainTip is nullptr");
     HeightType newHeight = pTip->height + 1;
     uint32_t fuelRate  = GetElementForBurn(pTip);
     uint32_t blockTime = pTip->GetBlockTime();
@@ -728,11 +728,6 @@ bool DisconnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CVal
         if (!cw.txCache.AddBlockTx(reLoadblock)) {
             return state.Abort(_("DisconnectBlock() : failed to add block into transaction memory cache"));
         }
-    }
-
-    // Delete the disconnected block's pricefeed items from price point memory cache.
-    if (!cw.ppCache.DeleteBlockFromCache(block)) {
-        return state.Abort(_("DisconnectBlock() : failed to delete block from price point memory cache"));
     }
 
     // undo block prices of price point memory cache.
@@ -2321,7 +2316,7 @@ bool static LoadBlockIndexDB() {
     uint256 bestBlockHash = pCdMan->pBlockCache->GetBestBlockHash();
     const auto &it = mapBlockIndex.find(bestBlockHash);
     if (it == mapBlockIndex.end()) {
-        return ERRORMSG("The best block hash in db not found in block index! hash=%s\n",
+        return ERRORMSG("%s(), the best block hash in db not found in block index! hash=%s\n",
             __FUNCTION__, bestBlockHash.ToString());
     }
 

@@ -50,9 +50,6 @@ public:
     bool PushBlock(CSysParamDBCache &sysParamCache, CBlockIndex *pTipBlockIdx);
     bool UndoBlock(CSysParamDBCache &sysParamCache, CBlockIndex *pTipBlockIdx);
     bool AddPrice(const int32_t blockHeight, const CRegID &regId, const vector<CPricePoint> &pps);
-    bool AddPriceByBlock(const CBlock &block);
-    // delete block price point by specific block height.
-    bool DeleteBlockFromCache(const CBlock &block);
 
     bool CalcBlockMedianPrices(CCacheWrapper &cw, const int32_t blockHeight, PriceMap &medianPrices);
 
@@ -61,6 +58,10 @@ public:
 
 private:
     uint64_t GetMedianPrice(const int32_t blockHeight, const uint64_t slideWindow, const CoinPricePair &coinPricePair);
+
+    bool AddPriceByBlock(const CBlock &block);
+    // delete block price point by specific block height.
+    bool DeleteBlockFromCache(const CBlock &block);
 
     bool DeleteBlockPricePoint(const int32_t blockHeight);
 

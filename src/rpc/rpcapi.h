@@ -189,10 +189,15 @@ extern Value gettxtrace(const Array& params, bool fHelp);
 extern Value abidefjsontobinwasm(const Array& params, bool fHelp);
 
 extern Value getsysparam(const Array& params, bool fHelp) ;
+extern Value genutxomultiinputcondhash(const Array& params, bool fHelp);
+extern Value genutxomultisignaddr( const Array& params, bool fHelp);
+extern Value genutxomultisignature(const Array& params, bool fHelp);
 
 extern Value getdexquotecoins(const Array& params, bool fHelp);
 extern Value gettotalbpssize(const Array& params, bool fHelp);
 extern Value getfeedcoinpairs(const Array& params, bool fHelp);
+extern Value submitaccountpermproposal(const Array& params , bool fHelp);
+extern Value submitassetpermproposal(const Array& params , bool fHelp);
 
 extern Value submitutxotransfertx(const Array& params, bool fHelp);
 extern Value submitpasswordprooftx(const Array& params, bool fHelp);

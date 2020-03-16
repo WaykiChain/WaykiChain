@@ -113,6 +113,9 @@ static const CRPCCommand vRPCCommands[] =
     { "submitfeedcoinpairproposal",     &submitfeedcoinpairproposal,        false,      false,      true    },
     { "submitminerfeeproposal",         &submitminerfeeproposal,            false,      false,      true    },
 
+    { "submitaccountpermproposal",      &submitaccountpermproposal,         false,      false,      true    },
+    { "submitassetpermproposal",        &submitassetpermproposal,           false,      false,      true    },
+
     { "submitproposalapprovaltx",       &submitproposalapprovaltx,          false,      false,      true    },
     /* for CDP */
     { "submitpricefeedtx",              &submitpricefeedtx,                 false,      false,      true    },
@@ -145,7 +148,7 @@ static const CRPCCommand vRPCCommands[] =
     { "getdexoperatorbyowner",          &getdexoperatorbyowner,             true,       false,      false   },
     { "getdexorderfee",                 &getdexorderfee,                    true,       false,      false   },
     { "getdexquotecoins",               &getdexquotecoins,                  true,       false,      false   },
-    { "gettotalbpssize",                &gettotalbpssize,                        true,       false,      false   },
+    { "gettotalbpssize",                &gettotalbpssize,                   true,       false,      false   },
     { "getfeedcoinpairs",               &getfeedcoinpairs,                  true,       false,      false   },
         /* for asset */
     { "submitassetissuetx",             &submitassetissuetx,                false,      false,      false   },
@@ -175,6 +178,11 @@ static const CRPCCommand vRPCCommands[] =
     { "vmexecutescript",                &vmexecutescript,                   true,       true,       true    },
     /* debug */
     { "dumpdb",                         &dumpdb,                            true,       true,       true    },
+    { "genutxomultiinputcondhash",      &genutxomultiinputcondhash,         true,       true,       false   },
+    { "genutxomultisignaddr",           &genutxomultisignaddr,              true,       true,       false   },
+    { "genutxomultisignature",          &genutxomultisignature,             true,       true,       false   },
+
+
 };
 
 #endif //RPC_APICONF_H_
