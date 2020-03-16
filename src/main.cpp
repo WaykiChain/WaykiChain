@@ -735,24 +735,9 @@ bool DisconnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CVal
         return state.Abort(_("DisconnectBlock() : failed to delete block from price point memory cache"));
     }
 
-    // Load price points into price point memory cache.
-    // TODO: parameterize 11.
-    if (pIndex->height > 11) {
-        CBlockIndex *pReLoadBlockIndex = pIndex;
-        int32_t nCacheHeight           = 11;
-        while (pReLoadBlockIndex && nCacheHeight-- > 0) {
-            pReLoadBlockIndex = pReLoadBlockIndex->pprev;
-        }
-
-        CBlock reLoadblock;
-        if (!ReadBlockFromDisk(pReLoadBlockIndex, reLoadblock)) {
-            return state.Abort(_("DisconnectBlock() : failed to read block"));
-        }
-
-        if (!cw.ppCache.AddPriceByBlock(reLoadblock)) {
-            return state.Abort(_("DisconnectBlock() : failed to add block into price point memory cache"));
-        }
-    }
+    // undo block prices of price point memory cache.
+    if (!cw.ppCache.UndoBlock(pIndex))
+        return state.Abort(_("DisconnectBlock() : undo block prices of memory cache"));
 
     if (pfClean) {
         *pfClean = fClean;
@@ -1275,26 +1260,8 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
         }
     }
 
-    // Attention: should NOT to call AddBlock() for price point memory cache, as everything
-    // is ready when executing transactions.
-
-    // TODO: parameterize 11.
-    if (pIndex->height > 11) {
-        CBlockIndex *pDeleteBlockIndex = pIndex;
-        int32_t nCacheHeight           = 11;
-        while (pDeleteBlockIndex && nCacheHeight-- > 0) {
-            pDeleteBlockIndex = pDeleteBlockIndex->pprev;
-        }
-
-        CBlock deleteBlock;
-        if (!ReadBlockFromDisk(pDeleteBlockIndex, deleteBlock)) {
-            return state.Abort(_("ConnectBlock() : failed to read block"));
-        }
-
-        if (!cw.ppCache.DeleteBlockFromCache(deleteBlock)) {
-            return state.Abort(_("ConnectBlock() : failed delete block from price point memory cache"));
-        }
-    }
+    if (!cw.ppCache.PushBlock(pIndex))
+        return state.Abort(_("ConnectBlock() : push block to price point memory cache failed"));
 
     // Set best block to current account cache.
     cw.blockCache.SetBestBlock(pIndex->GetBlockHash());
@@ -1827,31 +1794,10 @@ bool ProcessForkedChain(const CBlock &block, CBlockIndex *pPreBlockIndex, CValid
         LogPrint(BCLog::INFO, "ProcessForkedChain() : disconnect blocks elapse: %lld ms\n", GetTimeMillis() - beginTime);
     }
 
-
     uint256 forkChainBestBlockHash   = spCW->blockCache.GetBestBlockHash();
     int32_t forkChainBestBlockHeight = mapBlockIndex[forkChainBestBlockHash]->height;
     LogPrint(BCLog::INFO, "ProcessForkedChain() : fork chain's best block [%d]: %s\n", forkChainBestBlockHeight,
              forkChainBestBlockHash.GetHex());
-
-    {
-        // Set base to null and rebuild memory cache.
-        CBlockIndex *pBlockIndex = mapBlockIndex[forkChainBestBlockHash];
-        CBlock block;
-
-        // TODO: parameterize 11
-        int32_t cacheHeight = 11;
-        while (pBlockIndex && cacheHeight-- > 0) {
-            if (!ReadBlockFromDisk(pBlockIndex, block))
-                return ERRORMSG("ProcessForkedChain() : failed to read block [%d]: %s", pBlockIndex->height,
-                                pBlockIndex->GetBlockHash().ToString());
-
-            if (!spCW->ppCache.AddPriceByBlock(block))
-                return ERRORMSG("ProcessForkedChain() : failed to add block [%d]: %s to price point memory cache",
-                                pBlockIndex->height, pBlockIndex->GetBlockHash().ToString());
-
-            pBlockIndex = pBlockIndex->pprev;
-        }
-    }
 
     if (!vPreBlocks.empty()) {
         auto spNewForkCW = std::make_shared<CCacheWrapper>(spCW.get());

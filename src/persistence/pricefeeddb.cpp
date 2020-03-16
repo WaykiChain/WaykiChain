@@ -29,7 +29,7 @@ bool CConsecutiveBlockPrice::ExistBlockUserPrice(const int32_t blockHeight, cons
 ////////////////////////////////////////////////////////////////////////////////
 //CPricePointMemCache
 
-bool CPricePointMemCache::ReloadPrices(CBlockIndex *pTipBlockIdx) {
+bool CPricePointMemCache::ReleadBlocks(CBlockIndex *pTipBlockIdx) {
 
     int64_t start       = GetTimeMillis();
     CBlockIndex *pBlockIdx  = pTipBlockIdx;
@@ -40,15 +40,69 @@ bool CPricePointMemCache::ReloadPrices(CBlockIndex *pTipBlockIdx) {
     while (pBlockIdx && count < MAX_COUNT ) {
         CBlock block;
         if (!ReadBlockFromDisk(pBlockIdx, block))
-            return ERRORMSG("%s(), read block from disk failed", __func__);
+            return ERRORMSG("%s() : read block=[%d]%s failed", __func__, pBlockIdx->height,
+                    pBlockIdx->GetBlockHash().ToString());
 
-        if (!pCdMan->pPpCache->AddPriceByBlock(block))
-            return ERRORMSG("%d(), add block to price point memory cache failed", __func__);
+        if (!AddPriceByBlock(block))
+            return ERRORMSG("%d(), add block=[%d]%s to price point memory cache failed",
+                    __func__, pBlockIdx->height, pBlockIdx->GetBlockHash().ToString());
 
         pBlockIdx = pBlockIdx->pprev;
         ++count;
     }
     LogPrint(BCLog::INFO, "Reload the latest %d blocks to price point memory cache (%d ms)\n", count, GetTimeMillis() - start);
+    return true;
+}
+
+bool CPricePointMemCache::PushBlock(CBlockIndex *pTipBlockIdx) {
+    const uint32_t MAX_COUNT = 11;  // TODO: parameterize 11.
+    // remove the oldest block
+    if (pTipBlockIdx->height > (int32_t)MAX_COUNT) {
+        CBlockIndex *pDeleteBlockIndex = pTipBlockIdx;
+        int32_t height           = MAX_COUNT;
+        while (pDeleteBlockIndex && height-- > 0) {
+            pDeleteBlockIndex = pDeleteBlockIndex->pprev;
+        }
+
+        CBlock deleteBlock;
+        if (!ReadBlockFromDisk(pDeleteBlockIndex, deleteBlock)) {
+            return ERRORMSG("%s() : read block=[%d]%s failed", __func__, pDeleteBlockIndex->height,
+                    pDeleteBlockIndex->GetBlockHash().ToString());
+        }
+
+        if (!DeleteBlockFromCache(deleteBlock)) {
+            return ERRORMSG("%s() : delete block==[%d]%s from price point memory cache failed",
+                    __func__, pDeleteBlockIndex->height, pDeleteBlockIndex->GetBlockHash().ToString());
+        }
+    }
+    return true;
+}
+
+bool CPricePointMemCache::UndoBlock(CBlockIndex *pTipBlockIdx) {
+    const uint32_t MAX_COUNT = 11;  // TODO: parameterize 11.
+    // Delete the disconnected block's pricefeed items from price point memory cache.
+    if (!DeleteBlockPricePoint(pTipBlockIdx->height)) {
+        return ERRORMSG("%s() : delete block=[%d]%s from price point memory cache failed",
+                __func__, pTipBlockIdx->height, pTipBlockIdx->GetBlockHash().ToString());
+    }
+    if (pTipBlockIdx->height > (int32_t)MAX_COUNT) {
+        CBlockIndex *pReLoadBlockIndex = pTipBlockIdx;
+        int32_t nCacheHeight           = MAX_COUNT;
+        while (pReLoadBlockIndex && nCacheHeight-- > 0) {
+            pReLoadBlockIndex = pReLoadBlockIndex->pprev;
+        }
+
+        CBlock reLoadblock;
+        if (!ReadBlockFromDisk(pReLoadBlockIndex, reLoadblock)) {
+            return ERRORMSG("%s() : read block=[%d]%s failed", __func__, pReLoadBlockIndex->height,
+                    pReLoadBlockIndex->GetBlockHash().ToString());
+        }
+
+        if (!AddPriceByBlock(reLoadblock)) {
+            return ERRORMSG("%s() : add block=[%d]%s into price point memory cache failed",
+                    __func__, pReLoadBlockIndex->height, pReLoadBlockIndex->GetBlockHash().ToString());
+        }
+    }
     return true;
 }
 
