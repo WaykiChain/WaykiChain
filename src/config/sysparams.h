@@ -79,7 +79,7 @@ static const unordered_map<SysParamType, std::tuple< uint64_t,string >, SysParam
 };
 
 static const unordered_map<SysParamType, std::pair<uint64_t, uint64_t>, SysParamTypeHash> sysParamScopeTable = {
-    { MEDIAN_PRICE_SLIDE_WINDOW_BLOCKCOUNT,      RANGE(0,0)        },
+    { MEDIAN_PRICE_SLIDE_WINDOW_BLOCKCOUNT,      RANGE(1,1000)     },
     { PRICE_FEED_BCOIN_STAKE_AMOUNT_MIN,         RANGE(0,0)        },  // 1%: min 210K bcoins staked to be a price feeder for miner
     { PRICE_FEED_CONTINUOUS_DEVIATE_TIMES_MAX,   RANGE(0,0)        },  // after 10 times continuous deviate limit penetration all deposit be deducted
     // { PRICE_FEED_DEVIATE_RATIO_MAX,              RANGE(0,0)        },  // must be < 30% * 10000, otherwise penalized
