@@ -730,11 +730,6 @@ bool DisconnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CVal
         }
     }
 
-    // Delete the disconnected block's pricefeed items from price point memory cache.
-    if (!cw.ppCache.DeleteBlockFromCache(block)) {
-        return state.Abort(_("DisconnectBlock() : failed to delete block from price point memory cache"));
-    }
-
     // undo block prices of price point memory cache.
     if (!cw.ppCache.UndoBlock(cw.sysParamCache, pIndex))
         return state.Abort(_("DisconnectBlock() : undo block prices of memory cache"));
