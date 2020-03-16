@@ -355,6 +355,7 @@ void ThreadImport(vector<boost::filesystem::path> vImportFiles) {
         LogPrint(BCLog::INFO, "Reindexing finished\n");
         // To avoid ending up in a situation without genesis block, re-try initializing (no-op if reindexing worked):
         InitBlockIndex();
+        pWalletMain->ResendWalletTransactions();
     }
 
     // hardcoded $DATADIR/bootstrap.dat
@@ -846,7 +847,10 @@ bool AppInit(boost::thread_group &threadGroup) {
     // Generate coins in the background
     if (pWalletMain) {
         GenerateProduceBlockThread(SysCfg().GetBoolArg("-genblock", false), pWalletMain, SysCfg().GetArg("-genblocklimit", -1));
-        pWalletMain->ResendWalletTransactions();
+
+        if (!SysCfg().IsReindex()) {
+            pWalletMain->ResendWalletTransactions();
+        }
         threadGroup.create_thread(boost::bind(&ThreadFlushWalletDB, boost::ref(pWalletMain->strWalletFile)));
 
         //resend unconfirmed tx
