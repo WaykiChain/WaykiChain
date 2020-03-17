@@ -14,30 +14,30 @@
 #include <algorithm>
 #include <set>
 
-extern bool CheckIsGovernor(CRegID account, ProposalType proposalType,CCacheWrapper&cw );
+extern bool CheckIsGovernor(CRegID account, ProposalType proposalType, CCacheWrapper& cw );
 extern uint8_t GetGovernorApprovalMinCount(ProposalType proposalType, CCacheWrapper& cw );
 
 bool CGovSysParamProposal::CheckProposal(CTxExecuteContext& context ) {
      CValidationState &state = *context.pState;
 
-     if (param_values.size() == 0)
+     if (param_values.size() == 0 || param_values.size() > 50)
             return state.DoS(100, ERRORMSG("CProposalRequestTx::CheckTx, params list is empty"), REJECT_INVALID,
                         "params-empty");
-       for(auto pa: param_values){
-           if (SysParamTable.count(SysParamType(pa.first)) == 0){
-               return state.DoS(100, ERRORMSG("CProposalRequestTx::CheckTx, parameter name (%s) is not in sys params list ", pa.first),
+     for (auto pa: param_values){
+         if(SysParamTable.count(SysParamType(pa.first)) == 0){
+             return state.DoS(100, ERRORMSG("CProposalRequestTx::CheckTx, parameter name (%s) is not in sys params list ", pa.first),
                        REJECT_INVALID, "params-error");
-           }
-           string errorInfo = CheckSysParamValue(SysParamType(pa.first), pa.second);
+         }
+         string errorInfo = CheckSysParamValue(SysParamType(pa.first), pa.second);
 
-           if (errorInfo != EMPTY_STRING)
-               return state.DoS(100, ERRORMSG("CProposalRequestTx::CheckTx failed: %s ", errorInfo),
-                                REJECT_INVALID, "params-range-error");
-       }
+         if (errorInfo != EMPTY_STRING)
+             return state.DoS(100, ERRORMSG("CProposalRequestTx::CheckTx failed: %s ", errorInfo),
+                     REJECT_INVALID, "params-range-error");
+     }
 
      return true;
 }
-bool CGovSysParamProposal::ExecuteProposal(CTxExecuteContext& context, const TxID& proposalId){
+bool CGovSysParamProposal::ExecuteProposal(CTxExecuteContext& context, const TxID& proposalId) {
     CCacheWrapper &cw       = *context.pCw;
 
     for( auto pa: param_values){

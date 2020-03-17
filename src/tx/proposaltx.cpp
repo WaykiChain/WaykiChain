@@ -132,8 +132,8 @@ bool CProposalApprovalTx::CheckTx(CTxExecuteContext &context) {
         axc_signature.size() < 64 ) {
         return state.DoS(100, ERRORMSG("CProposalApprovalTx::CheckTx, AXC signature invalid"),
                           READ_ACCOUNT_FAIL, "axc-signature-invalid");
-       
     }
+
     return true;
 }
 

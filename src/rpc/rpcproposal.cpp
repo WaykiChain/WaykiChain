@@ -467,14 +467,16 @@ Value submitdexswitchproposal(const Array& params, bool fHelp) {
 
 Value submitproposalapprovaltx(const Array& params, bool fHelp){
 
-    if(fHelp || params.size() < 2 || params.size() > 3){
+    if(fHelp || params.size() < 2 || params.size() > 4){
         throw runtime_error(
-                "submitproposalapprovaltx \"addr\" \"proposalid\" [\"fee\"]\n"
+                "submitproposalapprovaltx \"addr\" \"proposalid\" [\"fee\"] [\"axc_out_signature\"]\n"
                 "approval a proposal\n"
                 "\nArguments:\n"
                 "1.\"addr\":             (string,   required) the tx submitor's address\n"
                 "2.\"proposalid\":       (string,   required) the proposal's id\n"
                 "3.\"fee\":              (combomoney, optional) the tx fee \n"
+                "4.\"axc_out_signature   (string, optional) the axc out proposal peer chain signature，is "
+                                         "required when proposal type is GOV_AXC_OUT(13) \n"
                 "\nExamples:\n"
                 + HelpExampleCli("submitproposalapprovaltx", "0-1 2390ewdosd0wfsdi0wfwefweiojwofwe0fw212wasewd  WICC:1:WI")
                 + "\nAs json rpc call\n"
@@ -486,18 +488,29 @@ Value submitproposalapprovaltx(const Array& params, bool fHelp){
 
     EnsureWalletIsUnlocked();
     const CUserID& txUid = RPC_PARAM::GetUserId(params[0], true);
-    uint256 proposalId = uint256S(params[1].get_str());
-    ComboMoney fee          = RPC_PARAM::GetFee(params, 2, PROPOSAL_REQUEST_TX);
+    uint256 proposalId   = uint256S(params[1].get_str()) ;
+    ComboMoney fee       = RPC_PARAM::GetFee(params, 2, PROPOSAL_REQUEST_TX);
+    UnsignedCharArray axcOutSignature;
+    if (params.size() > 3) {
+        axcOutSignature = ParseHex(params[3].get_str());
+    }
+
     int32_t validHegiht  = chainActive.Height();
-    CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, txUid);
+    CAccount account     = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, txUid);
     RPC_PARAM::CheckAccountBalance(account, fee.symbol, SUB_FREE, fee.GetAmountInSawi());
 
-    CProposalApprovalTx tx;
+
+
+
+
+
+    CProposalApprovalTx tx ;
     tx.txUid        = txUid;
     tx.llFees       = fee.GetAmountInSawi();
     tx.fee_symbol    = fee.symbol;
     tx.valid_height = validHegiht;
     tx.txid = proposalId;
+    tx.axc_signature = axcOutSignature;
     return SubmitTx(account.keyid, tx);
 
 }

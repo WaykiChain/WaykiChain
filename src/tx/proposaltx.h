@@ -35,16 +35,16 @@ public:
         READWRITE(signature);
     )
 
-    virtual void SerializeForHash(CHashWriter &hw) const {
+    void SerializeForHash(CHashWriter &hw) const {
         hw << VARINT(nVersion) << uint8_t(nTxType) << VARINT(valid_height) << txUid << VARINT(llFees)
            << fee_symbol <<proposal;
     }
 
-    virtual std::shared_ptr<CBaseTx> GetNewInstance() const { return std::make_shared<CProposalRequestTx>(*this); }
-    virtual string ToString(CAccountDBCache &accountCache);            // logging usage
-    virtual Object ToJson(const CAccountDBCache &accountCache) const;  // json-rpc usage
-    virtual bool CheckTx(CTxExecuteContext &context);
-    virtual bool ExecuteTx(CTxExecuteContext &context);
+    std::shared_ptr<CBaseTx> GetNewInstance() const override { return std::make_shared<CProposalRequestTx>(*this); }
+    string ToString(CAccountDBCache &accountCache) override;            // logging usage
+    Object ToJson(const CAccountDBCache &accountCache) const override;  // json-rpc usage
+    bool CheckTx(CTxExecuteContext &context) override;
+    bool ExecuteTx(CTxExecuteContext &context) override;
 };
 
 class CProposalApprovalTx: public CBaseTx {
@@ -79,11 +79,11 @@ public:
            << fee_symbol << txid ;
     }
 
-    virtual std::shared_ptr<CBaseTx> GetNewInstance() const { return std::make_shared<CProposalApprovalTx>(*this); }
-    virtual string ToString(CAccountDBCache &accountCache);            // logging usage
-    virtual Object ToJson(const CAccountDBCache &accountCache) const;  // json-rpc usage
-    virtual bool CheckTx(CTxExecuteContext &context);
-    virtual bool ExecuteTx(CTxExecuteContext &context);
+    std::shared_ptr<CBaseTx> GetNewInstance() const override { return std::make_shared<CProposalApprovalTx>(*this); }
+    string ToString(CAccountDBCache &accountCache) override;            // logging usage
+    Object ToJson(const CAccountDBCache &accountCache) const override;  // json-rpc usage
+    bool CheckTx(CTxExecuteContext &context) override;
+    bool ExecuteTx(CTxExecuteContext &context) override;
 };
 
 
