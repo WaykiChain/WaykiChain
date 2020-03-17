@@ -350,7 +350,7 @@ namespace wasm {
             {"new_type_name",      ID_New_type_name},
             {"symbol_code",        ID_Symbolcode},
             {"precision",          ID_Precision},
-            {"sym",                ID_Symbol},
+            // {"sym",                ID_Symbol},
             {"symbol",             ID_Symbol},
             {"amount",             ID_Amount},
     };

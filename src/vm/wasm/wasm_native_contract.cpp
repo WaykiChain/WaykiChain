@@ -75,6 +75,8 @@ namespace wasm {
         auto quantity                    = std::get<2>(transfer_data);
         auto memo                        = std::get<3>(transfer_data);
 
+        //WASM_TRACE("%s", quantity.to_string().c_str() )
+
         context.require_auth(from); //from auth
         CHAIN_ASSERT(from != to,             wasm_chain::native_contract_assert_exception, "cannot transfer to self");
         CHAIN_ASSERT(context.is_account(to), wasm_chain::native_contract_assert_exception, "to account '%s' does not exist", wasm::name(to).to_string() );

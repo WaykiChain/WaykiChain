@@ -330,6 +330,23 @@ namespace wasm {
             return a.amount >= b.amount;
         }
 
+
+        friend bool operator<( const asset& a, int64_t b ) {
+           return (a.amount < b);
+        }
+
+        friend bool operator<=( const asset& a, int64_t b ) {
+           return (a.amount <= b);
+        }
+
+        friend bool operator>( const asset& a, int64_t b ) {
+           return (a.amount > b);
+        }
+
+        friend bool operator>=( const asset& a, int64_t b ) {
+           return (a.amount >= b);
+        }
+
         /**
          * %asset to std::string
          *
