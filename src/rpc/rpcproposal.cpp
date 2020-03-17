@@ -25,22 +25,22 @@ Value getproposal(const Array& params, bool fHelp){
 
         );
     }
-    uint256 proposalId = uint256S(params[0].get_str()) ;
-    std::shared_ptr<CProposal> pp ;
+    uint256 proposalId = uint256S(params[0].get_str());
+    std::shared_ptr<CProposal> pp;
     if(pCdMan->pSysGovernCache->GetProposal(proposalId, pp)){
-        auto proposalObject  = pp->ToJson() ;
-        vector<CRegID> approvalList ;
+        auto proposalObject  = pp->ToJson();
+        vector<CRegID> approvalList;
         pCdMan->pSysGovernCache->GetApprovalList(proposalId, approvalList);
 
         proposalObject.push_back(Pair("approvaled_count", (uint64_t)approvalList.size()));
 
-            Array a ;
+            Array a;
             for ( CRegID i: approvalList) {
-              a.push_back(i.ToString()) ;
+              a.push_back(i.ToString());
             }
         proposalObject.push_back(Pair("approvaled_governors", a));
 
-        return proposalObject ;
+        return proposalObject;
 
     }
     return Object();
@@ -61,16 +61,16 @@ Value getgovernors(const Array& params, bool fHelp) {
     }
 
 
-    Object o ;
-    set<CRegID> governors ;
-    pCdMan->pSysGovernCache->GetGovernors(governors) ;
-    Array arr ;
+    Object o;
+    set<CRegID> governors;
+    pCdMan->pSysGovernCache->GetGovernors(governors);
+    Array arr;
     for(auto id: governors) {
-        arr.push_back(id.ToString()) ;
+        arr.push_back(id.ToString());
     }
-    o.push_back(Pair("governors", arr)) ;
+    o.push_back(Pair("governors", arr));
 
-    return o ;
+    return o;
 
 }
 
@@ -100,33 +100,33 @@ Value submitparamgovernproposal(const Array& params, bool fHelp){
     EnsureWalletIsUnlocked();
 
     const CUserID& txUid = RPC_PARAM::GetUserId(params[0], true);
-    string paramName = params[1].get_str() ;
-    uint64_t paramValue = AmountToRawValue(params[2]) ;
+    string paramName = params[1].get_str();
+    uint64_t paramValue = AmountToRawValue(params[2]);
     ComboMoney fee          = RPC_PARAM::GetFee(params, 3, PROPOSAL_REQUEST_TX);
     int32_t validHeight  = chainActive.Height();
     CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, txUid);
     RPC_PARAM::CheckAccountBalance(account, fee.symbol, SUB_FREE, fee.GetAmountInSawi());
 
-    CGovSysParamProposal proposal ;
+    CGovSysParamProposal proposal;
 
 
-    SysParamType  type = GetSysParamType(paramName) ;
+    SysParamType  type = GetSysParamType(paramName);
     if(type == SysParamType::NULL_SYS_PARAM_TYPE)
         throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("system param type(%s) is not exist",paramName));
 
-    string errorInfo = CheckSysParamValue(type, paramValue ) ;
+    string errorInfo = CheckSysParamValue(type, paramValue );
     if(errorInfo != EMPTY_STRING)
-        throw JSONRPCError(RPC_INVALID_PARAMETER, errorInfo) ;
+        throw JSONRPCError(RPC_INVALID_PARAMETER, errorInfo);
 
     proposal.param_values.push_back(std::make_pair(type, paramValue));
 
-    CProposalRequestTx tx ;
+    CProposalRequestTx tx;
     tx.txUid        = txUid;
     tx.llFees       = fee.GetAmountInSawi();
     tx.fee_symbol    = fee.symbol;
     tx.valid_height = validHeight;
-    tx.proposal = CProposalStorageBean(std::make_shared<CGovSysParamProposal>(proposal)) ;
-    return SubmitTx(account.keyid, tx) ;
+    tx.proposal = CProposalStorageBean(std::make_shared<CGovSysParamProposal>(proposal));
+    return SubmitTx(account.keyid, tx);
 
 }
 
@@ -159,10 +159,10 @@ Value submitcdpparamgovernproposal(const Array& params, bool fHelp){
     EnsureWalletIsUnlocked();
 
     const CUserID& txUid = RPC_PARAM::GetUserId(params[0], true);
-    string paramName = params[1].get_str() ;
-    uint64_t paramValue = AmountToRawValue(params[2]) ;
-    string bcoinSymbol = params[3].get_str() ;
-    string scoinSymbol = params[4].get_str() ;
+    string paramName = params[1].get_str();
+    uint64_t paramValue = AmountToRawValue(params[2]);
+    string bcoinSymbol = params[3].get_str();
+    string scoinSymbol = params[4].get_str();
     ComboMoney fee          = RPC_PARAM::GetFee(params, 5, PROPOSAL_REQUEST_TX);
     int32_t validHeight  = chainActive.Height();
     CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, txUid);
@@ -170,25 +170,25 @@ Value submitcdpparamgovernproposal(const Array& params, bool fHelp){
 
 
 
-    CdpParamType  type = GetCdpParamType(paramName) ;
+    CdpParamType  type = GetCdpParamType(paramName);
     if(type == CdpParamType::NULL_CDP_PARAM_TYPE)
         throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("system param type(%s) is not exist",paramName));
 
-    string errorInfo = CheckCdpParamValue(type, paramValue ) ;
+    string errorInfo = CheckCdpParamValue(type, paramValue );
     if(errorInfo != EMPTY_STRING)
-        throw JSONRPCError(RPC_INVALID_PARAMETER, errorInfo) ;
+        throw JSONRPCError(RPC_INVALID_PARAMETER, errorInfo);
 
-    CGovCdpParamProposal proposal ;
+    CGovCdpParamProposal proposal;
     proposal.param_values.push_back(std::make_pair(type, paramValue));
-    proposal.coin_pair = CCdpCoinPair(bcoinSymbol, scoinSymbol) ;
+    proposal.coin_pair = CCdpCoinPair(bcoinSymbol, scoinSymbol);
 
-    CProposalRequestTx tx ;
+    CProposalRequestTx tx;
     tx.txUid        = txUid;
     tx.llFees       = fee.GetAmountInSawi();
     tx.fee_symbol    = fee.symbol;
     tx.valid_height = validHeight;
-    tx.proposal = CProposalStorageBean(std::make_shared<CGovCdpParamProposal>(proposal)) ;
-    return SubmitTx(account.keyid, tx) ;
+    tx.proposal = CProposalStorageBean(std::make_shared<CGovCdpParamProposal>(proposal));
+    return SubmitTx(account.keyid, tx);
 
 }
 
@@ -221,24 +221,24 @@ Value submitgovernorupdateproposal(const Array& params , bool fHelp) {
     CUserID governorId = RPC_PARAM::GetUserId(params[1]);
     if(!governorId.is<CRegID>())
         throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("the price governor(%s) must be registered(have regid)",
-                                                            governorId.ToString() )) ;
-    uint64_t operateType = AmountToRawValue(params[2]) ;
+                                                            governorId.ToString() ));
+    uint64_t operateType = AmountToRawValue(params[2]);
     ComboMoney fee          = RPC_PARAM::GetFee(params, 3, PROPOSAL_REQUEST_TX);
     int32_t validHeight  = chainActive.Height();
     CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, txUid);
     RPC_PARAM::CheckAccountBalance(account, fee.symbol, SUB_FREE, fee.GetAmountInSawi());
 
-    CGovBpMcListProposal proposal ;
-    proposal.governor_regid = governorId.get<CRegID>() ;
+    CGovBpMcListProposal proposal;
+    proposal.governor_regid = governorId.get<CRegID>();
     proposal.op_type = ProposalOperateType(operateType);
 
-    CProposalRequestTx tx ;
+    CProposalRequestTx tx;
     tx.txUid        = txUid;
     tx.llFees       = fee.GetAmountInSawi();
-    tx.fee_symbol    = fee.symbol ;
+    tx.fee_symbol    = fee.symbol;
     tx.valid_height = validHeight;
-    tx.proposal = CProposalStorageBean(std::make_shared<CGovBpMcListProposal>(proposal)) ;
-    return SubmitTx(account.keyid, tx) ;
+    tx.proposal = CProposalStorageBean(std::make_shared<CGovBpMcListProposal>(proposal));
+    return SubmitTx(account.keyid, tx);
 
 }
 
@@ -268,7 +268,7 @@ Value submitaccountpermproposal(const Array& params , bool fHelp) {
 
     const CUserID& txUid = RPC_PARAM::GetUserId(params[0], true);
     CUserID accountUid = RPC_PARAM::GetUserId(params[1]);
-    uint64_t permsSum = AmountToRawValue(params[2]) ;
+    uint64_t permsSum = AmountToRawValue(params[2]);
     ComboMoney fee          = RPC_PARAM::GetFee(params, 3, PROPOSAL_REQUEST_TX);
     int32_t validHeight  = chainActive.Height();
     CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, txUid);
@@ -276,13 +276,13 @@ Value submitaccountpermproposal(const Array& params , bool fHelp) {
 
     CGovAccountPermProposal proposal(accountUid,permsSum);
 
-    CProposalRequestTx tx ;
+    CProposalRequestTx tx;
     tx.txUid        = txUid;
     tx.llFees       = fee.GetAmountInSawi();
-    tx.fee_symbol    = fee.symbol ;
+    tx.fee_symbol    = fee.symbol;
     tx.valid_height = validHeight;
-    tx.proposal = CProposalStorageBean(std::make_shared<CGovAccountPermProposal>(proposal)) ;
-    return SubmitTx(account.keyid, tx) ;
+    tx.proposal = CProposalStorageBean(std::make_shared<CGovAccountPermProposal>(proposal));
+    return SubmitTx(account.keyid, tx);
 
 }
 
@@ -312,20 +312,20 @@ Value submitassetpermproposal(const Array& params , bool fHelp) {
 
     const CUserID& txUid = RPC_PARAM::GetUserId(params[0], true);
     const string assetSymbol = params[1].get_str();
-    uint64_t permsSum = AmountToRawValue(params[2]) ;
+    uint64_t permsSum = AmountToRawValue(params[2]);
     ComboMoney fee          = RPC_PARAM::GetFee(params, 3, PROPOSAL_REQUEST_TX);
     int32_t validHeight  = chainActive.Height();
     CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, txUid);
     RPC_PARAM::CheckAccountBalance(account, fee.symbol, SUB_FREE, fee.GetAmountInSawi());
 
     CGovAssetPermProposal proposal(assetSymbol, permsSum);
-    CProposalRequestTx tx ;
+    CProposalRequestTx tx;
     tx.txUid        = txUid;
     tx.llFees       = fee.GetAmountInSawi();
-    tx.fee_symbol    = fee.symbol ;
+    tx.fee_symbol    = fee.symbol;
     tx.valid_height = validHeight;
-    tx.proposal = CProposalStorageBean(std::make_shared<CGovAssetPermProposal>(proposal)) ;
-    return SubmitTx(account.keyid, tx) ;
+    tx.proposal = CProposalStorageBean(std::make_shared<CGovAssetPermProposal>(proposal));
+    return SubmitTx(account.keyid, tx);
 
 }
 
@@ -358,17 +358,17 @@ Value submitdexquotecoinproposal(const Array& params, bool fHelp) {
     CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, txUid);
     RPC_PARAM::CheckAccountBalance(account, fee.symbol, SUB_FREE, fee.GetAmountInSawi());
 
-    CGovDexQuoteProposal proposal ;
-    proposal.coin_symbol = token ;
+    CGovDexQuoteProposal proposal;
+    proposal.coin_symbol = token;
     proposal.op_type = ProposalOperateType(operateType);
 
-    CProposalRequestTx tx ;
+    CProposalRequestTx tx;
     tx.txUid        = txUid;
     tx.llFees       = fee.GetAmountInSawi();
-    tx.fee_symbol    = fee.symbol ;
+    tx.fee_symbol    = fee.symbol;
     tx.valid_height = validHeight;
-    tx.proposal = CProposalStorageBean(std::make_shared<CGovDexQuoteProposal>(proposal)) ;
-    return SubmitTx(account.keyid, tx) ;
+    tx.proposal = CProposalStorageBean(std::make_shared<CGovDexQuoteProposal>(proposal));
+    return SubmitTx(account.keyid, tx);
 
 
 }
@@ -405,18 +405,18 @@ Value submitfeedcoinpairproposal(const Array& params, bool fHelp) {
     CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, txUid);
     RPC_PARAM::CheckAccountBalance(account, fee.symbol, SUB_FREE, fee.GetAmountInSawi());
 
-    CGovFeedCoinPairProposal proposal ;
-    proposal.base_symbol = baseSymbol ;
-    proposal.quote_symbol = quoteSymbol ;
+    CGovFeedCoinPairProposal proposal;
+    proposal.base_symbol = baseSymbol;
+    proposal.quote_symbol = quoteSymbol;
     proposal.op_type = ProposalOperateType(operateType);
 
-    CProposalRequestTx tx ;
+    CProposalRequestTx tx;
     tx.txUid        = txUid;
     tx.llFees       = fee.GetAmountInSawi();
-    tx.fee_symbol    = fee.symbol ;
+    tx.fee_symbol    = fee.symbol;
     tx.valid_height = validHeight;
-    tx.proposal = CProposalStorageBean(std::make_shared<CGovFeedCoinPairProposal>(proposal)) ;
-    return SubmitTx(account.keyid, tx) ;
+    tx.proposal = CProposalStorageBean(std::make_shared<CGovFeedCoinPairProposal>(proposal));
+    return SubmitTx(account.keyid, tx);
 
 }
 
@@ -452,17 +452,17 @@ Value submitdexswitchproposal(const Array& params, bool fHelp) {
     CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, txUid);
     RPC_PARAM::CheckAccountBalance(account, fee.symbol, SUB_FREE, fee.GetAmountInSawi());
 
-    CGovDexOpProposal proposal ;
-    proposal.dexid = dexId ;
+    CGovDexOpProposal proposal;
+    proposal.dexid = dexId;
     proposal.operate_type = ProposalOperateType(operateType);
 
-    CProposalRequestTx tx ;
+    CProposalRequestTx tx;
     tx.txUid        = txUid;
     tx.llFees       = fee.GetAmountInSawi();
-    tx.fee_symbol    = fee.symbol ;
+    tx.fee_symbol    = fee.symbol;
     tx.valid_height = validHeight;
-    tx.proposal = CProposalStorageBean(std::make_shared<CGovDexOpProposal>(proposal)) ;
-    return SubmitTx(account.keyid, tx) ;
+    tx.proposal = CProposalStorageBean(std::make_shared<CGovDexOpProposal>(proposal));
+    return SubmitTx(account.keyid, tx);
 }
 
 Value submitproposalapprovaltx(const Array& params, bool fHelp){
@@ -486,19 +486,19 @@ Value submitproposalapprovaltx(const Array& params, bool fHelp){
 
     EnsureWalletIsUnlocked();
     const CUserID& txUid = RPC_PARAM::GetUserId(params[0], true);
-    uint256 proposalId = uint256S(params[1].get_str()) ;
+    uint256 proposalId = uint256S(params[1].get_str());
     ComboMoney fee          = RPC_PARAM::GetFee(params, 2, PROPOSAL_REQUEST_TX);
     int32_t validHegiht  = chainActive.Height();
     CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, txUid);
     RPC_PARAM::CheckAccountBalance(account, fee.symbol, SUB_FREE, fee.GetAmountInSawi());
 
-    CProposalApprovalTx tx ;
+    CProposalApprovalTx tx;
     tx.txUid        = txUid;
     tx.llFees       = fee.GetAmountInSawi();
     tx.fee_symbol    = fee.symbol;
     tx.valid_height = validHegiht;
-    tx.txid = proposalId ;
-    return SubmitTx(account.keyid, tx) ;
+    tx.txid = proposalId;
+    return SubmitTx(account.keyid, tx);
 
 }
 
@@ -522,9 +522,9 @@ Value submittotalbpssizeupdateproposal(const Array& params,bool fHelp) {
     }
 
     EnsureWalletIsUnlocked();
-    const CUserID& txUid = RPC_PARAM::GetUserId(params[0], true ) ;
-    uint32_t totalBpsSize = params[1].get_int() ;
-    uint32_t effectiveHeight = params[2].get_int() ;
+    const CUserID& txUid = RPC_PARAM::GetUserId(params[0], true );
+    uint32_t totalBpsSize = params[1].get_int();
+    uint32_t effectiveHeight = params[2].get_int();
     ComboMoney fee = RPC_PARAM::GetFee(params, 3, PROPOSAL_REQUEST_TX);
     int32_t validHeight  = chainActive.Height();
     CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, txUid);
@@ -533,18 +533,18 @@ Value submittotalbpssizeupdateproposal(const Array& params,bool fHelp) {
     if(totalBpsSize <=0 || totalBpsSize > BP_MAX_COUNT)
         throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("the range of total_bps_size is [0,%d]", BP_MAX_COUNT));
 
-    CGovBpSizeProposal proposal ;
-    proposal.total_bps_size = totalBpsSize ;
-    proposal.effective_height = effectiveHeight ;
+    CGovBpSizeProposal proposal;
+    proposal.total_bps_size = totalBpsSize;
+    proposal.effective_height = effectiveHeight;
 
-    CProposalRequestTx tx ;
+    CProposalRequestTx tx;
     tx.txUid        = txUid;
     tx.llFees       = fee.GetAmountInSawi();
-    tx.fee_symbol    = fee.symbol ;
+    tx.fee_symbol    = fee.symbol;
     tx.valid_height = validHeight;
-    tx.proposal = CProposalStorageBean(std::make_shared<CGovBpSizeProposal>(proposal)) ;
+    tx.proposal = CProposalStorageBean(std::make_shared<CGovBpSizeProposal>(proposal));
 
-    return SubmitTx(account.keyid, tx) ;
+    return SubmitTx(account.keyid, tx);
 
 
 }
@@ -577,20 +577,20 @@ Value submitminerfeeproposal(const Array& params, bool fHelp) {
     CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, txUid);
     RPC_PARAM::CheckAccountBalance(account, fee.symbol, SUB_FREE, fee.GetAmountInSawi());
 
-    CGovMinerFeeProposal proposal ;
-    proposal.tx_type = TxType(txType)  ;
+    CGovMinerFeeProposal proposal;
+    proposal.tx_type = TxType(txType);
     proposal.fee_symbol = feeInfo.symbol;
     proposal.fee_sawi_amount = feeInfo.GetAmountInSawi();
 
-    CProposalRequestTx tx ;
+    CProposalRequestTx tx;
     tx.txUid        = txUid;
     tx.llFees       = fee.GetAmountInSawi();
-    tx.fee_symbol    = fee.symbol ;
+    tx.fee_symbol    = fee.symbol;
     tx.valid_height = validHeight;
-    tx.proposal = CProposalStorageBean(std::make_shared<CGovMinerFeeProposal>(proposal)) ;
+    tx.proposal = CProposalStorageBean(std::make_shared<CGovMinerFeeProposal>(proposal));
 
 
-    return SubmitTx(account.keyid, tx) ;
+    return SubmitTx(account.keyid, tx);
 
 }
 
@@ -640,15 +640,15 @@ Value submitaxcinproposal(const Array& params, bool fHelp) {
     RPC_PARAM::CheckAccountBalance(account, fee.symbol, SUB_FREE, fee.GetAmountInSawi());
 
    CGovAxcInProposal proposal(peerChainType,peerTokenSymbol,selfToeknSymbol,peerAddr,peerTxid,selfUid,swapCoinAmount);
-    CProposalRequestTx tx ;
+    CProposalRequestTx tx;
     tx.txUid        = txUid;
     tx.llFees       = fee.GetAmountInSawi();
-    tx.fee_symbol    = fee.symbol ;
+    tx.fee_symbol    = fee.symbol;
     tx.valid_height = validHeight;
-    tx.proposal = CProposalStorageBean(std::make_shared<CGovAxcInProposal>(proposal)) ;
+    tx.proposal = CProposalStorageBean(std::make_shared<CGovAxcInProposal>(proposal));
 
 
-    return SubmitTx(account.keyid, tx) ;
+    return SubmitTx(account.keyid, tx);
 
 }
 
@@ -688,7 +688,7 @@ Value submitaxcoutproposal(const Array& params, bool fHelp) {
     string peerAddr = params[3].get_str();
 
     Array signArr = params[4].get_array();
-    vector<UnsignedCharArray> vSign ;
+    vector<UnsignedCharArray> vSign;
     for (auto s: signArr) {
         UnsignedCharArray unsignedCharArray = ParseHex(s.get_str());
         vSign.push_back(unsignedCharArray);
@@ -701,17 +701,17 @@ Value submitaxcoutproposal(const Array& params, bool fHelp) {
     CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, txUid);
     RPC_PARAM::CheckAccountBalance(account, fee.symbol, SUB_FREE, fee.GetAmountInSawi());
 
-    CGovAxcOutProposal proposal(selfChainUid,selfChainTokenSymbol,peerChainType,peerAddr,swapCoinAmount) ;
+    CGovAxcOutProposal proposal(selfChainUid,selfChainTokenSymbol,peerChainType,peerAddr,swapCoinAmount);
 
-    CProposalRequestTx tx ;
+    CProposalRequestTx tx;
     tx.txUid        = txUid;
     tx.llFees       = fee.GetAmountInSawi();
-    tx.fee_symbol    = fee.symbol ;
+    tx.fee_symbol    = fee.symbol;
     tx.valid_height = validHeight;
-    tx.proposal = CProposalStorageBean(std::make_shared<CGovAxcOutProposal>(proposal)) ;
+    tx.proposal = CProposalStorageBean(std::make_shared<CGovAxcOutProposal>(proposal));
 
 
-    return SubmitTx(account.keyid, tx) ;
+    return SubmitTx(account.keyid, tx);
 
 }
 
@@ -766,9 +766,9 @@ Value submitcointransferproposal( const Array& params, bool fHelp) {
     tx.llFees       = fee.GetAmountInSawi();
     tx.fee_symbol   = fee.symbol;
     tx.valid_height = validHeight;
-    tx.proposal     = CProposalStorageBean(std::make_shared<CGovCoinTransferProposal>(proposal)) ;
+    tx.proposal     = CProposalStorageBean(std::make_shared<CGovCoinTransferProposal>(proposal));
 
-    return SubmitTx(txAccount.keyid, tx) ;
+    return SubmitTx(txAccount.keyid, tx);
 
 }
 
@@ -788,31 +788,31 @@ Value getsysparam(const Array& params, bool fHelp){
     }
 
     if (params.size() == 1) {
-        string paramName = params[0].get_str() ;
-        SysParamType st ;
-        auto itr = paramNameToSysParamTypeMap.find(paramName) ;
+        string paramName = params[0].get_str();
+        SysParamType st;
+        auto itr = paramNameToSysParamTypeMap.find(paramName);
         if (itr == paramNameToSysParamTypeMap.end())
             throw JSONRPCError(RPC_INVALID_PARAMETER, "param name is illegal");
 
-        st = itr->second ;
-        uint64_t pv ;
+        st = itr->second;
+        uint64_t pv;
         if(!pCdMan->pSysParamCache->GetParam(st, pv))
             throw JSONRPCError(RPC_INVALID_PARAMETER, "get param error");
 
-        Object obj ;
+        Object obj;
         obj.push_back(Pair(paramName, pv));
         return obj;
     } else {
         Object obj;
         for(auto kv : paramNameToSysParamTypeMap) {
-            auto paramName = kv.first ;
+            auto paramName = kv.first;
             uint64_t pv = 0;
             pCdMan->pSysParamCache->GetParam(kv.second, pv);
 
-            obj.push_back(Pair(paramName, pv)) ;
+            obj.push_back(Pair(paramName, pv));
 
         }
-        return obj ;
+        return obj;
     }
 }
 
@@ -840,31 +840,31 @@ Value getcdpparam(const Array& params, bool fHelp) {
     CCdpCoinPair coinPair = CCdpCoinPair(vCoinPair[0], vCoinPair[1]);
 
     if (params.size() == 2) {
-        string paramName = params[1].get_str() ;
-        CdpParamType cpt ;
-        auto itr = paramNameToCdpParamTypeMap.find(paramName) ;
+        string paramName = params[1].get_str();
+        CdpParamType cpt;
+        auto itr = paramNameToCdpParamTypeMap.find(paramName);
         if( itr == paramNameToCdpParamTypeMap.end())
             throw JSONRPCError(RPC_INVALID_PARAMETER, "param name is illegal");
 
-        cpt = itr->second ;
+        cpt = itr->second;
 
-        uint64_t pv ;
+        uint64_t pv;
         if(!pCdMan->pSysParamCache->GetCdpParam(coinPair,cpt, pv)){
             throw JSONRPCError(RPC_INVALID_PARAMETER, "get param error or coin pair error");
         }
 
-        Object obj ;
+        Object obj;
         obj.push_back(Pair(paramName, pv));
         return obj;
     } else {
         Object obj;
         for(auto kv:paramNameToCdpParamTypeMap){
-            auto paramName = kv.first ;
+            auto paramName = kv.first;
             uint64_t pv = 0;
             pCdMan->pSysParamCache->GetCdpParam(coinPair,kv.second, pv);
-            obj.push_back(Pair(paramName, pv)) ;
+            obj.push_back(Pair(paramName, pv));
         }
-        return obj ;
+        return obj;
     }
 }
 
@@ -893,7 +893,7 @@ Value listmintxfees(const Array& params, bool fHelp) {
         arr.push_back(o);
     }
 
-    return arr ;
+    return arr;
 }
 
 Value getdexquotecoins(const Array& params, bool fHelp) {
@@ -906,15 +906,15 @@ Value getdexquotecoins(const Array& params, bool fHelp) {
                 HelpExampleCli("getdexquotecoins", "") + "\nAs json rpc\n" + HelpExampleRpc("getdexquotecoins", ""));
     }
 
-    set<TokenSymbol> coins ;
-    pCdMan->pDexCache->GetDexQuoteCoins(coins) ;
+    set<TokenSymbol> coins;
+    pCdMan->pDexCache->GetDexQuoteCoins(coins);
 
-    Object o ;
-    Array arr ;
+    Object o;
+    Array arr;
     for(TokenSymbol token: coins)
-        arr.push_back(token) ;
-    o.push_back(Pair("dex_quote_coins", arr)) ;
-    return o ;
+        arr.push_back(token);
+    o.push_back(Pair("dex_quote_coins", arr));
+    return o;
 }
 
 
@@ -927,8 +927,8 @@ Value gettotalbpssize(const Array& params, bool fHelp) {
                 HelpExampleCli("gettotalbpssize", "") + "\nAs json rpc\n" + HelpExampleRpc("gettotalbpssize", ""));
     }
     auto co =  pCdMan->pSysParamCache->GetTotalBpsSize(chainActive.Height());
-    Object o ;
-    o.push_back(Pair("total_bps_size", co)) ;
+    Object o;
+    o.push_back(Pair("total_bps_size", co));
     return o;
 
 }
@@ -946,12 +946,12 @@ Value getfeedcoinpairs(const Array& params, bool fHelp) {
     set<pair<TokenSymbol, TokenSymbol>> feedPairs;
     pCdMan->pPriceFeedCache->GetFeedCoinPairs(feedPairs);
 
-    Array feedPairArray ;
+    Array feedPairArray;
     for (auto feedPair: feedPairs) {
-        feedPairArray.push_back(strprintf("%s-%s",feedPair.first,feedPair.second)) ;
+        feedPairArray.push_back(strprintf("%s-%s",feedPair.first,feedPair.second));
     }
-    Object o ;
-    o.push_back(Pair("feed_coin_pairs", feedPairArray)) ;
+    Object o;
+    o.push_back(Pair("feed_coin_pairs", feedPairArray));
     return o;
 
 }
