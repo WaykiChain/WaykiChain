@@ -108,7 +108,7 @@ namespace dbk {
         DEFINE( USER_CDP,             "ucdp",   CDP )           /* ucdp{$RegID}{$AssetSymbol}{$ScoinSymbol} --> {set<cdpid>} */ \
         DEFINE( CDP_RATIO,            "cdpr",   CDP )           /* cdpr{$Ratio}{$cdpid} --> CUserCDP */ \
         DEFINE( CDP_GLOBAL_DATA,      "cgdt",   CDP )           /* [prefix]cdpCoinPair -> $cdpGlobalDataCache */ \
-        DEFINE( UPDATE_CDP_COINPAIRS,       "ccps",   CDP )           /* [prefix]cdpCoinPair -> $cdpCoinPairStatus */ \
+        DEFINE( UPDATE_CDP_COINPAIRS, "ccps",   CDP )           /* [prefix]cdpCoinPair -> $cdpCoinPairStatus */ \
         DEFINE( CDP_GLOBAL_HALT,      "cgh",    CDP )           /* cgh -> 0 | 1 */ \
         /**** cdp closed by redeem/forced or manned liquidate ***/  \
         DEFINE( CLOSED_CDP_TX,        "ctx",    CLOSEDCDP )     /* ccdp{cdpid} -> 1 */ \
@@ -131,8 +131,8 @@ namespace dbk {
         DEFINE( UTXO_PWSDPRF,         "pwdp",       UTXO )       /* [prefix]{txid-voutindex} --> {passwordProof} */ \
         /**** price feed db                                                                 */ \
         DEFINE( MEDIAN_PRICES,        "mdps",       PRICEFEED)   /* [prefix] --> median prices */ \
-        DEFINE( PRICE_FEED_COIN,      "pfco",       PRICEFEED)   /* [prefix] --> price feed coins */      \
-        DEFINE( PRICE_FEEDERS,         "pfdr",       PRICEFEED)   /* [prefix] --> price feeder */      \
+        DEFINE( PRICE_FEED_COIN_PAIRS, "pfcp",      PRICEFEED)   /* [prefix] --> price feed coin pairs */      \
+        DEFINE( PRICE_FEEDERS,         "pfdr",      PRICEFEED)   /* [prefix] --> price feeder */      \
         /*                                                                             */ \
         /* Add new Enum elements above, PREFIX_COUNT Must be the last one              */ \
         DEFINE( PREFIX_COUNT,          "",       DB_NAME_NONE)    /* enum count, must be the last one */

@@ -14,7 +14,7 @@
 #include "commons/util/util.h"
 #include "config/version.h"
 
-string CoinPricePairToString(const CoinPricePair &coinPricePair) {
+string CoinPricePairToString(const PriceCoinPair &coinPricePair) {
     return strprintf("%s:%s", GetPriceBaseSymbol(coinPricePair), GetPriceQuoteSymbol(coinPricePair));
 }
 
@@ -32,10 +32,20 @@ bool CPriceFeedTx::CheckTx(CTxExecuteContext &context) {
         const uint64_t &price = pricePoint.price;
         if (price == 0)
             return state.DoS(100, ERRORMSG("CPriceFeedTx::CheckTx, invalid price"), REJECT_INVALID, "bad-tx-invalid-price");
+        if (!kPriceQuoteSymbolSet.count(pricePoint.coin_price_pair.second))
+            return state.DoS(100, ERRORMSG("%s(), unsupported quote_symbol=%s", pricePoint.coin_price_pair.second),
+                            REJECT_INVALID, "unsupported-quote-symbol");
 
+        CAsset baseAsset;
+        if (!cw.assetCache.GetAsset(pricePoint.coin_price_pair.first, baseAsset))
+            return state.DoS(100, ERRORMSG("%s(), base_symbol=%s not exist", pricePoint.coin_price_pair.first),
+                            REJECT_INVALID, "base-symbol-not-exist");
+        if (!baseAsset.HasPerms(AssetPermType::PERM_PRICE_FEED))
+            return state.DoS(100, ERRORMSG("%s(), base_symbol=%s not have price feed permission",
+                    pricePoint.coin_price_pair.first), REJECT_INVALID, "base-symbol-not-exist");
         if (!cw.priceFeedCache.HasFeedCoinPair(pricePoint.coin_price_pair.first, pricePoint.coin_price_pair.second))
-            return state.DoS(100, ERRORMSG("CPriceFeedTx::CheckTx, unsupported coin price pair={%s}",
-                            CoinPricePairToString(pricePoint.coin_price_pair)), REJECT_INVALID, "unsupported-coin-price-pair");
+            return state.DoS(100, ERRORMSG("CPriceFeedTx::CheckTx, unsupported price coin pair={%s}",
+                            CoinPricePairToString(pricePoint.coin_price_pair)), REJECT_INVALID, "unsupported-price-coin-pair");
     }
 
     return true;
