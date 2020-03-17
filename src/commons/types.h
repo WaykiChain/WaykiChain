@@ -21,6 +21,7 @@ typedef std::string CoinUnitName;    //defined in coin unit type table
 typedef std::pair<TokenSymbol, TokenSymbol> TradingPair;
 typedef std::string AssetSymbol;     //8 chars max, E.g. WICC
 typedef std::string PriceSymbol;     //8 chars max, E.g. USD, CNY, EUR, BTC
+typedef std::pair<TokenSymbol, TokenSymbol> PriceCoinPair;
 
 using uint128_t = unsigned __int128;
 

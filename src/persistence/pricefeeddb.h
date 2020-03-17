@@ -25,7 +25,7 @@ class CSysParamDBCache; // need to read slide window param
 class CConsecutiveBlockPrice;
 
 typedef map<int32_t /* block height */, map<CRegID, uint64_t /* price */>> BlockUserPriceMap;
-typedef map<CoinPricePair, CConsecutiveBlockPrice> CoinPricePointMap;
+typedef map<PriceCoinPair, CConsecutiveBlockPrice> CoinPricePointMap;
 
 // Price Points in 11 consecutive blocks
 class CConsecutiveBlockPrice {
@@ -57,7 +57,7 @@ public:
     void Flush();
 
 private:
-    uint64_t GetMedianPrice(const int32_t blockHeight, const uint64_t slideWindow, const CoinPricePair &coinPricePair);
+    uint64_t GetMedianPrice(const int32_t blockHeight, const uint64_t slideWindow, const PriceCoinPair &coinPricePair);
 
     bool AddPriceByBlock(const CBlock &block);
     // delete block price point by specific block height.
@@ -65,15 +65,15 @@ private:
 
     bool DeleteBlockPricePoint(const int32_t blockHeight);
 
-    bool ExistBlockUserPrice(const int32_t blockHeight, const CRegID &regId, const CoinPricePair &coinPricePair);
+    bool ExistBlockUserPrice(const int32_t blockHeight, const CRegID &regId, const PriceCoinPair &coinPricePair);
 
     void BatchWrite(const CoinPricePointMap &mapCoinPricePointCacheIn);
 
-    bool GetBlockUserPrices(const CoinPricePair &coinPricePair, set<int32_t> &expired, BlockUserPriceMap &blockUserPrices);
-    bool GetBlockUserPrices(const CoinPricePair &coinPricePair, BlockUserPriceMap &blockUserPrices);
+    bool GetBlockUserPrices(const PriceCoinPair &coinPricePair, set<int32_t> &expired, BlockUserPriceMap &blockUserPrices);
+    bool GetBlockUserPrices(const PriceCoinPair &coinPricePair, BlockUserPriceMap &blockUserPrices);
 
     uint64_t ComputeBlockMedianPrice(const int32_t blockHeight, const uint64_t slideWindow,
-                                     const CoinPricePair &coinPricePair);
+                                     const PriceCoinPair &coinPricePair);
     uint64_t ComputeBlockMedianPrice(const int32_t blockHeight, const uint64_t slideWindow,
                                      const BlockUserPriceMap &blockUserPrices);
     static uint64_t ComputeMedianNumber(vector<uint64_t> &numbers);
@@ -89,44 +89,44 @@ class CPriceFeedCache {
 public:
     CPriceFeedCache() {}
     CPriceFeedCache(CDBAccess *pDbAccess)
-    : price_feed_coin_cache(pDbAccess),
+    : price_feed_coin_pairs_cache(pDbAccess),
       median_price_cache(pDbAccess) {};
 public:
     bool Flush() {
-        price_feed_coin_cache.Flush();
+        price_feed_coin_pairs_cache.Flush();
         median_price_cache.Flush();
         return true;
     }
 
     uint32_t GetCacheSize() const {
-        return  price_feed_coin_cache.GetCacheSize() +
+        return  price_feed_coin_pairs_cache.GetCacheSize() +
                 median_price_cache.GetCacheSize();
     }
     void SetBaseViewPtr(CPriceFeedCache *pBaseIn) {
-        price_feed_coin_cache.SetBase(&pBaseIn->price_feed_coin_cache);
+        price_feed_coin_pairs_cache.SetBase(&pBaseIn->price_feed_coin_pairs_cache);
         median_price_cache.SetBase(&pBaseIn->median_price_cache);
     };
 
     void SetDbOpLogMap(CDBOpLogMap *pDbOpLogMapIn) {
-        price_feed_coin_cache.SetDbOpLogMap(pDbOpLogMapIn);
+        price_feed_coin_pairs_cache.SetDbOpLogMap(pDbOpLogMapIn);
         median_price_cache.SetDbOpLogMap(pDbOpLogMapIn);
     }
 
     void RegisterUndoFunc(UndoDataFuncMap &undoDataFuncMap) {
-        price_feed_coin_cache.RegisterUndoFunc(undoDataFuncMap);
+        price_feed_coin_pairs_cache.RegisterUndoFunc(undoDataFuncMap);
         median_price_cache.RegisterUndoFunc(undoDataFuncMap);
     }
 
-    bool AddFeedCoinPair(TokenSymbol feedCoin, TokenSymbol quoteCoin) ;
-    bool EraseFeedCoinPair(TokenSymbol feedCoin, TokenSymbol quoteCoin) ;
-    bool HasFeedCoinPair(TokenSymbol feedCoin,TokenSymbol quoteCoin) ;
+    bool AddFeedCoinPair(TokenSymbol baseSymbol, TokenSymbol quoteSymbol) ;
+    bool EraseFeedCoinPair(TokenSymbol baseSymbol, TokenSymbol quoteSymbol) ;
+    bool HasFeedCoinPair(TokenSymbol baseSymbol,TokenSymbol quoteSymbol) ;
     bool GetFeedCoinPairs(set<pair<TokenSymbol,TokenSymbol>>& coinSet) ;
 
     bool CheckIsPriceFeeder(const CRegID &candidateRegId) ;
     bool SetPriceFeeders(const vector<CRegID> &governors) ;
     bool GetPriceFeeders(vector<CRegID>& priceFeeders) ;
 
-    uint64_t GetMedianPrice(const CoinPricePair &coinPricePair) const;
+    uint64_t GetMedianPrice(const PriceCoinPair &coinPricePair) const;
     PriceMap GetMedianPrices() const;
     bool SetMedianPrices(const PriceMap &medianPrices);
 
@@ -136,9 +136,9 @@ public:
 /*  -------------------- --------------------  -------------   --------------------- */
     /////////// PriceFeedDB
     // [prefix] -> feed pair
-    CSimpleKVCache< dbk::PRICE_FEED_COIN,      set<pair<TokenSymbol, TokenSymbol >>>     price_feed_coin_cache;
+    CSimpleKVCache< dbk::PRICE_FEED_COIN_PAIRS, set<PriceCoinPair>>   price_feed_coin_pairs_cache;
     // [prefix] -> median price map
-    CSimpleKVCache< dbk::MEDIAN_PRICES,        PriceMap>     median_price_cache;
+    CSimpleKVCache< dbk::MEDIAN_PRICES,     PriceMap>     median_price_cache;
 };
 
 #endif  // PERSIST_PRICEFEED_H

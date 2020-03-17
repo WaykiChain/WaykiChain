@@ -239,7 +239,7 @@ Value verifymessage(const Array& params, bool fHelp) {
     DEFINE( DEX_OPERATOR_TRADE_PAIR, pDexCache, operator_trade_pair_cache) \
     /**** price feed */ \
     DEFINE( MEDIAN_PRICES,        pPriceFeedCache, median_price_cache) \
-    DEFINE( PRICE_FEED_COIN,      pPriceFeedCache,price_feed_coin_cache) \
+    DEFINE( PRICE_FEED_COIN_PAIRS,      pPriceFeedCache,price_feed_coin_pairs_cache) \
     /**** log db                                                                    */ \
     DEFINE( TX_EXECUTE_FAIL,      pLogCache,  executeFailCache ) \
     /**** tx receipt db                                                                    */ \

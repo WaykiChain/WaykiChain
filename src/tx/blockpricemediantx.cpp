@@ -162,13 +162,13 @@ bool CCdpForceLiquidator::Execute() {
 
     // 0. acquire median prices
     // TODO: multi stable coin
-    uint64_t bcoinMedianPrice = tx.median_prices[CoinPricePair(assetSymbol, quoteSymbol)];
+    uint64_t bcoinMedianPrice = tx.median_prices[PriceCoinPair(assetSymbol, quoteSymbol)];
     if (bcoinMedianPrice == 0) {
         LogPrint(BCLog::CDP, "%s(), price of %s:%s is 0, ignore\n", __func__, assetSymbol, quoteSymbol);
         return true;
     }
 
-    uint64_t fcoinMedianPrice = tx.median_prices[CoinPricePair(SYMB::WGRT, quoteSymbol)];
+    uint64_t fcoinMedianPrice = tx.median_prices[PriceCoinPair(SYMB::WGRT, quoteSymbol)];
     if (fcoinMedianPrice == 0) {
         LogPrint(BCLog::CDP, "%s(), price of fcoin(WGRT:USD) is 0, ignore\n", __func__);
         return true;

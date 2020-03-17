@@ -15,7 +15,7 @@
 template<typename MapType, typename ItemSerializer>
 class CMapSerializer {
 public:
-//typedef std::map<CoinPricePair, uint64_t> PriceMap;
+//typedef std::map<PriceCoinPair, uint64_t> PriceMap;
     MapType &map_obj;
     typedef typename MapType::value_type ItemType;
 
@@ -76,7 +76,7 @@ class CPriceMapItemCommonSerializer: public CPriceMapItemRef {
 public:
     using CPriceMapItemRef::CPriceMapItemRef;
     IMPLEMENT_SERIALIZE(
-        READWRITE(key); // CoinPricePair
+        READWRITE(key); // PriceCoinPair
         READWRITE(VARINT(value)); // priceValue
     )
 };
@@ -87,7 +87,7 @@ public:
     using CPriceMapItemRef::CPriceMapItemRef;
 
     IMPLEMENT_SERIALIZE(
-        READWRITE(key); // CoinPricePair
+        READWRITE(key); // PriceCoinPair
         uint64_t leValue = htole64(value); // priceValue
         READWRITE(leValue);
         if (fRead)

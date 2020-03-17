@@ -417,6 +417,12 @@ bool CGovFeedCoinPairProposal::CheckProposal(CTxExecuteContext& context ) {
         return state.DoS(100, ERRORMSG("CGovFeedCoinPairProposal:: checkProposal: feed_symbol invalid"),
                          REJECT_INVALID, "bad-symbol") ;
 
+    PriceCoinPair coinPair(feed_symbol, quote_symbol);
+    if (kPriceFeedCoinPairSet.count(coinPair) > 0) {
+        return state.DoS(100, ERRORMSG("%s(), the hard code price_coin_pair={%s:%s} can not be governed",
+                __func__, quote_symbol), REJECT_INVALID, "hard-code-coin-pair");
+    }
+
     if (!kPriceQuoteSymbolSet.count(quote_symbol))
         return state.DoS(100, ERRORMSG("CGovFeedCoinPairProposal:: checkProposal: invalid quote_symbol %s", quote_symbol),
                          REJECT_INVALID, "bad-symbol") ;
@@ -450,21 +456,21 @@ bool CGovAxcInProposal::CheckProposal(CTxExecuteContext& context ) {
 
     if ( (kXChainSwapInTokenMap.find(peer_chain_token_symbol) == kXChainSwapInTokenMap.end()) &&
          (!cw.assetCache.CheckAsset(self_chain_token_symbol, AssetPermType::PERM_XCHAIN_SWAP)) )
-        return state.DoS(100, ERRORMSG("CGovAxcInProposal::CheckProposal: self_chain_token_symbol=%s is invalid", 
+        return state.DoS(100, ERRORMSG("CGovAxcInProposal::CheckProposal: self_chain_token_symbol=%s is invalid",
                                         self_chain_token_symbol), REJECT_INVALID, "self_chain_token_symbol-not-valid");
 
     if ((peer_chain_type == ChainType::BITCOIN && (peer_chain_addr.size() < 26 || peer_chain_addr.size() > 35)) ||
         (peer_chain_type == ChainType::ETHEREUM && (peer_chain_addr.size() > 42)))
-        return state.DoS(100, ERRORMSG("CGovAxcInProposal::CheckProposal: peer_chain_addr=%s invalid", 
+        return state.DoS(100, ERRORMSG("CGovAxcInProposal::CheckProposal: peer_chain_addr=%s invalid",
                                         peer_chain_addr), REJECT_INVALID, "peer_chain_addr-invalid");
 
     if ( (peer_chain_type == ChainType::BITCOIN && (peer_chain_txid.size() != 65)) ||
          (peer_chain_type == ChainType::ETHEREUM && (peer_chain_txid.size() != 65)) )
-        return state.DoS(100, ERRORMSG("CGovAxcInProposal::CheckProposal: peer_chain_txid=%s invalid", 
+        return state.DoS(100, ERRORMSG("CGovAxcInProposal::CheckProposal: peer_chain_txid=%s invalid",
                                         peer_chain_txid), REJECT_INVALID, "peer_chain_txid-invalid");
 
     if (self_chain_uid.IsEmpty())
-        return state.DoS(100, ERRORMSG("CGovAxcInProposal::CheckProposal: self_chain_uid empty", 
+        return state.DoS(100, ERRORMSG("CGovAxcInProposal::CheckProposal: self_chain_uid empty",
                                         peer_chain_txid), REJECT_INVALID, "self_chain_uid-empty");
 
     CAccount acct;
@@ -473,7 +479,7 @@ bool CGovAxcInProposal::CheckProposal(CTxExecuteContext& context ) {
                         "bad-getaccount");
 
     if (swap_amount < DUST_AMOUNT_THRESHOLD)
-        return state.DoS(100, ERRORMSG("CGovAxcInProposal::CheckProposal: swap_amount=%llu too small", 
+        return state.DoS(100, ERRORMSG("CGovAxcInProposal::CheckProposal: swap_amount=%llu too small",
                                         swap_amount), REJECT_INVALID, "swap_amount-dust");
 
     return true;
@@ -483,12 +489,12 @@ bool CGovAxcInProposal::ExecuteProposal(CTxExecuteContext& context, const TxID& 
 
     if ( (kXChainSwapInTokenMap.find(peer_chain_token_symbol) == kXChainSwapInTokenMap.end()) &&
          (!cw.assetCache.CheckAsset(self_chain_token_symbol, AssetPermType::PERM_XCHAIN_SWAP)) )
-        return state.DoS(100, ERRORMSG("CGovAxcInProposal::ExecuteProposal: self_chain_token_symbol=%s is invalid", 
+        return state.DoS(100, ERRORMSG("CGovAxcInProposal::ExecuteProposal: self_chain_token_symbol=%s is invalid",
                                         self_chain_token_symbol), REJECT_INVALID, "self_chain_token_symbol-not-valid");
 
     uint64_t swap_fee_ratio;
     if (!cw.sysParamCache.GetParam(AXC_SWAP_FEE_RATIO, swap_fee_ratio))
-        return state.DoS(100, ERRORMSG("CGovAxcInProposal::ExecuteProposal, get sysparam: axc_swap_fee_ratio failed"), 
+        return state.DoS(100, ERRORMSG("CGovAxcInProposal::ExecuteProposal, get sysparam: axc_swap_fee_ratio failed"),
                         REJECT_INVALID, "bad-get-swap_fee_ratio");
 
     uint64_t swap_amount_after_fees = swap_amount * (1 - swap_fee_ratio * 1.0 / RATIO_BOOST);
@@ -500,7 +506,7 @@ bool CGovAxcInProposal::ExecuteProposal(CTxExecuteContext& context, const TxID& 
     if (!cw.accountCache.GetAccount(self_chain_uid, acct))
         return state.DoS(100, ERRORMSG("CGovAxcInProposal::ExecuteProposal, read account failed"), REJECT_INVALID,
                         "bad-getaccount");
-                        
+
     // mint the new mirro-coin (self_chain_token_symbol) out of thin air
     if (!acct.OperateBalance(self_chain_token_symbol, BalanceOpType::ADD_FREE, swap_amount_after_fees))
         return state.DoS(100, ERRORMSG("CGovAxcInProposal::ExecuteProposal, opreate balance failed, swap_amount_after_fees=%llu",
@@ -513,12 +519,12 @@ bool CGovAxcOutProposal::CheckProposal(CTxExecuteContext& context ) {
     IMPLEMENT_DEFINE_CW_STATE;
 
     if (!cw.assetCache.CheckAsset(self_chain_token_symbol, AssetPermType::PERM_XCHAIN_SWAP))
-        return state.DoS(100, ERRORMSG("CGovAxcOutProposal::CheckProposal: self_chain_token_symbol=%s is invalid", 
+        return state.DoS(100, ERRORMSG("CGovAxcOutProposal::CheckProposal: self_chain_token_symbol=%s is invalid",
                                         self_chain_token_symbol), REJECT_INVALID, "self_chain_token_symbol-not-valid");
 
     if ((peer_chain_type == ChainType::BITCOIN && (peer_chain_addr.size() < 26 || peer_chain_addr.size() > 35)) ||
         (peer_chain_type == ChainType::ETHEREUM && (peer_chain_addr.size() > 42)))
-        return state.DoS(100, ERRORMSG("CGovAxcOutProposal::CheckProposal: peer_chain_addr=%s invalid", 
+        return state.DoS(100, ERRORMSG("CGovAxcOutProposal::CheckProposal: peer_chain_addr=%s invalid",
                                         peer_chain_addr), REJECT_INVALID, "peer_chain_addr-invalid");
 
     if (self_chain_uid.IsEmpty())
@@ -531,7 +537,7 @@ bool CGovAxcOutProposal::CheckProposal(CTxExecuteContext& context ) {
                         "bad-getaccount");
 
     if (swap_amount < DUST_AMOUNT_THRESHOLD)
-        return state.DoS(100, ERRORMSG("CGovAxcOutProposal::CheckProposal: swap_amount=%llu too small", 
+        return state.DoS(100, ERRORMSG("CGovAxcOutProposal::CheckProposal: swap_amount=%llu too small",
                                         swap_amount), REJECT_INVALID, "swap_amount-dust");
 
     return true  ;
@@ -542,14 +548,14 @@ bool CGovAxcOutProposal::ExecuteProposal(CTxExecuteContext& context, const TxID&
 
     uint64_t swap_fee_ratio;
     if (!cw.sysParamCache.GetParam(AXC_SWAP_FEE_RATIO, swap_fee_ratio))
-        return state.DoS(100, ERRORMSG("CGovAxcOutProposal::ExecuteProposal, get sysparam: axc_swap_fee_ratio failed"), 
+        return state.DoS(100, ERRORMSG("CGovAxcOutProposal::ExecuteProposal, get sysparam: axc_swap_fee_ratio failed"),
                         REJECT_INVALID, "bad-get-swap_fee_ratio");
 
     CAccount acct;
     if (!cw.accountCache.GetAccount(self_chain_uid, acct))
         return state.DoS(100, ERRORMSG("CGovAxcInProposal::ExecuteProposal, read account failed"), REJECT_INVALID,
                         "bad-getaccount");
-    
+
     // burn the mirroed tokens from self-chain
     if (!acct.OperateBalance(self_chain_token_symbol, BalanceOpType::SUB_FREE, swap_amount))
         return state.DoS(100, ERRORMSG("CGovAxcOutProposal::ExecuteProposal, opreate balance failed, swap_amount=%llu",

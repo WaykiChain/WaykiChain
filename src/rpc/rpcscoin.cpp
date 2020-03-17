@@ -80,7 +80,7 @@ Value submitpricefeedtx(const Array& params, bool fHelp) {
             throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("Invalid price: %lld", price));
         }
 
-        CoinPricePair cpp(coinStr, currencyStr);
+        PriceCoinPair cpp(coinStr, currencyStr);
         CPricePoint pp(cpp, uint64_t(price));
         pricePoints.push_back(pp);
     }
@@ -305,7 +305,7 @@ Object GetCdpInfoJson(const CCdpCoinPair &cdpCoinPair, PriceMap &medianPricePoin
         throw JSONRPCError(RPC_INTERNAL_ERROR, "Acquire global collateral ratio floor error");
     }
 
-    uint64_t assetPrice = medianPricePoints[CoinPricePair(SYMB::WICC, SYMB::USD)];
+    uint64_t assetPrice = medianPricePoints[PriceCoinPair(SYMB::WICC, SYMB::USD)];
     CCdpGlobalData cdpGlobalData = pCdMan->pCdpCache->GetCdpGlobalData(cdpCoinPair);
     uint64_t globalCollateralRatio = cdpGlobalData.GetCollateralRatio(assetPrice);
     bool globalCollateralRatioFloorReached =
@@ -412,7 +412,7 @@ Value getusercdp(const Array& params, bool fHelp){
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, strprintf("The account not exists! userId=%s", pUserId->ToString()));
     }
 
-    uint64_t bcoinMedianPrice = pCdMan->pPriceFeedCache->GetMedianPrice(CoinPricePair(SYMB::WICC, SYMB::USD));
+    uint64_t bcoinMedianPrice = pCdMan->pPriceFeedCache->GetMedianPrice(PriceCoinPair(SYMB::WICC, SYMB::USD));
 
     Object obj;
     Array cdps;
@@ -443,7 +443,7 @@ Value getcdpinfo(const Array& params, bool fHelp){
         );
     }
 
-    uint64_t bcoinMedianPrice = pCdMan->pPriceFeedCache->GetMedianPrice(CoinPricePair(SYMB::WICC, SYMB::USD));
+    uint64_t bcoinMedianPrice = pCdMan->pPriceFeedCache->GetMedianPrice(PriceCoinPair(SYMB::WICC, SYMB::USD));
 
     uint256 cdpTxId(uint256S(params[0].get_str()));
     CUserCDP cdp;

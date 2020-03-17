@@ -15,29 +15,21 @@
  * always written as BaseSymbol/QuoteSymbol
  * such as: WICC/USD
  */
-typedef std::pair<TokenSymbol, TokenSymbol> CoinPricePair;
-typedef std::map<CoinPricePair, uint64_t> PriceMap;
+typedef std::map<PriceCoinPair, uint64_t> PriceMap;
 
 static const PriceMap EMPTY_PRICE_MAP = {};
-
-static const CoinPricePair kDefaultFcoinPricePair = {SYMB::WGRT, SYMB::USD};
-
-static const UnorderedPairSet<TokenSymbol, TokenSymbol> kCoinPricePairSet = {
-    {SYMB::WICC, SYMB::USD},
-    kDefaultFcoinPricePair,
-};
 
 static const uint32_t COIN_PRICE_PAIR_COUNT_MAX = 100;
 
 class CPricePoint {
 public:
-    CoinPricePair coin_price_pair;
+    PriceCoinPair coin_price_pair;
     uint64_t price;  // boosted by 10^8
 
 public:
     CPricePoint() {}
 
-    CPricePoint(const CoinPricePair &coinPricePair, const uint64_t priceIn)
+    CPricePoint(const PriceCoinPair &coinPricePair, const uint64_t priceIn)
         : coin_price_pair(coinPricePair), price(priceIn) {}
 
     CPricePoint(const CPricePoint& other) { *this = other; }
@@ -46,7 +38,7 @@ public:
 
 public:
     uint64_t GetPrice() const { return price; }
-    CoinPricePair GetCoinPricePair() const { return coin_price_pair; }
+    PriceCoinPair GetCoinPricePair() const { return coin_price_pair; }
 
     string ToString() {
         return strprintf("coin_price_pair:%s:%s, price:%lld", coin_price_pair.first, coin_price_pair.second, price);
@@ -77,11 +69,11 @@ public:
     }
 };
 
-inline const string& GetPriceBaseSymbol(const CoinPricePair &pricePair) {
+inline const string& GetPriceBaseSymbol(const PriceCoinPair &pricePair) {
     return std::get<0>(pricePair);
 }
 
-inline const string& GetPriceQuoteSymbol(const CoinPricePair &pricePair) {
+inline const string& GetPriceQuoteSymbol(const PriceCoinPair &pricePair) {
     return std::get<0>(pricePair);
 }
 
@@ -90,7 +82,7 @@ inline const string& GetPriceQuoteSymbol(const CoinPricePair &pricePair) {
  * @return err_msg(string) return nullptr or error msg ptr
  *
  */
-inline shared_ptr<string> CheckPricePair(const CoinPricePair &pricePair) {
+inline shared_ptr<string> CheckPricePair(const PriceCoinPair &pricePair) {
     // TODO: support more price pair
     if (GetPriceBaseSymbol(pricePair) != SYMB::WICC && GetPriceBaseSymbol(pricePair) != SYMB::WGRT)
         return make_shared<string>("unsupported base symbol " + GetPriceBaseSymbol(pricePair) + " of price pair");
