@@ -273,23 +273,20 @@ Value submitutxotransfertx(const Array& params, bool fHelp) {
     Array inputArray  = params[2].get_array();
     Array outputArray = params[3].get_array();
 
-
-    ComboMoney fee = RPC_PARAM::GetFee(params,4 ,TxType::UTXO_TRANSFER_TX);
+    ComboMoney fee = RPC_PARAM::GetFee(params, 4, TxType::UTXO_TRANSFER_TX);
     CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, txUid);
     RPC_PARAM::CheckAccountBalance(account, fee.symbol, SUB_FREE, fee.GetAmountInSawi());
     string memo;
-    if(params.size() > 5) {
+    if(params.size() > 5)
         memo = params[5].get_str();
-    }
+
     std::vector<CUtxoInput> vins;
     std::vector<CUtxoOutput> vouts;
     ParseUtxoInput(inputArray, vins, account.keyid);
     ParseUtxoOutput(outputArray, vouts, account.keyid);
 
-
     int32_t validHeight  = chainActive.Height();
-    CCoinUtxoTransferTx utxoTransferTx(txUid,validHeight,fee.symbol,fee.GetAmountInSawi(),
-                                  coinSymbol,vins,vouts,memo);
+    CCoinUtxoTransferTx utxoTransferTx(txUid, validHeight, fee.symbol, fee.GetAmountInSawi(), coinSymbol, vins, vouts, memo);
 
     return SubmitTx(account.keyid, utxoTransferTx);
 
@@ -304,11 +301,8 @@ static void TransToStorageBean(const vector<shared_ptr<CUtxoCond>>& vCond, vecto
     }
 }
 
-static void ParseUtxoInput(const Array& arr, vector<CUtxoInput>& vInput, const CKeyID& txKeyID){
-
-
+static void ParseUtxoInput(const Array& arr, vector<CUtxoInput>& vInput, const CKeyID& txKeyID) {
     for (auto obj : arr) {
-
         const Value& preTxidObj  = JSON::GetObjectFieldValue(obj, "prev_utxo_txid");
         TxID prevUtxoTxid = uint256S(preTxidObj.get_str()) ;
         const Value& preVoutIndexObj = JSON::GetObjectFieldValue(obj,"prev_utxo_vout_index");
@@ -323,14 +317,11 @@ static void ParseUtxoInput(const Array& arr, vector<CUtxoInput>& vInput, const C
         vInput.push_back(input);
 
     }
-
 }
 
 
 static void ParseUtxoOutput(const Array& arr, vector<CUtxoOutput>& vOutput,const CKeyID& txKeyID) {
-
     for (auto& obj : arr) {
-
         const Value& coinAmountObj  = JSON::GetObjectFieldValue(obj, "coin_amount");
         uint64_t coinAmount = AmountToRawValue(coinAmountObj);
         const Array& condArray = JSON::GetObjectFieldValue(obj, "conds").get_array();
@@ -470,4 +461,3 @@ static void ParseUtxoCond(const Array& arr, vector<shared_ptr<CUtxoCond>>& vCond
     }
 
 }
-

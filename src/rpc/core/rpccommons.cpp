@@ -501,7 +501,7 @@ CUserID RPC_PARAM::ParseUserIdByAddr(const Value &jsonValue) {
     return *pUserId;
 }
 
-CUserID RPC_PARAM::GetUserId(const Value &jsonValue, const bool senderUid ) {
+CUserID RPC_PARAM::GetUserId(const Value &jsonValue, const bool bSenderUid ) {
     auto userId = ParseUserIdByAddr(jsonValue);
 
     /**
@@ -526,7 +526,7 @@ CUserID RPC_PARAM::GetUserId(const Value &jsonValue, const bool senderUid ) {
         if (pCdMan->pAccountCache->GetRegId(userId, regid) && regid.IsMature(chainActive.Height())) {
             return CUserID(regid);
         } else {
-            if (senderUid && userId.is<CKeyID>()) {
+            if (bSenderUid && userId.is<CKeyID>()) {
                 CPubKey sendPubKey;
                 if (!pWalletMain->GetPubKey(userId.get<CKeyID>(), sendPubKey) || !sendPubKey.IsFullyValid())
                     throw JSONRPCError(RPC_WALLET_ERROR, "Key not found in the local wallet");

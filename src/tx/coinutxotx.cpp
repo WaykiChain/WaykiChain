@@ -362,15 +362,17 @@ bool CCoinUtxoTransferTx::CheckTx(CTxExecuteContext &context) {
     }
 
     CAccount srcAccount;
-    if (!cw.accountCache.GetAccount(txUid, srcAccount)) //unrecorded account not allowed to participate
+    if (!cw.accountCache.GetAccount(txUid, srcAccount)) //unregistered account not allowed to participate
         return state.DoS(100, ERRORMSG("CCoinUtxoTransferTx::CheckTx, read account failed"), REJECT_INVALID,
                         "bad-getaccount");
 
     uint64_t accountBalance = srcAccount.GetBalance(coin_symbol, BalanceType::FREE_VALUE);
     if (accountBalance + totalInAmount < totalOutAmount + llFees)
-        return state.DoS(100, ERRORMSG("CCoinUtxoTransferTx::CheckTx, account balance coin_amount insufficient!"
-                                    "accountBalance=%llu, totalInAmount=%llu, totalOutAmount=%llu, llFees=%llu",
-                                    accountBalance, totalInAmount, totalOutAmount, llFees),
+        return state.DoS(100, ERRORMSG("CCoinUtxoTransferTx::CheckTx, account balance coin_amount insufficient!\n"
+                                    "accountBalance=%llu, totalInAmount=%llu, totalOutAmount=%llu, llFees=%llu\n"
+                                    "srcAccount=%s coinSymbol=%s",
+                                    accountBalance, totalInAmount, totalOutAmount, llFees,
+                                    srcAccount.regid.ToString(), coin_symbol),
                         REJECT_INVALID, "insufficient-account-coin-amount");
 
     return true;
