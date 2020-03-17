@@ -197,7 +197,7 @@ public:
     }
 };
 
-string CoinPairToString(const std::pair<TokenSymbol, TokenSymbol> coinPair) {
+inline string CoinPairToString(const std::pair<TokenSymbol, TokenSymbol> coinPair) {
     return strprintf("%s:%s", coinPair.first, coinPair.second);
 }
 
