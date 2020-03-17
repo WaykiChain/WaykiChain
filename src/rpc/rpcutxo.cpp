@@ -71,7 +71,7 @@ Value genutxomultisignaddr( const Array& params, bool fHelp) {
     if(fHelp || params.size() != 3) {
         throw runtime_error(
                 "genutxomultisignaddr \"n\" \"m\" \"signee_uids\" \n"
-                "\nSubmit a multi sign address.\n" +
+                "\nGenerate a multi sign address.\n" +
                 HelpRequiringPassphrase() +
                 "\nArguments:\n"
                 "1.\"n\":                       (numberic, required) the total signee size \n"
@@ -80,13 +80,10 @@ Value genutxomultisignaddr( const Array& params, bool fHelp) {
                 "\nResult:\n"
                 "\"txid\"                       (string) The multi address hash.\n"
                 "\nExamples:\n" +
-                HelpExampleCli("genutxomultiinputcondhash",
-                               "\"0-3\" \"23ewf90203ew000ds0lwsdpoxewdokwesdxcoekdleds\" "
-                               "5 \"eowdswd0-eowpds23ewdswwedscde\" \"WICC:10000:sawi\"") +
+                HelpExampleCli("genutxomultisignaddr",
+                               R"(2 2 "["0-2", "0-3"]")") +
                 "\nAs json rpc call\n" +
-                HelpExampleRpc("genutxomultiinputcondhash",
-                               "\"0-3\", \"23ewf90203ew000ds0lwsdpoxewdokwesdxcoekdleds\","
-                               " 5, \"eowdswd0-eowpds23ewdswwedscde\", \"WICC:10000:sawi\"")
+                HelpExampleRpc("genutxomultisignaddr",R"(2, 2, "["0-2", "0-3"]")")
         );
     }
 
@@ -133,7 +130,7 @@ Value genutxomultiinputcondhash(const Array& params, bool fHelp) {
     if(fHelp || params.size() != 6) {
         throw runtime_error(
                 "genutxomultiinputcondhash \"m\" \"n\" \"pre_utxo_txid\" \"pre_utxo_tx_vout_index\" \"signee_uids\",\"spend_txuid\" \n"
-                "\nSubmit a password proof.\n" +
+                "\n Generate a hash that will be sign in IP2MA cond\n" +
                 HelpRequiringPassphrase() +
                 "\nArguments:\n"
                 "1.\"m\":                       (numberic, required) the total signee size\n"
@@ -146,12 +143,11 @@ Value genutxomultiinputcondhash(const Array& params, bool fHelp) {
                 "\"txid\"                       (string) The multi input cond hash.\n"
                 "\nExamples:\n" +
                 HelpExampleCli("genutxomultiinputcondhash",
-                               "\"0-3\" \"23ewf90203ew000ds0lwsdpoxewdokwesdxcoekdleds\" "
-                               "5 \"eowdswd0-eowpds23ewdswwedscde\" \"WICC:10000:sawi\"") +
+                               R"(2 2 "23ewf90203ew000ds0lwsdpoxewdokwesdxcoekdleds" 4 "["0-2","0-3"]" "0-2")"
+                ) +
                 "\nAs json rpc call\n" +
                 HelpExampleRpc("genutxomultiinputcondhash",
-                               "\"0-3\", \"23ewf90203ew000ds0lwsdpoxewdokwesdxcoekdleds\","
-                               " 5, \"eowdswd0-eowpds23ewdswwedscde\", \"WICC:10000:sawi\"")
+                               R"(2, 2, "23ewf90203ew000ds0lwsdpoxewdokwesdxcoekdleds", 4, "["0-2","0-3"]", "0-2")")
         );
     }
 
@@ -186,7 +182,7 @@ Value submitpasswordprooftx(const Array& params, bool fHelp) {
     if(fHelp || params.size() < 4 || params.size() > 5) {
         throw runtime_error(
                 "submitpasswordprooftx \"addr\" \"utxo_txid\" \"utxo_vout_index\" \"password\" \"pre_utxo_tx_uid\" \"symbol:fee:unit\" \n"
-                "\nSubmit a password proof.\n" +
+                "\nSubmit a password proof tx.\n" +
                 HelpRequiringPassphrase() +
                 "\nArguments:\n"
                 "1.\"addr\":                (string, required) the addr submit this tx\n"
@@ -225,9 +221,7 @@ Value submitpasswordprooftx(const Array& params, bool fHelp) {
     int32_t validHeight  = chainActive.Height();
     CCoinUtxoPasswordProofTx tx(txUid,validHeight, fee.symbol,fee.GetAmountInSawi(),
                                 prevUtxoTxid,prevUtxoVoutIndex,passwordProof);
-
     return SubmitTx(account.keyid, tx);
-
 
 }
 
@@ -236,7 +230,7 @@ Value submitutxotransfertx(const Array& params, bool fHelp) {
     if(fHelp || params.size() <4 || params.size() > 6) {
         throw runtime_error(
                 "submitutxotransfertx \"addr\" \"coin_symbol\" \"vins\" \"vouts\" \"symbol:fee:unit\" \"memo\" \n"
-                "\nSubmit a password proof.\n" +
+                "\nSubmit utxo tx.\n" +
                 HelpRequiringPassphrase() +
                 "\nArguments:\n"
                 "1.\"addr\":              (string, required) the addr submit this tx\n"

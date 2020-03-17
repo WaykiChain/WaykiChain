@@ -123,7 +123,7 @@ bool VerifyMultiSig(const CTxExecuteContext &context, const uint256 &utxoMultiSi
 inline bool CheckUtxoOutCondition( const CTxExecuteContext &context, const bool isPrevUtxoOut,
                                 const CUserID &prevUtxoTxUid, const CUserID &txUid,
                                 const CUtxoInput &input, CUtxoCondStorageBean &cond) {
-    CValidationState &state = *context.pState;
+    IMPLEMENT_DEFINE_CW_STATE;
 
     switch (cond.sp_utxo_cond->cond_type) {
         case UtxoCondType::OP2SA : {
@@ -208,9 +208,22 @@ inline bool CheckUtxoOutCondition( const CTxExecuteContext &context, const bool 
                              return state.DoS(100, ERRORMSG("CCoinUtxoTransferTx::CheckTx, secret size too large error!"), REJECT_INVALID,
                                             "secret-size-toolarge-err");
                         }
+
+                        CKeyID prevUtxoTxKeyId ;
+                        if(prevUtxoTxUid.is<CKeyID>())
+                            prevUtxoTxKeyId = prevUtxoTxUid.get<CKeyID>();
+                        else {
+                            CAccount acct;
+                            if(cw.accountCache.GetAccount(prevUtxoTxUid, acct)){
+                                return state.DoS(100, ERRORMSG("CCoinUtxoTransferTx::CheckTx, find prev utxo tx account error!"), REJECT_INVALID,
+                                                 "find-account-error");
+                            }
+                            prevUtxoTxKeyId = acct.keyid;
+                        }
+
                         if (theCond.password_proof_required) { //check if existing password ownership proof
                             string text = strprintf("%s%s%s%s%d", p2phCondIn.password,
-                                                    prevUtxoTxUid.ToString(), txUid.ToString(),
+                                                    prevUtxoTxKeyId.ToString(), txUid.ToString(),
                                                     input.prev_utxo_txid.ToString(), input.prev_utxo_vout_index);
 
                             uint256 hash = Hash(text);
@@ -227,7 +240,9 @@ inline bool CheckUtxoOutCondition( const CTxExecuteContext &context, const bool 
 
                         }
                         // further check if password_hash matches the hash of (TxUid,Password)
-                        string text = strprintf("%s%s", prevUtxoTxUid.ToString(), p2phCondIn.password);
+
+
+                        string text = strprintf("%s%s", prevUtxoTxKeyId.ToString(), p2phCondIn.password);
                         uint256 hash = Hash(text);
                         if (theCond.password_hash != hash)
                             return state.DoS(100, ERRORMSG("CCoinUtxoTransferTx::CheckTx, secret mismatches error!"), REJECT_INVALID,
