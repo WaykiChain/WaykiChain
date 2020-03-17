@@ -293,7 +293,7 @@ Value submitcdpliquidatetx(const Array& params, bool fHelp) {
     return SubmitTx(account.keyid, tx);
 }
 
-Object GetCdpInfoJson(const CCdpCoinPair &cdpCoinPair, PriceMap &medianPricePoints) {
+Object GetCdpInfoJson(const CCdpCoinPair &cdpCoinPair, PriceDetailMap &medianPrices) {
 
     uint64_t globalCollateralCeiling = 0;
     if (!pCdMan->pSysParamCache->GetCdpParam(cdpCoinPair, CdpParamType::CDP_GLOBAL_COLLATERAL_CEILING_AMOUNT, globalCollateralCeiling)) {
@@ -305,8 +305,19 @@ Object GetCdpInfoJson(const CCdpCoinPair &cdpCoinPair, PriceMap &medianPricePoin
         throw JSONRPCError(RPC_INTERNAL_ERROR, "Acquire global collateral ratio floor error");
     }
 
-    uint64_t assetPrice = medianPricePoints[PriceCoinPair(SYMB::WICC, SYMB::USD)];
     CCdpGlobalData cdpGlobalData = pCdMan->pCdpCache->GetCdpGlobalData(cdpCoinPair);
+
+    const TokenSymbol quoteSymbol = GetQuoteSymbolByCdpScoin(cdpCoinPair.scoin_symbol);
+    if (quoteSymbol.empty())
+        throw JSONRPCError(RPC_INTERNAL_ERROR,
+            strprintf("GetQuoteSymbolByCdpScoin failed! cdpCoinPair=%s", cdpCoinPair.ToString()));
+    PriceCoinPair priceCoinPair(cdpCoinPair.bcoin_symbol, quoteSymbol);
+    auto it = medianPrices.find(priceCoinPair);
+    if (it == medianPrices.end() || it->second.price == 0)
+        throw JSONRPCError(RPC_INTERNAL_ERROR,
+                strprintf("price=0 of coinPair=%s", CoinPairToString(priceCoinPair)));
+
+    uint64_t assetPrice = it->second.price;
     uint64_t globalCollateralRatio = cdpGlobalData.GetCollateralRatio(assetPrice);
     bool globalCollateralRatioFloorReached =
         cdpGlobalData.CheckGlobalCollateralRatioFloorReached(assetPrice, globalCollateralRatioFloor);
@@ -359,23 +370,23 @@ Value getscoininfo(const Array& params, bool fHelp){
         throw JSONRPCError(RPC_INTERNAL_ERROR, "Acquire median price slide window blockcount error");
     }
 
-    PriceMap medianPricePoints = pCdMan->pPriceFeedCache->GetMedianPrices();
+    PriceDetailMap medianPrices = pCdMan->pPriceFeedCache->GetMedianPrices();
 
     // TODO: multi cdp coin pairs
     Array cdpInfoArray;
-    cdpInfoArray.push_back(GetCdpInfoJson(CCdpCoinPair(SYMB::WICC, SYMB::WUSD), medianPricePoints));
+    cdpInfoArray.push_back(GetCdpInfoJson(CCdpCoinPair(SYMB::WICC, SYMB::WUSD), medianPrices));
 
     Object obj;
     Array prices;
-    for (auto& item : medianPricePoints) {
-        if (item.second == 0) {
+    for (auto& item : medianPrices) {
+        if (item.second.price == 0) {
             continue;
         }
 
         Object price;
         price.push_back(Pair("coin_symbol",                     item.first.first));
         price.push_back(Pair("price_symbol",                    item.first.second));
-        price.push_back(Pair("price",                           (double)item.second / PRICE_BOOST));
+        price.push_back(Pair("price",                           (double)item.second.price / PRICE_BOOST));
         prices.push_back(price);
     }
 

@@ -255,19 +255,19 @@ bool CPricePointMemCache::GetBlockUserPrices(const PriceCoinPair &coinPricePair,
     return true;
 }
 
-uint64_t CPricePointMemCache::ComputeBlockMedianPrice(const int32_t blockHeight, const uint64_t slideWindow,
+CMedianPriceDetail CPricePointMemCache::ComputeBlockMedianPrice(const int32_t blockHeight, const uint64_t slideWindow,
                                                       const PriceCoinPair &coinPricePair) {
     // 1. merge block user prices with base cache.
     BlockUserPriceMap blockUserPrices;
     if (!GetBlockUserPrices(coinPricePair, blockUserPrices) || blockUserPrices.empty()) {
-        return 0;
+        return CMedianPriceDetail(); // {0, 0}
     }
 
     // 2. compute block median price.
     return ComputeBlockMedianPrice(blockHeight, slideWindow, blockUserPrices);
 }
 
-uint64_t CPricePointMemCache::ComputeBlockMedianPrice(const int32_t blockHeight, const uint64_t slideWindow,
+CMedianPriceDetail CPricePointMemCache::ComputeBlockMedianPrice(const int32_t blockHeight, const uint64_t slideWindow,
                                                       const BlockUserPriceMap &blockUserPrices) {
     // for (const auto &item : blockUserPrices) {
     //     string price;
@@ -294,12 +294,13 @@ uint64_t CPricePointMemCache::ComputeBlockMedianPrice(const int32_t blockHeight,
     //     LogPrint(BCLog::PRICEFEED, "CPricePointMemCache::ComputeBlockMedianPrice, found a candidate price: %llu\n", item);
     // }
 
-    uint64_t medianPrice = ComputeMedianNumber(prices);
+    CMedianPriceDetail priceDetail;
+    priceDetail.price = ComputeMedianNumber(prices);
     LogPrint(BCLog::PRICEFEED,
              "CPricePointMemCache::ComputeBlockMedianPrice, blockHeight: %d, computed median number: %llu\n",
-             blockHeight, medianPrice);
+             blockHeight, priceDetail.price);
 
-    return medianPrice;
+    return priceDetail;
 }
 
 uint64_t CPricePointMemCache::ComputeMedianNumber(vector<uint64_t> &numbers) {
@@ -311,25 +312,49 @@ uint64_t CPricePointMemCache::ComputeMedianNumber(vector<uint64_t> &numbers) {
     return (size % 2 == 0) ? (numbers[size / 2 - 1] + numbers[size / 2]) / 2 : numbers[size / 2];
 }
 
-uint64_t CPricePointMemCache::GetMedianPrice(const int32_t blockHeight, const uint64_t slideWindow,
+CMedianPriceDetail CPricePointMemCache::GetMedianPrice(const int32_t blockHeight, const uint64_t slideWindow,
                                              const PriceCoinPair &coinPricePair) {
-    uint64_t medianPrice = ComputeBlockMedianPrice(blockHeight, slideWindow, coinPricePair);
+    CMedianPriceDetail priceDetail;
+    priceDetail = ComputeBlockMedianPrice(blockHeight, slideWindow, coinPricePair);
 
-    if (medianPrice == 0) {
+    if (priceDetail.price == 0) {
         auto it = latest_median_prices.find(coinPricePair);
-        medianPrice = it != latest_median_prices.end() ? it->second : 0;
+        priceDetail = it != latest_median_prices.end() ? it->second : CMedianPriceDetail();
 
         LogPrint(BCLog::PRICEFEED,
                  "CPricePointMemCache::GetMedianPrice, use previous block median price: blockHeight: %d, "
-                 "price: %s/%s -> %llu\n",
-                 blockHeight, std::get<0>(coinPricePair), std::get<1>(coinPricePair), medianPrice);
+                 "coin_pair=%s:%s price_detail={%s}\n",
+                 blockHeight, coinPricePair.first, coinPricePair.second, priceDetail.ToString());
     }
 
-    return medianPrice;
+    return priceDetail;
 }
 
-bool CPricePointMemCache::CalcBlockMedianPrices(CCacheWrapper &cw, const int32_t blockHeight,
-                                                PriceMap &medianPrices) {
+bool CPricePointMemCache::CalcMedianPrices(CCacheWrapper &cw, const int32_t blockHeight, PriceMap &medianPrices) {
+
+    // TODO: support more price pair
+    uint64_t slideWindow = 0;
+    if (!ReadSlideWindow(cw.sysParamCache, slideWindow, __func__)) return false;
+
+    latest_median_prices = cw.priceFeedCache.GetMedianPrices();
+
+    PriceCoinPair bcoinPricePair(SYMB::WICC, SYMB::USD);
+    CMedianPriceDetail bcoinMedianPrice = GetMedianPrice(blockHeight, slideWindow, bcoinPricePair);
+    medianPrices.emplace(bcoinPricePair, bcoinMedianPrice);
+    LogPrint(BCLog::PRICEFEED, "CPricePointMemCache::CalcBlockMedianPrices, blockHeight: %d, price: %s/%s -> %llu\n",
+             blockHeight, SYMB::WICC, SYMB::USD, bcoinMedianPrice);
+
+    PriceCoinPair fcoinPricePair(SYMB::WGRT, SYMB::USD);
+    CMedianPriceDetail fcoinMedianPrice = GetMedianPrice(blockHeight, slideWindow, fcoinPricePair);
+    medianPrices.emplace(fcoinPricePair, fcoinMedianPrice);
+    LogPrint(BCLog::PRICEFEED, "CPricePointMemCache::CalcBlockMedianPrices, blockHeight: %d, price: %s/%s -> %llu\n",
+             blockHeight, SYMB::WGRT, SYMB::USD, fcoinMedianPrice);
+
+    return true;
+}
+
+bool CPricePointMemCache::CalcMedianPriceDetails(CCacheWrapper &cw, const int32_t blockHeight, PriceDetailMap &medianPrices)  {
+
     // TODO: support more price pair
     uint64_t slideWindow = 0;
     if (!ReadSlideWindow(cw.sysParamCache, slideWindow, __func__)) return false;
@@ -355,24 +380,24 @@ bool CPricePointMemCache::CalcBlockMedianPrices(CCacheWrapper &cw, const int32_t
 // CPriceFeedCache
 
 uint64_t CPriceFeedCache::GetMedianPrice(const PriceCoinPair &coinPricePair) const {
-    PriceMap medianPrices;
+    PriceDetailMap medianPrices;
     if (median_price_cache.GetData(medianPrices)) {
         auto it = medianPrices.find(coinPricePair);
         if (it != medianPrices.end())
-            return it->second;
+            return it->second.price;
     }
     return 0;
 }
 
-PriceMap CPriceFeedCache::GetMedianPrices() const {
-    PriceMap medianPrices;
+PriceDetailMap CPriceFeedCache::GetMedianPrices() const {
+    PriceDetailMap medianPrices;
     if (median_price_cache.GetData(medianPrices)) {
         return medianPrices;
     }
     return {};
 }
 
-bool CPriceFeedCache::SetMedianPrices(const PriceMap &medianPrices) {
+bool CPriceFeedCache::SetMedianPrices(const PriceDetailMap &medianPrices) {
     return median_price_cache.SetData(medianPrices);
 }
 

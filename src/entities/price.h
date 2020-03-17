@@ -69,6 +69,33 @@ public:
     }
 };
 
+class CMedianPriceDetail {
+public:
+    uint64_t price = 0;
+    uint32_t last_feed_height = 0;
+
+    IMPLEMENT_SERIALIZE(
+        READWRITE(VARINT(price));
+        READWRITE(VARINT(last_feed_height));
+    )
+
+    bool IsEmpty() const {
+        return price == 0 && last_feed_height == 0;
+    }
+
+    void SetEmpty() {
+        price = 0;
+        last_feed_height = 0;
+    }
+
+    string ToString() const {
+        return strprintf("price=%llu, last_feed_height=%llu", price, last_feed_height);
+    }
+};
+
+typedef map<PriceCoinPair, CMedianPriceDetail> PriceDetailMap;
+
+
 inline const string& GetPriceBaseSymbol(const PriceCoinPair &pricePair) {
     return std::get<0>(pricePair);
 }

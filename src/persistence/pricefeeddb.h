@@ -51,13 +51,14 @@ public:
     bool UndoBlock(CSysParamDBCache &sysParamCache, CBlockIndex *pTipBlockIdx);
     bool AddPrice(const int32_t blockHeight, const CRegID &regId, const vector<CPricePoint> &pps);
 
-    bool CalcBlockMedianPrices(CCacheWrapper &cw, const int32_t blockHeight, PriceMap &medianPrices);
+    bool CalcMedianPrices(CCacheWrapper &cw, const int32_t blockHeight, PriceMap &medianPrices);
+    bool CalcMedianPriceDetails(CCacheWrapper &cw, const int32_t blockHeight, PriceDetailMap &medianPrices);
 
     void SetBaseViewPtr(CPricePointMemCache *pBaseIn);
     void Flush();
 
 private:
-    uint64_t GetMedianPrice(const int32_t blockHeight, const uint64_t slideWindow, const PriceCoinPair &coinPricePair);
+    CMedianPriceDetail GetMedianPrice(const int32_t blockHeight, const uint64_t slideWindow, const PriceCoinPair &coinPricePair);
 
     bool AddPriceByBlock(const CBlock &block);
     // delete block price point by specific block height.
@@ -72,16 +73,16 @@ private:
     bool GetBlockUserPrices(const PriceCoinPair &coinPricePair, set<int32_t> &expired, BlockUserPriceMap &blockUserPrices);
     bool GetBlockUserPrices(const PriceCoinPair &coinPricePair, BlockUserPriceMap &blockUserPrices);
 
-    uint64_t ComputeBlockMedianPrice(const int32_t blockHeight, const uint64_t slideWindow,
+    CMedianPriceDetail ComputeBlockMedianPrice(const int32_t blockHeight, const uint64_t slideWindow,
                                      const PriceCoinPair &coinPricePair);
-    uint64_t ComputeBlockMedianPrice(const int32_t blockHeight, const uint64_t slideWindow,
+    CMedianPriceDetail ComputeBlockMedianPrice(const int32_t blockHeight, const uint64_t slideWindow,
                                      const BlockUserPriceMap &blockUserPrices);
     static uint64_t ComputeMedianNumber(vector<uint64_t> &numbers);
 
 private:
     CoinPricePointMap mapCoinPricePointCache;  // coinPriceType -> consecutiveBlockPrice
     CPricePointMemCache *pBase;
-    PriceMap latest_median_prices;
+    PriceDetailMap latest_median_prices;
 
 };
 
@@ -127,8 +128,8 @@ public:
     bool GetPriceFeeders(vector<CRegID>& priceFeeders) ;
 
     uint64_t GetMedianPrice(const PriceCoinPair &coinPricePair) const;
-    PriceMap GetMedianPrices() const;
-    bool SetMedianPrices(const PriceMap &medianPrices);
+    PriceDetailMap GetMedianPrices() const;
+    bool SetMedianPrices(const PriceDetailMap &medianPrices);
 
 public:
 
@@ -138,7 +139,7 @@ public:
     // [prefix] -> feed pair
     CSimpleKVCache< dbk::PRICE_FEED_COIN_PAIRS, set<PriceCoinPair>>   price_feed_coin_pairs_cache;
     // [prefix] -> median price map
-    CSimpleKVCache< dbk::MEDIAN_PRICES,     PriceMap>     median_price_cache;
+    CSimpleKVCache< dbk::MEDIAN_PRICES,     PriceDetailMap>     median_price_cache;
 };
 
 #endif  // PERSIST_PRICEFEED_H

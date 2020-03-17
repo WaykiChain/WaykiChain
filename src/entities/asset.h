@@ -197,4 +197,8 @@ public:
     }
 };
 
+string CoinPairToString(const std::pair<TokenSymbol, TokenSymbol> coinPair) {
+    return strprintf("%s:%s", coinPair.first, coinPair.second);
+}
+
 #endif //ENTITIES_ASSET_H
