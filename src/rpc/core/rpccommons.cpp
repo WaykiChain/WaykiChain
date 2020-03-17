@@ -686,11 +686,11 @@ void RPC_PARAM::CheckActiveOrderExisted(CDexDBCache &dexCache, const uint256 &or
 
 void RPC_PARAM::CheckOrderSymbols(const string &title, const TokenSymbol &coinSymbol,
                                   const TokenSymbol &assetSymbol) {
-    if (!pCdMan->pAssetCache->CheckAsset(coinSymbol))
-        throw JSONRPCError(REJECT_INVALID, strprintf("Invalid coin symbol=%s! %s", coinSymbol));
+    if (!pCdMan->pAssetCache->CheckAsset(coinSymbol, AssetPermType::PERM_DEX_QUOTE))
+        throw JSONRPCError(REJECT_INVALID, strprintf("unsupport coin_symbol=%s", coinSymbol));
 
-    if (!pCdMan->pAssetCache->CheckAsset(assetSymbol))
-        throw JSONRPCError(REJECT_INVALID, strprintf("Invalid asset symbol=%s! %s", assetSymbol));
+    if (!pCdMan->pAssetCache->CheckAsset(assetSymbol, AssetPermType::PERM_DEX_BASE))
+        throw JSONRPCError(REJECT_INVALID, strprintf("unsupport asset_symbol=%s", assetSymbol));
 }
 
 bool RPC_PARAM::ParseHex(const string &hexStr, string &binStrOut, string &errStrOut) {
