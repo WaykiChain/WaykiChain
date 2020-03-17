@@ -59,7 +59,6 @@ bool chain::ProcessBlockDelegates(CBlock &block, CCacheWrapper &cw, CValidationS
     int32_t countVoteInterval; // the interval to count the vote
     int32_t activateDelegateInterval; // the interval to count the vote
 
-    // TODO: move to sysconf
     FeatureForkVersionEnum version = GetFeatureForkVersion(block.GetHeight());
     if (version >= MAJOR_VER_R3) {
         countVoteInterval = COUNT_VOTE_INTERVAL_AFTER_V3;

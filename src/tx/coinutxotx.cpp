@@ -37,11 +37,11 @@ bool ComputeRedeemScript(const uint8_t m, const uint8_t n, vector<string>& addre
         redeemScript += addr;
 
     redeemScript = strprintf("%c%u%s%u", '\xFF', m, redeemScript, n); //0xFF is the magic no to avoid conflict with PubKey Hash
-    
+
     return true;
 }
 
-// internal function to this file only 
+// internal function to this file only
 bool ComputeRedeemScript(const CTxExecuteContext &context, const CMultiSignAddressCondIn &p2maIn, string &redeemScript) {
     CCacheWrapper &cw = *context.pCw;
 
@@ -368,7 +368,9 @@ bool CCoinUtxoTransferTx::CheckTx(CTxExecuteContext &context) {
 
     uint64_t accountBalance = srcAccount.GetBalance(coin_symbol, BalanceType::FREE_VALUE);
     if (accountBalance + totalInAmount < totalOutAmount + llFees)
-        return state.DoS(100, ERRORMSG("CCoinUtxoTransferTx::CheckTx, account balance coin_amount insufficient!"),
+        return state.DoS(100, ERRORMSG("CCoinUtxoTransferTx::CheckTx, account balance coin_amount insufficient!"
+                                    "accountBalance=%llu, totalInAmount=%llu, totalOutAmount=%llu, llFees=%llu",
+                                    accountBalance, totalInAmount, totalOutAmount, llFees),
                         REJECT_INVALID, "insufficient-account-coin-amount");
 
     return true;
