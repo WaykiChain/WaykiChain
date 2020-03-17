@@ -804,16 +804,16 @@ extern Value listdexorders(const Array& params, bool fHelp) {
 }
 
 
-void checkAccountRegId(const CUserID uid , const string field){
+void CheckAccountRegId(const CUserID uid , const string fieldName){
 
     if(!uid.is<CRegID>() || !uid.get<CRegID>().IsMature(chainActive.Height())){
-        throw JSONRPCError(RPC_INVALID_PARAMS, strprintf("%s have not regid or regid is immature!", field));
+        throw JSONRPCError(RPC_INVALID_PARAMS, strprintf("%s must be a matured regid!", fieldName));
     }
     CAccount account ;
-    if(!pCdMan->pAccountCache->GetAccount(uid,account))
-        throw JSONRPCError(RPC_INVALID_PARAMS, strprintf("%s is a invalid account",field));
 
-
+    if(!pCdMan->pAccountCache->GetAccount(uid, account))
+        throw JSONRPCError(RPC_INVALID_PARAMS, strprintf("the account of %s doest not exist, uid=%s",
+                fieldName, uid.ToDebugString()));
 }
 
 Value submitdexoperatorregtx(const Array& params, bool fHelp){
@@ -852,8 +852,8 @@ Value submitdexoperatorregtx(const Array& params, bool fHelp){
     CDEXOperatorRegisterTx::Data data ;
     data.owner_uid = RPC_PARAM::GetUserId(params[1].get_str());
     data.fee_receiver_uid = RPC_PARAM::GetUserId(params[2].get_str());
-    checkAccountRegId(data.owner_uid, "owner_uid");
-    checkAccountRegId(data.fee_receiver_uid, "fee_receiver_uid");
+    CheckAccountRegId(data.owner_uid, "owner_uid");
+    CheckAccountRegId(data.fee_receiver_uid, "fee_receiver_uid");
     data.name = params[3].get_str();
     data.portal_url = params[4].get_str();
     data.public_mode    = RPC_PARAM::GetOrderPublicMode(params[5]);
