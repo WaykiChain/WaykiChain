@@ -410,9 +410,11 @@ bool CGovFeedCoinPairProposal::CheckProposal(CTxExecuteContext& context ) {
     IMPLEMENT_DEFINE_CW_STATE;
 
     if (op_type == ProposalOperateType::NULL_PROPOSAL_OP)
-        return state.DoS(100, ERRORMSG("CGovDexQuoteProposal:: checkProposal: op_type is null "),
+        return state.DoS(100, ERRORMSG("%s(), op_type is null", __func__),
                          REJECT_INVALID, "bad-op-type");
-
+    if (feed_symbol == quote_symbol)
+        return state.DoS(100, ERRORMSG("%s(): feed_symbol==quote_symbol", __func__),
+                         REJECT_INVALID, "same-symbol");
     if (!cw.assetCache.CheckAsset(feed_symbol, AssetPermType::PERM_PRICE_FEED))
         return state.DoS(100, ERRORMSG("CGovFeedCoinPairProposal:: checkProposal: feed_symbol invalid"),
                          REJECT_INVALID, "bad-symbol");
