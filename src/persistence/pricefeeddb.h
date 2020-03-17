@@ -117,9 +117,9 @@ public:
         median_price_cache.RegisterUndoFunc(undoDataFuncMap);
     }
 
-    bool AddFeedCoinPair(TokenSymbol feedCoin, TokenSymbol quoteCoin) ;
-    bool EraseFeedCoinPair(TokenSymbol feedCoin, TokenSymbol quoteCoin) ;
-    bool HasFeedCoinPair(TokenSymbol feedCoin,TokenSymbol quoteCoin) ;
+    bool AddFeedCoinPair(TokenSymbol baseSymbol, TokenSymbol quoteSymbol) ;
+    bool EraseFeedCoinPair(TokenSymbol baseSymbol, TokenSymbol quoteSymbol) ;
+    bool HasFeedCoinPair(TokenSymbol baseSymbol,TokenSymbol quoteSymbol) ;
     bool GetFeedCoinPairs(set<pair<TokenSymbol,TokenSymbol>>& coinSet) ;
 
     bool CheckIsPriceFeeder(const CRegID &candidateRegId) ;
@@ -136,7 +136,7 @@ public:
 /*  -------------------- --------------------  -------------   --------------------- */
     /////////// PriceFeedDB
     // [prefix] -> feed pair
-    CSimpleKVCache< dbk::PRICE_FEED_COIN_PAIRS, set<pair<TokenSymbol, TokenSymbol>>>   price_feed_coin_pairs_cache;
+    CSimpleKVCache< dbk::PRICE_FEED_COIN_PAIRS, set<PriceCoinPair>>   price_feed_coin_pairs_cache;
     // [prefix] -> median price map
     CSimpleKVCache< dbk::MEDIAN_PRICES,     PriceMap>     median_price_cache;
 };

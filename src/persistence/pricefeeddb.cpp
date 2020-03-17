@@ -376,26 +376,26 @@ bool CPriceFeedCache::SetMedianPrices(const PriceMap &medianPrices) {
     return median_price_cache.SetData(medianPrices);
 }
 
-bool CPriceFeedCache::AddFeedCoinPair(TokenSymbol feedCoin, TokenSymbol quoteCoin) {
-    if((feedCoin == SYMB::WICC || feedCoin == SYMB::WGRT) && quoteCoin == SYMB::USD)
+bool CPriceFeedCache::AddFeedCoinPair(TokenSymbol baseSymbol, TokenSymbol quoteSymbol) {
+    if((baseSymbol == SYMB::WICC || baseSymbol == SYMB::WGRT) && quoteSymbol == SYMB::USD)
         return true ;
 
-    set<pair<TokenSymbol,TokenSymbol>> coinPairs;
+    set<PriceCoinPair> coinPairs;
     price_feed_coin_pairs_cache.GetData(coinPairs);
-    if(coinPairs.count(make_pair(feedCoin, quoteCoin)) > 0 )
+    if(coinPairs.count(make_pair(baseSymbol, quoteSymbol)) > 0 )
         return true;
 
-    coinPairs.insert(make_pair(feedCoin, quoteCoin));
+    coinPairs.insert(make_pair(baseSymbol, quoteSymbol));
     return price_feed_coin_pairs_cache.SetData(coinPairs);
 }
 
-bool CPriceFeedCache::EraseFeedCoinPair(TokenSymbol feedCoin, TokenSymbol quoteCoin) {
+bool CPriceFeedCache::EraseFeedCoinPair(TokenSymbol baseSymbol, TokenSymbol quoteSymbol) {
 
-    if((feedCoin == SYMB::WICC || feedCoin == SYMB::WGRT) && quoteCoin == SYMB::USD)
+    if((baseSymbol == SYMB::WICC || baseSymbol == SYMB::WGRT) && quoteSymbol == SYMB::USD)
         return true ;
 
-    auto coinPair = std::make_pair(feedCoin, quoteCoin);
-    set<pair<TokenSymbol,TokenSymbol>> coins ;
+    auto coinPair = std::make_pair(baseSymbol, quoteSymbol);
+    set<PriceCoinPair> coins ;
     price_feed_coin_pairs_cache.GetData(coins);
     if(coins.count(coinPair) == 0 )
         return true ;
@@ -404,18 +404,18 @@ bool CPriceFeedCache::EraseFeedCoinPair(TokenSymbol feedCoin, TokenSymbol quoteC
     return price_feed_coin_pairs_cache.SetData(coins);
 }
 
-bool CPriceFeedCache::HasFeedCoinPair(TokenSymbol feedCoin,TokenSymbol quoteCoin) {
+bool CPriceFeedCache::HasFeedCoinPair(TokenSymbol baseSymbol,TokenSymbol quoteSymbol) {
     // WICC:USD is the default staked coin pair of cdp
     // WGRT:USD is need by forced-liquidate cdp for inflating WGRT
-    if((feedCoin == SYMB::WICC || feedCoin == SYMB::WGRT) && quoteCoin == SYMB::USD)
+    if((baseSymbol == SYMB::WICC || baseSymbol == SYMB::WGRT) && quoteSymbol == SYMB::USD)
         return true ;
 
     set<pair<TokenSymbol, TokenSymbol>> coins ;
     price_feed_coin_pairs_cache.GetData(coins);
-    return (coins.count(make_pair(feedCoin,quoteCoin)) != 0 ) ;
+    return (coins.count(make_pair(baseSymbol,quoteSymbol)) != 0 ) ;
 }
 
-bool CPriceFeedCache::GetFeedCoinPairs(set<pair<TokenSymbol,TokenSymbol>>& coinSet) {
+bool CPriceFeedCache::GetFeedCoinPairs(set<PriceCoinPair>& coinSet) {
     price_feed_coin_pairs_cache.GetData(coinSet) ;
     coinSet.insert(make_pair(SYMB::WICC, SYMB::USD));
     coinSet.insert(make_pair(SYMB::WGRT, SYMB::USD));
