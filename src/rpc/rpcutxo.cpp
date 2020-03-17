@@ -87,8 +87,8 @@ Value genutxomultisignaddr( const Array& params, bool fHelp) {
         );
     }
 
-    uint8_t m = params[0].get_int();
-    uint8_t n = params[1].get_int();
+    uint8_t n = params[0].get_int();
+    uint8_t m = params[1].get_int();
     Array uidStringArray = params[2].get_array();
 
     vector<string> vAddr;
@@ -102,15 +102,15 @@ Value genutxomultisignaddr( const Array& params, bool fHelp) {
     }
 
     if( m > n) {
-        throw JSONRPCError(RPC_INVALID_PARAMETER, "m must be less than or equals n");
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "m must be not greater than n");
     }
 
     if(m > 20 || n >20) {
-        throw  JSONRPCError(RPC_INVALID_PARAMETER, " m and n must be less than or equals 20");
+        throw  JSONRPCError(RPC_INVALID_PARAMETER, " m and n must be not greater than 20");
     }
 
     if( n != vAddr.size()){
-        throw JSONRPCError(RPC_INVALID_PARAMETER, "the n must be equals signee count");
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "the n must be equal to signee count");
     }
 
 
@@ -167,15 +167,15 @@ Value genutxomultiinputcondhash(const Array& params, bool fHelp) {
 
 
     if( m > n) {
-        throw JSONRPCError(RPC_INVALID_PARAMETER, "m must be less than or equals n");
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "m must be not greater than n");
     }
 
     if(m > 20 || n >20) {
-        throw  JSONRPCError(RPC_INVALID_PARAMETER, " m and n must be less than or equals 20");
+        throw  JSONRPCError(RPC_INVALID_PARAMETER, " m and n must be not greater than 20");
     }
 
     if( n != vAddr.size()){
-        throw JSONRPCError(RPC_INVALID_PARAMETER, "the n must be equals signee count");
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "the n must be equal to signee count");
     }
 
     string redeemScript("");
