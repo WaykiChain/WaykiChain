@@ -25,23 +25,21 @@ bool CAssetDbCache::HasAsset(const TokenSymbol &tokenSymbol) {
 }
 
 bool CAssetDbCache::CheckAsset(const TokenSymbol &symbol, uint64_t permsSum) {
-    if (symbol.size() < 3 || symbol.size() > MAX_TOKEN_SYMBOL_LEN)
+    if (symbol.size() < 3 || symbol.size() > MAX_TOKEN_SYMBOL_LEN) {
+        LogPrint(BCLog::INFO, "[WARN] Invalid format of symbol=%s\n", symbol);
         return false;
+    }
 
-    if (kCoinTypeSet.count(symbol))
+    if (kCoinTypeSet.count(symbol)) // the hard code symbol has all perms
         return true;
 
     CAsset asset;
-    if (GetAsset(symbol, asset))
-        return true;
-
-    if (permsSum == 0)
-        return true;
-        
-    if (permsSum > asset.perms_sum)
+    if (!GetAsset(symbol, asset)) {
+        LogPrint(BCLog::INFO, "[WARN] Asset of symbol=%s does not exist\n", symbol);
         return false;
+    }
 
-    return (permsSum == (asset.perms_sum & permsSum));
+    return asset.HasPerms(permsSum);
 }
 
 bool CAssetDbCache::Flush() {
