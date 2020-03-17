@@ -55,14 +55,14 @@ enum ProposalOperateType: uint8_t {
 
 struct CProposal {
     ProposalType proposal_type = NULL_PROPOSAL;
-    int32_t expiry_block_height = 0;
-    int8_t approval_min_count = 0;
+    uint32_t expiry_block_height = 0;
+    uint8_t approval_min_count = 0;
 
     CProposal() {}
     CProposal(ProposalType proposalTypeIn) : proposal_type(proposalTypeIn) {}
-    virtual shared_ptr<CProposal> GetNewInstance() { return nullptr; } ;
-    virtual bool CheckProposal(CTxExecuteContext& context ) {return true ;};
-    virtual bool ExecuteProposal(CTxExecuteContext& context, const TxID& proposalId) { return true ;};
+    virtual shared_ptr<CProposal> GetNewInstance() = 0;
+    virtual bool CheckProposal(CTxExecuteContext& context) = 0;
+    virtual bool ExecuteProposal(CTxExecuteContext& context, const TxID& proposalId) = 0;
     virtual std::string ToString() {
         return strprintf("proposal_type=%d,approval_min_count=%d,expiry_block_height=%d",
                         proposal_type, approval_min_count, expiry_block_height) ;
@@ -300,9 +300,7 @@ struct CGovAccountPermProposal: CProposal {
                         account_uid.ToString(), proposed_perms_sum);
     }
 
-
     shared_ptr<CProposal> GetNewInstance() override { return make_shared<CGovAccountPermProposal>(*this); } ;
-
 
     bool CheckProposal(CTxExecuteContext& context) override;
     bool ExecuteProposal(CTxExecuteContext& context, const TxID& proposalId) override;

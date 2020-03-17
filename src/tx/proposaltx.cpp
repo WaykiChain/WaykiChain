@@ -64,11 +64,8 @@ Object CProposalRequestTx::ToJson(const CAccountDBCache &accountCache) const {
 }  // json-rpc usage
 
  bool CProposalRequestTx::CheckTx(CTxExecuteContext &context) {
-     if (!proposal.sp_proposal->CheckProposal(context))
-         return false;
-
-     return true;
-}
+     return proposal.sp_proposal->CheckProposal(context);
+ }
 
 
 bool CProposalRequestTx::ExecuteTx(CTxExecuteContext &context) {
@@ -160,7 +157,7 @@ bool CProposalApprovalTx::ExecuteTx(CTxExecuteContext &context) {
     if (!srcAccount.OperateBalance(fee_symbol, SUB_FREE, llFees))
         return state.DoS(100, ERRORMSG("CProposalApprovalTx::ExecuteTx, account has insufficient funds"),
                         UPDATE_ACCOUNT_FAIL, "operate-minus-account-failed");
-    if (spProposal->expiry_block_height < context.height)
+    if (spProposal->expiry_block_height < (uint32_t)context.height)
         return state.DoS(100, ERRORMSG("CProposalApprovalTx::ExecuteTx, proposal(id=%s)  is expired", txid.ToString()),
                         WRITE_ACCOUNT_FAIL, "proposal-expired");
     if (!cw.accountCache.SetAccount(CUserID(srcAccount.keyid), srcAccount))

@@ -129,12 +129,12 @@ Value genutxomultisignaddr( const Array& params, bool fHelp) {
 Value genutxomultiinputcondhash(const Array& params, bool fHelp) {
     if(fHelp || params.size() != 6) {
         throw runtime_error(
-                "genutxomultiinputcondhash \"m\" \"n\" \"pre_utxo_txid\" \"pre_utxo_tx_vout_index\" \"signee_uids\",\"spend_txuid\" \n"
+                "genutxomultiinputcondhash \"n\" \"m\" \"pre_utxo_txid\" \"pre_utxo_tx_vout_index\" \"signee_uids\",\"spend_txuid\" \n"
                 "\n Generate a hash that will be sign in IP2MA cond\n" +
                 HelpRequiringPassphrase() +
                 "\nArguments:\n"
-                "1.\"m\":                       (numberic, required) the total signee size\n"
-                "2.\"n\":                       (numberic, required) the min signee size \n"
+                "1.\"n\":                       (numberic, required) the total signee size\n"
+                "2.\"m\":                       (numberic, required) the min signee size \n"
                 "3.\"pre_utxo_txid\":           (string, required) The utxo txid you want to spend\n"
                 "4.\"pre_utxo_tx_vout_index\":  (string, required) The index of pre utxo output \n"
                 "5.\"signee_uids\":             (array<string> the signee uid\n"
@@ -152,8 +152,8 @@ Value genutxomultiinputcondhash(const Array& params, bool fHelp) {
     }
 
 
-    uint8_t m = params[0].get_int();
-    uint8_t n = params[1].get_int();
+    uint8_t n = params[0].get_int();
+    uint8_t m = params[1].get_int();
     uint256 prevUtxoTxId = uint256S(params[2].get_str());
     uint16_t prevUtxoTxVoutIndex = params[3].get_int();
     Array uidStringArray = params[4].get_array();
@@ -164,6 +164,20 @@ Value genutxomultiinputcondhash(const Array& params, bool fHelp) {
         CKeyID  keyid = RPC_PARAM::GetKeyId(v);
         vAddr.push_back(keyid.ToAddress());
     }
+
+
+    if( m > n) {
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "m must be less than or equals n");
+    }
+
+    if(m > 20 || n >20) {
+        throw  JSONRPCError(RPC_INVALID_PARAMETER, " m and n must be less than or equals 20");
+    }
+
+    if( n != vAddr.size()){
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "the n must be equals signee count");
+    }
+
     string redeemScript("");
     ComputeRedeemScript(m, n, vAddr, redeemScript);
 

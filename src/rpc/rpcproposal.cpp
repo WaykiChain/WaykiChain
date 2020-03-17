@@ -472,7 +472,7 @@ Value submitproposalapprovaltx(const Array& params, bool fHelp){
                 "submitproposalapprovaltx \"addr\" \"proposalid\" [\"fee\"]\n"
                 "approval a proposal\n"
                 "\nArguments:\n"
-                "1.\"addr\":             (string,     required) the tx submitor's address\n"
+                "1.\"addr\":             (string,   required) the tx submitor's address\n"
                 "2.\"proposalid\":       (string,   required) the proposal's id\n"
                 "3.\"fee\":              (combomoney, optional) the tx fee \n"
                 "\nExamples:\n"
