@@ -118,6 +118,8 @@ bool VerifyMultiSig(const CTxExecuteContext &context, const uint256 &utxoMultiSi
     return verified;
 }
 
+
+
 inline bool CheckUtxoOutCondition( const CTxExecuteContext &context, const bool isPrevUtxoOut,
                                 const CUserID &prevUtxoTxUid, const CUserID &txUid,
                                 const CUtxoInput &input, CUtxoCondStorageBean &cond) {

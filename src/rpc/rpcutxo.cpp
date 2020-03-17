@@ -22,9 +22,9 @@ enum UtxoCondDirection: uint8_t {
 
 extern CWallet* pWalletMain;
 
-static void ParseUtxoCond(const Array& arr, vector<shared_ptr<CUtxoCond>>& vCond);
-static void ParseUtxoInput(const Array& arr, vector<CUtxoInput>& vInput);
-static void ParseUtxoOutput(const Array& arr, vector<CUtxoOutput>& vOutput);
+static void ParseUtxoCond(const Array& arr, vector<shared_ptr<CUtxoCond>>& vCond, const CKeyID& txKeyID);
+static void ParseUtxoInput(const Array& arr, vector<CUtxoInput>& vInput,const CKeyID& txKeyID);
+static void ParseUtxoOutput(const Array& arr, vector<CUtxoOutput>& vOutput,const CKeyID& txKeyID);
 static void CheckUtxoCondDirection(const vector<shared_ptr<CUtxoCond>>& vCond, UtxoCondDirection direction);
 
 Value genutxomultisignature(const Array& params, bool fHelp) {
@@ -70,12 +70,12 @@ Value genutxomultisignature(const Array& params, bool fHelp) {
 Value genutxomultisignaddr( const Array& params, bool fHelp) {
     if(fHelp || params.size() != 3) {
         throw runtime_error(
-                "genutxomultisignaddr \"m\" \"n\" \"signee_uids\" \n"
+                "genutxomultisignaddr \"n\" \"m\" \"signee_uids\" \n"
                 "\nSubmit a multi sign address.\n" +
                 HelpRequiringPassphrase() +
                 "\nArguments:\n"
-                "1.\"m\":                       (numberic, required) the total signee size\n"
-                "2.\"n\":                       (numberic, required) the min signee size \n"
+                "1.\"n\":                       (numberic, required) the total signee size \n"
+                "2.\"m\":                       (numberic, required) the min signee size \n"
                 "3.\"signee_uids\":             (array<string> the signee uid\n"
                 "\nResult:\n"
                 "\"txid\"                       (string) The multi address hash.\n"
@@ -99,53 +99,35 @@ Value genutxomultisignaddr( const Array& params, bool fHelp) {
         CUserID  uid = RPC_PARAM::GetUserId(v);
         CAccount acct ;
         if (!pCdMan->pAccountCache->GetAccount(uid, acct))
-            throw JSONRPCError(RPC_INVALID_PARAMETER, "the uid is not onchain");
+            throw JSONRPCError(RPC_INVALID_PARAMETER, "the uid is not on chain");
 
         vAddr.push_back(acct.keyid.ToAddress());
     }
+
+    if( m > n) {
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "m must be less than or equals n");
+    }
+
+    if(m > 20 || n >20) {
+        throw  JSONRPCError(RPC_INVALID_PARAMETER, " m and n must be less than or equals 20");
+    }
+
+    if( n != vAddr.size()){
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "the n must be equals signee count");
+    }
+
 
     string redeemScript("");
     CKeyID multiKeyID;
     if( ComputeRedeemScript(m,n,vAddr, redeemScript) && ComputeMultiSignKeyId(redeemScript, multiKeyID)) {
         Object o;
-        o.push_back(Pair("multi_addr", multiKeyID.ToString()));
+        o.push_back(Pair("multi_addr", multiKeyID.ToAddress()));
         return o;
     } else {
         throw JSONRPCError(RPC_INVALID_PARAMETER, "gen multi addr error");
     }
 
 }
-
-Value genutxooutuputpasswordhash(const Array& params, bool fHelp) {
-    if(fHelp || params.size() != 2) {
-        throw runtime_error(
-                "genutxooutuputpasswordhash \"m\" \"n\" \"signee_uids\" \n"
-                "\nSubmit a multi sign address.\n" +
-                HelpRequiringPassphrase() +
-                "\nArguments:\n"
-                "1.\"preUtxoTxUid\":            (string, required) the txUid of prev utxotx that provide prevOutput \n"
-                "2.\"password\":                (string, required) password  \n"
-                "\nResult:\n"
-                "\"password_hash\"              (string) The password hash.\n"
-                "\nExamples:\n" +
-                HelpExampleCli("genutxomultiinputcondhash",
-                               R"(0-3 123456 )") +
-                "\nAs json rpc call\n" +
-                HelpExampleRpc("genutxomultiinputcondhash",
-                               R"("0-3", "123455")")
-        );
-    }
-
-    CUserID txId = RPC_PARAM::GetUserId(params[0]);
-    string password = params[1].get_str();
-    string text = strprintf("%s%s", txId.ToString(), password);
-    uint256 hash = Hash(text);
-    Object o ;
-    o.push_back(Pair("password_hash", hash.ToString()));
-    return o;
-
-}
-
 
 Value genutxomultiinputcondhash(const Array& params, bool fHelp) {
     if(fHelp || params.size() != 6) {
@@ -179,28 +161,16 @@ Value genutxomultiinputcondhash(const Array& params, bool fHelp) {
     uint256 prevUtxoTxId = uint256S(params[2].get_str());
     uint16_t prevUtxoTxVoutIndex = params[3].get_int();
     Array uidStringArray = params[4].get_array();
-    CUserID txUid = RPC_PARAM::GetUserId(params[5]);
-    CKeyID txKeyID;
-    if(txUid.is<CKeyID>()){
-        txKeyID = txUid.get<CKeyID>();
-    } else {
-        CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, txUid);
-        txKeyID = account.keyid;
-
-    }
+    CKeyID txKeyID = RPC_PARAM::GetKeyId(params[5]);
 
     vector<string> vAddr;
     for(auto v: uidStringArray){
-        CUserID  uid = RPC_PARAM::GetUserId(v);
-        CAccount acct ;
-        if (!pCdMan->pAccountCache->GetAccount(uid, acct))
-            throw JSONRPCError(RPC_INVALID_PARAMETER, "the uid is not onchain");
-
-        vAddr.push_back(acct.keyid.ToAddress());
+        CKeyID  keyid = RPC_PARAM::GetKeyId(v);
+        vAddr.push_back(keyid.ToAddress());
     }
     string redeemScript("");
     ComputeRedeemScript(m, n, vAddr, redeemScript);
-    
+
     uint256 multiSignHash;
     if (!ComputeUtxoMultisignHash(prevUtxoTxId, prevUtxoTxVoutIndex,txKeyID, redeemScript, multiSignHash))
         throw JSONRPCError(RPC_WALLET_ERROR, "create hash error");
@@ -215,40 +185,46 @@ Value submitpasswordprooftx(const Array& params, bool fHelp) {
 
     if(fHelp || params.size() < 4 || params.size() > 5) {
         throw runtime_error(
-                "submitpasswordprooftx \"addr\" \"utxo_txid\" \"utxo_vout_index\" \"password_proof\" \"symbol:fee:unit\" \n"
+                "submitpasswordprooftx \"addr\" \"utxo_txid\" \"utxo_vout_index\" \"password\" \"pre_utxo_tx_uid\" \"symbol:fee:unit\" \n"
                 "\nSubmit a password proof.\n" +
                 HelpRequiringPassphrase() +
                 "\nArguments:\n"
                 "1.\"addr\":                (string, required) the addr submit this tx\n"
-                "2.\"utxo_txid\":           (string, required) The utxo txid you want to spend\n"
-                "3.\"utxo_vout_index\":     (string, required) The index of utxo output \n"
-                "4.\"password_proof\":      (symbol:amount:unit, required) password proof\n"
-                "5.\"symbol:fee:unit\":     (symbol:amount:unit, optinal) fee paid to miner\n"
+                "2.\"prev_utxo_txid\":       (string, required) The utxo txid you want to spend\n"
+                "3.\"prev_utxo_vout_index\": (string, required) The index of utxo output \n"
+                "4.\"password\":            (symbol:amount:unit, required) password\n"
+                "5.\"pre_utxo_tx_uid\"      (string, required) the txUid of prev utxotx that provide prevOutput "
+                "6.\"symbol:fee:unit\":     (symbol:amount:unit, optinal) fee paid to miner\n"
                 "\nResult:\n"
                 "\"txid\"                   (string) The transaction id.\n"
                 "\nExamples:\n" +
                 HelpExampleCli("submitpasswordprooftx",
                                "\"wLKf2NqwtHk3BfzK5wMDfbKYN1SC3weyR4\" \"23ewf90203ew000ds0lwsdpoxewdokwesdxcoekdleds\" "
-                               "5 \"eowdswd0-eowpds23ewdswwedscde\" \"WICC:10000:sawi\"") +
+                               "5 \"123\" \'0-2\" \"WICC:10000:sawi\"") +
                 "\nAs json rpc call\n" +
                 HelpExampleRpc("submitpasswordprooftx",
                                "\"wLKf2NqwtHk3BfzK5wMDfbKYN1SC3weyR4\", \"23ewf90203ew000ds0lwsdpoxewdokwesdxcoekdleds\","
-                               " 5, \"eowdswd0-eowpds23ewdswwedscde\", \"WICC:10000:sawi\"")
+                               " 5, \"123\", \"0-2\", \"WICC:10000:sawi\"")
                 );
     }
 
     EnsureWalletIsUnlocked();
     CUserID txUid = RPC_PARAM::GetUserId(params[0], true );
-    TxID utxoTxid = uint256S(params[1].get_str()) ;
-    uint16_t utxoVoutIndex = params[2].get_int() ;
-    uint256 passwordProof = uint256S(params[3].get_str()) ;
-    ComboMoney fee = RPC_PARAM::GetFee(params, 4 ,TxType::UTXO_PASSWORD_PROOF_TX) ;
+    TxID prevUtxoTxid = uint256S(params[1].get_str()) ;
+    uint16_t prevUtxoVoutIndex = params[2].get_int() ;
+    string password = params[3].get_str() ;
+    CKeyID preUtxoTxUid = RPC_PARAM::GetKeyId(params[4]);
+    ComboMoney fee = RPC_PARAM::GetFee(params, 5 ,TxType::UTXO_PASSWORD_PROOF_TX) ;
     CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, txUid);
     RPC_PARAM::CheckAccountBalance(account, fee.symbol, SUB_FREE, fee.GetAmountInSawi());
 
+    string text = strprintf("%s%s%s%s%d", password,
+                            preUtxoTxUid.ToString(), account.keyid.ToString(),
+                            prevUtxoTxid.ToString(), prevUtxoVoutIndex);
+    uint256 passwordProof = Hash(text);
     int32_t validHeight  = chainActive.Height();
     CCoinUtxoPasswordProofTx tx(txUid,validHeight, fee.symbol,fee.GetAmountInSawi(),
-            utxoTxid,utxoVoutIndex,passwordProof);
+                                prevUtxoTxid,prevUtxoVoutIndex,passwordProof);
 
     return SubmitTx(account.keyid, tx);
 
@@ -299,8 +275,8 @@ Value submitutxotransfertx(const Array& params, bool fHelp) {
 
     std::vector<CUtxoInput> vins;
     std::vector<CUtxoOutput> vouts;
-    ParseUtxoInput(inputArray, vins);
-    ParseUtxoOutput(outputArray, vouts);
+    ParseUtxoInput(inputArray, vins, account.keyid);
+    ParseUtxoOutput(outputArray, vouts, account.keyid);
 
 
     int32_t validHeight  = chainActive.Height();
@@ -320,7 +296,7 @@ static void TransToStorageBean(const vector<shared_ptr<CUtxoCond>>& vCond, vecto
     }
 }
 
-static void ParseUtxoInput(const Array& arr, vector<CUtxoInput>& vInput){
+static void ParseUtxoInput(const Array& arr, vector<CUtxoInput>& vInput, const CKeyID& txKeyID){
 
 
     for (auto obj : arr) {
@@ -332,7 +308,7 @@ static void ParseUtxoInput(const Array& arr, vector<CUtxoInput>& vInput){
         const Array& condArray = JSON::GetObjectFieldValue(obj, "conds").get_array();
         vector<CUtxoCondStorageBean> vCondStorageBean ;
         vector<shared_ptr<CUtxoCond>> vCond ;
-        ParseUtxoCond(condArray, vCond) ;
+        ParseUtxoCond(condArray, vCond,txKeyID) ;
         CheckUtxoCondDirection(vCond, UtxoCondDirection::IN);
         TransToStorageBean(vCond, vCondStorageBean) ;
         CUtxoInput input = CUtxoInput(prevUtxoTxid,preUoutIndex,vCondStorageBean);
@@ -343,7 +319,7 @@ static void ParseUtxoInput(const Array& arr, vector<CUtxoInput>& vInput){
 }
 
 
-static void ParseUtxoOutput(const Array& arr, vector<CUtxoOutput>& vOutput) {
+static void ParseUtxoOutput(const Array& arr, vector<CUtxoOutput>& vOutput,const CKeyID& txKeyID) {
 
     for (auto& obj : arr) {
 
@@ -352,7 +328,7 @@ static void ParseUtxoOutput(const Array& arr, vector<CUtxoOutput>& vOutput) {
         const Array& condArray = JSON::GetObjectFieldValue(obj, "conds").get_array();
         vector<CUtxoCondStorageBean> vCondStorageBean;
         vector<shared_ptr<CUtxoCond>> vCond;
-        ParseUtxoCond(condArray, vCond);
+        ParseUtxoCond(condArray, vCond,txKeyID);
         CheckUtxoCondDirection(vCond, UtxoCondDirection::OUT);
         TransToStorageBean(vCond, vCondStorageBean);
         CUtxoOutput output = CUtxoOutput(coinAmount, vCondStorageBean);
@@ -392,7 +368,7 @@ static void CheckUtxoCondDirection(const vector<shared_ptr<CUtxoCond>>& vCond, U
     }
 
 }
-static void ParseUtxoCond(const Array& arr, vector<shared_ptr<CUtxoCond>>& vCond) {
+static void ParseUtxoCond(const Array& arr, vector<shared_ptr<CUtxoCond>>& vCond,const CKeyID& txKeyID) {
 
     for (auto& obj : arr) {
         const Value& typeObj = JSON::GetObjectFieldValue(obj, "cond_type");
@@ -443,11 +419,12 @@ static void ParseUtxoCond(const Array& arr, vector<shared_ptr<CUtxoCond>>& vCond
                 break;
             }
             case UtxoCondType::OP2PH: {
-                const Value& passwordObj = JSON::GetObjectFieldValue(obj,"password_hash");
-                string passwordHashString = passwordObj.get_str();
+                const Value& passwordObj = JSON::GetObjectFieldValue(obj,"password");
+                string password = passwordObj.get_str();
+                string text = strprintf("%s%s", txKeyID.ToString(), password);
+                uint256 passwordHash = Hash(text);
                 const Value& pwdProofRequiredObj = JSON::GetObjectFieldValue(obj, "password_proof_required");
                 bool password_proof_required = pwdProofRequiredObj.get_bool();
-                uint256 passwordHash = uint256S(passwordHashString);
                 vCond.push_back(make_shared<CPasswordHashLockCondOut>(password_proof_required,passwordHash));
                 break;
             }
