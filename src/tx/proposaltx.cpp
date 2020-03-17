@@ -20,17 +20,17 @@ bool CheckIsGovernor(CRegID account, ProposalType proposalType, CCacheWrapper& c
         }
         for(auto miner: delegateList){
             if(miner.regid == account)
-                return true ;
+                return true;
         }
-        return false ;
+        return false;
 
     } else{
-        return cw.sysGovernCache.CheckIsGovernor(account) ;
+        return cw.sysGovernCache.CheckIsGovernor(account);
     }
 
 }
 
-uint8_t GetGovernorApprovalMinCount(ProposalType proposalType, CCacheWrapper& cw ) {
+uint8_t GetGovernorApprovalMinCount(ProposalType proposalType, CCacheWrapper& cw) {
 
     if(proposalType == ProposalType::GOV_BPMC_LIST
        || proposalType == ProposalType::GOV_COIN_TRANSFER
@@ -49,7 +49,7 @@ uint8_t GetGovernorApprovalMinCount(ProposalType proposalType, CCacheWrapper& cw
 
 
 string CProposalRequestTx::ToString(CAccountDBCache &accountCache) {
-    string proposalString = proposal.sp_proposal->ToString() ;
+    string proposalString = proposal.sp_proposal->ToString();
     return strprintf("txType=%s, hash=%s, ver=%d, %s, llFees=%ld, keyid=%s, valid_height=%d",
                      GetTxType(nTxType), GetHash().ToString(), nVersion, proposalString, llFees,
                      txUid.ToString(), valid_height);
@@ -65,9 +65,9 @@ Object CProposalRequestTx::ToJson(const CAccountDBCache &accountCache) const {
 
  bool CProposalRequestTx::CheckTx(CTxExecuteContext &context) {
      if (!proposal.sp_proposal->CheckProposal(context))
-         return false ;
+         return false;
 
-     return true ;
+     return true;
 }
 
 
@@ -87,20 +87,20 @@ bool CProposalRequestTx::ExecuteTx(CTxExecuteContext &context) {
         return state.DoS(100, ERRORMSG("CProposalRequestTx::ExecuteTx, set account info error"),
                     WRITE_ACCOUNT_FAIL, "bad-write-accountdb");
 
-    uint64_t expiryBlockCount ;
+    uint64_t expiryBlockCount;
     if(!cw.sysParamCache.GetParam(PROPOSAL_EXPIRE_BLOCK_COUNT, expiryBlockCount))
     return state.DoS(100, ERRORMSG("CProposalRequestTx::ExecuteTx,get proposal expire block count error"),
                     WRITE_ACCOUNT_FAIL, "get-expire-block-count-error");
 
-    auto proposalToSave = proposal.sp_proposal->GetNewInstance() ;
-    proposalToSave->expiry_block_height = context.height + expiryBlockCount ;
+    auto proposalToSave = proposal.sp_proposal->GetNewInstance();
+    proposalToSave->expiry_block_height = context.height + expiryBlockCount;
     proposalToSave->approval_min_count = GetGovernorApprovalMinCount(proposal.sp_proposal->proposal_type, cw);
 
     if (!cw.sysGovernCache.SetProposal(GetHash(), proposalToSave))
         return state.DoS(100, ERRORMSG("CProposalRequestTx::ExecuteTx, set proposal info error"),
                     WRITE_ACCOUNT_FAIL, "bad-write-proposaldb");
 
-    return true ;
+    return true;
 }
 
 string CProposalApprovalTx::ToString(CAccountDBCache &accountCache) {
@@ -120,7 +120,7 @@ Object CProposalApprovalTx::ToJson(const CAccountDBCache &accountCache) const {
 bool CProposalApprovalTx::CheckTx(CTxExecuteContext &context) {
     IMPLEMENT_DEFINE_CW_STATE;
 
-    shared_ptr<CProposal> proposal ;
+    shared_ptr<CProposal> proposal;
     if (!cw.sysGovernCache.GetProposal(txid, proposal)) {
         return state.DoS(100, ERRORMSG("CProposalApprovalTx::CheckTx, proposal(id=%s)  not found", txid.ToString()),
                           READ_ACCOUNT_FAIL, "proposal-not-found");
@@ -137,7 +137,7 @@ bool CProposalApprovalTx::CheckTx(CTxExecuteContext &context) {
                           READ_ACCOUNT_FAIL, "axc-signature-invalid");
        
     }
-    return true ;
+    return true;
 }
 
 bool CProposalApprovalTx::ExecuteTx(CTxExecuteContext &context) {
@@ -182,5 +182,5 @@ bool CProposalApprovalTx::ExecuteTx(CTxExecuteContext &context) {
                         WRITE_ACCOUNT_FAIL, "bad-write-proposaldb");
     }
 
-     return true ;
+     return true;
 }

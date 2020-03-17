@@ -38,7 +38,7 @@ static bool ProcessDexOperatorFee(CCacheWrapper &cw, CValidationState &state, co
                         __func__, action, exchangeFee, txAccount.keyid.ToAddress()),
                         UPDATE_ACCOUNT_FAIL, "insufficent-funds");
 
-    uint64_t dexOperatorRiskFeeRatio ;
+    uint64_t dexOperatorRiskFeeRatio;
     if(!cw.sysParamCache.GetParam(SysParamType::DEX_OPERATOR_RISK_FEE_RATIO, dexOperatorRiskFeeRatio)) {
         return state.DoS(100, ERRORMSG("ProcessDexOperatorFee, get dexOperatorRiskFeeRatio error",
                                        action, exchangeFee, txAccount.regid.ToString()), READ_SYS_PARAM_FAIL, "read-db-error");
@@ -117,7 +117,7 @@ Object CDEXOperatorRegisterTx::ToJson(const CAccountDBCache &accountCache) const
     result.push_back(Pair("maker_fee_ratio",data.maker_fee_ratio));
     result.push_back(Pair("taker_fee_ratio",data.taker_fee_ratio));
     result.push_back(Pair("memo",data.memo));
-    return result ;
+    return result;
 }
 
 bool CDEXOperatorRegisterTx::CheckTx(CTxExecuteContext &context) {
@@ -218,59 +218,59 @@ bool CDEXOperatorRegisterTx::ExecuteTx(CTxExecuteContext &context) {
 bool CDEXOperatorUpdateData::Check(string& errmsg, string& errcode,const uint32_t currentHeight ){
 
     if(field == UPDATE_NONE || field > MEMO ){
-        errmsg = "CDEXOperatorUpdateData::check(): update field is error" ;
-        errcode= "empty-update-data" ;
-        return false ;
+        errmsg = "CDEXOperatorUpdateData::check(): update field is error";
+        errcode= "empty-update-data";
+        return false;
     }
 
-    if(field == FEE_RECEIVER_UID || field == OWNER_UID){
-        string placeholder = (field == FEE_RECEIVER_UID)? "fee_receiver": "owner" ;
+    if (field == FEE_RECEIVER_UID || field == OWNER_UID){
+        string placeholder = (field == FEE_RECEIVER_UID)? "fee_receiver": "owner";
 
-        auto uid = std::make_shared<CUserID>(get<CUserID>()) ;
+        auto uid = std::make_shared<CUserID>(get<CUserID>());
         if (!uid) {
             errmsg = strprintf("CDEXOperatorUpdateData::check(): %s_uid (%s) is a invalid account",placeholder, ValueToString());
-            errcode = strprintf("%s-uid-invalid", placeholder) ;
-            return false ;
+            errcode = strprintf("%s-uid-invalid", placeholder);
+            return false;
         }
-        CAccount account ;
-        if( !pCdMan->pAccountCache->GetAccount(*uid,account)){
-            errmsg = strprintf("CDEXOperatorUpdateData::check(): %s_uid (%s) is not exist! ",placeholder, ValueToString() );
-            errcode = strprintf("%s-uid-invalid", placeholder) ;
-            return false ;
+        CAccount account;
+        if (!pCdMan->pAccountCache->GetAccount(*uid,account)){
+            errmsg = strprintf("CDEXOperatorUpdateData::check(): %s_uid (%s) is not exist! ",placeholder, ValueToString());
+            errcode = strprintf("%s-uid-invalid", placeholder);
+            return false;
         }
-        if( account.regid.IsEmpty() ||!account.IsRegistered() || !account.regid.IsMature(currentHeight)){
+        if (account.regid.IsEmpty() ||!account.IsRegistered() || !account.regid.IsMature(currentHeight)) {
             errmsg = strprintf("CDEXOperatorUpdateData::check(): %s_uid (%s) don't have regid or regid is immature ! ",placeholder, ValueToString() );
-            errcode = strprintf("%s-uid-invalid", placeholder) ;
-            return false ;
+            errcode = strprintf("%s-uid-invalid", placeholder);
+            return false;
         }
     }
 
 
-    if(field == NAME && get<string>().size() > MAX_NAME_LEN) {
+    if (field == NAME && get<string>().size() > MAX_NAME_LEN) {
            errmsg = strprintf("%s, name len=%d greater than %d", __func__,get<string>().size(), MAX_NAME_LEN);
-           errcode = "invalid-name" ;
-           return false ;
+           errcode = "invalid-name";
+           return false;
     }
 
-    if(field == MEMO && get<string>().size() > MAX_COMMON_TX_MEMO_SIZE){
+    if (field == MEMO && get<string>().size() > MAX_COMMON_TX_MEMO_SIZE){
         errmsg = strprintf("%s, memo len=%d greater than %d", __func__,get<string>().size(), MAX_COMMON_TX_MEMO_SIZE);
-        errcode = "invalid-memo" ;
-        return false ;
+        errcode = "invalid-memo";
+        return false;
     }
 
 
     if(field == TAKER_FEE_RATIO || field == MAKER_FEE_RATIO ){
 
-        uint64_t v = get<uint64_t>() ;
+        uint64_t v = get<uint64_t>();
         if( v > MAX_MATCH_FEE_RATIO_VALUE){
             errmsg = strprintf("%s, fee_ratio=%d is greater than %d", __func__,
                                v, MAX_MATCH_FEE_RATIO_VALUE);
-            errcode = "invalid-match-fee-ratio-type" ;
-            return false ;
+            errcode = "invalid-match-fee-ratio-type";
+            return false;
         }
     }
 
-    return true ;
+    return true;
 
 }
 
@@ -278,26 +278,26 @@ bool CDEXOperatorUpdateData::UpdateToDexOperator(DexOperatorDetail& detail,CCach
 
     switch (field) {
         case FEE_RECEIVER_UID:{
-            if(get<CUserID>().is<CRegID>()){
-                detail.fee_receiver_regid = get<CUserID>().get<CRegID>() ;
-                return true ;
+            if(get<CUserID>().is<CRegID>()) {
+                detail.fee_receiver_regid = get<CUserID>().get<CRegID>();
+                return true;
             } else{
-                return false ;
+                return false;
             }
         }
         case OWNER_UID:{
             if(get<CUserID>().is<CRegID>()){
-                detail.owner_regid = get<CUserID>().get<CRegID>() ;
-                return true ;
+                detail.owner_regid = get<CUserID>().get<CRegID>();
+                return true;
             } else{
-                return false ;
+                return false;
             }
         }
         case NAME:
             detail.name = get<string>();
             break;
         case PORTAL_URL:
-            detail.portal_url = get<string>() ;
+            detail.portal_url = get<string>();
             break;
         case TAKER_FEE_RATIO:
             detail.taker_fee_ratio = get<uint64_t>();
@@ -310,25 +310,25 @@ bool CDEXOperatorUpdateData::UpdateToDexOperator(DexOperatorDetail& detail,CCach
             break;
 
         default:
-            return false ;
+            return false;
 
     }
 
-    return true ;
+    return true;
 
 }
 
 string CDEXOperatorUpdateTx::ToString(CAccountDBCache &accountCache) {
 
-    return "" ;
+    return "";
 }
 
 Object CDEXOperatorUpdateTx::ToJson(const CAccountDBCache &accountCache) const {
 
     Object result = CBaseTx::ToJson(accountCache);
 
-    result.push_back(Pair("update_field", update_data.field)) ;
-    result.push_back(Pair("update_value", update_data.ValueToString())) ;
+    result.push_back(Pair("update_field", update_data.field));
+    result.push_back(Pair("update_value", update_data.ValueToString()));
     result.push_back(Pair("dex_id", update_data.dexId));
     return result;
 }

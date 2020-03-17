@@ -97,9 +97,9 @@ public:
     > ValueType;
 
 public:
-    uint32_t dexId  ;
-    UpdateField field = UPDATE_NONE  ;
-    ValueType value ;
+    uint32_t dexId;
+    UpdateField field = UPDATE_NONE;
+    ValueType value;
 
     inline unsigned int GetSerializeSize(int serializedType, int nVersion) const {
         unsigned int baseSize = ::GetSerializeSize(VARINT(dexId),serializedType, nVersion);
@@ -121,7 +121,7 @@ public:
 
     template <typename Stream>
     void Serialize(Stream &s, int serializedType, int nVersion) const {
-        s << VARINT(dexId) ;
+        s << VARINT(dexId);
         s << (uint8_t)field;
         switch (field) {
             case OWNER_UID:
@@ -132,7 +132,7 @@ public:
             case PORTAL_URL :
             case MEMO :
                 s<<get<string>();
-                break ;
+                break;
             case MAKER_FEE_RATIO:
             case TAKER_FEE_RATIO:
                 s<<VARINT(get<uint64_t>());
@@ -146,9 +146,9 @@ public:
 
     template <typename Stream>
     void Unserialize(Stream &s, int serializedType, int nVersion) {
-        int32_t dexValue ;
+        int32_t dexValue;
         s >> VARINT(dexValue);
-        dexId = dexValue ;
+        dexId = dexValue;
 
         s >> ((uint8_t&)field);
         switch (field) {
@@ -189,10 +189,10 @@ public:
     const T_Value &get() const {
         return boost::get<T_Value>(value);
     }
-    bool Check(string& errmsg, string& errcode, uint32_t currentHeight) ;
+    bool Check(string& errmsg, string& errcode, uint32_t currentHeight);
 
-    bool UpdateToDexOperator(DexOperatorDetail& detail,CCacheWrapper& cw) ;
-    bool GetRegID(CCacheWrapper& cw,CRegID& regid) ;
+    bool UpdateToDexOperator(DexOperatorDetail& detail,CCacheWrapper& cw);
+    bool GetRegID(CCacheWrapper& cw,CRegID& regid);
 
 
     string ValueToString() const {
@@ -219,7 +219,7 @@ public:
 class CDEXOperatorUpdateTx: public CBaseTx {
 
 public:
-    CDEXOperatorUpdateData update_data ;
+    CDEXOperatorUpdateData update_data;
 public:
     CDEXOperatorUpdateTx() : CBaseTx(DEX_OPERATOR_UPDATE_TX) {}
 

@@ -12,11 +12,11 @@
 
 class CNickIdRegisterTx : public CBaseTx {
 public:
-    string nickId ;
+    string nickId;
 
     CNickIdRegisterTx(const CUserID &txUidIn, const string nickIdin, int64_t feesIn, const TokenSymbol& feeSymbol, int32_t validHeightIn) :
             CBaseTx(NICKID_REGISTER_TX, txUidIn, validHeightIn, feeSymbol, feesIn) {
-        nickId = nickIdin ;
+        nickId = nickIdin;
     }
     CNickIdRegisterTx(): CBaseTx(NICKID_REGISTER_TX) {}
 

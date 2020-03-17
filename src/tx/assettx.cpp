@@ -49,7 +49,7 @@ static bool ProcessAssetFee(CCacheWrapper &cw, CValidationState &state, const st
         return state.DoS(100, ERRORMSG("ProcessAssetFee, insufficient funds in account for %s asset fee=%llu, tx_regid=%s",
                         action, assetFee, txAccount.regid.ToString()), UPDATE_ACCOUNT_FAIL, "insufficent-funds");
 
-    uint64_t assetRiskFeeRatio ;
+    uint64_t assetRiskFeeRatio;
     if(!cw.sysParamCache.GetParam(SysParamType::ASSET_RISK_FEE_RATIO, assetRiskFeeRatio)) {
         return state.DoS(100, ERRORMSG("ProcessAssetFee, get assetRiskFeeRatio error",
                                        action, assetFee, txAccount.regid.ToString()), READ_SYS_PARAM_FAIL, "read-db-error");

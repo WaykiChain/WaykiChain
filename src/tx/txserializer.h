@@ -122,9 +122,9 @@ void CBaseTx::SerializePtr(Stream& os, const std::shared_ptr<CBaseTx> &pBaseTx, 
             ::Serialize(os, (const CDEXOperatorRegisterTx&)tx, serType, version); break;
 
         case PROPOSAL_REQUEST_TX:
-            ::Serialize(os, (const CProposalRequestTx&)tx,serType, version); break ;
+            ::Serialize(os, (const CProposalRequestTx&)tx,serType, version); break;
         case PROPOSAL_APPROVAL_TX:
-            ::Serialize(os, (const CProposalApprovalTx&)tx,serType, version); break ;
+            ::Serialize(os, (const CProposalApprovalTx&)tx,serType, version); break;
 
         default:
             throw runtime_error(strprintf("%s(), unsupport nTxType(%d:%s) to serialize",
