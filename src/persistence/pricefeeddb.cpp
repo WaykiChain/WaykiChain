@@ -381,12 +381,12 @@ bool CPriceFeedCache::AddFeedCoinPair(TokenSymbol feedCoin, TokenSymbol quoteCoi
         return true ;
 
     set<pair<TokenSymbol,TokenSymbol>> coinPairs;
-    price_feed_coin_cache.GetData(coinPairs);
+    price_feed_coin_pairs_cache.GetData(coinPairs);
     if(coinPairs.count(make_pair(feedCoin, quoteCoin)) > 0 )
         return true;
 
     coinPairs.insert(make_pair(feedCoin, quoteCoin));
-    return price_feed_coin_cache.SetData(coinPairs);
+    return price_feed_coin_pairs_cache.SetData(coinPairs);
 }
 
 bool CPriceFeedCache::EraseFeedCoinPair(TokenSymbol feedCoin, TokenSymbol quoteCoin) {
@@ -396,12 +396,12 @@ bool CPriceFeedCache::EraseFeedCoinPair(TokenSymbol feedCoin, TokenSymbol quoteC
 
     auto coinPair = std::make_pair(feedCoin, quoteCoin);
     set<pair<TokenSymbol,TokenSymbol>> coins ;
-    price_feed_coin_cache.GetData(coins);
+    price_feed_coin_pairs_cache.GetData(coins);
     if(coins.count(coinPair) == 0 )
         return true ;
 
     coins.erase(coinPair) ;
-    return price_feed_coin_cache.SetData(coins);
+    return price_feed_coin_pairs_cache.SetData(coins);
 }
 
 bool CPriceFeedCache::HasFeedCoinPair(TokenSymbol feedCoin,TokenSymbol quoteCoin) {
@@ -411,12 +411,12 @@ bool CPriceFeedCache::HasFeedCoinPair(TokenSymbol feedCoin,TokenSymbol quoteCoin
         return true ;
 
     set<pair<TokenSymbol, TokenSymbol>> coins ;
-    price_feed_coin_cache.GetData(coins);
+    price_feed_coin_pairs_cache.GetData(coins);
     return (coins.count(make_pair(feedCoin,quoteCoin)) != 0 ) ;
 }
 
 bool CPriceFeedCache::GetFeedCoinPairs(set<pair<TokenSymbol,TokenSymbol>>& coinSet) {
-    price_feed_coin_cache.GetData(coinSet) ;
+    price_feed_coin_pairs_cache.GetData(coinSet) ;
     coinSet.insert(make_pair(SYMB::WICC, SYMB::USD));
     coinSet.insert(make_pair(SYMB::WGRT, SYMB::USD));
     return true ;

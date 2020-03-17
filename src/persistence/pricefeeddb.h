@@ -89,31 +89,31 @@ class CPriceFeedCache {
 public:
     CPriceFeedCache() {}
     CPriceFeedCache(CDBAccess *pDbAccess)
-    : price_feed_coin_cache(pDbAccess),
+    : price_feed_coin_pairs_cache(pDbAccess),
       median_price_cache(pDbAccess) {};
 public:
     bool Flush() {
-        price_feed_coin_cache.Flush();
+        price_feed_coin_pairs_cache.Flush();
         median_price_cache.Flush();
         return true;
     }
 
     uint32_t GetCacheSize() const {
-        return  price_feed_coin_cache.GetCacheSize() +
+        return  price_feed_coin_pairs_cache.GetCacheSize() +
                 median_price_cache.GetCacheSize();
     }
     void SetBaseViewPtr(CPriceFeedCache *pBaseIn) {
-        price_feed_coin_cache.SetBase(&pBaseIn->price_feed_coin_cache);
+        price_feed_coin_pairs_cache.SetBase(&pBaseIn->price_feed_coin_pairs_cache);
         median_price_cache.SetBase(&pBaseIn->median_price_cache);
     };
 
     void SetDbOpLogMap(CDBOpLogMap *pDbOpLogMapIn) {
-        price_feed_coin_cache.SetDbOpLogMap(pDbOpLogMapIn);
+        price_feed_coin_pairs_cache.SetDbOpLogMap(pDbOpLogMapIn);
         median_price_cache.SetDbOpLogMap(pDbOpLogMapIn);
     }
 
     void RegisterUndoFunc(UndoDataFuncMap &undoDataFuncMap) {
-        price_feed_coin_cache.RegisterUndoFunc(undoDataFuncMap);
+        price_feed_coin_pairs_cache.RegisterUndoFunc(undoDataFuncMap);
         median_price_cache.RegisterUndoFunc(undoDataFuncMap);
     }
 
@@ -136,9 +136,9 @@ public:
 /*  -------------------- --------------------  -------------   --------------------- */
     /////////// PriceFeedDB
     // [prefix] -> feed pair
-    CSimpleKVCache< dbk::PRICE_FEED_COIN,      set<pair<TokenSymbol, TokenSymbol >>>     price_feed_coin_cache;
+    CSimpleKVCache< dbk::PRICE_FEED_COIN_PAIRS, set<pair<TokenSymbol, TokenSymbol>>>   price_feed_coin_pairs_cache;
     // [prefix] -> median price map
-    CSimpleKVCache< dbk::MEDIAN_PRICES,        PriceMap>     median_price_cache;
+    CSimpleKVCache< dbk::MEDIAN_PRICES,     PriceMap>     median_price_cache;
 };
 
 #endif  // PERSIST_PRICEFEED_H
