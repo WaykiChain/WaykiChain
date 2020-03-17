@@ -412,14 +412,14 @@ bool CGovFeedCoinPairProposal::CheckProposal(CTxExecuteContext& context ) {
     if (op_type == ProposalOperateType::NULL_PROPOSAL_OP)
         return state.DoS(100, ERRORMSG("%s(), op_type is null", __func__),
                          REJECT_INVALID, "bad-op-type");
-    if (feed_symbol == quote_symbol)
-        return state.DoS(100, ERRORMSG("%s(): feed_symbol==quote_symbol", __func__),
+    if (base_symbol == quote_symbol)
+        return state.DoS(100, ERRORMSG("%s(): base_symbol==quote_symbol", __func__),
                          REJECT_INVALID, "same-symbol");
-    if (!cw.assetCache.CheckAsset(feed_symbol, AssetPermType::PERM_PRICE_FEED))
-        return state.DoS(100, ERRORMSG("CGovFeedCoinPairProposal:: checkProposal: feed_symbol invalid"),
+    if (!cw.assetCache.CheckAsset(base_symbol, AssetPermType::PERM_PRICE_FEED))
+        return state.DoS(100, ERRORMSG("CGovFeedCoinPairProposal:: checkProposal: base_symbol invalid"),
                          REJECT_INVALID, "bad-symbol");
 
-    PriceCoinPair coinPair(feed_symbol, quote_symbol);
+    PriceCoinPair coinPair(base_symbol, quote_symbol);
     if (kPriceFeedCoinPairSet.count(coinPair) > 0) {
         return state.DoS(100, ERRORMSG("%s(), the hard code price_coin_pair={%s:%s} can not be governed",
                 __func__, quote_symbol), REJECT_INVALID, "hard-code-coin-pair");
@@ -429,16 +429,16 @@ bool CGovFeedCoinPairProposal::CheckProposal(CTxExecuteContext& context ) {
         return state.DoS(100, ERRORMSG("CGovFeedCoinPairProposal:: checkProposal: invalid quote_symbol %s", quote_symbol),
                          REJECT_INVALID, "bad-symbol");
 
-    bool hasCoin = cw.priceFeedCache.HasFeedCoinPair(feed_symbol, quote_symbol);
+    bool hasCoin = cw.priceFeedCache.HasFeedCoinPair(base_symbol, quote_symbol);
     if ( hasCoin && op_type == ProposalOperateType ::ENABLE) {
-        return state.DoS(100, ERRORMSG("CGovFeedCoinPairProposal:: checkProposal:feed_symbol(%s),quote_symbol(%s)"
-                                       "is dex quote coin symbol already",feed_symbol, quote_symbol),
+        return state.DoS(100, ERRORMSG("CGovFeedCoinPairProposal:: checkProposal:base_symbol(%s),quote_symbol(%s)"
+                                       "is dex quote coin symbol already",base_symbol, quote_symbol),
                          REJECT_INVALID, "symbol-exist");
     }
 
     if ( !hasCoin && op_type == ProposalOperateType ::DISABLE) {
-        return state.DoS(100, ERRORMSG("CGovFeedCoinPairProposal:: checkProposal:feed_symbol(%s),quote_symbol(%s) "
-                                       "is not a dex quote coin symbol ",feed_symbol, quote_symbol),
+        return state.DoS(100, ERRORMSG("CGovFeedCoinPairProposal:: checkProposal:base_symbol(%s),quote_symbol(%s) "
+                                       "is not a dex quote coin symbol ",base_symbol, quote_symbol),
                          REJECT_INVALID, "symbol-not-exist");
     }
     return true;
@@ -447,9 +447,9 @@ bool CGovFeedCoinPairProposal::ExecuteProposal(CTxExecuteContext& context, const
     CCacheWrapper& cw = *context.pCw;
 
     if (ProposalOperateType::ENABLE == op_type)
-        return cw.priceFeedCache.AddFeedCoinPair(feed_symbol, quote_symbol);
+        return cw.priceFeedCache.AddFeedCoinPair(base_symbol, quote_symbol);
     else
-        return cw.priceFeedCache.EraseFeedCoinPair(feed_symbol, quote_symbol);
+        return cw.priceFeedCache.EraseFeedCoinPair(base_symbol, quote_symbol);
 
 }
 

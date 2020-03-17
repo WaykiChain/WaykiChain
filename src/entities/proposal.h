@@ -462,7 +462,7 @@ struct CGovDexQuoteProposal: CProposal {
 
 // base currency : quote currency
 struct CGovFeedCoinPairProposal: CProposal {
-    TokenSymbol  feed_symbol;
+    TokenSymbol  base_symbol;
     TokenSymbol  quote_symbol = SYMB::USD;
     ProposalOperateType op_type = ProposalOperateType::NULL_PROPOSAL_OP;
 
@@ -471,14 +471,14 @@ struct CGovFeedCoinPairProposal: CProposal {
     IMPLEMENT_SERIALIZE(
         READWRITE(VARINT(expiry_block_height));
         READWRITE(approval_min_count);
-        READWRITE(feed_symbol);
+        READWRITE(base_symbol);
         READWRITE(quote_symbol);
         READWRITE((uint8_t&)op_type);
     )
 
     Object ToJson() override {
         Object o = CProposal::ToJson();
-        o.push_back(Pair("feed_symbol", feed_symbol));
+        o.push_back(Pair("base_symbol", base_symbol));
         o.push_back(Pair("quote_symbol", quote_symbol));
 
         o.push_back(Pair("op_type", op_type)) ;
@@ -486,7 +486,7 @@ struct CGovFeedCoinPairProposal: CProposal {
     }
 
     string ToString() override {
-        return  strprintf("feed_symbol=%s,quote_symbol=%s",feed_symbol, quote_symbol ) + ", " +
+        return  strprintf("base_symbol=%s,quote_symbol=%s",base_symbol, quote_symbol ) + ", " +
                 strprintf("op_type=%d", op_type);
     }
     shared_ptr<CProposal> GetNewInstance() override { return make_shared<CGovFeedCoinPairProposal>(*this); }
@@ -508,8 +508,8 @@ struct CGovAxcInProposal: CProposal {
     uint64_t    swap_amount;
 
     CGovAxcInProposal(): CProposal(ProposalType::GOV_AXC_IN) {}
-    CGovAxcInProposal(ChainType peerChainType, TokenSymbol peerChainTokenSymbol, TokenSymbol selfChainTokenSymbol, 
-                    string &peerChainAddr, string &peerChainTxid, CUserID &selfChainUid, uint64_t &swapAmount): 
+    CGovAxcInProposal(ChainType peerChainType, TokenSymbol peerChainTokenSymbol, TokenSymbol selfChainTokenSymbol,
+                    string &peerChainAddr, string &peerChainTxid, CUserID &selfChainUid, uint64_t &swapAmount):
                     CProposal(ProposalType::GOV_AXC_IN),
                     peer_chain_type(peerChainType),
                     peer_chain_token_symbol(peerChainTokenSymbol),

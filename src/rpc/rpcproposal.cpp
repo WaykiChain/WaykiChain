@@ -377,12 +377,12 @@ Value submitdexquotecoinproposal(const Array& params, bool fHelp) {
 Value submitfeedcoinpairproposal(const Array& params, bool fHelp) {
     if(fHelp || params.size() < 3 || params.size() > 4) {
         throw runtime_error(
-                "submitfeedcoinpairproposal \"addr\" \"feed_symbol\" \"base_symbol\" \"operate_type\" [\"fee\"]\n"
+                "submitfeedcoinpairproposal \"addr\" \"base_symbol\" \"quote_symbol\" \"operate_type\" [\"fee\"]\n"
                 "request proposal about add/remove feed price coin pair \n"
                 "\nArguments:\n"
                 "1.\"addr\":             (string,     required) the tx submitor's address\n"
-                "2.\"feed_symbol\":      (string,     required) the feed coin symbol\n"
-                "3.\"base_symbol\":      (string,     required) the feed base coin symbol\n"
+                "2.\"base_symbol\":      (string,     required) the base symbol\n"
+                "3.\"quote_symbol\":      (string,     required) the quote symbol\n"
                 "4.\"op_type\":          (numberic,   required) the operate type \n"
                 "                         1 stand for add\n"
                 "                         2 stand for remove\n"
@@ -397,7 +397,7 @@ Value submitfeedcoinpairproposal(const Array& params, bool fHelp) {
 
     EnsureWalletIsUnlocked();
     const CUserID& txUid = RPC_PARAM::GetUserId(params[0], true);
-    string feedSymbol = params[1].get_str();
+    string baseSymbol = params[1].get_str();
     string quoteSymbol = params[2].get_str();
     uint64_t operateType = params[3].get_int();
     ComboMoney fee          = RPC_PARAM::GetFee(params, 4, PROPOSAL_REQUEST_TX);
@@ -406,7 +406,7 @@ Value submitfeedcoinpairproposal(const Array& params, bool fHelp) {
     RPC_PARAM::CheckAccountBalance(account, fee.symbol, SUB_FREE, fee.GetAmountInSawi());
 
     CGovFeedCoinPairProposal proposal ;
-    proposal.feed_symbol = feedSymbol ;
+    proposal.base_symbol = baseSymbol ;
     proposal.quote_symbol = quoteSymbol ;
     proposal.op_type = ProposalOperateType(operateType);
 
