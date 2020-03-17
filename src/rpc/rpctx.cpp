@@ -101,6 +101,23 @@ Value submitaccountregistertx(const Array& params, bool fHelp) {
     return SubmitTx(account.keyid, tx);
 }
 
+Value submitaccountpermscleartx(const Array& params, bool fHelp) {
+    if (fHelp || params.size() < 1 || params.size() > 2)
+        throw runtime_error("submitaccountpermscleartx \"addr or regid\" \"nickid\" [\"fee\"]\n"
+                            "\n clear self perms\n"
+                            "\nArguments:\n"
+                            "1.\"addr or regid\":  (string, required) the tx submitor's id\n"
+                            "2.\"fee\":            (combomoney, optional)\n"
+                            "\nResult:\n"
+                            "\"txid\":      (string) The transaction id.\n"
+                            "\nExamples:\n"
+                            + HelpExampleCli("submitaccountpermscleartx", "\"wTtCsc5X9S5XAy1oDuFiEAfEwf8bZHur1W\"  \"WICC:1000000:SAWI\"")
+                            + "\nAs json rpc call\n"
+                            + HelpExampleRpc("submitaccountpermscleartx", "\"wTtCsc5X9S5XAy1oDuFiEAfEwf8bZHur1W\", \"WICC:1000000:SAWI\""));
+
+    return Object();
+}
+
 Value submitnickidregistertx(const Array& params, bool fHelp) {
     if (fHelp || params.size() < 2)
         throw runtime_error("submitnickidregistertx \"addr or regid\" \"nickid\" [\"fee\"]\n"

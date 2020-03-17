@@ -252,7 +252,7 @@ Value submitutxotransfertx(const Array& params, bool fHelp) {
                 "3.\"vins\":              (string(json), required) The utxo inputs \n"
                 "4.\"vouts\":             (string(json), required) the utxo outputs \n"
                 "5.\"symbol:fee:unit\":   (symbol:amount:unit, optional) fee paid to miner\n"
-                "5.\"memo\":              (string,optinal) tx memo\n"
+                "6.\"memo\":              (string,optinal) tx memo\n"
                 "\nResult:\n"
                 "\"txid\"                 (string) The transaction id.\n"
                 "\nExamples:\n" +
@@ -272,15 +272,15 @@ Value submitutxotransfertx(const Array& params, bool fHelp) {
     TokenSymbol coinSymbol = params[1].get_str();
     Array inputArray  = params[2].get_array();
     Array outputArray = params[3].get_array();
-    string memo;
-    if(params.size() > 4) {
-        memo = params[4].get_str();
-    }
 
-    ComboMoney fee = RPC_PARAM::GetFee(params,5 ,TxType::UTXO_TRANSFER_TX);
+
+    ComboMoney fee = RPC_PARAM::GetFee(params,4 ,TxType::UTXO_TRANSFER_TX);
     CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, txUid);
     RPC_PARAM::CheckAccountBalance(account, fee.symbol, SUB_FREE, fee.GetAmountInSawi());
-
+    string memo;
+    if(params.size() > 5) {
+        memo = params[5].get_str();
+    }
     std::vector<CUtxoInput> vins;
     std::vector<CUtxoOutput> vouts;
     ParseUtxoInput(inputArray, vins, account.keyid);
