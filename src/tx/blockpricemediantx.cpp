@@ -68,7 +68,7 @@ bool CBlockPriceMedianTx::ExecuteTx(CTxExecuteContext &context) {
             str += strprintf("{coin_pair=%s, price:%llu},", CoinPairToString(item.first), item.second.price);
         }
 
-        LogPrint(BCLog::ERROR, "CBlockPriceMedianTx::ExecuteTx, from cache, height=%d, price map={%s}\n",
+        LogPrint(BCLog::ERROR, "CBlockPriceMedianTx::ExecuteTx, calc from cache, height=%d, price map={%s}\n",
                 context.height, str);
 
         str.clear();
@@ -76,7 +76,7 @@ bool CBlockPriceMedianTx::ExecuteTx(CTxExecuteContext &context) {
             str += strprintf("{coin_pair=%s, price=%llu}", CoinPairToString(item.first), item.second);
         }
 
-        LogPrint(BCLog::ERROR, "CBlockPriceMedianTx::ExecuteTx, from median tx, height: %d, price points: %s\n",
+        LogPrint(BCLog::ERROR, "CBlockPriceMedianTx::ExecuteTx, from median tx, height: %d, price map: %s\n",
                 context.height, str);
 
         return state.DoS(100, ERRORMSG("CBlockPriceMedianTx::ExecuteTx, invalid median price points"), REJECT_INVALID,

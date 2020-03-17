@@ -340,15 +340,15 @@ bool CPricePointMemCache::CalcMedianPrices(CCacheWrapper &cw, const int32_t bloc
 
     PriceCoinPair bcoinPricePair(SYMB::WICC, SYMB::USD);
     CMedianPriceDetail bcoinMedianPrice = GetMedianPrice(blockHeight, slideWindow, bcoinPricePair);
-    medianPrices.emplace(bcoinPricePair, bcoinMedianPrice);
+    medianPrices.emplace(bcoinPricePair, bcoinMedianPrice.price);
     LogPrint(BCLog::PRICEFEED, "CPricePointMemCache::CalcBlockMedianPrices, blockHeight: %d, price: %s/%s -> %llu\n",
-             blockHeight, SYMB::WICC, SYMB::USD, bcoinMedianPrice);
+             blockHeight, SYMB::WICC, SYMB::USD, bcoinMedianPrice.price);
 
     PriceCoinPair fcoinPricePair(SYMB::WGRT, SYMB::USD);
     CMedianPriceDetail fcoinMedianPrice = GetMedianPrice(blockHeight, slideWindow, fcoinPricePair);
-    medianPrices.emplace(fcoinPricePair, fcoinMedianPrice);
+    medianPrices.emplace(fcoinPricePair, fcoinMedianPrice.price);
     LogPrint(BCLog::PRICEFEED, "CPricePointMemCache::CalcBlockMedianPrices, blockHeight: %d, price: %s/%s -> %llu\n",
-             blockHeight, SYMB::WGRT, SYMB::USD, fcoinMedianPrice);
+             blockHeight, SYMB::WGRT, SYMB::USD, fcoinMedianPrice.price);
 
     return true;
 }
@@ -362,16 +362,16 @@ bool CPricePointMemCache::CalcMedianPriceDetails(CCacheWrapper &cw, const int32_
     latest_median_prices = cw.priceFeedCache.GetMedianPrices();
 
     PriceCoinPair bcoinPricePair(SYMB::WICC, SYMB::USD);
-    uint64_t bcoinMedianPrice = GetMedianPrice(blockHeight, slideWindow, bcoinPricePair);
+    CMedianPriceDetail bcoinMedianPrice = GetMedianPrice(blockHeight, slideWindow, bcoinPricePair);
     medianPrices.emplace(bcoinPricePair, bcoinMedianPrice);
-    LogPrint(BCLog::PRICEFEED, "CPricePointMemCache::CalcBlockMedianPrices, blockHeight: %d, price: %s/%s -> %llu\n",
-             blockHeight, SYMB::WICC, SYMB::USD, bcoinMedianPrice);
+    LogPrint(BCLog::PRICEFEED, "CPricePointMemCache::CalcBlockMedianPrices, blockHeight=%d, price: %s/%s -> %llu\n",
+             blockHeight, SYMB::WICC, SYMB::USD, bcoinMedianPrice.price);
 
     PriceCoinPair fcoinPricePair(SYMB::WGRT, SYMB::USD);
-    uint64_t fcoinMedianPrice = GetMedianPrice(blockHeight, slideWindow, fcoinPricePair);
+    CMedianPriceDetail fcoinMedianPrice = GetMedianPrice(blockHeight, slideWindow, fcoinPricePair);
     medianPrices.emplace(fcoinPricePair, fcoinMedianPrice);
-    LogPrint(BCLog::PRICEFEED, "CPricePointMemCache::CalcBlockMedianPrices, blockHeight: %d, price: %s/%s -> %llu\n",
-             blockHeight, SYMB::WGRT, SYMB::USD, fcoinMedianPrice);
+    LogPrint(BCLog::PRICEFEED, "CPricePointMemCache::CalcBlockMedianPrices, blockHeight=%d, price: %s/%s -> %llu\n",
+             blockHeight, SYMB::WGRT, SYMB::USD, fcoinMedianPrice.price);
 
     return true;
 }
