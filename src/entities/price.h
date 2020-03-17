@@ -15,17 +15,9 @@
  * always written as BaseSymbol/QuoteSymbol
  * such as: WICC/USD
  */
-typedef std::pair<TokenSymbol, TokenSymbol> PriceCoinPair;
 typedef std::map<PriceCoinPair, uint64_t> PriceMap;
 
 static const PriceMap EMPTY_PRICE_MAP = {};
-
-static const PriceCoinPair kDefaultFcoinPricePair = {SYMB::WGRT, SYMB::USD};
-
-static const UnorderedPairSet<TokenSymbol, TokenSymbol> kCoinPricePairSet = {
-    {SYMB::WICC, SYMB::USD},
-    kDefaultFcoinPricePair,
-};
 
 static const uint32_t COIN_PRICE_PAIR_COUNT_MAX = 100;
 

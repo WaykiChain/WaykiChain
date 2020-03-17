@@ -65,10 +65,11 @@ static const unordered_set<TokenSymbol> kPriceQuoteSymbolSet = {
     //SYMB::CNY, SYMB::EUR, SYMB::BTC, SYMB::BTC_USDT, SYMB::ETH_USDT, SYMB::GOLD, SYMB::KWH
 };
 // can be expanded thru DeGov
-static const unordered_map<string, pair<TokenSymbol, TokenSymbol>> kPriceFeedCoinPairMap = {
-    {"WICC:USD", make_pair(SYMB::WICC, SYMB::USD) },
-    // {"WBTC:USD", make_pair(SYMB::WBTC, SYMB::USD) },
-    // {"WETH:USD", make_pair(SYMB::WETH, SYMB::USD) },
+static const UnorderedPairSet<TokenSymbol, TokenSymbol> kPriceFeedCoinPairSet = {
+    {SYMB::WICC, SYMB::USD},
+    {SYMB::WGRT, SYMB::USD},
+    // {SYMB::WBTC, SYMB::USD},
+    // {SYMB::WETH, SYMB::USD},
 };
 
 //can be expanded thru DeGov

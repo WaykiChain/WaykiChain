@@ -415,9 +415,8 @@ bool CPriceFeedCache::HasFeedCoinPair(TokenSymbol baseSymbol,TokenSymbol quoteSy
     return (coins.count(make_pair(baseSymbol,quoteSymbol)) != 0 ) ;
 }
 
-bool CPriceFeedCache::GetFeedCoinPairs(set<PriceCoinPair>& coinSet) {
-    price_feed_coin_pairs_cache.GetData(coinSet) ;
-    coinSet.insert(make_pair(SYMB::WICC, SYMB::USD));
-    coinSet.insert(make_pair(SYMB::WGRT, SYMB::USD));
+bool CPriceFeedCache::GetFeedCoinPairs(set<PriceCoinPair>& coinPairSet) {
+    coinPairSet.insert(kPriceFeedCoinPairSet.begin(), kPriceFeedCoinPairSet.end());
+    price_feed_coin_pairs_cache.GetData(coinPairSet) ;
     return true ;
 }
