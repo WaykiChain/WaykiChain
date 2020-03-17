@@ -180,7 +180,7 @@ namespace wasm {
             }
         }  catch (wasm_chain::exception &e) {
             string console_output = (_pending_console_output.str().size() == 0)?string(""):string(", console: ") + _pending_console_output.str();
-            CHAIN_RETHROW_EXECPTION( e, log_level::warn, 
+            CHAIN_RETHROW_EXECPTION( e, log_level::warn,
                                      "[%s, %s]->%s%s",
                                      name(contract()).to_string(),
                                      name(action()).to_string(),
@@ -188,8 +188,8 @@ namespace wasm {
                                      console_output );
         } catch (...) {
             string console_output = (_pending_console_output.str().size() == 0)?string(""):string(", console: ") + _pending_console_output.str();
-            CHAIN_THROW( wasm_chain::chain_exception, 
-                         "[%s, %s]->%s%s", 
+            CHAIN_THROW( wasm_chain::chain_exception,
+                         "[%s, %s]->%s%s",
                          name(contract()).to_string(),
                          name(action()).to_string(),
                          name(receiver()).to_string(),
@@ -221,8 +221,8 @@ namespace wasm {
             notified.push_back(recipient);
         }
 
-        CHAIN_ASSERT( notified.size() <= max_recipients_size, 
-                      wasm_chain::recipients_size_exceeds_exception, 
+        CHAIN_ASSERT( notified.size() <= max_recipients_size,
+                      wasm_chain::recipients_size_exceeds_exception,
                       "recipients size must be <= '%ld', but get '%ld'", max_recipients_size, notified.size() );
 
     }
@@ -259,23 +259,23 @@ namespace wasm {
 
         std::vector<uint64_t> active_producers;
         VoteDelegateVector    producers;
-        CHAIN_ASSERT( database_delegate.GetActiveDelegates(producers), 
-                      wasm_chain::account_access_exception, 
+        CHAIN_ASSERT( database_delegate.GetActiveDelegates(producers),
+                      wasm_chain::account_access_exception,
                       "fail to get top delegates for active producer");
 
         for( auto p: producers){
             CAccount producer;
             CHAIN_ASSERT( database_account.GetAccount(p.regid, producer),
-                          wasm_chain::account_access_exception, 
+                          wasm_chain::account_access_exception,
                           "producer account get account error, regid = %s",
-                          p.regid.ToString())  
+                          p.regid.ToString())
 
             CHAIN_ASSERT( producer.nickid.value != 0,
-                          wasm_chain::account_access_exception, 
+                          wasm_chain::account_access_exception,
                           "producer account does not register nick_id, regid = %s",
-                          p.regid.ToString())  
+                          p.regid.ToString())
 
-            active_producers.push_back(producer.nickid.value);          
+            active_producers.push_back(producer.nickid.value);
         }
         return active_producers;
     }
@@ -288,7 +288,7 @@ namespace wasm {
         if(quote_symbol.precision() != 8) return false;//the precision of system asset must be 8
         if(base_symbol.precision()  != 8) return false;//the precision of system asset must be 8
 
-        CoinPricePair price_pair(base_symbol.code().to_string(), quote_symbol.code().to_string());
+        PriceCoinPair price_pair(base_symbol.code().to_string(), quote_symbol.code().to_string());
 
         //if(CheckPricePair(pricePair) != nullptr) return 0;
         auto &database_pricefeed  = database.priceFeedCache;

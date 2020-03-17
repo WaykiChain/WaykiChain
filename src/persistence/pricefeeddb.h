@@ -25,7 +25,7 @@ class CSysParamDBCache; // need to read slide window param
 class CConsecutiveBlockPrice;
 
 typedef map<int32_t /* block height */, map<CRegID, uint64_t /* price */>> BlockUserPriceMap;
-typedef map<CoinPricePair, CConsecutiveBlockPrice> CoinPricePointMap;
+typedef map<PriceCoinPair, CConsecutiveBlockPrice> CoinPricePointMap;
 
 // Price Points in 11 consecutive blocks
 class CConsecutiveBlockPrice {
@@ -57,7 +57,7 @@ public:
     void Flush();
 
 private:
-    uint64_t GetMedianPrice(const int32_t blockHeight, const uint64_t slideWindow, const CoinPricePair &coinPricePair);
+    uint64_t GetMedianPrice(const int32_t blockHeight, const uint64_t slideWindow, const PriceCoinPair &coinPricePair);
 
     bool AddPriceByBlock(const CBlock &block);
     // delete block price point by specific block height.
@@ -65,15 +65,15 @@ private:
 
     bool DeleteBlockPricePoint(const int32_t blockHeight);
 
-    bool ExistBlockUserPrice(const int32_t blockHeight, const CRegID &regId, const CoinPricePair &coinPricePair);
+    bool ExistBlockUserPrice(const int32_t blockHeight, const CRegID &regId, const PriceCoinPair &coinPricePair);
 
     void BatchWrite(const CoinPricePointMap &mapCoinPricePointCacheIn);
 
-    bool GetBlockUserPrices(const CoinPricePair &coinPricePair, set<int32_t> &expired, BlockUserPriceMap &blockUserPrices);
-    bool GetBlockUserPrices(const CoinPricePair &coinPricePair, BlockUserPriceMap &blockUserPrices);
+    bool GetBlockUserPrices(const PriceCoinPair &coinPricePair, set<int32_t> &expired, BlockUserPriceMap &blockUserPrices);
+    bool GetBlockUserPrices(const PriceCoinPair &coinPricePair, BlockUserPriceMap &blockUserPrices);
 
     uint64_t ComputeBlockMedianPrice(const int32_t blockHeight, const uint64_t slideWindow,
-                                     const CoinPricePair &coinPricePair);
+                                     const PriceCoinPair &coinPricePair);
     uint64_t ComputeBlockMedianPrice(const int32_t blockHeight, const uint64_t slideWindow,
                                      const BlockUserPriceMap &blockUserPrices);
     static uint64_t ComputeMedianNumber(vector<uint64_t> &numbers);
@@ -126,7 +126,7 @@ public:
     bool SetPriceFeeders(const vector<CRegID> &governors) ;
     bool GetPriceFeeders(vector<CRegID>& priceFeeders) ;
 
-    uint64_t GetMedianPrice(const CoinPricePair &coinPricePair) const;
+    uint64_t GetMedianPrice(const PriceCoinPair &coinPricePair) const;
     PriceMap GetMedianPrices() const;
     bool SetMedianPrices(const PriceMap &medianPrices);
 

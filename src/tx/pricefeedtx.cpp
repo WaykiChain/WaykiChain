@@ -14,7 +14,7 @@
 #include "commons/util/util.h"
 #include "config/version.h"
 
-string CoinPricePairToString(const CoinPricePair &coinPricePair) {
+string CoinPricePairToString(const PriceCoinPair &coinPricePair) {
     return strprintf("%s:%s", GetPriceBaseSymbol(coinPricePair), GetPriceQuoteSymbol(coinPricePair));
 }
 
