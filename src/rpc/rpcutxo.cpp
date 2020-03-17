@@ -170,7 +170,7 @@ Value genutxomultiinputcondhash(const Array& params, bool fHelp) {
     }
     string redeemScript("");
     ComputeRedeemScript(m, n, vAddr, redeemScript);
-    
+
     uint256 multiSignHash;
     if (!ComputeUtxoMultisignHash(prevUtxoTxId, prevUtxoTxVoutIndex,txKeyID, redeemScript, multiSignHash))
         throw JSONRPCError(RPC_WALLET_ERROR, "create hash error");

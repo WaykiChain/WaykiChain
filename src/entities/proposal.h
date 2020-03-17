@@ -412,6 +412,7 @@ struct CGovDexOpProposal: CProposal{
 
     bool CheckProposal(CTxExecuteContext& context ) override;
     bool ExecuteProposal(CTxExecuteContext& context, const TxID& proposalId ) override;
+    shared_ptr<CProposal> GetNewInstance() { return make_shared<CGovDexOpProposal>(*this); } ;
 
     Object ToJson() override {
         Object o = CProposal::ToJson();
