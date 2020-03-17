@@ -144,6 +144,8 @@ public:
     void SetMedianPrices(PriceMap &mapMedianPricesIn) {
         median_prices = mapMedianPricesIn;
     }
+private:
+    bool EqualToCalculatedPrices(const PriceDetailMap &calcPrices);
 };
 
 #endif //TX_PRICE_MEDIAN_H

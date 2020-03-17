@@ -56,36 +56,34 @@ bool CBlockPriceMedianTx::CheckTx(CTxExecuteContext &context) { return true; }
 bool CBlockPriceMedianTx::ExecuteTx(CTxExecuteContext &context) {
     IMPLEMENT_DEFINE_CW_STATE;
 
-    PriceMap medianPrices;
-    if (!cw.ppCache.CalcBlockMedianPrices(cw, context.height, medianPrices)) {
-        return state.DoS(100, ERRORMSG("CBlockPriceMedianTx::ExecuteTx, failed to get block median price points"),
-                         READ_PRICE_POINT_FAIL, "bad-read-price-points");
+    PriceDetailMap calcPrices;
+    if (!cw.ppCache.CalcMedianPriceDetails(cw, context.height, calcPrices)) {
+        return state.DoS(100, ERRORMSG("CBlockPriceMedianTx::ExecuteTx, calc block median price points failed"),
+                         READ_PRICE_POINT_FAIL, "calc-median-prices-failed");
     }
 
-    if (medianPrices != median_prices) {
-        string pricePoints;
-        for (const auto item : medianPrices) {
-            pricePoints += strprintf("{coin_symbol:%s, price_symbol:%s, price:%lld}", item.first.first,
-                                     item.first.second, item.second);
+    if (EqualToCalculatedPrices(calcPrices)) {
+        string str;
+        for (const auto item : calcPrices) {
+            str += strprintf("{coin_pair=%s, price:%llu},", CoinPairToString(item.first), item.second.price);
         }
 
-        LogPrint(BCLog::ERROR, "CBlockPriceMedianTx::ExecuteTx, from cache, height: %d, price points: %s\n",
-                context.height, pricePoints);
+        LogPrint(BCLog::ERROR, "CBlockPriceMedianTx::ExecuteTx, from cache, height=%d, price map={%s}\n",
+                context.height, str);
 
-        pricePoints.clear();
+        str.clear();
         for (const auto item : median_prices) {
-            pricePoints += strprintf("{coin_symbol:%s, price_symbol:%s, price:%lld}", item.first.first,
-                                     item.first.second, item.second);
+            str += strprintf("{coin_pair=%s, price=%llu}", CoinPairToString(item.first), item.second);
         }
 
         LogPrint(BCLog::ERROR, "CBlockPriceMedianTx::ExecuteTx, from median tx, height: %d, price points: %s\n",
-                context.height, pricePoints);
+                context.height, str);
 
         return state.DoS(100, ERRORMSG("CBlockPriceMedianTx::ExecuteTx, invalid median price points"), REJECT_INVALID,
                          "bad-median-price-points");
     }
 
-    if (!cw.priceFeedCache.SetMedianPrices(median_prices)) {
+    if (!cw.priceFeedCache.SetMedianPrices(calcPrices)) {
         return state.DoS(100, ERRORMSG("CBlockPriceMedianTx::ExecuteTx, save median prices to db failed"), REJECT_INVALID,
                          "save-median-prices-failed");
     }
@@ -112,6 +110,25 @@ bool CBlockPriceMedianTx::ExecuteTx(CTxExecuteContext &context) {
                         GetHash().ToString()), REJECT_INVALID, "set-tx-receipt-failed");
 
     return true;
+}
+
+bool CBlockPriceMedianTx::EqualToCalculatedPrices(const PriceDetailMap &calcPrices) {
+
+    PriceMap medianPrices;
+    for (auto &item : median_prices) {
+        if (item.second != 0)
+            median_prices.insert(item);
+    }
+    // the calcPrices must not contain 0 price item
+    if (medianPrices.size() != calcPrices.size()) return false;
+
+    auto priceIt = medianPrices.begin();
+    auto detailIt = calcPrices.begin();
+    for(; priceIt != medianPrices.end() && detailIt != calcPrices.end(); priceIt++, detailIt++) {
+        if (priceIt->first != detailIt->first || priceIt->second != detailIt->second.price)
+            return false;
+    }
+    return priceIt == medianPrices.end() && detailIt == calcPrices.end();
 }
 
 string CBlockPriceMedianTx::ToString(CAccountDBCache &accountCache) {
