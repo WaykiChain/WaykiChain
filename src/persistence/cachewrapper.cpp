@@ -51,7 +51,7 @@ CCacheWrapper::CCacheWrapper(CCacheDBManager* pCdMan) {
     dexCache.SetBaseViewPtr(pCdMan->pDexCache);
     txReceiptCache.SetBaseViewPtr(pCdMan->pReceiptCache);
     txUtxoCache.SetBaseViewPtr(pCdMan->pUtxoCache);
-    axcCache.SetBaseViewPtr(pCdMan->axcCache);
+    axcCache.SetBaseViewPtr(pCdMan->pAxcCache);
 
     txCache.SetBaseViewPtr(pCdMan->pTxCache);
     ppCache.SetBaseViewPtr(pCdMan->pPpCache);
@@ -135,7 +135,7 @@ void CCacheWrapper::SetDbOpLogMap(CDBOpLogMap *pDbOpLogMap) {
     dexCache.SetDbOpLogMap(pDbOpLogMap);
     txReceiptCache.SetDbOpLogMap(pDbOpLogMap);
     txUtxoCache.SetDbOpLogMap(pDbOpLogMap);
-    axcCache.SetDbOpLogMap(pAxcCache);
+    axcCache.SetDbOpLogMap(pDbOpLogMap);
     sysGovernCache.SetDbOpLogMap(pDbOpLogMap) ;
     priceFeedCache.SetDbOpLogMap(pDbOpLogMap) ;
 }
