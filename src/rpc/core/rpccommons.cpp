@@ -232,12 +232,12 @@ Object SubmitTx(const CKeyID &keyid, CBaseTx &tx) {
         throw JSONRPCError(RPC_WALLET_ERROR, "Sign failed");
     }
 
-    string regMsg;
-    if (!pWalletMain->CommitTx((CBaseTx *)&tx, regMsg))
+    string retMsg;
+    if (!pWalletMain->CommitTx((CBaseTx *)&tx, retMsg))
         throw JSONRPCError(RPC_WALLET_ERROR, strprintf("SubmitTx failed: txid=%s, %s", tx.GetHash().GetHex(), retMsg));
 
     Object obj;
-    obj.push_back(Pair("txid", regMsg);
+    obj.push_back(Pair("txid", retMsg);
 
     return obj;
 }

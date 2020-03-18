@@ -201,8 +201,8 @@ Value submitwasmcontractdeploytx( const Array &params, bool fHelp ) {
         }
 
         string retMsg;
-        bool fSuccess = wallet->CommitTx((CBaseTx * ) & tx, regMsg);
-        JSON_RPC_ASSERT(fSuccess, RPC_WALLET_ERROR, regMsg);
+        bool fSuccess = wallet->CommitTx((CBaseTx * ) & tx, retMsg);
+        JSON_RPC_ASSERT(fSuccess, RPC_WALLET_ERROR, retMsg);
 
         // Object obj_return;
         // json_spirit::Config::add(obj_return, "txid", std::get<1>(ret) );
@@ -210,7 +210,7 @@ Value submitwasmcontractdeploytx( const Array &params, bool fHelp ) {
 
         Object obj_return;
         Value  v_trx_id, value_json;
-        json_spirit::read(std::get<1>(ret), value_json);
+        json_spirit::read(retMsg, value_json);
 
         //if (value_json.type() == json_spirit::obj_type) {
         auto o = value_json.get_obj();
@@ -285,12 +285,13 @@ Value submitwasmcontractcalltx( const Array &params, bool fHelp ) {
             tx.set_signature({authorizer_name.value, tx.signature});
         }
 
-        std::tuple<bool, string> ret = wallet->CommitTx((CBaseTx * ) & tx);
-        JSON_RPC_ASSERT(std::get<0>(ret), RPC_WALLET_ERROR, std::get<1>(ret))//fixme: should get exception from committx
+        string retMsg;
+        bool fSuccess = wallet->CommitTx((CBaseTx * ) & tx, retMsg);
+        JSON_RPC_ASSERT(fSuccess, RPC_WALLET_ERROR, retMsg) //fixme: could get exception from committx
 
         Object obj_return;
         Value  value_json;
-        json_spirit::read(std::get<1>(ret), value_json);
+        json_spirit::read(retMsg, value_json);
         json_spirit::Config::add(obj_return, "result", value_json );
         return obj_return;
 
