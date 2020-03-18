@@ -208,40 +208,32 @@ void CWallet::ResendWalletTransactions() {
 }
 
 //// Call after CreateTransaction unless you want to abort
-std::tuple<bool, string> CWallet::CommitTx(CBaseTx *pTx) {
+bool CWallet::CommitTx(const CBaseTx *pTx, string &retMsg) {
     LOCK2(cs_main, cs_wallet);
-    LogPrint(BCLog::INFO, "CommitTx() : %s\n", pTx->ToString(*pCdMan->pAccountCache));
-
-    string ret;
+    LogPrint(BCLog::RPCCMD, "CommitTx() : %s\n", pTx->ToString(*pCdMan->pAccountCache));
 
     {
         CValidationState state;
         if (!::AcceptToMemoryPool(mempool, state, pTx, true)) {
             // This must not fail. The transaction has already been signed and recorded.
-            LogPrint(BCLog::INFO, "CommitTx() : invalid transaction %s\n", state.GetRejectReason());
-            return std::make_tuple(false, state.GetRejectReason());
+            retMsg = state.GetRejectReason();
+            LogPrint(BCLog::RPCCMD, "CommitTx() : invalid transaction %s\n", retMsg);
+            return false;
         }
 
-        ret =  state.GetReturn();
-
+        retMsg =  state.GetReturn();
     }
 
     uint256 txid        = pTx->GetHash();
     unconfirmedTx[txid] = pTx->GetNewInstance();
-    bool flag           = CWalletDB(strWalletFile).WriteUnconfirmedTx(txid, unconfirmedTx[txid]);
-    string message      = txid.ToString();
+    bool fWriteSuccess  = CWalletDB(strWalletFile).WriteUnconfirmedTx(txid, unconfirmedTx[txid]);
 
-    if (!flag) {
-        message = strprintf("write unconfirmed tx failed: %s, corrupted wallet?", txid.GetHex());
-    }
+    if (!fWriteSuccess)
+        retMsg = strprintf("Write unconfirmed tx (%s) failed. Corrupted wallet?", txid.GetHex());
+    else
+        ::RelayTransaction(pTx, txid);
 
-    ::RelayTransaction(pTx, txid);
-
-    //xiaoyu 20191106
-    if(pTx->nTxType == WASM_CONTRACT_TX){
-        message = ret;
-    }
-    return std::make_tuple(flag, message);
+    return fWriteSuccess;
 
 }
 
