@@ -15,7 +15,7 @@
 
 bool ComputeRedeemScript(const uint8_t m, const uint8_t n, vector<string>& addresses, string &redeemScript);
 bool ComputeMultiSignKeyId(const string &redeemScript, CKeyID &keyId);
-bool ComputeUtxoMultisignHash(const TxID &prevUtxoTxId, uint16_t prevUtxoTxVoutIndex, const CKeyID &txUid, 
+bool ComputeUtxoMultisignHash(const TxID &prevUtxoTxId, uint16_t prevUtxoTxVoutIndex, const CKeyID &txUid,
                             string &redeemScript, uint256 &hash);
 
 ////////////////////////////////////////
@@ -47,6 +47,7 @@ public:
         READWRITE(fee_symbol);
         READWRITE(VARINT(llFees));
 
+        READWRITE(coin_symbol);
         READWRITE(vins);
         READWRITE(vouts);
 
@@ -56,7 +57,7 @@ public:
 
     virtual void SerializeForHash(CHashWriter &hw) const {
         hw << VARINT(nVersion) << uint8_t(nTxType) << VARINT(valid_height) << txUid << fee_symbol << VARINT(llFees)
-           << vins << vouts << memo;
+           << coin_symbol << vins << vouts << memo;
     }
 
     virtual std::shared_ptr<CBaseTx> GetNewInstance() const { return std::make_shared<CCoinUtxoTransferTx>(*this); }
@@ -64,6 +65,7 @@ public:
     virtual Object ToJson(const CAccountDBCache &accountCache) const {
         Object obj = CBaseTx::ToJson(accountCache);
 
+        obj.push_back(Pair("coin_symbol", db_util::ToString(coin_symbol)));
         obj.push_back(Pair("vins", db_util::ToString(vins)));
         obj.push_back(Pair("vouts", db_util::ToString(vouts)));
         obj.push_back(Pair("memo", memo));
@@ -74,9 +76,9 @@ public:
     virtual string ToString(CAccountDBCache &accountCache) {
         return strprintf(
                 "txType=%s, hash=%s, ver=%d, txUid=%s, fee_symbol=%s, llFees=%llu, "
-                "valid_height=%d, vins=[%s], vouts=[%s], memo=%s",
+                "valid_height=%d, coin_symbol=%s, vins=[%s], vouts=[%s], memo=%s",
                 GetTxType(nTxType), GetHash().ToString(), nVersion, txUid.ToString(), fee_symbol, llFees,
-                valid_height, db_util::ToString(vins), db_util::ToString(vouts), HexStr(memo));
+                valid_height, coin_symbol, db_util::ToString(vins), db_util::ToString(vouts), HexStr(memo));
     }
 
     virtual bool CheckTx(CTxExecuteContext &context);
