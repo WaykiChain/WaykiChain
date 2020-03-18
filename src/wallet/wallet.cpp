@@ -208,7 +208,7 @@ void CWallet::ResendWalletTransactions() {
 }
 
 //// Call after CreateTransaction unless you want to abort
-bool CWallet::CommitTx(const CBaseTx *pTx, string &retMsg) {
+bool CWallet::CommitTx(CBaseTx *pTx, string &retMsg) {
     LOCK2(cs_main, cs_wallet);
     LogPrint(BCLog::RPCCMD, "CommitTx() : %s\n", pTx->ToString(*pCdMan->pAccountCache));
 
@@ -229,7 +229,7 @@ bool CWallet::CommitTx(const CBaseTx *pTx, string &retMsg) {
     if (!fWriteSuccess) {
         retMsg = strprintf("Write unconfirmed tx (%s) failed. Corrupted wallet?", txid.GetHex());
     } else {
-        retMsg = txid;
+        retMsg = txid.ToString();
         ::RelayTransaction(pTx, txid);
     }
 
