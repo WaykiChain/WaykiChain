@@ -30,7 +30,7 @@ CCacheWrapper::CCacheWrapper(CCacheWrapper *cwIn) {
     dexCache.SetBaseViewPtr(&cwIn->dexCache);
     txReceiptCache.SetBaseViewPtr(&cwIn->txReceiptCache);
     txUtxoCache.SetBaseViewPtr(&cwIn->txUtxoCache);
-    axcCache.SetBaseViewPtr(&cwIn->pAxcCache);
+    axcCache.SetBaseViewPtr(&cwIn->axcCache);
 
     txCache.SetBaseViewPtr(&cwIn->txCache);
     ppCache.SetBaseViewPtr(&cwIn->ppCache);
@@ -204,7 +204,7 @@ CCacheDBManager::CCacheDBManager(bool fReIndex, bool fMemory) {
     pUtxoCache      = new CTxUTXODBCache(pUtxoDb);
 
     pAxcDb          = new CDBAccess(dbDir, DBNameType::AXC, false, fReIndex);
-    pAxcCache       = new CTxUTXODBCache(pAxcDb);
+    pAxcCache       = new CAxcDBCache(pAxcDb);
 
     pSysGovernDb    = new CDBAccess(dbDir, DBNameType::SYSGOVERN, false, fReIndex);
     pSysGovernCache = new CSysGovernDBCache(pSysGovernDb);
