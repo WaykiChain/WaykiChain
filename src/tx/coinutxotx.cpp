@@ -423,10 +423,10 @@ bool CCoinUtxoTransferTx::ExecuteTx(CTxExecuteContext &context) {
     }
 
     uint64_t totalOutAmount = 0;
-    uint8_t index = 0;
+    uint16_t index = 0;
     for (auto &output : vouts) {
         totalOutAmount += output.coin_amount;
-        auto utoxKey = std::make_pair(GetHash(), CFixedUInt16(index)));
+        auto utoxKey = std::make_pair(GetHash(), CFixedUInt16(index));
         if (!context.pCw->txUtxoCache.SetUtxoTx(utoxKey))
             return state.DoS(100, ERRORMSG("CCoinUtxoTransferTx::CheckTx, set utxo error!"), REJECT_INVALID, "set-utxo-err");
 
