@@ -51,6 +51,7 @@ enum TxType: uint8_t {
     CDP_LIQUIDATE_TX            = 23,   //!< CDP Liquidation Tx (partial or full)
 
     NICKID_REGISTER_TX          = 50,    //!< nickid register Tx
+    ACCOUNT_PERMS_CLEAR_TX      = 51,
 
     WASM_CONTRACT_TX            = 60,   //!< wasm contract tx
 
@@ -126,6 +127,7 @@ static const unordered_map<TxType, std::tuple<string, uint64_t, uint64_t, uint64
 { UTXO_PASSWORD_PROOF_TX,   std::make_tuple("UTXO_PASSWORD_PROOF_TX",   0,          0.001*COIN, 0.001*COIN, 0.001*COIN  ,true) },
 { UCOIN_REWARD_TX,          std::make_tuple("UCOIN_REWARD_TX",          0,          0,          0,          0           ,false) },
 { UCOIN_BLOCK_REWARD_TX,    std::make_tuple("UCOIN_BLOCK_REWARD_TX",    0,          0,          0,          0           ,false) },
+{ ACCOUNT_PERMS_CLEAR_TX,   std::make_tuple("ACCOUNT_PERMS_CLEAR_TX",   0,          0.001*COIN, 0.001*COIN, 0.001*COIN  ,true) },
 
 { UCONTRACT_DEPLOY_TX,      std::make_tuple("UCONTRACT_DEPLOY_TX",      0,          1*COIN,     1*COIN,     1*COIN      ,true) },
 { UCONTRACT_INVOKE_TX,      std::make_tuple("UCONTRACT_INVOKE_TX",      0,          0.01*COIN,  0.01*COIN,  0.01*COIN   ,true) }, //min fee

@@ -103,7 +103,7 @@ Value submitaccountregistertx(const Array& params, bool fHelp) {
 
 Value submitaccountpermscleartx(const Array& params, bool fHelp) {
     if (fHelp || params.size() < 1 || params.size() > 2)
-        throw runtime_error("submitaccountpermscleartx \"addr or regid\" \"nickid\" [\"fee\"]\n"
+        throw runtime_error("submitaccountpermscleartx \"addr\"  [\"fee\"]\n"
                             "\n clear self perms\n"
                             "\nArguments:\n"
                             "1.\"addr or regid\":  (string, required) the tx submitor's id\n"
@@ -111,11 +111,22 @@ Value submitaccountpermscleartx(const Array& params, bool fHelp) {
                             "\nResult:\n"
                             "\"txid\":      (string) The transaction id.\n"
                             "\nExamples:\n"
-                            + HelpExampleCli("submitaccountpermscleartx", "\"wTtCsc5X9S5XAy1oDuFiEAfEwf8bZHur1W\"  \"WICC:1000000:SAWI\"")
+                            + HelpExampleCli("submitaccountpermscleartx",
+                                             R"("wTtCsc5X9S5XAy1oDuFiEAfEwf8bZHur1W"  "WICC:1000000:SAWI")")
                             + "\nAs json rpc call\n"
-                            + HelpExampleRpc("submitaccountpermscleartx", "\"wTtCsc5X9S5XAy1oDuFiEAfEwf8bZHur1W\", \"WICC:1000000:SAWI\""));
+                            + HelpExampleRpc("submitaccountpermscleartx",
+                                             R"("wTtCsc5X9S5XAy1oDuFiEAfEwf8bZHur1W", "WICC:1000000:SAWI")"));
+    const CUserID& txUid = RPC_PARAM::GetUserId(params[0], true);
+    ComboMoney fee          = RPC_PARAM::GetFee(params, 1, ACCOUNT_PERMS_CLEAR_TX);
+    int32_t validHeight  = chainActive.Height();
 
-    return Object();
+    CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, txUid);
+    RPC_PARAM::CheckAccountBalance(account, fee.symbol, SUB_FREE, fee.GetAmountInSawi());
+
+    CAccountPermsClearTx tx(txUid, validHeight, fee.symbol, fee.GetAmountInSawi());
+
+    return SubmitTx(account.keyid,tx);
+
 }
 
 Value submitnickidregistertx(const Array& params, bool fHelp) {
@@ -535,7 +546,8 @@ Value listaddr(const Array& params, bool fHelp) {
 }
 
 Value listtx(const Array& params, bool fHelp) {
-if (fHelp || params.size() > 2) {
+
+    if (fHelp || params.size() > 2) {
         throw runtime_error("listtx\n"
                 "\nget all confirmed transactions and all unconfirmed transactions from wallet.\n"
                 "\nArguments:\n"

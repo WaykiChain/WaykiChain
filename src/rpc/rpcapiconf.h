@@ -96,6 +96,7 @@ static const CRPCCommand vRPCCommands[] =
     { "submitutxotransfertx",           &submitutxotransfertx,              false,      false,      true    },
     { "submitaccountregistertx",        &submitaccountregistertx,           false,      false,      true    },
     { "submitnickidregistertx",         &submitnickidregistertx,            false,      false,      true    },
+    { "submitaccountpermscleartx",      &submitaccountpermscleartx,         false,      false,      true    },
 
     { "submitcontractdeploytx",         &submitcontractdeploytx,            false,      false,      true    },
     { "submitcontractcalltx",           &submitcontractcalltx,              false,      false,      true    },

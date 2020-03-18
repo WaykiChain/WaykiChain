@@ -19,6 +19,7 @@ class CBaseTx;
 
 extern Value submitaccountregistertx(const Array& params, bool fHelp);
 extern Value submitnickidregistertx(const Array& params, bool fHelp);
+extern Value submitaccountpermscleartx(const Array& params, bool fHelp);
 extern Value submitcontractdeploytx(const Array& params, bool fHelp);
 extern Value submitcontractcalltx(const Array& params, bool fHelp);
 extern Value submitdelegatevotetx(const Array& params, bool fHelp);
