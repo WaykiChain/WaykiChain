@@ -121,7 +121,7 @@ public:
     bool AddFeedCoinPair(TokenSymbol baseSymbol, TokenSymbol quoteSymbol) ;
     bool EraseFeedCoinPair(TokenSymbol baseSymbol, TokenSymbol quoteSymbol) ;
     bool HasFeedCoinPair(TokenSymbol baseSymbol,TokenSymbol quoteSymbol) ;
-    bool GetFeedCoinPairs(set<pair<TokenSymbol,TokenSymbol>>& coinSet) ;
+    bool GetFeedCoinPairs(set<PriceCoinPair>& coinPairSet);
 
     bool CheckIsPriceFeeder(const CRegID &candidateRegId) ;
     bool SetPriceFeeders(const vector<CRegID> &governors) ;

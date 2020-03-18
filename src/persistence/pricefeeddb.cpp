@@ -279,11 +279,15 @@ CMedianPriceDetail CPricePointMemCache::ComputeBlockMedianPrice(const int32_t bl
     //              item.first, price);
     // }
 
+    CMedianPriceDetail priceDetail;
     vector<uint64_t> prices;
     int32_t beginBlockHeight = std::max<int32_t>((blockHeight - slideWindow), 0);
     for (int32_t height = blockHeight; height > beginBlockHeight; --height) {
         const auto &iter = blockUserPrices.find(height);
         if (iter != blockUserPrices.end()) {
+            if (height == blockHeight)
+                priceDetail.last_feed_height = blockHeight; // current block has price feed
+
             for (const auto &userPrice : iter->second) {
                 prices.push_back(userPrice.second);
             }
@@ -294,7 +298,6 @@ CMedianPriceDetail CPricePointMemCache::ComputeBlockMedianPrice(const int32_t bl
     //     LogPrint(BCLog::PRICEFEED, "CPricePointMemCache::ComputeBlockMedianPrice, found a candidate price: %llu\n", item);
     // }
 
-    CMedianPriceDetail priceDetail;
     priceDetail.price = ComputeMedianNumber(prices);
     LogPrint(BCLog::PRICEFEED,
              "CPricePointMemCache::ComputeBlockMedianPrice, blockHeight: %d, computed median number: %llu\n",
@@ -361,17 +364,38 @@ bool CPricePointMemCache::CalcMedianPriceDetails(CCacheWrapper &cw, const int32_
 
     latest_median_prices = cw.priceFeedCache.GetMedianPrices();
 
-    PriceCoinPair bcoinPricePair(SYMB::WICC, SYMB::USD);
-    CMedianPriceDetail bcoinMedianPrice = GetMedianPrice(blockHeight, slideWindow, bcoinPricePair);
-    medianPrices.emplace(bcoinPricePair, bcoinMedianPrice);
-    LogPrint(BCLog::PRICEFEED, "CPricePointMemCache::CalcBlockMedianPrices, blockHeight=%d, price: %s/%s -> %llu\n",
-             blockHeight, SYMB::WICC, SYMB::USD, bcoinMedianPrice.price);
+    set<PriceCoinPair> coinPairSet;
+    if (cw.priceFeedCache.GetFeedCoinPairs(coinPairSet)) {
+        // check the base asset has price feed permission
+        for (auto it = coinPairSet.begin(); it != coinPairSet.end(); ) {
+            CAsset asset;
+            if (!cw.assetCache.GetAsset(it->first, asset)) {
+                return ERRORMSG("%s(), the asset of base_symbol=%s not exist", __func__, it->first);
+            }
+            if (!asset.HasPerms(AssetPermType::PERM_PRICE_FEED)) {
+                LogPrint(BCLog::PRICEFEED, "%s(), the asset of base_symbol=%s not have PERM_PRICE_FEED",
+                        __func__, it->first);
+                it = coinPairSet.erase(it);
+                continue;
+            }
+            it++;
+        }
+    }
+    // get hard code PriceFeedCoinPairs
+    coinPairSet.insert(kPriceFeedCoinPairSet.begin(), kPriceFeedCoinPairSet.end());
 
-    PriceCoinPair fcoinPricePair(SYMB::WGRT, SYMB::USD);
-    CMedianPriceDetail fcoinMedianPrice = GetMedianPrice(blockHeight, slideWindow, fcoinPricePair);
-    medianPrices.emplace(fcoinPricePair, fcoinMedianPrice);
-    LogPrint(BCLog::PRICEFEED, "CPricePointMemCache::CalcBlockMedianPrices, blockHeight=%d, price: %s/%s -> %llu\n",
-             blockHeight, SYMB::WGRT, SYMB::USD, fcoinMedianPrice.price);
+    for (const auto& item : coinPairSet) {
+        PriceCoinPair bcoinPricePair(SYMB::WICC, SYMB::USD);
+        CMedianPriceDetail bcoinMedianPrice = GetMedianPrice(blockHeight, slideWindow, item);
+        if (bcoinMedianPrice.price == 0) {
+            LogPrint(BCLog::PRICEFEED, "%s(), calc median price=0 of coin_pair={%s}, ignore, height=%d\n",
+                    __func__, CoinPairToString(item), blockHeight);
+            continue;
+        }
+        medianPrices.emplace(bcoinPricePair, bcoinMedianPrice);
+        LogPrint(BCLog::PRICEFEED, "%s(), calc median price=%llu of coin_pair={%s}, height=%d\n",
+                blockHeight, bcoinMedianPrice.price, CoinPairToString(item), blockHeight);
+    }
 
     return true;
 }
@@ -407,10 +431,10 @@ bool CPriceFeedCache::AddFeedCoinPair(TokenSymbol baseSymbol, TokenSymbol quoteS
 
     set<PriceCoinPair> coinPairs;
     price_feed_coin_pairs_cache.GetData(coinPairs);
-    if(coinPairs.count(make_pair(baseSymbol, quoteSymbol)) > 0 )
+    if(coinPairs.count(PriceCoinPair(baseSymbol, quoteSymbol)) > 0 )
         return true;
 
-    coinPairs.insert(make_pair(baseSymbol, quoteSymbol));
+    coinPairs.insert(PriceCoinPair(baseSymbol, quoteSymbol));
     return price_feed_coin_pairs_cache.SetData(coinPairs);
 }
 
@@ -419,7 +443,7 @@ bool CPriceFeedCache::EraseFeedCoinPair(TokenSymbol baseSymbol, TokenSymbol quot
     if((baseSymbol == SYMB::WICC || baseSymbol == SYMB::WGRT) && quoteSymbol == SYMB::USD)
         return true ;
 
-    auto coinPair = std::make_pair(baseSymbol, quoteSymbol);
+    PriceCoinPair coinPair(baseSymbol, quoteSymbol);
     set<PriceCoinPair> coins ;
     price_feed_coin_pairs_cache.GetData(coins);
     if(coins.count(coinPair) == 0 )
@@ -435,13 +459,12 @@ bool CPriceFeedCache::HasFeedCoinPair(TokenSymbol baseSymbol,TokenSymbol quoteSy
     if((baseSymbol == SYMB::WICC || baseSymbol == SYMB::WGRT) && quoteSymbol == SYMB::USD)
         return true ;
 
-    set<pair<TokenSymbol, TokenSymbol>> coins ;
+    set<PriceCoinPair> coins ;
     price_feed_coin_pairs_cache.GetData(coins);
     return (coins.count(make_pair(baseSymbol,quoteSymbol)) != 0 ) ;
 }
 
 bool CPriceFeedCache::GetFeedCoinPairs(set<PriceCoinPair>& coinPairSet) {
-    coinPairSet.insert(kPriceFeedCoinPairSet.begin(), kPriceFeedCoinPairSet.end());
-    price_feed_coin_pairs_cache.GetData(coinPairSet) ;
+    price_feed_coin_pairs_cache.GetData(coinPairSet);
     return true ;
 }
