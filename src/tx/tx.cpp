@@ -285,15 +285,14 @@ bool CBaseTx::CheckTxAvailableFromVer(CTxExecuteContext &context, FeatureForkVer
 }
 
 bool CBaseTx::VerifySignature(CTxExecuteContext &context, const CPubKey &pubkey) {
-    if (!CheckSignatureSize(signature)) {
+    if (!CheckSignatureSize(signature))
         return context.pState->DoS(100, ERRORMSG("%s, tx signature size invalid", BASE_TX_TITLE), REJECT_INVALID,
                          "bad-tx-sig-size");
-    }
+
     uint256 sighash = GetHash();
-    if (!::VerifySignature(sighash, signature, pubkey)) {
-        return context.pState->DoS(100, ERRORMSG("%s, tx signature error", BASE_TX_TITLE),
-            REJECT_INVALID, "bad-tx-signature");
-    }
+    if (!::VerifySignature(sighash, signature, pubkey))
+        return context.pState->DoS(100, ERRORMSG("%s, tx signature error", BASE_TX_TITLE), REJECT_INVALID, "bad-tx-signature");
+
     return true ;
 }
 

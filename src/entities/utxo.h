@@ -314,19 +314,19 @@ struct CUtxoCondStorageBean {
 
             case UtxoCondType::OP2SA: {
                 sp_utxo_cond = std::make_shared<CSingleAddressCondOut>();
-                ::Unserialize(is, *((CSingleAddressCondIn *)(sp_utxo_cond.get())), nType, nVersion);
+                ::Unserialize(is, *((CSingleAddressCondOut *)(sp_utxo_cond.get())), nType, nVersion);
                 break;
             }
 
             case UtxoCondType::OP2MA: {
                 sp_utxo_cond = std::make_shared<CMultiSignAddressCondOut>();
-                ::Unserialize(is, *((CMultiSignAddressCondIn *)(sp_utxo_cond.get())), nType, nVersion);
+                ::Unserialize(is, *((CMultiSignAddressCondOut *)(sp_utxo_cond.get())), nType, nVersion);
                 break;
             }
 
             case UtxoCondType::OP2PH: {
                 sp_utxo_cond = std::make_shared<CPasswordHashLockCondOut>();
-                ::Unserialize(is, *((CPasswordHashLockCondIn *)(sp_utxo_cond.get())), nType, nVersion);
+                ::Unserialize(is, *((CPasswordHashLockCondOut *)(sp_utxo_cond.get())), nType, nVersion);
                 break;
             }
 
