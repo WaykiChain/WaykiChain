@@ -146,12 +146,17 @@ bool CBlockPriceMedianTx::ForceLiquidateCdps(CTxExecuteContext &context, PriceDe
         CAsset asset;
         const TokenSymbol &bcoinSymbol = item.first.first;
         const TokenSymbol &quoteSymbol = item.first.second;
+
         TokenSymbol scoinSymbol = GetCdpScoinByQuoteSymbol(quoteSymbol);
         if (scoinSymbol.empty()) {
             LogPrint(BCLog::CDP, "%s(), quote_symbol=%s not have a corresponding scoin , ignore",
                      __func__, bcoinSymbol);
             continue;
         }
+
+        // TODO: remove me if need to support multi scoin and improve the force liquidate process
+        if (scoinSymbol != SYMB::WUSD)
+            throw runtime_error(strprintf("%s(), only support to force liquidate scoin=WUSD", __func__));
 
         if (!cw.assetCache.GetAsset(bcoinSymbol, asset)) {
             return state.DoS(100, ERRORMSG("%s(), the asset of base_symbol=%s not exist", __func__, bcoinSymbol),

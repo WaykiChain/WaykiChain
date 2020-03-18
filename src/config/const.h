@@ -78,7 +78,9 @@ static const unordered_set<string> kCdpBcoinSymbolSet = {
 };
 // hard code below only
 static const unordered_set<string> kCdpScoinSymbolSet = {
-    SYMB::WUSD, SYMB::WCNY
+    SYMB::WUSD,
+    // TODO: if need to support multi scoin, should improve the force liquidate process first
+    //SYMB::WCNY
 };
 
 //can be expanded thru DeGov
