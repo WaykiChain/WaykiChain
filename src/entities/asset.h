@@ -140,6 +140,14 @@ inline const TokenSymbol GetQuoteSymbolByCdpScoin(const TokenSymbol &scoinSymbol
         return TokenSymbol(EMPTY_STRING);
 }
 
+inline TokenSymbol GetCdpScoinByQuoteSymbol(const TokenSymbol &quoteSymbol) {
+    TokenSymbol scoinSymbol = "W" + quoteSymbol;
+    if (kCdpScoinSymbolSet.count(scoinSymbol) > 0)
+        return quoteSymbol;
+    else
+        return "";
+}
+
 struct ComboMoney {
     TokenSymbol     symbol;     //E.g. WICC
     uint64_t        amount;

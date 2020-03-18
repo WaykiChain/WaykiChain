@@ -72,7 +72,7 @@ public:
 class CMedianPriceDetail {
 public:
     uint64_t price = 0;
-    uint32_t last_feed_height = 0;
+    HeightType last_feed_height = 0;
 
     IMPLEMENT_SERIALIZE(
         READWRITE(VARINT(price));

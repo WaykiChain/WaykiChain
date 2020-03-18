@@ -145,6 +145,7 @@ public:
         median_prices = mapMedianPricesIn;
     }
 private:
+    bool ForceLiquidateCdps(CTxExecuteContext &context, PriceDetailMap &priceDetails);
     bool EqualToCalculatedPrices(const PriceDetailMap &calcPrices);
 };
 
