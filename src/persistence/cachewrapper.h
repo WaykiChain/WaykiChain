@@ -19,6 +19,7 @@
 #include "txdb.h"
 #include "txreceiptdb.h"
 #include "txutxodb.h"
+#include "axcdb.h"
 #include "sysgoverndb.h"
 #include "logdb.h"
 

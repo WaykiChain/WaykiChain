@@ -139,6 +139,7 @@ coin_CORE_H = \
   net.h \
   nodeinfo.h \
   persistence/assetdb.h \
+  persistence/axcdb.h \
   persistence/leveldbwrapper.h \
   persistence/accountdb.h \
   persistence/block.h \
