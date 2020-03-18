@@ -394,11 +394,8 @@ bool CCoinUtxoTransferTx::ExecuteTx(CTxExecuteContext &context) {
         return false;
     }
 
-    vector<CReceipt> receipts;
-
     uint64_t totalInAmount = 0;
-    uint64_t totalOutAmount = 0;
-    for (auto input : vins) {
+    for (auto &input : vins) {
         if (!context.pCw->txUtxoCache.GetUtxoTx(std::make_pair(input.prev_utxo_txid, CFixedUInt16(input.prev_utxo_vout_index))))
             return state.DoS(100, ERRORMSG("CCoinUtxoTransferTx::CheckTx, prev utxo already spent error!"), REJECT_INVALID,
                             "double-spend-prev-utxo-err");
@@ -424,8 +421,8 @@ bool CCoinUtxoTransferTx::ExecuteTx(CTxExecuteContext &context) {
         }
     }
 
-    for (size_t i = 0; i < vouts.size(); i++) {
-        CUtxoOutput output = vouts[i];
+    uint64_t totalOutAmount = 0;
+    for (auto &output : vouts) {
         totalOutAmount += output.coin_amount;
 
         if (!context.pCw->txUtxoCache.SetUtxoTx(std::make_pair(GetHash(), CFixedUInt16(i))))
@@ -433,24 +430,28 @@ bool CCoinUtxoTransferTx::ExecuteTx(CTxExecuteContext &context) {
     }
 
     uint64_t accountBalance = srcAccount.GetBalance(coin_symbol, BalanceType::FREE_VALUE);
-    if (accountBalance + totalInAmount < totalOutAmount + llFees) {
+    if (accountBalance + totalInAmount < totalOutAmount + llFees)
         return state.DoS(100, ERRORMSG("CCoinUtxoTransferTx::CheckTx, account balance coin_amount insufficient!"), REJECT_INVALID,
                         "insufficient-account-coin-amount");
-    }
+
+    vector<CReceipt> receipts;
     int diff = totalInAmount - totalOutAmount - llFees;
     if (diff < 0) {
         if (!srcAccount.OperateBalance(coin_symbol, SUB_FREE, abs(diff))) {
             return state.DoS(100, ERRORMSG("CCoinUtxoTransferTx::ExecuteTx, failed to deduct coin_amount in txUid %s account",
                             txUid.ToString()), UPDATE_ACCOUNT_FAIL, "insufficient-fund-utxo");
         }
-        receipts.emplace_back(txUid, CNullID(), coin_symbol, abs(diff), ReceiptCode::TRANSFER_UTXO_COINS);
     } else if (diff > 0) {
         if (!srcAccount.OperateBalance(coin_symbol, ADD_FREE, diff)) {
             return state.DoS(100, ERRORMSG("CCoinUtxoTransferTx::ExecuteTx, failed to add coin_amount in txUid %s account",
                             txUid.ToString()), UPDATE_ACCOUNT_FAIL, "insufficient-fund-utxo");
         }
-        receipts.emplace_back(CNullID(), txUid, coin_symbol, abs(diff), ReceiptCode::TRANSFER_UTXO_COINS);
     }
+
+    if (totalInAmount > totalOutAmount)
+        receipts.emplace_back(CNullID(), txUid, coin_symbol, (totalInAmount - totalOutAmount), ReceiptCode::TRANSFER_UTXO_COINS);
+    else if (totalInAmount < totalOutAmount)
+        receipts.emplace_back(txUid, CNullID(), coin_symbol, (totalOutAmount - totalInAmount), ReceiptCode::TRANSFER_UTXO_COINS);
 
     if (!cw.accountCache.SaveAccount(srcAccount))
         return state.DoS(100, ERRORMSG("CCoinUtxoTransferTx::ExecuteTx, write source addr %s account info error",
