@@ -194,11 +194,11 @@ void CWallet::ResendWalletTransactions() {
             continue;
         }
         std::shared_ptr<CBaseTx> pBaseTx = te.second->GetNewInstance();
-        auto ret                         = CommitTx(&(*pBaseTx.get()));
-        if (!std::get<0>(ret)) {
+        string regMsg;
+        if (!CommitTx(&(*pBaseTx.get()), regMsg)) {
             erase.push_back(te.first);
-            LogPrint(BCLog::WALLET, "abort invalid tx %s reason:%s\n", te.second.get()->ToString(*pCdMan->pAccountCache),
-                     std::get<1>(ret));
+            LogPrint(BCLog::RPCCMD, "abort invalid tx %s reason:%s\n", te.second.get()->ToString(*pCdMan->pAccountCache),
+                     regMsg);
         }
     }
     for (auto const &tee : erase) {
@@ -220,18 +220,18 @@ bool CWallet::CommitTx(const CBaseTx *pTx, string &retMsg) {
             LogPrint(BCLog::RPCCMD, "CommitTx() : invalid transaction %s\n", retMsg);
             return false;
         }
-
-        retMsg =  state.GetReturn();
     }
 
     uint256 txid        = pTx->GetHash();
     unconfirmedTx[txid] = pTx->GetNewInstance();
     bool fWriteSuccess  = CWalletDB(strWalletFile).WriteUnconfirmedTx(txid, unconfirmedTx[txid]);
 
-    if (!fWriteSuccess)
+    if (!fWriteSuccess) {
         retMsg = strprintf("Write unconfirmed tx (%s) failed. Corrupted wallet?", txid.GetHex());
-    else
+    } else {
+        retMsg = txid;
         ::RelayTransaction(pTx, txid);
+    }
 
     return fWriteSuccess;
 

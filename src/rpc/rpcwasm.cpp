@@ -82,7 +82,7 @@ void read_file_limit(const string& path, string& data, uint64_t max_size){
         size_t size = f.tellg();
 
         CHAIN_ASSERT( size != 0,        wasm_chain::file_read_exception, "file is empty")
-        CHAIN_ASSERT( size <= max_size, wasm_chain::file_read_exception, 
+        CHAIN_ASSERT( size <= max_size, wasm_chain::file_read_exception,
                       "file is larger than max limited '%d' bytes", MAX_CONTRACT_CODE_SIZE)
         //if (size == 0 || size > max_size) return false;
         f.seekg(pos);
@@ -146,7 +146,7 @@ void get_contract( CAccountDBCache*   database_account,
     //JSON_RPC_ASSERT(database_contract->HaveContract(contract.regid),                RPC_WALLET_ERROR,  strprintf("Cannot get contract %s", contract_name.to_string().c_str()))
     CHAIN_ASSERT( database_contract->GetContract(contract.regid, contract_store),
                   wasm_chain::account_access_exception,
-                  "cannot get contract '%s'", 
+                  "cannot get contract '%s'",
                   contract_name.to_string())
     CHAIN_ASSERT( contract_store.vm_type == VMType::WASM_VM,
                   wasm_chain::vm_type_mismatch, "vm type must be wasm VM")
@@ -179,7 +179,7 @@ Value submitwasmcontractdeploytx( const Array &params, bool fHelp ) {
             auto              authorizer_name = wasm::name(params[0].get_str());
             const ComboMoney& fee        = RPC_PARAM::GetFee(params, 4, TxType::WASM_CONTRACT_TX);
 
-            CHAIN_ASSERT( database->GetAccount(nick_name(authorizer_name.value), authorizer), 
+            CHAIN_ASSERT( database->GetAccount(nick_name(authorizer_name.value), authorizer),
                           wasm_chain::account_access_exception,
                           "authorizer '%s' does not exist ",
                           authorizer_name.to_string().c_str())
@@ -194,14 +194,15 @@ Value submitwasmcontractdeploytx( const Array &params, bool fHelp ) {
                                              wasm::pack(std::tuple(contract.value, code, abi, ""))});
 
             tx.signatures.push_back({authorizer_name.value, vector<uint8_t>()});
-            CHAIN_ASSERT( wallet->Sign(authorizer.keyid, tx.GetHash(), tx.signature), 
+            CHAIN_ASSERT( wallet->Sign(authorizer.keyid, tx.GetHash(), tx.signature),
                           wasm_chain::wallet_sign_exception, "wallet sign error")
 
             tx.set_signature({authorizer_name.value, tx.signature});
         }
 
-        std::tuple<bool, string> ret = wallet->CommitTx((CBaseTx * ) & tx);
-        JSON_RPC_ASSERT(std::get<0>(ret), RPC_WALLET_ERROR, std::get<1>(ret))
+        string retMsg;
+        bool fSuccess = wallet->CommitTx((CBaseTx * ) & tx, regMsg);
+        JSON_RPC_ASSERT(fSuccess, RPC_WALLET_ERROR, regMsg);
 
         // Object obj_return;
         // json_spirit::Config::add(obj_return, "txid", std::get<1>(ret) );
@@ -220,7 +221,7 @@ Value submitwasmcontractdeploytx( const Array &params, bool fHelp ) {
                 break;
             }
         }
-        //}    
+        //}
 
         json_spirit::Config::add(obj_return, "trx_id", v_trx_id );
         return obj_return;
@@ -252,7 +253,7 @@ Value submitwasmcontractcalltx( const Array &params, bool fHelp ) {
         CHAIN_ASSERT( wallet != NULL, wasm_chain::wallet_not_available_exception, "wallet error" )
         EnsureWalletIsUnlocked();
         CWasmContractTx tx;
-        {      
+        {
             CAccount authorizer;
             auto     authorizer_name   = wasm::name(params[0].get_str());
 
@@ -261,10 +262,10 @@ Value submitwasmcontractcalltx( const Array &params, bool fHelp ) {
                         "authorizer '%s' does not exist",authorizer_name.to_string())
 
             std::vector<char> action_data(params[3].get_str().begin(), params[3].get_str().end());
-            CHAIN_ASSERT( !action_data.empty() && action_data.size() < MAX_CONTRACT_ARGUMENT_SIZE, 
+            CHAIN_ASSERT( !action_data.empty() && action_data.size() < MAX_CONTRACT_ARGUMENT_SIZE,
                           wasm_chain::inline_transaction_data_size_exceeds_exception, "inline transaction data is empty or out of size")
 
-            if( abi.size() > 0 ) 
+            if( abi.size() > 0 )
                 action_data = wasm::abi_serializer::pack(abi, action.to_string(), params[3].get_str(), max_serialization_time);
 
             ComboMoney fee  = RPC_PARAM::GetFee(params, 4, TxType::WASM_CONTRACT_TX);
@@ -279,7 +280,7 @@ Value submitwasmcontractcalltx( const Array &params, bool fHelp ) {
             tx.inline_transactions.push_back({contract_name.value, action.value, std::vector<permission>{{authorizer_name.value, wasmio_owner}}, action_data});
 
             tx.signatures.push_back({authorizer_name.value, vector<uint8_t>()});
-            CHAIN_ASSERT( wallet->Sign(authorizer.keyid, tx.GetHash(), tx.signature), 
+            CHAIN_ASSERT( wallet->Sign(authorizer.keyid, tx.GetHash(), tx.signature),
                           wasm_chain::wallet_sign_exception, "wallet sign error")
             tx.set_signature({authorizer_name.value, tx.signature});
         }
@@ -311,7 +312,7 @@ Value gettablewasm( const Array &params, bool fHelp ) {
         // JSON_RPC_ASSERT(!is_native_contract(contract_name.value), RPC_INVALID_PARAMS,
         //                 "cannot get table from native contract '%s'", contract_name.to_string())
 
-        CHAIN_ASSERT( !is_native_contract(contract_name.value), wasm_chain::native_contract_access_exception, 
+        CHAIN_ASSERT( !is_native_contract(contract_name.value), wasm_chain::native_contract_access_exception,
                     "cannot get table from native contract '%s'", contract_name.to_string() )
 
         CAccount contract;
@@ -329,7 +330,7 @@ Value gettablewasm( const Array &params, bool fHelp ) {
         auto pContractDataIt = database_contract->CreateContractDataIterator(contract.regid, search_key);
         // JSON_RPC_ASSERT(pContractDataIt, RPC_INVALID_PARAMS,
         //                 "cannot get table from contract '%s'", contract_name.to_string())
-        CHAIN_ASSERT( pContractDataIt, wasm_chain::table_not_found, 
+        CHAIN_ASSERT( pContractDataIt, wasm_chain::table_not_found,
                       "cannot get table '%s' from contract '%s'", contract_table.to_string(), contract_name.to_string() )
 
         bool                hasMore = false;
@@ -444,7 +445,7 @@ Value getcodewasm( const Array &params, bool fHelp ) {
         // JSON_RPC_ASSERT(!is_native_contract(contract_name.value),
         //                 RPC_INVALID_PARAMS,
         //                 "cannot get code from native contract '%s'", contract_name.to_string())
-        CHAIN_ASSERT( !is_native_contract(contract_name.value), wasm_chain::native_contract_access_exception, 
+        CHAIN_ASSERT( !is_native_contract(contract_name.value), wasm_chain::native_contract_access_exception,
                       "cannot get code from native contract '%s'", contract_name.to_string() )
 
 
@@ -470,7 +471,7 @@ Value getabiwasm( const Array &params, bool fHelp ) {
         auto database_contract = pCdMan->pContractCache;
         auto contract_name     = wasm::name(params[0].get_str());
 
-        CHAIN_ASSERT( !is_native_contract(contract_name.value), wasm_chain::native_contract_access_exception, 
+        CHAIN_ASSERT( !is_native_contract(contract_name.value), wasm_chain::native_contract_access_exception,
                       "cannot get abi from native contract '%s'", contract_name.to_string() )
 
         vector<char>       abi;
@@ -548,4 +549,3 @@ Value abidefjsontobinwasm( const Array &params, bool fHelp ) {
     } JSON_RPC_CAPTURE_AND_RETHROW;
 
 }
-

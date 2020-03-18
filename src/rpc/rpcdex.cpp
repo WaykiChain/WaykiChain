@@ -156,14 +156,12 @@ Object SubmitOrderTx(const CKeyID &txKeyid, const DexOperatorDetail &operatorDet
         }
     }
 
-    std::tuple<bool, string> ret = pWalletMain->CommitTx(pBaseTx.get());
-    if (!std::get<0>(ret)) {
-        throw JSONRPCError(RPC_WALLET_ERROR,
-                           strprintf("SubmitTx failed: txid=%s, %s", pBaseTx->GetHash().GetHex(), std::get<1>(ret)));
-    }
+    string regMsg;
+    if (!pWalletMain->CommitTx(pBaseTx.get(), regMsg))
+        throw JSONRPCError(RPC_WALLET_ERROR, strprintf("SubmitTx failed: txid=%s, %s", pBaseTx->GetHash().GetHex(), regMsg));
 
     Object obj;
-    obj.push_back(Pair("txid", std::get<1>(ret)));
+    obj.push_back( Pair("txid",retMsg) );
 
     return obj;
 }

@@ -232,14 +232,12 @@ Object SubmitTx(const CKeyID &keyid, CBaseTx &tx) {
         throw JSONRPCError(RPC_WALLET_ERROR, "Sign failed");
     }
 
-    std::tuple<bool, string> ret = pWalletMain->CommitTx((CBaseTx *)&tx);
-    if (!std::get<0>(ret)) {
-        throw JSONRPCError(RPC_WALLET_ERROR,
-                           strprintf("SubmitTx failed: txid=%s, %s", tx.GetHash().GetHex(), std::get<1>(ret)));
-    }
+    string regMsg;
+    if (!pWalletMain->CommitTx((CBaseTx *)&tx, regMsg))
+        throw JSONRPCError(RPC_WALLET_ERROR, strprintf("SubmitTx failed: txid=%s, %s", tx.GetHash().GetHex(), retMsg));
 
     Object obj;
-    obj.push_back(Pair("txid", std::get<1>(ret)));
+    obj.push_back(Pair("txid", regMsg);
 
     return obj;
 }

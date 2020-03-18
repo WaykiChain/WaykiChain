@@ -136,7 +136,7 @@ public:
 
     static CWallet* GetInstance();
 
-    std::tuple<bool,string>  CommitTx(CBaseTx *pTx);
+    bool CommitTx(const CBaseTx *pTx, string &retMsg); //retMsg is TxID when successful
 };
 
 /** Private key that includes an expiration date in case it never gets used. */

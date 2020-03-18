@@ -965,13 +965,13 @@ Value submittxraw(const Array& params, bool fHelp) {
 
     std::shared_ptr<CBaseTx> tx;
     stream >> tx;
-    std::tuple<bool, string> ret;
-    ret = pWalletMain->CommitTx((CBaseTx *) tx.get());
-    if (!std::get<0>(ret))
-        throw JSONRPCError(RPC_WALLET_ERROR, "Submittxraw error: " + std::get<1>(ret));
+
+    string regMsg;
+    if (!pWalletMain->CommitTx((CBaseTx *) tx.get(), regMsg))
+        throw JSONRPCError(RPC_WALLET_ERROR, "Submittxraw error: " + regMsg);
 
     Object obj;
-    obj.push_back(Pair("txid", std::get<1>(ret)));
+    obj.push_back( Pair("txid", retMsg) );
     return obj;
 }
 
