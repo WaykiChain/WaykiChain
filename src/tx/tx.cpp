@@ -183,8 +183,13 @@ bool CBaseTx::CheckBaseTx(CTxExecuteContext &context) {
         if (kTxTypePermMap.find(nTxType) == kTxTypePermMap.end())
             return true;
 
-        return ((txAccount.perms_sum & kTxTypePermMap.at(nTxType)) > 0);
+        if (txAccount.perms_sum == 0 || (txAccount.perms_sum & kTxTypePermMap.at(nTxType)) == 0) {
+            return state.DoS(100, ERRORMSG("CheckBaseTx::CheckTx, txUid don't have perm ",
+                                           txUid.ToString()), READ_ACCOUNT_FAIL, "account-perm-deny");
+        }
+
     }
+    return true;
 }
 
 bool CBaseTx::CheckTxFeeSufficient(const TokenSymbol &feeSymbol, const uint64_t llFees, const int32_t height) const {

@@ -9,7 +9,6 @@
 
 #include "tx.h"
 
-
 class CNickIdRegisterTx : public CBaseTx {
 public:
     string nickId;
@@ -37,12 +36,12 @@ public:
            << VARINT(llFees);
     }
 
-    virtual std::shared_ptr<CBaseTx> GetNewInstance() const { return std::make_shared<CNickIdRegisterTx>(*this); }
-    virtual string ToString(CAccountDBCache &accountCache);
-    virtual Object ToJson(const CAccountDBCache &accountCache) const;
+    std::shared_ptr<CBaseTx> GetNewInstance() const { return std::make_shared<CNickIdRegisterTx>(*this); }
+    string ToString(CAccountDBCache &accountCache);
+    Object ToJson(const CAccountDBCache &accountCache) const;
 
-    virtual bool CheckTx(CTxExecuteContext &context);
-    virtual bool ExecuteTx(CTxExecuteContext &context);
+    bool CheckTx(CTxExecuteContext &context);
+    bool ExecuteTx(CTxExecuteContext &context);
 };
 
 #endif
