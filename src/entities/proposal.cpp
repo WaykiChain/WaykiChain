@@ -486,7 +486,7 @@ bool CGovAxcInProposal::CheckProposal(CTxExecuteContext& context ) {
     uint64_t mintAmount = 0;
     if (cw.axcCache.GetSwapInMintRecord(peer_chain_type, peer_chain_txid, mintAmount))
         return state.DoS(100, ERRORMSG("CGovAxcInProposal::CheckProposal: GetSwapInMintRecord existing err %s",
-                        REJECT_INVALID, "get_swapin_mint_record-err");
+                        REJECT_INVALID, "get_swapin_mint_record-err"));
     return true;
 }
 bool CGovAxcInProposal::ExecuteProposal(CTxExecuteContext& context, const TxID& proposalId) {
@@ -520,12 +520,11 @@ bool CGovAxcInProposal::ExecuteProposal(CTxExecuteContext& context, const TxID& 
     uint64_t mintAmount = 0;
     if (cw.axcCache.GetSwapInMintRecord(peer_chain_type, peer_chain_txid, mintAmount))
         return state.DoS(100, ERRORMSG("CGovAxcInProposal::CheckProposal: GetSwapInMintRecord existing err %s",
-                        REJECT_INVALID, "get_swapin_mint_record-err");
+                        REJECT_INVALID, "get_swapin_mint_record-err"));
 
-    uint64_t mintAmount = swap_amount_after_fees;
-    if (!cw.axcCache.SetSwapInMintRecord(peer_chain_type, peer_chain_txid, mintAmount))
+    if (!cw.axcCache.SetSwapInMintRecord(peer_chain_type, peer_chain_txid, swap_amount_after_fees))
         return state.DoS(100, ERRORMSG("CGovAxcInProposal::CheckProposal: GetSwapInMintRecord existing err %s",
-                        REJECT_INVALID, "get_swapin_mint_record-err");
+                        REJECT_INVALID, "get_swapin_mint_record-err"));
 
     return true;
 }
