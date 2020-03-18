@@ -1,0 +1,76 @@
+// Copyright (c) 2009-2010 Satoshi Nakamoto
+// Copyright (c) 2017-2019 The WaykiChain Developers
+// Distributed under the MIT/X11 software license, see the accompanying
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
+#ifndef PERSIST_AXCDB_H
+#define PERSIST_AXCDB_H
+
+#include <cstdint>
+#include <unordered_set>
+#include <string>
+#include <cstdint>
+#include <tuple>
+#include <algorithm>
+
+#include "commons/serialize.h"
+#include "dbaccess.h"
+#include "entities/proposal.h"
+
+using namespace std;
+
+class CAxcDBCache {
+public:
+    CAxcDBCache() {}
+    CAxcDBCache(CDBAccess *pDbAccess) : axc_swapin_cache(pDbAccess) {}
+    CAxcDBCache(CAxcDBCache *pBaseIn) : axc_swapin_cache(pBaseIn->axc_swapin_cache) {};
+
+    bool Flush() {
+        axc_swapin_cache.Flush();
+        return true;
+    }
+
+    uint32_t GetCacheSize() const {
+        return axc_swapin_cache.GetCacheSize();
+    }
+
+    void SetBaseViewPtr(CAxcDBCache *pBaseIn) {
+        axc_swapin_cache.SetBase(&pBaseIn->axc_swapin_cache);
+    }
+
+    void SetDbOpLogMap(CDBOpLogMap *pDbOpLogMapIn) {
+        axc_swapin_cache.SetDbOpLogMap(pDbOpLogMapIn);
+    }
+
+    bool SetSwapInMintRecord(ChainType peerChainType, const string& peerChainTxId, const uint64_t mintAmount) {
+        if (kChainTypeNameMap.find(peerChainType) == kChainTypeNameMap.end())
+            return false;
+
+        string key = kChainTypeNameMap.at(peerChainType) + peerChainTxId;
+        return axc_swapin_cache.SetData(key, mintAmount);
+    }
+
+    bool GetSwapInMintRecord(ChainType peerChainType, const string& peerChainTxId, const uint64_t mintAmount) {
+        if (kChainTypeNameMap.find(peerChainType) == kChainTypeNameMap.end())
+            return false;
+
+        string key = kChainTypeNameMap.at(peerChainType) + peerChainTxId;
+        return axc_swapin_cache.GetData(key, mintAmount);
+    }
+
+    void RegisterUndoFunc(UndoDataFuncMap &undoDataFuncMap) {
+        axc_swapin_cache.RegisterUndoFunc(undoDataFuncMap);
+    }
+
+public:
+/*  CSimpleKVCache          prefixType             value           variable           */
+/*  -------------------- --------------------   -------------   --------------------- */
+    CSimpleKVCache< dbk::AXC_SWAP_IN,           uint64_t>        axc_swapin_cache;    // request of swap-in Tx
+
+/*       type               prefixType               key                     value                 variable               */
+/*  ----------------   -------------------------   -----------------------  ------------------   ------------------------ */
+
+
+};
+
+#endif //PERSIST_AXCDB_H
