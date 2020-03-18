@@ -47,15 +47,20 @@ public:
             return false;
 
         string key = kChainTypeNameMap.at(peerChainType) + peerChainTxId;
-        return axc_swapin_cache.SetData(key, mintAmount);
+        return axc_swapin_cache.SetData(key, CVarIntValue(mintAmount));
     }
 
-    bool GetSwapInMintRecord(ChainType peerChainType, const string& peerChainTxId, const uint64_t mintAmount) {
+    bool GetSwapInMintRecord(ChainType peerChainType, const string& peerChainTxId, uint64_t &mintAmount) {
         if (kChainTypeNameMap.find(peerChainType) == kChainTypeNameMap.end())
             return false;
 
         string key = kChainTypeNameMap.at(peerChainType) + peerChainTxId;
-        return axc_swapin_cache.GetData(key, mintAmount);
+        CVarIntValue<uint64_t> amount;
+        if (!axc_swapin_cache.GetData(key, amount))
+            return false;
+
+        mintAmount = amount.get();
+        return true;
     }
 
     void RegisterUndoFunc(UndoDataFuncMap &undoDataFuncMap) {
@@ -70,7 +75,7 @@ public:
 /*       type               prefixType               key                     value                 variable               */
 /*  ----------------   -------------------------   -----------------------  ------------------   ------------------------ */
 //swap_in$peer_chain_txid -> coin_amount_to_mint
-CCompositeKVCache<      dbk::AXC_SWAP_IN,           string,                  uint64_t>        axc_swapin_cache;
+CCompositeKVCache<      dbk::AXC_SWAP_IN,           string,                  CVarIntValue<uint64_t> > axc_swapin_cache;
 
 };
 
