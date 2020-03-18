@@ -396,7 +396,8 @@ bool CCoinUtxoTransferTx::ExecuteTx(CTxExecuteContext &context) {
 
     uint64_t totalInAmount = 0;
     for (auto &input : vins) {
-        if (!context.pCw->txUtxoCache.GetUtxoTx(std::make_pair(input.prev_utxo_txid, CFixedUInt16(input.prev_utxo_vout_index))))
+        auto utxoKey = std::make_pair(input.prev_utxo_txid, CFixedUInt16(input.prev_utxo_vout_index));
+        if (!context.pCw->txUtxoCache.GetUtxoTx(utxoKey))
             return state.DoS(100, ERRORMSG("CCoinUtxoTransferTx::CheckTx, prev utxo already spent error!"), REJECT_INVALID,
                             "double-spend-prev-utxo-err");
 
@@ -422,11 +423,14 @@ bool CCoinUtxoTransferTx::ExecuteTx(CTxExecuteContext &context) {
     }
 
     uint64_t totalOutAmount = 0;
+    uint8_t index = 0;
     for (auto &output : vouts) {
         totalOutAmount += output.coin_amount;
-
-        if (!context.pCw->txUtxoCache.SetUtxoTx(std::make_pair(GetHash(), CFixedUInt16(i))))
+        auto utoxKey = std::make_pair(GetHash(), CFixedUInt16(index)));
+        if (!context.pCw->txUtxoCache.SetUtxoTx(utoxKey))
             return state.DoS(100, ERRORMSG("CCoinUtxoTransferTx::CheckTx, set utxo error!"), REJECT_INVALID, "set-utxo-err");
+
+        index++;
     }
 
     uint64_t accountBalance = srcAccount.GetBalance(coin_symbol, BalanceType::FREE_VALUE);
