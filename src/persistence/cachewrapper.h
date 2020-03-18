@@ -38,12 +38,15 @@ public:
     CTxReceiptDBCache   txReceiptCache;
     CTxUTXODBCache      txUtxoCache;
     CSysGovernDBCache   sysGovernCache;
+    CAxcDBCache         axcCache;
 
     CTxMemCache         txCache;
     CPricePointMemCache ppCache;
     CPriceFeedCache     priceFeedCache;
+
 public:
     static std::shared_ptr<CCacheWrapper> NewCopyFrom(CCacheDBManager* pCdMan);
+
 public:
     CCacheWrapper();
 
@@ -104,6 +107,9 @@ public:
 
     CDBAccess           *pUtxoDb;
     CTxUTXODBCache      *pUtxoCache;
+
+    CDBAccess           *pAxcDb;
+    CAxcDBCache         *pAxcCache;
 
     CDBAccess           *pSysGovernDb;
     CSysGovernDBCache   *pSysGovernCache;

@@ -20,23 +20,24 @@ typedef leveldb::Slice Slice;
 
 //         DBNameType            DBName             DBCacheSize           description
 //         ----------           --------------    --------------     ----------------------------
-#define DB_NAME_LIST(DEFINE) \
-    DEFINE( SYSPARAM,           "params",         (50  << 10) )      /* system params */ \
-    DEFINE( ACCOUNT,            "accounts",       (50  << 20) )      /* accounts & account assets */ \
-    DEFINE( ASSET,              "assets",         (100 << 10) )      /* asset registry */ \
-    DEFINE( BLOCK,              "blocks",         (500 << 10) )      /* block & tx indexes */ \
-    DEFINE( CONTRACT,           "contracts",      (50  << 20) )      /* contract */ \
-    DEFINE( DELEGATE,           "delegates",      (100 << 10) )      /* delegates */ \
-    DEFINE( CDP,                "cdps",           (50  << 20) )      /* cdp */ \
-    DEFINE( CLOSEDCDP,          "closedcdps",     (1   << 20) )      /* closed cdp */ \
-    DEFINE( DEX,                "dexes",          (50  << 20) )      /* dex */ \
-    DEFINE( LOG,                "logs",           (100 << 10) )      /* log */ \
-    DEFINE( RECEIPT,            "receipts",       (100 << 10) )      /* tx receipt */ \
-    DEFINE( UTXO,               "utxo",           (50  << 20) )      /* utxo tx track db */ \
-    DEFINE( SYSGOVERN,          "governs",        (100 << 10) )           \
-    DEFINE( PRICEFEED,          "pricefeed",      (50  << 10) )      \
-    /*                                                                  */  \
-    /* Add new Enum elements above, DB_NAME_COUNT Must be the last one */ \
+#define DB_NAME_LIST(DEFINE)                                                                                    \
+    DEFINE( SYSPARAM,           "params",         (50  << 10) )      /* 50KB:   system params */                \
+    DEFINE( ACCOUNT,            "accounts",       (50  << 20) )      /* 50MB:   accounts & account assets */    \
+    DEFINE( ASSET,              "assets",         (100 << 10) )      /* 100KB:  asset registry */               \
+    DEFINE( BLOCK,              "blocks",         (500 << 10) )      /* 500KB:  block & tx indexes */           \
+    DEFINE( CONTRACT,           "contracts",      (50  << 20) )      /* 50MB:   contract */                     \
+    DEFINE( DELEGATE,           "delegates",      (100 << 10) )      /* 100KB:  delegates */                    \
+    DEFINE( CDP,                "cdps",           (50  << 20) )      /* 50MB:   cdp */                          \
+    DEFINE( CLOSEDCDP,          "closedcdps",     (1   << 20) )      /* 1MB:    closed cdp */                   \
+    DEFINE( DEX,                "dexes",          (50  << 20) )      /* 50MB:   dex */                          \
+    DEFINE( LOG,                "logs",           (100 << 10) )      /* 100KB:  log */                          \
+    DEFINE( RECEIPT,            "receipts",       (100 << 10) )      /* 100KB:  tx receipt */                   \
+    DEFINE( UTXO,               "utxo",           (50  << 20) )      /* 50MB:   utxo tx track db */             \
+    DEFINE( SYSGOVERN,          "governs",        (100 << 10) )      /* 100KB:  governors */                    \
+    DEFINE( PRICEFEED,          "pricefeed",      (50  << 10) )      /* 50KB:   price feeds*/                   \
+    DEFINE( AXC,                "axc",            (50  << 10) )      /* 50KB:   cross-chain */                  \
+    /*                                                                  */                                      \
+    /* Add new Enum elements above, DB_NAME_COUNT Must be the last one */                                       \
     DEFINE( DB_NAME_COUNT,        "",               0)                  /* enum count, must be the last one */
 
 enum DBNameType {
@@ -133,6 +134,8 @@ namespace dbk {
         DEFINE( MEDIAN_PRICES,        "mdps",       PRICEFEED)   /* [prefix] --> median prices */ \
         DEFINE( PRICE_FEED_COIN_PAIRS, "pfcp",      PRICEFEED)   /* [prefix] --> price feed coin pairs */      \
         DEFINE( PRICE_FEEDERS,         "pfdr",      PRICEFEED)   /* [prefix] --> price feeder */      \
+        /**** AXC                                                                             */ \
+        DEFINE( AXC_SWAP_IN,           "axci",      AXC)        /* [prefix]swapin-txid -->  amount */      \
         /*                                                                             */ \
         /* Add new Enum elements above, PREFIX_COUNT Must be the last one              */ \
         DEFINE( PREFIX_COUNT,          "",       DB_NAME_NONE)    /* enum count, must be the last one */

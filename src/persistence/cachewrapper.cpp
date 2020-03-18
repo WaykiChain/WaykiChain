@@ -30,6 +30,7 @@ CCacheWrapper::CCacheWrapper(CCacheWrapper *cwIn) {
     dexCache.SetBaseViewPtr(&cwIn->dexCache);
     txReceiptCache.SetBaseViewPtr(&cwIn->txReceiptCache);
     txUtxoCache.SetBaseViewPtr(&cwIn->txUtxoCache);
+    axcCache.SetBaseViewPtr(&cwIn->pAxcCache);
 
     txCache.SetBaseViewPtr(&cwIn->txCache);
     ppCache.SetBaseViewPtr(&cwIn->ppCache);
@@ -50,6 +51,7 @@ CCacheWrapper::CCacheWrapper(CCacheDBManager* pCdMan) {
     dexCache.SetBaseViewPtr(pCdMan->pDexCache);
     txReceiptCache.SetBaseViewPtr(pCdMan->pReceiptCache);
     txUtxoCache.SetBaseViewPtr(pCdMan->pUtxoCache);
+    axcCache.SetBaseViewPtr(pCdMan->axcCache);
 
     txCache.SetBaseViewPtr(pCdMan->pTxCache);
     ppCache.SetBaseViewPtr(pCdMan->pPpCache);
@@ -58,20 +60,21 @@ CCacheWrapper::CCacheWrapper(CCacheDBManager* pCdMan) {
 }
 
 void CCacheWrapper::CopyFrom(CCacheDBManager* pCdMan){
-    sysParamCache  = *pCdMan->pSysParamCache;
-    blockCache     = *pCdMan->pBlockCache;
-    accountCache   = *pCdMan->pAccountCache;
-    assetCache     = *pCdMan->pAssetCache;
-    contractCache  = *pCdMan->pContractCache;
-    delegateCache  = *pCdMan->pDelegateCache;
-    cdpCache       = *pCdMan->pCdpCache;
-    closedCdpCache = *pCdMan->pClosedCdpCache;
-    dexCache       = *pCdMan->pDexCache;
-    txReceiptCache = *pCdMan->pReceiptCache;
-    txUtxoCache    = *pCdMan->pUtxoCache;
+    sysParamCache   = *pCdMan->pSysParamCache;
+    blockCache      = *pCdMan->pBlockCache;
+    accountCache    = *pCdMan->pAccountCache;
+    assetCache      = *pCdMan->pAssetCache;
+    contractCache   = *pCdMan->pContractCache;
+    delegateCache   = *pCdMan->pDelegateCache;
+    cdpCache        = *pCdMan->pCdpCache;
+    closedCdpCache  = *pCdMan->pClosedCdpCache;
+    dexCache        = *pCdMan->pDexCache;
+    txReceiptCache  = *pCdMan->pReceiptCache;
+    txUtxoCache     = *pCdMan->pUtxoCache;
+    axcCache        = *pCdMan->pAxcCache;
 
-    txCache = *pCdMan->pTxCache;
-    ppCache = *pCdMan->pPpCache;
+    txCache         = *pCdMan->pTxCache;
+    ppCache         = *pCdMan->pPpCache;
     sysGovernCache = *pCdMan->pSysGovernCache ;
     priceFeedCache = *pCdMan->pPriceFeedCache ;
 }
@@ -92,6 +95,7 @@ CCacheWrapper& CCacheWrapper::operator=(CCacheWrapper& other) {
     this->txReceiptCache = other.txReceiptCache;
     this->txUtxoCache    = other.txUtxoCache;
     this->txCache        = other.txCache;
+    this->axcCache       = other.axcCache;
     this->ppCache        = other.ppCache;
     this->sysGovernCache = other.sysGovernCache;
     this->priceFeedCache = other.priceFeedCache;
@@ -111,6 +115,7 @@ void CCacheWrapper::Flush() {
     dexCache.Flush();
     txReceiptCache.Flush();
     txUtxoCache.Flush();
+    axcCache.Flush();
 
     txCache.Flush();
     ppCache.Flush();
@@ -130,6 +135,7 @@ void CCacheWrapper::SetDbOpLogMap(CDBOpLogMap *pDbOpLogMap) {
     dexCache.SetDbOpLogMap(pDbOpLogMap);
     txReceiptCache.SetDbOpLogMap(pDbOpLogMap);
     txUtxoCache.SetDbOpLogMap(pDbOpLogMap);
+    axcCache.SetDbOpLogMap(pAxcCache);
     sysGovernCache.SetDbOpLogMap(pDbOpLogMap) ;
     priceFeedCache.SetDbOpLogMap(pDbOpLogMap) ;
 }
@@ -147,6 +153,7 @@ UndoDataFuncMap CCacheWrapper::GetUndoDataFuncMap() {
     dexCache.RegisterUndoFunc(undoDataFuncMap);
     txReceiptCache.RegisterUndoFunc(undoDataFuncMap);
     txUtxoCache.RegisterUndoFunc(undoDataFuncMap);
+    axcCache.RegisterUndoFunc(undoDataFuncMap);
     sysGovernCache.RegisterUndoFunc(undoDataFuncMap);
     priceFeedCache.RegisterUndoFunc(undoDataFuncMap);
     return undoDataFuncMap;
@@ -196,6 +203,9 @@ CCacheDBManager::CCacheDBManager(bool fReIndex, bool fMemory) {
     pUtxoDb         = new CDBAccess(dbDir, DBNameType::UTXO, false, fReIndex);
     pUtxoCache      = new CTxUTXODBCache(pUtxoDb);
 
+    pAxcDb          = new CDBAccess(dbDir, DBNameType::AXC, false, fReIndex);
+    pAxcCache       = new CTxUTXODBCache(pAxcDb);
+
     pSysGovernDb    = new CDBAccess(dbDir, DBNameType::SYSGOVERN, false, fReIndex);
     pSysGovernCache = new CSysGovernDBCache(pSysGovernDb);
 
@@ -222,6 +232,7 @@ CCacheDBManager::~CCacheDBManager() {
     delete pReceiptCache;   pReceiptCache = nullptr;
     delete pSysGovernCache; pSysGovernCache = nullptr;
     delete pUtxoCache;      pUtxoCache = nullptr;
+    delete pAxcCache;       pAxcCache = nullptr;
     delete pPriceFeedCache; pPriceFeedCache = nullptr;
 
     delete pSysParamDb;     pSysParamDb = nullptr;
@@ -272,6 +283,8 @@ bool CCacheDBManager::Flush() {
     if (pSysGovernCache) pSysGovernCache->Flush();
 
     if (pUtxoCache) pUtxoCache->Flush();
+
+    if (pAxcCache) pAxcCache->Flush();
 
     if (pPriceFeedCache) pPriceFeedCache->Flush();
 

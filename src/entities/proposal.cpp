@@ -239,7 +239,7 @@ bool CGovAccountPermProposal::CheckProposal(CTxExecuteContext& context ) {
 
 }
 bool CGovAccountPermProposal::ExecuteProposal(CTxExecuteContext& context, const TxID& proposalId) {
-    CCacheWrapper &cw       = *context.pCw;
+    CCacheWrapper &cw = *context.pCw;
 
     CAccount acct;
     if (!cw.accountCache.GetAccount(account_uid, acct))
@@ -483,7 +483,10 @@ bool CGovAxcInProposal::CheckProposal(CTxExecuteContext& context ) {
     if (swap_amount < DUST_AMOUNT_THRESHOLD)
         return state.DoS(100, ERRORMSG("CGovAxcInProposal::CheckProposal: swap_amount=%llu too small",
                                         swap_amount), REJECT_INVALID, "swap_amount-dust");
-
+    uint64_t mintAmount = 0;
+    if (cw.utoxCache.GetSwapInMintRecord(peer_chain_type, peer_chain_txid, mintAmount))
+        return state.DoS(100, ERRORMSG("CGovAxcInProposal::CheckProposal: GetSwapInMintRecord existing err %s",
+                        REJECT_INVALID, "get_swapin_mint_record-err");
     return true;
 }
 bool CGovAxcInProposal::ExecuteProposal(CTxExecuteContext& context, const TxID& proposalId) {
@@ -513,6 +516,16 @@ bool CGovAxcInProposal::ExecuteProposal(CTxExecuteContext& context, const TxID& 
     if (!acct.OperateBalance(self_chain_token_symbol, BalanceOpType::ADD_FREE, swap_amount_after_fees))
         return state.DoS(100, ERRORMSG("CGovAxcInProposal::ExecuteProposal, opreate balance failed, swap_amount_after_fees=%llu",
                         swap_amount_after_fees), REJECT_INVALID, "bad-operate-balance");
+
+    uint64_t mintAmount = 0;
+    if (cw.utoxCache.GetSwapInMintRecord(peer_chain_type, peer_chain_txid, mintAmount))
+        return state.DoS(100, ERRORMSG("CGovAxcInProposal::CheckProposal: GetSwapInMintRecord existing err %s",
+                        REJECT_INVALID, "get_swapin_mint_record-err");
+
+    uint64_t mintAmount = swap_amount_after_fees;
+    if (!cw.utoxCache.SetSwapInMintRecord(peer_chain_type, peer_chain_txid, mintAmount))
+        return state.DoS(100, ERRORMSG("CGovAxcInProposal::CheckProposal: GetSwapInMintRecord existing err %s",
+                        REJECT_INVALID, "get_swapin_mint_record-err");
 
     return true;
 }

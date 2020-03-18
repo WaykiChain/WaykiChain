@@ -128,7 +128,7 @@ static const unordered_map<string, uint64_t, CoinUnitTypeHash> CoinUnitTypeMap {
 };
 
 
-static const unordered_map<string, unsigned int , CoinUnitTypeHash> CoinUnitPrecisionTable {
+static const unordered_map<string, unsigned int, CoinUnitTypeHash> CoinUnitPrecisionTable {
     {"sawi", 0     },  // 0.00000001
     {"quwi", 1     },  // 0.0000001
     {"muwi", 2     },  // 0.000001
@@ -147,6 +147,12 @@ enum ChainType: uint8_t {
     BITCOIN         = 1,
     ETHEREUM        = 2,
     EOS             = 3
+};
+
+static const unordered_map<ChainType, string> kChainTypeNameMap {
+    { ChainType::BITCOIN,   "BITCOIN"   },
+    { ChainType::ETHEREUM,  "ETHEREUM"  },
+    { ChainType::EOS,       "EOS"       },
 };
 
 static const uint16_t RATIO_BOOST = 10000;
