@@ -503,6 +503,13 @@ bool CCoinUtxoPasswordProofTx::ExecuteTx(CTxExecuteContext &context) {
     if (!GenerateRegID(context, srcAccount))
         return false;
 
+    if (!srcAccount.OperateBalance(fee_symbol, BalanceOpType::SUB_FREE, llFees))
+        return state.DoS(100, ERRORMSG("CCoinUtxoPasswordProofTx::ExecuteTx, deduct fees from regId=%s failed,",
+                                       txUid.ToString()), UPDATE_ACCOUNT_FAIL, "deduct-account-fee-failed");
+    if (!cw.accountCache.SetAccount(txUid, srcAccount))
+        return state.DoS(100, ERRORMSG("%s(), save tx account info failed! txuid=%s",
+                                       __func__, txUid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-write-accountdb");
+
     CRegIDKey regIdKey(txUid.get<CRegID>());
     if (!cw.txUtxoCache.SetUtxoPasswordProof(std::make_tuple(utxo_txid, CFixedUInt16(utxo_vout_index), regIdKey), password_proof))
         return state.DoS(100, ERRORMSG("CCoinUtxoTransferTx::ExecuteTx, bad saving utxo proof",

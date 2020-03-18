@@ -29,6 +29,7 @@
 #include "tx/nickidregtx.h"
 #include "tx/dexoperatortx.h"
 #include "tx/proposaltx.h"
+#include "tx/accountpermscleartx.h"
 
 using namespace std;
 
@@ -125,6 +126,9 @@ void CBaseTx::SerializePtr(Stream& os, const std::shared_ptr<CBaseTx> &pBaseTx, 
             ::Serialize(os, (const CProposalRequestTx&)tx,serType, version); break;
         case PROPOSAL_APPROVAL_TX:
             ::Serialize(os, (const CProposalApprovalTx&)tx,serType, version); break;
+        case ACCOUNT_PERMS_CLEAR_TX:
+            ::Serialize(os, (const CAccountPermsClearTx&)tx,serType, version); break;
+
 
         default:
             throw runtime_error(strprintf("%s(), unsupport nTxType(%d:%s) to serialize",
@@ -332,6 +336,12 @@ void CBaseTx::UnserializePtr(Stream& is, std::shared_ptr<CBaseTx> &pBaseTx, int 
         case PROPOSAL_APPROVAL_TX: {
             pBaseTx = std::make_shared<CProposalApprovalTx>();
             ::Unserialize(is, *((CProposalApprovalTx *)(pBaseTx.get())), serType, version);
+            break;
+        }
+
+        case ACCOUNT_PERMS_CLEAR_TX: {
+            pBaseTx = std::make_shared<CAccountPermsClearTx>();
+            ::Unserialize(is, *((CAccountPermsClearTx *)(pBaseTx.get())), serType, version);
             break;
         }
 

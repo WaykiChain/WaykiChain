@@ -14,7 +14,12 @@ class CAccountPermsClearTx: public CBaseTx {
 
 
 public:
-    CAccountPermsClearTx(): CBaseTx(ACCOUNT_REGISTER_TX) {}
+
+    CAccountPermsClearTx()
+            : CBaseTx(ACCOUNT_PERMS_CLEAR_TX) {}
+
+    CAccountPermsClearTx(const CUserID &txUidIn, const int32_t validHeightIn, const TokenSymbol &feeSymbol, const uint64_t feesIn)
+            : CBaseTx(ACCOUNT_PERMS_CLEAR_TX, txUidIn, validHeightIn, feeSymbol, feesIn) {}
 
     ~CAccountPermsClearTx() {}
 
@@ -23,7 +28,6 @@ public:
             nVersion = this->nVersion;
             READWRITE(VARINT(valid_height));
             READWRITE(txUid);
-
             READWRITE(VARINT(llFees));
             READWRITE(signature);)
 
