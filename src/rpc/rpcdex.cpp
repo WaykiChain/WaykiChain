@@ -156,12 +156,12 @@ Object SubmitOrderTx(const CKeyID &txKeyid, const DexOperatorDetail &operatorDet
         }
     }
 
-    string regMsg;
-    if (!pWalletMain->CommitTx(pBaseTx.get(), regMsg))
-        throw JSONRPCError(RPC_WALLET_ERROR, strprintf("SubmitTx failed: txid=%s, %s", pBaseTx->GetHash().GetHex(), regMsg));
+    string retMsg;
+    if (!pWalletMain->CommitTx(pBaseTx.get(), retMsg))
+        throw JSONRPCError(RPC_WALLET_ERROR, strprintf("SubmitTx failed: txid=%s, %s", pBaseTx->GetHash().GetHex(), retMsg));
 
     Object obj;
-    obj.push_back( Pair("txid",retMsg) );
+    obj.push_back( Pair("txid", retMsg) );
 
     return obj;
 }
