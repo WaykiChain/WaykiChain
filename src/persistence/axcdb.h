@@ -65,11 +65,11 @@ public:
 public:
 /*  CSimpleKVCache          prefixType             value           variable           */
 /*  -------------------- --------------------   -------------   --------------------- */
-    CSimpleKVCache< dbk::AXC_SWAP_IN,           uint64_t>        axc_swapin_cache;    // request of swap-in Tx
+
 
 /*       type               prefixType               key                     value                 variable               */
 /*  ----------------   -------------------------   -----------------------  ------------------   ------------------------ */
-
+CCompositeKVCache<      dbk::AXC_SWAP_IN,           string,                  uint64_t>        axc_swapin_cache;    // request of swap-in Tx
 
 };
 
