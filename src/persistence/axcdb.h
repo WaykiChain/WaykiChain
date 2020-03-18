@@ -69,7 +69,8 @@ public:
 
 /*       type               prefixType               key                     value                 variable               */
 /*  ----------------   -------------------------   -----------------------  ------------------   ------------------------ */
-CCompositeKVCache<      dbk::AXC_SWAP_IN,           string,                  uint64_t>        axc_swapin_cache;    // request of swap-in Tx
+//swap_in$peer_chain_txid -> coin_amount_to_mint
+CCompositeKVCache<      dbk::AXC_SWAP_IN,           string,                  uint64_t>        axc_swapin_cache;
 
 };
 
