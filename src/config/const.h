@@ -55,6 +55,8 @@ static const unordered_set<TokenSymbol> kDexQuoteSymbolSet = {
     SYMB::WICC, SYMB::WUSD
 };
 
+static const PriceCoinPair kFcoinPriceCoinPair = {SYMB::WGRT, SYMB::USD};
+
 // can be expanded thru DevGov
 static const unordered_set<TokenSymbol> kPriceFeedSymbolSet = {
     SYMB::WICC

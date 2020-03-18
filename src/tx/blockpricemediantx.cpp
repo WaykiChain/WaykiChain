@@ -112,15 +112,6 @@ bool CBlockPriceMedianTx::ExecuteTx(CTxExecuteContext &context) {
 bool CBlockPriceMedianTx::ForceLiquidateCdps(CTxExecuteContext &context, PriceDetailMap &priceDetails) {
     CCacheWrapper &cw = *context.pCw;  CValidationState &state = *context.pState;
 
-    vector<CReceipt> receipts;
-    CAccount fcoinGenesisAccount;
-    if (!cw.accountCache.GetFcoinGenesisAccount(fcoinGenesisAccount)) {
-        return state.DoS(100, ERRORMSG("%s(), get fcoin genesis account failed", __func__), REJECT_INVALID,
-                         "save-median-prices-failed");
-
-    }
-    static const PriceCoinPair kFcoinPriceCoinPair = {SYMB::WGRT, SYMB::USD};
-
     auto fcoinIt = priceDetails.find(kFcoinPriceCoinPair);
     if (fcoinIt == priceDetails.end() || fcoinIt->second.price == 0) {
         LogPrint(BCLog::CDP, "%s(), price of fcoin(%s) is 0, ignore\n",
@@ -139,6 +130,13 @@ bool CBlockPriceMedianTx::ForceLiquidateCdps(CTxExecuteContext &context, PriceDe
     }
 
     uint64_t fcoinUsdPrice = fcoinIt->second.price;
+
+    vector<CReceipt> receipts;
+    CAccount fcoinGenesisAccount;
+    if (!cw.accountCache.GetFcoinGenesisAccount(fcoinGenesisAccount)) {
+        return state.DoS(100, ERRORMSG("%s(), get fcoin genesis account failed", __func__), REJECT_INVALID,
+                         "save-median-prices-failed");
+    }
 
     for (const auto& item : priceDetails) {
         if (item.first == kFcoinPriceCoinPair) continue;
