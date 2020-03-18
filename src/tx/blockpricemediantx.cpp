@@ -158,11 +158,7 @@ bool CBlockPriceMedianTx::ForceLiquidateCdps(CTxExecuteContext &context, PriceDe
         if (scoinSymbol != SYMB::WUSD)
             throw runtime_error(strprintf("%s(), only support to force liquidate scoin=WUSD", __func__));
 
-        if (!cw.assetCache.GetAsset(bcoinSymbol, asset)) {
-            return state.DoS(100, ERRORMSG("%s(), the asset of base_symbol=%s not exist", __func__, bcoinSymbol),
-                    REJECT_INVALID, "base-asset-not-exist");
-        }
-        if (!asset.HasPerms(AssetPermType::PERM_CDP_BCOIN)) {
+        if (!cw.assetCache.CheckAsset(bcoinSymbol, AssetPermType::PERM_CDP_BCOIN)) {
             LogPrint(BCLog::CDP, "%s(), base_symbol=%s not have cdp bcoin permission, ignore", __func__, bcoinSymbol);
         }
 
