@@ -231,7 +231,7 @@ struct CUtxoCondStorageBean {
     void SetEmpty() { sp_utxo_cond = nullptr; }
 
     unsigned int GetSerializeSize(int nType, int nVersion) const {
-        if(IsEmpty())
+        if (IsEmpty())
             return 1 ;
 
         return (*sp_utxo_cond).GetSerializeSize(nType, nVersion) + 1 ;
@@ -281,7 +281,6 @@ struct CUtxoCondStorageBean {
             default:
                 throw ios_base::failure(strprintf("Serialize: utxoCondType(%d) error.", sp_utxo_cond->cond_type));
         }
-
     }
 
     template <typename Stream>
