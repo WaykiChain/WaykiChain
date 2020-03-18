@@ -237,7 +237,7 @@ Object SubmitTx(const CKeyID &keyid, CBaseTx &tx) {
         throw JSONRPCError(RPC_WALLET_ERROR, strprintf("SubmitTx failed: txid=%s, %s", tx.GetHash().GetHex(), retMsg));
 
     Object obj;
-    obj.push_back(Pair("txid", retMsg);
+    obj.push_back(Pair("txid", retMsg));
 
     return obj;
 }
