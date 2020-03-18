@@ -667,7 +667,7 @@ Value submitaxcinproposal(const Array& params, bool fHelp) {
 
 Value submitaxcoutproposal(const Array& params, bool fHelp) {
 
-    if(fHelp || params.size() < 7 || params.size() > 8){
+    if(fHelp || params.size() < 6 || params.size() > 7){
 
         throw runtime_error(
                 "submitminerfeeproposal \"addr\" \"tx_type\" \"fee_info\"  [\"fee\"]\n"
@@ -682,8 +682,7 @@ Value submitaxcoutproposal(const Array& params, bool fHelp) {
                                                 "3: stand for eos\n"
                 "5.\"peer_chain_addr\":         (string, optional) initiator's address at peer chain \n"
                 "6.\"swap_amount\":             (numberic,   required) the coin amount that swap out \n"
-                "7.\"peer_chain_tx_multisigs\": (array<string>, required) the multi signatures at peer chain\n"
-                "8.\"fee\":                     (combomoney, optional) the tx fee \n"
+                "7.\"fee\":                     (combomoney, optional) the tx fee \n"
                 "\nExamples:\n"
                 + HelpExampleCli("submitminerfeeproposal", "0-1 1 WICC:1:WI  WICC:1:WI")
                 + "\nAs json rpc call\n"
@@ -697,16 +696,8 @@ Value submitaxcoutproposal(const Array& params, bool fHelp) {
     const CUserID& txUid = RPC_PARAM::GetUserId(params[0], true);
     CUserID selfChainUid = RPC_PARAM::GetUserId(params[1]);
     TokenSymbol selfChainTokenSymbol(params[2].get_str());
-    ChainType peerChainType = ChainType((uint8_t)params[2].get_int());
-    string peerAddr = params[3].get_str();
-
-    Array signArr = params[4].get_array();
-    vector<UnsignedCharArray> vSign;
-    for (auto s: signArr) {
-        UnsignedCharArray unsignedCharArray = ParseHex(s.get_str());
-        vSign.push_back(unsignedCharArray);
-    }
-
+    ChainType peerChainType = ChainType((uint8_t)params[3].get_int());
+    string peerAddr = params[4].get_str();
     uint64_t swapCoinAmount = AmountToRawValue(params[5]);
     ComboMoney fee          = RPC_PARAM::GetFee(params, 6, PROPOSAL_REQUEST_TX);
 

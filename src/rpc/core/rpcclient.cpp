@@ -255,6 +255,15 @@ Array RPCConvertValues(const string &strMethod, const vector<string> &strParams)
     if (strMethod == "submitaccountpermproposal"   && n > 2) ConvertTo<int64_t>(params[2]) ;
     if (strMethod == "submitassetpermproposal"     && n > 2) ConvertTo<int64_t>(params[2]) ;
 
+
+    if (strMethod == "submitaxcinproposal"   && n > 1) ConvertTo<int64_t>(params[1]) ;
+    if (strMethod == "submitaxcinproposal"   && n > 7) ConvertTo<int64_t>(params[7]) ;
+
+    if (strMethod == "submitaxcoutproposal"   && n > 3) ConvertTo<int64_t>(params[3]) ;
+    if (strMethod == "submitaxcoutproposal"   && n > 5) ConvertTo<int64_t>(params[5]) ;
+
+
+
     /* vm functions work in vm simulator */
     if (strMethod == "vmexecutescript"          && n > 3) ConvertTo<int64_t>(params[3]);
 

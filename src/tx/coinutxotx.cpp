@@ -300,6 +300,7 @@ inline bool CheckUtxoOutCondition( const CTxExecuteContext &context, const bool 
     return true;
 }
 
+
 bool CCoinUtxoTransferTx::CheckTx(CTxExecuteContext &context) {
     IMPLEMENT_DEFINE_CW_STATE;
     IMPLEMENT_CHECK_TX_MEMO;
@@ -331,12 +332,11 @@ bool CCoinUtxoTransferTx::CheckTx(CTxExecuteContext &context) {
     uint64_t totalOutAmount = 0;
     for (auto input : vins) {
         //load prevUtxoTx from blockchain
-        std::shared_ptr<CCoinUtxoTransferTx> pPrevUtxoTx;
-        std::shared_ptr<CBaseTx> pBaseTx = pPrevUtxoTx;
+        std::shared_ptr<CBaseTx> pBaseTx;
         if (!GetUtxoTxFromChain(input.prev_utxo_txid, pBaseTx))
             return state.DoS(100, ERRORMSG("CCoinUtxoTransferTx::CheckTx, failed to load prev utxo from chain!"), REJECT_INVALID,
                             "failed-to-load-prev-utxo-err");
-
+        CCoinUtxoTransferTx* pPrevUtxoTx = dynamic_cast<CCoinUtxoTransferTx*>(pBaseTx.get());
         if ((uint16_t) pPrevUtxoTx->vouts.size() < input.prev_utxo_vout_index + 1)
             return state.DoS(100, ERRORMSG("CCoinUtxoTransferTx::CheckTx, prev utxo index OOR error!"), REJECT_INVALID,
                             "prev-utxo-index-OOR-err");
@@ -402,11 +402,12 @@ bool CCoinUtxoTransferTx::ExecuteTx(CTxExecuteContext &context) {
                             "double-spend-prev-utxo-err");
 
         //load prevUtxoTx from blockchain
-        std::shared_ptr<CCoinUtxoTransferTx> pPrevUtxoTx;
-        std::shared_ptr<CBaseTx> pBaseTx = pPrevUtxoTx;
+        std::shared_ptr<CBaseTx> pBaseTx;
         if (!GetUtxoTxFromChain(input.prev_utxo_txid, pBaseTx))
             return state.DoS(100, ERRORMSG("CCoinUtxoTransferTx::CheckTx, failed to load prev utxo from chain!"), REJECT_INVALID,
                             "failed-to-load-prev-utxo-err");
+
+        CCoinUtxoTransferTx* pPrevUtxoTx = dynamic_cast<CCoinUtxoTransferTx*>(pBaseTx.get());
 
         totalInAmount += pPrevUtxoTx->vouts[input.prev_utxo_vout_index].coin_amount;
 

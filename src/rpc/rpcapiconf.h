@@ -113,6 +113,8 @@ static const CRPCCommand vRPCCommands[] =
     { "submitdexquotecoinproposal",     &submitdexquotecoinproposal,        false,      false,      true    },
     { "submitfeedcoinpairproposal",     &submitfeedcoinpairproposal,        false,      false,      true    },
     { "submitminerfeeproposal",         &submitminerfeeproposal,            false,      false,      true    },
+    { "submitaxcinproposal",            &submitaxcinproposal,               false,      false,      true    },
+    { "submitaxcoutproposal",           &submitaxcoutproposal,              false,      false,      true    },
 
     { "submitaccountpermproposal",      &submitaccountpermproposal,         false,      false,      true    },
     { "submitassetpermproposal",        &submitassetpermproposal,           false,      false,      true    },
