@@ -151,7 +151,7 @@ bool CBlockPriceMedianTx::ForceLiquidateCdps(CTxExecuteContext &context, PriceDe
                     "last_update_height=%u, cur_height=%u\n",
                     __func__, CoinPairToString(item.first), item.second.last_feed_height,
                     context.height);
-            return true;
+            continue;
         }
 
         CAsset asset;

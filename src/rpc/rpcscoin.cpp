@@ -293,8 +293,9 @@ Value submitcdpliquidatetx(const Array& params, bool fHelp) {
     return SubmitTx(account.keyid, tx);
 }
 
-Object GetCdpInfoJson(const CCdpCoinPair &cdpCoinPair, PriceDetailMap &medianPrices) {
+Object GetCdpInfoJson(const CCdpCoinPair &cdpCoinPair, uint64_t price) {
 
+    assert(price != 0);
     uint64_t globalCollateralCeiling = 0;
     if (!pCdMan->pSysParamCache->GetCdpParam(cdpCoinPair, CdpParamType::CDP_GLOBAL_COLLATERAL_CEILING_AMOUNT, globalCollateralCeiling)) {
         throw JSONRPCError(RPC_INVALID_PARAMETER, "Acquire global collateral ceiling error");
@@ -307,20 +308,9 @@ Object GetCdpInfoJson(const CCdpCoinPair &cdpCoinPair, PriceDetailMap &medianPri
 
     CCdpGlobalData cdpGlobalData = pCdMan->pCdpCache->GetCdpGlobalData(cdpCoinPair);
 
-    const TokenSymbol quoteSymbol = GetQuoteSymbolByCdpScoin(cdpCoinPair.scoin_symbol);
-    if (quoteSymbol.empty())
-        throw JSONRPCError(RPC_INTERNAL_ERROR,
-            strprintf("GetQuoteSymbolByCdpScoin failed! cdpCoinPair=%s", cdpCoinPair.ToString()));
-    PriceCoinPair priceCoinPair(cdpCoinPair.bcoin_symbol, quoteSymbol);
-    auto it = medianPrices.find(priceCoinPair);
-    if (it == medianPrices.end() || it->second.price == 0)
-        throw JSONRPCError(RPC_INTERNAL_ERROR,
-                strprintf("price=0 of coinPair=%s", CoinPairToString(priceCoinPair)));
-
-    uint64_t assetPrice = it->second.price;
-    uint64_t globalCollateralRatio = cdpGlobalData.GetCollateralRatio(assetPrice);
+    uint64_t globalCollateralRatio = cdpGlobalData.GetCollateralRatio(price);
     bool globalCollateralRatioFloorReached =
-        cdpGlobalData.CheckGlobalCollateralRatioFloorReached(assetPrice, globalCollateralRatioFloor);
+        cdpGlobalData.CheckGlobalCollateralRatioFloorReached(price, globalCollateralRatioFloor);
 
     bool global_collateral_ceiling_reached = cdpGlobalData.total_staked_assets >= globalCollateralCeiling * COIN;
 
@@ -330,7 +320,7 @@ Object GetCdpInfoJson(const CCdpCoinPair &cdpCoinPair, PriceDetailMap &medianPri
     }
 
     CdpRatioSortedCache::Map forceLiquidateCdps;
-    pCdMan->pCdpCache->GetCdpListByCollateralRatio(cdpCoinPair, forceLiquidateRatio, assetPrice, forceLiquidateCdps);
+    pCdMan->pCdpCache->GetCdpListByCollateralRatio(cdpCoinPair, forceLiquidateRatio, price, forceLiquidateCdps);
 
     Object obj;
 
@@ -372,14 +362,49 @@ Value getscoininfo(const Array& params, bool fHelp){
 
     PriceDetailMap medianPrices = pCdMan->pPriceFeedCache->GetMedianPrices();
 
-    // TODO: multi cdp coin pairs
-    Array cdpInfoArray;
-    cdpInfoArray.push_back(GetCdpInfoJson(CCdpCoinPair(SYMB::WICC, SYMB::WUSD), medianPrices));
-
     uint64_t priceTimeoutBlocks = 0;
     if (!pCdMan->pSysParamCache->GetParam(SysParamType::PRICE_FEED_TIMEOUT_BLOCKS, priceTimeoutBlocks)) {
         throw JSONRPCError(RPC_INTERNAL_ERROR, strprintf("%s, read sys param PRICE_FEED_TIMEOUT_BLOCKS error", __func__));
     }
+
+    // TODO: multi cdp coin pairs
+    Array cdpInfoArray;
+
+    for (const auto& item : medianPrices) {
+        if (item.first == kFcoinPriceCoinPair) continue;
+
+        if (!item.second.IsActive(height, priceTimeoutBlocks)) {
+            LogPrint(BCLog::CDP,
+                    "%s(), price of coin_pair(%s) is inactive, ignore, "
+                    "last_update_height=%u, cur_height=%u\n",
+                    __func__, CoinPairToString(item.first), item.second.last_feed_height,
+                    height);
+            continue; // TODO: cdp price inactive, can not do any cdp operation
+        }
+
+        CAsset asset;
+        const TokenSymbol &bcoinSymbol = item.first.first;
+        const TokenSymbol &quoteSymbol = item.first.second;
+
+        TokenSymbol scoinSymbol = GetCdpScoinByQuoteSymbol(quoteSymbol);
+        if (scoinSymbol.empty()) {
+            LogPrint(BCLog::CDP, "%s(), quote_symbol=%s not have a corresponding scoin , ignore",
+                     __func__, bcoinSymbol);
+            continue;
+        }
+
+        // TODO: remove me if need to support multi scoin and improve the force liquidate process
+        if (scoinSymbol != SYMB::WUSD)
+            throw runtime_error(strprintf("%s(), only support to force liquidate scoin=WUSD, actual_scoin=%s",
+                    __func__, scoinSymbol));
+
+        if (!pCdMan->pAssetCache->CheckAsset(bcoinSymbol, AssetPermType::PERM_CDP_BCOIN)) {
+            LogPrint(BCLog::CDP, "%s(), base_symbol=%s not have cdp bcoin permission, ignore", __func__, bcoinSymbol);
+            continue;
+        }
+        cdpInfoArray.push_back(GetCdpInfoJson(CCdpCoinPair(SYMB::WICC, SYMB::WUSD), item.second.price));
+    }
+
     Object obj;
     Array prices;
     for (auto& item : medianPrices) {
