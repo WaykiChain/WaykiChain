@@ -274,13 +274,15 @@ bool CGovAssetPermProposal::ExecuteProposal(CTxExecuteContext& context, const Tx
 
     CAsset asset;
     if (!cw.assetCache.GetAsset(asset_symbol, asset))
-        return false;
+        return state.DoS(100, ERRORMSG("%s(), asset not exist! symbol=%s",
+                    __func__, asset_symbol), REJECT_INVALID, "asset-not-exist");
     // process cdp bcoin perm
     bool oldCdpBcoinPerm = asset.HasPerms(AssetPermType::PERM_CDP_BCOIN);
 
     asset.perms_sum = proposed_perms_sum;
     if (!cw.assetCache.SetAsset(asset))
-        return false;
+        return state.DoS(100, ERRORMSG("%s(), save asset failed! symbol=%s",
+                    __func__, asset_symbol), REJECT_INVALID, "save-asset-failed");
 
     bool newCdpBcoinPerm = asset.HasPerms(AssetPermType::PERM_CDP_BCOIN);
     if (newCdpBcoinPerm != oldCdpBcoinPerm) {
