@@ -154,7 +154,8 @@ bool CBlockPriceMedianTx::ForceLiquidateCdps(CTxExecuteContext &context, PriceDe
 
         // TODO: remove me if need to support multi scoin and improve the force liquidate process
         if (scoinSymbol != SYMB::WUSD)
-            throw runtime_error(strprintf("%s(), only support to force liquidate scoin=WUSD", __func__));
+            throw runtime_error(strprintf("%s(), only support to force liquidate scoin=WUSD, actual_scoin=%s",
+                    __func__, scoinSymbol));
 
         if (!cw.assetCache.CheckAsset(bcoinSymbol, AssetPermType::PERM_CDP_BCOIN)) {
             LogPrint(BCLog::CDP, "%s(), base_symbol=%s not have cdp bcoin permission, ignore", __func__, bcoinSymbol);
@@ -183,7 +184,7 @@ bool CBlockPriceMedianTx::EqualToCalculatedPrices(const PriceDetailMap &calcPric
     PriceMap medianPrices;
     for (auto &item : median_prices) {
         if (item.second != 0)
-            median_prices.insert(item);
+            medianPrices.insert(item);
     }
     // the calcPrices must not contain 0 price item
     if (medianPrices.size() != calcPrices.size()) return false;

@@ -143,7 +143,7 @@ inline const TokenSymbol GetQuoteSymbolByCdpScoin(const TokenSymbol &scoinSymbol
 inline TokenSymbol GetCdpScoinByQuoteSymbol(const TokenSymbol &quoteSymbol) {
     TokenSymbol scoinSymbol = "W" + quoteSymbol;
     if (kCdpScoinSymbolSet.count(scoinSymbol) > 0)
-        return quoteSymbol;
+        return scoinSymbol;
     else
         return "";
 }
