@@ -423,7 +423,7 @@ bool CCoinUtxoTransferTx::ExecuteTx(CTxExecuteContext &context) {
                             "del-prev-utxo-err");
 
         uint256 proof = uint256();
-        CRegIDKey regIdKey(txUid.get<CRegID>());
+        CRegIDKey regIdKey(srcAccount.regid);
         auto proofKey = std::make_tuple(input.prev_utxo_txid, CFixedUInt16(input.prev_utxo_vout_index), regIdKey);
         if (context.pCw->txUtxoCache.GetUtxoPasswordProof(proofKey, proof)) {
             context.pCw->txUtxoCache.DelUtoxPasswordProof(proofKey);

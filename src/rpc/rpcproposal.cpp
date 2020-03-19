@@ -253,12 +253,18 @@ Value submitaccountpermproposal(const Array& params , bool fHelp) {
                 "\nArguments:\n"
                 "1.\"addr\":               (string,     required) the tx submitor's address\n"
                 "2.\"account_uid\":        (string,     required) the account uid that need to update\n"
-                "3.\"proposed_perms_sum\": (numberic,   required) the proposed perms sum\n"
+                "3.\"proposed_perms_sum\": (jsonArray,  required) the proposed perms update iterm\n"
+                "                          [\n"
+                "                            {\n"
+                "                              \"perm_code\": (numberic,required) the account perms code\n"
+                "                              \"op_type\"  : (numberic,required) the operate type ,0 stand for revoke, 1 stand for grant\n"
+                "                            }\n"
+                "                          ]\n"
                 "4.\"fee\":                (combomoney, optional) the tx fee \n"
                 "\nExamples:\n"
-                + HelpExampleCli("submitaccountpermproposal", "0-1 100-2 3  WICC:1:WI")
+                + HelpExampleCli("submitaccountpermproposal", R"(0-1 100-2 "[{"perm_code":3, "op_type": 0}]"  WICC:1:WI)")
                 + "\nAs json rpc call\n"
-                + HelpExampleRpc("submitaccountpermproposal", R"("0-1", "100-2", 3,  "WICC:1:WI")")
+                + HelpExampleRpc("submitaccountpermproposal", R"("0-1", "100-2", "[{"perm_code":3, "op_type": 0}]",  "WICC:1:WI")")
 
         );
 
@@ -268,13 +274,44 @@ Value submitaccountpermproposal(const Array& params , bool fHelp) {
 
     const CUserID& txUid = RPC_PARAM::GetUserId(params[0], true);
     CUserID accountUid = RPC_PARAM::GetUserId(params[1]);
-    uint64_t permsSum = AmountToRawValue(params[2]);
     ComboMoney fee          = RPC_PARAM::GetFee(params, 3, PROPOSAL_REQUEST_TX);
     int32_t validHeight  = chainActive.Height();
     CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, txUid);
     RPC_PARAM::CheckAccountBalance(account, fee.symbol, SUB_FREE, fee.GetAmountInSawi());
 
-    CGovAccountPermProposal proposal(accountUid,permsSum);
+    vector<pair<uint8_t, uint8_t>> vPerms;
+    Array permsArr = params[2].get_array();
+
+    for(auto obj:permsArr){
+
+        const Value& mObj = JSON::GetObjectFieldValue(obj,"perm_code");
+        uint8_t permCode = AmountToRawValue(mObj);
+        const Value& nObj = JSON::GetObjectFieldValue(obj,"op_type");
+        uint8_t opType = AmountToRawValue(nObj);
+        if (opType !=0 || opType != 1) {
+            throw JSONRPCError(RPC_INVALID_PARAMETER, "op type is error, it must be 0 or 1");
+        }
+        if ( permCode > 63)
+            throw  JSONRPCError(RPC_INVALID_PARAMETER, " perm code is error, it must be less than 64");
+
+        vPerms.push_back(make_pair(permCode, opType));
+
+    }
+
+
+    CAccount targetAccount = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, accountUid);
+
+    uint64_t permSum = targetAccount.perms_sum;
+    for(auto p: vPerms){
+        if (p.second == 0) {
+            permSum = permSum & ~(1 << p.first);
+        }
+        if (p.second == 1) {
+            permSum = permSum | (1 << p.first);
+        }
+    }
+
+    CGovAccountPermProposal proposal(accountUid,permSum);
 
     CProposalRequestTx tx;
     tx.txUid        = txUid;
