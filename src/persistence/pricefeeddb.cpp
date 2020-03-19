@@ -335,24 +335,13 @@ CMedianPriceDetail CPricePointMemCache::GetMedianPrice(const int32_t blockHeight
 
 bool CPricePointMemCache::CalcMedianPrices(CCacheWrapper &cw, const int32_t blockHeight, PriceMap &medianPrices) {
 
-    // TODO: support more price pair
-    uint64_t slideWindow = 0;
-    if (!ReadSlideWindow(cw.sysParamCache, slideWindow, __func__)) return false;
+    PriceDetailMap priceDetailMap;
+    if (!CalcMedianPriceDetails(cw, blockHeight, priceDetailMap))
+        return false;
 
-    latest_median_prices = cw.priceFeedCache.GetMedianPrices();
-
-    PriceCoinPair bcoinPricePair(SYMB::WICC, SYMB::USD);
-    CMedianPriceDetail bcoinMedianPrice = GetMedianPrice(blockHeight, slideWindow, bcoinPricePair);
-    medianPrices.emplace(bcoinPricePair, bcoinMedianPrice.price);
-    LogPrint(BCLog::PRICEFEED, "CPricePointMemCache::CalcBlockMedianPrices, blockHeight: %d, price: %s/%s -> %llu\n",
-             blockHeight, SYMB::WICC, SYMB::USD, bcoinMedianPrice.price);
-
-    PriceCoinPair fcoinPricePair(SYMB::WGRT, SYMB::USD);
-    CMedianPriceDetail fcoinMedianPrice = GetMedianPrice(blockHeight, slideWindow, fcoinPricePair);
-    medianPrices.emplace(fcoinPricePair, fcoinMedianPrice.price);
-    LogPrint(BCLog::PRICEFEED, "CPricePointMemCache::CalcBlockMedianPrices, blockHeight: %d, price: %s/%s -> %llu\n",
-             blockHeight, SYMB::WGRT, SYMB::USD, fcoinMedianPrice.price);
-
+    for (auto item : priceDetailMap) {
+        medianPrices.emplace(item.first, item.second.price);
+    }
     return true;
 }
 
