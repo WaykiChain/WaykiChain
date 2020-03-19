@@ -212,6 +212,9 @@ bool CWallet::CommitTx(CBaseTx *pTx, string &retMsg) {
     LOCK2(cs_main, cs_wallet);
     LogPrint(BCLog::RPCCMD, "CommitTx() : %s\n", pTx->ToString(*pCdMan->pAccountCache));
 
+
+    string wasm_execute_success_return;
+
     {
         CValidationState state;
         if (!::AcceptToMemoryPool(mempool, state, pTx, true)) {
@@ -220,6 +223,8 @@ bool CWallet::CommitTx(CBaseTx *pTx, string &retMsg) {
             LogPrint(BCLog::RPCCMD, "CommitTx() : invalid transaction %s\n", retMsg);
             return false;
         }
+
+        wasm_execute_success_return = state.GetReturn();
     }
 
     uint256 txid        = pTx->GetHash();
@@ -231,6 +236,10 @@ bool CWallet::CommitTx(CBaseTx *pTx, string &retMsg) {
     } else {
         retMsg = txid.ToString();
         ::RelayTransaction(pTx, txid);
+    }
+
+   if(pTx->nTxType == WASM_CONTRACT_TX){
+        retMsg = wasm_execute_success_return;
     }
 
     return fWriteSuccess;

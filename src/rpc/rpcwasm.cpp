@@ -232,6 +232,7 @@ Value submitwasmcontractdeploytx( const Array &params, bool fHelp ) {
 
 Value submitwasmcontractcalltx( const Array &params, bool fHelp ) {
 
+    //WASM_TRACE(params[1].get_str())
     RESPONSE_RPC_HELP( fHelp || params.size() < 4 || params.size() > 5 , wasm::rpc::submit_wasm_contract_call_tx_rpc_help_message)
     RPCTypeCheck(params, list_of(str_type)(str_type)(str_type)(str_type)(str_type));
 
