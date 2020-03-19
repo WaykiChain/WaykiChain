@@ -123,6 +123,10 @@ bool CCdpDBCache::GetBcoinActivation(const TokenSymbol &bcoinSymbol, CdpBcoinAct
     return true;
 }
 
+bool CCdpDBCache::IsBcoinActivated(const TokenSymbol &bcoinSymbol) {
+    return bcoinActivationCache.HasData(bcoinSymbol);
+}
+
 bool CCdpDBCache::SetBcoinActivation(const TokenSymbol &bcoinSymbol, const CdpBcoinActivation &activation) {
     return bcoinActivationCache.SetData(bcoinSymbol, (uint8_t)activation);
 }

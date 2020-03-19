@@ -373,15 +373,6 @@ Value getscoininfo(const Array& params, bool fHelp){
     for (const auto& item : medianPrices) {
         if (item.first == kFcoinPriceCoinPair) continue;
 
-        if (!item.second.IsActive(height, priceTimeoutBlocks)) {
-            LogPrint(BCLog::CDP,
-                    "%s(), price of coin_pair(%s) is inactive, ignore, "
-                    "last_update_height=%u, cur_height=%u\n",
-                    __func__, CoinPairToString(item.first), item.second.last_feed_height,
-                    height);
-            continue; // TODO: cdp price inactive, can not do any cdp operation
-        }
-
         CAsset asset;
         const TokenSymbol &bcoinSymbol = item.first.first;
         const TokenSymbol &quoteSymbol = item.first.second;
@@ -401,6 +392,20 @@ Value getscoininfo(const Array& params, bool fHelp){
         if (!pCdMan->pAssetCache->CheckAsset(bcoinSymbol, AssetPermType::PERM_CDP_BCOIN)) {
             LogPrint(BCLog::CDP, "%s(), base_symbol=%s not have cdp bcoin permission, ignore", __func__, bcoinSymbol);
             continue;
+        }
+
+        if (!pCdMan->pCdpCache->IsBcoinActivated(bcoinSymbol)) {
+            LogPrint(BCLog::CDP, "%s(), asset=%s does not be activated, ignore", __func__, bcoinSymbol);
+            continue;
+        }
+
+        if (!item.second.IsActive(height, priceTimeoutBlocks)) {
+            LogPrint(BCLog::CDP,
+                    "%s(), price of coin_pair(%s) is inactive, ignore, "
+                    "last_update_height=%u, cur_height=%u\n",
+                    __func__, CoinPairToString(item.first), item.second.last_feed_height,
+                    height);
+            continue; // TODO: cdp price inactive, can not do any cdp operation
         }
         cdpInfoArray.push_back(GetCdpInfoJson(CCdpCoinPair(SYMB::WICC, SYMB::WUSD), item.second.price));
     }
