@@ -249,6 +249,7 @@ CCacheDBManager::~CCacheDBManager() {
     delete pReceiptDb;      pReceiptDb = nullptr;
     delete pSysGovernDb;    pSysGovernDb = nullptr;
     delete pUtxoDb;         pUtxoDb = nullptr;
+    delete pAxcDb;          pAxcDb = nullptr;
     delete pPriceFeedDb;    pPriceFeedDb = nullptr;
     // memory-only cache
     delete pTxCache;        pTxCache = nullptr;
