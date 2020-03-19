@@ -133,11 +133,11 @@ public:
     }
 };
 
-inline const TokenSymbol GetQuoteSymbolByCdpScoin(const TokenSymbol &scoinSymbol) {
+inline TokenSymbol GetQuoteSymbolByCdpScoin(const TokenSymbol &scoinSymbol) {
     if (scoinSymbol[0] == 'W')
-        return TokenSymbol(scoinSymbol.substr(1, scoinSymbol.size() - 1));
+        return scoinSymbol.substr(1, scoinSymbol.size() - 1);
     else
-        return TokenSymbol(EMPTY_STRING);
+        return "";
 }
 
 inline TokenSymbol GetCdpScoinByQuoteSymbol(const TokenSymbol &quoteSymbol) {

@@ -628,7 +628,7 @@ Value submitaxcinproposal(const Array& params, bool fHelp) {
                 "5.\"peer_chain_addr\":             (string, required) initiator's address at peer chain \n"
                 "6.\"peer_chain_txid\":             (string, required) a proof from the peer chain (non-HTLC version), such as wisvisof932wq392wospal230ewopdsxl\n"
                 "7.\"self_chain_uid\":              (string, required) initiator's uid at waykichain \n"
-                "8.\"swap_amount\":                 (numberic, required) the coin amount that swap in \n"
+                "8.\"swap_amount\":                 (numberic, required) the coin amount that swap in, the unit is sa(0.00000001), \n"
                 "9.\"fee\":                         (combomoney, optional) the tx fee \n"
                 "\nExamples:\n"
                 + HelpExampleCli("submitaxcinproposal", " 0-1 2 ETH WETH 29okf0efodfredfedsedsfdscsfds ewsdcxesasdsadfsad 0-1  1000000")
