@@ -485,8 +485,8 @@ bool CGovAxcInProposal::CheckProposal(CTxExecuteContext& context ) {
                                         swap_amount), REJECT_INVALID, "swap_amount-dust");
     uint64_t mintAmount = 0;
     if (cw.axcCache.GetSwapInMintRecord(peer_chain_type, peer_chain_txid, mintAmount))
-        return state.DoS(100, ERRORMSG("CGovAxcInProposal::CheckProposal: GetSwapInMintRecord existing err %s",
-                        REJECT_INVALID, "get_swapin_mint_record-err"));
+        return state.DoS(100, ERRORMSG("CGovAxcInProposal::CheckProposal: GetSwapInMintRecord existing err  %s", peer_chain_txid),
+                        REJECT_INVALID, "get_swapin_mint-record-err");
     return true;
 }
 bool CGovAxcInProposal::ExecuteProposal(CTxExecuteContext& context, const TxID& proposalId) {
@@ -527,7 +527,7 @@ bool CGovAxcInProposal::ExecuteProposal(CTxExecuteContext& context, const TxID& 
                         REJECT_INVALID, "get_swapin_mint_record-err"));
 
     if (!cw.axcCache.SetSwapInMintRecord(peer_chain_type, peer_chain_txid, swap_amount_after_fees))
-        return state.DoS(100, ERRORMSG("CGovAxcInProposal::CheckProposal: GetSwapInMintRecord existing err %s",
+        return state.DoS(100, ERRORMSG("CGovAxcInProposal::CheckProposal: SetSwapInMintRecord existing err %s",
                         REJECT_INVALID, "get_swapin_mint_record-err"));
 
     return true;
@@ -536,7 +536,8 @@ bool CGovAxcInProposal::ExecuteProposal(CTxExecuteContext& context, const TxID& 
 bool CGovAxcOutProposal::CheckProposal(CTxExecuteContext& context ) {
     IMPLEMENT_DEFINE_CW_STATE;
 
-    if (!cw.assetCache.CheckAsset(self_chain_token_symbol, AssetPermType::PERM_XCHAIN_SWAP))
+    if ((kXChainSwapOutTokenMap.find(self_chain_token_symbol) == kXChainSwapOutTokenMap.end())
+        && !cw.assetCache.CheckAsset(self_chain_token_symbol, AssetPermType::PERM_XCHAIN_SWAP))
         return state.DoS(100, ERRORMSG("CGovAxcOutProposal::CheckProposal: self_chain_token_symbol=%s is invalid",
                                         self_chain_token_symbol), REJECT_INVALID, "self_chain_token_symbol-not-valid");
 
@@ -578,6 +579,10 @@ bool CGovAxcOutProposal::ExecuteProposal(CTxExecuteContext& context, const TxID&
     if (!acct.OperateBalance(self_chain_token_symbol, BalanceOpType::SUB_FREE, swap_amount))
         return state.DoS(100, ERRORMSG("CGovAxcOutProposal::ExecuteProposal, opreate balance failed, swap_amount=%llu",
                         swap_amount), REJECT_INVALID, "bad-operate-balance");
+
+    if (!cw.accountCache.SetAccount(self_chain_uid, acct))
+        return state.DoS(100, ERRORMSG("CGovAxcInProposal::ExecuteProposal, write account failed"), REJECT_INVALID,
+                         "bad-writeaccount");
 
     return true;
 }

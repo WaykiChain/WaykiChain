@@ -375,7 +375,7 @@ bool CDEXOperatorUpdateTx::ExecuteTx(CTxExecuteContext &context) {
                                                UPDATE_ACCOUNT_FAIL, "dexoperator-update-permession-deny");
     }
 
-    if (!ProcessDexOperatorFee(cw, state, OPERATOR_ACTION_REGISTER, *pTxAccount, receipts,context.height))
+    if (!ProcessDexOperatorFee(cw, state, OPERATOR_ACTION_UPDATE, *pTxAccount, receipts,context.height))
          return false;
 
     DexOperatorDetail detail = oldDetail;

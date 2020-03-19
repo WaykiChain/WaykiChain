@@ -70,13 +70,14 @@ public:
         READWRITE(fee_symbol);
         READWRITE(VARINT(llFees));
         READWRITE(txid);
+        READWRITE(axc_signature);
         READWRITE(signature);
     )
 
 
     virtual void SerializeForHash(CHashWriter &hw) const {
         hw << VARINT(nVersion) << uint8_t(nTxType) << VARINT(valid_height) << txUid << VARINT(llFees)
-           << fee_symbol << txid ;
+           << fee_symbol << txid <<axc_signature ;
     }
 
     std::shared_ptr<CBaseTx> GetNewInstance() const override { return std::make_shared<CProposalApprovalTx>(*this); }
