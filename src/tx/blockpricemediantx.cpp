@@ -99,7 +99,7 @@ bool CBlockPriceMedianTx::ExecuteTx(CTxExecuteContext &context) {
     CAccount fcoinGenesisAccount;
     if (!cw.accountCache.GetFcoinGenesisAccount(fcoinGenesisAccount)) {
         return state.DoS(100, ERRORMSG("%s(), get fcoin genesis account failed", __func__), REJECT_INVALID,
-                         "save-median-prices-failed");
+                         "get-fcoin-genesis-account-failed");
 
     }
 
