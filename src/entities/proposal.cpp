@@ -517,6 +517,10 @@ bool CGovAxcInProposal::ExecuteProposal(CTxExecuteContext& context, const TxID& 
         return state.DoS(100, ERRORMSG("CGovAxcInProposal::ExecuteProposal, opreate balance failed, swap_amount_after_fees=%llu",
                         swap_amount_after_fees), REJECT_INVALID, "bad-operate-balance");
 
+    if (!cw.accountCache.SetAccount(self_chain_uid, acct))
+        return state.DoS(100, ERRORMSG("CGovAxcInProposal::ExecuteProposal, write account failed"), REJECT_INVALID,
+                         "bad-write-account");
+
     uint64_t mintAmount = 0;
     if (cw.axcCache.GetSwapInMintRecord(peer_chain_type, peer_chain_txid, mintAmount))
         return state.DoS(100, ERRORMSG("CGovAxcInProposal::CheckProposal: GetSwapInMintRecord existing err %s",
