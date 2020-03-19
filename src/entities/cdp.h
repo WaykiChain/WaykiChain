@@ -10,6 +10,7 @@
 #include "config/scoin.h"
 #include "asset.h"
 #include "id.h"
+#include "commons/util/enumhelper.hpp"
 
 #include "commons/json/json_spirit_utils.h"
 #include "commons/json/json_spirit_value.h"
@@ -19,6 +20,17 @@
 using namespace std;
 using namespace json_spirit;
 
+enum class CdpBcoinActivation: uint8_t {
+    NONE = 0,
+    ACTIVATED,
+    INACTIVATED,
+};
+
+static const EnumHelper<CdpBcoinActivation, uint8_t> kCdpBcoinActivationHelper = {{
+    {CdpBcoinActivation::NONE, "NONE"},
+    {CdpBcoinActivation::ACTIVATED, "ACTIVATED"},
+    {CdpBcoinActivation::INACTIVATED, "INACTIVATED"}
+}};
 /**
  * CDP Cache Item: stake in BaseCoin to get StableCoins
  *

@@ -46,6 +46,10 @@ public:
     inline uint64_t GetGlobalOwedScoins() const;
     CCdpGlobalData GetCdpGlobalData(const CCdpCoinPair &cdpCoinPair) const;
 
+    bool GetBcoinActivation(const TokenSymbol &bcoinSymbol, CdpBcoinActivation &activation);
+    bool IsBcoinActivated(const TokenSymbol &bcoinSymbol);
+    bool SetBcoinActivation(const TokenSymbol &bcoinSymbol, const CdpBcoinActivation &activation);
+
     //bool HaveCdpCoinPairStatus(const CCdpCoinPair &cdpCoinPair);
     bool SetCdpCoinPairStatus(const CCdpCoinPair &cdpCoinPair, const CdpCoinPairStatus &status);
 
@@ -55,6 +59,7 @@ public:
     void RegisterUndoFunc(UndoDataFuncMap &undoDataFuncMap) {
         cdpGlobalDataCache.RegisterUndoFunc(undoDataFuncMap);
         cdpCache.RegisterUndoFunc(undoDataFuncMap);
+        bcoinActivationCache.RegisterUndoFunc(undoDataFuncMap);
         userCdpCache.RegisterUndoFunc(undoDataFuncMap);
         cdpCoinPairsCache.RegisterUndoFunc(undoDataFuncMap);
         cdpRatioSortedCache.RegisterUndoFunc(undoDataFuncMap);
@@ -78,6 +83,8 @@ public:
     CCompositeKVCache<  dbk::CDP_GLOBAL_DATA, CCdpCoinPair,   CCdpGlobalData>    cdpGlobalDataCache;
     // cdp{$cdpid} -> CUserCDP
     CCompositeKVCache<  dbk::CDP,       uint256,                    CUserCDP>           cdpCache;
+    // cbca{$bcoin_symbol} -> $bcoinActivation
+    CCompositeKVCache<  dbk::CDP_BCOIN_ACTIVATION, TokenSymbol,    uint8_t>           bcoinActivationCache;
     // ucdp${CRegID}{$cdpCoinPair} -> set<cdpid>
     CCompositeKVCache<  dbk::USER_CDP, pair<CRegIDKey, CCdpCoinPair>, optional<uint256>> userCdpCache;
     // [prefix]${cdpCoinPair} -> ${cdpCoinPairStatus}

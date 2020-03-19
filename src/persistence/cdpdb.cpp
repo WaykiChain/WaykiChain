@@ -9,12 +9,14 @@
 CCdpDBCache::CCdpDBCache(CDBAccess *pDbAccess)
     : cdpGlobalDataCache(pDbAccess),
       cdpCache(pDbAccess),
+      bcoinActivationCache(pDbAccess),
       userCdpCache(pDbAccess),
       cdpRatioSortedCache(pDbAccess) {}
 
 CCdpDBCache::CCdpDBCache(CCdpDBCache *pBaseIn)
     : cdpGlobalDataCache(pBaseIn->cdpGlobalDataCache),
       cdpCache(pBaseIn->cdpCache),
+      bcoinActivationCache(pBaseIn->bcoinActivationCache),
       userCdpCache(pBaseIn->userCdpCache),
       cdpRatioSortedCache(pBaseIn->cdpRatioSortedCache) {}
 
@@ -97,8 +99,6 @@ bool CCdpDBCache::EraseCDPFromRatioDB(const CUserCDP &userCdp) {
     return cdpRatioSortedCache.EraseData(MakeCdpRatioSortedKey(userCdp));
 }
 
-// global collateral ratio floor check
-
 bool CCdpDBCache::GetCdpListByCollateralRatio(const CCdpCoinPair &cdpCoinPair,
         const uint64_t collateralRatio, const uint64_t bcoinMedianPrice,
         CdpRatioSortedCache::Map &userCdps) {
@@ -116,9 +116,21 @@ CCdpGlobalData CCdpDBCache::GetCdpGlobalData(const CCdpCoinPair &cdpCoinPair) co
     return ret;
 }
 
+bool CCdpDBCache::GetBcoinActivation(const TokenSymbol &bcoinSymbol, CdpBcoinActivation &activation) {
+    uint8_t act;
+    if (!bcoinActivationCache.GetData(bcoinSymbol, act)) return false;
+    activation = CdpBcoinActivation(act);
+    return true;
+}
+
+bool CCdpDBCache::SetBcoinActivation(const TokenSymbol &bcoinSymbol, const CdpBcoinActivation &activation) {
+    return bcoinActivationCache.SetData(bcoinSymbol, (uint8_t)activation);
+}
+
 void CCdpDBCache::SetBaseViewPtr(CCdpDBCache *pBaseIn) {
     cdpGlobalDataCache.SetBase(&pBaseIn->cdpGlobalDataCache);
     cdpCache.SetBase(&pBaseIn->cdpCache);
+    bcoinActivationCache.SetBase(&pBaseIn->bcoinActivationCache);
     userCdpCache.SetBase(&pBaseIn->userCdpCache);
 
     cdpRatioSortedCache.SetBase(&pBaseIn->cdpRatioSortedCache);
@@ -127,17 +139,20 @@ void CCdpDBCache::SetBaseViewPtr(CCdpDBCache *pBaseIn) {
 void CCdpDBCache::SetDbOpLogMap(CDBOpLogMap *pDbOpLogMapIn) {
     cdpGlobalDataCache.SetDbOpLogMap(pDbOpLogMapIn);
     cdpCache.SetDbOpLogMap(pDbOpLogMapIn);
+    bcoinActivationCache.SetDbOpLogMap(pDbOpLogMapIn);
     userCdpCache.SetDbOpLogMap(pDbOpLogMapIn);
     cdpRatioSortedCache.SetDbOpLogMap(pDbOpLogMapIn);
 }
 
 uint32_t CCdpDBCache::GetCacheSize() const {
-    return cdpGlobalDataCache.GetCacheSize() + cdpCache.GetCacheSize() + userCdpCache.GetCacheSize() + cdpRatioSortedCache.GetCacheSize();
+    return cdpGlobalDataCache.GetCacheSize() + cdpCache.GetCacheSize() + bcoinActivationCache.GetCacheSize() +
+            userCdpCache.GetCacheSize() + cdpRatioSortedCache.GetCacheSize();
 }
 
 bool CCdpDBCache::Flush() {
     cdpGlobalDataCache.Flush();
     cdpCache.Flush();
+    bcoinActivationCache.Flush();
     userCdpCache.Flush();
     cdpRatioSortedCache.Flush();
 
