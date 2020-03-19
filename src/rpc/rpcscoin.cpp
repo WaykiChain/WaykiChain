@@ -383,10 +383,13 @@ Value getscoininfo(const Array& params, bool fHelp){
             continue;
         }
 
+        uint32_t priceInactiveCount = 22; // TODO: add sys param
         Object price;
         price.push_back(Pair("coin_symbol",                     item.first.first));
         price.push_back(Pair("price_symbol",                    item.first.second));
         price.push_back(Pair("price",                           (double)item.second.price / PRICE_BOOST));
+        price.push_back(Pair("last_feed_height",                item.second.last_feed_height));
+        price.push_back(Pair("is_active",                       item.second.IsActive(height, priceInactiveCount)));
         prices.push_back(price);
     }
 
