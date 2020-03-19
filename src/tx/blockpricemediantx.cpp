@@ -119,8 +119,12 @@ bool CBlockPriceMedianTx::ForceLiquidateCdps(CTxExecuteContext &context, PriceDe
         return true;
 
     }
-    uint32_t priceInactiveCount = 22; // TODO: add sys param
-    if (context.height - fcoinIt->second.last_feed_height > priceInactiveCount) {
+    uint64_t priceTimeoutBlocks = 0; // TODO: add sys param
+    if (!pCdMan->pSysParamCache->GetParam(SysParamType::PRICE_FEED_TIMEOUT_BLOCKS, priceTimeoutBlocks)) {
+        return state.DoS(100, ERRORMSG("%s, read sys param PRICE_FEED_TIMEOUT_BLOCKS error", __func__),
+                REJECT_INVALID, "read-sysparam-error");
+    }
+    if (!fcoinIt->second.IsActive(context.height, priceTimeoutBlocks)) {
         LogPrint(BCLog::CDP,
                  "%s(), price of fcoin(%s) is inactive, ignore, "
                  "last_update_height=%u, cur_height=%u\n",
@@ -140,6 +144,15 @@ bool CBlockPriceMedianTx::ForceLiquidateCdps(CTxExecuteContext &context, PriceDe
 
     for (const auto& item : priceDetails) {
         if (item.first == kFcoinPriceCoinPair) continue;
+
+        if (!item.second.IsActive(context.height, priceTimeoutBlocks)) {
+            LogPrint(BCLog::CDP,
+                    "%s(), price of coin_pair(%s) is inactive, ignore, "
+                    "last_update_height=%u, cur_height=%u\n",
+                    __func__, CoinPairToString(item.first), item.second.last_feed_height,
+                    context.height);
+            return true;
+        }
 
         CAsset asset;
         const TokenSymbol &bcoinSymbol = item.first.first;

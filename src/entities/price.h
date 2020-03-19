@@ -92,8 +92,8 @@ public:
         return strprintf("price=%llu, last_feed_height=%llu", price, last_feed_height);
     }
 
-    bool IsActive(HeightType curHeight, HeightType priceInactiveCount) {
-        return curHeight <= last_feed_height + priceInactiveCount;
+    bool IsActive(HeightType curHeight, HeightType priceTimeoutBlocks) const {
+        return curHeight <= last_feed_height + priceTimeoutBlocks;
     }
 };
 

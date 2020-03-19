@@ -376,6 +376,10 @@ Value getscoininfo(const Array& params, bool fHelp){
     Array cdpInfoArray;
     cdpInfoArray.push_back(GetCdpInfoJson(CCdpCoinPair(SYMB::WICC, SYMB::WUSD), medianPrices));
 
+    uint64_t priceTimeoutBlocks = 0;
+    if (!pCdMan->pSysParamCache->GetParam(SysParamType::PRICE_FEED_TIMEOUT_BLOCKS, priceTimeoutBlocks)) {
+        throw JSONRPCError(RPC_INTERNAL_ERROR, strprintf("%s, read sys param PRICE_FEED_TIMEOUT_BLOCKS error", __func__));
+    }
     Object obj;
     Array prices;
     for (auto& item : medianPrices) {
@@ -383,13 +387,12 @@ Value getscoininfo(const Array& params, bool fHelp){
             continue;
         }
 
-        uint32_t priceInactiveCount = 22; // TODO: add sys param
         Object price;
         price.push_back(Pair("coin_symbol",                     item.first.first));
         price.push_back(Pair("price_symbol",                    item.first.second));
         price.push_back(Pair("price",                           (double)item.second.price / PRICE_BOOST));
         price.push_back(Pair("last_feed_height",                item.second.last_feed_height));
-        price.push_back(Pair("is_active",                       item.second.IsActive(height, priceInactiveCount)));
+        price.push_back(Pair("is_active",                       item.second.IsActive(height, priceTimeoutBlocks)));
         prices.push_back(price);
     }
 
