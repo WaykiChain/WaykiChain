@@ -17,16 +17,16 @@ extern CWallet *pWalletMain;
 extern CCacheDBManager *pCdMan;
 
 uint32_t GetFinalBlockMinerCount() {
-    uint32_t totalBpsSize =  pCdMan->pDelegateCache->GetActivedDelegateNum() ;
-    return totalBpsSize - totalBpsSize/3 ;
+    uint32_t totalBpsSize =  pCdMan->pDelegateCache->GetActivedDelegateNum();
+    return totalBpsSize - totalBpsSize/3;
 }
 
 CBlockIndex* CPBFTMan::GetLocalFinIndex(){
 
-    if(!localFinIndex) {
+    if (!localFinIndex) {
         return chainActive[0];
     }
-    return localFinIndex ;
+    return localFinIndex;
 }
 
 
@@ -45,37 +45,37 @@ uint256 CPBFTMan::GetGlobalFinBlockHash() {
         {
             LOCK(cs_main);
             std::pair<int32_t ,uint256> globalfinblock = std::make_pair(0,uint256());
-            if(pCdMan->pBlockCache->ReadGlobalFinBlock(globalfinblock)){
-                globalFinHash = globalfinblock.second ;
-            } else if(chainActive[0] != nullptr){
-                globalFinHash = chainActive[0]->GetBlockHash() ;
+            if (pCdMan->pBlockCache->ReadGlobalFinBlock(globalfinblock)){
+                globalFinHash = globalfinblock.second;
+            } else if (chainActive[0] != nullptr) {
+                globalFinHash = chainActive[0]->GetBlockHash();
             }
-            return globalFinHash ;
+            return globalFinHash;
         }
 
     }
-    return globalFinIndex->GetBlockHash() ;
+    return globalFinIndex->GetBlockHash();
 
 }
 
-bool CPBFTMan::SetLocalFinTimeout(){
+bool CPBFTMan::SetLocalFinTimeout() {
     LOCK(cs_finblock);
     localFinIndex = chainActive[0];
-    return true ;
+    return true;
 }
 bool CPBFTMan::UpdateLocalFinBlock(const uint32_t height) {
     {
         LOCK(cs_finblock);
         CBlockIndex* oldFinblock = GetLocalFinIndex();
-        if(oldFinblock != nullptr && (uint32_t)oldFinblock->height >= height)
+        if (oldFinblock != nullptr && (uint32_t)oldFinblock->height >= height)
             return false;
         CBlockIndex* pTemp = chainActive[height];
-        if(pTemp== nullptr)
-            return false ;
+        if (pTemp== nullptr)
+            return false;
 
         localFinIndex = pTemp;
         localFinLastUpdate = GetTime();
-        return true ;
+        return true;
     }
 
 }

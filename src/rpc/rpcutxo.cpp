@@ -195,7 +195,7 @@ Value submitpasswordprooftx(const Array& params, bool fHelp) {
 
     if(fHelp || params.size() < 4 || params.size() > 5) {
         throw runtime_error(
-                "submitpasswordprooftx \"addr\" \"utxo_txid\" \"utxo_vout_index\" \"password\" \"pre_utxo_tx_uid\" \"symbol:fee:unit\" \n"
+                "submitpasswordprooftx \"addr\" \"utxo_txid\" \"utxo_vout_index\" \"password\" \"pre_utxo_tx_uid\" [\"fee\"] \n"
                 "\nSubmit a password proof tx.\n" +
                 HelpRequiringPassphrase() +
                 "\nArguments:\n"
@@ -257,12 +257,12 @@ Value submitutxotransfertx(const Array& params, bool fHelp) {
                 "\"txid\"                 (string) The transaction id.\n"
                 "\nExamples:\n" +
                 HelpExampleCli("submitutxotransfertx",
-                               "\"wLKf2NqwtHk3BfzK5wMDfbKYN1SC3weyR4\" \"WICC\" \"[{}]\" "
-                               " \"[{}]\" \"WICC:10000:sawi\" \"xx\"") +
+                               "\"wLKf2NqwtHk3BfzK5wMDfbKYN1SC3weyR4\" \"WICC\" \"[]\" "
+                               " \"[]\" \"WICC:10000:sawi\" \"xx\"") +
                 "\nAs json rpc call\n" +
                 HelpExampleRpc("submitutxotransfertx",
-                               "\"wLKf2NqwtHk3BfzK5wMDfbKYN1SC3weyR4\", \"WICC\", \"[{}]\", "
-                               "\"[{}]\", \"WICC:10000:sawi\", \"xx\"")
+                               "\"wLKf2NqwtHk3BfzK5wMDfbKYN1SC3weyR4\", \"WICC\", \"[]\", "
+                               "\"[]\", \"WICC:10000:sawi\", \"xx\"")
         );
     }
 

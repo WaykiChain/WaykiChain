@@ -614,14 +614,15 @@ Value submitaxcinproposal(const Array& params, bool fHelp) {
     if(fHelp || params.size() < 8 || params.size() > 9){
 
         throw runtime_error(
-                "submitminerfeeproposal \"addr\" \"tx_type\" \"fee_info\"  [\"fee\"]\n"
-                "create proposal about updating the min miner fee\n"
+                "submitaxcinproposal \"addr\" \"peer_chain_type\" \"peer_chain_token_symbol\" \"self_chain_token_symbol\" \"peer_chain_addr\""
+                " \"peer_chain_txid\" \"self_chain_uid\" \"swap_amount\" [\"fee\"]\n"
+                "create proposal about transfer coin from other chain to waykichain \n"
                 "\nArguments:\n"
                 "1.\"addr\":                        (string,     required) the tx submitor's address\n"
                 "2.\"peer_chain_type\":             (numberic,   required) the chain type that swap from \n"
-                                                    "1: stand for bitcoin\n"
-                                                    "2: stand for ethereum\n"
-                                                    "3: stand for eos\n"
+                "                                   1: stand for bitcoin\n"
+                "                                   2: stand for ethereum\n"
+                "                                   3: stand for eos\n"
                 "3.\"peer_chain_token_symbol\":     (string, required) the coin symbol that swap from, such as BTC,ETH,EOS \n"
                 "4.\"self_chain_token_symbol\":     (string, required) the coin symbol that swap to, such as WBTC,WETC,WEOS \n"
                 "5.\"peer_chain_addr\":             (string, required) initiator's address at peer chain \n"
@@ -630,9 +631,9 @@ Value submitaxcinproposal(const Array& params, bool fHelp) {
                 "8.\"swap_amount\":                 (numberic, required) the coin amount that swap in \n"
                 "9.\"fee\":                         (combomoney, optional) the tx fee \n"
                 "\nExamples:\n"
-                + HelpExampleCli("submitminerfeeproposal", "0-1 1 WICC:1:WI  WICC:1:WI")
+                + HelpExampleCli("submitaxcinproposal", " 0-1 2 ETH WETH 29okf0efodfredfedsedsfdscsfds ewsdcxesasdsadfsad 0-1  1000000")
                 + "\nAs json rpc call\n"
-                + HelpExampleRpc("submitminerfeeproposal", R"("0-1", 1, "WICC:1:WI", "WICC:1:WI")")
+                + HelpExampleRpc("submitaxcinproposal", R"("0-1", 2, "ETH", "WETH", "29okf0efodfredfedsedsfdscsfds", "ewsdcxesasdsadfsad", "0-1", 1000000)")
 
         );
 
@@ -670,23 +671,23 @@ Value submitaxcoutproposal(const Array& params, bool fHelp) {
     if(fHelp || params.size() < 6 || params.size() > 7){
 
         throw runtime_error(
-                "submitminerfeeproposal \"addr\" \"tx_type\" \"fee_info\"  [\"fee\"]\n"
-                "create proposal about updating the min miner fee\n"
+                "submitaxcoutproposal \"addr\" \"tx_type\" \"fee_info\"  [\"fee\"]\n"
+                "create proposal about transfer coins from waykichain to other chain\n"
                 "\nArguments:\n"
                 "1.\"addr\":                    (string,   required) the tx submitor's address\n"
                 "2.\"self_chain_uid\":          (string,   required)  initiator's uid at waykichain \n"
                 "3.\"self_chain_token_symbol\": (string, required) the coin symbol that swap out, such as WBTC,WETC,WEOS \n"
                 "4.\"peer_chain_type\":         (numberic,   required) the chain type that swap to \n"
-                                                "1: stand for bitcoin\n"
-                                                "2: stand for ethereum\n"
-                                                "3: stand for eos\n"
+                "                               1: stand for bitcoin\n"
+                "                               2: stand for ethereum\n"
+                "                               3: stand for eos\n"
                 "5.\"peer_chain_addr\":         (string, optional) initiator's address at peer chain \n"
                 "6.\"swap_amount\":             (numberic,   required) the coin amount that swap out \n"
                 "7.\"fee\":                     (combomoney, optional) the tx fee \n"
                 "\nExamples:\n"
-                + HelpExampleCli("submitminerfeeproposal", "0-1 1 WICC:1:WI  WICC:1:WI")
+                + HelpExampleCli("submitaxcoutproposal", "0-1 0-1 WETH 2 sfdv9efkwdscokedscsx 100000")
                 + "\nAs json rpc call\n"
-                + HelpExampleRpc("submitminerfeeproposal", R"("0-1", 1, "WICC:1:WI", "WICC:1:WI")")
+                + HelpExampleRpc("submitaxcoutproposal", R"("0-1", "0-2", "WETH", 2, "sfdv9efkwdscokedscsx", 100000)")
 
         );
 

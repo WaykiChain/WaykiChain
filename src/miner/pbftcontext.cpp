@@ -11,18 +11,18 @@ CPBFTContext pbftContext ;
 
 bool CPBFTContext::GetMinerListByBlockHash(const uint256 blockHash, set<CRegID>& miners) {
 
-    auto it = blockMinerListMap.find(blockHash) ;
-    if(it == blockMinerListMap.end())
+    auto it = blockMinerListMap.find(blockHash);
+    if (it == blockMinerListMap.end())
         return false;
-    miners = it->second ;
-    return true ;
+    miners = it->second;
+    return true;
 }
 
 bool CPBFTContext::SaveMinersByHash(uint256 blockhash, VoteDelegateVector delegates) {
-    set<CRegID> miners ;
+    set<CRegID> miners;
     for(auto delegate: delegates){
         miners.insert(delegate.regid);
     }
     blockMinerListMap.insert(std::make_pair(blockhash, miners));
-    return true ;
+    return true;
 }
