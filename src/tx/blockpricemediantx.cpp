@@ -69,7 +69,7 @@ bool CBlockPriceMedianTx::ExecuteTx(CTxExecuteContext &context) {
                          READ_PRICE_POINT_FAIL, "calc-median-prices-failed");
     }
 
-    if (EqualToCalculatedPrices(priceDetails)) {
+    if (!EqualToCalculatedPrices(priceDetails)) {
         string str;
         for (const auto item : priceDetails) {
             str += strprintf("{coin_pair=%s, price:%llu},", CoinPairToString(item.first), item.second.price);
