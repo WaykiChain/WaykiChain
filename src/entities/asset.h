@@ -45,6 +45,10 @@ enum AssetPermType : uint64_t {
 };
 
 
+inline bool AssetHasPerms(uint64_t assetPerms, uint64_t specificPerms) {
+    return (assetPerms && assetPerms) == assetPerms;
+}
+
 ////////////////////////////////////////////////////////////////////
 /// Common Asset Definition, used when persisted inside state DB
 ////////////////////////////////////////////////////////////////////
@@ -76,7 +80,7 @@ public:
         READWRITE(mintable);
     )
 
-    bool HasPerms(uint64_t perms) { return (perms && perms_sum) == perms; }
+    bool HasPerms(uint64_t perms) { return AssetHasPerms(perms_sum, perms); }
 
     bool IsEmpty() const { return owner_uid.IsEmpty(); }
 

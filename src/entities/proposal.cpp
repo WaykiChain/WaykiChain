@@ -269,16 +269,28 @@ bool CGovAssetPermProposal::CheckProposal(CTxExecuteContext& context ) {
 
 }
 bool CGovAssetPermProposal::ExecuteProposal(CTxExecuteContext& context, const TxID& proposalId) {
+    CValidationState &state = *context.pState;
     CCacheWrapper &cw       = *context.pCw;
 
     CAsset asset;
     if (!cw.assetCache.GetAsset(asset_symbol, asset))
         return false;
+    // process cdp bcoin perm
+    bool oldCdpBcoinPerm = asset.HasPerms(AssetPermType::PERM_CDP_BCOIN);
 
     asset.perms_sum = proposed_perms_sum;
     if (!cw.assetCache.SetAsset(asset))
         return false;
 
+    bool newCdpBcoinPerm = asset.HasPerms(AssetPermType::PERM_CDP_BCOIN);
+    if (newCdpBcoinPerm != oldCdpBcoinPerm) {
+        CdpBcoinActivation activation =
+            newCdpBcoinPerm ? CdpBcoinActivation::ACTIVATED : CdpBcoinActivation::INACTIVATED;
+        if (cw.cdpCache.SetBcoinActivation(asset_symbol, activation))
+            return state.DoS(100, ERRORMSG("%s(), save bcoin activation failed! symbol=%s",
+                        __func__, asset_symbol), REJECT_INVALID, "save-bcoin-activation-failed");
+
+    }
     return true;
 
 }
