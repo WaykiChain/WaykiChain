@@ -385,14 +385,13 @@ bool CPricePointMemCache::CalcMedianPriceDetails(CCacheWrapper &cw, const int32_
     coinPairSet.insert(kPriceFeedCoinPairSet.begin(), kPriceFeedCoinPairSet.end());
 
     for (const auto& item : coinPairSet) {
-        PriceCoinPair bcoinPricePair(SYMB::WICC, SYMB::USD);
         CMedianPriceDetail bcoinMedianPrice = GetMedianPrice(blockHeight, slideWindow, item);
         if (bcoinMedianPrice.price == 0) {
             LogPrint(BCLog::PRICEFEED, "%s(), calc median price=0 of coin_pair={%s}, ignore, height=%d\n",
                     __func__, CoinPairToString(item), blockHeight);
             continue;
         }
-        medianPrices.emplace(bcoinPricePair, bcoinMedianPrice);
+        medianPrices.emplace(item, bcoinMedianPrice);
         LogPrint(BCLog::PRICEFEED, "%s(), calc median price=%llu of coin_pair={%s}, height=%d\n",
                 blockHeight, bcoinMedianPrice.price, CoinPairToString(item), blockHeight);
     }
