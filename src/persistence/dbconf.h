@@ -106,7 +106,7 @@ namespace dbk {
         DEFINE( REGID_VOTE,           "ridv",   DELEGATE )      /* "ridv --> $votes" */ \
         /**** cdp db                                                                     */ \
         DEFINE( CDP,                  "cid",    CDP )           /* cid{$cdpid} --> CUserCDP */ \
-        DEFINE( CDP_BCOIN_ACTIVATION, "cbca",    CDP )          /* [prefix]{$bcoin_symbol} --> $bcoinActivation */ \
+        DEFINE( CDP_BCOIN_STATUS,     "cbcs",    CDP )          /* [prefix]{$bcoin_symbol} --> $bcoinStatus */ \
         DEFINE( USER_CDP,             "ucdp",   CDP )           /* ucdp{$RegID}{$AssetSymbol}{$ScoinSymbol} --> {set<cdpid>} */ \
         DEFINE( CDP_RATIO,            "cdpr",   CDP )           /* cdpr{$Ratio}{$cdpid} --> CUserCDP */ \
         DEFINE( CDP_GLOBAL_DATA,      "cgdt",   CDP )           /* [prefix]cdpCoinPair -> $cdpGlobalDataCache */ \

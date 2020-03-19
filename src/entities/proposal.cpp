@@ -286,11 +286,11 @@ bool CGovAssetPermProposal::ExecuteProposal(CTxExecuteContext& context, const Tx
 
     bool newCdpBcoinPerm = asset.HasPerms(AssetPermType::PERM_CDP_BCOIN);
     if (newCdpBcoinPerm != oldCdpBcoinPerm) {
-        CdpBcoinActivation activation =
-            newCdpBcoinPerm ? CdpBcoinActivation::ACTIVATED : CdpBcoinActivation::INACTIVATED;
-        if (cw.cdpCache.SetBcoinActivation(asset_symbol, activation))
-            return state.DoS(100, ERRORMSG("%s(), save bcoin activation failed! symbol=%s",
-                        __func__, asset_symbol), REJECT_INVALID, "save-bcoin-activation-failed");
+        CdpBcoinStatus status =
+            newCdpBcoinPerm ? CdpBcoinStatus::STAKE_ON : CdpBcoinStatus::STAKE_OFF;
+        if (cw.cdpCache.SetBcoinStatus(asset_symbol, status))
+            return state.DoS(100, ERRORMSG("%s(), save bcoin status failed! symbol=%s",
+                        __func__, asset_symbol), REJECT_INVALID, "save-bcoin-status-failed");
 
     }
     return true;

@@ -20,16 +20,16 @@
 using namespace std;
 using namespace json_spirit;
 
-enum class CdpBcoinActivation: uint8_t {
+enum class CdpBcoinStatus: uint8_t {
     NONE = 0,
-    ACTIVATED,
-    INACTIVATED,
+    STAKE_ON,
+    STAKE_OFF,
 };
 
-static const EnumHelper<CdpBcoinActivation, uint8_t> kCdpBcoinActivationHelper = {{
-    {CdpBcoinActivation::NONE, "NONE"},
-    {CdpBcoinActivation::ACTIVATED, "ACTIVATED"},
-    {CdpBcoinActivation::INACTIVATED, "INACTIVATED"}
+static const EnumHelper<CdpBcoinStatus, uint8_t> kCdpBcoinStatusHelper = {{
+    {CdpBcoinStatus::NONE, "NONE"},
+    {CdpBcoinStatus::STAKE_ON, "STAKE_ON"},
+    {CdpBcoinStatus::STAKE_OFF, "STAKE_OFF"}
 }};
 /**
  * CDP Cache Item: stake in BaseCoin to get StableCoins
