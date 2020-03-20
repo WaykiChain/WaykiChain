@@ -930,12 +930,12 @@ Value getdexquotecoins(const Array& params, bool fHelp) {
     set<TokenSymbol> symbolSet;
     pCdMan->pAssetCache->GetDexQuoteSymbolSet(symbolSet);
 
-    Object o;
+    Object obj;
     Array arr;
     for(TokenSymbol token: symbolSet)
         arr.push_back(token);
-    o.push_back(Pair("dex_quote_coins", arr));
-    return o;
+    obj.push_back(Pair("dex_quote_coins", arr));
+    return obj;
 }
 
 
