@@ -61,8 +61,6 @@ namespace dex {
 
         bool CheckOrderPrice(CTxExecuteContext &context);
 
-        bool CheckDexOperatorExist(CTxExecuteContext &context);
-
         bool CheckOrderOperator(CTxExecuteContext &context);
 
         bool FreezeBalance(CTxExecuteContext &context, CAccount &account,

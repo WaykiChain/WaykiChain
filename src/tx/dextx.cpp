@@ -263,17 +263,6 @@ namespace dex {
         return true;
     }
 
-    bool CDEXOrderBaseTx::CheckDexOperatorExist(CTxExecuteContext &context) {
-        if (dex_id != DEX_RESERVED_ID) {
-            if (!context.pCw->dexCache.HaveDexOperator(dex_id))
-                return context.pState->DoS(100, ERRORMSG("%s, dex operator does not exist! dex_id=%d",
-                    TX_ERR_TITLE, dex_id),
-                    REJECT_INVALID, "bad-getaccount");
-        }
-        return true;
-    }
-
-
     bool CDEXOrderBaseTx::CheckOrderOperator(CTxExecuteContext &context) {
 
         shared_ptr<DexOperatorDetail> spOperatorDetail;
@@ -283,8 +272,6 @@ namespace dex {
             return context.pState->DoS(
                 100, ERRORMSG("%s, dex operator is inactived! dex_id=%d", TX_ERR_TITLE, dex_id),
                 REJECT_INVALID, "dex-operator-inactived");
-
-        if (!CheckDexOperatorExist(context)) return false;
 
         if (has_operator_config) {
             const auto &hash = GetHash();
