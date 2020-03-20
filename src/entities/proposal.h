@@ -39,7 +39,7 @@ enum ProposalType: uint8_t {
     GOV_ASSET_PERM      = 7 , // update asset perms
     GOV_CDP_PARAM       = 8 , // CDP parameters
     GOV_DEX_OP          = 9 , // turn on/off DEX operator
-    GOV_DEX_QUOTE       = 10, // DEX quote coin
+
     GOV_FEED_COINPAIR   = 11, // BaseSymbol/QuoteSymbol
     GOV_AXC_IN          = 12, // atomic-cross-chain swap in
     GOV_AXC_OUT         = 13, // atomic-cross-chain swap out
@@ -426,40 +426,6 @@ struct CGovDexOpProposal: CProposal{
 
 };
 
-struct CGovDexQuoteProposal: CProposal {
-    TokenSymbol  coin_symbol ;
-    ProposalOperateType op_type  = ProposalOperateType::NULL_PROPOSAL_OP;
-
-    CGovDexQuoteProposal(): CProposal(ProposalType::GOV_DEX_QUOTE) {}
-
-    IMPLEMENT_SERIALIZE(
-        READWRITE(VARINT(expiry_block_height));
-        READWRITE(approval_min_count);
-
-        READWRITE(coin_symbol);
-        READWRITE((uint8_t&)op_type);
-    )
-
-    Object ToJson() override {
-        Object o = CProposal::ToJson();
-        o.push_back(Pair("coin_symbol", coin_symbol));
-
-        o.push_back(Pair("op_type", op_type)) ;
-        return o ;
-    }
-
-    std::string ToString() override {
-        return  strprintf("coin_symbol=%s",coin_symbol ) + ", " +
-                strprintf("op_type=%d", op_type);
-    }
-    shared_ptr<CProposal> GetNewInstance() override { return make_shared<CGovDexQuoteProposal>(*this); }
-
-
-    bool CheckProposal(CTxExecuteContext& context ) override;
-    bool ExecuteProposal(CTxExecuteContext& context, const TxID& proposalId) override;
-
-};
-
 // base currency : quote currency
 struct CGovFeedCoinPairProposal: CProposal {
     TokenSymbol  base_symbol;
@@ -665,9 +631,6 @@ struct CProposalStorageBean {
             case GOV_BP_SIZE:
                 ::Serialize(os, *((CGovBpSizeProposal  *) (sp_proposal.get())), nType, nVersion);
                 break;
-            case GOV_DEX_QUOTE:
-                ::Serialize(os, *((CGovDexQuoteProposal   *) (sp_proposal.get())), nType, nVersion);
-                break;
             case GOV_FEED_COINPAIR:
                 ::Serialize(os, *((CGovFeedCoinPairProposal   *) (sp_proposal.get())), nType, nVersion);
                 break;
@@ -733,12 +696,6 @@ struct CProposalStorageBean {
             case GOV_BP_SIZE: {
                 sp_proposal = std:: make_shared<CGovBpSizeProposal>();
                 ::Unserialize(is,  *((CGovBpSizeProposal *)(sp_proposal.get())), nType, nVersion);
-                break;
-            }
-
-            case GOV_DEX_QUOTE: {
-                sp_proposal = std:: make_shared<CGovDexQuoteProposal>();
-                ::Unserialize(is,  *((CGovDexQuoteProposal *)(sp_proposal.get())), nType, nVersion);
                 break;
             }
 

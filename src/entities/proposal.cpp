@@ -385,41 +385,6 @@ bool CGovDexOpProposal::ExecuteProposal(CTxExecuteContext& context, const TxID& 
     return true;
 }
 
-bool CGovDexQuoteProposal::CheckProposal(CTxExecuteContext& context) {
-    IMPLEMENT_DEFINE_CW_STATE
-
-    if (op_type == ProposalOperateType::NULL_PROPOSAL_OP)
-        return state.DoS(100, ERRORMSG("CGovDexQuoteProposal:: checkProposal: op_type is null "),
-                        REJECT_INVALID, "bad-op-type");
-
-    string errMsg = "";
-    if (!CAsset::CheckSymbol(AssetType::DIA, coin_symbol, errMsg))
-        return state.DoS(100, ERRORMSG("CGovDexQuoteProposal:: checkProposal: CheckSymbol failed: %s", errMsg),
-                        REJECT_INVALID, "bad-symbol");
-
-    bool hasCoin = cw.dexCache.HasDexQuoteCoin(coin_symbol);
-    if (hasCoin && op_type == ProposalOperateType::ENABLE)
-        return state.DoS(100, ERRORMSG("CGovDexQuoteProposal:: checkProposal:coin_symbol(%s) "
-                                       "is dex quote coin symbol already",coin_symbol),
-                         REJECT_INVALID, "symbol-exist");
-
-    if (!hasCoin && op_type == ProposalOperateType::DISABLE)
-        return state.DoS(100, ERRORMSG("CGovDexQuoteProposal:: checkProposal:coin_symbol(%s) "
-                                       "is not a dex quote coin symbol ",coin_symbol),
-                         REJECT_INVALID, "symbol-not-exist");
-
-    return true;
-}
-bool CGovDexQuoteProposal::ExecuteProposal(CTxExecuteContext& context, const TxID& proposalId) {
-    CCacheWrapper& cw = *context.pCw;
-
-    if (ProposalOperateType::ENABLE == op_type)
-        return cw.dexCache.AddDexQuoteCoin(coin_symbol);
-    else
-        return cw.dexCache.EraseDexQuoteCoin(coin_symbol);
-
-}
-
 bool CGovFeedCoinPairProposal::CheckProposal(CTxExecuteContext& context ) {
     IMPLEMENT_DEFINE_CW_STATE;
 

@@ -97,8 +97,7 @@ public:
           operator_detail_cache(pDbAccess),
           operator_owner_map_cache(pDbAccess),
           operator_trade_pair_cache(pDbAccess),
-          operator_last_id_cache(pDbAccess),
-          dex_quote_coin_cache(pDbAccess) {};
+          operator_last_id_cache(pDbAccess) {};
 
 
 public:
@@ -130,7 +129,6 @@ public:
         operator_owner_map_cache.Flush();
         operator_last_id_cache.Flush();
         operator_trade_pair_cache.Flush();
-        dex_quote_coin_cache.Flush();
         return true;
     }
 
@@ -140,8 +138,7 @@ public:
             operator_detail_cache.GetCacheSize() +
             operator_owner_map_cache.GetCacheSize() +
             operator_last_id_cache.GetCacheSize() +
-            operator_trade_pair_cache.GetCacheSize() +
-            dex_quote_coin_cache.GetCacheSize() ;
+            operator_trade_pair_cache.GetCacheSize();
     }
     void SetBaseViewPtr(CDexDBCache *pBaseIn) {
         activeOrderCache.SetBase(&pBaseIn->activeOrderCache);
@@ -150,7 +147,6 @@ public:
         operator_owner_map_cache.SetBase(&pBaseIn->operator_owner_map_cache);
         operator_last_id_cache.SetBase(&pBaseIn->operator_last_id_cache);
         operator_trade_pair_cache.SetBase(&pBaseIn->operator_trade_pair_cache);
-        dex_quote_coin_cache.SetBase(&pBaseIn->dex_quote_coin_cache);
     };
 
     void SetDbOpLogMap(CDBOpLogMap *pDbOpLogMapIn) {
@@ -160,7 +156,6 @@ public:
         operator_owner_map_cache.SetDbOpLogMap(pDbOpLogMapIn);
         operator_last_id_cache.SetDbOpLogMap(pDbOpLogMapIn);
         operator_trade_pair_cache.SetDbOpLogMap(pDbOpLogMapIn);
-        dex_quote_coin_cache.SetDbOpLogMap(pDbOpLogMapIn);
     }
 
     void RegisterUndoFunc(UndoDataFuncMap &undoDataFuncMap) {
@@ -170,7 +165,6 @@ public:
         operator_owner_map_cache.RegisterUndoFunc(undoDataFuncMap);
         operator_last_id_cache.RegisterUndoFunc(undoDataFuncMap);
         operator_trade_pair_cache.RegisterUndoFunc(undoDataFuncMap);
-        dex_quote_coin_cache.RegisterUndoFunc(undoDataFuncMap);
     }
 
     shared_ptr<CDEXOrdersGetter> CreateOrdersGetter() {
@@ -199,7 +193,6 @@ public:
     CCompositeKVCache< dbk::DEX_OPERATOR_OWNER_MAP,    CRegIDKey,               std::optional<CVarIntValue<DexID>>> operator_owner_map_cache;
     CCompositeKVCache< dbk::DEX_OPERATOR_TRADE_PAIR,   std::optional<CVarIntValue<DexID>>, vector<CAssetTradingPair>> operator_trade_pair_cache ;
     CSimpleKVCache<dbk::DEX_OPERATOR_LAST_ID, CVarIntValue<DexID>> operator_last_id_cache;
-    CSimpleKVCache<dbk:: DEX_QUOTE_COIN_SYMBOL, set<TokenSymbol>> dex_quote_coin_cache ;
 
 };
 

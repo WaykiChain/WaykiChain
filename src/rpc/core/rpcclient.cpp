@@ -232,7 +232,6 @@ Array RPCConvertValues(const string &strMethod, const vector<string> &strParams)
 
     if (strMethod == "submitdexswitchproposal"   && n > 1) ConvertTo<int64_t>(params[1]) ;
     if (strMethod == "submitdexswitchproposal"   && n > 2) ConvertTo<int64_t>(params[2]) ;
-    if (strMethod == "submitdexquotecoinproposal"   && n > 2) ConvertTo<int64_t>(params[2]) ;
     if (strMethod == "submitfeedcoinpairproposal"   && n>3) ConvertTo<int64_t>(params[3]) ;
     if (strMethod == "submitminerfeeproposal"   && n > 1) ConvertTo<int64_t>(params[1]) ;
 
