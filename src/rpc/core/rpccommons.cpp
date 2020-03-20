@@ -521,19 +521,19 @@ CUserID RPC_PARAM::GetUserId(const Value &jsonValue, const bool bSenderUid ) {
      */
     CRegID regid;
     if (GetFeatureForkVersion(chainActive.Height()) >= MAJOR_VER_R2) {
-        if (pCdMan->pAccountCache->GetRegId(userId, regid) && regid.IsMature(chainActive.Height())) {
+        if (pCdMan->pAccountCache->GetRegId(userId, regid) && regid.IsMature(chainActive.Height()))
             return CUserID(regid);
-        } else {
-            if (bSenderUid && userId.is<CKeyID>()) {
-                CPubKey sendPubKey;
-                if (!pWalletMain->GetPubKey(userId.get<CKeyID>(), sendPubKey) || !sendPubKey.IsFullyValid())
-                    throw JSONRPCError(RPC_WALLET_ERROR, "Key not found in the local wallet");
 
-                return CUserID(sendPubKey);
-            } else {
-                return userId;
-            }
+        if (bSenderUid && userId.is<CKeyID>()) {
+            CPubKey sendPubKey;
+            if (!pWalletMain->GetPubKey(userId.get<CKeyID>(), sendPubKey) || !sendPubKey.IsFullyValid())
+                throw JSONRPCError(RPC_WALLET_ERROR, "Key not found in the local wallet");
+
+            return CUserID(sendPubKey);
         }
+
+        return userId;
+
     } else { // MAJOR_VER_R1
         if (pCdMan->pAccountCache->GetRegId(userId, regid)) {
             return CUserID(regid);
