@@ -160,7 +160,7 @@ Value genutxomultiinputcondhash(const Array& params, bool fHelp) {
     CKeyID txKeyID = RPC_PARAM::GetKeyId(params[5]);
 
     CAccount txAcct;
-    if (!pCdMan->accountCache(txKeyID, txAcct))
+    if (!pCdMan->pAccountCache->GetAccount(txKeyID, txAcct))
         throw JSONRPCError(RPC_INVALID_PARAMETER, "Get Account from txKeyID failed.");
 
     vector<string> vAddr;
