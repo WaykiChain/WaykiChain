@@ -126,7 +126,7 @@ inline bool CheckUtxoOutCondition( const CTxExecuteContext &context, const bool 
 
             if(isPrevUtxoOut) {
                 CAccount outAcct;
-                if (!cw.accountCache.GetAccount(theCond.uid, outAcct)))
+                if (!cw.accountCache.GetAccount(theCond.uid, outAcct))
                     return state.DoS(100, ERRORMSG("CCoinUtxoTransferTx::CheckTx, uid mismatches error!"), REJECT_INVALID,
                                     "uid-mismatches-err");
 
@@ -278,7 +278,7 @@ inline bool CheckUtxoOutCondition( const CTxExecuteContext &context, const bool 
             CReClaimLockCondOut& theCond = dynamic_cast< CReClaimLockCondOut& > (*cond.sp_utxo_cond);
 
             if (isPrevUtxoOut) {
-                if (prevUtxoTxUid == txUid) { // for reclaiming the coins
+                if (prevUtxoTxUid == txAcct.keyid) { // for reclaiming the coins
                     if (theCond.height == 0 || (uint64_t) context.height <= theCond.height)
                         return state.DoS(100, ERRORMSG("CCoinUtxoTransferTx::CheckTx, too early to reclaim error!"), REJECT_INVALID,
                                         "too-early-to-claim-err");
