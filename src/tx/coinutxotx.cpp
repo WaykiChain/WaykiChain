@@ -76,27 +76,12 @@ bool ComputeMultiSignKeyId(const string &redeemScript, CKeyID &keyId) {
 }
 
 
-bool ComputeUtxoMultisignHash(const TxID &prevUtxoTxId, uint16_t prevUtxoTxVoutIndex, const CKeyID &txUid, string &redeemScript, uint256 &hash) {
+bool ComputeUtxoMultisignHash(const TxID &prevUtxoTxId, uint16_t prevUtxoTxVoutIndex,
+                            const CAccount &txAcct, string &redeemScript, uint256 &hash) {
     CHashWriter ss(SER_GETHASH, CLIENT_VERSION);
-    ss << prevUtxoTxId.ToString() << prevUtxoTxVoutIndex << txUid.ToString() << redeemScript;
+    ss << prevUtxoTxId.ToString() << prevUtxoTxVoutIndex << txAcct.keyid.ToString() << redeemScript;
     hash = ss.GetHash();
     return true;
-}
-
-bool ComputeUtxoMultisignHash(const CTxExecuteContext& context,const TxID &prevUtxoTxId, uint16_t prevUtxoTxVoutIndex, const CUserID &txUid, string &redeemScript, uint256 &hash) {
-
-    CKeyID txKeyID;
-    if(txUid.is<CKeyID>()) {
-        txKeyID = txUid.get<CKeyID>();
-    } else {
-        CAccount acct;
-        CCacheWrapper &cw       = *context.pCw;
-        if(!cw.accountCache.GetAccount(txUid, acct)){
-            return false;
-        }
-        txKeyID = acct.keyid;
-    }
-    return ComputeUtxoMultisignHash(prevUtxoTxId, prevUtxoTxVoutIndex, txKeyID, redeemScript, hash);
 }
 
 bool VerifyMultiSig(const CTxExecuteContext &context, const uint256 &utxoMultiSignHash, const CMultiSignAddressCondIn &p2maIn) {
@@ -131,7 +116,7 @@ bool VerifyMultiSig(const CTxExecuteContext &context, const uint256 &utxoMultiSi
 
 
 inline bool CheckUtxoOutCondition( const CTxExecuteContext &context, const bool isPrevUtxoOut,
-                                const CUserID &prevUtxoTxUid, const CUserID &txUid,
+                                const CUserID &prevUtxoTxUid, const CAccount &srcAcct,
                                 const CUtxoInput &input, CUtxoCondStorageBean &cond) {
     IMPLEMENT_DEFINE_CW_STATE;
 
@@ -140,7 +125,12 @@ inline bool CheckUtxoOutCondition( const CTxExecuteContext &context, const bool 
             CSingleAddressCondOut& theCond = dynamic_cast< CSingleAddressCondOut& > (*cond.sp_utxo_cond);
 
             if(isPrevUtxoOut) {
-                if (theCond.uid != txUid)
+                CAccount outAcct;
+                if (!cw.accountCache.GetAccount(theCond.uid, outAcct)))
+                    return state.DoS(100, ERRORMSG("CCoinUtxoTransferTx::CheckTx, uid mismatches error!"), REJECT_INVALID,
+                                    "uid-mismatches-err");
+
+                if (outAcct.keyid != srcAcct.keyid)
                     return state.DoS(100, ERRORMSG("CCoinUtxoTransferTx::CheckTx, uid mismatches error!"), REJECT_INVALID,
                                     "uid-mismatches-err");
             } else {
@@ -182,7 +172,7 @@ inline bool CheckUtxoOutCondition( const CTxExecuteContext &context, const bool 
                         }
 
                         uint256 utxoMultiSignHash;
-                        if (!ComputeUtxoMultisignHash(context, input.prev_utxo_txid, input.prev_utxo_vout_index, txUid, redeemScript, utxoMultiSignHash) ||
+                        if (!ComputeUtxoMultisignHash(context, input.prev_utxo_txid, input.prev_utxo_vout_index, srcAcct, redeemScript, utxoMultiSignHash) ||
                             !VerifyMultiSig(context, utxoMultiSignHash, p2maCondIn)) {
                             return state.DoS(100, ERRORMSG("CCoinUtxoTransferTx::CheckTx, cond multisig verify failed!"), REJECT_INVALID,
                                             "cond-multsig-verify-fail");
@@ -233,12 +223,12 @@ inline bool CheckUtxoOutCondition( const CTxExecuteContext &context, const bool 
 
                         if (theCond.password_proof_required) { //check if existing password ownership proof
                             string text = strprintf("%s%s%s%s%d", p2phCondIn.password,
-                                                    prevUtxoTxKeyId.ToString(), txUid.ToString(),
+                                                    prevUtxoTxKeyId.ToString(), srcAcct.keyid.ToString(),
                                                     input.prev_utxo_txid.ToString(), input.prev_utxo_vout_index);
 
                             uint256 hash = Hash(text);
                             uint256 proof = uint256();
-                            CRegIDKey regIdKey(txUid.get<CRegID>());
+                            CRegIDKey regIdKey(srcAcct.regid);
                             auto proofKey = std::make_tuple(input.prev_utxo_txid, CFixedUInt16(input.prev_utxo_vout_index), regIdKey);
                             if (context.pCw->txUtxoCache.GetUtxoPasswordProof(proofKey, proof))
                                 return state.DoS(100, ERRORMSG("CCoinUtxoTransferTx::CheckTx, password proof not existing!"), REJECT_INVALID,
@@ -250,7 +240,6 @@ inline bool CheckUtxoOutCondition( const CTxExecuteContext &context, const bool 
 
                         }
                         // further check if password_hash matches the hash of (TxUid,Password)
-
 
                         string text = strprintf("%s%s", prevUtxoTxKeyId.ToString(), p2phCondIn.password);
                         uint256 hash = Hash(text);
@@ -338,6 +327,11 @@ bool CCoinUtxoTransferTx::CheckTx(CTxExecuteContext &context) {
         return state.DoS(100, ERRORMSG("CCoinUtxoTransferTx::CheckTx, tx fee too small!"), REJECT_INVALID,
                         "bad-tx-fee-toosmall");
 
+    CAccount srcAccount;
+    if (!cw.accountCache.GetAccount(txUid, srcAccount)) //unregistered account not allowed to participate
+        return state.DoS(100, ERRORMSG("CCoinUtxoTransferTx::CheckTx, read account failed"), REJECT_INVALID,
+                        "bad-getaccount");
+
     uint64_t totalInAmount = 0;
     uint64_t totalOutAmount = 0;
     for (auto input : vins) {
@@ -346,6 +340,7 @@ bool CCoinUtxoTransferTx::CheckTx(CTxExecuteContext &context) {
         if (!GetUtxoTxFromChain(input.prev_utxo_txid, pPrevUtxoTx))
             return state.DoS(100, ERRORMSG("CCoinUtxoTransferTx::CheckTx, failed to load prev utxo from chain!"), REJECT_INVALID,
                             "failed-to-load-prev-utxo-err");
+
         if ((uint16_t) pPrevUtxoTx->vouts.size() < input.prev_utxo_vout_index + 1)
             return state.DoS(100, ERRORMSG("CCoinUtxoTransferTx::CheckTx, prev utxo index OOR error!"), REJECT_INVALID,
                             "prev-utxo-index-OOR-err");
@@ -353,7 +348,7 @@ bool CCoinUtxoTransferTx::CheckTx(CTxExecuteContext &context) {
         //enumerate the prev tx out conditions to check if current input meets
         //the output conditions of the previous Tx
         for (auto cond : pPrevUtxoTx->vouts[input.prev_utxo_vout_index].conds)
-            CheckUtxoOutCondition(context, true, pPrevUtxoTx->txUid, txUid, input, cond);
+            CheckUtxoOutCondition(context, true, pPrevUtxoTx->txUid, srcAccount, input, cond);
 
         totalInAmount += pPrevUtxoTx->vouts[input.prev_utxo_vout_index].coin_amount;
     }
@@ -365,15 +360,10 @@ bool CCoinUtxoTransferTx::CheckTx(CTxExecuteContext &context) {
 
         //check each cond's validity
         for (auto cond : output.conds)
-            CheckUtxoOutCondition(context, false, CUserID(), txUid, CUtxoInput(), cond);
+            CheckUtxoOutCondition(context, false, CUserID(), srcAccount, CUtxoInput(), cond);
 
         totalOutAmount += output.coin_amount;
     }
-
-    CAccount srcAccount;
-    if (!cw.accountCache.GetAccount(txUid, srcAccount)) //unregistered account not allowed to participate
-        return state.DoS(100, ERRORMSG("CCoinUtxoTransferTx::CheckTx, read account failed"), REJECT_INVALID,
-                        "bad-getaccount");
 
     uint64_t accountBalance = srcAccount.GetBalance(coin_symbol, BalanceType::FREE_VALUE);
     if (accountBalance + totalInAmount < totalOutAmount + llFees)

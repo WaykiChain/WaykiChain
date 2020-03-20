@@ -159,6 +159,10 @@ Value genutxomultiinputcondhash(const Array& params, bool fHelp) {
     Array uidStringArray = params[4].get_array();
     CKeyID txKeyID = RPC_PARAM::GetKeyId(params[5]);
 
+    CAccount txAcct;
+    if (!pCdMan->accountCache(txKeyID, txAcct))
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "Get Account from txKeyID failed.");
+
     vector<string> vAddr;
     for(auto v: uidStringArray){
         CKeyID  keyid = RPC_PARAM::GetKeyId(v);
@@ -182,7 +186,7 @@ Value genutxomultiinputcondhash(const Array& params, bool fHelp) {
     ComputeRedeemScript(m, n, vAddr, redeemScript);
 
     uint256 multiSignHash;
-    if (!ComputeUtxoMultisignHash(prevUtxoTxId, prevUtxoTxVoutIndex,txKeyID, redeemScript, multiSignHash))
+    if (!ComputeUtxoMultisignHash(prevUtxoTxId, prevUtxoTxVoutIndex, txAcct, redeemScript, multiSignHash))
         throw JSONRPCError(RPC_WALLET_ERROR, "create hash error");
 
     Object o;
