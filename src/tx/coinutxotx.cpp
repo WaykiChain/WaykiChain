@@ -172,7 +172,7 @@ inline bool CheckUtxoOutCondition( const CTxExecuteContext &context, const bool 
                         }
 
                         uint256 utxoMultiSignHash;
-                        if (!ComputeUtxoMultisignHash(context, input.prev_utxo_txid, input.prev_utxo_vout_index, txAcct, redeemScript, utxoMultiSignHash) ||
+                        if (!ComputeUtxoMultisignHash(input.prev_utxo_txid, input.prev_utxo_vout_index, txAcct, redeemScript, utxoMultiSignHash) ||
                             !VerifyMultiSig(context, utxoMultiSignHash, p2maCondIn)) {
                             return state.DoS(100, ERRORMSG("CCoinUtxoTransferTx::CheckTx, cond multisig verify failed!"), REJECT_INVALID,
                                             "cond-multsig-verify-fail");
