@@ -23,6 +23,8 @@
 /*  -------------------- --------------------   --------------  -------------   --------------------- */
     // <asset$tokenSymbol -> asset>
 typedef CCompositeKVCache< dbk::ASSET,         TokenSymbol,        CAsset>      DbAssetCache;
+    // [prefix]{$perm}{$asset_symbol} --> $assetStatus
+typedef CCompositeKVCache< dbk::PERM_ASSETS,  pair<CFixedUInt64, TokenSymbol>,  uint8_t>  PermAssetsCache;
 
 class CUserAssetsIterator: public CDbIterator<DbAssetCache> {
 public:
@@ -33,6 +35,8 @@ public:
         return GetValue();
     }
 };
+
+using CPermAssetsIterator = CDBPrefixIterator<PermAssetsCache, CFixedUInt64>;
 
 class CAssetDbCache {
 public:
@@ -80,13 +84,15 @@ public:
         return make_shared<CUserAssetsIterator>(assetCache);
     }
 
+    void GetDexQuoteSymbolSet(set<TokenSymbol> &symbolSet);
+
 public:
 /*  CCompositeKVCache     prefixType            key              value           variable           */
 /*  -------------------- --------------------   --------------  -------------   --------------------- */
     // <asset_tokenSymbol -> asset>
     DbAssetCache   assetCache;
     // [prefix]{$perm}{$asset_symbol} --> $assetStatus
-    CCompositeKVCache< dbk::PERM_ASSETS,  pair<CFixedUInt64, TokenSymbol>,  uint8_t>      perm_assets_cache;
+    PermAssetsCache      perm_assets_cache;
 };
 
 #endif  // PERSIST_ASSETDB_H

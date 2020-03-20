@@ -927,13 +927,12 @@ Value getdexquotecoins(const Array& params, bool fHelp) {
                 HelpExampleCli("getdexquotecoins", "") + "\nAs json rpc\n" + HelpExampleRpc("getdexquotecoins", ""));
     }
 
-    set<TokenSymbol> coins;
-    // TODO: fix me
-    // pCdMan->pDexCache->GetDexQuoteCoins(coins);
+    set<TokenSymbol> symbolSet;
+    pCdMan->pAssetCache->GetDexQuoteSymbolSet(symbolSet);
 
     Object o;
     Array arr;
-    for(TokenSymbol token: coins)
+    for(TokenSymbol token: symbolSet)
         arr.push_back(token);
     o.push_back(Pair("dex_quote_coins", arr));
     return o;

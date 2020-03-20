@@ -57,3 +57,13 @@ bool CAssetDbCache::SetAssetPerms(const CAsset &oldAsset, const CAsset &newAsset
     }
     return true;
 }
+
+void CAssetDbCache::GetDexQuoteSymbolSet(set<TokenSymbol> &symbolSet) {
+    CPermAssetsIterator it(perm_assets_cache, CFixedUInt64(AssetPermType::PERM_DEX_BASE));
+    for (it.First(); it.IsValid(); it.Next()) {
+        if (it.GetValue() == (uint8_t)AssetPermStatus::ENABLED)
+            symbolSet.insert(it.GetKey().second);
+    }
+}
+
+
