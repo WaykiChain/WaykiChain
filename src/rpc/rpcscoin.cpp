@@ -399,13 +399,9 @@ Value getscoininfo(const Array& params, bool fHelp){
             continue;
         }
 
-        if (!item.second.IsActive(height, priceTimeoutBlocks)) {
-            LogPrint(BCLog::CDP,
-                    "%s(), price of coin_pair(%s) is inactive, ignore, "
-                    "last_update_height=%u, cur_height=%u\n",
-                    __func__, CoinPairToString(item.first), item.second.last_feed_height,
-                    height);
-            continue; // TODO: cdp price inactive, can not do any cdp operation
+        if (item.second.price == 0) {
+            LogPrint(BCLog::CDP, "%s(), coin_pair(%s) price=0, ignore\n", __func__, CoinPairToString(item.first));
+            continue;
         }
         cdpInfoArray.push_back(GetCdpInfoJson(CCdpCoinPair(SYMB::WICC, SYMB::WUSD), item.second.price));
     }
