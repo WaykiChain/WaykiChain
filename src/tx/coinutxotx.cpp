@@ -117,7 +117,8 @@ bool VerifyMultiSig(const CTxExecuteContext &context, const uint256 &utxoMultiSi
 inline bool CheckUtxoOutCondition( const CTxExecuteContext &context, const bool isPrevUtxoOut,
                                 const CUserID &prevUtxoTxUid, const CAccount &txAcct,
                                 const CUtxoInput &input, CUtxoCondStorageBean &cond) {
-    IMPLEMENT_DEFINE_CW_STATE;
+
+    CCacheWrapper &cw = *context.pCw;
 
     switch (cond.sp_utxo_cond->cond_type) {
         case UtxoCondType::OP2SA : {
