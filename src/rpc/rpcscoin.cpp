@@ -403,7 +403,7 @@ Value getscoininfo(const Array& params, bool fHelp){
             LogPrint(BCLog::CDP, "%s(), coin_pair(%s) price=0, ignore\n", __func__, CoinPairToString(item.first));
             continue;
         }
-        cdpInfoArray.push_back(GetCdpInfoJson(CCdpCoinPair(SYMB::WICC, SYMB::WUSD), item.second.price));
+        cdpInfoArray.push_back(GetCdpInfoJson(CCdpCoinPair(bcoinSymbol, scoinSymbol), item.second.price));
     }
 
     Object obj;

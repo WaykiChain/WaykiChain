@@ -117,6 +117,14 @@ CCdpGlobalData CCdpDBCache::GetCdpGlobalData(const CCdpCoinPair &cdpCoinPair) co
 }
 
 bool CCdpDBCache::GetBcoinStatus(const TokenSymbol &bcoinSymbol, CdpBcoinStatus &activation) {
+    if (kCdpBcoinSymbolSet.count(bcoinSymbol) > 0) {
+        activation = CdpBcoinStatus::STAKE_ON;
+        return true;
+    }
+    if (bcoinSymbol == SYMB::WGRT || kCdpScoinSymbolSet.count(bcoinSymbol) > 0) {
+        activation = CdpBcoinStatus::NONE;
+        return false;
+    }
     uint8_t act;
     if (!bcoinStatusCache.GetData(bcoinSymbol, act)) return false;
     activation = CdpBcoinStatus(act);
@@ -124,6 +132,8 @@ bool CCdpDBCache::GetBcoinStatus(const TokenSymbol &bcoinSymbol, CdpBcoinStatus 
 }
 
 bool CCdpDBCache::IsBcoinActivated(const TokenSymbol &bcoinSymbol) {
+    if (kCdpBcoinSymbolSet.count(bcoinSymbol) > 0) return true;
+    if (bcoinSymbol == SYMB::WGRT || kCdpScoinSymbolSet.count(bcoinSymbol) > 0) return false;
     return bcoinStatusCache.HasData(bcoinSymbol);
 }
 

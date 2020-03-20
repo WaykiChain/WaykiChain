@@ -143,7 +143,7 @@ bool CCDPStakeTx::CheckTx(CTxExecuteContext &context) {
         return state.DoS(100, ERRORMSG("CCDPStakeTx::CheckTx, invalid scoin=%s", scoin_symbol),
                         REJECT_INVALID, "invalid-CDP-SCoin-Symbol");
 
-    if (assetSymbol == SYMB::WGRT || kCdpScoinSymbolSet.count(scoin_symbol) > 0 ||
+    if (assetSymbol == SYMB::WGRT || kCdpScoinSymbolSet.count(assetSymbol) > 0 ||
         !cw.assetCache.CheckAsset(assetSymbol, AssetPermType::PERM_CDP_BCOIN))
         return state.DoS(100, ERRORMSG("CCDPStakeTx::CheckTx, asset=%s can not be a bcoin", assetSymbol),
                         REJECT_INVALID, "invalid-CDP-BCoin-Symbol");
