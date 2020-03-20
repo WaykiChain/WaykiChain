@@ -243,6 +243,41 @@ Value submitgovernorupdateproposal(const Array& params , bool fHelp) {
 }
 
 
+bool ParsePerms(const Array& permsArr, uint64_t& permSum) {
+
+    vector<pair<uint8_t, uint8_t>> vPerms;
+
+    if(permsArr.size() == 0) {
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "the perm array must be not empty");
+    }
+    for(auto obj:permsArr){
+        const Value& permCodeObj = JSON::GetObjectFieldValue(obj,"perm_code");
+        uint8_t permCode = AmountToRawValue(permCodeObj);
+        const Value& opTypeObj = JSON::GetObjectFieldValue(obj,"op_type");
+        uint8_t opType = AmountToRawValue(opTypeObj);
+        if (opType !=0 && opType != 1) {
+            throw JSONRPCError(RPC_INVALID_PARAMETER, "op type is error, it must be 0 or 1");
+        }
+        if ( permCode > 63)
+            throw  JSONRPCError(RPC_INVALID_PARAMETER, " perm code is error, it must be less than 64");
+
+        vPerms.push_back(make_pair(permCode, opType));
+
+    }
+
+    for(auto p: vPerms){
+        if (p.second == 0) {
+            permSum = permSum & (~(1 << p.first));
+        }
+        if (p.second == 1) {
+            permSum = permSum | (1 << p.first);
+        }
+    }
+
+    return true;
+
+}
+
 Value submitaccountpermproposal(const Array& params , bool fHelp) {
 
     if(fHelp || params.size() < 3 || params.size() > 4){
@@ -256,7 +291,7 @@ Value submitaccountpermproposal(const Array& params , bool fHelp) {
                 "3.\"proposed_perms_sum\": (jsonArray,  required) the proposed perms update iterm\n"
                 "                          [\n"
                 "                            {\n"
-                "                              \"perm_code\": (numberic,required) the account perms code\n"
+                "                              \"perm_code\": (numberic,required) the account perms code[see document]\n"
                 "                              \"op_type\"  : (numberic,required) the operate type ,0 stand for revoke, 1 stand for grant\n"
                 "                            }\n"
                 "                          ]\n"
@@ -279,37 +314,12 @@ Value submitaccountpermproposal(const Array& params , bool fHelp) {
     CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, txUid);
     RPC_PARAM::CheckAccountBalance(account, fee.symbol, SUB_FREE, fee.GetAmountInSawi());
 
-    vector<pair<uint8_t, uint8_t>> vPerms;
+
     Array permsArr = params[2].get_array();
-
-    for(auto obj:permsArr){
-
-        const Value& mObj = JSON::GetObjectFieldValue(obj,"perm_code");
-        uint8_t permCode = AmountToRawValue(mObj);
-        const Value& nObj = JSON::GetObjectFieldValue(obj,"op_type");
-        uint8_t opType = AmountToRawValue(nObj);
-        if (opType !=0 || opType != 1) {
-            throw JSONRPCError(RPC_INVALID_PARAMETER, "op type is error, it must be 0 or 1");
-        }
-        if ( permCode > 63)
-            throw  JSONRPCError(RPC_INVALID_PARAMETER, " perm code is error, it must be less than 64");
-
-        vPerms.push_back(make_pair(permCode, opType));
-
-    }
-
-
     CAccount targetAccount = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, accountUid);
-
     uint64_t permSum = targetAccount.perms_sum;
-    for(auto p: vPerms){
-        if (p.second == 0) {
-            permSum = permSum & ~(1 << p.first);
-        }
-        if (p.second == 1) {
-            permSum = permSum | (1 << p.first);
-        }
-    }
+
+    ParsePerms(permsArr, permSum);
 
     CGovAccountPermProposal proposal(accountUid,permSum);
 
@@ -334,7 +344,13 @@ Value submitassetpermproposal(const Array& params , bool fHelp) {
                 "\nArguments:\n"
                 "1.\"addr\":               (string,     required) the tx submitor's address\n"
                 "2.\"asset_symbol\":       (string,     required) the asset that need to update\n"
-                "3.\"proposed_perms_sum\": (numberic,   required) the proposed perms sum\n"
+                "3.\"proposed_perms_sum\": (jsonArray,  required) the proposed perms update iterm\n"
+                "                          [\n"
+                "                            {\n"
+                "                              \"perm_code\": (numberic,required) the asset perms code[see document]\n"
+                "                              \"op_type\"  : (numberic,required) the operate type ,0 stand for revoke, 1 stand for grant\n"
+                "                            }\n"
+                "                          ]\n"
                 "4.\"fee\":                (combomoney, optional) the tx fee \n"
                 "\nExamples:\n"
                 + HelpExampleCli("submitassetpermproposal", "0-1 WICC 3  WICC:1:WI")
@@ -349,13 +365,21 @@ Value submitassetpermproposal(const Array& params , bool fHelp) {
 
     const CUserID& txUid = RPC_PARAM::GetUserId(params[0], true);
     const string assetSymbol = params[1].get_str();
-    uint64_t permsSum = AmountToRawValue(params[2]);
+    Array permsArr = params[2].get_array();
     ComboMoney fee          = RPC_PARAM::GetFee(params, 3, PROPOSAL_REQUEST_TX);
     int32_t validHeight  = chainActive.Height();
     CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, txUid);
     RPC_PARAM::CheckAccountBalance(account, fee.symbol, SUB_FREE, fee.GetAmountInSawi());
 
-    CGovAssetPermProposal proposal(assetSymbol, permsSum);
+    CAsset asset;
+
+    if(pCdMan->pAssetCache->GetAsset(assetSymbol, asset)) {
+        throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("not find asset that named %s", assetSymbol));
+    }
+
+    uint64_t permSum = asset.perms_sum;
+    ParsePerms(permsArr, permSum);
+    CGovAssetPermProposal proposal(assetSymbol, permSum);
     CProposalRequestTx tx;
     tx.txUid        = txUid;
     tx.llFees       = fee.GetAmountInSawi();

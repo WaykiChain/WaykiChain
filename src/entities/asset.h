@@ -44,6 +44,18 @@ enum AssetPermType : uint64_t {
 
 };
 
+static const unordered_map<uint64_t, string> assetPermMap = {
+
+        {PERM_DEX_BASE, "PERM_DEX_BASE"},
+
+        {PERM_DEX_QUOTE, "PERM_DEX_QUOTE"},
+
+        {PERM_CDP_BCOIN, "PERM_CDP_BCOIN"},
+        {PERM_PRICE_FEED, "PERM_PRICE_FEED"},
+        {PERM_XCHAIN_SWAP, "PERM_XCHAIN_SWAP"}
+
+};
+
 
 inline bool AssetHasPerms(uint64_t assetPerms, uint64_t specificPerms) {
     return (assetPerms && assetPerms) == assetPerms;
@@ -84,6 +96,7 @@ public:
 
     bool IsEmpty() const { return owner_uid.IsEmpty(); }
 
+
     void SetEmpty() {
         asset_symbol.clear();
         asset_name.clear();
@@ -98,7 +111,19 @@ public:
         return strprintf("asset_symbol=%s, asset_name=%s, asset_type=%d, perms_sum=%llu, owner_uid=%s, total_supply=%llu, mintable=%d",
                 asset_symbol, asset_name, asset_type, perms_sum, owner_uid.ToString(), total_supply, mintable);
     }
-
+    Object ToJsonObj() const {
+        Object o;
+        o.push_back(Pair("asset_symbol",  asset_symbol));
+        o.push_back(Pair("asset_name",    asset_name));
+        o.push_back(Pair("asset_type",    asset_type));
+        string permString;
+        NumberToPermsString(perms_sum, assetPermMap.size(), permString);
+        o.push_back(Pair("perms_sum",     permString));
+        o.push_back(Pair("owner_uid",     owner_uid.ToString()));
+        o.push_back(Pair("total_supply",  total_supply));
+        o.push_back(Pair("mintable",      mintable));
+        return o;
+    }
     // Check it when supplied from external like Tx or RPC calls
     static bool CheckSymbol(const AssetType assetType, const TokenSymbol &assetSymbol, string &errMsg) {
         if (assetType == AssetType::NULL_ASSET) {

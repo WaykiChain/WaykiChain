@@ -641,6 +641,14 @@ struct CProposalStorageBean {
                 ::Serialize(os, *((CGovAxcOutProposal  *) (sp_proposal.get())), nType, nVersion);
                 break;
 
+            case GOV_ACCOUNT_PERM:
+                ::Serialize(os, *((CGovAccountPermProposal  *) (sp_proposal.get())), nType, nVersion);
+                break;
+
+            case GOV_ASSET_PERM:
+                ::Serialize(os, *((CGovAssetPermProposal  *) (sp_proposal.get())), nType, nVersion);
+                break;
+
             default:
                 throw ios_base::failure(strprintf("Serialize: proposalType(%d) error.",
                                                   sp_proposal->proposal_type));
@@ -714,6 +722,19 @@ struct CProposalStorageBean {
             case GOV_AXC_OUT: {
                 sp_proposal = std:: make_shared<CGovAxcOutProposal>();
                 ::Unserialize(is,  *((CGovAxcOutProposal *)(sp_proposal.get())), nType, nVersion);
+                break;
+            }
+
+
+            case GOV_ACCOUNT_PERM: {
+                sp_proposal = std:: make_shared<CGovAccountPermProposal>();
+                ::Unserialize(is,  *((CGovAccountPermProposal *)(sp_proposal.get())), nType, nVersion);
+                break;
+            }
+
+            case GOV_ASSET_PERM: {
+                sp_proposal = std:: make_shared<CGovAssetPermProposal>();
+                ::Unserialize(is,  *((CGovAssetPermProposal *)(sp_proposal.get())), nType, nVersion);
                 break;
             }
 

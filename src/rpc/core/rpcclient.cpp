@@ -251,8 +251,8 @@ Array RPCConvertValues(const string &strMethod, const vector<string> &strParams)
     if (strMethod == "genutxomultiinputcondhash"   && n > 3) ConvertTo<int64_t>(params[3]) ;
     if (strMethod == "genutxomultiinputcondhash"   && n > 4) ConvertTo<Array>(params[4]) ;
 
-    if (strMethod == "submitaccountpermproposal"   && n > 2) ConvertTo<int64_t>(params[2]) ;
-    if (strMethod == "submitassetpermproposal"     && n > 2) ConvertTo<int64_t>(params[2]) ;
+    if (strMethod == "submitaccountpermproposal"   && n > 2) ConvertTo<Array>(params[2]) ;
+    if (strMethod == "submitassetpermproposal"     && n > 2) ConvertTo<Array>(params[2]) ;
 
 
     if (strMethod == "submitaxcinproposal"   && n > 1) ConvertTo<int64_t>(params[1]) ;

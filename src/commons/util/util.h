@@ -474,4 +474,6 @@ void splitString(string (&arr)[N], string str)
         arr[n] = *it;
 }
 
+bool  NumberToPermsString(uint64_t num,uint8_t size, string& pListString);
+
 #endif

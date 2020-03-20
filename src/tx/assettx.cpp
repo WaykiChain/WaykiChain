@@ -27,8 +27,7 @@ Object AssetToJson(const CAccountDBCache &accountCache, const CUserIssuedAsset &
 }
 
 Object AssetToJson(const CAccountDBCache &accountCache, const CAsset &asset){
-    //TODO
-    return Object();
+    return asset.ToJsonObj();
 }
 static bool ProcessAssetFee(CCacheWrapper &cw, CValidationState &state, const string &action,
     CAccount &txAccount, vector<CReceipt> &receipts,uint32_t currHeight) {

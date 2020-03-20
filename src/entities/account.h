@@ -51,6 +51,31 @@ enum AccountPermType : uint64_t {
 
 };
 
+static const unordered_map<uint64_t, string> accountPermMap = {
+        {PERM_SEND_COIN,    "PERM_SEND_COIN"},
+        {PERM_RECV_COIN,    "PERM_RECV_COIN"},
+        {PERM_STAKE_COIN,   "PERM_STAKE_COIN"},
+        {PERM_UNSTAKE_COIN, "PERM_UNSTAKE_COIN"},
+        {PERM_RECV_VOTE,    "PERM_RECV_VOTE"},
+        {PERM_SEND_VOTE,    "PERM_SEND_VOTE"},
+        {PERM_SEND_UTXO,    "PERM_SEND_UTXO"},
+        {PERM_RECV_UTXO,    "PERM_RECV_UTXO"},
+        {PERM_DEPLOY_SC,    "PERM_DEPLOY_SC"},
+        {PERM_UPGRADE_SC,   "PERM_UPGRADE_SC"},
+        {PERM_INVOKE_SC,    "PERM_INVOKE_SC"},
+        {PERM_PROPOSE,      "PERM_PROPOSE"},
+        {PERM_MINE_BLOCK,   "PERM_MINE_BLOCK"},
+        {PERM_FEED_PRICE,   "PERM_FEED_PRICE"},
+        {PERM_DEX,          "PERM_DEX"},
+        {PERM_CDP,          "PERM_CDP"},
+        {PERM_AXC_IN,       "PERM_AXC_IN"},
+        {PERM_AXC_OUT,      "PERM_AXC_OUT"},
+};
+
+
+
+
+
 const uint64_t kAccountAllPerms = uint64_t(-1); // == 0xFFFFFFFFFFFFFFFF enable all perms
 
 enum BalanceType : uint8_t {
@@ -200,6 +225,7 @@ public:
 
         return (permsSum == (perms_sum & permsSum));
     }
+
 
 
 public:
