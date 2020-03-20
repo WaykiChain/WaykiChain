@@ -40,48 +40,8 @@ struct CUtxoCond {
     virtual ~CUtxoCond(){};
 
     virtual uint32_t GetSerializeSize(int32_t nType, int32_t nVersion) const { return 0; }
-
+    virtual Object ToJson() const = 0;
     virtual std::string ToString() const = 0;
-};
-
-struct CUtxoInput {
-    TxID prev_utxo_txid;
-    uint16_t prev_utxo_vout_index = 0;
-    std::vector<CUtxoCondStorageBean> conds; //needs to meet all conditions set in previous utxo vout
-
-    CUtxoInput() {}   //empty instance
-
-    CUtxoInput(TxID &prevUtxoTxId, uint16_t prevUtxoOutIndex, std::vector<CUtxoCondStorageBean> &condsIn) :
-        prev_utxo_txid(prevUtxoTxId), prev_utxo_vout_index(prevUtxoOutIndex), conds(condsIn) {};
-
-    IMPLEMENT_SERIALIZE(
-        READWRITE(prev_utxo_txid);
-        READWRITE(VARINT(prev_utxo_vout_index));
-        READWRITE(conds);
-    )
-
-    std::string ToString() const {
-        return strprintf("prev_utxo_txid=%s, prev_utxo_vout_index=%d, conds=%s", prev_utxo_txid.ToString(),
-                        prev_utxo_vout_index, db_util::ToString(conds));
-    }
-};
-struct CUtxoOutput {
-    uint64_t coin_amount = 0;
-    std::vector<CUtxoCondStorageBean> conds;
-
-    CUtxoOutput() {};  //empty instance
-
-    CUtxoOutput(uint64_t &coinAmount, std::vector<CUtxoCondStorageBean> &condsIn) :
-        coin_amount(coinAmount), conds(condsIn) {};
-
-    IMPLEMENT_SERIALIZE(
-        READWRITE(VARINT(coin_amount));
-        READWRITE(conds);
-    )
-
-    std::string ToString() const {
-        return strprintf("coin_amount=%llu, conds=%s", coin_amount, db_util::ToString(conds));
-    }
 };
 
 //////////////////////////////////////////////////
@@ -92,6 +52,12 @@ struct CSingleAddressCondIn : CUtxoCond {
     IMPLEMENT_SERIALIZE(
         READWRITE((uint8_t&) cond_type);
     )
+
+    Object ToJson() const {
+        Object o;
+        o.push_back(Pair("cond_type","IP2SA"));
+        return o;
+    }
 
     std::string ToString() const override { return "cond_type=\"IP2SA\""; }
 };
@@ -105,6 +71,12 @@ struct CSingleAddressCondOut : CUtxoCond {
         READWRITE((uint8_t&) cond_type);
         READWRITE(uid);
     )
+    Object ToJson() const {
+        Object o;
+        o.push_back(Pair("cond_type","OP2SA"));
+        o.push_back(Pair("uid", uid.ToString()));
+        return o;
+    }
 
     std::string ToString() const override { return strprintf("cond_type=\"OP2SA\", uid=%s", uid.ToString()); }
 };
@@ -139,6 +111,23 @@ struct CMultiSignAddressCondIn : CUtxoCond {
         READWRITE(signatures);
     )
 
+    Object ToJson() const override {
+        Object o;
+        o.push_back(Pair("cond_type","IP2MA"));
+        o.push_back(Pair("m", m));
+        o.push_back(Pair("n", n));
+        Array usArr;
+        for(auto u : uids)
+            usArr.push_back(u.ToString());
+        o.push_back(Pair("uids", usArr));
+        Array signArr;
+        for(auto s: signatures)
+            signArr.push_back(HexStr(s));
+        o.push_back(Pair("signatures", signArr));
+
+        return o;
+    }
+
     std::string ToString() const override {
         return strprintf("cond_type=\"IP2MA\", m=%d, n=%d, uids=%s, signatures=[omitted]",
                         m, n, db_util::ToString(uids));
@@ -155,6 +144,12 @@ struct CMultiSignAddressCondOut : CUtxoCond {
         READWRITE(dest_multisign_keyid);
     )
 
+    Object ToJson() const override {
+        Object o;
+        o.push_back(Pair("cond_type", "OP2MA"));
+        o.push_back(Pair("multisign_addr", dest_multisign_keyid.ToAddress()));
+        return o;
+    }
     std::string ToString() const override { return strprintf("cond_type=\"OP2MA\", dest_multisign_keyid=\"%s\"", dest_multisign_keyid.ToString()); }
 
 };
@@ -170,6 +165,12 @@ struct CPasswordHashLockCondIn : CUtxoCond {
         READWRITE((uint8_t&) cond_type);
         READWRITE(password);
     )
+    Object ToJson() const override {
+        Object o;
+        o.push_back(Pair("cond_type", "IP2PH"));
+        o.push_back(Pair("password", password));
+        return o;
+    }
 
     std::string ToString() const override { return strprintf("cond_type=\"IP2PH\",password=\"%s\"", password); }
 };
@@ -186,6 +187,15 @@ struct CPasswordHashLockCondOut: CUtxoCond {
         READWRITE((uint8_t&) cond_type);
         READWRITE(password_hash);
     )
+
+    Object ToJson() const override {
+        Object o;
+        o.push_back(Pair("cond_type", "OP2PH"));
+        o.push_back(Pair("password_proof_required", password_proof_required));
+        o.push_back(Pair("password_hash", password_hash.ToString()));
+        return o;
+    }
+
 
     std::string ToString() const override {
         return strprintf("cond_type=\"OP2PH\",password_proof_required=%d, password_hash=\"%s\"",
@@ -204,6 +214,13 @@ struct CClaimLockCondOut : CUtxoCond {
         READWRITE(VARINT(height));
     )
 
+    Object ToJson() const override {
+        Object o;
+        o.push_back(Pair("cond_type", "OCLAIM_LOCK"));
+        o.push_back(Pair("height", height));
+        return o;
+    }
+
     std::string ToString() const override { return strprintf("cond_type=\"OCLAIM_LOCK\", height=%llu", height); }
 };
 
@@ -218,6 +235,13 @@ struct CReClaimLockCondOut : CUtxoCond {
         READWRITE(VARINT(height));
     )
 
+
+    Object ToJson() const override {
+        Object o;
+        o.push_back(Pair("cond_type", "ORECLAIM_LOCK"));
+        o.push_back(Pair("height", height));
+        return o;
+    }
     std::string ToString() const override { return strprintf("cond_type=\"ORECLAIM_LOCK\", height=%llu", height); }
 };
 
@@ -229,6 +253,10 @@ struct CUtxoCondStorageBean {
 
     bool IsEmpty() const { return sp_utxo_cond == nullptr; }
     void SetEmpty() { sp_utxo_cond = nullptr; }
+
+    Object ToJson() const {
+        return sp_utxo_cond->ToJson();
+    }
 
     unsigned int GetSerializeSize(int nType, int nVersion) const {
         if (IsEmpty())
@@ -353,4 +381,70 @@ struct CUtxoCondStorageBean {
     }
 
 };
+
+
+struct CUtxoInput {
+    TxID prev_utxo_txid;
+    uint16_t prev_utxo_vout_index = 0;
+    std::vector<CUtxoCondStorageBean> conds; //needs to meet all conditions set in previous utxo vout
+
+    CUtxoInput() {}   //empty instance
+
+    CUtxoInput(TxID &prevUtxoTxId, uint16_t prevUtxoOutIndex, std::vector<CUtxoCondStorageBean> &condsIn) :
+            prev_utxo_txid(prevUtxoTxId), prev_utxo_vout_index(prevUtxoOutIndex), conds(condsIn) {};
+
+    IMPLEMENT_SERIALIZE(
+            READWRITE(prev_utxo_txid);
+            READWRITE(VARINT(prev_utxo_vout_index));
+            READWRITE(conds);
+    )
+
+    std::string ToString() const {
+        return strprintf("prev_utxo_txid=%s, prev_utxo_vout_index=%d, conds=%s", prev_utxo_txid.ToString(),
+                         prev_utxo_vout_index, db_util::ToString(conds));
+    }
+
+    Object ToJson() const {
+        Object o;
+        o.push_back(Pair("prev_utxo_txid", prev_utxo_txid.ToString()));
+        o.push_back(Pair("prev_utxo_vout_index", prev_utxo_vout_index));
+        Array arr;
+        for( auto cond: conds)
+            arr.push_back(cond.ToJson());
+        o.push_back(Pair("conds", arr));
+        return o;
+
+    }
+};
+struct CUtxoOutput {
+    uint64_t coin_amount = 0;
+    std::vector<CUtxoCondStorageBean> conds;
+
+    CUtxoOutput() {};  //empty instance
+
+    CUtxoOutput(uint64_t &coinAmount, std::vector<CUtxoCondStorageBean> &condsIn) :
+            coin_amount(coinAmount), conds(condsIn) {};
+
+    IMPLEMENT_SERIALIZE(
+            READWRITE(VARINT(coin_amount));
+            READWRITE(conds);
+    )
+
+    std::string ToString() const {
+        return strprintf("coin_amount=%llu, conds=%s", coin_amount, db_util::ToString(conds));
+    }
+
+    Object ToJson() const {
+        Object o;
+
+        o.push_back(Pair("coin_amount", coin_amount));
+        Array arr;
+        for( auto cond: conds)
+            arr.push_back(cond.ToJson());
+        o.push_back(Pair("conds", arr));
+        return o;
+
+    }
+};
+
 #endif  // ENTITIES_UTXO_H

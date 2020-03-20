@@ -65,9 +65,19 @@ public:
     virtual Object ToJson(const CAccountDBCache &accountCache) const {
         Object obj = CBaseTx::ToJson(accountCache);
 
+        Array inputArr;
+        for(auto input: vins){
+            inputArr.push_back(input.ToJson());
+        }
+
+        Array outputArr;
+        for(auto output: vouts){
+            outputArr.push_back(output.ToJson());
+        }
+
         obj.push_back(Pair("coin_symbol", db_util::ToString(coin_symbol)));
-        obj.push_back(Pair("vins", db_util::ToString(vins)));
-        obj.push_back(Pair("vouts", db_util::ToString(vouts)));
+        obj.push_back(Pair("vins", inputArr));
+        obj.push_back(Pair("vouts", outputArr));
         obj.push_back(Pair("memo", memo));
 
         return obj;
