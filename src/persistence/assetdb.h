@@ -38,7 +38,7 @@ class CAssetDbCache {
 public:
     CAssetDbCache() {}
 
-    CAssetDbCache(CDBAccess *pDbAccess) : assetCache(pDbAccess) {
+    CAssetDbCache(CDBAccess *pDbAccess) : assetCache(pDbAccess), perm_assets_cache(pDbAccess) {
         assert(pDbAccess->GetDbNameType() == DBNameType::ASSET);
     }
 
@@ -51,20 +51,29 @@ public:
 
     bool CheckAsset(const TokenSymbol &symbol, uint64_t permsSum = 0);
 
-    bool Flush();
+    bool SetAssetPerms(const CAsset &oldAsset, const CAsset &newAsset);
 
-    uint32_t GetCacheSize() const { return assetCache.GetCacheSize(); }
+    bool Flush() {
+        assetCache.Flush();
+        perm_assets_cache.Flush();
+        return true;
+    }
+
+    uint32_t GetCacheSize() const { return assetCache.GetCacheSize() + perm_assets_cache.GetCacheSize(); }
 
     void SetBaseViewPtr(CAssetDbCache *pBaseIn) {
         assetCache.SetBase(&pBaseIn->assetCache);
+        perm_assets_cache.SetBase(&pBaseIn->perm_assets_cache);
     }
 
     void SetDbOpLogMap(CDBOpLogMap *pDbOpLogMapIn) {
         assetCache.SetDbOpLogMap(pDbOpLogMapIn);
+        perm_assets_cache.SetDbOpLogMap(pDbOpLogMapIn);
     }
 
     void RegisterUndoFunc(UndoDataFuncMap &undoDataFuncMap) {
         assetCache.RegisterUndoFunc(undoDataFuncMap);
+        perm_assets_cache.RegisterUndoFunc(undoDataFuncMap);
     }
 
     shared_ptr<CUserAssetsIterator> CreateUserAssetsIterator() {
@@ -76,6 +85,8 @@ public:
 /*  -------------------- --------------------   --------------  -------------   --------------------- */
     // <asset_tokenSymbol -> asset>
     DbAssetCache   assetCache;
+    // [prefix]{$perm}{$asset_symbol} --> $assetStatus
+    CCompositeKVCache< dbk::PERM_ASSETS,  pair<CFixedUInt64, TokenSymbol>,  uint8_t>      perm_assets_cache;
 };
 
 #endif  // PERSIST_ASSETDB_H

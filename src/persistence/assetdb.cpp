@@ -42,7 +42,18 @@ bool CAssetDbCache::CheckAsset(const TokenSymbol &symbol, uint64_t permsSum) {
     return asset.HasPerms(permsSum);
 }
 
-bool CAssetDbCache::Flush() {
-    assetCache.Flush();
+bool CAssetDbCache::SetAssetPerms(const CAsset &oldAsset, const CAsset &newAsset) {
+    if (oldAsset.perms_sum != newAsset.perms_sum) {
+        for (auto item : assetPermMap) {
+            uint64_t perm = item.first;
+            bool oldPermValue = oldAsset.HasPerms(perm);
+            bool newPermValue = newAsset.HasPerms(perm);
+            if (oldPermValue != newPermValue) {
+                AssetPermStatus status = newPermValue ? AssetPermStatus::ENABLED : AssetPermStatus::DISABLED;
+                if (!perm_assets_cache.SetData(make_pair(CFixedUInt64(perm), newAsset.asset_symbol), (uint8_t)status))
+                    return false;
+            }
+        }
+    }
     return true;
 }

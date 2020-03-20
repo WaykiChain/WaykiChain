@@ -53,6 +53,17 @@ static const unordered_map<uint64_t, string> kAssetPermTitleMap = {
 
 };
 
+
+inline bool AssetHasPerms(uint64_t assetPerms, uint64_t specificPerms) {
+    return (assetPerms && assetPerms) == assetPerms;
+}
+
+enum class AssetPermStatus: uint8_t {
+    NONE,
+    ENABLED,
+    DISABLED,
+};
+
 ////////////////////////////////////////////////////////////////////
 /// Common Asset Definition, used when persisted inside state DB
 ////////////////////////////////////////////////////////////////////
@@ -84,7 +95,7 @@ public:
         READWRITE(mintable);
     )
 
-    bool HasPerms(uint64_t perms) { return (perms_sum && perms) == perms; }
+    bool HasPerms(uint64_t perms) const { return AssetHasPerms(perms_sum, perms); }
 
     bool IsEmpty() const { return owner_uid.IsEmpty(); }
 
@@ -102,7 +113,7 @@ public:
         return strprintf("asset_symbol=%s, asset_name=%s, asset_type=%d, perms_sum=%llu, owner_uid=%s, total_supply=%llu, mintable=%d",
                 asset_symbol, asset_name, asset_type, perms_sum, owner_uid.ToString(), total_supply, mintable);
     }
-    
+
     Object ToJsonObj() const {
         Object o;
         string permString;
