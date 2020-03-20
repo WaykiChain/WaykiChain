@@ -116,7 +116,7 @@ bool VerifyMultiSig(const CTxExecuteContext &context, const uint256 &utxoMultiSi
 
 
 inline bool CheckUtxoOutCondition( const CTxExecuteContext &context, const bool isPrevUtxoOut,
-                                const CUserID &prevUtxoTxUid, const CAccount &srcAcct,
+                                const CUserID &prevUtxoTxUid, const CAccount &txAcct,
                                 const CUtxoInput &input, CUtxoCondStorageBean &cond) {
     IMPLEMENT_DEFINE_CW_STATE;
 
@@ -130,7 +130,7 @@ inline bool CheckUtxoOutCondition( const CTxExecuteContext &context, const bool 
                     return state.DoS(100, ERRORMSG("CCoinUtxoTransferTx::CheckTx, uid mismatches error!"), REJECT_INVALID,
                                     "uid-mismatches-err");
 
-                if (outAcct.keyid != srcAcct.keyid)
+                if (outAcct.keyid != txAcct.keyid)
                     return state.DoS(100, ERRORMSG("CCoinUtxoTransferTx::CheckTx, uid mismatches error!"), REJECT_INVALID,
                                     "uid-mismatches-err");
             } else {
@@ -172,7 +172,7 @@ inline bool CheckUtxoOutCondition( const CTxExecuteContext &context, const bool 
                         }
 
                         uint256 utxoMultiSignHash;
-                        if (!ComputeUtxoMultisignHash(context, input.prev_utxo_txid, input.prev_utxo_vout_index, srcAcct, redeemScript, utxoMultiSignHash) ||
+                        if (!ComputeUtxoMultisignHash(context, input.prev_utxo_txid, input.prev_utxo_vout_index, txAcct, redeemScript, utxoMultiSignHash) ||
                             !VerifyMultiSig(context, utxoMultiSignHash, p2maCondIn)) {
                             return state.DoS(100, ERRORMSG("CCoinUtxoTransferTx::CheckTx, cond multisig verify failed!"), REJECT_INVALID,
                                             "cond-multsig-verify-fail");
@@ -223,12 +223,12 @@ inline bool CheckUtxoOutCondition( const CTxExecuteContext &context, const bool 
 
                         if (theCond.password_proof_required) { //check if existing password ownership proof
                             string text = strprintf("%s%s%s%s%d", p2phCondIn.password,
-                                                    prevUtxoTxKeyId.ToString(), srcAcct.keyid.ToString(),
+                                                    prevUtxoTxKeyId.ToString(), txAcct.keyid.ToString(),
                                                     input.prev_utxo_txid.ToString(), input.prev_utxo_vout_index);
 
                             uint256 hash = Hash(text);
                             uint256 proof = uint256();
-                            CRegIDKey regIdKey(srcAcct.regid);
+                            CRegIDKey regIdKey(txAcct.regid);
                             auto proofKey = std::make_tuple(input.prev_utxo_txid, CFixedUInt16(input.prev_utxo_vout_index), regIdKey);
                             if (context.pCw->txUtxoCache.GetUtxoPasswordProof(proofKey, proof))
                                 return state.DoS(100, ERRORMSG("CCoinUtxoTransferTx::CheckTx, password proof not existing!"), REJECT_INVALID,
