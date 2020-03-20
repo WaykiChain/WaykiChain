@@ -904,7 +904,8 @@ Value getdexquotecoins(const Array& params, bool fHelp) {
     }
 
     set<TokenSymbol> coins;
-    pCdMan->pDexCache->GetDexQuoteCoins(coins);
+    // TODO: fix me
+    // pCdMan->pDexCache->GetDexQuoteCoins(coins);
 
     Object o;
     Array arr;
