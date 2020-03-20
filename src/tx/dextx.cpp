@@ -276,6 +276,14 @@ namespace dex {
 
     bool CDEXOrderBaseTx::CheckOrderOperator(CTxExecuteContext &context) {
 
+        shared_ptr<DexOperatorDetail> spOperatorDetail;
+        if (!GetDexOperator(context, dex_id, spOperatorDetail, TX_ERR_TITLE)) return false;
+
+        if (!spOperatorDetail->activated)
+            return context.pState->DoS(
+                100, ERRORMSG("%s, dex operator is inactived! dex_id=%d", TX_ERR_TITLE, dex_id),
+                REJECT_INVALID, "dex-operator-inactived");
+
         if (!CheckDexOperatorExist(context)) return false;
 
         if (has_operator_config) {
@@ -294,9 +302,6 @@ namespace dex {
                 return context.pState->DoS(100, ERRORMSG("%s(), dex operator uid must be regid, operator_uid=%s",
                     TX_ERR_TITLE, operator_uid.ToDebugString()),
                     REJECT_INVALID, "operator-uid-not-regid");
-
-            shared_ptr<DexOperatorDetail> spOperatorDetail;
-            if(!GetDexOperator(context, dex_id, spOperatorDetail, TX_ERR_TITLE)) return false;
 
             const CRegID &operator_regid = operator_uid.get<CRegID>();
             if (operator_regid != spOperatorDetail->fee_receiver_regid)
