@@ -75,7 +75,7 @@ public:
             outputArr.push_back(output.ToJson());
         }
 
-        obj.push_back(Pair("coin_symbol", db_util::ToString(coin_symbol)));
+        obj.push_back(Pair("coin_symbol", coin_symbol));
         obj.push_back(Pair("vins", inputArr));
         obj.push_back(Pair("vouts", outputArr));
         obj.push_back(Pair("memo", memo));
