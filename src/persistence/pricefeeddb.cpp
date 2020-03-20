@@ -391,7 +391,7 @@ bool CPricePointMemCache::CalcMedianPriceDetails(CCacheWrapper &cw, const int32_
 ////////////////////////////////////////////////////////////////////////////////
 // CPriceFeedCache
 
-uint64_t CPriceFeedCache::GetMedianPrice(const PriceCoinPair &coinPricePair) const {
+uint64_t CPriceFeedCache::GetMedianPrice(const PriceCoinPair &coinPricePair) {
     PriceDetailMap medianPrices;
     if (median_price_cache.GetData(medianPrices)) {
         auto it = medianPrices.find(coinPricePair);
@@ -399,6 +399,18 @@ uint64_t CPriceFeedCache::GetMedianPrice(const PriceCoinPair &coinPricePair) con
             return it->second.price;
     }
     return 0;
+}
+
+bool CPriceFeedCache::GetMedianPriceDetail(const PriceCoinPair &coinPricePair, CMedianPriceDetail &priceDetail) {
+    PriceDetailMap medianPrices;
+    if (median_price_cache.GetData(medianPrices)) {
+        auto it = medianPrices.find(coinPricePair);
+        if (it != medianPrices.end()) {
+            priceDetail = it->second;
+            return true;
+        }
+    }
+    return false;
 }
 
 PriceDetailMap CPriceFeedCache::GetMedianPrices() const {

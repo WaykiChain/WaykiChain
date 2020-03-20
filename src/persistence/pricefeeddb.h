@@ -127,7 +127,8 @@ public:
     bool SetPriceFeeders(const vector<CRegID> &governors) ;
     bool GetPriceFeeders(vector<CRegID>& priceFeeders) ;
 
-    uint64_t GetMedianPrice(const PriceCoinPair &coinPricePair) const;
+    uint64_t GetMedianPrice(const PriceCoinPair &coinPricePair);
+    bool GetMedianPriceDetail(const PriceCoinPair &coinPricePair, CMedianPriceDetail &priceDetail);
     PriceDetailMap GetMedianPrices() const;
     bool SetMedianPrices(const PriceDetailMap &medianPrices);
 

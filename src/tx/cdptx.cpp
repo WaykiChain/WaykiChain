@@ -27,6 +27,32 @@ static bool ReadCdpParam(CBaseTx &tx, CTxExecuteContext &context, const CCdpCoin
     return true;
 }
 
+static bool GetBcoinMedianPrice(CBaseTx &tx, CTxExecuteContext &context, const CCdpCoinPair &cdpCoinPair,
+        uint64_t &bcoinPrice) {
+    const TokenSymbol &quoteSymbol = GetQuoteSymbolByCdpScoin(cdpCoinPair.scoin_symbol);
+    if (quoteSymbol.empty()) {
+        return context.pState->DoS(100, ERRORMSG("%s(), get price quote by cdp scoin=%s failed!",
+                TX_OBJ_ERR_TITLE(tx), cdpCoinPair.scoin_symbol),
+                REJECT_INVALID, "get-price-quote-by-cdp-scoin-failed");
+    }
+
+    uint64_t priceTimeoutBlocks = 0;
+    if (!context.pCw->sysParamCache.GetParam(SysParamType::PRICE_FEED_TIMEOUT_BLOCKS, priceTimeoutBlocks)) {
+        return context.pState->DoS(100, ERRORMSG("%s, read sys param PRICE_FEED_TIMEOUT_BLOCKS error", __func__),
+                REJECT_INVALID, "read-sysparam-error");
+    }
+    CMedianPriceDetail priceDetail;
+    PriceCoinPair priceCoinPair(cdpCoinPair.bcoin_symbol, quoteSymbol);
+    context.pCw->priceFeedCache.GetMedianPriceDetail(priceCoinPair, priceDetail);
+    if (priceDetail.price == 0 || !priceDetail.IsActive(context.height, priceTimeoutBlocks)) {
+        return context.pState->DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, the price of %s:%s is empty or inactive! "
+                "price=%llu, last_feed_height=%u", CoinPairToString(priceCoinPair),
+                priceDetail.last_feed_height), REJECT_INVALID, "invalid-bcoin-price");
+    }
+    bcoinPrice = priceDetail.price;
+    return true;
+}
+
 namespace cdp_util {
 
     static string ToString(const CDPStakeAssetMap& assetMap) {
@@ -117,8 +143,9 @@ bool CCDPStakeTx::CheckTx(CTxExecuteContext &context) {
         return state.DoS(100, ERRORMSG("CCDPStakeTx::CheckTx, invalid scoin=%s", scoin_symbol),
                         REJECT_INVALID, "invalid-CDP-SCoin-Symbol");
 
-    if (!cw.assetCache.CheckAsset(assetSymbol, AssetPermType::PERM_CDP_BCOIN))
-        return state.DoS(100, ERRORMSG("CCDPStakeTx::CheckTx, bcoin=%s has no CDP perm ", assetSymbol),
+    if (assetSymbol == SYMB::WGRT || kCdpScoinSymbolSet.count(scoin_symbol) > 0 ||
+        !cw.assetCache.CheckAsset(assetSymbol, AssetPermType::PERM_CDP_BCOIN))
+        return state.DoS(100, ERRORMSG("CCDPStakeTx::CheckTx, asset=%s can not be a bcoin", assetSymbol),
                         REJECT_INVALID, "invalid-CDP-BCoin-Symbol");
 
     return true;
@@ -139,15 +166,12 @@ bool CCDPStakeTx::ExecuteTx(CTxExecuteContext &context) {
                         REJECT_INVALID, "get-price-quote-by-cdp-scoin-failed");
     }
 
+    uint64_t bcoinMedianPrice = 0;
+    if (!GetBcoinMedianPrice(*this, context, cdpCoinPair, bcoinMedianPrice)) return false;
+
     uint64_t globalCollateralRatioMin;
     if (!ReadCdpParam(*this, context, cdpCoinPair, CdpParamType::CDP_GLOBAL_COLLATERAL_RATIO_MIN, globalCollateralRatioMin))
         return false;
-
-    uint64_t bcoinMedianPrice = cw.priceFeedCache.GetMedianPrice(PriceCoinPair(assetSymbol, quoteSymbol));
-    if (bcoinMedianPrice == 0) {
-        return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, failed to acquire bcoin median price! coinPricePair=%s:%s",
-                assetSymbol, quoteSymbol), REJECT_INVALID, "acquire-asset-price-err");
-    }
 
     CCdpGlobalData cdpGlobalData = cw.cdpCache.GetCdpGlobalData(cdpCoinPair);
     uint64_t globalCollateralRatio = cdpGlobalData.GetCollateralRatio(bcoinMedianPrice);
@@ -445,10 +469,8 @@ bool CCDPRedeemTx::ExecuteTx(CTxExecuteContext &context) {
         return false;
     }
 
-    uint64_t bcoinMedianPrice = cw.priceFeedCache.GetMedianPrice(PriceCoinPair(cdp.bcoin_symbol, SYMB::USD));
-    if (bcoinMedianPrice == 0)
-        return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, failed to acquire bcoin median price!!"),
-                        REJECT_INVALID, "acquire-bcoin-median-price-err");
+    uint64_t bcoinMedianPrice = 0;
+    if (!GetBcoinMedianPrice(*this, context, cdpCoinPair, bcoinMedianPrice)) return false;
 
     CCdpGlobalData cdpGlobalData = cw.cdpCache.GetCdpGlobalData(cdpCoinPair);
     if (cdpGlobalData.CheckGlobalCollateralRatioFloorReached(bcoinMedianPrice, globalCollateralRatioFloor)) {
@@ -704,16 +726,12 @@ bool CCDPLiquidateTx::ExecuteTx(CTxExecuteContext &context) {
                         scoins_to_liquidate), CDP_LIQUIDATE_FAIL, "account-scoins-insufficient");
     }
 
+    uint64_t bcoinMedianPrice = 0;
+    if (!GetBcoinMedianPrice(*this, context, cdpCoinPair, bcoinMedianPrice)) return false;
+
     uint64_t globalCollateralRatioFloor;
     if (!ReadCdpParam(*this, context, cdpCoinPair, CDP_GLOBAL_COLLATERAL_RATIO_MIN, globalCollateralRatioFloor))
         return false;
-
-
-    uint64_t bcoinMedianPrice = cw.priceFeedCache.GetMedianPrice(PriceCoinPair(cdp.bcoin_symbol, SYMB::USD));
-    if (bcoinMedianPrice == 0) {
-        return state.DoS(100, ERRORMSG("CCDPLiquidateTx::ExecuteTx, failed to acquire bcoin median price!!"),
-                         REJECT_INVALID, "acquire-bcoin-median-price-err");
-    }
 
     CCdpGlobalData cdpGlobalData = cw.cdpCache.GetCdpGlobalData(cdpCoinPair);
     if (cdpGlobalData.CheckGlobalCollateralRatioFloorReached(bcoinMedianPrice, globalCollateralRatioFloor)) {
