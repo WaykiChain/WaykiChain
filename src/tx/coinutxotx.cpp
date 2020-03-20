@@ -309,7 +309,7 @@ inline bool CheckUtxoOutCondition( const CTxExecuteContext &context, const bool 
         }
         default: {
             string strInOut = isPrevUtxoOut ? "input" : "output";
-            errMsg = strprintf("UtxoCondType unsupported: %", cond.sp_utxo_cond->cond_type)
+            errMsg = strprintf("UtxoCondType unsupported: %", cond.sp_utxo_cond->cond_type);
             return false;
         }
     }
