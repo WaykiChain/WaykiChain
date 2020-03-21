@@ -98,7 +98,7 @@ public:
     uint32_t                      prev_block_time;
     CCacheWrapper*                pCw;
     CValidationState*             pState;
-    TxExecuteContextType          tx_execute_context_type;
+    TxExecuteContextType          context_type;
 
     CTxExecuteContext()
         : height(0),
@@ -108,12 +108,12 @@ public:
           prev_block_time(0),
           pCw(nullptr),
           pState(nullptr),
-          tx_execute_context_type(TxExecuteContextType::CONNECT_BLOCK){}
+          context_type(TxExecuteContextType::CONNECT_BLOCK){}
 
     CTxExecuteContext(const int32_t heightIn, const int32_t indexIn, const uint32_t fuelRateIn,
                       const uint32_t blockTimeIn, const uint32_t preBlockTimeIn,
                       CCacheWrapper *pCwIn, CValidationState *pStateIn, 
-                      const TxExecuteContextType txExContentType = TxExecuteContextType::CONNECT_BLOCK)
+                      const TxExecuteContextType contextType = TxExecuteContextType::CONNECT_BLOCK)
         : height(heightIn),
           index(indexIn),
           fuel_rate(fuelRateIn),
@@ -121,7 +121,7 @@ public:
           prev_block_time(preBlockTimeIn),
           pCw(pCwIn),
           pState(pStateIn),
-          tx_execute_context_type(txExContentType) {}
+          context_type(contextType) {}
 };
 
 class CBaseTx {
