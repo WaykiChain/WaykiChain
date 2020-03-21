@@ -11,14 +11,6 @@
 #include "main.h"
 
 
-uint64_t CAccount::GetBalance(const TokenSymbol &tokenSymbol, const BalanceType balanceType) {
-    uint64_t ret = 0;
-    if (!GetBalance(tokenSymbol, balanceType, ret))
-        return 0;
-        
-    return ret;
-}
-
 bool CAccount::GetBalance(const TokenSymbol &tokenSymbol, const BalanceType balanceType, uint64_t &value) {
     auto iter = tokens.find(tokenSymbol);
     if (iter == tokens.end())
