@@ -128,7 +128,7 @@ uint256 CPartialMerkleTree::ExtractMatches(vector<uint256> &vMatch) {
 // class CMerkleBlock
 
 CMerkleBlock::CMerkleBlock(const CBlock &block, CBloomFilter &filter) {
-    header = block.GetBlockHeader();
+    block.GetBlockHeader(header);
 
     vector<bool> vMatch;
     vector<uint256> vHashes;

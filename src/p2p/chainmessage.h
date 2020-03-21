@@ -555,8 +555,12 @@ inline bool ProcessGetHeadersMessage(CNode *pFrom, CDataStream &vRecv) {
     int32_t nLimit = 2000;
     LogPrint(BCLog::NET, "getheaders %d to %s from peer %s\n", (pIndex ? pIndex->height : -1), hashStop.ToString(),
              pFrom->addr.ToString());
+
     for (; pIndex; pIndex = chainActive.Next(pIndex)) {
-        vHeaders.push_back(pIndex->GetBlockHeader());
+        CBlockHeader blockHeader;
+        pIndex->GetBlockHeader(blockHeader);
+        vHeaders.push_back(blockHeader);
+        
         if (--nLimit <= 0 || pIndex->GetBlockHash() == hashStop)
             break;
     }

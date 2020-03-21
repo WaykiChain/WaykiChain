@@ -148,19 +148,16 @@ public:
         vMerkleTree.clear();
     }
 
-    CBlockHeader GetBlockHeader() const {
-        CBlockHeader block;
-        block.SetVersion(nVersion);
-        block.SetPrevBlockHash(prevBlockHash);
-        block.SetMerkleRootHash(merkleRootHash);
-        block.SetTime(nTime);
-        block.SetNonce(nNonce);
-        block.SetHeight(height);
-        block.SetFuel(nFuel);
-        block.SetFuelRate(nFuelRate);
-        block.SetSignature(vSignature);
-
-        return block;
+    void CBlockHeader GetBlockHeader(CBlockHeader &header) const {
+        header.SetVersion(nVersion);
+        header.SetPrevBlockHash(prevBlockHash);
+        header.SetMerkleRootHash(merkleRootHash);
+        header.SetTime(nTime);
+        header.SetNonce(nNonce);
+        header.SetHeight(height);
+        header.SetFuel(nFuel);
+        header.SetFuelRate(nFuelRate);
+        header.SetSignature(vSignature);
     }
 
     uint256 BuildMerkleTree() const;
@@ -316,18 +313,16 @@ public:
         return ret;
     }
 
-    CBlockHeader GetBlockHeader() const {
-        CBlockHeader block;
-        block.SetVersion(nVersion);
+    void GetBlockHeader(CBlockHeader &header) const {
+        header.SetVersion(nVersion);
         if (pprev)
-            block.SetPrevBlockHash(pprev->GetBlockHash());
-        block.SetMerkleRootHash(merkleRootHash);
-        block.SetTime(nTime);
-        block.SetNonce(nNonce);
-        block.SetHeight(height);
-        block.SetSignature(vSignature);
+            header.SetPrevBlockHash(pprev->GetBlockHash());
 
-        return block;
+        header.SetMerkleRootHash(merkleRootHash);
+        header.SetTime(nTime);
+        header.SetNonce(nNonce);
+        header.SetHeight(height);
+        header.SetSignature(vSignature);
     }
 
     uint256 GetBlockHash() const { return *pBlockHash; }
