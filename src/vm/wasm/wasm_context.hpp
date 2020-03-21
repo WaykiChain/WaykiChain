@@ -109,7 +109,7 @@ namespace wasm {
 
         bool contracts_console() {
             return SysCfg().GetBoolArg("-contracts_console", false) && 
-                    control_trx.tx_execute_content_type == TxExecuteContextType::VALIDATE_MEMPOOL;
+                    control_trx.tx_execute_context_type == TxExecuteContextType::VALIDATE_MEMPOOL;
         }
 
         void console_append(const string& val) {

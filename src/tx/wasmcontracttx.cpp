@@ -275,15 +275,15 @@ bool CWasmContractTx::ExecuteTx(CTxExecuteContext &context) {
 
     auto& database             = *context.pCw;
     auto& execute_tx_to_return = *context.pState;
-    tx_execute_content_type    = context.tx_execute_content_type;
+    tx_execute_context_type    = context.tx_execute_context_type;
     pending_block_time         = context.block_time;
 
     wasm::inline_transaction* trx_current_for_exception = nullptr;
 
     try {
 
-        if(tx_execute_content_type == TxExecuteContextType::PRODUCE_BLOCK ||
-           tx_execute_content_type == TxExecuteContextType::VALIDATE_MEMPOOL ){
+        if(tx_execute_context_type == TxExecuteContextType::PRODUCE_BLOCK ||
+           tx_execute_context_type == TxExecuteContextType::VALIDATE_MEMPOOL ){
             max_transaction_duration = std::chrono::milliseconds(max_wasm_execute_time_mining);
         }
 
