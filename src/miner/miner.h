@@ -85,7 +85,7 @@ vector<MinedBlockInfo> GetMinedBlocks(uint32_t count);
 /** Run the miner threads */
 void GenerateProduceBlockThread(bool fGenerate, CWallet *pWallet, int32_t nThreads);
 
-bool VerifyRewardTx(const CBlock *pBlock, CCacheWrapper &cwIn, bool bNeedRunTx, VoteDelegate &curDelegateOut, uint32_t& totalDelegateNumOut);
+bool VerifyRewardTx(const CBlock *pBlock, CCacheWrapper &cwIn, VoteDelegate &curDelegateOut, uint32_t& totalDelegateNumOut);
 
 /** Check mined block */
 bool CheckWork(CBlock *pBlock);

@@ -262,9 +262,8 @@ bool AcceptToMemoryPool(CTxMemPool &pool, CValidationState &state, CBaseTx *pBas
 
     // is it a miner reward tx or price median tx?
     if (pBaseTx->IsBlockRewardTx() || pBaseTx->IsPriceMedianTx())
-        return state.Invalid(
-            ERRORMSG("AcceptToMemoryPool() : txid: %s is a block reward or price median tx, not allowed to put into mempool",
-                    hash.GetHex()), REJECT_INVALID, "tx-coinbase-to-mempool");
+        return state.Invalid(ERRORMSG("AcceptToMemoryPool() : txid: %s is a block reward or price median tx,"
+                            "not allowed to put into mempool", hash.GetHex()), REJECT_INVALID, "tx-coinbase-to-mempool");
 
     // Rather not work on nonstandard transactions (unless -testnet/-regtest)
     string reason;
@@ -997,7 +996,7 @@ static bool ComputeVoteStakingInterestAndRevokeVotes(const int32_t currHeight, c
 bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValidationState &state, bool fJustCheck) {
     AssertLockHeld(cs_main);
 
-    bool isGensisBlock = block.GetHeight() == 0 && block.GetHash() == SysCfg().GetGenesisBlockHash();
+    bool isGensisBlock = (block.GetHeight() == 0) && (block.GetHash() == SysCfg().GetGenesisBlockHash());
 
     // Check it again in case a previous version let a bad block in
     if (!isGensisBlock && !CheckBlock(block, state, cw, !fJustCheck, !fJustCheck))
@@ -1018,7 +1017,7 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
     if (isGensisBlock) {
         if (!ProcessGenesisBlock(block, cw, pIndex, state)) {
             return state.DoS(100, ERRORMSG("ConnectBlock() : process genesis block error"),
-                REJECT_INVALID, "process genesis-block-error");
+                            REJECT_INVALID, "process genesis-block-error");
         }
         return true;
     }
@@ -1029,10 +1028,11 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
 
         vector<string> txids = IniCfg().GetStableCoinGenesisTxid(SysCfg().NetworkID());
         assert(txids.size() == 3);
-        for (int32_t index = 0; index < 3; ++ index) {
+        for (int32_t index = 0; index < 3; ++index) {
             LogPrint(BCLog::INFO, "stable coin genesis block, txid actual: %s, should be: %s, in detail: %s\n",
                      block.vptx[index + 1]->GetHash().GetHex(), txids[index],
                      block.vptx[index + 1]->ToString(cw.accountCache));
+
             assert(block.vptx[index + 1]->nTxType == UCOIN_REWARD_TX);
             if (SysCfg().NetworkID() == MAIN_NET) {
                 assert(block.vptx[index + 1]->GetHash() == uint256S(txids[index]));
@@ -1083,6 +1083,7 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
             if (!pBaseTx->ExecuteTx(context)) {
                 pCdMan->pLogCache->SetExecuteFail(pIndex->height, pBaseTx->GetHash(), state.GetRejectCode(),
                                                   state.GetRejectReason());
+
                 return state.DoS(100, ERRORMSG("ConnectBlock() : txid=%s execute failed, in detail: %s",
                                  pBaseTx->GetHash().GetHex(), pBaseTx->ToString(cw.accountCache)), REJECT_INVALID, "tx-execute-failed");
             }
