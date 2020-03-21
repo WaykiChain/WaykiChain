@@ -340,9 +340,6 @@ static bool CreateNewBlockPreStableCoinRelease(CCacheWrapper &cwIn, std::unique_
                 CTxExecuteContext context(height, index + 1, fuelRate, blockTime, prevBlockTime, spCW.get(), &state,
                                         transaction_status_type::mining);
 
-                std::shared_ptr<CPubKey> spTxSenderPubKey;
-                std::shared_ptr<CAccount> spTtxSenderAccount;
-
                 if (!pBaseTx->CheckBaseTx(context) ||
                     !pBaseTx->CheckTx(context) ||
                     !pBaseTx->ExecuteTx(context)) {
@@ -451,7 +448,7 @@ static bool CreateNewBlockStableCoinRelease(int64_t startMiningMs, CCacheWrapper
         uint64_t totalRunStep              = 0;
         uint64_t totalFees                 = 0;
         uint64_t totalFuel                 = 0;
-        map<TokenSymbol, uint64_t> rewards = {{SYMB::WICC, 0}, {SYMB::WUSD, 0}};
+        map<TokenSymbol, uint64_t> rewards = { {SYMB::WICC, 0}, {SYMB::WUSD, 0} };
 
         // Calculate && sort transactions from memory pool.
         set<TxPriority> txPriorities;
@@ -478,6 +475,7 @@ static bool CreateNewBlockStableCoinRelease(int64_t startMiningMs, CCacheWrapper
             if (totalBlockSize + txSize >= nBlockMaxSize) {
                 LogPrint(BCLog::MINER, "CreateNewBlockStableCoinRelease() : exceed max block size, txid: %s\n",
                          pBaseTx->GetHash().GetHex());
+
                 continue;
             }
 
@@ -501,9 +499,6 @@ static bool CreateNewBlockStableCoinRelease(int64_t startMiningMs, CCacheWrapper
                 uint32_t prevBlockTime = pIndexPrev->GetBlockTime();
                 CTxExecuteContext context(height, index + 1, fuelRate, blockTime, prevBlockTime, spCW.get(), &state,
                                         transaction_status_type::mining);
-
-                std::shared_ptr<CPubKey> spTxSenderPubKey;
-                std::shared_ptr<CAccount> spTtxSenderAccount;
 
                 if (!pBaseTx->CheckBaseTx(context) ||
                     !pBaseTx->CheckTx(context) ||
