@@ -25,29 +25,19 @@
 
 using namespace std;
 
-enum class transaction_status_type {
-    mining     = 0,
-    validating = 1,
-    syncing    = 2,
+enum class TxExecuteContextType {
+    NULL_TYPE               = 0,
+    VALIDATE_MEMPOOL        = 1,
+    CONNECT_BLOCK           = 2,
+    PRODUCE_BLOCK           = 3,
+
 };
 
-
-inline string to_string(transaction_status_type type){
-    switch(type){
-        case transaction_status_type::mining:
-            return string("mining");
-            break;
-        case transaction_status_type::validating:
-            return string("validating");
-            break;
-        case transaction_status_type::syncing:
-            return string("syncing");
-            break;
-        default:
-            return string("unknown");
-    }
-}
-// }
+static const unordered_map<TxExecuteContextType, string> kTxExecuteContextTypeNameMap {
+    { TxExecuteContextType::VALIDATE_MEMPOOL,   "VALIDATE_MEMPOOL" },
+    { TxExecuteContextType::CONNECT_BLOCK,      "CONNECT_BLOCK"    },
+    { TxExecuteContextType::PRODUCE_BLOCK,      "PRODUCE_BLOCK"    },
+};
 
 class CCacheWrapper;
 class CValidationState;
@@ -108,7 +98,7 @@ public:
     uint32_t                      prev_block_time;
     CCacheWrapper*                pCw;
     CValidationState*             pState;
-    transaction_status_type       transaction_status;
+    TxExecuteContextType          tx_execute_context_type;
 
     CTxExecuteContext()
         : height(0),
@@ -118,12 +108,12 @@ public:
           prev_block_time(0),
           pCw(nullptr),
           pState(nullptr),
-          transaction_status(transaction_status_type::syncing){}
+          tx_execute_context_type(TxExecuteContextType::CONNECT_BLOCK){}
 
     CTxExecuteContext(const int32_t heightIn, const int32_t indexIn, const uint32_t fuelRateIn,
                       const uint32_t blockTimeIn, const uint32_t preBlockTimeIn,
                       CCacheWrapper *pCwIn, CValidationState *pStateIn, 
-                      const transaction_status_type trx_status = transaction_status_type::syncing)
+                      const TxExecuteContextType txExContentType = TxExecuteContextType::CONNECT_BLOCK)
         : height(heightIn),
           index(indexIn),
           fuel_rate(fuelRateIn),
@@ -131,7 +121,7 @@ public:
           prev_block_time(preBlockTimeIn),
           pCw(pCwIn),
           pState(pStateIn),
-          transaction_status(trx_status){}
+          tx_execute_context_type(txExContentType) {}
 };
 
 class CBaseTx {

@@ -1042,7 +1042,7 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
 
     VoteDelegate curDelegate;
     uint32_t totalDelegateNum;
-    if (!VerifyRewardTx(&block, cw, false, curDelegate, totalDelegateNum))
+    if (!VerifyRewardTx(&block, cw, curDelegate, totalDelegateNum))
         return state.DoS(100, ERRORMSG("ConnectBlock() : verify reward tx error"), REJECT_INVALID, "bad-reward-tx");
 
     CBlockUndo blockUndo;
@@ -1154,6 +1154,7 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
         uint32_t prevBlockTime = pIndex->pprev != nullptr ? pIndex->pprev->GetBlockTime() : pIndex->GetBlockTime();
         CTxExecuteContext context(pIndex->height, 0, pIndex->nFuelRate, pIndex->nTime, prevBlockTime, &cw, &state);
         CTxUndoOpLogger rewardOpLogger(cw, block.vptx[0]->GetHash(), blockUndo);
+
         if (!block.vptx[0]->ExecuteTx(context)) {
             pCdMan->pLogCache->SetExecuteFail(pIndex->height, block.vptx[0]->GetHash(), state.GetRejectCode(),
                                             state.GetRejectReason());
@@ -1564,9 +1565,8 @@ bool ActivateBestChain(CValidationState &state, CBlockIndex* pNewIndex) {
             if (!DisconnectTip(state))
                 return false;
 
-            if (chainActive.Tip() && chainMostWork.Contains(chainActive.Tip())){
+            if (chainActive.Tip() && chainMostWork.Contains(chainActive.Tip()))
                 mempool.ReScanMemPoolTx();
-            }
         }
 
         // Connect new blocks.
@@ -1834,9 +1834,9 @@ bool ProcessForkedChain(const CBlock &block, CBlockIndex *pPreBlockIndex, CValid
 
     VoteDelegate curDelegate;
     uint32_t totalDelegateNum ;
-    if (!VerifyRewardTx(&block, *spCW, false, curDelegate, totalDelegateNum))
+    if (!VerifyRewardTx(&block, *spCW, curDelegate, totalDelegateNum))
         return state.DoS(100, ERRORMSG("ProcessForkedChain() : block[%u]: %s verify reward tx error",
-            block.GetHeight(), block.GetHash().GetHex()), REJECT_INVALID, "bad-reward-tx");
+                        block.GetHeight(), block.GetHash().GetHex()), REJECT_INVALID, "bad-reward-tx");
 
     return true;
 }

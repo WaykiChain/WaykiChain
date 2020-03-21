@@ -108,7 +108,8 @@ namespace wasm {
         std::vector<uint64_t> get_active_producers();
 
         bool contracts_console() {
-            return SysCfg().GetBoolArg("-contracts_console", false) && control_trx.transaction_status == transaction_status_type::validating;
+            return SysCfg().GetBoolArg("-contracts_console", false) && 
+                    control_trx.tx_execute_content_type == TxExecuteContextType::VALIDATE_MEMPOOL;
         }
 
         void console_append(const string& val) {

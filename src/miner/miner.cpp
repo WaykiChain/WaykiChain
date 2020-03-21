@@ -335,7 +335,7 @@ static bool CreateNewBlockForPreStableCoinRelease(CCacheWrapper &cwIn, std::uniq
                 pBaseTx->nFuelRate = fuelRate;
                 uint32_t prevBlockTime = pIndexPrev->GetBlockTime();
                 CTxExecuteContext context(height, index + 1, fuelRate, blockTime, prevBlockTime, spCW.get(), &state,
-                                        transaction_status_type::mining);
+                                        TxExecuteContextType::PRODUCE_BLOCK);
 
                 if (!pBaseTx->CheckBaseTx(context) ||
                     !pBaseTx->CheckTx(context) ||
@@ -495,7 +495,7 @@ static bool CreateNewBlockForStableCoinRelease(int64_t startMiningMs, CCacheWrap
 
                 uint32_t prevBlockTime = pIndexPrev->GetBlockTime();
                 CTxExecuteContext context(height, index + 1, fuelRate, blockTime, prevBlockTime, spCW.get(), &state,
-                                        transaction_status_type::mining);
+                                        TxExecuteContextType::PRODUCE_BLOCK);
 
                 if (!pBaseTx->CheckBaseTx(context) ||
                     !pBaseTx->CheckTx(context) ||

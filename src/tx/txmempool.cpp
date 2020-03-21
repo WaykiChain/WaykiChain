@@ -82,27 +82,31 @@ void CTxMemPool::QueryHash(vector<uint256> &txids) {
 bool CTxMemPool::CheckTxInMemPool(const uint256 &txid, const CTxMemPoolEntry &memPoolEntry, CValidationState &state,
                                   bool bExecute) {
     CBlockIndex *pTip =  chainActive.Tip();
-    if (pTip == nullptr) throw runtime_error("CheckTxInMemPool(), pChainTip is nullptr");
+    if (pTip == nullptr) 
+        throw runtime_error("CheckTxInMemPool:: ChainActive.Tip() is null");
+
     HeightType newHeight = pTip->height + 1;
-    // is it within valid height
+    // not within valid height
     static int validHeight = SysCfg().GetTxCacheHeight();
     if (!memPoolEntry.GetTransaction()->IsValidHeight(newHeight, validHeight))
         return state.Invalid(ERRORMSG("CheckTxInMemPool() : txid: %s beyond the scope of valid height", txid.GetHex()),
                              REJECT_INVALID, "tx-invalid-height");
 
-    // is it already confirmed in block
+    // already confirmed in block
     if (cw->txCache.HasTx(txid))
         return state.Invalid(ERRORMSG("CheckTxInMemPool() : txid: %s has been confirmed", txid.GetHex()), REJECT_INVALID,
                              "tx-duplicate-confirmed");
 
     auto spCW = std::make_shared<CCacheWrapper>(cw.get());
 
-    if (bExecute) {
+    if (bExecute) { //always true so far
         uint32_t fuelRate  = GetElementForBurn(pTip);
         uint32_t blockTime = pTip->GetBlockTime();
         uint32_t prevBlockTime = pTip->pprev != nullptr ? pTip->pprev->GetBlockTime() : pTip->GetBlockTime();
-        CTxExecuteContext context(newHeight, 0, fuelRate, blockTime, prevBlockTime, spCW.get(), &state, transaction_status_type::validating);
-        if (!memPoolEntry.GetTransaction()->ExecuteTx(context)) {
+        CTxExecuteContext context(newHeight, 0, fuelRate, blockTime, prevBlockTime, spCW.get(), &state, 
+                                TxExecuteContextType::VALIDATE_MEMPOOL);
+
+        if (!memPoolEntry.GetTransaction()->ExecuteTx(context)) { //rehearsal only within cache env
             pCdMan->pLogCache->SetExecuteFail(newHeight, memPoolEntry.GetTransaction()->GetHash(),
                                               state.GetRejectCode(), state.GetRejectReason());
             return false;
