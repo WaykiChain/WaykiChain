@@ -148,7 +148,7 @@ public:
         vMerkleTree.clear();
     }
 
-    void CBlockHeader GetBlockHeader(CBlockHeader &header) const {
+    void CBlockHeader GetBlockHeader(CBlockHeader &header) {
         header.SetVersion(nVersion);
         header.SetPrevBlockHash(prevBlockHash);
         header.SetMerkleRootHash(merkleRootHash);
