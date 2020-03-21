@@ -84,7 +84,7 @@ public:
         READWRITE(mintable);
     )
 
-    bool HasPerms(uint64_t perms) { return (assetPerms && perms) == perms; }
+    bool HasPerms(uint64_t perms) { return (perms_sum && perms) == perms; }
 
     bool IsEmpty() const { return owner_uid.IsEmpty(); }
 
