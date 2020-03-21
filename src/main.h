@@ -85,7 +85,7 @@ void UnregisterAllWallets();
 /** Push an updated transaction to all registered wallets */
 void SyncTransaction(const uint256 &hash, CBaseTx *pBaseTx, const CBlock *pBlock = nullptr);
 /** Erase Tx from wallets **/
-void EraseTransaction(const uint256 &hash);
+void EraseTransactionFromWallet(const uint256 &hash);
 /** Register with a network node to receive its signals */
 void RegisterNodeSignals(CNodeSignals &nodeSignals);
 /** Unregister a network node */

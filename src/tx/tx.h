@@ -25,7 +25,6 @@
 
 using namespace std;
 
-// namespace wasm{
 enum class transaction_status_type {
     mining     = 0,
     validating = 1,
@@ -123,7 +122,8 @@ public:
 
     CTxExecuteContext(const int32_t heightIn, const int32_t indexIn, const uint32_t fuelRateIn,
                       const uint32_t blockTimeIn, const uint32_t preBlockTimeIn,
-                      CCacheWrapper *pCwIn, CValidationState *pStateIn, const transaction_status_type trx_status = transaction_status_type::syncing)
+                      CCacheWrapper *pCwIn, CValidationState *pStateIn, 
+                      const transaction_status_type trx_status = transaction_status_type::syncing)
         : height(heightIn),
           index(indexIn),
           fuel_rate(fuelRateIn),

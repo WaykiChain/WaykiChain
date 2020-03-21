@@ -51,7 +51,7 @@ void CTxMemPool::Remove(CBaseTx *pBaseTx, list<std::shared_ptr<CBaseTx> > &remov
     if (memPoolTxs.count(txid)) {
         removed.push_front(std::shared_ptr<CBaseTx>(memPoolTxs[txid].GetTransaction()));
         memPoolTxs.erase(txid);
-        EraseTransaction(txid);
+        EraseTransactionFromWallet(txid);
     }
 }
 
@@ -127,7 +127,7 @@ void CTxMemPool::ReScanMemPoolTx() {
         if (!CheckTxInMemPool(iterTx->first, iterTx->second, state, true)) {
             uint256 txid = iterTx->first;
             iterTx       = memPoolTxs.erase(iterTx++);
-            EraseTransaction(txid);
+            EraseTransactionFromWallet(txid);
             continue;
         }
         ++iterTx;

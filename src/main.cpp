@@ -185,7 +185,7 @@ void SyncTransaction(const uint256 &hash, CBaseTx *pBaseTx, const CBlock *pBlock
     g_signals.SyncTransaction(hash, pBaseTx, pBlock);
 }
 
-void EraseTransaction(const uint256 &hash) { g_signals.EraseTransaction(hash); }
+void EraseTransactionFromWallet(const uint256 &hash) { g_signals.EraseTransaction(hash); }
 
 //////////////////////////////////////////////////////////////////////////////
 //
@@ -1391,7 +1391,7 @@ bool static DisconnectTip(CValidationState &state) {
                 mempool.Remove(pTx.get(), removed, true);
             }
         } else {
-            EraseTransaction(pTx->GetHash());
+            EraseTransactionFromWallet(pTx->GetHash());
         }
     }
 
