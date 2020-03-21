@@ -23,7 +23,7 @@ public:
     system_clock::time_point      pseudo_start;
     std::chrono::microseconds     billed_time              = chrono::microseconds(0);
     std::chrono::milliseconds     max_transaction_duration = std::chrono::milliseconds(wasm::max_wasm_execute_time_infinite);
-    TxExecuteContextType          tx_execute_context_type  = TxExecuteContextType::CONNECT_BLOCK;//block in syncing
+    TxExecuteContextType          context_type             = TxExecuteContextType::CONNECT_BLOCK;//block in syncing
     //wasm::inline_transaction      trx_current              = nullptr;
 
     void                      pause_billing_timer();
