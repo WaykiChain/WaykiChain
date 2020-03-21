@@ -55,21 +55,26 @@ class CValidationState;
 
 static const std::unordered_map<TxType, AccountPermType> kTxTypePermMap = {
     { BCOIN_TRANSFER_TX,            AccountPermType::PERM_SEND_COIN  },
-    { LCONTRACT_DEPLOY_TX,          AccountPermType::PERM_DEPLOY_SC  },
-    { LCONTRACT_INVOKE_TX,          AccountPermType::PERM_INVOKE_SC  },
     { DELEGATE_VOTE_TX,             AccountPermType::PERM_SEND_VOTE  },
     { UCOIN_TRANSFER_TX,            AccountPermType::PERM_SEND_COIN  },
     { UCOIN_TRANSFER_MTX,           AccountPermType::PERM_SEND_COIN  },
+
     { UCOIN_STAKE_TX,               AccountPermType::PERM_STAKE_COIN },
+
     { UTXO_TRANSFER_TX,             AccountPermType::PERM_SEND_UTXO  },
     { UTXO_PASSWORD_PROOF_TX,       AccountPermType::PERM_SEND_UTXO  },
+
+    { LCONTRACT_DEPLOY_TX,          AccountPermType::PERM_DEPLOY_SC  },
+    { LCONTRACT_INVOKE_TX,          AccountPermType::PERM_INVOKE_SC  },
     { UCONTRACT_DEPLOY_TX,          AccountPermType::PERM_DEPLOY_SC  },
     { UCONTRACT_INVOKE_TX,          AccountPermType::PERM_INVOKE_SC  },
+    { WASM_CONTRACT_TX,             AccountPermType::PERM_INVOKE_SC  },
     { PRICE_FEED_TX,                AccountPermType::PERM_FEED_PRICE },
+
     { CDP_STAKE_TX,                 AccountPermType::PERM_CDP        },
     { CDP_REDEEM_TX,                AccountPermType::PERM_CDP        },
     { CDP_LIQUIDATE_TX,             AccountPermType::PERM_CDP        },
-    { WASM_CONTRACT_TX,             AccountPermType::PERM_INVOKE_SC  },
+
     { DEX_LIMIT_BUY_ORDER_TX,       AccountPermType::PERM_DEX        },
     { DEX_LIMIT_SELL_ORDER_TX,      AccountPermType::PERM_DEX        },
     { DEX_MARKET_BUY_ORDER_TX,      AccountPermType::PERM_DEX        },
@@ -81,8 +86,8 @@ static const std::unordered_map<TxType, AccountPermType> kTxTypePermMap = {
     { DEX_OPERATOR_REGISTER_TX,     AccountPermType::PERM_DEX        },
     { DEX_OPERATOR_REGISTER_TX,     AccountPermType::PERM_DEX        },
     { DEX_TRADE_SETTLE_TX,          AccountPermType::PERM_DEX        },
+
     { PROPOSAL_REQUEST_TX,          AccountPermType::PERM_PROPOSE    },
-    { PROPOSAL_APPROVAL_TX,         AccountPermType::PERM_PROPOSE    },
 };
 
 string GetTxType(const TxType txType);

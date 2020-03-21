@@ -342,11 +342,13 @@ bool CLuaVMRunEnv::TransferAccountAsset(lua_State *L, const vector<AssetTransfer
                 transfer.toUid.ToString());
         }
 
-        if (!pFromAccount->OperateBalance(transfer.tokenType, SUB_FREE, transfer.tokenAmount)) {
+        uint64_t fromAcctBalance;
+        if (!pFromAccount->OperateBalance(transfer.tokenType, SUB_FREE, transfer.tokenAmount) ||
+            !pFromAccount->GetBalance(transfer.tokenType, BalanceType::FREE_VALUE, fromAcctBalance)) {
             LogPrint(BCLog::LUAVM, "[ERR]CLuaVMRunEnv::TransferAccountAsset(), operate SUB_FREE in from_account failed! "
                 "from_uid=%s, isContractAccount=%d, symbol=%s, amount=%llu, account_amount=%llu\n",
                 fromUid.ToString(), (int)transfer.isContractAccount, transfer.tokenType,
-                transfer.tokenAmount, pFromAccount->GetBalance(transfer.tokenType, BalanceType::FREE_VALUE));
+                transfer.tokenAmount, fromAcctBalance);
             ret = false; break;
         }
 

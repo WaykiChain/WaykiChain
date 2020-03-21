@@ -390,8 +390,9 @@ bool CCoinUtxoTransferTx::CheckTx(CTxExecuteContext &context) {
         totalOutAmount += output.coin_amount;
     }
 
-    uint64_t accountBalance = srcAccount.GetBalance(coin_symbol, BalanceType::FREE_VALUE);
-    if (accountBalance + totalInAmount < totalOutAmount + llFees)
+    uint64_t accountBalance;
+    if ( !srcAccount.GetBalance(coin_symbol, BalanceType::FREE_VALUE, accountBalance) ||
+         (accountBalance + totalInAmount < totalOutAmount + llFees) )
         return state.DoS(100, ERRORMSG("CCoinUtxoTransferTx::CheckTx, account balance coin_amount insufficient!\n"
                                     "accountBalance=%llu, totalInAmount=%llu, totalOutAmount=%llu, llFees=%llu\n"
                                     "srcAccount=%s coinSymbol=%s",
@@ -456,8 +457,9 @@ bool CCoinUtxoTransferTx::ExecuteTx(CTxExecuteContext &context) {
         index++;
     }
 
-    uint64_t accountBalance = srcAccount.GetBalance(coin_symbol, BalanceType::FREE_VALUE);
-    if (accountBalance + totalInAmount < totalOutAmount + llFees)
+    uint64_t accountBalance;
+    if ( !srcAccount.GetBalance(coin_symbol, BalanceType::FREE_VALUE, accountBalance) ||
+         (accountBalance + totalInAmount < totalOutAmount + llFees) )
         return state.DoS(100, ERRORMSG("CCoinUtxoTransferTx::CheckTx, account balance coin_amount insufficient!"), REJECT_INVALID,
                         "insufficient-account-coin-amount");
 

@@ -111,13 +111,15 @@ public:
         return strprintf("asset_symbol=%s, asset_name=%s, asset_type=%d, perms_sum=%llu, owner_uid=%s, total_supply=%llu, mintable=%d",
                 asset_symbol, asset_name, asset_type, perms_sum, owner_uid.ToString(), total_supply, mintable);
     }
+    
     Object ToJsonObj() const {
         Object o;
+        string permString;
+        ConvertPermsToString(perms_sum, assetPermMap.size(), permString);
+
         o.push_back(Pair("asset_symbol",  asset_symbol));
         o.push_back(Pair("asset_name",    asset_name));
         o.push_back(Pair("asset_type",    asset_type));
-        string permString;
-        NumberToPermsString(perms_sum, assetPermMap.size(), permString);
         o.push_back(Pair("perms_sum",     permString));
         o.push_back(Pair("owner_uid",     owner_uid.ToString()));
         o.push_back(Pair("total_supply",  total_supply));

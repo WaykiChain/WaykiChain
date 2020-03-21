@@ -181,7 +181,7 @@ bool CBaseTx::CheckBaseTx(CTxExecuteContext &context) {
 
     { //5. check account perm
         if (kTxTypePermMap.find(nTxType) == kTxTypePermMap.end())
-            return true;
+            return true; //no perm required
 
         if (txAccount.perms_sum == 0 || (txAccount.perms_sum & kTxTypePermMap.at(nTxType)) == 0)
             return state.DoS(100, ERRORMSG("CheckBaseTx::CheckTx, account (%s) has NO required perm",
