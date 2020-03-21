@@ -46,7 +46,7 @@ bool CPriceFeedTx::CheckTx(CTxExecuteContext &context) {
             if (!baseAsset.HasPerms(AssetPermType::PERM_PRICE_FEED))
                 return state.DoS(100, ERRORMSG("%s(), base_symbol=%s not have PERM_PRICE_FEED",
                         pricePoint.coin_price_pair.first), REJECT_INVALID, "base-symbol-no-price-feed-perm");
-        } // else no need to check native token symbol
+        } // otherwise no need to check native token symbol
 
         if (!cw.priceFeedCache.HasFeedCoinPair(pricePoint.coin_price_pair.first, pricePoint.coin_price_pair.second))
             return state.DoS(100, ERRORMSG("CPriceFeedTx::CheckTx, unsupported price coin pair={%s}",

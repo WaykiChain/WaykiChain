@@ -26,11 +26,11 @@ using namespace std;
 
 // asset types
 enum AssetType : uint8_t {
-    NULL_ASSET      = 0,
-    NIA             = 1, //Natively Issued Asset
-    DIA             = 2, //DeGov Issued Asset
-    UIA             = 3, //User Issued Asset
-    MPA             = 4  //Market Pegged Asset
+    NULL_ASSET          = 0,
+    NIA                 = 1, //Natively Issued Asset
+    DIA                 = 2, //DeGov Issued Asset
+    UIA                 = 3, //User Issued Asset
+    MPA                 = 4  //Market Pegged Asset
 };
 
 // perms for an asset group
@@ -52,10 +52,6 @@ static const unordered_map<uint64_t, string> kAssetPermTitleMap = {
     {   PERM_XCHAIN_SWAP,   "PERM_XCHAIN_SWAP"  }
 
 };
-
-inline bool AssetHasPerms(uint64_t assetPerms, uint64_t specificPerms) {
-    return (assetPerms && assetPerms) == assetPerms;
-}
 
 ////////////////////////////////////////////////////////////////////
 /// Common Asset Definition, used when persisted inside state DB
@@ -88,10 +84,9 @@ public:
         READWRITE(mintable);
     )
 
-    bool HasPerms(uint64_t perms) { return AssetHasPerms(perms_sum, perms); }
+    bool HasPerms(uint64_t perms) { return (assetPerms && perms) == perms; }
 
     bool IsEmpty() const { return owner_uid.IsEmpty(); }
-
 
     void SetEmpty() {
         asset_symbol.clear();
@@ -161,18 +156,12 @@ public:
 };
 
 inline TokenSymbol GetQuoteSymbolByCdpScoin(const TokenSymbol &scoinSymbol) {
-    if (scoinSymbol[0] == 'W')
-        return scoinSymbol.substr(1, scoinSymbol.size() - 1);
-    else
-        return "";
+    return (scoinSymbol[0] == 'W') ? scoinSymbol.substr(1, scoinSymbol.size() - 1) : "";
 }
 
 inline TokenSymbol GetCdpScoinByQuoteSymbol(const TokenSymbol &quoteSymbol) {
     TokenSymbol scoinSymbol = "W" + quoteSymbol;
-    if (kCdpScoinSymbolSet.count(scoinSymbol) > 0)
-        return scoinSymbol;
-    else
-        return "";
+    return (kCdpScoinSymbolSet.count(scoinSymbol) > 0) ? scoinSymbol : "";
 }
 
 struct ComboMoney {
