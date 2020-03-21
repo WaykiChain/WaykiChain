@@ -1056,10 +1056,10 @@ bool ParseInt32(const std::string& str, int32_t *out)
         n <= std::numeric_limits<int32_t>::max();
 }
 
-bool  ConvertPermsToString(uint64_t num, uint8_t size, string& permsList) {
+bool  ConvertPermsToString(uint64_t perms, uint8_t total_perms_count, string& permsList) {
     ostringstream s;
-    for (int8_t i = size - 1; i >= 0; i--) {
-        int8_t p = (num & ( 1 << i )) > 0 ? 1 :0;
+    for (int8_t i = total_perms_count - 1; i >= 0; i--) {
+        int8_t p = (perms & ( 1 << i )) > 0 ? 1 :0;
         s << i << ":" << p;
         if (i !=0 )
              s << ", ";

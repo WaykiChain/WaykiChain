@@ -44,18 +44,14 @@ enum AssetPermType : uint64_t {
 
 };
 
-static const unordered_map<uint64_t, string> assetPermMap = {
-
-        {PERM_DEX_BASE, "PERM_DEX_BASE"},
-
-        {PERM_DEX_QUOTE, "PERM_DEX_QUOTE"},
-
-        {PERM_CDP_BCOIN, "PERM_CDP_BCOIN"},
-        {PERM_PRICE_FEED, "PERM_PRICE_FEED"},
-        {PERM_XCHAIN_SWAP, "PERM_XCHAIN_SWAP"}
+static const unordered_map<uint64_t, string> kAssetPermTitleMap = {
+    {   PERM_DEX_BASE,      "PERM_DEX_BASE"     },
+    {   PERM_DEX_QUOTE,     "PERM_DEX_QUOTE"    },
+    {   PERM_CDP_BCOIN,     "PERM_CDP_BCOIN"    },
+    {   PERM_PRICE_FEED,    "PERM_PRICE_FEED"   },
+    {   PERM_XCHAIN_SWAP,   "PERM_XCHAIN_SWAP"  }
 
 };
-
 
 inline bool AssetHasPerms(uint64_t assetPerms, uint64_t specificPerms) {
     return (assetPerms && assetPerms) == assetPerms;
@@ -115,7 +111,7 @@ public:
     Object ToJsonObj() const {
         Object o;
         string permString;
-        ConvertPermsToString(perms_sum, assetPermMap.size(), permString);
+        ConvertPermsToString(perms_sum, kAssetPermTitleMap.size(), permString);
 
         o.push_back(Pair("asset_symbol",  asset_symbol));
         o.push_back(Pair("asset_name",    asset_name));

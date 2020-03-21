@@ -474,6 +474,6 @@ void splitString(string (&arr)[N], string str)
         arr[n] = *it;
 }
 
-bool ConvertPermsToString(uint64_t num, uint8_t size, string& permsList);
+bool ConvertPermsToString(uint64_t perms, uint8_t total_perms_count, string& permsList);
 
 #endif
