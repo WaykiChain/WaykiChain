@@ -1498,15 +1498,12 @@ void static FindMostWorkChain() {
     chainMostWork.SetTip(pIndexNew);
 }
 
-bool ConnectBlockOnFinChain(CBlockIndex* pNewIndex, CValidationState& state){
-
-    if(pNewIndex && chainActive.Tip() == pNewIndex->pprev){
+bool ConnectBlockOnFinChain(CBlockIndex* pNewIndex, CValidationState& state) {
+    if (pNewIndex && (chainActive.Tip() == pNewIndex->pprev)) {
         if (!ConnectTip(state, pNewIndex)) {
             if (state.IsInvalid()) {
-                // The block violates a consensus rule.
-                if (!state.CorruptionPossible())
+                if (!state.CorruptionPossible()) // The block violates a consensus rule.
                     InvalidChainFound(pNewIndex);
-                state     = CValidationState();
 
             } else {
                 // A system error occurred (disk space, database error, ...).
@@ -1540,15 +1537,15 @@ bool ActivateBestChain(CValidationState &state, CBlockIndex* pNewIndex) {
                 CBlockIndex* finIndex = pbftMan.GetLocalFinIndex();
                 if(finIndex && chainIndex->GetBlockHash() == finIndex->GetBlockHash()){
                     LogPrint(BCLog::INFO, "finality block can't be reverse\n");
-                    if(GetTime() - pbftMan.GetLocalFinLastUpdate()>60){
+                    if (GetTime() - pbftMan.GetLocalFinLastUpdate() > 60) {
                         pbftMan.SetLocalFinTimeout() ;
                     } else{
-                        LogPrint(BCLog::INFO, "connect block on fin chain\n") ;
-                        return ConnectBlockOnFinChain(pNewIndex, state) ;
+                        LogPrint(BCLog::INFO, "connect block on fin chain\n");
+                        return ConnectBlockOnFinChain(pNewIndex, state);
                     }
                 }
 
-                uint256 globalFinIndexHash = pbftMan.GetGlobalFinBlockHash() ;
+                uint256 globalFinIndexHash = pbftMan.GetGlobalFinBlockHash();
                 if( chainIndex->GetBlockHash() == globalFinIndexHash){
                     LogPrint(BCLog::INFO, "globalfinality block can't be reverse\n");
                     return ConnectBlockOnFinChain(pNewIndex, state) ;
