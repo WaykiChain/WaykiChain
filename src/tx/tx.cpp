@@ -183,11 +183,9 @@ bool CBaseTx::CheckBaseTx(CTxExecuteContext &context) {
         if (kTxTypePermMap.find(nTxType) == kTxTypePermMap.end())
             return true;
 
-        if (txAccount.perms_sum == 0 || (txAccount.perms_sum & kTxTypePermMap.at(nTxType)) == 0) {
-            return state.DoS(100, ERRORMSG("CheckBaseTx::CheckTx, txUid don't have perm ",
-                                           txUid.ToString()), READ_ACCOUNT_FAIL, "account-perm-deny");
-        }
-
+        if (txAccount.perms_sum == 0 || (txAccount.perms_sum & kTxTypePermMap.at(nTxType)) == 0)
+            return state.DoS(100, ERRORMSG("CheckBaseTx::CheckTx, account (%s) has NO required perm",
+                                           txUid.ToString()), READ_ACCOUNT_FAIL, "account-lacks-perm");
     }
     return true;
 }
