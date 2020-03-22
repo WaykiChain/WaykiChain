@@ -80,7 +80,7 @@ void CTxMemPool::QueryHash(vector<uint256> &txids) {
 }
 
 bool CTxMemPool::CheckTxInMemPool(const uint256 &txid, const CTxMemPoolEntry &memPoolEntry, CValidationState &state,
-                                  bool bExecute) {
+                                  bool bRehearsalExecute) {
     CBlockIndex *pTip =  chainActive.Tip();
     if (pTip == nullptr) 
         throw runtime_error("CheckTxInMemPool:: ChainActive.Tip() is null");
@@ -99,7 +99,7 @@ bool CTxMemPool::CheckTxInMemPool(const uint256 &txid, const CTxMemPoolEntry &me
 
     auto spCW = std::make_shared<CCacheWrapper>(cw.get());
 
-    if (bExecute) { //always true so far
+    if (bRehearsalExecute) { //always true so far
         uint32_t fuelRate  = GetElementForBurn(pTip);
         uint32_t blockTime = pTip->GetBlockTime();
         uint32_t prevBlockTime = pTip->pprev != nullptr ? pTip->pprev->GetBlockTime() : pTip->GetBlockTime();

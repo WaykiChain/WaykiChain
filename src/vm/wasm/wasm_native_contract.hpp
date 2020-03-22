@@ -21,7 +21,7 @@ namespace wasm {
     //     return false;
     // }
 
-    inline void sub_balance(CAccount& owner, const wasm::asset& quantity, CAccountDBCache &database){
+    inline void sub_balance(CAccount& owner, const wasm::asset& quantity, CAccountDBCache &database) {
 
         string symbol     = quantity.symbol.code().to_string();
         uint8_t precision = quantity.symbol.precision();
