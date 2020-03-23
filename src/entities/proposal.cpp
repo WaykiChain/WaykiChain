@@ -393,10 +393,15 @@ bool CGovFeedCoinPairProposal::CheckProposal(CTxExecuteContext& context ) {
                          REJECT_INVALID, "bad-op-type");
     if (base_symbol == quote_symbol)
         return state.DoS(100, ERRORMSG("%s(): base_symbol==quote_symbol", __func__),
-                         REJECT_INVALID, "same-symbol");
-    if (!cw.assetCache.CheckAsset(base_symbol, AssetPermType::PERM_PRICE_FEED))
-        return state.DoS(100, ERRORMSG("CGovFeedCoinPairProposal:: checkProposal: base_symbol invalid"),
-                         REJECT_INVALID, "bad-symbol");
+                         REJECT_INVALID, "same-base-quote-symbol");
+
+    if (!cw.assetCache.CheckPriceFeedQuoteCoin(quote_symbol))
+        return state.DoS(100, ERRORMSG("%s(), unsupported quote_symbol=%s", __func__, quote_symbol),
+                         REJECT_INVALID, "unsupported-quote-symbol");
+
+    if (!cw.assetCache.CheckPriceFeedBaseCoin(base_symbol))
+        return state.DoS(100, ERRORMSG("%s(), unsupported base_symbol=%s", __func__, base_symbol),
+                         REJECT_INVALID, "unsupported-base-symbol");
 
     PriceCoinPair coinPair(base_symbol, quote_symbol);
     if (kPriceFeedCoinPairSet.count(coinPair) > 0) {
@@ -404,18 +409,14 @@ bool CGovFeedCoinPairProposal::CheckProposal(CTxExecuteContext& context ) {
                 __func__, quote_symbol), REJECT_INVALID, "hard-code-coin-pair");
     }
 
-    if (!kPriceQuoteSymbolSet.count(quote_symbol))
-        return state.DoS(100, ERRORMSG("CGovFeedCoinPairProposal:: checkProposal: invalid quote_symbol %s", quote_symbol),
-                         REJECT_INVALID, "bad-symbol");
-
     bool hasCoin = cw.priceFeedCache.HasFeedCoinPair(base_symbol, quote_symbol);
-    if ( hasCoin && op_type == ProposalOperateType ::ENABLE) {
+    if (hasCoin && op_type == ProposalOperateType ::ENABLE) {
         return state.DoS(100, ERRORMSG("CGovFeedCoinPairProposal:: checkProposal:base_symbol(%s),quote_symbol(%s)"
                                        "is dex quote coin symbol already",base_symbol, quote_symbol),
                          REJECT_INVALID, "symbol-exist");
     }
 
-    if ( !hasCoin && op_type == ProposalOperateType ::DISABLE) {
+    if (!hasCoin && op_type == ProposalOperateType ::DISABLE) {
         return state.DoS(100, ERRORMSG("CGovFeedCoinPairProposal:: checkProposal:base_symbol(%s),quote_symbol(%s) "
                                        "is not a dex quote coin symbol ",base_symbol, quote_symbol),
                          REJECT_INVALID, "symbol-not-exist");
