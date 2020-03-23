@@ -17,6 +17,67 @@
 extern bool CheckIsGovernor(CRegID account, ProposalType proposalType, CCacheWrapper& cw );
 extern uint8_t GetGovernorApprovalMinCount(ProposalType proposalType, CCacheWrapper& cw );
 
+
+bool CGovAxcCoinProposal::CheckProposal(CTxExecuteContext& context ) {
+
+    IMPLEMENT_DEFINE_CW_STATE;
+
+
+
+    if (op_type != ProposalOperateType::ENABLE && op_type != ProposalOperateType::DISABLE)
+        return state.DoS(100, ERRORMSG("CGovAxcCoinProposal::CheckProposal, op_type is not 0 or 1"), REJECT_INVALID,
+                         "op_type-error");
+
+    bool hasCoinPair = cw.axcCache.HasAxcCoinPairByPeerSymbol(peer_chain_coin_symbol);
+    if(op_type == ProposalOperateType::ENABLE && hasCoinPair) {
+        return state.DoS(100, ERRORMSG("CGovAxcCoinProposal::CheckProposal, the peer coin symbol is exist"), REJECT_INVALID,
+                         "coin-exist");
+    }
+
+    if(op_type == ProposalOperateType::DISABLE && !hasCoinPair) {
+        return state.DoS(100, ERRORMSG("CGovAxcCoinProposal::CheckProposal, the peer coin symbol is not exist"), REJECT_INVALID,
+                         "coin-not-exist");
+    }
+
+    switch (peer_chain_type) {
+        case ChainType ::BITCOIN:
+        case ChainType ::EOS:
+        case ChainType ::ETHEREUM:
+            break;
+        default:
+            return state.DoS(100, ERRORMSG("CGovAxcCoinProposal::CheckProposal, chain type is not eos, btc, ethereum"), REJECT_INVALID,
+                             "chain_type-error");
+    }
+
+    if(kXChainSwapInTokenMap.find(peer_chain_coin_symbol) != kXChainSwapInTokenMap.end())
+        return state.DoS(100, ERRORMSG("CGovAxcCoinProposal::CheckProposal,default pair can't be governed"), REJECT_INVALID,
+                         "defaulf-coin-error");
+
+    if (peer_chain_coin_symbol.size() >= 6) {
+        return state.DoS(100, ERRORMSG("CGovAxcCoinProposal::CheckProposal, peer_chain_coin_symbol size is too long"), REJECT_INVALID,
+                         "peer_coin_symbol-error");
+    }
+
+    return true;
+}
+bool  CGovAxcCoinProposal::ExecuteProposal(CTxExecuteContext& context, const TxID& proposalId) {
+    IMPLEMENT_DEFINE_CW_STATE
+
+    if(op_type == ProposalOperateType::DISABLE) {
+        if(!cw.axcCache.EraseAxcSwapPair(peer_chain_coin_symbol)){
+            return state.DoS(100, ERRORMSG("CGovAxcCoinProposal::ExecuteProposal, write db error"), REJECT_INVALID,
+                                      "db-error");
+        }
+    } else if(op_type == ProposalOperateType::ENABLE){
+        if(!cw.axcCache.AddAxcSwapPair(peer_chain_coin_symbol, TokenSymbol(strprintf("%s%s", "XW", peer_chain_coin_symbol)), peer_chain_type)){
+            return state.DoS(100, ERRORMSG("CGovAxcCoinProposal::ExecuteProposal, write db error"), REJECT_INVALID,
+                             "db-error");
+        }
+    }
+
+    return true;
+}
+
 bool CGovSysParamProposal::CheckProposal(CTxExecuteContext& context ) {
      CValidationState &state = *context.pState;
 
@@ -436,10 +497,13 @@ bool CGovFeedCoinPairProposal::ExecuteProposal(CTxExecuteContext& context, const
 bool CGovAxcInProposal::CheckProposal(CTxExecuteContext& context ) {
     IMPLEMENT_DEFINE_CW_STATE;
 
-    if ( (kXChainSwapInTokenMap.find(peer_chain_token_symbol) == kXChainSwapInTokenMap.end()) &&
-         (!cw.assetCache.CheckAsset(self_chain_token_symbol, AssetPermType::PERM_XCHAIN_SWAP)) )
-        return state.DoS(100, ERRORMSG("CGovAxcInProposal::CheckProposal: self_chain_token_symbol=%s is invalid",
-                                        self_chain_token_symbol), REJECT_INVALID, "self_chain_token_symbol-not-valid");
+    AxcSwapCoinPair coinPair;
+    if(!cw.axcCache.GetAxcCoinPairByPeerSymbol(peer_chain_token_symbol, coinPair)){
+        return state.DoS(100, ERRORMSG("CGovAxcInProposal::CheckProposal: swap pair is not exist"),
+                REJECT_INVALID, "find-swapcoinpair-error");
+    }
+    TokenSymbol self_chain_token_symbol = coinPair.self_token_symbol;
+    ChainType  peer_chain_type = coinPair.peer_chain_type;
 
     if ((peer_chain_type == ChainType::BITCOIN && (peer_chain_addr.size() < 26 || peer_chain_addr.size() > 35)) ||
         (peer_chain_type == ChainType::ETHEREUM && (peer_chain_addr.size() > 42)))
@@ -472,10 +536,14 @@ bool CGovAxcInProposal::CheckProposal(CTxExecuteContext& context ) {
 bool CGovAxcInProposal::ExecuteProposal(CTxExecuteContext& context, const TxID& proposalId) {
     IMPLEMENT_DEFINE_CW_STATE;
 
-    if ( (kXChainSwapInTokenMap.find(peer_chain_token_symbol) == kXChainSwapInTokenMap.end()) &&
-         (!cw.assetCache.CheckAsset(self_chain_token_symbol, AssetPermType::PERM_XCHAIN_SWAP)) )
-        return state.DoS(100, ERRORMSG("CGovAxcInProposal::ExecuteProposal: self_chain_token_symbol=%s is invalid",
-                                        self_chain_token_symbol), REJECT_INVALID, "self_chain_token_symbol-not-valid");
+    AxcSwapCoinPair coinPair;
+    if(!cw.axcCache.GetAxcCoinPairByPeerSymbol(peer_chain_token_symbol, coinPair)){
+        return state.DoS(100, ERRORMSG("CGovAxcInProposal::CheckProposal: swap pair is not exist"),
+                         REJECT_INVALID, "find-swapcoinpair-error");
+    }
+    TokenSymbol self_chain_token_symbol = coinPair.self_token_symbol;
+    ChainType  peer_chain_type = coinPair.peer_chain_type;
+
 
     uint64_t swap_fee_ratio;
     if (!cw.sysParamCache.GetParam(AXC_SWAP_FEE_RATIO, swap_fee_ratio))
@@ -484,8 +552,6 @@ bool CGovAxcInProposal::ExecuteProposal(CTxExecuteContext& context, const TxID& 
 
     uint64_t swap_amount_after_fees = swap_amount * (1 - swap_fee_ratio * 1.0 / RATIO_BOOST);
 
-    if (kXChainSwapInTokenMap.find(peer_chain_token_symbol) == kXChainSwapInTokenMap.end())
-        self_chain_token_symbol = kXChainSwapInTokenMap.at(peer_chain_token_symbol);
 
     CAccount acct;
     if (!cw.accountCache.GetAccount(self_chain_uid, acct))
@@ -515,6 +581,13 @@ bool CGovAxcInProposal::ExecuteProposal(CTxExecuteContext& context, const TxID& 
 
 bool CGovAxcOutProposal::CheckProposal(CTxExecuteContext& context ) {
     IMPLEMENT_DEFINE_CW_STATE;
+
+    AxcSwapCoinPair coinPair;
+    if(!cw.axcCache.GetAxcCoinPairBySelfSymbol(self_chain_token_symbol, coinPair)){
+        return state.DoS(100, ERRORMSG("CGovAxcOutProposal::CheckProposal: self_chain_token_symbol=%s is invalid",
+                                       self_chain_token_symbol), REJECT_INVALID, "self_chain_token_symbol-not-valid");
+    }
+    ChainType  peer_chain_type = coinPair.peer_chain_type;
 
     if ((kXChainSwapOutTokenMap.find(self_chain_token_symbol) == kXChainSwapOutTokenMap.end())
         && !cw.assetCache.CheckAsset(self_chain_token_symbol, AssetPermType::PERM_XCHAIN_SWAP))

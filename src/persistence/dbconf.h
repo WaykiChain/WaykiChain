@@ -138,6 +138,8 @@ namespace dbk {
         DEFINE( PRICE_FEEDERS,         "pfdr",      PRICEFEED)   /* [prefix] --> price feeder */      \
         /**** AXC                                                                             */ \
         DEFINE( AXC_SWAP_IN,           "axci",      AXC)        /* [prefix]swapin-txid -->  amount */      \
+        DEFINE( AXC_COIN_PEERTOSELF,   "acps",      AXC)        /* [prefix]swapin-txid -->  amount */      \
+        DEFINE( AXC_COIN_SELFTOPEER,   "acsp",      AXC)                             \
         /*                                                                             */ \
         /* Add new Enum elements above, PREFIX_COUNT Must be the last one              */ \
         DEFINE( PREFIX_COUNT,          "",       DB_NAME_NONE)    /* enum count, must be the last one */

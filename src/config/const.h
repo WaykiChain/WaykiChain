@@ -45,6 +45,19 @@ namespace SYMB {
     static const string KWH         = "KWH";
 };
 
+enum ChainType: uint8_t {
+    NULL_CHAIN_TYPE = 0,
+    BITCOIN         = 1,
+    ETHEREUM        = 2,
+    EOS             = 3
+};
+
+static const unordered_map<ChainType, string> kChainTypeNameMap {
+        { ChainType::BITCOIN,   "BITCOIN"   },
+        { ChainType::ETHEREUM,  "ETHEREUM"  },
+        { ChainType::EOS,       "EOS"       },
+};
+
 //default list below, can be also expanded thru DeGov
 static const unordered_set<TokenSymbol> kCoinTypeSet = {
     SYMB::WICC, SYMB::WGRT, SYMB::WUSD
@@ -74,6 +87,7 @@ static const UnorderedPairSet<TokenSymbol, TokenSymbol> kPriceFeedCoinPairSet = 
     // {SYMB::WETH, SYMB::USD},
 };
 
+
 //can be expanded thru DeGov
 static const unordered_set<string> kCdpBcoinSymbolSet = {
     SYMB::WICC
@@ -86,15 +100,15 @@ static const unordered_set<string> kCdpScoinSymbolSet = {
 };
 
 //can be expanded thru DeGov
-static const unordered_map<TokenSymbol, TokenSymbol> kXChainSwapInTokenMap =  {
-    { SYMB::BTC,        SYMB::WBTC          },
-    { SYMB::ETH,        SYMB::WETH          },
-    { SYMB::ETH_USDT,   SYMB::WETH_USDT     },
+static const unordered_map<TokenSymbol, std::pair<TokenSymbol,ChainType>> kXChainSwapInTokenMap =  {
+    { SYMB::BTC,        make_pair(SYMB::WBTC, ChainType ::BITCOIN)          },
+    { SYMB::ETH,        make_pair(SYMB::WETH, ChainType ::ETHEREUM)         },
+    { SYMB::ETH_USDT,   make_pair(SYMB::WETH_USDT, ChainType ::ETHEREUM)    },
 };
-static const unordered_map<TokenSymbol, TokenSymbol> kXChainSwapOutTokenMap =  {
-    { SYMB::WBTC,       SYMB::BTC           },
-    { SYMB::WETH,       SYMB::ETH           },
-    { SYMB::WETH_USDT,  SYMB::ETH_USDT      },
+static const unordered_map<TokenSymbol, std::pair<TokenSymbol,ChainType>> kXChainSwapOutTokenMap =  {
+    { SYMB::WBTC,       make_pair(SYMB::BTC, ChainType ::BITCOIN)             },
+    { SYMB::WETH,       make_pair(SYMB::ETH, ChainType ::ETHEREUM)            },
+    { SYMB::WETH_USDT,  make_pair(SYMB::ETH_USDT, ChainType ::ETHEREUM)       },
 };
 
 struct CoinUnitTypeHash {
@@ -146,18 +160,7 @@ static const unordered_map<string, unsigned int, CoinUnitTypeHash> CoinUnitPreci
     {"mwi",  14    },  // 1000,000
 };
 
-enum ChainType: uint8_t {
-    NULL_CHAIN_TYPE = 0,
-    BITCOIN         = 1,
-    ETHEREUM        = 2,
-    EOS             = 3
-};
 
-static const unordered_map<ChainType, string> kChainTypeNameMap {
-    { ChainType::BITCOIN,   "BITCOIN"   },
-    { ChainType::ETHEREUM,  "ETHEREUM"  },
-    { ChainType::EOS,       "EOS"       },
-};
 
 static const uint16_t RATIO_BOOST = 10000;
 static const uint64_t COIN = 100000000;  //10^8 = 1 WICC
