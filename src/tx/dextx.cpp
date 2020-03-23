@@ -200,13 +200,19 @@ namespace dex {
 
     bool CDEXOrderBaseTx::CheckOrderSymbols(CTxExecuteContext &context, const TokenSymbol &coinSymbol,
                                             const TokenSymbol &assetSymbol) {
-        if (!pCdMan->pAssetCache->CheckAsset(coinSymbol, AssetPermType::PERM_DEX_QUOTE))
-            return context.pState->DoS(100, ERRORMSG("%s, invalid order coin symbol=%s", TX_ERR_TITLE, coinSymbol),
-                                    REJECT_INVALID, "invalid-order-coin-symbol");
 
-        if (!pCdMan->pAssetCache->CheckAsset(assetSymbol, AssetPermType::PERM_DEX_BASE))
-            return context.pState->DoS(100, ERRORMSG("%s, invalid order asset symbol=%s", TX_ERR_TITLE, assetSymbol),
-                                    REJECT_INVALID, "invalid-order-asset-symbol");
+        if (coinSymbol == assetSymbol)
+            return context.pState->DoS(100,
+                                       ERRORMSG("%s, the coinSymbol=%s is same to assetSymbol=%s",
+                                                TX_ERR_TITLE, coinSymbol, assetSymbol),
+                                       REJECT_INVALID, "same-coin-asset-symbol");
+        if (!context.pCw->assetCache.CheckDexBaseSymbol(coinSymbol))
+            return context.pState->DoS(100, ERRORMSG("%s, unsupported dex order coin_symbol=%s", TX_ERR_TITLE, coinSymbol),
+                                    REJECT_INVALID, "unsupported-order-coin-symbol");
+
+        if (!context.pCw->assetCache.CheckDexQuoteSymbol(assetSymbol))
+            return context.pState->DoS(100, ERRORMSG("%s, unsupported dex order asset_symbol=%s", TX_ERR_TITLE, assetSymbol),
+                                    REJECT_INVALID, "unsupported-order-asset-symbol");
         return true;
     }
 
