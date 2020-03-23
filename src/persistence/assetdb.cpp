@@ -67,7 +67,7 @@ void CAssetDbCache::GetDexQuoteSymbolSet(set<TokenSymbol> &symbolSet) {
     }
 }
 
-bool CAssetDbCache::CheckPriceFeedBaseCoin(const TokenSymbol &baseSymbol) {
+bool CAssetDbCache::CheckPriceFeedBaseSymbol(const TokenSymbol &baseSymbol) {
     if (kPriceFeedSymbolSet.count(baseSymbol)) {
         return true; // no need to check the hard code symbols
     }
@@ -80,7 +80,7 @@ bool CAssetDbCache::CheckPriceFeedBaseCoin(const TokenSymbol &baseSymbol) {
     return true;
 }
 
-bool CAssetDbCache::CheckPriceFeedQuoteCoin(const TokenSymbol &quoteSymbol) {
+bool CAssetDbCache::CheckPriceFeedQuoteSymbol(const TokenSymbol &quoteSymbol) {
     if (kPriceQuoteSymbolSet.count(quoteSymbol) == 0)
         return ERRORMSG("%s(), unsupported quote_symbol=%s of price coin pair", quoteSymbol);
     return true;

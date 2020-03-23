@@ -456,11 +456,11 @@ bool CGovFeedCoinPairProposal::CheckProposal(CTxExecuteContext& context ) {
         return state.DoS(100, ERRORMSG("%s(): base_symbol==quote_symbol", __func__),
                          REJECT_INVALID, "same-base-quote-symbol");
 
-    if (!cw.assetCache.CheckPriceFeedQuoteCoin(quote_symbol))
+    if (!cw.assetCache.CheckPriceFeedQuoteSymbol(quote_symbol))
         return state.DoS(100, ERRORMSG("%s(), unsupported quote_symbol=%s", __func__, quote_symbol),
                          REJECT_INVALID, "unsupported-quote-symbol");
 
-    if (!cw.assetCache.CheckPriceFeedBaseCoin(base_symbol))
+    if (!cw.assetCache.CheckPriceFeedBaseSymbol(base_symbol))
         return state.DoS(100, ERRORMSG("%s(), unsupported base_symbol=%s", __func__, base_symbol),
                          REJECT_INVALID, "unsupported-base-symbol");
 

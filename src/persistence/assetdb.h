@@ -87,8 +87,8 @@ public:
     void GetDexQuoteSymbolSet(set<TokenSymbol> &symbolSet);
 public:
     // check functions
-    bool CheckPriceFeedBaseCoin(const TokenSymbol &baseSymbol);
-    bool CheckPriceFeedQuoteCoin(const TokenSymbol &quoteSymbol);
+    bool CheckPriceFeedBaseSymbol(const TokenSymbol &baseSymbol);
+    bool CheckPriceFeedQuoteSymbol(const TokenSymbol &quoteSymbol);
 public:
 /*  CCompositeKVCache     prefixType            key              value           variable           */
 /*  -------------------- --------------------   --------------  -------------   --------------------- */
