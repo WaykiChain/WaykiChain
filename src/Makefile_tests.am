@@ -61,7 +61,6 @@ coin_test_SOURCES = \
   tests/util_tests.cpp \
   tests/sighash_tests.cpp \
   tests/chainparams_tests.cpp \
-  tests/accountview_tests.cpp \
   tests/scriptdb_tests.cpp \
   tests/betroll_test.cpp \
   tests/system_test.cpp	\
