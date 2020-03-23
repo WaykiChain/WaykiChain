@@ -73,16 +73,16 @@ Value submitpricefeedtx(const Array& params, bool fHelp) {
 
         if (coinSymbol == currencySymbol)
             throw JSONRPCError(RPC_INVALID_PARAMETER,
-                               strprintf("currency_symbol=%s is same to coin_symbol=%s",
-                                         currencySymbol, coinSymbol));
-
-        if (!pCdMan->pAssetCache->CheckPriceFeedQuoteSymbol(currencySymbol))
-            throw JSONRPCError(RPC_INVALID_PARAMETER,
-                               strprintf("unsupported currency_symbol=%s", currencySymbol));
+                               strprintf("coin_symbol=%s is same to currency_symbol=%s ",
+                                         coinSymbol, currencySymbol));
 
         if (!pCdMan->pAssetCache->CheckPriceFeedBaseSymbol(coinSymbol))
             throw JSONRPCError(RPC_INVALID_PARAMETER,
                                strprintf("unsupported price feed symbol=%s", coinSymbol));
+
+        if (!pCdMan->pAssetCache->CheckPriceFeedQuoteSymbol(currencySymbol))
+            throw JSONRPCError(RPC_INVALID_PARAMETER,
+                               strprintf("unsupported currency_symbol=%s", currencySymbol));
 
         if (!pCdMan->pPriceFeedCache->HasFeedCoinPair(coinPair))
             throw JSONRPCError(RPC_INVALID_PARAMETER,
