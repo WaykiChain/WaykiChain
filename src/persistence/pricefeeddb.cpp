@@ -431,7 +431,7 @@ bool CPriceFeedCache::AddFeedCoinPair(TokenSymbol baseSymbol, TokenSymbol quoteS
 
     set<PriceCoinPair> coinPairs;
     price_feed_coin_pairs_cache.GetData(coinPairs);
-    if(coinPairs.count(PriceCoinPair(baseSymbol, quoteSymbol)) > 0 )
+    if (coinPairs.count(PriceCoinPair(baseSymbol, quoteSymbol)) > 0 )
         return true;
 
     coinPairs.insert(PriceCoinPair(baseSymbol, quoteSymbol));
@@ -446,7 +446,7 @@ bool CPriceFeedCache::EraseFeedCoinPair(TokenSymbol baseSymbol, TokenSymbol quot
     PriceCoinPair coinPair(baseSymbol, quoteSymbol);
     set<PriceCoinPair> coins;
     price_feed_coin_pairs_cache.GetData(coins);
-    if(coins.count(coinPair) == 0 )
+    if (coins.count(coinPair) == 0 )
         return true;
 
     coins.erase(coinPair);
