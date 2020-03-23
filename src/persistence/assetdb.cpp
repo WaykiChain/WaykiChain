@@ -67,4 +67,21 @@ void CAssetDbCache::GetDexQuoteSymbolSet(set<TokenSymbol> &symbolSet) {
     }
 }
 
+bool CAssetDbCache::CheckPriceFeedBaseCoin(const TokenSymbol &baseSymbol) {
+    if (kPriceFeedSymbolSet.count(baseSymbol)) {
+        return true; // no need to check the hard code symbols
+    }
+    CAsset baseAsset;
+    if (!GetAsset(baseSymbol, baseAsset))
+        return ERRORMSG("%s(), base_symbol=%s not exist", baseSymbol);
+    if (!baseAsset.HasPerms(AssetPermType::PERM_PRICE_FEED))
+        return ERRORMSG("%s(), base_symbol=%s not have PERM_PRICE_FEED", baseSymbol);
 
+    return true;
+}
+
+bool CAssetDbCache::CheckPriceFeedQuoteCoin(const TokenSymbol &quoteSymbol) {
+    if (kPriceQuoteSymbolSet.count(quoteSymbol) == 0)
+        return ERRORMSG("%s(), unsupported quote_symbol=%s of price coin pair", quoteSymbol);
+    return true;
+}

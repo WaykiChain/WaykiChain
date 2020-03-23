@@ -14,6 +14,7 @@
 #include "commons/util/util.h"
 #include "config/version.h"
 
+
 string CoinPricePairToString(const PriceCoinPair &coinPricePair) {
     return strprintf("%s:%s", GetPriceBaseSymbol(coinPricePair), GetPriceQuoteSymbol(coinPricePair));
 }
@@ -32,21 +33,17 @@ bool CPriceFeedTx::CheckTx(CTxExecuteContext &context) {
         const uint64_t &price = pricePoint.price;
         if (price == 0)
             return state.DoS(100, ERRORMSG("CPriceFeedTx::CheckTx, invalid price"), REJECT_INVALID, "bad-tx-invalid-price");
-        if (!kPriceQuoteSymbolSet.count(pricePoint.coin_price_pair.second))
-            return state.DoS(100, ERRORMSG("%s(), unsupported quote_symbol=%s", pricePoint.coin_price_pair.second),
-                            REJECT_INVALID, "unsupported-quote-symbol");
+        if (!cw.assetCache.CheckPriceFeedQuoteCoin(pricePoint.coin_price_pair.second))
+            return state.DoS(100,
+                             ERRORMSG("%s(), unsupported quote_symbol=%s of price feed coin pair",
+                                      pricePoint.coin_price_pair.second),
+                             REJECT_INVALID, "unsupported-quote-symbol");
 
-        // check base symbol of price coin pair
         const TokenSymbol &baseSymbol = pricePoint.coin_price_pair.first;
-        if (!kCoinTypeSet.count(baseSymbol)) {
-            CAsset baseAsset;
-            if (!cw.assetCache.GetAsset(pricePoint.coin_price_pair.first, baseAsset))
-                return state.DoS(100, ERRORMSG("%s(), base_symbol=%s not exist", pricePoint.coin_price_pair.first),
-                                REJECT_INVALID, "base-symbol-not-exist");
-            if (!baseAsset.HasPerms(AssetPermType::PERM_PRICE_FEED))
-                return state.DoS(100, ERRORMSG("%s(), base_symbol=%s not have PERM_PRICE_FEED",
-                        pricePoint.coin_price_pair.first), REJECT_INVALID, "base-symbol-no-price-feed-perm");
-        } // otherwise no need to check native token symbol
+        if (!cw.assetCache.CheckPriceFeedBaseCoin(baseSymbol))
+            return state.DoS(
+                100, ERRORMSG("%s(), unsupported baseSymbol=%s for price feed coin pair", __func__, baseSymbol),
+                REJECT_INVALID, "unsupported-base-symbol");
 
         if (!cw.priceFeedCache.HasFeedCoinPair(pricePoint.coin_price_pair.first, pricePoint.coin_price_pair.second))
             return state.DoS(100, ERRORMSG("CPriceFeedTx::CheckTx, unsupported price coin pair={%s}",

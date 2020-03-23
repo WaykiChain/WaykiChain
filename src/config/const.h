@@ -59,7 +59,7 @@ static const PriceCoinPair kFcoinPriceCoinPair = {SYMB::WGRT, SYMB::USD};
 
 // can be expanded thru DevGov
 static const unordered_set<TokenSymbol> kPriceFeedSymbolSet = {
-    SYMB::WICC
+    SYMB::WICC, SYMB::WGRT
 };
 // hard code below only
 static const unordered_set<TokenSymbol> kPriceQuoteSymbolSet = {
