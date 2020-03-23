@@ -44,7 +44,7 @@ bool CAssetDbCache::CheckAsset(const TokenSymbol &symbol, uint64_t permsSum) {
 
 bool CAssetDbCache::SetAssetPerms(const CAsset &oldAsset, const CAsset &newAsset) {
     if (oldAsset.perms_sum != newAsset.perms_sum) {
-        for (auto item : assetPermMap) {
+        for (const auto &item : kAssetPermTitleMap) {
             uint64_t perm = item.first;
             bool oldPermValue = oldAsset.HasPerms(perm);
             bool newPermValue = newAsset.HasPerms(perm);
