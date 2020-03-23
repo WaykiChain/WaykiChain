@@ -86,9 +86,12 @@ public:
 
     void GetDexQuoteSymbolSet(set<TokenSymbol> &symbolSet);
 public:
-    // check functions
+    // check functions for price feed
     bool CheckPriceFeedBaseSymbol(const TokenSymbol &baseSymbol);
     bool CheckPriceFeedQuoteSymbol(const TokenSymbol &quoteSymbol);
+    // check functions for dex order
+    bool CheckDexBaseSymbol(const TokenSymbol &baseSymbol);
+    bool CheckDexQuoteSymbol(const TokenSymbol &baseSymbol);
 public:
 /*  CCompositeKVCache     prefixType            key              value           variable           */
 /*  -------------------- --------------------   --------------  -------------   --------------------- */

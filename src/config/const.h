@@ -63,6 +63,11 @@ static const unordered_set<TokenSymbol> kCoinTypeSet = {
     SYMB::WICC, SYMB::WGRT, SYMB::WUSD
 };
 
+// default dex BaseSymbol set, can be expanded thru DevGov
+static const unordered_set<TokenSymbol> kDexBaseSymbolSet = {
+    SYMB::WICC, SYMB::WGRT
+};
+
 // can be expanded thru DevGov
 static const unordered_set<TokenSymbol> kDexQuoteSymbolSet = {
     SYMB::WICC, SYMB::WUSD
