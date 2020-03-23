@@ -67,21 +67,34 @@ Value submitpricefeedtx(const Array& params, bool fHelp) {
             throw JSONRPCError(RPC_INVALID_PARAMETER, "null type not allowed!");
         }
 
-        string coinStr = coinValue.get_str();
-        if (!pCdMan->pAssetCache->CheckAsset(coinStr, AssetPermType::PERM_PRICE_FEED))
-            throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("Invalid price feed symbol: %s", coinStr));
+        TokenSymbol coinSymbol = coinValue.get_str();
+        TokenSymbol currencySymbol = currencyValue.get_str();
+        PriceCoinPair coinPair(coinSymbol, currencySymbol);
 
-        string currencyStr = currencyValue.get_str();
-        if (!kPriceQuoteSymbolSet.count(currencyStr))
-            throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("Invalid currency type: %s", currencyStr));
+        if (coinSymbol == currencySymbol)
+            throw JSONRPCError(RPC_INVALID_PARAMETER,
+                               strprintf("currency_symbol=%s is same to coin_symbol=%s",
+                                         currencySymbol, coinSymbol));
+
+        if (!pCdMan->pAssetCache->CheckPriceFeedQuoteSymbol(currencySymbol))
+            throw JSONRPCError(RPC_INVALID_PARAMETER,
+                               strprintf("unsupported currency_symbol=%s", currencySymbol));
+
+        if (!pCdMan->pAssetCache->CheckPriceFeedBaseSymbol(coinSymbol))
+            throw JSONRPCError(RPC_INVALID_PARAMETER,
+                               strprintf("unsupported price feed symbol=%s", coinSymbol));
+
+        if (!pCdMan->pPriceFeedCache->HasFeedCoinPair(coinPair))
+            throw JSONRPCError(RPC_INVALID_PARAMETER,
+                               strprintf("unsupported price coin pair={%s}",
+                            CoinPairToString(coinPair)));
 
         int64_t price = priceValue.get_int64();
         if (price <= 0) {
             throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("Invalid price: %lld", price));
         }
 
-        PriceCoinPair cpp(coinStr, currencyStr);
-        CPricePoint pp(cpp, uint64_t(price));
+        CPricePoint pp(coinPair, uint64_t(price));
         pricePoints.push_back(pp);
     }
 
