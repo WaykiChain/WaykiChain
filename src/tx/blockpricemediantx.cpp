@@ -119,7 +119,7 @@ bool CBlockPriceMedianTx::ForceLiquidateCdps(CTxExecuteContext &context, PriceDe
         return true;
 
     }
-    uint64_t priceTimeoutBlocks = 0; // TODO: add sys param
+    uint64_t priceTimeoutBlocks = 0;
     if (!pCdMan->pSysParamCache->GetParam(SysParamType::PRICE_FEED_TIMEOUT_BLOCKS, priceTimeoutBlocks)) {
         return state.DoS(100, ERRORMSG("%s, read sys param PRICE_FEED_TIMEOUT_BLOCKS error", __func__),
                 REJECT_INVALID, "read-sysparam-error");
