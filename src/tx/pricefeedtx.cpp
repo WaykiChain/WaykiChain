@@ -33,17 +33,25 @@ bool CPriceFeedTx::CheckTx(CTxExecuteContext &context) {
         const uint64_t &price = pricePoint.price;
         if (price == 0)
             return state.DoS(100, ERRORMSG("CPriceFeedTx::CheckTx, invalid price"), REJECT_INVALID, "bad-tx-invalid-price");
-        if (!cw.assetCache.CheckPriceFeedQuoteSymbol(pricePoint.coin_price_pair.second))
-            return state.DoS(100,
-                             ERRORMSG("%s(), unsupported quote_symbol=%s of price feed coin pair",
-                                      pricePoint.coin_price_pair.second),
-                             REJECT_INVALID, "unsupported-quote-symbol");
 
         const TokenSymbol &baseSymbol = pricePoint.coin_price_pair.first;
+        const TokenSymbol &quoteSymbol = pricePoint.coin_price_pair.second;
+        if (baseSymbol == quoteSymbol)
+            return state.DoS(100,
+                             ERRORMSG("%s(), baseSymbol=%s is same to quoteSymbol=%s", __func__,
+                                      baseSymbol, quoteSymbol),
+                             REJECT_INVALID, "same-base-quote-symbol");
+
         if (!cw.assetCache.CheckPriceFeedBaseSymbol(baseSymbol))
             return state.DoS(
                 100, ERRORMSG("%s(), unsupported baseSymbol=%s for price feed coin pair", __func__, baseSymbol),
                 REJECT_INVALID, "unsupported-base-symbol");
+
+        if (!cw.assetCache.CheckPriceFeedQuoteSymbol(quoteSymbol))
+            return state.DoS(100,
+                             ERRORMSG("%s(), unsupported quote_symbol=%s of price feed coin pair",
+                                      pricePoint.coin_price_pair.second),
+                             REJECT_INVALID, "unsupported-quote-symbol");
 
         if (!cw.priceFeedCache.HasFeedCoinPair(pricePoint.coin_price_pair))
             return state.DoS(100, ERRORMSG("CPriceFeedTx::CheckTx, unsupported price coin pair={%s}",
