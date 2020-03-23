@@ -81,6 +81,7 @@ struct CProposal {
 };
 
 
+
 struct CGovSysParamProposal: CProposal {
     vector<std::pair<uint8_t, uint64_t>> param_values;
 
@@ -474,7 +475,7 @@ struct CGovAxcCoinProposal: CProposal {
     IMPLEMENT_SERIALIZE(
             READWRITE(VARINT(expiry_block_height));
             READWRITE(approval_min_count);
-            READWRITE((uint8_t&)peer_chain_coin_symbol);
+            READWRITE(peer_chain_coin_symbol);
             READWRITE((uint8_t&)peer_chain_type);
             READWRITE((uint8_t&)op_type);
     )
@@ -483,13 +484,12 @@ struct CGovAxcCoinProposal: CProposal {
         Object o = CProposal::ToJson();
         o.push_back(Pair("peer_chain_coin_symbol", peer_chain_coin_symbol));
         o.push_back(Pair("peer_chain_type", peer_chain_type));
-
-        o.push_back(Pair("op_type", op_type)) ;
-        return o ;
+        o.push_back(Pair("op_type", op_type));
+        return o;
     }
 
     string ToString() override {
-        return  strprintf("peer_chain_coin_symbol=%s,peer_chain_type=%s",peer_chain_coin_symbol, peer_chain_type ) + ", " +
+        return  strprintf("peer_chain_coin_symbol=%s,peer_chain_type=%d",peer_chain_coin_symbol, peer_chain_type ) + ", " +
                 strprintf("op_type=%d", op_type);
     }
     shared_ptr<CProposal> GetNewInstance() override { return make_shared<CGovAxcCoinProposal>(*this); }
@@ -509,7 +509,7 @@ struct CGovAxcInProposal: CProposal {
     uint64_t    swap_amount;
 
     CGovAxcInProposal(): CProposal(ProposalType::GOV_AXC_IN) {}
-    CGovAxcInProposal(ChainType peerChainType, TokenSymbol peerChainTokenSymbol, TokenSymbol selfChainTokenSymbol,
+    CGovAxcInProposal( TokenSymbol peerChainTokenSymbol,
                     string &peerChainAddr, string &peerChainTxid, CUserID &selfChainUid, uint64_t &swapAmount):
                     CProposal(ProposalType::GOV_AXC_IN),
                     peer_chain_token_symbol(peerChainTokenSymbol),
@@ -602,7 +602,7 @@ struct CGovAxcOutProposal: CProposal {
 };
 
 struct CProposalStorageBean {
-    shared_ptr<CProposal> sp_proposal ;
+    shared_ptr<CProposal> sp_proposal = nullptr;
 
     CProposalStorageBean() {}
 
@@ -664,6 +664,9 @@ struct CProposalStorageBean {
                 break;
             case GOV_AXC_OUT:
                 ::Serialize(os, *((CGovAxcOutProposal  *) (sp_proposal.get())), nType, nVersion);
+                break;
+            case GOV_AXC_COIN:
+                ::Serialize(os, *((CGovAxcCoinProposal  *) (sp_proposal.get())), nType, nVersion);
                 break;
 
             case GOV_ACCOUNT_PERM:
@@ -747,6 +750,12 @@ struct CProposalStorageBean {
             case GOV_AXC_OUT: {
                 sp_proposal = std:: make_shared<CGovAxcOutProposal>();
                 ::Unserialize(is,  *((CGovAxcOutProposal *)(sp_proposal.get())), nType, nVersion);
+                break;
+            }
+
+            case GOV_AXC_COIN: {
+                sp_proposal = std:: make_shared<CGovAxcCoinProposal>();
+                ::Unserialize(is,  *((CGovAxcCoinProposal *)(sp_proposal.get())), nType, nVersion);
                 break;
             }
 

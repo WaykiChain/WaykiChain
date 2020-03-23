@@ -39,6 +39,7 @@ static const CRPCCommand vRPCCommands[] =
     { "getrawmempool",                  &getrawmempool,                     true,      false,       false   },
     { "verifychain",                    &verifychain,                       true,      false,       false   },
     { "getblockundo",                   &getblockundo,                      true,      false,       false   },
+    { "getswapcoindetail",              &getswapcoindetail,                 true,      false,        false   },
 
     { "gettotalcoins",                  &gettotalcoins,                     true,      false,       false   },
     { "invalidateblock",                &invalidateblock,                   true,      true,        false   },
@@ -114,6 +115,7 @@ static const CRPCCommand vRPCCommands[] =
     { "submitminerfeeproposal",         &submitminerfeeproposal,            false,      false,      true    },
     { "submitaxcinproposal",            &submitaxcinproposal,               false,      false,      true    },
     { "submitaxcoutproposal",           &submitaxcoutproposal,              false,      false,      true    },
+    { "submitaxccoinproposal",          &submitaxccoinproposal,             false,      false,      true    },
 
     { "submitaccountpermproposal",      &submitaccountpermproposal,         false,      false,      true    },
     { "submitassetpermproposal",        &submitassetpermproposal,           false,      false,      true    },
@@ -144,8 +146,8 @@ static const CRPCCommand vRPCCommands[] =
     { "submitdexoperatorregtx",         &submitdexoperatorregtx,            false,      false,      false   },
     { "submitdexoperatorupdatetx",      &submitdexoperatorupdatetx,         false,      false,      false   },
     { "getdexorder",                    &getdexorder,                       true,       false,      false   },
-    { "listdexsysorders",                &listdexsysorders,                   true,       false,      false   },
-    { "listdexorders",                   &listdexorders,                      true,       false,      false   },
+    { "listdexsysorders",               &listdexsysorders,                  true,       false,      false   },
+    { "listdexorders",                  &listdexorders,                     true,       false,      false   },
     { "getdexoperator",                 &getdexoperator,                    true,       false,      false   },
     { "getdexoperatorbyowner",          &getdexoperatorbyowner,             true,       false,      false   },
     { "getdexorderfee",                 &getdexorderfee,                    true,       false,      false   },

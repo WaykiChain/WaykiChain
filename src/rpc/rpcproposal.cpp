@@ -46,6 +46,32 @@ Value getproposal(const Array& params, bool fHelp){
     return Object();
 }
 
+Value getswapcoindetail(const Array& params, bool fHelp) {
+
+    if(fHelp || params.size() != 1){
+        throw runtime_error(
+                "getswapcoin \"peer_chain_coin_symbol\"\n"
+                "\n"
+                "\nArguments:\n"
+                "1.\"peer_chain_coin_symbol\": (string,     required) the coin symbol of peer chain\n"
+                "\nExamples:\n"
+                + HelpExampleCli("getswapcoin", "BTC")
+                + "\nAs json rpc call\n"
+                + HelpExampleRpc("getswapcoin", R"("BTC")")
+
+        );
+    }
+
+    string peerSymbol = params[0].get_str();
+
+    AxcSwapCoinPair p;
+    if (!pCdMan->pAxcCache->GetAxcCoinPairByPeerSymbol(TokenSymbol(peerSymbol), p)){
+        throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("don't find swap coin detail by peer coin (%s)",peerSymbol));
+    }
+
+    return p.ToJson();
+}
+
 Value getgovernors(const Array& params, bool fHelp) {
     if(fHelp || params.size() != 0 ) {
         throw runtime_error(
@@ -167,8 +193,6 @@ Value submitcdpparamgovernproposal(const Array& params, bool fHelp){
     int32_t validHeight  = chainActive.Height();
     CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, txUid);
     RPC_PARAM::CheckAccountBalance(account, fee.symbol, SUB_FREE, fee.GetAmountInSawi());
-
-
 
     CdpParamType  type = GetCdpParamType(paramName);
     if(type == CdpParamType::NULL_CDP_PARAM_TYPE)
@@ -436,6 +460,59 @@ Value submitfeedcoinpairproposal(const Array& params, bool fHelp) {
 
 }
 
+Value submitaxccoinproposal(const Array& params, bool fHelp) {
+
+    if(fHelp || params.size() < 4 || params.size() > 5){
+        throw runtime_error(
+                "submitaxccoinproposal \"addr\" \"peer_coin_symbol\" \"peer_chain_type\" \"operate_type\" [\"fee\"]\n"
+                "create a proposal about add or delete a swap coin\n"
+                "\nArguments:\n"
+                "1.\"addr\":             (string,     required) the tx submitor's address\n"
+                "2.\"peer_coin_symbol\": (string,     required) the peer chain coin symbol\n"
+                "3.\"peer_chain_type\":  (numberic,   required) the peer chain type\n"
+                "                          1 stand for BITCOIN\n"
+                "                          2 stand for ETHEREUM\n"
+                "                          3 stand for EOS\n"
+                "4.\"operate_type\":     (numberic,   required) the operate type \n"
+                "                          1 stand for enable\n"
+                "                          2 stand for disable\n"
+                "5.\"fee\":              (combomoney, optional) the tx fee \n"
+                "\nExamples:\n"
+                + HelpExampleCli("submitaxccoinproposal", "0-1 BTC 1 1  WICC:1:WI")
+                + "\nAs json rpc call\n"
+                + HelpExampleRpc("submitaxccoinproposal", R"("0-1", BTC, 1 ,1, "WICC:1:WI")")
+
+        );
+
+    }
+
+
+    EnsureWalletIsUnlocked();
+    const CUserID& txUid = RPC_PARAM::GetUserId(params[0], true);
+    string peerCoinSymbol = params[1].get_str();
+    int chainType = params[2].get_int();
+    int opType = params[3].get_int();
+    ComboMoney fee          = RPC_PARAM::GetFee(params, 4, PROPOSAL_REQUEST_TX);
+    int32_t validHeight  = chainActive.Height();
+    CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, txUid);
+    RPC_PARAM::CheckAccountBalance(account, fee.symbol, SUB_FREE, fee.GetAmountInSawi());
+
+
+    CGovAxcCoinProposal proposal;
+    proposal.peer_chain_coin_symbol = peerCoinSymbol;
+    proposal.peer_chain_type = ChainType(chainType);
+    proposal.op_type = ProposalOperateType(opType);
+
+    CProposalRequestTx tx;
+    tx.txUid        = txUid;
+    tx.llFees       = fee.GetAmountInSawi();
+    tx.fee_symbol    = fee.symbol;
+    tx.valid_height = validHeight;
+    tx.proposal = CProposalStorageBean(std::make_shared<CGovAxcCoinProposal>(proposal));
+    return SubmitTx(account.keyid, tx);
+
+}
+
 Value submitdexswitchproposal(const Array& params, bool fHelp) {
 
     if(fHelp || params.size() < 3 || params.size() > 4){
@@ -635,17 +712,12 @@ Value submitaxcinproposal(const Array& params, bool fHelp) {
                 "create proposal about transfer coin from other chain to waykichain \n"
                 "\nArguments:\n"
                 "1.\"addr\":                        (string,     required) the tx submitor's address\n"
-                "2.\"peer_chain_type\":             (numberic,   required) the chain type that swap from \n"
-                "                                   1: stand for bitcoin\n"
-                "                                   2: stand for ethereum\n"
-                "                                   3: stand for eos\n"
-                "3.\"peer_chain_token_symbol\":     (string, required) the coin symbol that swap from, such as BTC,ETH,EOS \n"
-                "4.\"self_chain_token_symbol\":     (string, required) the coin symbol that swap to, such as WBTC,WETC,WEOS \n"
-                "5.\"peer_chain_addr\":             (string, required) initiator's address at peer chain \n"
-                "6.\"peer_chain_txid\":             (string, required) a proof from the peer chain (non-HTLC version), such as wisvisof932wq392wospal230ewopdsxl\n"
-                "7.\"self_chain_uid\":              (string, required) initiator's uid at waykichain \n"
-                "8.\"swap_amount\":                 (numberic, required) the coin amount that swap in, the unit is sa(0.00000001), \n"
-                "9.\"fee\":                         (combomoney, optional) the tx fee \n"
+                "2.\"peer_chain_token_symbol\":     (string, required) the coin symbol that swap from, such as BTC,ETH,EOS \n"
+                "3.\"peer_chain_addr\":             (string, required) initiator's address at peer chain \n"
+                "4.\"peer_chain_txid\":             (string, required) a proof from the peer chain (non-HTLC version), such as wisvisof932wq392wospal230ewopdsxl\n"
+                "5.\"self_chain_uid\":              (string, required) initiator's uid at waykichain \n"
+                "6.\"swap_amount\":                 (numberic, required) the coin amount that swap in, the unit is sa(0.00000001), \n"
+                "7.\"fee\":                         (combomoney, optional) the tx fee \n"
                 "\nExamples:\n"
                 + HelpExampleCli("submitaxcinproposal", " 0-1 2 ETH WETH 29okf0efodfredfedsedsfdscsfds ewsdcxesasdsadfsad 0-1  1000000")
                 + "\nAs json rpc call\n"
@@ -657,19 +729,17 @@ Value submitaxcinproposal(const Array& params, bool fHelp) {
 
     EnsureWalletIsUnlocked();
     const CUserID& txUid = RPC_PARAM::GetUserId(params[0], true);
-    ChainType peerChainType = ChainType((uint8_t)params[1].get_int());
-    TokenSymbol peerTokenSymbol = TokenSymbol(params[2].get_str());
-    TokenSymbol selfToeknSymbol = TokenSymbol(params[3].get_str());
-    string peerAddr = params[4].get_str();
-    string peerTxid =params[5].get_str();
-    CUserID selfUid = RPC_PARAM::GetUserId(params[6]);
-    uint64_t swapCoinAmount = AmountToRawValue(params[7]);
-    ComboMoney fee          = RPC_PARAM::GetFee(params, 8, PROPOSAL_REQUEST_TX);
+    TokenSymbol peerTokenSymbol = TokenSymbol(params[1].get_str());
+    string peerAddr = params[2].get_str();
+    string peerTxid =params[3].get_str();
+    CUserID selfUid = RPC_PARAM::GetUserId(params[4]);
+    uint64_t swapCoinAmount = AmountToRawValue(params[5]);
+    ComboMoney fee          = RPC_PARAM::GetFee(params, 6, PROPOSAL_REQUEST_TX);
     int32_t validHeight  = chainActive.Height();
     CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, txUid);
     RPC_PARAM::CheckAccountBalance(account, fee.symbol, SUB_FREE, fee.GetAmountInSawi());
 
-   CGovAxcInProposal proposal(peerChainType,peerTokenSymbol,selfToeknSymbol,peerAddr,peerTxid,selfUid,swapCoinAmount);
+    CGovAxcInProposal proposal(peerTokenSymbol,peerAddr,peerTxid,selfUid,swapCoinAmount);
     CProposalRequestTx tx;
     tx.txUid        = txUid;
     tx.llFees       = fee.GetAmountInSawi();

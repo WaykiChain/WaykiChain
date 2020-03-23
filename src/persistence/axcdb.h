@@ -27,7 +27,22 @@ struct AxcSwapCoinPair {
 
     AxcSwapCoinPair() {}
     AxcSwapCoinPair(TokenSymbol peerSymbol, TokenSymbol selfSymbol, ChainType peerType):
-                    peer_token_symbol(peerSymbol),self_token_symbol(selfSymbol), peer_chain_type(peerType){}
+                    peer_token_symbol(peerSymbol),self_token_symbol(selfSymbol), peer_chain_type(peerType){};
+
+    Object ToJson() {
+        Object o;
+        o.push_back(Pair("peer_token_symbol", peer_token_symbol));
+        o.push_back(Pair("self_token_symbol", self_token_symbol));
+
+        string chainTypeString;
+        auto itr = kChainTypeNameMap.find(peer_chain_type);
+        if (itr != kChainTypeNameMap.end())
+            o.push_back(Pair("peer_chain_type", itr->second));
+        else
+            o.push_back(Pair("peer_chain_type", peer_chain_type));
+        return o;
+
+    }
 };
 
 class CAxcDBCache {
@@ -120,7 +135,7 @@ public:
 
         pair<string, uint8_t> data;
         if(axc_swap_coin_sp_cache.GetData(token, data)){
-            p = AxcSwapCoinPair(token, TokenSymbol(data.first), ChainType(data.second));
+            p = AxcSwapCoinPair(TokenSymbol(data.first),token, ChainType(data.second));
             return true;
         }
 
@@ -137,7 +152,7 @@ public:
 
         pair<string, uint8_t> data;
         if(axc_swap_coin_ps_cache.GetData(token, data)){
-            p = AxcSwapCoinPair(TokenSymbol(data.first),  token, ChainType(data.second));
+            p = AxcSwapCoinPair(token, TokenSymbol(data.first),  ChainType(data.second));
             return true;
         }
 

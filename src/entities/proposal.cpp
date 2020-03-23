@@ -51,7 +51,7 @@ bool CGovAxcCoinProposal::CheckProposal(CTxExecuteContext& context ) {
 
     if(kXChainSwapInTokenMap.find(peer_chain_coin_symbol) != kXChainSwapInTokenMap.end())
         return state.DoS(100, ERRORMSG("CGovAxcCoinProposal::CheckProposal,default pair can't be governed"), REJECT_INVALID,
-                         "defaulf-coin-error");
+                         "default-coin-error");
 
     if (peer_chain_coin_symbol.size() >= 6) {
         return state.DoS(100, ERRORMSG("CGovAxcCoinProposal::CheckProposal, peer_chain_coin_symbol size is too long"), REJECT_INVALID,

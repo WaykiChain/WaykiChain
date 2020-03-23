@@ -91,22 +91,22 @@ extern Value getdexoperatorbyowner(const Array& params, bool fHelp);
 extern Value getdexorderfee(const Array& params, bool fHelp);
 
 /*************************** Proposal ***********************************/
-extern Value submitparamgovernproposal(const Array& params, bool fHelp) ;
+extern Value submitparamgovernproposal(const Array& params, bool fHelp);
 
-extern Value submitcdpparamgovernproposal(const Array& params, bool fHelp) ;
-extern Value submitdexswitchproposal(const Array& params, bool fHelp) ;
+extern Value submitcdpparamgovernproposal(const Array& params, bool fHelp);
+extern Value submitdexswitchproposal(const Array& params, bool fHelp);
 extern Value submitfeedcoinpairproposal(const Array& params, bool fHelp);
-extern Value submitminerfeeproposal(const Array& params, bool fHelp) ;
-extern Value submittotalbpssizeupdateproposal(const Array& params, bool fHelp) ;
+extern Value submitminerfeeproposal(const Array& params, bool fHelp);
+extern Value submittotalbpssizeupdateproposal(const Array& params, bool fHelp);
 extern Value submitcointransferproposal( const Array& params, bool fHelp);
-extern Value submitgovernorupdateproposal(const Array& params, bool fHelp) ;
-extern Value submitproposalapprovaltx(const Array& params, bool fHelp) ;
+extern Value submitgovernorupdateproposal(const Array& params, bool fHelp);
+extern Value submitproposalapprovaltx(const Array& params, bool fHelp);
+extern Value submitaxccoinproposal(const Array& params, bool fHelp);
 
-
-extern Value getcdpparam(const Array& params, bool fHelp) ;
-extern Value getproposal(const Array& params, bool fHelp) ;
+extern Value getcdpparam(const Array& params, bool fHelp);
+extern Value getproposal(const Array& params, bool fHelp);
 extern Value getgovernors(const Array& params, bool fHelp);
-extern Value listmintxfees(const Array& params, bool fHelp) ;
+extern Value listmintxfees(const Array& params, bool fHelp);
 
 /******************************  WASM VM *********************************/
 extern Value vmexecutescript(const Array& params, bool fHelp);
@@ -147,6 +147,7 @@ extern Value verifymessage(const Array& params, bool fHelp);
 extern Value getcoinunitinfo(const Array& params, bool fHelp);
 extern Value addmulsigaddr(const Array& params, bool fHelp);
 extern Value createmulsig(const Array& params, bool fHelp);
+extern Value getswapcoindetail(const Array& params, bool fHelp);
 
 extern Value backupwallet(const Array& params, bool fHelp);
 extern Value walletpassphrase(const Array& params, bool fHelp);
@@ -188,7 +189,7 @@ extern Value getabiwasm(const Array& params, bool fHelp);
 extern Value gettxtrace(const Array& params, bool fHelp);
 extern Value abidefjsontobinwasm(const Array& params, bool fHelp);
 
-extern Value getsysparam(const Array& params, bool fHelp) ;
+extern Value getsysparam(const Array& params, bool fHelp);
 extern Value genutxomultiinputcondhash(const Array& params, bool fHelp);
 extern Value genutxomultisignaddr( const Array& params, bool fHelp);
 extern Value genutxomultisignature(const Array& params, bool fHelp);
