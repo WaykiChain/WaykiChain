@@ -118,9 +118,9 @@ public:
         median_price_cache.RegisterUndoFunc(undoDataFuncMap);
     }
 
-    bool AddFeedCoinPair(TokenSymbol baseSymbol, TokenSymbol quoteSymbol) ;
-    bool EraseFeedCoinPair(TokenSymbol baseSymbol, TokenSymbol quoteSymbol) ;
-    bool HasFeedCoinPair(TokenSymbol baseSymbol,TokenSymbol quoteSymbol) ;
+    bool AddFeedCoinPair(const PriceCoinPair &coinPair) ;
+    bool EraseFeedCoinPair(const PriceCoinPair &coinPair) ;
+    bool HasFeedCoinPair(const PriceCoinPair &coinPair) ;
     bool GetFeedCoinPairs(set<PriceCoinPair>& coinPairSet);
 
     bool CheckIsPriceFeeder(const CRegID &candidateRegId) ;

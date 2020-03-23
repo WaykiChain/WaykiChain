@@ -425,25 +425,24 @@ bool CPriceFeedCache::SetMedianPrices(const PriceDetailMap &medianPrices) {
     return median_price_cache.SetData(medianPrices);
 }
 
-bool CPriceFeedCache::AddFeedCoinPair(TokenSymbol baseSymbol, TokenSymbol quoteSymbol) {
-    if (kPriceFeedCoinPairSet.count(PriceCoinPair(baseSymbol, quoteSymbol)))
+bool CPriceFeedCache::AddFeedCoinPair(const PriceCoinPair &coinPair) {
+    if (kPriceFeedCoinPairSet.count(coinPair))
         return false;
 
     set<PriceCoinPair> coinPairs;
     price_feed_coin_pairs_cache.GetData(coinPairs);
-    if (coinPairs.count(PriceCoinPair(baseSymbol, quoteSymbol)) > 0 )
+    if (coinPairs.count(coinPair) > 0 )
         return true;
 
-    coinPairs.insert(PriceCoinPair(baseSymbol, quoteSymbol));
+    coinPairs.insert(coinPair);
     return price_feed_coin_pairs_cache.SetData(coinPairs);
 }
 
-bool CPriceFeedCache::EraseFeedCoinPair(TokenSymbol baseSymbol, TokenSymbol quoteSymbol) {
+bool CPriceFeedCache::EraseFeedCoinPair(const PriceCoinPair &coinPair) {
 
-    if (kPriceFeedCoinPairSet.count(PriceCoinPair(baseSymbol, quoteSymbol)))
+    if (kPriceFeedCoinPairSet.count(coinPair))
         return false;
 
-    PriceCoinPair coinPair(baseSymbol, quoteSymbol);
     set<PriceCoinPair> coins;
     price_feed_coin_pairs_cache.GetData(coins);
     if (coins.count(coinPair) == 0 )
@@ -453,15 +452,15 @@ bool CPriceFeedCache::EraseFeedCoinPair(TokenSymbol baseSymbol, TokenSymbol quot
     return price_feed_coin_pairs_cache.SetData(coins);
 }
 
-bool CPriceFeedCache::HasFeedCoinPair(TokenSymbol baseSymbol,TokenSymbol quoteSymbol) {
+bool CPriceFeedCache::HasFeedCoinPair(const PriceCoinPair &coinPair) {
     // WICC:USD is the default staked coin pair of cdp
     // WGRT:USD is need by forced-liquidate cdp for inflating WGRT
-    if (kPriceFeedCoinPairSet.count(PriceCoinPair(baseSymbol, quoteSymbol)))
+    if (kPriceFeedCoinPairSet.count(coinPair))
         return true;
 
     set<PriceCoinPair> coins;
     price_feed_coin_pairs_cache.GetData(coins);
-    return (coins.count(make_pair(baseSymbol,quoteSymbol)) != 0 );
+    return (coins.count(coinPair) != 0 );
 }
 
 bool CPriceFeedCache::GetFeedCoinPairs(set<PriceCoinPair>& coinPairSet) {

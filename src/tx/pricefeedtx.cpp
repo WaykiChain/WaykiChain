@@ -45,7 +45,7 @@ bool CPriceFeedTx::CheckTx(CTxExecuteContext &context) {
                 100, ERRORMSG("%s(), unsupported baseSymbol=%s for price feed coin pair", __func__, baseSymbol),
                 REJECT_INVALID, "unsupported-base-symbol");
 
-        if (!cw.priceFeedCache.HasFeedCoinPair(pricePoint.coin_price_pair.first, pricePoint.coin_price_pair.second))
+        if (!cw.priceFeedCache.HasFeedCoinPair(pricePoint.coin_price_pair))
             return state.DoS(100, ERRORMSG("CPriceFeedTx::CheckTx, unsupported price coin pair={%s}",
                             CoinPricePairToString(pricePoint.coin_price_pair)), REJECT_INVALID, "unsupported-price-coin-pair");
     }
