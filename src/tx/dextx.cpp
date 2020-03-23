@@ -39,7 +39,7 @@ namespace dex {
     bool CheckOrderFee(CBaseTx &baseTx, CTxExecuteContext &context, const CAccount &txAccount) {
 
         return baseTx.CheckFee(context, [&](CTxExecuteContext &context, uint64_t minFee) -> bool {
-            if (GetFeatureForkVersion(context.height) > MAJOR_VER_R3 && baseTx.txUid.is<CPubKey>()) {
+            if (GetFeatureForkVersion(context.height) > MAJOR_VER_R3) {
                 auto token = txAccount.GetToken(SYMB::WICC);
 
                 if (token.staked_amount > 0) {
