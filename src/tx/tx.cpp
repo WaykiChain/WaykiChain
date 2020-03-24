@@ -128,9 +128,12 @@ bool CBaseTx::CheckBaseTx(CTxExecuteContext &context) {
                 pubKey = txUid.get<CPubKey>();
             } else {
                 if (txAccount.perms_sum == 0) {
-                    return state.DoS(100, ERRORMSG("CheckBaseTx::CheckTx, perms_sum is zero error: txUid %s",
+                    return state.DoS(100, ERRORMSG("CheckBaseTx::CheckTx, perms_sum is zero error! txUid=%s",
                                 txUid.ToString()), READ_ACCOUNT_FAIL, "bad-tx-sign");
                 }
+                if (!txAccount.IsRegistered())
+                    return state.DoS(100, ERRORMSG("CheckBaseTx::CheckTx, tx account was not registered! txUid=%s",
+                                txUid.ToString()), READ_ACCOUNT_FAIL, "tx-account-not-registered");
 
                 pubKey = txAccount.owner_pubkey;
             }
