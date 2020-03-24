@@ -105,7 +105,7 @@ uint64_t CBaseTx::GetFuel(int32_t height, uint32_t fuelRate) {
 }
 
 bool CBaseTx::CheckBaseTx(CTxExecuteContext &context) {
-    IMPLEMENT_DEFINE_CW_STATE;
+    CValidationState &state = *context.pState;
 
     if(nTxType == BLOCK_REWARD_TX
     || nTxType == PRICE_MEDIAN_TX
