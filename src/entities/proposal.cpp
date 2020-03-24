@@ -19,25 +19,20 @@ extern uint8_t GetGovernorApprovalMinCount(ProposalType proposalType, CCacheWrap
 
 
 bool CGovAxcCoinProposal::CheckProposal(CTxExecuteContext& context ) {
-
     IMPLEMENT_DEFINE_CW_STATE;
-
-
 
     if (op_type != ProposalOperateType::ENABLE && op_type != ProposalOperateType::DISABLE)
         return state.DoS(100, ERRORMSG("CGovAxcCoinProposal::CheckProposal, op_type is not 0 or 1"), REJECT_INVALID,
                          "op_type-error");
 
     bool hasCoinPair = cw.axcCache.HasAxcCoinPairByPeerSymbol(peer_chain_coin_symbol);
-    if(op_type == ProposalOperateType::ENABLE && hasCoinPair) {
+    if(op_type == ProposalOperateType::ENABLE && hasCoinPair)
         return state.DoS(100, ERRORMSG("CGovAxcCoinProposal::CheckProposal, the peer coin symbol is exist"), REJECT_INVALID,
                          "coin-exist");
-    }
 
-    if(op_type == ProposalOperateType::DISABLE && !hasCoinPair) {
+    if(op_type == ProposalOperateType::DISABLE && !hasCoinPair)
         return state.DoS(100, ERRORMSG("CGovAxcCoinProposal::CheckProposal, the peer coin symbol is not exist"), REJECT_INVALID,
                          "coin-not-exist");
-    }
 
     switch (peer_chain_type) {
         case ChainType ::BITCOIN:
@@ -53,10 +48,9 @@ bool CGovAxcCoinProposal::CheckProposal(CTxExecuteContext& context ) {
         return state.DoS(100, ERRORMSG("CGovAxcCoinProposal::CheckProposal,default pair can't be governed"), REJECT_INVALID,
                          "default-coin-error");
 
-    if (peer_chain_coin_symbol.size() >= 6) {
+    if (peer_chain_coin_symbol.size() >= 6)
         return state.DoS(100, ERRORMSG("CGovAxcCoinProposal::CheckProposal, peer_chain_coin_symbol size is too long"), REJECT_INVALID,
                          "peer_coin_symbol-error");
-    }
 
     return true;
 }
