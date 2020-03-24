@@ -15,7 +15,7 @@
 
 bool ComputeRedeemScript(const uint8_t m, const uint8_t n, vector<string>& addresses, string &redeemScript);
 bool ComputeMultiSignKeyId(const string &redeemScript, CKeyID &keyId);
-bool ComputeUtxoMultisignHash(const TxID &prevUtxoTxId, uint16_t prevUtxoTxVoutIndex, const CKeyID &txUid,
+bool ComputeUtxoMultisignHash(const TxID &prevUtxoTxId, uint16_t prevUtxoTxVoutIndex, const CAccount &txAcct,
                             string &redeemScript, uint256 &hash);
 
 ////////////////////////////////////////
@@ -65,9 +65,19 @@ public:
     virtual Object ToJson(const CAccountDBCache &accountCache) const {
         Object obj = CBaseTx::ToJson(accountCache);
 
-        obj.push_back(Pair("coin_symbol", db_util::ToString(coin_symbol)));
-        obj.push_back(Pair("vins", db_util::ToString(vins)));
-        obj.push_back(Pair("vouts", db_util::ToString(vouts)));
+        Array inputArr;
+        for(auto input: vins){
+            inputArr.push_back(input.ToJson());
+        }
+
+        Array outputArr;
+        for(auto output: vouts){
+            outputArr.push_back(output.ToJson());
+        }
+
+        obj.push_back(Pair("coin_symbol", coin_symbol));
+        obj.push_back(Pair("vins", inputArr));
+        obj.push_back(Pair("vouts", outputArr));
         obj.push_back(Pair("memo", memo));
 
         return obj;

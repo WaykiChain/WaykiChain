@@ -111,6 +111,8 @@ Object CProposalApprovalTx::ToJson(const CAccountDBCache &accountCache) const {
 
      Object result = CBaseTx::ToJson(accountCache);
      result.push_back(Pair("proposal_id", txid.ToString()));
+     if(axc_signature.size() > 0)
+         result.push_back(Pair("axc_signatur", HexStr(axc_signature)));
      return result;
 } // json-rpc usage
 
@@ -163,6 +165,7 @@ bool CProposalApprovalTx::ExecuteTx(CTxExecuteContext &context) {
     if (!cw.accountCache.SetAccount(CUserID(srcAccount.keyid), srcAccount))
         return state.DoS(100, ERRORMSG("CProposalApprovalTx::ExecuteTx, set account info error"),
                         WRITE_ACCOUNT_FAIL, "bad-write-accountdb");
+
     if (!cw.sysGovernCache.SetApproval(txid, txUid.get<CRegID>()))
         return state.DoS(100, ERRORMSG("CProposalApprovalTx::ExecuteTx, set proposal approval info error"),
                         WRITE_ACCOUNT_FAIL, "bad-write-proposaldb");
@@ -173,8 +176,8 @@ bool CProposalApprovalTx::ExecuteTx(CTxExecuteContext &context) {
     if (spProposal->proposal_type == ProposalType::GOV_AXC_OUT) {
         auto axcOutProposal = dynamic_cast<CGovAxcOutProposal&>(*spProposal);
         axcOutProposal.peer_chain_tx_multisigs.push_back(axc_signature);
-
-        if (!cw.sysGovernCache.SetProposal(txid, spProposal))
+        auto savedSp = axcOutProposal.GetNewInstance();
+        if (!cw.sysGovernCache.SetProposal(txid, savedSp))
             return state.DoS(100, ERRORMSG("CProposalApprovalTx::ExecuteTx, set proposal info error"),
                         WRITE_ACCOUNT_FAIL, "bad-write-proposaldb");
     }

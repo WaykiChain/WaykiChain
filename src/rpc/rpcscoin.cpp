@@ -67,21 +67,34 @@ Value submitpricefeedtx(const Array& params, bool fHelp) {
             throw JSONRPCError(RPC_INVALID_PARAMETER, "null type not allowed!");
         }
 
-        string coinStr = coinValue.get_str();
-        if (!pCdMan->pAssetCache->CheckAsset(coinStr, AssetPermType::PERM_PRICE_FEED))
-            throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("Invalid price feed symbol: %s", coinStr));
+        TokenSymbol coinSymbol = coinValue.get_str();
+        TokenSymbol currencySymbol = currencyValue.get_str();
+        PriceCoinPair coinPair(coinSymbol, currencySymbol);
 
-        string currencyStr = currencyValue.get_str();
-        if (!kPriceQuoteSymbolSet.count(currencyStr))
-            throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("Invalid currency type: %s", currencyStr));
+        if (coinSymbol == currencySymbol)
+            throw JSONRPCError(RPC_INVALID_PARAMETER,
+                               strprintf("coin_symbol=%s is same to currency_symbol=%s ",
+                                         coinSymbol, currencySymbol));
+
+        if (!pCdMan->pAssetCache->CheckPriceFeedBaseSymbol(coinSymbol))
+            throw JSONRPCError(RPC_INVALID_PARAMETER,
+                               strprintf("unsupported price feed symbol=%s", coinSymbol));
+
+        if (!pCdMan->pAssetCache->CheckPriceFeedQuoteSymbol(currencySymbol))
+            throw JSONRPCError(RPC_INVALID_PARAMETER,
+                               strprintf("unsupported currency_symbol=%s", currencySymbol));
+
+        if (!pCdMan->pPriceFeedCache->HasFeedCoinPair(coinPair))
+            throw JSONRPCError(RPC_INVALID_PARAMETER,
+                               strprintf("unsupported price coin pair={%s}",
+                            CoinPairToString(coinPair)));
 
         int64_t price = priceValue.get_int64();
         if (price <= 0) {
             throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("Invalid price: %lld", price));
         }
 
-        PriceCoinPair cpp(coinStr, currencyStr);
-        CPricePoint pp(cpp, uint64_t(price));
+        CPricePoint pp(coinPair, uint64_t(price));
         pricePoints.push_back(pp);
     }
 
@@ -373,15 +386,6 @@ Value getscoininfo(const Array& params, bool fHelp){
     for (const auto& item : medianPrices) {
         if (item.first == kFcoinPriceCoinPair) continue;
 
-        if (!item.second.IsActive(height, priceTimeoutBlocks)) {
-            LogPrint(BCLog::CDP,
-                    "%s(), price of coin_pair(%s) is inactive, ignore, "
-                    "last_update_height=%u, cur_height=%u\n",
-                    __func__, CoinPairToString(item.first), item.second.last_feed_height,
-                    height);
-            continue; // TODO: cdp price inactive, can not do any cdp operation
-        }
-
         CAsset asset;
         const TokenSymbol &bcoinSymbol = item.first.first;
         const TokenSymbol &quoteSymbol = item.first.second;
@@ -402,7 +406,17 @@ Value getscoininfo(const Array& params, bool fHelp){
             LogPrint(BCLog::CDP, "%s(), base_symbol=%s not have cdp bcoin permission, ignore", __func__, bcoinSymbol);
             continue;
         }
-        cdpInfoArray.push_back(GetCdpInfoJson(CCdpCoinPair(SYMB::WICC, SYMB::WUSD), item.second.price));
+
+        if (!pCdMan->pCdpCache->IsBcoinActivated(bcoinSymbol)) {
+            LogPrint(BCLog::CDP, "%s(), asset=%s does not be activated, ignore", __func__, bcoinSymbol);
+            continue;
+        }
+
+        if (item.second.price == 0) {
+            LogPrint(BCLog::CDP, "%s(), coin_pair(%s) price=0, ignore\n", __func__, CoinPairToString(item.first));
+            continue;
+        }
+        cdpInfoArray.push_back(GetCdpInfoJson(CCdpCoinPair(bcoinSymbol, scoinSymbol), item.second.price));
     }
 
     Object obj;

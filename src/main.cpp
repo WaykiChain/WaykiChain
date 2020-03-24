@@ -185,7 +185,7 @@ void SyncTransaction(const uint256 &hash, CBaseTx *pBaseTx, const CBlock *pBlock
     g_signals.SyncTransaction(hash, pBaseTx, pBlock);
 }
 
-void EraseTransaction(const uint256 &hash) { g_signals.EraseTransaction(hash); }
+void EraseTransactionFromWallet(const uint256 &hash) { g_signals.EraseTransaction(hash); }
 
 //////////////////////////////////////////////////////////////////////////////
 //
@@ -262,9 +262,8 @@ bool AcceptToMemoryPool(CTxMemPool &pool, CValidationState &state, CBaseTx *pBas
 
     // is it a miner reward tx or price median tx?
     if (pBaseTx->IsBlockRewardTx() || pBaseTx->IsPriceMedianTx())
-        return state.Invalid(
-            ERRORMSG("AcceptToMemoryPool() : txid: %s is a block reward or price median tx, not allowed to put into mempool",
-                    hash.GetHex()), REJECT_INVALID, "tx-coinbase-to-mempool");
+        return state.Invalid(ERRORMSG("AcceptToMemoryPool() : txid: %s is a block reward or price median tx,"
+                            "not allowed to put into mempool", hash.GetHex()), REJECT_INVALID, "tx-coinbase-to-mempool");
 
     // Rather not work on nonstandard transactions (unless -testnet/-regtest)
     string reason;
@@ -997,7 +996,7 @@ static bool ComputeVoteStakingInterestAndRevokeVotes(const int32_t currHeight, c
 bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValidationState &state, bool fJustCheck) {
     AssertLockHeld(cs_main);
 
-    bool isGensisBlock = block.GetHeight() == 0 && block.GetHash() == SysCfg().GetGenesisBlockHash();
+    bool isGensisBlock = (block.GetHeight() == 0) && (block.GetHash() == SysCfg().GetGenesisBlockHash());
 
     // Check it again in case a previous version let a bad block in
     if (!isGensisBlock && !CheckBlock(block, state, cw, !fJustCheck, !fJustCheck))
@@ -1018,7 +1017,7 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
     if (isGensisBlock) {
         if (!ProcessGenesisBlock(block, cw, pIndex, state)) {
             return state.DoS(100, ERRORMSG("ConnectBlock() : process genesis block error"),
-                REJECT_INVALID, "process genesis-block-error");
+                            REJECT_INVALID, "process genesis-block-error");
         }
         return true;
     }
@@ -1029,10 +1028,11 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
 
         vector<string> txids = IniCfg().GetStableCoinGenesisTxid(SysCfg().NetworkID());
         assert(txids.size() == 3);
-        for (int32_t index = 0; index < 3; ++ index) {
+        for (int32_t index = 0; index < 3; ++index) {
             LogPrint(BCLog::INFO, "stable coin genesis block, txid actual: %s, should be: %s, in detail: %s\n",
                      block.vptx[index + 1]->GetHash().GetHex(), txids[index],
                      block.vptx[index + 1]->ToString(cw.accountCache));
+
             assert(block.vptx[index + 1]->nTxType == UCOIN_REWARD_TX);
             if (SysCfg().NetworkID() == MAIN_NET) {
                 assert(block.vptx[index + 1]->GetHash() == uint256S(txids[index]));
@@ -1042,7 +1042,7 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
 
     VoteDelegate curDelegate;
     uint32_t totalDelegateNum;
-    if (!VerifyRewardTx(&block, cw, false, curDelegate, totalDelegateNum))
+    if (!VerifyRewardTx(&block, cw, curDelegate, totalDelegateNum))
         return state.DoS(100, ERRORMSG("ConnectBlock() : verify reward tx error"), REJECT_INVALID, "bad-reward-tx");
 
     CBlockUndo blockUndo;
@@ -1083,6 +1083,7 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
             if (!pBaseTx->ExecuteTx(context)) {
                 pCdMan->pLogCache->SetExecuteFail(pIndex->height, pBaseTx->GetHash(), state.GetRejectCode(),
                                                   state.GetRejectReason());
+
                 return state.DoS(100, ERRORMSG("ConnectBlock() : txid=%s execute failed, in detail: %s",
                                  pBaseTx->GetHash().GetHex(), pBaseTx->ToString(cw.accountCache)), REJECT_INVALID, "tx-execute-failed");
             }
@@ -1153,6 +1154,7 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
         uint32_t prevBlockTime = pIndex->pprev != nullptr ? pIndex->pprev->GetBlockTime() : pIndex->GetBlockTime();
         CTxExecuteContext context(pIndex->height, 0, pIndex->nFuelRate, pIndex->nTime, prevBlockTime, &cw, &state);
         CTxUndoOpLogger rewardOpLogger(cw, block.vptx[0]->GetHash(), blockUndo);
+
         if (!block.vptx[0]->ExecuteTx(context)) {
             pCdMan->pLogCache->SetExecuteFail(pIndex->height, block.vptx[0]->GetHash(), state.GetRejectCode(),
                                             state.GetRejectReason());
@@ -1391,7 +1393,7 @@ bool static DisconnectTip(CValidationState &state) {
                 mempool.Remove(pTx.get(), removed, true);
             }
         } else {
-            EraseTransaction(pTx->GetHash());
+            EraseTransactionFromWallet(pTx->GetHash());
         }
     }
 
@@ -1498,15 +1500,12 @@ void static FindMostWorkChain() {
     chainMostWork.SetTip(pIndexNew);
 }
 
-bool ConnectBlockOnFinChain(CBlockIndex* pNewIndex, CValidationState& state){
-
-    if(pNewIndex && chainActive.Tip() == pNewIndex->pprev){
+bool ConnectBlockOnFinChain(CBlockIndex* pNewIndex, CValidationState& state) {
+    if (pNewIndex && (chainActive.Tip() == pNewIndex->pprev)) {
         if (!ConnectTip(state, pNewIndex)) {
             if (state.IsInvalid()) {
-                // The block violates a consensus rule.
-                if (!state.CorruptionPossible())
+                if (!state.CorruptionPossible()) // The block violates a consensus rule.
                     InvalidChainFound(pNewIndex);
-                state     = CValidationState();
 
             } else {
                 // A system error occurred (disk space, database error, ...).
@@ -1540,15 +1539,15 @@ bool ActivateBestChain(CValidationState &state, CBlockIndex* pNewIndex) {
                 CBlockIndex* finIndex = pbftMan.GetLocalFinIndex();
                 if(finIndex && chainIndex->GetBlockHash() == finIndex->GetBlockHash()){
                     LogPrint(BCLog::INFO, "finality block can't be reverse\n");
-                    if(GetTime() - pbftMan.GetLocalFinLastUpdate()>60){
+                    if (GetTime() - pbftMan.GetLocalFinLastUpdate() > 60) {
                         pbftMan.SetLocalFinTimeout() ;
                     } else{
-                        LogPrint(BCLog::INFO, "connect block on fin chain\n") ;
-                        return ConnectBlockOnFinChain(pNewIndex, state) ;
+                        LogPrint(BCLog::INFO, "connect block on fin chain\n");
+                        return ConnectBlockOnFinChain(pNewIndex, state);
                     }
                 }
 
-                uint256 globalFinIndexHash = pbftMan.GetGlobalFinBlockHash() ;
+                uint256 globalFinIndexHash = pbftMan.GetGlobalFinBlockHash();
                 if( chainIndex->GetBlockHash() == globalFinIndexHash){
                     LogPrint(BCLog::INFO, "globalfinality block can't be reverse\n");
                     return ConnectBlockOnFinChain(pNewIndex, state) ;
@@ -1566,9 +1565,8 @@ bool ActivateBestChain(CValidationState &state, CBlockIndex* pNewIndex) {
             if (!DisconnectTip(state))
                 return false;
 
-            if (chainActive.Tip() && chainMostWork.Contains(chainActive.Tip())){
+            if (chainActive.Tip() && chainMostWork.Contains(chainActive.Tip()))
                 mempool.ReScanMemPoolTx();
-            }
         }
 
         // Connect new blocks.
@@ -1836,9 +1834,9 @@ bool ProcessForkedChain(const CBlock &block, CBlockIndex *pPreBlockIndex, CValid
 
     VoteDelegate curDelegate;
     uint32_t totalDelegateNum ;
-    if (!VerifyRewardTx(&block, *spCW, false, curDelegate, totalDelegateNum))
+    if (!VerifyRewardTx(&block, *spCW, curDelegate, totalDelegateNum))
         return state.DoS(100, ERRORMSG("ProcessForkedChain() : block[%u]: %s verify reward tx error",
-            block.GetHeight(), block.GetHash().GetHex()), REJECT_INVALID, "bad-reward-tx");
+                        block.GetHeight(), block.GetHash().GetHex()), REJECT_INVALID, "bad-reward-tx");
 
     return true;
 }

@@ -29,26 +29,34 @@ class CAccountDBCache;
 
 // perms for an account
 enum AccountPermType : uint64_t {
-    NULL_ACCOUNT_PERM   = 0,        // no perm at all w/ the account, even for smart contract account
-    PERM_SEND_COIN      = (1 << 0 ),
-    PERM_RECV_COIN      = (1 << 1 ),
-    PERM_STAKE_COIN     = (1 << 2 ),
-    PERM_UNSTAKE_COIN   = (1 << 3 ),
-    PERM_SEND_VOTE      = (1 << 4 ),
-    PERM_RECV_VOTE      = (1 << 5 ),
-    PERM_SEND_UTXO      = (1 << 6 ),
-    PERM_RECV_UTXO      = (1 << 7 ),
-    PERM_DEPLOY_SC      = (1 << 8 ), //Deploy smart contract
-    PERM_UPGRADE_SC     = (1 << 9 ), //Upgrade smart contract
-    PERM_INVOKE_SC      = (1 << 10),
-    PERM_PROPOSE        = (1 << 11), //DeGov propose
-    PERM_MINE_BLOCK     = (1 << 12), //elected BP can mine blocks
-    PERM_FEED_PRICE     = (1 << 13), //feed price
-    PERM_DEX            = (1 << 14), //freeze | unfreeze
-    PERM_CDP            = (1 << 15), //pledge | unpledge
-    PERM_AXC_IN         = (1 << 16), //atomic-cross-chain swap in
-    PERM_AXC_OUT        = (1 << 17), //atomic-cross-chain swap out
+    NULL_ACCOUNT_PERM   = 0,         // no perm at all w/ the account, even for smart contract account
+    PERM_SEND_COIN      = (1 << 0 ), //recv_coin is always allowed
+    PERM_STAKE_COIN     = (1 << 1 ), //when input is negative, it means unstake
+    PERM_SEND_VOTE      = (1 << 2 ), //send or revoke votes to others
+    PERM_SEND_UTXO      = (1 << 3 ), //recv utox is always allowed
+    PERM_DEPLOY_SC      = (1 << 4 ), //Deploy smart contract
+    PERM_UPGRADE_SC     = (1 << 5 ), //Upgrade smart contract
+    PERM_INVOKE_SC      = (1 << 6 ), //Invoke smart contract
+    PERM_PROPOSE        = (1 << 7 ), //DeGov propose
+    PERM_MINE_BLOCK     = (1 << 8 ), //elected BP can mine blocks, mostly used to disable the perm when set zero
+    PERM_FEED_PRICE     = (1 << 9 ), //Feed price, mostly used to disable the perm when set zero
+    PERM_DEX            = (1 << 10 ), //freeze | unfreeze
+    PERM_CDP            = (1 << 11), //pledge | unpledge
+};
 
+static const unordered_map<uint64_t, string> kAccountPermTitleMap = {
+    { PERM_SEND_COIN,    "PERM_SEND_COIN"   },
+    { PERM_STAKE_COIN,   "PERM_STAKE_COIN"  },
+    { PERM_SEND_VOTE,    "PERM_SEND_VOTE"   },
+    { PERM_SEND_UTXO,    "PERM_SEND_UTXO"   },
+    { PERM_DEPLOY_SC,    "PERM_DEPLOY_SC"   },
+    { PERM_UPGRADE_SC,   "PERM_UPGRADE_SC"  },
+    { PERM_INVOKE_SC,    "PERM_INVOKE_SC"   },
+    { PERM_PROPOSE,      "PERM_PROPOSE"     },
+    { PERM_MINE_BLOCK,   "PERM_MINE_BLOCK"  },
+    { PERM_FEED_PRICE,   "PERM_FEED_PRICE"  },
+    { PERM_DEX,          "PERM_DEX"         },
+    { PERM_CDP,          "PERM_CDP"         },
 };
 
 const uint64_t kAccountAllPerms = uint64_t(-1); // == 0xFFFFFFFFFFFFFFFF enable all perms
@@ -107,12 +115,12 @@ public:
     uint64_t pledged_amount;    //for CDP collateral amount
 
 public:
-    CAccountToken() : free_amount(0), frozen_amount(0), staked_amount(0), voted_amount(0), pledged_amount(0) { }
+    CAccountToken() : free_amount(0), frozen_amount(0), staked_amount(0), voted_amount(0), pledged_amount(0) {}
 
     CAccountToken(uint64_t& freeAmount, uint64_t& frozenAmount, uint64_t& stakedAmount,
                 uint64_t& votedAmount, uint64_t& pledgedAmount)
         : free_amount(freeAmount), frozen_amount(frozenAmount), staked_amount(stakedAmount),
-            voted_amount(votedAmount), pledged_amount(pledgedAmount) {}
+          voted_amount(votedAmount), pledged_amount(pledgedAmount) {}
 
     CAccountToken& operator=(const CAccountToken& other) {
         if (this == &other)
@@ -142,8 +150,7 @@ typedef map<TokenSymbol, CAccountToken> AccountTokenMap;
 /**
  * Common or Contract Account
  */
-class CAccount {
-public:
+struct CAccount {
     CKeyID  keyid;                  //!< unique: keyId of the account (interchangeable to address) - 20 bytes
     CRegID  regid;                  //!< unique: regId - derived from 1st TxCord - 6 bytes
     CNickID nickid;                 //!< unique: Nickname ID of the account (sting maxlen=32) - 8 bytes
@@ -160,11 +167,11 @@ public:
     uint64_t last_vote_height;      //!< account's last vote block height used for computing interest
     uint64_t last_vote_epoch;       //!< account's last vote epoch used for computing interest
 
-    uint64_t perms_sum = kAccountAllPerms; //! a sum of granted perms to the account
+    uint64_t perms_sum 
+                = kAccountAllPerms; //! a sum of granted perms to the account
 
     mutable uint256 sigHash;        //!< in-memory only
 
-public:
     CAccount() : CAccount(CKeyID(), CNickID(), CPubKey()) {}
     CAccount(const CAccount& other) { *this = other; }
     CAccount& operator=(const CAccount& other) {
@@ -201,9 +208,6 @@ public:
         return (permsSum == (perms_sum & permsSum));
     }
 
-
-public:
-
     IMPLEMENT_SERIALIZE(
         READWRITE(keyid);
         READWRITE(regid);
@@ -220,8 +224,6 @@ public:
     CAccountToken GetToken(const TokenSymbol &tokenSymbol) const;
     bool SetToken(const TokenSymbol &tokenSymbol, const CAccountToken &accountToken);
 
-
-    uint64_t GetBalance(const TokenSymbol &tokenSymbol, const BalanceType balanceType);
     bool GetBalance(const TokenSymbol &tokenSymbol, const BalanceType balanceType, uint64_t &value);
     bool OperateBalance(const TokenSymbol &tokenSymbol, const BalanceOpType opType, const uint64_t &value);
 
@@ -248,7 +250,6 @@ public:
 
     bool IsMyUid(const CUserID &uid);
 
-private:
     bool IsBcoinWithinRange(uint64_t nAddMoney);
     bool IsFcoinWithinRange(uint64_t nAddMoney);
 };

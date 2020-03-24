@@ -23,7 +23,7 @@ public:
     system_clock::time_point      pseudo_start;
     std::chrono::microseconds     billed_time              = chrono::microseconds(0);
     std::chrono::milliseconds     max_transaction_duration = std::chrono::milliseconds(wasm::max_wasm_execute_time_infinite);
-    transaction_status_type       transaction_status       = transaction_status_type::syncing;//block in syncing
+    TxExecuteContextType          context_type             = TxExecuteContextType::CONNECT_BLOCK;
     //wasm::inline_transaction      trx_current              = nullptr;
 
     void                      pause_billing_timer();
@@ -49,7 +49,7 @@ public:
         READWRITE(signatures);
         READWRITE(VARINT(llFees));
         READWRITE(signature);
-        )
+    )
 
     virtual void SerializeForHash(CHashWriter &hw) const {
         hw << VARINT(nVersion) << uint8_t(nTxType) << VARINT(valid_height) << txUid

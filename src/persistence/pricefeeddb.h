@@ -118,16 +118,17 @@ public:
         median_price_cache.RegisterUndoFunc(undoDataFuncMap);
     }
 
-    bool AddFeedCoinPair(TokenSymbol baseSymbol, TokenSymbol quoteSymbol) ;
-    bool EraseFeedCoinPair(TokenSymbol baseSymbol, TokenSymbol quoteSymbol) ;
-    bool HasFeedCoinPair(TokenSymbol baseSymbol,TokenSymbol quoteSymbol) ;
+    bool AddFeedCoinPair(const PriceCoinPair &coinPair) ;
+    bool EraseFeedCoinPair(const PriceCoinPair &coinPair) ;
+    bool HasFeedCoinPair(const PriceCoinPair &coinPair) ;
     bool GetFeedCoinPairs(set<PriceCoinPair>& coinPairSet);
 
     bool CheckIsPriceFeeder(const CRegID &candidateRegId) ;
     bool SetPriceFeeders(const vector<CRegID> &governors) ;
     bool GetPriceFeeders(vector<CRegID>& priceFeeders) ;
 
-    uint64_t GetMedianPrice(const PriceCoinPair &coinPricePair) const;
+    uint64_t GetMedianPrice(const PriceCoinPair &coinPricePair);
+    bool GetMedianPriceDetail(const PriceCoinPair &coinPricePair, CMedianPriceDetail &priceDetail);
     PriceDetailMap GetMedianPrices() const;
     bool SetMedianPrices(const PriceDetailMap &medianPrices);
 

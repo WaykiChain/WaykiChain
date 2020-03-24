@@ -28,26 +28,31 @@ namespace dex {
     }
 
     static bool GetDexOperator(CTxExecuteContext &context, const DexID &dexId,
-                            shared_ptr<DexOperatorDetail> &spOperatorDetail, const string &title) {
-        spOperatorDetail = make_shared<DexOperatorDetail>();
-        if (!context.pCw->dexCache.GetDexOperator(dexId, *spOperatorDetail))
+                            DexOperatorDetail &operatorDetail, const string &title) {
+        if (!context.pCw->dexCache.GetDexOperator(dexId, operatorDetail))
             return context.pState->DoS(100, ERRORMSG("%s(), the dex operator does not exist! dex_id=%u", title, dexId),
                 REJECT_INVALID, "dex_operator_not_existed");
         return true;
     }
 
-    bool CheckOrderFee(CBaseTx &baseTx, CTxExecuteContext &context, const CAccount &txAccount) {
+    bool CheckOrderFee(CBaseTx &baseTx, CTxExecuteContext &context, const CAccount &txAccount,
+            CAccount *pOperatorAccount = nullptr, uint64_t operatorTxFee = 0) {
 
         return baseTx.CheckFee(context, [&](CTxExecuteContext &context, uint64_t minFee) -> bool {
-            if (GetFeatureForkVersion(context.height) > MAJOR_VER_R3 && baseTx.txUid.is<CPubKey>()) {
-                auto token = txAccount.GetToken(SYMB::WICC);
+            if (GetFeatureForkVersion(context.height) > MAJOR_VER_R3) {
+                uint64_t totalFees = baseTx.llFees;
+                auto stakedAmount = txAccount.GetToken(SYMB::WICC).staked_amount;
+                if (pOperatorAccount != nullptr && operatorTxFee != 0) {
+                    totalFees += operatorTxFee;
+                    stakedAmount = max(stakedAmount, pOperatorAccount->GetToken(SYMB::WICC).staked_amount);
+                }
 
-                if (token.staked_amount > 0) {
-                    minFee = std::max(std::min(COIN * COIN / token.staked_amount, minFee), (uint64_t)1);
+                if (stakedAmount > 0) {
+                    minFee = std::max(std::min(COIN * COIN / stakedAmount, minFee), (uint64_t)1);
                 }
                 if (baseTx.llFees < minFee){
                     string err = strprintf("The given fee is too small: %llu < %llu sawi when wicc staked_amount=%llu",
-                        baseTx.llFees, minFee, token.staked_amount);
+                        baseTx.llFees, minFee, stakedAmount);
                     return context.pState->DoS(100, ERRORMSG("%s, tx=%s, height=%d, fee_symbol=%s",
                         err, baseTx.GetTxTypeName(), context.height, baseTx.fee_symbol), REJECT_INVALID, err);
                 }
@@ -62,7 +67,7 @@ namespace dex {
     // class CDEXOrderBaseTx
 
     bool CDEXOrderBaseTx::CheckTx(CTxExecuteContext &context) {
-        CValidationState &state = *context.pState;
+        CCacheWrapper &cw = *context.pCw; CValidationState &state = *context.pState;
 
         IMPLEMENT_CHECK_TX_MEMO;
 
@@ -79,8 +84,18 @@ namespace dex {
         if (!CheckOrderAmounts(context)) return false;
 
         if (!CheckOrderPrice(context)) return false;
+        CAccount txAccount;
+        if (!cw.accountCache.GetAccount(txUid, txAccount)) {
+            return state.DoS(100, ERRORMSG("%s, txUid=%s account not exist", ERROR_TITLE(GetTxTypeName()),
+                    txUid.ToString()), READ_ACCOUNT_FAIL, "bad-read-accountdb");
+        }
+        DexOperatorDetail operatorDetail;
+        if (!GetOrderOperator(context, operatorDetail)) return false;
+        CAccount operatorAccount;
+        if (!GetOperatorAccount(context, operatorDetail.fee_receiver_regid, operatorAccount)) return false;
 
-        if (!CheckOrderOperator(context)) return false;
+        if (!CheckOrderFee(*this, context, txAccount, &operatorAccount, operator_tx_fee)) return false;
+        if (!CheckOrderOperatorParam(context, operatorDetail, operatorAccount)) return false;
 
         return true;
     }
@@ -99,10 +114,20 @@ namespace dex {
         }
 
         if (!txAccount.OperateBalance(fee_symbol, SUB_FREE, llFees)) {
-            return state.DoS(100, ERRORMSG("%s, account has insufficient funds", ERROR_TITLE(GetTxTypeName())),
-                            UPDATE_ACCOUNT_FAIL, "operate-minus-account-failed");
+            return state.DoS(100, ERRORMSG("%s, tx account has insufficient funds for tx fee", ERROR_TITLE(GetTxTypeName())),
+                            UPDATE_ACCOUNT_FAIL, "tx-account-insufficient");
         }
 
+        if (has_operator_config) {
+            DexOperatorDetail operatorDetail;
+            if (!GetOrderOperator(context, operatorDetail)) return false;
+            CAccount operatorAccount;
+            if (!GetOperatorAccount(context, operatorDetail.fee_receiver_regid, operatorAccount)) return false;
+            if (!operatorAccount.OperateBalance(fee_symbol, SUB_FREE, operator_tx_fee)) {
+                return state.DoS(100, ERRORMSG("%s, operator account has insufficient funds for tx fee", ERROR_TITLE(GetTxTypeName())),
+                                UPDATE_ACCOUNT_FAIL, "operator-account-insufficient");
+            }
+        }
 
         uint64_t coinAmount = coin_amount;
         if (order_type == ORDER_LIMIT_PRICE && order_side == ORDER_BUY)
@@ -200,13 +225,19 @@ namespace dex {
 
     bool CDEXOrderBaseTx::CheckOrderSymbols(CTxExecuteContext &context, const TokenSymbol &coinSymbol,
                                             const TokenSymbol &assetSymbol) {
-        if (!pCdMan->pAssetCache->CheckAsset(coinSymbol, AssetPermType::PERM_DEX_QUOTE))
-            return context.pState->DoS(100, ERRORMSG("%s, invalid order coin symbol=%s", TX_ERR_TITLE, coinSymbol),
-                                    REJECT_INVALID, "invalid-order-coin-symbol");
 
-        if (!pCdMan->pAssetCache->CheckAsset(assetSymbol, AssetPermType::PERM_DEX_BASE))
-            return context.pState->DoS(100, ERRORMSG("%s, invalid order asset symbol=%s", TX_ERR_TITLE, assetSymbol),
-                                    REJECT_INVALID, "invalid-order-asset-symbol");
+        if (coinSymbol == assetSymbol)
+            return context.pState->DoS(100,
+                                       ERRORMSG("%s, the coinSymbol=%s is same to assetSymbol=%s",
+                                                TX_ERR_TITLE, coinSymbol, assetSymbol),
+                                       REJECT_INVALID, "same-coin-asset-symbol");
+        if (!context.pCw->assetCache.CheckDexBaseSymbol(coinSymbol))
+            return context.pState->DoS(100, ERRORMSG("%s, unsupported dex order coin_symbol=%s", TX_ERR_TITLE, coinSymbol),
+                                    REJECT_INVALID, "unsupported-order-coin-symbol");
+
+        if (!context.pCw->assetCache.CheckDexQuoteSymbol(assetSymbol))
+            return context.pState->DoS(100, ERRORMSG("%s, unsupported dex order asset_symbol=%s", TX_ERR_TITLE, assetSymbol),
+                                    REJECT_INVALID, "unsupported-order-asset-symbol");
         return true;
     }
 
@@ -263,20 +294,9 @@ namespace dex {
         return true;
     }
 
-    bool CDEXOrderBaseTx::CheckDexOperatorExist(CTxExecuteContext &context) {
-        if (dex_id != DEX_RESERVED_ID) {
-            if (!context.pCw->dexCache.HaveDexOperator(dex_id))
-                return context.pState->DoS(100, ERRORMSG("%s, dex operator does not exist! dex_id=%d",
-                    TX_ERR_TITLE, dex_id),
-                    REJECT_INVALID, "bad-getaccount");
-        }
-        return true;
-    }
-
-
-    bool CDEXOrderBaseTx::CheckOrderOperator(CTxExecuteContext &context) {
-
-        if (!CheckDexOperatorExist(context)) return false;
+    bool CDEXOrderBaseTx::CheckOrderOperatorParam(CTxExecuteContext &context,
+                                                  DexOperatorDetail &operatorDetail,
+                                                  CAccount &operatorAccount) {
 
         if (has_operator_config) {
             const auto &hash = GetHash();
@@ -295,25 +315,11 @@ namespace dex {
                     TX_ERR_TITLE, operator_uid.ToDebugString()),
                     REJECT_INVALID, "operator-uid-not-regid");
 
-            shared_ptr<DexOperatorDetail> spOperatorDetail;
-            if(!GetDexOperator(context, dex_id, spOperatorDetail, TX_ERR_TITLE)) return false;
-
             const CRegID &operator_regid = operator_uid.get<CRegID>();
-            if (operator_regid != spOperatorDetail->fee_receiver_regid)
+            if (operator_regid != operatorDetail.fee_receiver_regid)
                 return context.pState->DoS(100, ERRORMSG("%s(), the dex operator uid is wrong, operator_uid=%s",
                     TX_ERR_TITLE, operator_uid.ToDebugString()),
                     REJECT_INVALID, "operator-uid-wrong");
-
-            CAccount operatorAccount;
-            if (!context.pCw->accountCache.GetAccount(operator_regid, operatorAccount))
-                return context.pState->DoS(100, ERRORMSG("%s, operator account not existed! operator_regid=%s",
-                    TX_ERR_TITLE, operator_uid.ToDebugString()),
-                    REJECT_INVALID, "operator-account-not-existed");
-
-            if (!operatorAccount.IsRegistered())
-                return context.pState->DoS(100, ERRORMSG("%s, operator account must be registered! "
-                    "operator_regid=%s", TX_ERR_TITLE, operator_uid.ToDebugString()),
-                    REJECT_INVALID, "operator-account-unregistered");
 
             if (!CheckSignatureSize(operator_signature)) {
                 return context.pState->DoS(100, ERRORMSG("%s, operator signature size=%d invalid",
@@ -326,6 +332,33 @@ namespace dex {
             }
         }
 
+        return true;
+    }
+
+    bool CDEXOrderBaseTx::GetOrderOperator(CTxExecuteContext &context,
+                            DexOperatorDetail &operatorDetail){
+
+        if (!GetDexOperator(context, dex_id, operatorDetail, TX_ERR_TITLE))
+            return false;
+
+        if (!operatorDetail.activated)
+            return context.pState->DoS(
+                100, ERRORMSG("%s, dex operator is inactived! dex_id=%d", TX_ERR_TITLE, dex_id),
+                REJECT_INVALID, "dex-operator-inactived");
+        return true;
+    }
+
+    bool CDEXOrderBaseTx::GetOperatorAccount(CTxExecuteContext &context, CRegID &operatorRegid,
+                                             CAccount &account) {
+        if (!context.pCw->accountCache.GetAccount(operatorRegid, account))
+            return context.pState->DoS(100,
+                ERRORMSG("%s, operator account not existed! operatorRegid=%s", TX_ERR_TITLE,
+                            operatorRegid.ToString()),
+                REJECT_INVALID, "operator-account-not-exist");
+        if (!account.IsRegistered())
+            return context.pState->DoS(100, ERRORMSG("%s, operator account must be registered! "
+                    "operator_regid=%s", TX_ERR_TITLE, operatorRegid.ToString()),
+                    REJECT_INVALID, "operator-account-unregistered");
         return true;
     }
 
@@ -524,8 +557,8 @@ namespace dex {
         CDEXOrderDetail sellOrder;
         shared_ptr<CAccount> pBuyOrderAccount;
         shared_ptr<CAccount> pSellOrderAccount;
-        shared_ptr<DexOperatorDetail> pBuyOperatorDetail;
-        shared_ptr<DexOperatorDetail> pSellOperatorDetail;
+        DexOperatorDetail buyOperatorDetail;
+        DexOperatorDetail sellOperatorDetail;
         shared_ptr<CAccount> pBuyMatchAccount;
         shared_ptr<CAccount> pSellMatchAccount;
         COrderOperatorParams buyOrderOperatorParams;
@@ -659,15 +692,15 @@ namespace dex {
         if (!GetAccount(sellOrder.user_regid, pSellOrderAccount)) return false;
 
         // 1.3 get operator info
-        if (!GetDexOperator(context, buyOrder.dex_id, pBuyOperatorDetail, DEAL_ITEM_TITLE)) return false;
-        if (!GetAccount(pBuyOperatorDetail->fee_receiver_regid, pBuyMatchAccount)) return false;
+        if (!GetDexOperator(context, buyOrder.dex_id, buyOperatorDetail, DEAL_ITEM_TITLE)) return false;
+        if (!GetAccount(buyOperatorDetail.fee_receiver_regid, pBuyMatchAccount)) return false;
 
-        if (!GetDexOperator(context, sellOrder.dex_id, pSellOperatorDetail, DEAL_ITEM_TITLE)) return false;
-        if (!GetAccount(pSellOperatorDetail->fee_receiver_regid, pSellMatchAccount)) return false;
+        if (!GetDexOperator(context, sellOrder.dex_id, sellOperatorDetail, DEAL_ITEM_TITLE)) return false;
+        if (!GetAccount(sellOperatorDetail.fee_receiver_regid, pSellMatchAccount)) return false;
 
         // 1.4 get order operator params
-        buyOrderOperatorParams = GetOrderOperatorParams(buyOrder, *pBuyOperatorDetail);
-        sellOrderOperatorParams = GetOrderOperatorParams(sellOrder, *pSellOperatorDetail);
+        buyOrderOperatorParams = GetOrderOperatorParams(buyOrder, buyOperatorDetail);
+        sellOrderOperatorParams = GetOrderOperatorParams(sellOrder, sellOperatorDetail);
 
         // 1.5 get taker side
         takerSide = GetTakerOrderSide();
@@ -905,9 +938,9 @@ namespace dex {
             return buyOrder.opt_operator_params.value();
         } else {
             return {
-                pBuyOperatorDetail->public_mode,
-                pBuyOperatorDetail->maker_fee_ratio,
-                pBuyOperatorDetail->taker_fee_ratio
+                buyOperatorDetail.public_mode,
+                buyOperatorDetail.maker_fee_ratio,
+                buyOperatorDetail.taker_fee_ratio
             };
         }
     }

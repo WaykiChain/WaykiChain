@@ -8,6 +8,7 @@
 
 #include "tx.h"
 #include "entities/price.h"
+#include "persistence/assetdb.h"
 
 class CPriceFeedTx : public CBaseTx {
 public:

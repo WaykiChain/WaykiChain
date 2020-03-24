@@ -391,7 +391,7 @@ bool CPricePointMemCache::CalcMedianPriceDetails(CCacheWrapper &cw, const int32_
 ////////////////////////////////////////////////////////////////////////////////
 // CPriceFeedCache
 
-uint64_t CPriceFeedCache::GetMedianPrice(const PriceCoinPair &coinPricePair) const {
+uint64_t CPriceFeedCache::GetMedianPrice(const PriceCoinPair &coinPricePair) {
     PriceDetailMap medianPrices;
     if (median_price_cache.GetData(medianPrices)) {
         auto it = medianPrices.find(coinPricePair);
@@ -399,6 +399,18 @@ uint64_t CPriceFeedCache::GetMedianPrice(const PriceCoinPair &coinPricePair) con
             return it->second.price;
     }
     return 0;
+}
+
+bool CPriceFeedCache::GetMedianPriceDetail(const PriceCoinPair &coinPricePair, CMedianPriceDetail &priceDetail) {
+    PriceDetailMap medianPrices;
+    if (median_price_cache.GetData(medianPrices)) {
+        auto it = medianPrices.find(coinPricePair);
+        if (it != medianPrices.end()) {
+            priceDetail = it->second;
+            return true;
+        }
+    }
+    return false;
 }
 
 PriceDetailMap CPriceFeedCache::GetMedianPrices() const {
@@ -413,46 +425,45 @@ bool CPriceFeedCache::SetMedianPrices(const PriceDetailMap &medianPrices) {
     return median_price_cache.SetData(medianPrices);
 }
 
-bool CPriceFeedCache::AddFeedCoinPair(TokenSymbol baseSymbol, TokenSymbol quoteSymbol) {
-    if((baseSymbol == SYMB::WICC || baseSymbol == SYMB::WGRT) && quoteSymbol == SYMB::USD)
-        return true ;
+bool CPriceFeedCache::AddFeedCoinPair(const PriceCoinPair &coinPair) {
+    if (kPriceFeedCoinPairSet.count(coinPair))
+        return false;
 
     set<PriceCoinPair> coinPairs;
     price_feed_coin_pairs_cache.GetData(coinPairs);
-    if(coinPairs.count(PriceCoinPair(baseSymbol, quoteSymbol)) > 0 )
+    if (coinPairs.count(coinPair) > 0 )
         return true;
 
-    coinPairs.insert(PriceCoinPair(baseSymbol, quoteSymbol));
+    coinPairs.insert(coinPair);
     return price_feed_coin_pairs_cache.SetData(coinPairs);
 }
 
-bool CPriceFeedCache::EraseFeedCoinPair(TokenSymbol baseSymbol, TokenSymbol quoteSymbol) {
+bool CPriceFeedCache::EraseFeedCoinPair(const PriceCoinPair &coinPair) {
 
-    if((baseSymbol == SYMB::WICC || baseSymbol == SYMB::WGRT) && quoteSymbol == SYMB::USD)
-        return true ;
+    if (kPriceFeedCoinPairSet.count(coinPair))
+        return false;
 
-    PriceCoinPair coinPair(baseSymbol, quoteSymbol);
-    set<PriceCoinPair> coins ;
+    set<PriceCoinPair> coins;
     price_feed_coin_pairs_cache.GetData(coins);
-    if(coins.count(coinPair) == 0 )
-        return true ;
+    if (coins.count(coinPair) == 0 )
+        return true;
 
-    coins.erase(coinPair) ;
+    coins.erase(coinPair);
     return price_feed_coin_pairs_cache.SetData(coins);
 }
 
-bool CPriceFeedCache::HasFeedCoinPair(TokenSymbol baseSymbol,TokenSymbol quoteSymbol) {
+bool CPriceFeedCache::HasFeedCoinPair(const PriceCoinPair &coinPair) {
     // WICC:USD is the default staked coin pair of cdp
     // WGRT:USD is need by forced-liquidate cdp for inflating WGRT
-    if((baseSymbol == SYMB::WICC || baseSymbol == SYMB::WGRT) && quoteSymbol == SYMB::USD)
-        return true ;
+    if (kPriceFeedCoinPairSet.count(coinPair))
+        return true;
 
-    set<PriceCoinPair> coins ;
+    set<PriceCoinPair> coins;
     price_feed_coin_pairs_cache.GetData(coins);
-    return (coins.count(make_pair(baseSymbol,quoteSymbol)) != 0 ) ;
+    return (coins.count(coinPair) != 0 );
 }
 
 bool CPriceFeedCache::GetFeedCoinPairs(set<PriceCoinPair>& coinPairSet) {
     price_feed_coin_pairs_cache.GetData(coinPairSet);
-    return true ;
+    return true;
 }

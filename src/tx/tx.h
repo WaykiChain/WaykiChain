@@ -25,51 +25,45 @@
 
 using namespace std;
 
-// namespace wasm{
-enum class transaction_status_type {
-    mining     = 0,
-    validating = 1,
-    syncing    = 2,
+enum class TxExecuteContextType {
+    NULL_TYPE               = 0,
+    VALIDATE_MEMPOOL        = 1,
+    CONNECT_BLOCK           = 2,
+    PRODUCE_BLOCK           = 3,
+
 };
 
-
-inline string to_string(transaction_status_type type){
-    switch(type){
-        case transaction_status_type::mining:
-            return string("mining");
-            break;
-        case transaction_status_type::validating:
-            return string("validating");
-            break;
-        case transaction_status_type::syncing:
-            return string("syncing");
-            break;
-        default:
-            return string("unknown");
-    }
-}
-// }
+static const unordered_map<TxExecuteContextType, string> kTxExecuteContextTypeNameMap {
+    { TxExecuteContextType::VALIDATE_MEMPOOL,   "VALIDATE_MEMPOOL" },
+    { TxExecuteContextType::CONNECT_BLOCK,      "CONNECT_BLOCK"    },
+    { TxExecuteContextType::PRODUCE_BLOCK,      "PRODUCE_BLOCK"    },
+};
 
 class CCacheWrapper;
 class CValidationState;
 
 static const std::unordered_map<TxType, AccountPermType> kTxTypePermMap = {
     { BCOIN_TRANSFER_TX,            AccountPermType::PERM_SEND_COIN  },
-    { LCONTRACT_DEPLOY_TX,          AccountPermType::PERM_DEPLOY_SC  },
-    { LCONTRACT_INVOKE_TX,          AccountPermType::PERM_INVOKE_SC  },
     { DELEGATE_VOTE_TX,             AccountPermType::PERM_SEND_VOTE  },
     { UCOIN_TRANSFER_TX,            AccountPermType::PERM_SEND_COIN  },
     { UCOIN_TRANSFER_MTX,           AccountPermType::PERM_SEND_COIN  },
+
     { UCOIN_STAKE_TX,               AccountPermType::PERM_STAKE_COIN },
+
     { UTXO_TRANSFER_TX,             AccountPermType::PERM_SEND_UTXO  },
     { UTXO_PASSWORD_PROOF_TX,       AccountPermType::PERM_SEND_UTXO  },
+
+    { LCONTRACT_DEPLOY_TX,          AccountPermType::PERM_DEPLOY_SC  },
+    { LCONTRACT_INVOKE_TX,          AccountPermType::PERM_INVOKE_SC  },
     { UCONTRACT_DEPLOY_TX,          AccountPermType::PERM_DEPLOY_SC  },
     { UCONTRACT_INVOKE_TX,          AccountPermType::PERM_INVOKE_SC  },
+    { WASM_CONTRACT_TX,             AccountPermType::PERM_INVOKE_SC  },
     { PRICE_FEED_TX,                AccountPermType::PERM_FEED_PRICE },
+
     { CDP_STAKE_TX,                 AccountPermType::PERM_CDP        },
     { CDP_REDEEM_TX,                AccountPermType::PERM_CDP        },
     { CDP_LIQUIDATE_TX,             AccountPermType::PERM_CDP        },
-    { WASM_CONTRACT_TX,             AccountPermType::PERM_INVOKE_SC  },
+
     { DEX_LIMIT_BUY_ORDER_TX,       AccountPermType::PERM_DEX        },
     { DEX_LIMIT_SELL_ORDER_TX,      AccountPermType::PERM_DEX        },
     { DEX_MARKET_BUY_ORDER_TX,      AccountPermType::PERM_DEX        },
@@ -81,8 +75,8 @@ static const std::unordered_map<TxType, AccountPermType> kTxTypePermMap = {
     { DEX_OPERATOR_REGISTER_TX,     AccountPermType::PERM_DEX        },
     { DEX_OPERATOR_REGISTER_TX,     AccountPermType::PERM_DEX        },
     { DEX_TRADE_SETTLE_TX,          AccountPermType::PERM_DEX        },
+
     { PROPOSAL_REQUEST_TX,          AccountPermType::PERM_PROPOSE    },
-    { PROPOSAL_APPROVAL_TX,         AccountPermType::PERM_PROPOSE    },
 };
 
 string GetTxType(const TxType txType);
@@ -104,7 +98,7 @@ public:
     uint32_t                      prev_block_time;
     CCacheWrapper*                pCw;
     CValidationState*             pState;
-    transaction_status_type       transaction_status;
+    TxExecuteContextType          context_type;
 
     CTxExecuteContext()
         : height(0),
@@ -114,11 +108,12 @@ public:
           prev_block_time(0),
           pCw(nullptr),
           pState(nullptr),
-          transaction_status(transaction_status_type::syncing){}
+          context_type(TxExecuteContextType::CONNECT_BLOCK){}
 
     CTxExecuteContext(const int32_t heightIn, const int32_t indexIn, const uint32_t fuelRateIn,
                       const uint32_t blockTimeIn, const uint32_t preBlockTimeIn,
-                      CCacheWrapper *pCwIn, CValidationState *pStateIn, const transaction_status_type trx_status = transaction_status_type::syncing)
+                      CCacheWrapper *pCwIn, CValidationState *pStateIn,
+                      const TxExecuteContextType contextType = TxExecuteContextType::CONNECT_BLOCK)
         : height(heightIn),
           index(indexIn),
           fuel_rate(fuelRateIn),
@@ -126,7 +121,7 @@ public:
           prev_block_time(preBlockTimeIn),
           pCw(pCwIn),
           pState(pStateIn),
-          transaction_status(trx_status){}
+          context_type(contextType) {}
 };
 
 class CBaseTx {
@@ -219,7 +214,7 @@ public:
 
     template<typename Stream>
     static void UnserializePtr(Stream& is, std::shared_ptr<CBaseTx> &pBaseTx, int nType, int nVersion);
-
+    bool GetTxAccount(CTxExecuteContext &context, CAccount &account);
     bool CheckFee(CTxExecuteContext &context, function<bool(CTxExecuteContext&, uint64_t)> = nullptr) const;
     bool CheckMinFee(CTxExecuteContext &context, uint64_t minFee) const;
 

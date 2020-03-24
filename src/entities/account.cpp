@@ -11,31 +11,26 @@
 #include "main.h"
 
 
- uint64_t CAccount::GetBalance(const TokenSymbol &tokenSymbol, const BalanceType balanceType) {
-     uint64_t ret = 0;
-     if (GetBalance(tokenSymbol, balanceType, ret)) return ret;
-     return 0;
- }
-
 bool CAccount::GetBalance(const TokenSymbol &tokenSymbol, const BalanceType balanceType, uint64_t &value) {
     auto iter = tokens.find(tokenSymbol);
-    if (iter != tokens.end()) {
-        auto accountToken = iter->second;
-        switch (balanceType) {
-            case FREE_VALUE:    value = accountToken.free_amount;   return true;
-            case STAKED_VALUE:  value = accountToken.staked_amount; return true;
-            case FROZEN_VALUE:  value = accountToken.frozen_amount; return true;
-            case VOTED_VALUE:   value = accountToken.voted_amount;  return true;
-            case PLEDGED_VALUE: value = accountToken.pledged_amount; return true;
-            default: return false;
-        }
+    if (iter == tokens.end())
+        return false; // token not found
+
+    auto accountToken = iter->second;
+
+    switch (balanceType) {
+        case FREE_VALUE:    value = accountToken.free_amount;    break;
+        case STAKED_VALUE:  value = accountToken.staked_amount;  break;
+        case FROZEN_VALUE:  value = accountToken.frozen_amount;  break;
+        case VOTED_VALUE:   value = accountToken.voted_amount;   break;
+        case PLEDGED_VALUE: value = accountToken.pledged_amount; break;
+        default: return false;
     }
 
-    return false;
+    return true;
 }
 
 bool CAccount::OperateBalance(const TokenSymbol &tokenSymbol, const BalanceOpType opType, const uint64_t &value) {
-
     CAccountToken &accountToken = tokens[tokenSymbol];
     switch (opType) {
         case ADD_FREE: {
@@ -269,6 +264,9 @@ Object CAccount::ToJsonObj() const {
     }
 
     Object obj;
+    string permsString;
+    ConvertPermsToString(perms_sum, kAccountPermTitleMap.size(), permsString);
+
     obj.push_back(Pair("address",           keyid.ToAddress()));
     obj.push_back(Pair("keyid",             keyid.ToString()));
     obj.push_back(Pair("nickid",            nickid.ToString()));
@@ -277,6 +275,7 @@ Object CAccount::ToJsonObj() const {
     obj.push_back(Pair("regid_mature",      regid.IsMature(chainActive.Height())));
     obj.push_back(Pair("owner_pubkey",      owner_pubkey.ToString()));
     obj.push_back(Pair("miner_pubkey",      miner_pubkey.ToString()));
+    obj.push_back(Pair("perms_list",         permsString));
     obj.push_back(Pair("tokens",            tokenMapObj));
     obj.push_back(Pair("received_votes",    received_votes));
     obj.push_back(Pair("vote_list",         candidateVoteArray));
@@ -513,6 +512,8 @@ bool CAccount::IsMyUid(const CUserID &uid) {
     }
     return false;
 }
+
+
 
 ///////////////////////////////////////////////////////////////////////////////
 // class CVmOperate

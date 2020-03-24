@@ -207,7 +207,6 @@ struct DexOperatorDetail {
     uint64_t maker_fee_ratio = 0;    // the default maker fee ratio for creating order
     uint64_t taker_fee_ratio = 0;    // the defalt taker fee ratio for creating order
     string memo              = "";
-    // TODO: use status to replace activated
     bool activated           = false;
 
     static const DexOperatorDetail EMPTY_OBJ;

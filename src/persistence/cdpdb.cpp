@@ -9,12 +9,14 @@
 CCdpDBCache::CCdpDBCache(CDBAccess *pDbAccess)
     : cdpGlobalDataCache(pDbAccess),
       cdpCache(pDbAccess),
+      bcoinStatusCache(pDbAccess),
       userCdpCache(pDbAccess),
       cdpRatioSortedCache(pDbAccess) {}
 
 CCdpDBCache::CCdpDBCache(CCdpDBCache *pBaseIn)
     : cdpGlobalDataCache(pBaseIn->cdpGlobalDataCache),
       cdpCache(pBaseIn->cdpCache),
+      bcoinStatusCache(pBaseIn->bcoinStatusCache),
       userCdpCache(pBaseIn->userCdpCache),
       cdpRatioSortedCache(pBaseIn->cdpRatioSortedCache) {}
 
@@ -97,8 +99,6 @@ bool CCdpDBCache::EraseCDPFromRatioDB(const CUserCDP &userCdp) {
     return cdpRatioSortedCache.EraseData(MakeCdpRatioSortedKey(userCdp));
 }
 
-// global collateral ratio floor check
-
 bool CCdpDBCache::GetCdpListByCollateralRatio(const CCdpCoinPair &cdpCoinPair,
         const uint64_t collateralRatio, const uint64_t bcoinMedianPrice,
         CdpRatioSortedCache::Map &userCdps) {
@@ -116,9 +116,35 @@ CCdpGlobalData CCdpDBCache::GetCdpGlobalData(const CCdpCoinPair &cdpCoinPair) co
     return ret;
 }
 
+bool CCdpDBCache::GetBcoinStatus(const TokenSymbol &bcoinSymbol, CdpBcoinStatus &activation) {
+    if (kCdpBcoinSymbolSet.count(bcoinSymbol) > 0) {
+        activation = CdpBcoinStatus::STAKE_ON;
+        return true;
+    }
+    if (bcoinSymbol == SYMB::WGRT || kCdpScoinSymbolSet.count(bcoinSymbol) > 0) {
+        activation = CdpBcoinStatus::NONE;
+        return false;
+    }
+    uint8_t act;
+    if (!bcoinStatusCache.GetData(bcoinSymbol, act)) return false;
+    activation = CdpBcoinStatus(act);
+    return true;
+}
+
+bool CCdpDBCache::IsBcoinActivated(const TokenSymbol &bcoinSymbol) {
+    if (kCdpBcoinSymbolSet.count(bcoinSymbol) > 0) return true;
+    if (bcoinSymbol == SYMB::WGRT || kCdpScoinSymbolSet.count(bcoinSymbol) > 0) return false;
+    return bcoinStatusCache.HasData(bcoinSymbol);
+}
+
+bool CCdpDBCache::SetBcoinStatus(const TokenSymbol &bcoinSymbol, const CdpBcoinStatus &activation) {
+    return bcoinStatusCache.SetData(bcoinSymbol, (uint8_t)activation);
+}
+
 void CCdpDBCache::SetBaseViewPtr(CCdpDBCache *pBaseIn) {
     cdpGlobalDataCache.SetBase(&pBaseIn->cdpGlobalDataCache);
     cdpCache.SetBase(&pBaseIn->cdpCache);
+    bcoinStatusCache.SetBase(&pBaseIn->bcoinStatusCache);
     userCdpCache.SetBase(&pBaseIn->userCdpCache);
 
     cdpRatioSortedCache.SetBase(&pBaseIn->cdpRatioSortedCache);
@@ -127,17 +153,20 @@ void CCdpDBCache::SetBaseViewPtr(CCdpDBCache *pBaseIn) {
 void CCdpDBCache::SetDbOpLogMap(CDBOpLogMap *pDbOpLogMapIn) {
     cdpGlobalDataCache.SetDbOpLogMap(pDbOpLogMapIn);
     cdpCache.SetDbOpLogMap(pDbOpLogMapIn);
+    bcoinStatusCache.SetDbOpLogMap(pDbOpLogMapIn);
     userCdpCache.SetDbOpLogMap(pDbOpLogMapIn);
     cdpRatioSortedCache.SetDbOpLogMap(pDbOpLogMapIn);
 }
 
 uint32_t CCdpDBCache::GetCacheSize() const {
-    return cdpGlobalDataCache.GetCacheSize() + cdpCache.GetCacheSize() + userCdpCache.GetCacheSize() + cdpRatioSortedCache.GetCacheSize();
+    return cdpGlobalDataCache.GetCacheSize() + cdpCache.GetCacheSize() + bcoinStatusCache.GetCacheSize() +
+            userCdpCache.GetCacheSize() + cdpRatioSortedCache.GetCacheSize();
 }
 
 bool CCdpDBCache::Flush() {
     cdpGlobalDataCache.Flush();
     cdpCache.Flush();
+    bcoinStatusCache.Flush();
     userCdpCache.Flush();
     cdpRatioSortedCache.Flush();
 

@@ -521,19 +521,19 @@ CUserID RPC_PARAM::GetUserId(const Value &jsonValue, const bool bSenderUid ) {
      */
     CRegID regid;
     if (GetFeatureForkVersion(chainActive.Height()) >= MAJOR_VER_R2) {
-        if (pCdMan->pAccountCache->GetRegId(userId, regid) && regid.IsMature(chainActive.Height())) {
+        if (pCdMan->pAccountCache->GetRegId(userId, regid) && regid.IsMature(chainActive.Height()))
             return CUserID(regid);
-        } else {
-            if (bSenderUid && userId.is<CKeyID>()) {
-                CPubKey sendPubKey;
-                if (!pWalletMain->GetPubKey(userId.get<CKeyID>(), sendPubKey) || !sendPubKey.IsFullyValid())
-                    throw JSONRPCError(RPC_WALLET_ERROR, "Key not found in the local wallet");
 
-                return CUserID(sendPubKey);
-            } else {
-                return userId;
-            }
+        if (bSenderUid && userId.is<CKeyID>()) {
+            CPubKey sendPubKey;
+            if (!pWalletMain->GetPubKey(userId.get<CKeyID>(), sendPubKey) || !sendPubKey.IsFullyValid())
+                throw JSONRPCError(RPC_WALLET_ERROR, "Key not found in the local wallet");
+
+            return CUserID(sendPubKey);
         }
+
+        return userId;
+
     } else { // MAJOR_VER_R1
         if (pCdMan->pAccountCache->GetRegId(userId, regid)) {
             return CUserID(regid);
@@ -684,11 +684,16 @@ void RPC_PARAM::CheckActiveOrderExisted(CDexDBCache &dexCache, const uint256 &or
 
 void RPC_PARAM::CheckOrderSymbols(const string &title, const TokenSymbol &coinSymbol,
                                   const TokenSymbol &assetSymbol) {
-    if (!pCdMan->pAssetCache->CheckAsset(coinSymbol, AssetPermType::PERM_DEX_QUOTE))
-        throw JSONRPCError(REJECT_INVALID, strprintf("unsupport coin_symbol=%s", coinSymbol));
+    if (coinSymbol == assetSymbol)
+        throw JSONRPCError(REJECT_INVALID,
+                           strprintf("%s, coin_symbol=%s is same to asset_symbol=%s", title,
+                                     coinSymbol, assetSymbol));
 
-    if (!pCdMan->pAssetCache->CheckAsset(assetSymbol, AssetPermType::PERM_DEX_BASE))
-        throw JSONRPCError(REJECT_INVALID, strprintf("unsupport asset_symbol=%s", assetSymbol));
+    if (!pCdMan->pAssetCache->CheckDexQuoteSymbol(coinSymbol))
+        throw JSONRPCError(REJECT_INVALID, strprintf("%s, unsupport coin_symbol=%s", title, coinSymbol));
+
+    if (!pCdMan->pAssetCache->CheckDexBaseSymbol(assetSymbol))
+        throw JSONRPCError(REJECT_INVALID, strprintf("%s, unsupport asset_symbol=%s", title, assetSymbol));
 }
 
 bool RPC_PARAM::ParseHex(const string &hexStr, string &binStrOut, string &errStrOut) {

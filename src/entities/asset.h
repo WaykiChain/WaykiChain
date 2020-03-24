@@ -26,24 +26,43 @@ using namespace std;
 
 // asset types
 enum AssetType : uint8_t {
-    NULL_ASSET      = 0,
-    NIA             = 1, //Natively Issued Asset
-    DIA             = 2, //DeGov Issued Asset
-    UIA             = 3, //User Issued Asset
-    MPA             = 4  //Market Pegged Asset
+    NULL_ASSET          = 0,
+    NIA                 = 1, //Natively Issued Asset
+    DIA                 = 2, //DeGov Issued Asset
+    UIA                 = 3, //User Issued Asset
+    MPA                 = 4  //Market Pegged Asset
 };
 
 // perms for an asset group
 enum AssetPermType : uint64_t {
     NULL_ASSET_PERM     = 0,         // no perm at all w/ the asset including coin transfer etc.
-    PERM_DEX_BASE       = (1 << 1 ),
-    PERM_DEX_QUOTE      = (1 << 2 ),
-    PERM_CDP_BCOIN      = (1 << 3 ), //bcoins must have the perm while stable coins are only hard coded
-    PERM_PRICE_FEED     = (1 << 4 ),
-    PERM_XCHAIN_SWAP    = (1 << 5 ),
+    PERM_DEX_BASE       = (1 << 0 ), // as base symbol of dex trading pair(baseSymbol/quoteSymbol)
+    PERM_DEX_QUOTE      = (1 << 1 ), // as quote symbol of dex trading pair(baseSymbol/quoteSymbol)
+    PERM_CDP_BCOIN      = (1 << 2 ), // bcoins must have the perm while stable coins are only hard coded
+    PERM_PRICE_FEED     = (1 << 3 ), // as base symbol of price feed coin pair(baseSymbol/quoteSymbol)
+    PERM_XCHAIN_SWAP    = (1 << 4 ),
 
 };
 
+static const unordered_map<uint64_t, string> kAssetPermTitleMap = {
+    {   PERM_DEX_BASE,      "PERM_DEX_BASE"     },
+    {   PERM_DEX_QUOTE,     "PERM_DEX_QUOTE"    },
+    {   PERM_CDP_BCOIN,     "PERM_CDP_BCOIN"    },
+    {   PERM_PRICE_FEED,    "PERM_PRICE_FEED"   },
+    {   PERM_XCHAIN_SWAP,   "PERM_XCHAIN_SWAP"  }
+
+};
+
+
+inline bool AssetHasPerms(uint64_t assetPerms, uint64_t specificPerms) {
+    return (assetPerms && assetPerms) == assetPerms;
+}
+
+enum class AssetPermStatus: uint8_t {
+    NONE,
+    ENABLED,
+    DISABLED,
+};
 
 ////////////////////////////////////////////////////////////////////
 /// Common Asset Definition, used when persisted inside state DB
@@ -76,7 +95,7 @@ public:
         READWRITE(mintable);
     )
 
-    bool HasPerms(uint64_t perms) { return (perms && perms_sum) == perms; }
+    bool HasPerms(uint64_t perms) const { return AssetHasPerms(perms_sum, perms); }
 
     bool IsEmpty() const { return owner_uid.IsEmpty(); }
 
@@ -95,6 +114,20 @@ public:
                 asset_symbol, asset_name, asset_type, perms_sum, owner_uid.ToString(), total_supply, mintable);
     }
 
+    Object ToJsonObj() const {
+        Object o;
+        string permString;
+        ConvertPermsToString(perms_sum, kAssetPermTitleMap.size(), permString);
+
+        o.push_back(Pair("asset_symbol",  asset_symbol));
+        o.push_back(Pair("asset_name",    asset_name));
+        o.push_back(Pair("asset_type",    asset_type));
+        o.push_back(Pair("perms_sum",     permString));
+        o.push_back(Pair("owner_uid",     owner_uid.ToString()));
+        o.push_back(Pair("total_supply",  total_supply));
+        o.push_back(Pair("mintable",      mintable));
+        return o;
+    }
     // Check it when supplied from external like Tx or RPC calls
     static bool CheckSymbol(const AssetType assetType, const TokenSymbol &assetSymbol, string &errMsg) {
         if (assetType == AssetType::NULL_ASSET) {
@@ -134,18 +167,12 @@ public:
 };
 
 inline TokenSymbol GetQuoteSymbolByCdpScoin(const TokenSymbol &scoinSymbol) {
-    if (scoinSymbol[0] == 'W')
-        return scoinSymbol.substr(1, scoinSymbol.size() - 1);
-    else
-        return "";
+    return (scoinSymbol[0] == 'W') ? scoinSymbol.substr(1, scoinSymbol.size() - 1) : "";
 }
 
 inline TokenSymbol GetCdpScoinByQuoteSymbol(const TokenSymbol &quoteSymbol) {
     TokenSymbol scoinSymbol = "W" + quoteSymbol;
-    if (kCdpScoinSymbolSet.count(scoinSymbol) > 0)
-        return scoinSymbol;
-    else
-        return "";
+    return (kCdpScoinSymbolSet.count(scoinSymbol) > 0) ? scoinSymbol : "";
 }
 
 struct ComboMoney {

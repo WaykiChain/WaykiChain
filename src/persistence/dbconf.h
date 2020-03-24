@@ -80,6 +80,7 @@ namespace dbk {
         DEFINE( GOVN_APPROVAL_LIST,   "galt",   SYSGOVERN )       /* sgvn{propid} --> vector(regid) */ \
         /*** Asset Registry DB */ \
         DEFINE( ASSET,                "asst",   ASSET )          /* asst{$AssetName} --> $Asset */ \
+        DEFINE( PERM_ASSETS,          "pats",   ASSET )          /* [prefix]{$perm}{$asset_symbol} --> $assetStatus */ \
         /**** block db                                                                          */ \
         DEFINE( BLOCK_INDEX,          "bidx",   BLOCK )         /* pbfl --> $nFile */ \
         DEFINE( BLOCKFILE_NUM_INFO,   "bfni",   BLOCK )         /* BlockFileNum --> $BlockFileInfo */ \
@@ -106,6 +107,7 @@ namespace dbk {
         DEFINE( REGID_VOTE,           "ridv",   DELEGATE )      /* "ridv --> $votes" */ \
         /**** cdp db                                                                     */ \
         DEFINE( CDP,                  "cid",    CDP )           /* cid{$cdpid} --> CUserCDP */ \
+        DEFINE( CDP_BCOIN_STATUS,     "cbcs",    CDP )          /* [prefix]{$bcoin_symbol} --> $bcoinStatus */ \
         DEFINE( USER_CDP,             "ucdp",   CDP )           /* ucdp{$RegID}{$AssetSymbol}{$ScoinSymbol} --> {set<cdpid>} */ \
         DEFINE( CDP_RATIO,            "cdpr",   CDP )           /* cdpr{$Ratio}{$cdpid} --> CUserCDP */ \
         DEFINE( CDP_GLOBAL_DATA,      "cgdt",   CDP )           /* [prefix]cdpCoinPair -> $cdpGlobalDataCache */ \
@@ -136,6 +138,8 @@ namespace dbk {
         DEFINE( PRICE_FEEDERS,         "pfdr",      PRICEFEED)   /* [prefix] --> price feeder */      \
         /**** AXC                                                                             */ \
         DEFINE( AXC_SWAP_IN,           "axci",      AXC)        /* [prefix]swapin-txid -->  amount */      \
+        DEFINE( AXC_COIN_PEERTOSELF,   "acps",      AXC)        /* [prefix]swapin-txid -->  amount */      \
+        DEFINE( AXC_COIN_SELFTOPEER,   "acsp",      AXC)                             \
         /*                                                                             */ \
         /* Add new Enum elements above, PREFIX_COUNT Must be the last one              */ \
         DEFINE( PREFIX_COUNT,          "",       DB_NAME_NONE)    /* enum count, must be the last one */

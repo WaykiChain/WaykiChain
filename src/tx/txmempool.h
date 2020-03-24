@@ -74,7 +74,7 @@ public:
     void Remove(CBaseTx *pBaseTx, list<std::shared_ptr<CBaseTx> > &removed, bool fRecursive = false);
     void QueryHash(vector<uint256> &txids);
     bool CheckTxInMemPool(const uint256 &txid, const CTxMemPoolEntry &entry, CValidationState &state,
-                          bool bExecute = true);
+                          bool bRehearsalExecute = true);
     void SetMemPoolCache();
     void ReScanMemPoolTx();
     void Clear();

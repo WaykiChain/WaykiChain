@@ -119,7 +119,7 @@ bool CBlockPriceMedianTx::ForceLiquidateCdps(CTxExecuteContext &context, PriceDe
         return true;
 
     }
-    uint64_t priceTimeoutBlocks = 0; // TODO: add sys param
+    uint64_t priceTimeoutBlocks = 0;
     if (!pCdMan->pSysParamCache->GetParam(SysParamType::PRICE_FEED_TIMEOUT_BLOCKS, priceTimeoutBlocks)) {
         return state.DoS(100, ERRORMSG("%s, read sys param PRICE_FEED_TIMEOUT_BLOCKS error", __func__),
                 REJECT_INVALID, "read-sysparam-error");
@@ -145,15 +145,6 @@ bool CBlockPriceMedianTx::ForceLiquidateCdps(CTxExecuteContext &context, PriceDe
     for (const auto& item : priceDetails) {
         if (item.first == kFcoinPriceCoinPair) continue;
 
-        if (!item.second.IsActive(context.height, priceTimeoutBlocks)) {
-            LogPrint(BCLog::CDP,
-                    "%s(), price of coin_pair(%s) is inactive, ignore, "
-                    "last_update_height=%u, cur_height=%u\n",
-                    __func__, CoinPairToString(item.first), item.second.last_feed_height,
-                    context.height);
-            continue;
-        }
-
         CAsset asset;
         const TokenSymbol &bcoinSymbol = item.first.first;
         const TokenSymbol &quoteSymbol = item.first.second;
@@ -170,8 +161,18 @@ bool CBlockPriceMedianTx::ForceLiquidateCdps(CTxExecuteContext &context, PriceDe
             throw runtime_error(strprintf("%s(), only support to force liquidate scoin=WUSD, actual_scoin=%s",
                     __func__, scoinSymbol));
 
-        if (!cw.assetCache.CheckAsset(bcoinSymbol, AssetPermType::PERM_CDP_BCOIN)) {
-            LogPrint(BCLog::CDP, "%s(), base_symbol=%s not have cdp bcoin permission, ignore", __func__, bcoinSymbol);
+        if (!cw.cdpCache.IsBcoinActivated(bcoinSymbol)) {
+            LogPrint(BCLog::CDP, "%s(), asset=%s does not be activated, ignore", __func__, bcoinSymbol);
+            continue;
+        }
+
+        if (!item.second.IsActive(context.height, priceTimeoutBlocks)) {
+            LogPrint(BCLog::CDP,
+                    "%s(), price of coin_pair(%s) is inactive, ignore, "
+                    "last_update_height=%u, cur_height=%u\n",
+                    __func__, CoinPairToString(item.first), item.second.last_feed_height,
+                    context.height);
+            continue;
         }
 
         CCdpForceLiquidator forceLiquidator(*this, context, receipts, fcoinGenesisAccount,

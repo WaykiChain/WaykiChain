@@ -42,7 +42,65 @@ bool CAssetDbCache::CheckAsset(const TokenSymbol &symbol, uint64_t permsSum) {
     return asset.HasPerms(permsSum);
 }
 
-bool CAssetDbCache::Flush() {
-    assetCache.Flush();
+bool CAssetDbCache::SetAssetPerms(const CAsset &oldAsset, const CAsset &newAsset) {
+    if (oldAsset.perms_sum != newAsset.perms_sum) {
+        for (const auto &item : kAssetPermTitleMap) {
+            uint64_t perm = item.first;
+            bool oldPermValue = oldAsset.HasPerms(perm);
+            bool newPermValue = newAsset.HasPerms(perm);
+            if (oldPermValue != newPermValue) {
+                AssetPermStatus status = newPermValue ? AssetPermStatus::ENABLED : AssetPermStatus::DISABLED;
+                if (!perm_assets_cache.SetData(make_pair(CFixedUInt64(perm), newAsset.asset_symbol), (uint8_t)status))
+                    return false;
+            }
+        }
+    }
+    return true;
+}
+
+void CAssetDbCache::GetDexQuoteSymbolSet(set<TokenSymbol> &symbolSet) {
+    symbolSet.insert(kDexQuoteSymbolSet.begin(), kDexQuoteSymbolSet.end());
+    CPermAssetsIterator it(perm_assets_cache, CFixedUInt64(AssetPermType::PERM_DEX_BASE));
+    for (it.First(); it.IsValid(); it.Next()) {
+        if (it.GetValue() == (uint8_t)AssetPermStatus::ENABLED)
+            symbolSet.insert(it.GetKey().second);
+    }
+}
+
+bool CAssetDbCache::CheckPriceFeedBaseSymbol(const TokenSymbol &baseSymbol) {
+    if (kPriceFeedSymbolSet.count(baseSymbol)) {
+        return true; // no need to check the hard code symbols
+    }
+    CAsset baseAsset;
+    if (!GetAsset(baseSymbol, baseAsset))
+        return ERRORMSG("%s(), price base_symbol=%s not exist", baseSymbol);
+    if (!baseAsset.HasPerms(AssetPermType::PERM_PRICE_FEED))
+        return ERRORMSG("%s(), price base_symbol=%s not have PERM_PRICE_FEED", baseSymbol);
+
+    return true;
+}
+
+bool CAssetDbCache::CheckPriceFeedQuoteSymbol(const TokenSymbol &quoteSymbol) {
+    if (kPriceQuoteSymbolSet.count(quoteSymbol) == 0)
+        return ERRORMSG("%s(), unsupported price quote_symbol=%s", quoteSymbol);
+    return true;
+}
+
+bool CAssetDbCache::CheckDexBaseSymbol(const TokenSymbol &baseSymbol) {
+    if (kPriceFeedSymbolSet.count(baseSymbol)) {
+        return true; // no need to check the hard code symbols
+    }
+    CAsset baseAsset;
+    if (!GetAsset(baseSymbol, baseAsset))
+        return ERRORMSG("%s(), dex base_symbol=%s not exist", baseSymbol);
+    if (!baseAsset.HasPerms(AssetPermType::PERM_DEX_BASE))
+        return ERRORMSG("%s(), dex base_symbol=%s not have PERM_DEX_BASE", baseSymbol);
+
+    return true;
+}
+
+bool CAssetDbCache::CheckDexQuoteSymbol(const TokenSymbol &quoteSymbol) {
+    if (kDexQuoteSymbolSet.count(quoteSymbol) == 0)
+        return ERRORMSG("%s(), unsupported dex quote_symbol=%s", quoteSymbol);
     return true;
 }

@@ -222,45 +222,47 @@ Array RPCConvertValues(const string &strMethod, const vector<string> &strParams)
     if (strMethod == "submitassetissuetx"       && n > 4) ConvertTo<int64_t>(params[4]);
     if (strMethod == "submitassetissuetx"       && n > 5) ConvertTo<bool>(params[5]);
 
-    if (strMethod == "submitparamgovernproposal"   && n > 2) ConvertTo<int64_t>(params[2]) ;
-    if (strMethod == "submitparamgovernproposal"   && n > 3) ConvertTo<int64_t>(params[3]) ;
+    if (strMethod == "submitparamgovernproposal"   && n > 2) ConvertTo<int64_t>(params[2]);
+    if (strMethod == "submitparamgovernproposal"   && n > 3) ConvertTo<int64_t>(params[3]);
 
-    if (strMethod == "submitcdpparamgovernproposal"   && n > 2) ConvertTo<int64_t>(params[2]) ;
+    if (strMethod == "submitcdpparamgovernproposal"   && n > 2) ConvertTo<int64_t>(params[2]);
 
-    if (strMethod == "submitgovernorupdateproposal"   && n > 2) ConvertTo<int64_t>(params[2]) ;
-    if (strMethod == "submitpasswordprooftx"  && n > 2) ConvertTo<int64_t>(params[2]) ;
+    if (strMethod == "submitgovernorupdateproposal"   && n > 2) ConvertTo<int64_t>(params[2]);
+    if (strMethod == "submitpasswordprooftx"  && n > 2) ConvertTo<int64_t>(params[2]);
 
-    if (strMethod == "submitdexswitchproposal"   && n > 1) ConvertTo<int64_t>(params[1]) ;
-    if (strMethod == "submitdexswitchproposal"   && n > 2) ConvertTo<int64_t>(params[2]) ;
-    if (strMethod == "submitdexquotecoinproposal"   && n > 2) ConvertTo<int64_t>(params[2]) ;
-    if (strMethod == "submitfeedcoinpairproposal"   && n>3) ConvertTo<int64_t>(params[3]) ;
-    if (strMethod == "submitminerfeeproposal"   && n > 1) ConvertTo<int64_t>(params[1]) ;
-
-    if (strMethod == "submittotalbpssizeupdateproposal"   && n > 1) ConvertTo<int64_t>(params[1]) ;
-    if (strMethod == "submittotalbpssizeupdateproposal"   && n > 2) ConvertTo<int64_t>(params[2]) ;
-
-    if (strMethod == "genutxomultisignaddr"   && n > 0) ConvertTo<int64_t>(params[0]) ;
-    if (strMethod == "genutxomultisignaddr"   && n > 1) ConvertTo<int64_t>(params[1]) ;
-    if (strMethod == "genutxomultisignaddr"   && n > 2) ConvertTo<Array>(params[2]) ;
-
-    if (strMethod == "submitutxotransfertx"   && n > 2) ConvertTo<Array>(params[2]) ;
-    if (strMethod == "submitutxotransfertx"   && n > 3) ConvertTo<Array>(params[3]) ;
+    if (strMethod == "submitaxccoinproposal"   && n > 2) ConvertTo<int64_t>(params[2]);
+    if (strMethod == "submitaxccoinproposal"   && n > 3) ConvertTo<int64_t>(params[3]);
 
 
-    if (strMethod == "genutxomultiinputcondhash"   && n > 0) ConvertTo<int64_t>(params[0]) ;
-    if (strMethod == "genutxomultiinputcondhash"   && n > 1) ConvertTo<int64_t>(params[1]) ;
-    if (strMethod == "genutxomultiinputcondhash"   && n > 3) ConvertTo<int64_t>(params[3]) ;
-    if (strMethod == "genutxomultiinputcondhash"   && n > 4) ConvertTo<Array>(params[4]) ;
+    if (strMethod == "submitdexswitchproposal"   && n > 1) ConvertTo<int64_t>(params[1]);
+    if (strMethod == "submitdexswitchproposal"   && n > 2) ConvertTo<int64_t>(params[2]);
+    if (strMethod == "submitfeedcoinpairproposal"   && n>3) ConvertTo<int64_t>(params[3]);
+    if (strMethod == "submitminerfeeproposal"   && n > 1) ConvertTo<int64_t>(params[1]);
 
-    if (strMethod == "submitaccountpermproposal"   && n > 2) ConvertTo<int64_t>(params[2]) ;
-    if (strMethod == "submitassetpermproposal"     && n > 2) ConvertTo<int64_t>(params[2]) ;
+    if (strMethod == "submittotalbpssizeupdateproposal"   && n > 1) ConvertTo<int64_t>(params[1]);
+    if (strMethod == "submittotalbpssizeupdateproposal"   && n > 2) ConvertTo<int64_t>(params[2]);
+
+    if (strMethod == "genutxomultisignaddr"   && n > 0) ConvertTo<int64_t>(params[0]);
+    if (strMethod == "genutxomultisignaddr"   && n > 1) ConvertTo<int64_t>(params[1]);
+    if (strMethod == "genutxomultisignaddr"   && n > 2) ConvertTo<Array>(params[2]);
+
+    if (strMethod == "submitutxotransfertx"   && n > 2) ConvertTo<Array>(params[2]);
+    if (strMethod == "submitutxotransfertx"   && n > 3) ConvertTo<Array>(params[3]);
 
 
-    if (strMethod == "submitaxcinproposal"   && n > 1) ConvertTo<int64_t>(params[1]) ;
-    if (strMethod == "submitaxcinproposal"   && n > 7) ConvertTo<int64_t>(params[7]) ;
 
-    if (strMethod == "submitaxcoutproposal"   && n > 3) ConvertTo<int64_t>(params[3]) ;
-    if (strMethod == "submitaxcoutproposal"   && n > 5) ConvertTo<int64_t>(params[5]) ;
+    if (strMethod == "genutxomultiinputcondhash"   && n > 0) ConvertTo<int64_t>(params[0]);
+    if (strMethod == "genutxomultiinputcondhash"   && n > 1) ConvertTo<int64_t>(params[1]);
+    if (strMethod == "genutxomultiinputcondhash"   && n > 3) ConvertTo<int64_t>(params[3]);
+    if (strMethod == "genutxomultiinputcondhash"   && n > 4) ConvertTo<Array>(params[4]);
+
+    if (strMethod == "submitaccountpermproposal"   && n > 2) ConvertTo<Array>(params[2]);
+    if (strMethod == "submitassetpermproposal"     && n > 2) ConvertTo<Array>(params[2]);
+
+
+    if (strMethod == "submitaxcinproposal"   && n > 5) ConvertTo<int64_t>(params[5]);
+
+    if (strMethod == "submitaxcoutproposal"   && n > 4) ConvertTo<int64_t>(params[4]);
 
 
 

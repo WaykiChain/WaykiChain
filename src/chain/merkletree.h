@@ -119,7 +119,7 @@ public:
     // Create from a CBlock, filtering transactions according to filter
     // Note that this will call IsRelevantAndUpdate on the filter for each transaction,
     // thus the filter will likely be modified.
-    CMerkleBlock(const CBlock &block, CBloomFilter &filter);
+    CMerkleBlock(CBlock &block, CBloomFilter &filter);
 
     IMPLEMENT_SERIALIZE(
         READWRITE(header);

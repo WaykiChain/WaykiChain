@@ -275,19 +275,18 @@ bool CWasmContractTx::ExecuteTx(CTxExecuteContext &context) {
 
     auto& database             = *context.pCw;
     auto& execute_tx_to_return = *context.pState;
-    transaction_status         = context.transaction_status;
+    context_type               = context.context_type;
     pending_block_time         = context.block_time;
 
     wasm::inline_transaction* trx_current_for_exception = nullptr;
 
     try {
-
-        if(transaction_status == transaction_status_type::mining ||
-           transaction_status == transaction_status_type::validating ){
+        if (context_type == TxExecuteContextType::PRODUCE_BLOCK ||
+            context_type == TxExecuteContextType::VALIDATE_MEMPOOL) {
             max_transaction_duration = std::chrono::milliseconds(max_wasm_execute_time_mining);
         }
 
-        //charger fee
+        //charge fee
         CAccount payer;
         CHAIN_ASSERT( database.accountCache.GetAccount(txUid, payer),
                       wasm_chain::account_access_exception,
