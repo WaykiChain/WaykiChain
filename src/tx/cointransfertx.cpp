@@ -153,19 +153,21 @@ bool CCoinTransferTx::ExecuteTx(CTxExecuteContext &context) {
     for (size_t i = 0; i < transfers.size(); i++) {
         const auto &transfer = transfers[i];
 
-        if (!srcAccount.OperateBalance(transfer.coin_symbol, SUB_FREE, transfer.coin_amount)) {
+        //1. deduct amount from self account
+        if (!srcAccount.OperateBalance(transfer.coin_symbol, SUB_FREE, transfer.coin_amount))
             return state.DoS(100, ERRORMSG("CCoinTransferTx::ExecuteTx, transfers[%d], insufficient coins in txUid %s account",
                             i, txUid.ToString()), UPDATE_ACCOUNT_FAIL, "insufficient-coins");
-        }
 
+        //2. add amount to the target account
         uint64_t actualCoinsToSend = transfer.coin_amount;
+
+        //2.1 process WUSD transaction risk-reverse fees
         if (transfer.coin_symbol == SYMB::WUSD) {  // if transferring WUSD, must pay friction fees to the risk reserve
             uint64_t riskReserveFeeRatio;
-            CCdpCoinPair cdpCoinPair();
-            if (!cw.sysParamCache.GetParam(TRANSFER_SCOIN_RESERVE_FEE_RATIO, riskReserveFeeRatio)) {
+            if (!cw.sysParamCache.GetParam(TRANSFER_SCOIN_RESERVE_FEE_RATIO, riskReserveFeeRatio))
                 return state.DoS(100, ERRORMSG("CCoinTransferTx::ExecuteTx, transfers[%d], read TRANSFER_SCOIN_RESERVE_FEE_RATIO error", i),
                                 READ_SYS_PARAM_FAIL, "bad-read-sysparamdb");
-            }
+
             uint64_t reserveFeeScoins = transfer.coin_amount * riskReserveFeeRatio / RATIO_BOOST;
             if (reserveFeeScoins > 0) {
                 actualCoinsToSend -= reserveFeeScoins;
@@ -183,29 +185,27 @@ bool CCoinTransferTx::ExecuteTx(CTxExecuteContext &context) {
                 }
                 if (!cw.accountCache.SaveAccount(fcoinGenesisAccount))
                     return state.DoS(100, ERRORMSG("CCoinTransferTx::ExecuteTx, transfers[%d],"
-                        " update fcoinGenesisAccount info error", i),
-                        UPDATE_ACCOUNT_FAIL, "bad-save-accountdb");
+                                    " update fcoinGenesisAccount info error", i),
+                                    UPDATE_ACCOUNT_FAIL, "bad-save-accountdb");
 
                 CUserID fcoinGenesisUid(fcoinGenesisAccount.regid);
                 receipts.emplace_back(txUid, fcoinGenesisUid, SYMB::WUSD, reserveFeeScoins, ReceiptCode::TRANSFER_FEE_TO_RESERVE);
-                receipts.emplace_back(txUid, transfer.to_uid, SYMB::WUSD, actualCoinsToSend, ReceiptCode::TRANSFER_ACTUAL_COINS);
             }
         }
-
+        //2.2 process self account
         if (srcAccount.IsSelfUid(transfer.to_uid)) {
             if (!srcAccount.OperateBalance(transfer.coin_symbol, ADD_FREE, actualCoinsToSend)) {
                 return state.DoS(100, ERRORMSG("CCoinTransferTx::ExecuteTx, transfers[%d], failed to add coins in toUid %s account",
                     i, transfer.to_uid.ToDebugString()), UPDATE_ACCOUNT_FAIL, "failed-add-coins");
             }
-        } else {
+        } else { //2.3 process other account
             CAccount desAccount;
-            if (!cw.accountCache.GetAccount(transfer.to_uid, desAccount)) { // first involved in transacion
-                if (transfer.to_uid.is<CKeyID>()) {
-                    desAccount = CAccount(transfer.to_uid.get<CKeyID>());
-                } else {
+            if (!cw.accountCache.GetAccount(transfer.to_uid, desAccount)) { // first-time involved in transacion
+                if (!transfer.to_uid.is<CKeyID>())
                     return state.DoS(100, ERRORMSG("CCoinTransferTx::ExecuteTx, get account info failed"),
                                     READ_ACCOUNT_FAIL, "bad-read-accountdb");
-                }
+
+                desAccount = CAccount(transfer.to_uid.get<CKeyID>());
             }
 
             if (!desAccount.OperateBalance(transfer.coin_symbol, ADD_FREE, actualCoinsToSend))
@@ -215,7 +215,10 @@ bool CCoinTransferTx::ExecuteTx(CTxExecuteContext &context) {
             if (!cw.accountCache.SaveAccount(desAccount))
                 return state.DoS(100, ERRORMSG("CCoinTransferTx::ExecuteTx, write dest addr %s account info error",
                                 transfer.to_uid.ToDebugString()), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
+
         }
+
+        receipts.emplace_back(txUid, transfer.to_uid, transfer.coin_symbol, actualCoinsToSend, ReceiptCode::TRANSFER_ACTUAL_COINS);
     }
 
     if (!cw.accountCache.SaveAccount(srcAccount))
