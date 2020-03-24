@@ -582,7 +582,7 @@ Value submitproposalapprovaltx(const Array& params, bool fHelp){
     EnsureWalletIsUnlocked();
     const CUserID& txUid = RPC_PARAM::GetUserId(params[0], true);
     uint256 proposalId   = uint256S(params[1].get_str()) ;
-    ComboMoney fee       = RPC_PARAM::GetFee(params, 2, PROPOSAL_REQUEST_TX);
+    ComboMoney fee       = RPC_PARAM::GetFee(params, 2, PROPOSAL_APPROVAL_TX);
     UnsignedCharArray axcOutSignature;
     if (params.size() > 3) {
         axcOutSignature = ParseHex(params[3].get_str());
