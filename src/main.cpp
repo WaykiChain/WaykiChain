@@ -1866,9 +1866,11 @@ bool CheckBlock(const CBlock &block, CValidationState &state, CCacheWrapper &cw,
     uint32_t priceMedianTxCount = 0;
     for (uint32_t i = 0; i < block.vptx.size(); i++) {
         uniqueTxSet.insert(block.GetTxid(i));
-        if (i > 0 && block.vptx[i]->IsBlockRewardTx())
-            return state.DoS(100, ERRORMSG("CheckBlock() : more than one block reward tx"), REJECT_INVALID,
-                            "bad-block-reward-tx-multiple");
+        if (block.GetHeight() != 0 || block.GetHash() != SysCfg().GetGenesisBlockHash()) {
+            if (i > 0 && block.vptx[i]->IsBlockRewardTx())
+                return state.DoS(100, ERRORMSG("CheckBlock() : more than one block reward tx"), REJECT_INVALID,
+                                "bad-block-reward-tx-multiple");
+        }
 
         if (block.vptx[i]->IsPriceMedianTx())
             priceMedianTxCount++;
