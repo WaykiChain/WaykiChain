@@ -41,6 +41,7 @@ namespace dex {
         uint64_t maker_fee_ratio = 0;                   //!< match fee ratio
         uint64_t taker_fee_ratio = 0;                   //!< taker fee ratio
         CUserID operator_uid        = CUserID();        //!< dex operator uid
+        uint64_t operator_tx_fee    = 0;                //!< tx fee paid by operator, the total_fee=llFee+operator_tx_fee
         UnsignedCharArray operator_signature;           //!< dex operator signature
 
         using CBaseTx::CBaseTx;
@@ -61,7 +62,11 @@ namespace dex {
 
         bool CheckOrderPrice(CTxExecuteContext &context);
 
-        bool CheckOrderOperator(CTxExecuteContext &context);
+        bool GetOrderOperator(CTxExecuteContext &context,
+                              DexOperatorDetail &operatorDetail);
+        bool GetOperatorAccount(CTxExecuteContext &context, CRegID &operatorRegid, CAccount &account);
+        bool CheckOrderOperatorParam(CTxExecuteContext &context, DexOperatorDetail &operatorDetail,
+                              CAccount &operatorAccount);
 
         bool FreezeBalance(CTxExecuteContext &context, CAccount &account,
                         const TokenSymbol &tokenSymbol, const uint64_t &amount);
