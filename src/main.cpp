@@ -281,11 +281,8 @@ bool AcceptToMemoryPool(CTxMemPool &pool, CValidationState &state, CBaseTx *pBas
     uint32_t prevBlockTime = pTip->pprev != nullptr ? pTip->pprev->GetBlockTime() : pTip->GetBlockTime();
 
     CTxExecuteContext context(newHeight, 0, fuelRate, blockTime, prevBlockTime, spCW.get(), &state);
-    if (!pBaseTx->CheckBaseTx(context))
-        return ERRORMSG("AcceptToMemoryPool() : CheckBaseTx failed, txid: %s", hash.GetHex());
-
-    if (!pBaseTx->CheckTx(context))
-        return ERRORMSG("AcceptToMemoryPool() : CheckTx failed, txid: %s", hash.GetHex());
+    if (!pBaseTx->CheckBaseTx(context) || !pBaseTx->CheckTx(context))
+        return ERRORMSG("AcceptToMemoryPool() : CheckBaseTx/CheckTx failed, txid: %s", hash.GetHex());
 
     CTxMemPoolEntry entry(pBaseTx, GetTime(), newHeight);
     auto nFees = std::get<1>(entry.GetFees());
@@ -1026,16 +1023,16 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
     if (block.GetHeight() == SysCfg().GetStableCoinGenesisHeight()) {
         assert(block.vptx.size() == 4);
 
-        vector<string> txids = IniCfg().GetStableCoinGenesisTxid(SysCfg().NetworkID());
-        assert(txids.size() == 3);
+        vector<string> ScoinTxIDs = IniCfg().GetStableCoinGenesisTxid(SysCfg().NetworkID());
+        assert(ScoinTxIDs.size() == 3);
         for (int32_t index = 0; index < 3; ++index) {
             LogPrint(BCLog::INFO, "stable coin genesis block, txid actual: %s, should be: %s, in detail: %s\n",
-                     block.vptx[index + 1]->GetHash().GetHex(), txids[index],
+                     block.vptx[index + 1]->GetHash().GetHex(), ScoinTxIDs[index],
                      block.vptx[index + 1]->ToString(cw.accountCache));
 
             assert(block.vptx[index + 1]->nTxType == UCOIN_REWARD_TX);
             if (SysCfg().NetworkID() == MAIN_NET) {
-                assert(block.vptx[index + 1]->GetHash() == uint256S(txids[index]));
+                assert(block.vptx[index + 1]->GetHash() == uint256S(ScoinTxIDs[index]));
             }
         }
     }
@@ -1080,11 +1077,9 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
 
             uint32_t prevBlockTime = pIndex->pprev != nullptr ? pIndex->pprev->GetBlockTime() : pIndex->GetBlockTime();
             CTxExecuteContext context(pIndex->height, index, fuelRate, pIndex->nTime, prevBlockTime, &cw, &state);
-            if (!pBaseTx->ExecuteTx(context)) {
-                pCdMan->pLogCache->SetExecuteFail(pIndex->height, pBaseTx->GetHash(), state.GetRejectCode(),
-                                                  state.GetRejectReason());
-
-                return state.DoS(100, ERRORMSG("ConnectBlock() : txid=%s execute failed, in detail: %s",
+            if (!pBaseTx->CheckBaseTx(context) || !pBaseTx->CheckTx(context) || !pBaseTx->ExecuteTx(context)) {
+                pCdMan->pLogCache->SetExecuteFail(pIndex->height, pBaseTx->GetHash(), state.GetRejectCode(), state.GetRejectReason());
+                return state.DoS(100, ERRORMSG("ConnectBlock() : txid=%s check/execute failed, in detail: %s",
                                  pBaseTx->GetHash().GetHex(), pBaseTx->ToString(cw.accountCache)), REJECT_INVALID, "tx-execute-failed");
             }
 
@@ -1852,10 +1847,9 @@ bool CheckBlock(const CBlock &block, CValidationState &state, CCacheWrapper &cw,
     }
 
     // Check timestamp `block interval' + 2 seconds limits
-    if (block.GetBlockTime() > GetAdjustedTime() + ::GetBlockInterval(block.GetHeight()) + 2) {
+    if (block.GetBlockTime() > GetAdjustedTime() + ::GetBlockInterval(block.GetHeight()) + 2)
         return state.Invalid(ERRORMSG("CheckBlock() : block timestamp too far in the future"), REJECT_INVALID,
                              "time-too-new");
-    }
 
     // First transaction must be reward transaction, the rest must not be
     if (block.vptx.empty() || !block.vptx[0]->IsBlockRewardTx())
@@ -1868,36 +1862,28 @@ bool CheckBlock(const CBlock &block, CValidationState &state, CCacheWrapper &cw,
 
     // Check for duplicate txids. This is caught by ConnectInputs(),
     // but catching it earlier avoids a potential DoS attack:
-    set<uint256> uniqueTx;
+    set<uint256> uniqueTxSet;
     uint32_t priceMedianTxCount = 0;
-    for (uint32_t i = 0; i < block.vptx.size(); i++) {
-        uniqueTx.insert(block.GetTxid(i));
-
-        uint32_t prevBlockTime = block.GetTime(); // the prev block maybe unkown when checking block
-        CTxExecuteContext context(block.GetHeight(), i + 1, block.GetFuelRate(), block.GetTime(), prevBlockTime, &cw, &state);
-        if (fCheckTx && (!block.vptx[i]->CheckBaseTx(context) || !block.vptx[i]->CheckTx(context)))
-            return ERRORMSG("CheckBlock() : CheckTx failed, txid: %s", block.vptx[i]->GetHash().GetHex());
-
-        if (block.GetHeight() != 0 || block.GetHash() != SysCfg().GetGenesisBlockHash()) {
-            if (0 != i && block.vptx[i]->IsBlockRewardTx())
+    if (block.GetHeight() != 0) {
+        for (uint32_t i = 0; i < block.vptx.size(); i++) {
+            uniqueTxSet.insert(block.GetTxid(i));
+            if (i > 0 && block.vptx[i]->IsBlockRewardTx())
                 return state.DoS(100, ERRORMSG("CheckBlock() : more than one block reward tx"), REJECT_INVALID,
-                                 "bad-block-reward-tx-multiple");
+                                "bad-block-reward-tx-multiple");
 
-            if (block.vptx[i]->IsPriceMedianTx()) {
-                ++ priceMedianTxCount;
-            }
+            if (block.vptx[i]->IsPriceMedianTx())
+                priceMedianTxCount++;
         }
     }
 
     // In stable coin release, every block should have one price median tx only.
-    if (GetFeatureForkVersion(block.GetHeight()) >= MAJOR_VER_R2 && priceMedianTxCount != 1) {
+    if (GetFeatureForkVersion(block.GetHeight()) >= MAJOR_VER_R2 && priceMedianTxCount != 1)
         return state.DoS(100, ERRORMSG("CheckBlock() : price median tx number error"), REJECT_INVALID,
                          "bad-price-median-tx-number");
-    }
 
-    if (uniqueTx.size() != block.vptx.size())
+    if (uniqueTxSet.size() != block.vptx.size())
         return state.DoS(100, ERRORMSG("CheckBlock() : duplicate transaction"), REJECT_INVALID, "bad-tx-duplicated",
-                         true);
+                        true);
 
     // Check merkle root
     if (fCheckMerkleRoot && block.GetMerkleRootHash() != block.vMerkleTree.back())
@@ -1907,9 +1893,8 @@ bool CheckBlock(const CBlock &block, CValidationState &state, CCacheWrapper &cw,
 
     // Check nonce
     static uint64_t maxNonce = SysCfg().GetBlockMaxNonce();
-    if (block.GetNonce() > maxNonce) {
+    if (block.GetNonce() > maxNonce)
         return state.Invalid(ERRORMSG("CheckBlock() : Nonce is larger than maxNonce"), REJECT_INVALID, "Nonce-too-large");
-    }
 
     return true;
 }
