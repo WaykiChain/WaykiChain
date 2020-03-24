@@ -80,7 +80,7 @@ void CWasmContractTx::validate_contracts(CTxExecuteContext& context) {
         if (is_native_contract(contract_name.value)) continue;
 
         CAccount contract;
-        CHAIN_ASSERT( database.accountCache.GetAccount(nick_name(i.contract), contract),
+        CHAIN_ASSERT( database.accountCache.GetAccount(CNickID(i.contract), contract),
                       wasm_chain::account_access_exception,
                       "contract '%s' does not exist",
                       contract_name.to_string())
@@ -140,7 +140,7 @@ CWasmContractTx::get_accounts_from_signatures(CCacheWrapper& database, std::vect
 
         CAccount account;
 
-        CHAIN_ASSERT( database.accountCache.GetAccount(nick_name(s.account), account),
+        CHAIN_ASSERT( database.accountCache.GetAccount(CNickID(s.account), account),
                       wasm_chain::account_access_exception, "%s",
                       "can not get account from nickid '%s'", wasm::name(s.account).to_string())        
         CHAIN_ASSERT( account.owner_pubkey.Verify(signature_hash, s.signature),
@@ -283,7 +283,7 @@ bool CWasmContractTx::ExecuteTx(CTxExecuteContext &context) {
     try {
         if (context_type == TxExecuteContextType::PRODUCE_BLOCK ||
             context_type == TxExecuteContextType::VALIDATE_MEMPOOL) {
-            max_transaction_duration = std::chrono::milliseconds(max_wasm_execute_time_mining);
+            max_transaction_duration = std::chrono::milliseconds(wasm::max_wasm_execute_time_mining);
         }
 
         //charge fee

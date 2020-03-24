@@ -7,7 +7,7 @@ namespace wasm {
 
         abi_def abi;
 
-        if( abi.version.size() == 0 ) {
+        if (abi.version.size() == 0) {
             abi.version = "wasm::abi/1.0";
         }
 
@@ -31,24 +31,23 @@ namespace wasm {
 
         abi_def abi;
 
-        if( abi.version.size() == 0 ) {
+        if (abi.version.size() == 0) {
             abi.version = "wasm::abi/1.0";
         }
 
         abi.structs.emplace_back(struct_def{
-                "transfer", "", {
-                        {"from", "name"},
-                        {"to", "name"},
-                        {"quantity", "asset"},
-                        {"memo", "string"}
-                }
+            "transfer", "", {
+                    {"from", "name"},
+                    {"to", "name"},
+                    {"quantity", "asset"},
+                    {"memo", "string"}
+            }
         });
 
         abi.actions.push_back(action_def{"transfer", "transfer", ""});
 
         auto abi_bytes = wasm::pack<wasm::abi_def>(abi);
         return abi_bytes;
-        //return abi;
 
     }
 
@@ -64,13 +63,13 @@ namespace wasm {
 
     inline bool get_native_contract_abi(uint64_t contract, std::vector<char>& abi){
         //fixme:should be have a mutex protect
-        if(get_native_contract_abis().size() == 0){
+        if (get_native_contract_abis().size() == 0) {
             register_native_contract_abis(wasm::wasmio, wasmio_contract_abi());
             register_native_contract_abis(wasm::wasmio_bank, wasmio_bank_contract_abi());
         }
 
         auto ret = get_native_contract_abis().find(contract);
-        if(ret != get_native_contract_abis().end()){
+        if (ret != get_native_contract_abis().end()) {
             abi = ret->second;
             return true;
         }
@@ -80,38 +79,18 @@ namespace wasm {
 
     inline bool is_native_contract(uint64_t contract){
         //fixme:should be have a mutex protect
-        if(get_native_contract_abis().size() == 0){
+        if (get_native_contract_abis().size() == 0) {
             register_native_contract_abis(wasm::wasmio, wasmio_contract_abi());
             register_native_contract_abis(wasm::wasmio_bank, wasmio_bank_contract_abi());
         }
 
         auto ret = get_native_contract_abis().find(contract);
-        if(ret != get_native_contract_abis().end()){
+        if (ret != get_native_contract_abis().end()) {
             return true;
         }
         return false;
 
     }
-
-    // register_native_contract_abis(wasm::wasmio,      wasmio_contract_abi());
-    // register_native_contract_abis(wasm::wasmio_bank, wasmio_bank_contract_abi());
-
-
-    // static inline bool get_native_contract_abi(uint64_t contract, const std::vector<char>& abi){
-
-    //     if(wasm::wasmio == contract ) {
-    //         wasm::abi_def wasm_abi = wasmio_contract_abi();
-    //         abi = wasm::pack<wasm::abi_def>(wasm_abi);
-    //         return true;
-    //     } else if (wasm::wasmio_bank == contract){
-    //         wasm::abi_def wasm_abi = wasmio_bank_contract_abi();
-    //         abi = wasm::pack<wasm::abi_def>(wasm_abi);
-    //         return true;
-    //     }
-
-    //     return false;
-
-    // }
 
 
 }

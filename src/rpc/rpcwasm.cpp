@@ -138,7 +138,7 @@ void get_contract( CAccountDBCache*    database_account,
                    CAccount&           contract,
                    CUniversalContract& contract_store ){
 
-    CHAIN_ASSERT( database_account->GetAccount(nick_name(contract_name.value), contract),
+    CHAIN_ASSERT( database_account->GetAccount(CNickID(contract_name.value), contract),
                   wasm_chain::account_access_exception,
                   "contract '%s' does not exist",
                   contract_name.to_string().c_str())
@@ -178,7 +178,7 @@ Value submitwasmcontractdeploytx( const Array &params, bool fHelp ) {
             auto              authorizer_name = wasm::name(params[0].get_str());
             const ComboMoney& fee             = RPC_PARAM::GetFee(params, 4, TxType::WASM_CONTRACT_TX);
 
-            CHAIN_ASSERT( database->GetAccount(nick_name(authorizer_name.value), authorizer),
+            CHAIN_ASSERT( database->GetAccount(CNickID(authorizer_name.value), authorizer),
                           wasm_chain::account_access_exception,
                           "authorizer '%s' does not exist ",
                           authorizer_name.to_string().c_str())
@@ -257,7 +257,7 @@ Value submitwasmcontractcalltx( const Array &params, bool fHelp ) {
             CAccount authorizer;
             auto     authorizer_name   = wasm::name(params[0].get_str());
             auto     action            = wasm::name(params[2].get_str());
-            CHAIN_ASSERT(database_account->GetAccount(nick_name(authorizer_name.value), authorizer), wasm_chain::account_access_exception,
+            CHAIN_ASSERT(database_account->GetAccount(CNickID(authorizer_name.value), authorizer), wasm_chain::account_access_exception,
                         "authorizer '%s' does not exist",authorizer_name.to_string())
 
             std::vector<char> action_data(params[3].get_str().begin(), params[3].get_str().end());

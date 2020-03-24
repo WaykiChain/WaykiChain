@@ -21,8 +21,6 @@ using namespace std;
 using namespace wasm;
 namespace wasm {
 
-    typedef CNickID nick_name;
-
     class wasm_context : public wasm_context_interface {
 
     public:
@@ -74,7 +72,7 @@ namespace wasm {
         bool set_data( const uint64_t& contract, const string& k, const string& v ) {
             CAccount   contract_account;
             wasm::name contract_name = wasm::name(contract);
-            CHAIN_ASSERT( database.accountCache.GetAccount(nick_name(contract), contract_account),
+            CHAIN_ASSERT( database.accountCache.GetAccount(CNickID(contract), contract_account),
                           account_access_exception,
                           "contract '%s' does not exist",
                           contract_name.to_string().c_str())
@@ -85,7 +83,7 @@ namespace wasm {
         bool get_data( const uint64_t& contract, const string& k, string &v ) {
             CAccount   contract_account;
             wasm::name contract_name = wasm::name(contract);
-            CHAIN_ASSERT( database.accountCache.GetAccount(nick_name(contract), contract_account),
+            CHAIN_ASSERT( database.accountCache.GetAccount(CNickID(contract), contract_account),
                           account_access_exception,
                           "contract '%s' does not exist",
                           contract_name.to_string().c_str())
@@ -96,7 +94,7 @@ namespace wasm {
         bool erase_data( const uint64_t& contract, const string& k ) {
             CAccount   contract_account;
             wasm::name contract_name = wasm::name(contract);
-            CHAIN_ASSERT( database.accountCache.GetAccount(nick_name(contract), contract_account),
+            CHAIN_ASSERT( database.accountCache.GetAccount(CNickID(contract), contract_account),
                           account_access_exception,
                           "contract '%s' does not exist",
                           contract_name.to_string().c_str())
@@ -108,7 +106,7 @@ namespace wasm {
 
         bool contracts_console() {
             return SysCfg().GetBoolArg("-contracts_console", false) && 
-                    control_trx.context_type == TxExecuteContextType::VALIDATE_MEMPOOL;
+                   control_trx.context_type == TxExecuteContextType::VALIDATE_MEMPOOL;
         }
 
         void console_append(const string& val) {

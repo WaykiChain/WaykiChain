@@ -58,7 +58,7 @@ namespace wasm {
     std::shared_ptr <wasm_instantiated_module_interface> get_instantiated_backend(const vector <uint8_t> &code) {
 
         try {
-            if(!get_wasm_instantiation_cache().has_value()){
+            if (!get_wasm_instantiation_cache().has_value()){
                  get_wasm_instantiation_cache() = std::map <code_version_t, std::shared_ptr<wasm_instantiated_module_interface>>{};
             }
 
@@ -574,7 +574,7 @@ namespace wasm {
             std::vector<uint64_t> active_producers = pWasmContext->get_active_producers();
 
             size_t len   = active_producers.size() * sizeof(uint64_t);
-            if(data_len == 0) return len;
+            if (data_len == 0) return len;
 
             auto copy_len = std::min( static_cast<size_t>(data_len), len );
 
@@ -592,7 +592,7 @@ namespace wasm {
             std::string txid = pWasmContext->get_txid();
 
             size_t len = txid.size();
-            if(data_len == 0) return len;
+            if (data_len == 0) return len;
 
             auto copy_len = std::min( static_cast<size_t>(data_len), len );
 
@@ -607,10 +607,10 @@ namespace wasm {
 
             std::vector<char> price;
             bool success = pWasmContext->get_system_asset_price(base_symble, quote_symble, price);
-            if(!success) return 0;
+            if (!success) return 0;
 
             size_t len = price.size();
-            if(data_len == 0) return len;
+            if (data_len == 0) return len;
 
             auto copy_len = std::min( static_cast<size_t>(data_len), len );
             CHECK_WASM_DATA_SIZE(copy_len,  "data") 

@@ -66,11 +66,11 @@ namespace wasm {
         //              "Inline transaction can be sent to/by contract self or wasmio.bank ");
 
         //check authorization
-        for(const auto p: t.authorization){
+        for (const auto p: t.authorization) {
 
             //inline wasmio.bank
             //if(t.contract == wasmio_bank && p.account != _receiver ){
-            if(t.contract == wasmio_bank && (p.account != _receiver || p.perm != wasmio_code) ){
+            if (t.contract == wasmio_bank && (p.account != _receiver || p.perm != wasmio_code) ) {
                 CHAIN_ASSERT( false,
                               wasm_chain::missing_auth_exception,
                               "Inline to wasmio.bank can be only authorized by contract-self %s, but get %s",
@@ -78,10 +78,10 @@ namespace wasm {
             }
 
             //call contract-self and authorized by contract
-            if(t.contract == _receiver && p.account == _receiver ) continue;
+            if (t.contract == _receiver && p.account == _receiver ) continue;
 
             //call contract-self
-            if(t.contract == _receiver && !has_permission_from_inline_transaction(p) ) {
+            if (t.contract == _receiver && !has_permission_from_inline_transaction(p) ) {
                 CHAIN_ASSERT( false,
                               wasm_chain::missing_auth_exception,
                               "Missing authorization by account %s in a new inline transaction",
@@ -89,7 +89,7 @@ namespace wasm {
             }
 
             //call another contract
-            if(t.contract != _receiver && (p.account != _receiver || p.perm != wasmio_code)){
+            if (t.contract != _receiver && (p.account != _receiver || p.perm != wasmio_code)){
                 CHAIN_ASSERT( false,
                               missing_auth_exception,
                               "Inline to another contract can be only authorized by contract-self %s in wasmio.code, but get %s",
@@ -104,11 +104,11 @@ namespace wasm {
     std::vector <uint8_t> wasm_context::get_code(const uint64_t& account) {
 
         vector <uint8_t>   code;
-        CUniversalContract contract;
-        CAccount contract_account ;
-        if(database.accountCache.GetAccount(CNickID(account), contract_account)
-            && database.contractCache.GetContract(contract_account.regid, contract)) {
-            code = vector <uint8_t>(contract.code.begin(), contract.code.end());
+        CAccount           contract;
+        CUniversalContract contract_store;
+        if (database.accountCache.GetAccount(CNickID(account), contract) &&
+            database.contractCache.GetContract(contract.regid, contract_store)) {
+            code = vector <uint8_t>(contract_store.code.begin(), contract_store.code.end());
         }
         return code;
     }
@@ -229,8 +229,8 @@ namespace wasm {
     }
 
     void wasm_context::require_auth( const uint64_t& account ) const {
-        for(auto p: trx.authorization){
-            if(p.account == account){
+        for (auto p: trx.authorization) {
+            if (p.account == account) {
                 return;
             }
         }
@@ -238,8 +238,8 @@ namespace wasm {
     }
 
     bool wasm_context::has_authorization( const uint64_t& account ) const {
-        for(auto p: trx.authorization){
-            if(p.account == account){
+        for (auto p: trx.authorization) {
+            if (p.account == account) {
                 return true;
             }
         }
@@ -250,7 +250,7 @@ namespace wasm {
     bool wasm_context::is_account( const uint64_t& account ) const {
 
         //auto account_name = wasm::name(account);
-        return database.accountCache.HasAccount(nick_name(account));
+        return database.accountCache.HasAccount(CNickID(account));
     }
 
     std::vector<uint64_t> wasm_context::get_active_producers(){
@@ -264,7 +264,7 @@ namespace wasm {
                       wasm_chain::account_access_exception,
                       "fail to get top delegates for active producer");
 
-        for( auto p: producers){
+        for ( auto p: producers){
             CAccount producer;
             CHAIN_ASSERT( database_account.GetAccount(p.regid, producer),
                           wasm_chain::account_access_exception,
@@ -286,15 +286,15 @@ namespace wasm {
         wasm::symbol base_symbol  = wasm::symbol(base);
         wasm::symbol quote_symbol = wasm::symbol(quote);
 
-        if(quote_symbol.precision() != 8) return false;//the precision of system asset must be 8
-        if(base_symbol.precision()  != 8) return false;//the precision of system asset must be 8
+        if (quote_symbol.precision() != 8) return false;//the precision of system asset must be 8
+        if (base_symbol.precision()  != 8) return false;//the precision of system asset must be 8
 
         PriceCoinPair price_pair(base_symbol.code().to_string(), quote_symbol.code().to_string());
 
         //if(CheckPricePair(pricePair) != nullptr) return 0;
         auto &database_pricefeed  = database.priceFeedCache;
         uint64_t price_amount = database_pricefeed.GetMedianPrice(price_pair);
-        if(price_amount == 0) return false;
+        if (price_amount == 0) return false;
 
         asset asset_price(price_amount, base_symbol);
         price = wasm::pack<asset>(asset_price);

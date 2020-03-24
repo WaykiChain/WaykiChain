@@ -18,13 +18,11 @@ public:
 public:
     uint64_t                      run_cost;
     uint64_t                      pending_block_time;
-    // uint64_t                      fuel;
     uint64_t                      recipients_size;
     system_clock::time_point      pseudo_start;
     std::chrono::microseconds     billed_time              = chrono::microseconds(0);
     std::chrono::milliseconds     max_transaction_duration = std::chrono::milliseconds(wasm::max_wasm_execute_time_infinite);
     TxExecuteContextType          context_type             = TxExecuteContextType::CONNECT_BLOCK;
-    //wasm::inline_transaction      trx_current              = nullptr;
 
     void                      pause_billing_timer();
     void                      resume_billing_timer();
