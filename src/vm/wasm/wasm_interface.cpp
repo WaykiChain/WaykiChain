@@ -159,7 +159,7 @@ namespace wasm {
         }
 
         void wasm_exit( int32_t code ){
-            pWasmContext->exit();
+            //pWasmContext->exit();
         }
 
         uint64_t current_time() {

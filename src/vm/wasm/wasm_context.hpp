@@ -22,7 +22,6 @@ using namespace wasm;
 namespace wasm {
 
     typedef CNickID nick_name;
-    class wasm_context;
 
     class wasm_context : public wasm_context_interface {
 

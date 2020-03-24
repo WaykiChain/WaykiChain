@@ -99,7 +99,6 @@ void read_and_validate_code(const string& path, string& code){
         // WASM_ASSERT(read_file_limit(path, code, MAX_CONTRACT_CODE_SIZE),
         //             file_read_exception,
         //             "wasm code file is empty or larger than max limited '%d' bytes", MAX_CONTRACT_CODE_SIZE)
-
         read_file_limit(path, code, MAX_CONTRACT_CODE_SIZE);
 
         vector <uint8_t> c;
@@ -133,7 +132,7 @@ void read_and_validate_abi(const string& abi_file, string& abi){
     // }
 }
 
-void get_contract( CAccountDBCache*   database_account,
+void get_contract( CAccountDBCache*    database_account,
                    CContractDBCache*   database_contract,
                    const wasm::name&   contract_name,
                    CAccount&           contract,
@@ -175,9 +174,9 @@ Value submitwasmcontractdeploytx( const Array &params, bool fHelp ) {
         CWasmContractTx tx;
         {
             CAccount authorizer;
-            auto              contract   = wasm::name(params[1].get_str());
+            auto              contract        = wasm::name(params[1].get_str());
             auto              authorizer_name = wasm::name(params[0].get_str());
-            const ComboMoney& fee        = RPC_PARAM::GetFee(params, 4, TxType::WASM_CONTRACT_TX);
+            const ComboMoney& fee             = RPC_PARAM::GetFee(params, 4, TxType::WASM_CONTRACT_TX);
 
             CHAIN_ASSERT( database->GetAccount(nick_name(authorizer_name.value), authorizer),
                           wasm_chain::account_access_exception,
@@ -257,8 +256,7 @@ Value submitwasmcontractcalltx( const Array &params, bool fHelp ) {
         {
             CAccount authorizer;
             auto     authorizer_name   = wasm::name(params[0].get_str());
-
-            auto     action       = wasm::name(params[2].get_str());
+            auto     action            = wasm::name(params[2].get_str());
             CHAIN_ASSERT(database_account->GetAccount(nick_name(authorizer_name.value), authorizer), wasm_chain::account_access_exception,
                         "authorizer '%s' does not exist",authorizer_name.to_string())
 

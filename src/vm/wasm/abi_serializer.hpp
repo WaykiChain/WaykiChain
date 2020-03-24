@@ -95,7 +95,7 @@ namespace wasm {
         }
 
         static json_spirit::Value
-        unpack( const std::vector<char>  &abi, const string &action, const bytes &data, microseconds max_serialization_time ) {
+        unpack( const std::vector<char> &abi, const string &action, const bytes &data, microseconds max_serialization_time ) {
 
             json_spirit::Value data_v;
             try {

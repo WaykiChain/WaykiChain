@@ -61,15 +61,16 @@ namespace wasm {
     void wasm_context::execute_inline(const inline_transaction& t) {
 
         //contract-self or wasmio_bank
-        CHAIN_ASSERT( t.contract == _receiver || t.contract == wasmio_bank ,
-                      wasm_chain::missing_auth_exception,
-                     "Inline transaction can be sent to/by contract self or wasmio.bank ");
+        // CHAIN_ASSERT( t.contract == _receiver || t.contract == wasmio_bank ,
+        //               wasm_chain::missing_auth_exception,
+        //              "Inline transaction can be sent to/by contract self or wasmio.bank ");
 
         //check authorization
         for(const auto p: t.authorization){
 
             //inline wasmio.bank
-            if(t.contract == wasmio_bank && p.account != _receiver){
+            //if(t.contract == wasmio_bank && p.account != _receiver ){
+            if(t.contract == wasmio_bank && (p.account != _receiver || p.perm != wasmio_code) ){
                 CHAIN_ASSERT( false,
                               wasm_chain::missing_auth_exception,
                               "Inline to wasmio.bank can be only authorized by contract-self %s, but get %s",
@@ -83,17 +84,17 @@ namespace wasm {
             if(t.contract == _receiver && !has_permission_from_inline_transaction(p) ) {
                 CHAIN_ASSERT( false,
                               wasm_chain::missing_auth_exception,
-                              "Missing authorization by account %s in a new inline  transaction",
+                              "Missing authorization by account %s in a new inline transaction",
                               wasm::name(p.account).to_string());
             }
 
             //call another contract
-            // if(t.contract != _receiver && p.account == _receiver && p.perm == wasmio_code){
-            //     WASM_ASSERT(false,
-            //                 missing_auth_exception,
-            //                 "Inline to another contract can be only authorized by contract-self %s in wasmio.code, but get %s",
-            //                 wasm::name(_receiver).to_string(), wasm::name(p.account).to_string());
-            // }
+            if(t.contract != _receiver && (p.account != _receiver || p.perm != wasmio_code)){
+                CHAIN_ASSERT( false,
+                              missing_auth_exception,
+                              "Inline to another contract can be only authorized by contract-self %s in wasmio.code, but get %s",
+                              wasm::name(_receiver).to_string(), wasm::name(p.account).to_string());
+            }
 
         }
 
