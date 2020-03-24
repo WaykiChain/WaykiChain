@@ -114,7 +114,7 @@ static bool ProcessAssetFee(CCacheWrapper &cw, CValidationState &state, const st
 
 bool CUserIssueAssetTx::CheckTx(CTxExecuteContext &context) {
     IMPLEMENT_DEFINE_CW_STATE;
-    
+
     string errMsg = "";
     if (!CAsset::CheckSymbol(AssetType::UIA, asset.asset_symbol, errMsg))
         return state.DoS(100, ERRORMSG("CUserIssueAssetTx::CheckTx, invlid asset symbol! %s", errMsg),
@@ -166,7 +166,7 @@ bool CUserIssueAssetTx::ExecuteTx(CTxExecuteContext &context) {
             asset.asset_symbol), REJECT_INVALID, "asset-existed-error");
 
     shared_ptr<CAccount> pOwnerAccount;
-    if (pTxAccount->IsMyUid(asset.owner_uid)) {
+    if (pTxAccount->IsSelfUid(asset.owner_uid)) {
         pOwnerAccount = pTxAccount;
     } else {
         pOwnerAccount = make_shared<CAccount>();
@@ -326,7 +326,7 @@ bool CUserUpdateAssetTx::CheckTx(CTxExecuteContext &context) {
 
     string errMsg = "";
     if (!CAsset::CheckSymbol(AssetType::UIA, asset_symbol, errMsg))
-        return state.DoS(100, ERRORMSG("CUserUpdateAssetTx::CheckTx, asset_symbol error: %s", errMsg), 
+        return state.DoS(100, ERRORMSG("CUserUpdateAssetTx::CheckTx, asset_symbol error: %s", errMsg),
                         REJECT_INVALID, "invalid-asset-symbol");
 
     switch (update_data.GetType()) {
@@ -385,7 +385,7 @@ bool CUserUpdateAssetTx::ExecuteTx(CTxExecuteContext &context) {
         return state.DoS(100, ERRORMSG("CUserUpdateAssetTx::ExecuteTx, get asset by symbol=%s failed",
             asset_symbol), REJECT_INVALID, "get-asset-failed");
 
-    if (!account.IsMyUid(asset.owner_uid))
+    if (!account.IsSelfUid(asset.owner_uid))
         return state.DoS(100, ERRORMSG("CUserUpdateAssetTx::ExecuteTx, no privilege to update asset, uid dismatch,"
             " txUid=%s, old_asset_uid=%s",
             txUid.ToDebugString(), asset.owner_uid.ToString()), REJECT_INVALID, "asset-uid-dismatch");
@@ -398,7 +398,7 @@ bool CUserUpdateAssetTx::ExecuteTx(CTxExecuteContext &context) {
     switch (update_data.GetType()) {
         case CUserUpdateAsset::OWNER_UID: {
             const CUserID &newOwnerUid = update_data.get<CUserID>();
-            if (account.IsMyUid(newOwnerUid))
+            if (account.IsSelfUid(newOwnerUid))
                 return state.DoS(100, ERRORMSG("CUserUpdateAssetTx::ExecuteTx, the new owner uid=%s is belong to old owner account",
                     newOwnerUid.ToDebugString()), REJECT_INVALID, "invalid-new-asset-owner-uid");
 

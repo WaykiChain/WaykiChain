@@ -192,7 +192,7 @@ bool CCoinTransferTx::ExecuteTx(CTxExecuteContext &context) {
             }
         }
 
-        if (srcAccount.IsMyUid(transfer.to_uid)) {
+        if (srcAccount.IsSelfUid(transfer.to_uid)) {
             if (!srcAccount.OperateBalance(transfer.coin_symbol, ADD_FREE, actualCoinsToSend)) {
                 return state.DoS(100, ERRORMSG("CCoinTransferTx::ExecuteTx, transfers[%d], failed to add coins in toUid %s account",
                     i, transfer.to_uid.ToDebugString()), UPDATE_ACCOUNT_FAIL, "failed-add-coins");
@@ -209,7 +209,7 @@ bool CCoinTransferTx::ExecuteTx(CTxExecuteContext &context) {
             }
 
             if (!desAccount.OperateBalance(transfer.coin_symbol, ADD_FREE, actualCoinsToSend))
-                return state.DoS(100, ERRORMSG("CCoinTransferTx::ExecuteTx, transfers[%d], failed to add coins in toUid %s account", i, 
+                return state.DoS(100, ERRORMSG("CCoinTransferTx::ExecuteTx, transfers[%d], failed to add coins in toUid %s account", i,
                                 transfer.to_uid.ToDebugString()), UPDATE_ACCOUNT_FAIL, "failed-add-coins");
 
             if (!cw.accountCache.SaveAccount(desAccount))

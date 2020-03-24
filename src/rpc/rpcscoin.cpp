@@ -603,7 +603,7 @@ Value submitassetissuetx(const Array& params, bool fHelp) {
     int32_t validHeight = chainActive.Height();
     CAccount ownerAccount;
     CRegID *pOwnerRegid;
-    if (account.IsMyUid(assetOwnerUid)) {
+    if (account.IsSelfUid(assetOwnerUid)) {
         pOwnerRegid = &account.regid;
     } else {
         ownerAccount = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, assetOwnerUid);
@@ -717,7 +717,7 @@ Value submitassetupdatetx(const Array& params, bool fHelp) {
 
     if (*pUpdateType == CUserUpdateAsset::OWNER_UID) {
         CUserID &ownerUid = updateData.get<CUserID>();
-        if (account.IsMyUid(ownerUid))
+        if (account.IsSelfUid(ownerUid))
             return JSONRPCError(RPC_INVALID_PARAMS, strprintf("the new owner uid=%s is belong to old owner account",
                     ownerUid.ToDebugString()));
 
