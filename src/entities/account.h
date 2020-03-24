@@ -33,15 +33,15 @@ enum AccountPermType : uint64_t {
     PERM_SEND_COIN      = (1 << 0 ), //recv_coin is always allowed
     PERM_STAKE_COIN     = (1 << 1 ), //when input is negative, it means unstake
     PERM_SEND_VOTE      = (1 << 2 ), //send or revoke votes to others
-    PERM_SEND_UTXO      = (1 << 4 ), //recv utox is always allowed
-    PERM_DEPLOY_SC      = (1 << 5 ), //Deploy smart contract
-    PERM_UPGRADE_SC     = (1 << 6 ), //Upgrade smart contract
-    PERM_INVOKE_SC      = (1 << 7 ), //Invoke smart contract
-    PERM_PROPOSE        = (1 << 8 ), //DeGov propose
-    PERM_MINE_BLOCK     = (1 << 9 ), //elected BP can mine blocks, mostly used to disable the perm when set zero
-    PERM_FEED_PRICE     = (1 << 10), //Feed price, mostly used to disable the perm when set zero
-    PERM_DEX            = (1 << 11), //freeze | unfreeze
-    PERM_CDP            = (1 << 12), //pledge | unpledge
+    PERM_SEND_UTXO      = (1 << 3 ), //recv utox is always allowed
+    PERM_DEPLOY_SC      = (1 << 4 ), //Deploy smart contract
+    PERM_UPGRADE_SC     = (1 << 5 ), //Upgrade smart contract
+    PERM_INVOKE_SC      = (1 << 6 ), //Invoke smart contract
+    PERM_PROPOSE        = (1 << 7 ), //DeGov propose
+    PERM_MINE_BLOCK     = (1 << 8 ), //elected BP can mine blocks, mostly used to disable the perm when set zero
+    PERM_FEED_PRICE     = (1 << 9 ), //Feed price, mostly used to disable the perm when set zero
+    PERM_DEX            = (1 << 10 ), //freeze | unfreeze
+    PERM_CDP            = (1 << 11), //pledge | unpledge
 };
 
 static const unordered_map<uint64_t, string> kAccountPermTitleMap = {

@@ -493,7 +493,6 @@ bool CGovFeedCoinPairProposal::ExecuteProposal(CTxExecuteContext& context, const
         return cw.priceFeedCache.EraseFeedCoinPair(coinPair);
 
 }
-
 bool CGovAxcInProposal::CheckProposal(CTxExecuteContext& context ) {
     IMPLEMENT_DEFINE_CW_STATE;
 

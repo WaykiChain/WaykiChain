@@ -562,7 +562,7 @@ struct CGovAxcOutProposal: CProposal {
     vector<UnsignedCharArray> peer_chain_tx_multisigs; //only filled by approver
 
     CGovAxcOutProposal(): CProposal(ProposalType::GOV_AXC_OUT) {}
-    CGovAxcOutProposal(CUserID &uid, TokenSymbol selfChainTokenSymbol, ChainType peerChainType, string &peerChainAddr,
+    CGovAxcOutProposal(CUserID &uid, TokenSymbol selfChainTokenSymbol, string &peerChainAddr,
                         uint64_t &swapAmount): CProposal(ProposalType::GOV_AXC_OUT),
                         self_chain_uid(uid),
                         self_chain_token_symbol(selfChainTokenSymbol),
@@ -586,6 +586,10 @@ struct CGovAxcOutProposal: CProposal {
         obj.push_back(Pair("self_chain_token_symbol", self_chain_token_symbol));
         obj.push_back(Pair("peer_chain_addr", peer_chain_addr));
         obj.push_back(Pair("swap_amount", ValueFromAmount(swap_amount)));
+        Array arr;
+        for(auto sig: peer_chain_tx_multisigs)
+            arr.push_back(HexStr(sig));
+        obj.push_back(Pair("signs", arr));
         return obj;
     }
 

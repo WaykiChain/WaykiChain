@@ -704,14 +704,14 @@ Value submitminerfeeproposal(const Array& params, bool fHelp) {
 Value submitaxcinproposal(const Array& params, bool fHelp) {
 
 
-    if(fHelp || params.size() < 8 || params.size() > 9){
+    if(fHelp || params.size() < 6 || params.size() > 7){
 
         throw runtime_error(
                 "submitaxcinproposal \"addr\" \"peer_chain_type\" \"peer_chain_token_symbol\" \"self_chain_token_symbol\" \"peer_chain_addr\""
                 " \"peer_chain_txid\" \"self_chain_uid\" \"swap_amount\" [\"fee\"]\n"
                 "create proposal about transfer coin from other chain to waykichain \n"
                 "\nArguments:\n"
-                "1.\"addr\":                        (string,     required) the tx submitor's address\n"
+                "1.\"addr\":                        (string, required) the tx submitor's address\n"
                 "2.\"peer_chain_token_symbol\":     (string, required) the coin symbol that swap from, such as BTC,ETH,EOS \n"
                 "3.\"peer_chain_addr\":             (string, required) initiator's address at peer chain \n"
                 "4.\"peer_chain_txid\":             (string, required) a proof from the peer chain (non-HTLC version), such as wisvisof932wq392wospal230ewopdsxl\n"
@@ -719,9 +719,9 @@ Value submitaxcinproposal(const Array& params, bool fHelp) {
                 "6.\"swap_amount\":                 (numberic, required) the coin amount that swap in, the unit is sa(0.00000001), \n"
                 "7.\"fee\":                         (combomoney, optional) the tx fee \n"
                 "\nExamples:\n"
-                + HelpExampleCli("submitaxcinproposal", " 0-1 2 ETH WETH 29okf0efodfredfedsedsfdscsfds ewsdcxesasdsadfsad 0-1  1000000")
+                + HelpExampleCli("submitaxcinproposal", " 0-1 2 ETH  29okf0efodfredfedsedsfdscsfds ewsdcxesasdsadfsad 0-1  1000000")
                 + "\nAs json rpc call\n"
-                + HelpExampleRpc("submitaxcinproposal", R"("0-1", 2, "ETH", "WETH", "29okf0efodfredfedsedsfdscsfds", "ewsdcxesasdsadfsad", "0-1", 1000000)")
+                + HelpExampleRpc("submitaxcinproposal", R"("0-1", "ETH", "29okf0efodfredfedsedsfdscsfds", "ewsdcxesasdsadfsad", "0-1", 1000000)")
 
         );
 
@@ -754,7 +754,7 @@ Value submitaxcinproposal(const Array& params, bool fHelp) {
 
 Value submitaxcoutproposal(const Array& params, bool fHelp) {
 
-    if(fHelp || params.size() < 6 || params.size() > 7){
+    if(fHelp || params.size() < 5 || params.size() > 6){
 
         throw runtime_error(
                 "submitaxcoutproposal \"addr\" \"tx_type\" \"fee_info\"  [\"fee\"]\n"
@@ -763,17 +763,13 @@ Value submitaxcoutproposal(const Array& params, bool fHelp) {
                 "1.\"addr\":                    (string,   required) the tx submitor's address\n"
                 "2.\"self_chain_uid\":          (string,   required)  initiator's uid at waykichain \n"
                 "3.\"self_chain_token_symbol\": (string, required) the coin symbol that swap out, such as WBTC,WETC,WEOS \n"
-                "4.\"peer_chain_type\":         (numberic,   required) the chain type that swap to \n"
-                "                               1: stand for bitcoin\n"
-                "                               2: stand for ethereum\n"
-                "                               3: stand for eos\n"
-                "5.\"peer_chain_addr\":         (string, optional) initiator's address at peer chain \n"
-                "6.\"swap_amount\":             (numberic,   required) the coin amount that swap out \n"
-                "7.\"fee\":                     (combomoney, optional) the tx fee \n"
+                "4.\"peer_chain_addr\":         (string, optional) initiator's address at peer chain \n"
+                "5.\"swap_amount\":             (numberic,   required) the coin amount that swap out \n"
+                "6.\"fee\":                     (combomoney, optional) the tx fee \n"
                 "\nExamples:\n"
-                + HelpExampleCli("submitaxcoutproposal", "0-1 0-1 WETH 2 sfdv9efkwdscokedscsx 100000")
+                + HelpExampleCli("submitaxcoutproposal", "0-1 0-1 WETH sfdv9efkwdscokedscsx 100000")
                 + "\nAs json rpc call\n"
-                + HelpExampleRpc("submitaxcoutproposal", R"("0-1", "0-2", "WETH", 2, "sfdv9efkwdscokedscsx", 100000)")
+                + HelpExampleRpc("submitaxcoutproposal", R"("0-1", "0-2", "WETH", "sfdv9efkwdscokedscsx", 100000)")
 
         );
 
@@ -783,16 +779,15 @@ Value submitaxcoutproposal(const Array& params, bool fHelp) {
     const CUserID& txUid = RPC_PARAM::GetUserId(params[0], true);
     CUserID selfChainUid = RPC_PARAM::GetUserId(params[1]);
     TokenSymbol selfChainTokenSymbol(params[2].get_str());
-    ChainType peerChainType = ChainType((uint8_t)params[3].get_int());
-    string peerAddr = params[4].get_str();
-    uint64_t swapCoinAmount = AmountToRawValue(params[5]);
-    ComboMoney fee          = RPC_PARAM::GetFee(params, 6, PROPOSAL_REQUEST_TX);
+    string peerAddr = params[3].get_str();
+    uint64_t swapCoinAmount = AmountToRawValue(params[4]);
+    ComboMoney fee          = RPC_PARAM::GetFee(params, 5, PROPOSAL_REQUEST_TX);
 
     int32_t validHeight  = chainActive.Height();
     CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, txUid);
     RPC_PARAM::CheckAccountBalance(account, fee.symbol, SUB_FREE, fee.GetAmountInSawi());
 
-    CGovAxcOutProposal proposal(selfChainUid,selfChainTokenSymbol,peerChainType,peerAddr,swapCoinAmount);
+    CGovAxcOutProposal proposal(selfChainUid,selfChainTokenSymbol,peerAddr,swapCoinAmount);
 
     CProposalRequestTx tx;
     tx.txUid        = txUid;
