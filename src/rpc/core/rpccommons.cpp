@@ -446,31 +446,37 @@ ComboMoney RPC_PARAM::GetComboMoney(const Value &jsonValue,
     return money;
 }
 
+uint64_t RPC_PARAM::GetTxMinFeeBy(const TxType txType, const TokenSymbol &symbol) {
+    uint64_t minFee = 0;
+    if (!::GetTxMinFee(txType, chainActive.Height(), symbol, minFee))
+        throw JSONRPCError(RPC_INVALID_PARAMS,
+            strprintf("Can not find the min tx fee! symbol=%s", symbol));
+    return minFee;
+}
+
+void RPC_PARAM::ParseTxFee(const Array &params, const size_t index, const TxType txType,
+                          ComboMoney &feeOut, uint64_t &minFeeOut) {
+
+    if (params.size() > index) {
+        feeOut = GetComboMoney(params[index], SYMB::WICC);
+        if (!kFeeSymbolSet.count(feeOut.symbol))
+            throw JSONRPCError(RPC_INVALID_PARAMS,
+                strprintf("Fee symbol is %s, but expect %s", feeOut.symbol, GetFeeSymbolSetStr()));
+
+        minFeeOut = GetTxMinFeeBy(txType, feeOut.symbol);
+    } else {
+        minFeeOut = GetTxMinFeeBy(txType, SYMB::WICC);
+        feeOut = {SYMB::WICC, minFeeOut, COIN_UNIT::SAWI};
+    }
+}
+
 ComboMoney RPC_PARAM::GetFee(const Array& params, const size_t index, const TxType txType) {
     ComboMoney fee;
-    if (params.size() > index) {
-        fee = GetComboMoney(params[index], SYMB::WICC);
-        if (!kFeeSymbolSet.count(fee.symbol))
-            throw JSONRPCError(RPC_INVALID_PARAMS,
-                strprintf("Fee symbol is %s, but expect %s", fee.symbol, GetFeeSymbolSetStr()));
-
-        uint64_t minFee;
-        if (!GetTxMinFee(txType, chainActive.Height(), fee.symbol, minFee))
-            throw JSONRPCError(RPC_INVALID_PARAMS,
-                strprintf("Can not find the min tx fee! symbol=%s", fee.symbol));
-        if (fee.GetAmountInSawi() < minFee)
-            throw JSONRPCError(RPC_INVALID_PARAMS,
-                strprintf("The given fee is too small: %llu < %llu sawi", fee.amount, minFee));
-    } else {
-        uint64_t minFee;
-        if (!GetTxMinFee(txType, chainActive.Height(), SYMB::WICC, minFee))
-            throw JSONRPCError(RPC_INVALID_PARAMS,
-                strprintf("Can not find the min tx fee! symbol=%s", SYMB::WICC));
-        fee.symbol = SYMB::WICC;
-        fee.amount = minFee;
-        fee.unit = COIN_UNIT::SAWI;
-    }
-
+    uint64_t minFee;
+    ParseTxFee(params, index, txType, fee, minFee);
+    if (fee.GetAmountInSawi() < minFee)
+        throw JSONRPCError(RPC_INVALID_PARAMS,
+            strprintf("The given fee is too small: %llu < %llu sawi", fee.amount, minFee));
     return fee;
 }
 

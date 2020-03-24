@@ -176,11 +176,13 @@ inline TokenSymbol GetCdpScoinByQuoteSymbol(const TokenSymbol &quoteSymbol) {
 }
 
 struct ComboMoney {
-    TokenSymbol     symbol;     //E.g. WICC
-    uint64_t        amount;
-    CoinUnitName    unit;       //E.g. sawi
+    TokenSymbol     symbol = SYMB::WICC;     //E.g. WICC
+    uint64_t        amount = 0;
+    CoinUnitName    unit = 0;       //E.g. sawi
 
-    ComboMoney() : symbol(SYMB::WICC), amount(0), unit(COIN_UNIT::SAWI){};
+    ComboMoney() {};
+    ComboMoney(const TokenSymbol &symbolIn, uint64_t amountIn, const CoinUnitName &unit)
+        : symbol(symbolIn), amount(amountIn), unit(unit){};
 
     uint64_t GetAmountInSawi() const {
         auto it = CoinUnitTypeMap.find(unit);

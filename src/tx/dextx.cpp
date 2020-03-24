@@ -50,9 +50,9 @@ namespace dex {
                 if (stakedAmount > 0) {
                     minFee = std::max(std::min(COIN * COIN / stakedAmount, minFee), (uint64_t)1);
                 }
-                if (baseTx.llFees < minFee){
-                    string err = strprintf("The given fee is too small: %llu < %llu sawi when wicc staked_amount=%llu",
-                        baseTx.llFees, minFee, stakedAmount);
+                if (totalFees < minFee){
+                    string err = strprintf("The given fees is too small: %llu < %llu sawi when wicc staked_amount=%llu",
+                        totalFees, minFee, stakedAmount);
                     return context.pState->DoS(100, ERRORMSG("%s, tx=%s, height=%d, fee_symbol=%s",
                         err, baseTx.GetTxTypeName(), context.height, baseTx.fee_symbol), REJECT_INVALID, err);
                 }
