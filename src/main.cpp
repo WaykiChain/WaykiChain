@@ -1864,17 +1864,16 @@ bool CheckBlock(const CBlock &block, CValidationState &state, CCacheWrapper &cw,
     // but catching it earlier avoids a potential DoS attack:
     set<uint256> uniqueTxSet;
     uint32_t priceMedianTxCount = 0;
-    if (block.GetHeight() != 0) {
-        for (uint32_t i = 0; i < block.vptx.size(); i++) {
-            uniqueTxSet.insert(block.GetTxid(i));
-            if (i > 0 && block.vptx[i]->IsBlockRewardTx())
-                return state.DoS(100, ERRORMSG("CheckBlock() : more than one block reward tx"), REJECT_INVALID,
-                                "bad-block-reward-tx-multiple");
+    for (uint32_t i = 0; i < block.vptx.size(); i++) {
+        uniqueTxSet.insert(block.GetTxid(i));
+        if (i > 0 && block.vptx[i]->IsBlockRewardTx())
+            return state.DoS(100, ERRORMSG("CheckBlock() : more than one block reward tx"), REJECT_INVALID,
+                            "bad-block-reward-tx-multiple");
 
-            if (block.vptx[i]->IsPriceMedianTx())
-                priceMedianTxCount++;
-        }
+        if (block.vptx[i]->IsPriceMedianTx())
+            priceMedianTxCount++;
     }
+
 
     // In stable coin release, every block should have one price median tx only.
     if (GetFeatureForkVersion(block.GetHeight()) >= MAJOR_VER_R2 && priceMedianTxCount != 1)
