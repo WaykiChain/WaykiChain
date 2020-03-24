@@ -189,6 +189,7 @@ public:
 
     bool CheckBaseTx(CTxExecuteContext &context);
     virtual bool CheckTx(CTxExecuteContext &context) = 0;
+
     virtual bool ExecuteTx(CTxExecuteContext &context) = 0;
 
     bool IsValidHeight(int32_t nCurHeight, int32_t nTxCacheHeight) const;
