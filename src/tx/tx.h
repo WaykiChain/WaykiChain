@@ -203,6 +203,10 @@ public:
 
     const string& GetTxTypeName() const { return ::GetTxTypeName(nTxType); }
 
+    bool CheckAndExecuteTx(CTxExecuteContext& context) {
+        return CheckBaseTx(context)&& CheckTx(context) && ExecuteTx(context);
+    }
+
 public:
     static unsigned int GetSerializePtrSize(const std::shared_ptr<CBaseTx> &pBaseTx, int nType, int nVersion){
         return pBaseTx->GetSerializeSize(nType, nVersion) + 1;

@@ -540,7 +540,7 @@ bool CCoinUtxoPasswordProofTx::ExecuteTx(CTxExecuteContext &context) {
         return state.DoS(100, ERRORMSG("%s(), save tx account info failed! txuid=%s",
                                        __func__, txUid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-write-accountdb");
 
-    CRegIDKey regIdKey(txUid.get<CRegID>());
+    CRegIDKey regIdKey(srcAccount.regid);
     if (!cw.txUtxoCache.SetUtxoPasswordProof(std::make_tuple(utxo_txid, CFixedUInt16(utxo_vout_index), regIdKey), password_proof))
         return state.DoS(100, ERRORMSG("CCoinUtxoTransferTx::ExecuteTx, bad saving utxo proof",
                         txUid.ToString()), READ_ACCOUNT_FAIL, "bad-save-utxo-passwordproof");
