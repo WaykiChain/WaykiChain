@@ -112,7 +112,7 @@ public:
 
     CTxExecuteContext(const int32_t heightIn, const int32_t indexIn, const uint32_t fuelRateIn,
                       const uint32_t blockTimeIn, const uint32_t preBlockTimeIn,
-                      CCacheWrapper *pCwIn, CValidationState *pStateIn, 
+                      CCacheWrapper *pCwIn, CValidationState *pStateIn,
                       const TxExecuteContextType contextType = TxExecuteContextType::CONNECT_BLOCK)
         : height(heightIn),
           index(indexIn),
@@ -214,7 +214,7 @@ public:
 
     template<typename Stream>
     static void UnserializePtr(Stream& is, std::shared_ptr<CBaseTx> &pBaseTx, int nType, int nVersion);
-
+    bool GetTxAccount(CTxExecuteContext &context, CAccount &account);
     bool CheckFee(CTxExecuteContext &context, function<bool(CTxExecuteContext&, uint64_t)> = nullptr) const;
     bool CheckMinFee(CTxExecuteContext &context, uint64_t minFee) const;
 

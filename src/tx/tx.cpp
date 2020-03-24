@@ -115,7 +115,8 @@ bool CBaseTx::CheckBaseTx(CTxExecuteContext &context) {
     }
 
     CAccount txAccount;
-    bool foundAccount = cw.accountCache.GetAccount(txUid, txAccount);
+    if (!GetTxAccount(context, txAccount))
+        return false; // error msg has been processed
 
     { //1. Tx signature check
         bool signatureValid = false;
@@ -126,11 +127,6 @@ bool CBaseTx::CheckBaseTx(CTxExecuteContext &context) {
             if (txUid.is<CPubKey>()) {
                 pubKey = txUid.get<CPubKey>();
             } else {
-                if (!foundAccount) {
-                    return state.DoS(100, ERRORMSG("CheckBaseTx::CheckTx, read txUid %s account info error",
-                                txUid.ToString()), READ_ACCOUNT_FAIL, "bad-read-accountdb");
-                }
-
                 if (txAccount.perms_sum == 0) {
                     return state.DoS(100, ERRORMSG("CheckBaseTx::CheckTx, perms_sum is zero error: txUid %s",
                                 txUid.ToString()), READ_ACCOUNT_FAIL, "bad-tx-sign");
@@ -241,6 +237,15 @@ bool CBaseTx::AddInvolvedKeyIds(vector<CUserID> uids, CCacheWrapper &cw, set<CKe
     return true;
 }
 
+bool CBaseTx::GetTxAccount(CTxExecuteContext &context, CAccount &account) {
+
+    if (!context.pCw->accountCache.GetAccount(txUid, account)) {
+        return context.pState->DoS(100, ERRORMSG("%s(), tx %s account dos not exist, tx_uid=%s",
+            __func__, GetTxTypeName(), txUid.ToString()),
+            REJECT_INVALID, "tx-account-not-exist");
+    }
+    return true;
+}
 
 bool CBaseTx::CheckFee(CTxExecuteContext &context, function<bool(CTxExecuteContext&, uint64_t)> minFeeChecker) const {
     // check fee value range
