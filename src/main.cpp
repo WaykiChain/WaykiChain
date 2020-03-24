@@ -993,7 +993,7 @@ static bool ComputeVoteStakingInterestAndRevokeVotes(const int32_t currHeight, c
     return true;
 }
 
-bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValidationState &state) {
+bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValidationState &state, bool fJustCheck) {
     AssertLockHeld(cs_main);
 
     bool isGensisBlock = (block.GetHeight() == 0) && (block.GetHash() == SysCfg().GetGenesisBlockHash());
@@ -1812,7 +1812,7 @@ bool ProcessForkedChain(const CBlock &block, CBlockIndex *pPreBlockIndex, CValid
             LogPrint(BCLog::INFO, "ProcessForkedChain() : ConnectBlock block height=%d hash=%s\n", rIter->GetHeight(),
                     rIter->GetHash().GetHex());
 
-            if (!ConnectBlock(*rIter, *spNewForkCW, mapBlockIndex[rIter->GetHash()], state)) {
+            if (!ConnectBlock(*rIter, *spNewForkCW, mapBlockIndex[rIter->GetHash()], state, false)) {
                 return ERRORMSG("ProcessForkedChain() : ConnectBlock %s failed", rIter->GetHash().ToString());
             }
 
@@ -1841,7 +1841,7 @@ bool ProcessForkedChain(const CBlock &block, CBlockIndex *pPreBlockIndex, CValid
     return true;
 }
 
-bool CheckBlock(const CBlock &block, CValidationState &state, CCacheWrapper &cw, bool fCheckMerkleRoot) {
+bool CheckBlock(const CBlock &block, CValidationState &state, CCacheWrapper &cw, bool fCheckTx, bool fCheckMerkleRoot) {
     if (block.vptx.empty() || block.vptx.size() > MAX_BLOCK_SIZE ||
         ::GetSerializeSize(block, SER_NETWORK, PROTOCOL_VERSION) > MAX_BLOCK_SIZE)
         return state.DoS(100, ERRORMSG("CheckBlock() : size limits failed"), REJECT_INVALID, "bad-blk-length");
@@ -2406,7 +2406,7 @@ bool VerifyDB(int32_t nCheckLevel, int32_t nCheckDepth) {
                 return ERRORMSG("VerifyDB() : *** ReadBlockFromDisk failed at %d, hash=%s",
                                 pIndex->height, pIndex->GetBlockHash().ToString());
 
-            if (!ConnectBlock(block, *spCW, pIndex, state))
+            if (!ConnectBlock(block, *spCW, pIndex, state, false))
                 return ERRORMSG("VerifyDB() : *** found un-connectable block at %d, hash=%s",
                                 pIndex->height, pIndex->GetBlockHash().ToString());
         }

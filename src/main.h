@@ -217,7 +217,7 @@ protected:
  *  of problems. Note that in any case, coins may be modified. */
 bool DisconnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValidationState &state, bool *pfClean = nullptr);
 // Apply the effects of this block (with given index) on the UTXO set represented by coins
-bool ConnectBlock   (CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValidationState &state);
+bool ConnectBlock   (CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValidationState &state, bool fJustCheck = false);
 
 // Add this block to the block index, and if necessary, switch the active block chain to this
 bool AddToBlockIndex(CBlock &block, CValidationState &state, const CDiskBlockPos &pos);
