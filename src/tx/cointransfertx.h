@@ -74,9 +74,9 @@ public:
     CCoinTransferTx(const CUserID &txUidIn, vector<SingleTransfer> transfersIn, const int32_t validHeightIn,
                     const TokenSymbol &feeSymbol, const uint64_t feesIn, const string &memoIn)
         : CBaseTx(UCOIN_TRANSFER_TX, txUidIn, validHeightIn, feeSymbol, feesIn), transfers(transfersIn),
-          memo(memoIn) {}
+          memo(memoIn) {};
 
-    ~CCoinTransferTx() {}
+    ~CCoinTransferTx() {};
 
     IMPLEMENT_SERIALIZE(
         READWRITE(VARINT(this->nVersion));
