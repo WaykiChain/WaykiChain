@@ -147,3 +147,7 @@ void CDelegateDBCache::Clear() {
     pending_delegates_cache.Clear();
     active_delegates_cache.Clear();
 }
+
+shared_ptr<CTopDelegatesIterator> CDelegateDBCache::CreateTopDelegateIterator() {
+    return make_shared<CTopDelegatesIterator>(voteRegIdCache);
+}
