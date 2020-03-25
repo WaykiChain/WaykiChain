@@ -178,7 +178,7 @@ inline TokenSymbol GetCdpScoinByQuoteSymbol(const TokenSymbol &quoteSymbol) {
 struct ComboMoney {
     TokenSymbol     symbol = SYMB::WICC;     //E.g. WICC
     uint64_t        amount = 0;
-    CoinUnitName    unit = 0;       //E.g. sawi
+    CoinUnitName    unit = "";       //E.g. sawi
 
     ComboMoney() {};
     ComboMoney(const TokenSymbol &symbolIn, uint64_t amountIn, const CoinUnitName &unit)
