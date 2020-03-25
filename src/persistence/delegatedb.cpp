@@ -64,7 +64,7 @@ int32_t CDelegateDBCache::GetLastVoteHeight() {
     CVarIntValue<uint32_t> height;
     if (last_vote_height_cache.GetData(height))
             return (int32_t)(height.get());
-    return 0 ;
+    return 0;
 }
 
 bool CDelegateDBCache::SetLastVoteHeight(int32_t height) {
@@ -81,11 +81,11 @@ bool CDelegateDBCache::SetPendingDelegates(const PendingDelegates &delegates) {
 
 }
 uint32_t CDelegateDBCache::GetActivedDelegateNum() {
-    VoteDelegateVector dv ;
-    if(GetActiveDelegates(dv)){
-        return dv.size() ;
+    VoteDelegateVector dv;
+    if (GetActiveDelegates(dv)){
+        return dv.size();
     }
-    return 11 ;
+    return 11;
 }
 
 bool CDelegateDBCache::IsActiveDelegate(const CRegID &regid) {
@@ -99,7 +99,7 @@ bool CDelegateDBCache::GetActiveDelegate(const CRegID &regid, VoteDelegate &vote
     if (!GetActiveDelegates(delegates))
         return false;
 
-    auto it = std::find_if(delegates.begin(), delegates.end(), [&regid](const VoteDelegate &item){
+    auto it = std::find_if (delegates.begin(), delegates.end(), [&regid](const VoteDelegate &item){
         return item.regid == regid;
     });
     if (it == delegates.end()) {
@@ -111,10 +111,10 @@ bool CDelegateDBCache::GetActiveDelegate(const CRegID &regid, VoteDelegate &vote
 
 bool CDelegateDBCache::GetActiveDelegates(VoteDelegateVector &voteDelegates) {
      bool res =  active_delegates_cache.GetData(voteDelegates);
-     if(res){
+     if (res){
          assert(voteDelegates.size() != 0 );
      }
-     return res ;
+     return res;
 }
 
 bool CDelegateDBCache::SetActiveDelegates(const VoteDelegateVector &voteDelegates) {
