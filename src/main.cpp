@@ -1077,7 +1077,7 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
 
             uint32_t prevBlockTime = pIndex->pprev != nullptr ? pIndex->pprev->GetBlockTime() : pIndex->GetBlockTime();
             CTxExecuteContext context(pIndex->height, index, fuelRate, pIndex->nTime, prevBlockTime, &cw, &state);
-            if (!pBaseTx->CheckBaseTx(context) || !pBaseTx->CheckTx(context) || !pBaseTx->ExecuteTx(context)) {
+            if (!pBaseTx->CheckAndExecuteTx(context)) {
                 pCdMan->pLogCache->SetExecuteFail(pIndex->height, pBaseTx->GetHash(), state.GetRejectCode(), state.GetRejectReason());
                 return state.DoS(100, ERRORMSG("ConnectBlock() : txid=%s check/execute failed, in detail: %s",
                                  pBaseTx->GetHash().GetHex(), pBaseTx->ToString(cw.accountCache)), REJECT_INVALID, "tx-execute-failed");

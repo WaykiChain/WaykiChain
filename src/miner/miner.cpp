@@ -337,7 +337,7 @@ static bool CreateNewBlockForPreStableCoinRelease(CCacheWrapper &cwIn, std::uniq
                 CTxExecuteContext context(height, index + 1, fuelRate, blockTime, prevBlockTime, spCW.get(), &state,
                                         TxExecuteContextType::PRODUCE_BLOCK);
 
-                if (!pBaseTx->CheckBaseTx(context) || !pBaseTx->CheckTx(context) || !pBaseTx->ExecuteTx(context)) {
+                if (!pBaseTx->CheckAndExecuteTx(context)) {
                     LogPrint(BCLog::MINER, "CreateNewBlockForPreStableCoinRelease() : Check/ExecuteTx failed, txid: %s\n",
                             pBaseTx->GetHash().GetHex());
 
@@ -493,7 +493,7 @@ static bool CreateNewBlockForStableCoinRelease(int64_t startMiningMs, CCacheWrap
                 CTxExecuteContext context(height, index + 1, fuelRate, blockTime, prevBlockTime, spCW.get(), &state,
                                         TxExecuteContextType::PRODUCE_BLOCK);
 
-                if (!pBaseTx->CheckBaseTx(context) || !pBaseTx->CheckTx(context) || !pBaseTx->ExecuteTx(context)) {
+                if (!pBaseTx->CheckAndExecuteTx(context)) {
                     LogPrint(BCLog::MINER, "CreateNewBlockForStableCoinRelease() : failed to check/exec tx: %s\n",
                              pBaseTx->ToString(spCW->accountCache));
 

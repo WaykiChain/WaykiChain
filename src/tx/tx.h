@@ -204,7 +204,7 @@ public:
     const string& GetTxTypeName() const { return ::GetTxTypeName(nTxType); }
 
     bool CheckAndExecuteTx(CTxExecuteContext& context) {
-        return CheckBaseTx(context)&& CheckTx(context) && ExecuteTx(context);
+        return CheckBaseTx(context) && CheckTx(context) && ExecuteTx(context);
     }
 
 public:
