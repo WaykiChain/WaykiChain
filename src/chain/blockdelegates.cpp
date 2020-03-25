@@ -48,8 +48,7 @@ static bool GenPendingDelegates(CBlock &block, uint32_t delegateNum, CCacheWrapp
         return true;
     }
 
-    LogPrint(BCLog::DELEGATE, "%s, gen new pending delegates={%s}\n",
-                __func__, topVoteDelegates.size(), pendingDelegates.ToString());
+    LogPrint(BCLog::DELEGATE, "%s, gen new pending delegates={%s}\n", __func__, pendingDelegates.ToString());
     pendingDelegates.state = VoteDelegateState::PENDING;
     return true;
 }

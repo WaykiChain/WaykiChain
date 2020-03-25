@@ -31,13 +31,9 @@ public:
     typedef CDbIterator<CVoteRegIdCache> Base;
     using Base::Base;
 
-    uint64_t GetVote() const {
-        return GetKey().first.value;
-    }
+    uint64_t GetVote() const;
 
-    const CRegID &GetRegid() const {
-        return GetKey().second.regid;
-    }
+    const CRegID &GetRegid() const;
 };
 
 class CDelegateDBCache {

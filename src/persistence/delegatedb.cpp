@@ -10,6 +10,24 @@
 
 static const int BP_DELEGATE_VOTE_MIN = 21000;
 
+inline static CFixedUInt64 DelegateVoteToKey(uint64_t votes) {
+    static_assert(ULONG_MAX == 0xFFFFFFFFFFFFFFFF, "ULONG_MAX == 0xFFFFFFFFFFFFFFFF");
+    return CFixedUInt64(ULONG_MAX - votes);
+}
+
+inline static uint64_t DelegateVoteFromKey(const CFixedUInt64 &voteKey) {
+    static_assert(ULONG_MAX == 0xFFFFFFFFFFFFFFFF, "ULONG_MAX == 0xFFFFFFFFFFFFFFFF");
+    return ULONG_MAX - voteKey.value;
+}
+
+uint64_t CTopDelegatesIterator::GetVote() const {
+    return DelegateVoteFromKey(GetKey().first);
+}
+
+const CRegID &CTopDelegatesIterator::GetRegid() const {
+    return GetKey().second.regid;
+}
+
 bool CDelegateDBCache::GetTopVoteDelegates(uint32_t delegateNum, uint64_t delegateVoteMin,
                                            VoteDelegateVector &topVoteDelegates) {
 
@@ -42,8 +60,7 @@ bool CDelegateDBCache::SetDelegateVotes(const CRegID &regId, const uint64_t vote
     if (regId.IsEmpty()) {
         return true;
     }
-    static_assert(ULONG_MAX == 0xFFFFFFFFFFFFFFFF, "ULONG_MAX == 0xFFFFFFFFFFFFFFFF");
-    auto key = std::make_pair(CFixedUInt64(ULONG_MAX - votes), CRegIDKey(regId));
+    auto key = std::make_pair(DelegateVoteToKey(votes), CRegIDKey(regId));
     return voteRegIdCache.SetData(key, 1);
 }
 
@@ -52,9 +69,7 @@ bool CDelegateDBCache::EraseDelegateVotes(const CRegID &regId, const uint64_t vo
     if (regId.IsEmpty()) {
         return true;
     }
-
-    static_assert(ULONG_MAX == 0xFFFFFFFFFFFFFFFF, "ULONG_MAX == 0xFFFFFFFFFFFFFFFF");
-    auto key = std::make_pair(CFixedUInt64(ULONG_MAX - votes), CRegIDKey(regId));
+    auto key = std::make_pair(DelegateVoteToKey(votes), CRegIDKey(regId));
 
     return voteRegIdCache.EraseData(key);
 }
