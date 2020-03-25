@@ -57,7 +57,8 @@ public:
         pending_delegates_cache(pBaseIn->pending_delegates_cache),
         active_delegates_cache(pBaseIn->active_delegates_cache) {}
 
-    bool GetTopVoteDelegates(uint32_t delegateNum, VoteDelegateVector &topVotedDelegates);
+    bool GetTopVoteDelegates(uint32_t delegateNum, uint64_t delegateVoteMin,
+                             VoteDelegateVector &topVoteDelegates);
 
     bool SetDelegateVotes(const CRegID &regid, const uint64_t votes);
     bool EraseDelegateVotes(const CRegID &regid, const uint64_t votes);

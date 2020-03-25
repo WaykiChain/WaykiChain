@@ -21,38 +21,11 @@ static std::string ToString(const VoteDelegateVector &activeDelegates) {
 
 static const int BP_DELEGATE_VOTE_MIN = 21000;
 
-static bool GetTopVoteDelegates(CCacheWrapper &cw, uint32_t delegateNum, VoteDelegateVector &topVoteDelegates) {
-
-    topVoteDelegates.clear();
-    topVoteDelegates.reserve(delegateNum);
-    auto spIt = cw.delegateCache.CreateTopDelegateIterator();
-    for (spIt->First(); spIt->IsValid() && topVoteDelegates.size() <= delegateNum; spIt->Next()) {
-        uint64_t vote = spIt->GetVote();
-        if (vote < BP_DELEGATE_VOTE_MIN) {
-            LogPrint(BCLog::ERROR, "[WARNING] %s, the %lluTH delegate vote=%llu less than %llu!"
-                     " dest_delegate_num=%d\n",
-                     __func__, topVoteDelegates.size(), BP_DELEGATE_VOTE_MIN, delegateNum);
-            break;
-        }
-        topVoteDelegates.emplace_back(spIt->GetRegid(), spIt->GetVote());
-    }
-    if (topVoteDelegates.empty())
-        return ERRORMSG("[WARNING] %s, topVoteDelegates is empty! dest_delegate_num=%d\n",
-                    __func__, delegateNum);
-    if (topVoteDelegates.size() != delegateNum) {
-        LogPrint(BCLog::INFO, "[WARNING] %s, the top delegates size=%d is less than"
-                    " specified_delegate_num=%d\n",
-                    __func__, topVoteDelegates.size(), BP_DELEGATE_VOTE_MIN, delegateNum);
-    }
-    return true;
-}
-
-
 static bool GenPendingDelegates(CBlock &block, uint32_t delegateNum, CCacheWrapper &cw, PendingDelegates &pendingDelegates) {
 
     pendingDelegates.counted_vote_height = block.GetHeight();
     VoteDelegateVector topVoteDelegates;
-    if (!GetTopVoteDelegates(cw, delegateNum, topVoteDelegates)) {
+    if (!cw.delegateCache.GetTopVoteDelegates(delegateNum, BP_DELEGATE_VOTE_MIN, topVoteDelegates)) {
         LogPrint(BCLog::INFO, "[WARNING] %s, GetTopVoteDelegates() failed! no need to update pending delegates! "
                 "block=%d:%s, delegate_num=%d\n",
                 __FUNCTION__, block.GetHeight(), block.GetHash().ToString(), delegateNum);

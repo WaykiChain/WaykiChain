@@ -7,21 +7,36 @@
 
 #include "config/configuration.h"
 
-bool CDelegateDBCache::GetTopVoteDelegates(uint32_t delegateNum ,VoteDelegateVector &topVotedDelegates) {
 
-    // votes{(uint64t)MAX - $votedBcoins}{$RegId} --> 1
-    set<decltype(voteRegIdCache)::KeyType> topKeys;
-    voteRegIdCache.GetTopNElements(delegateNum, topKeys);
+static const int BP_DELEGATE_VOTE_MIN = 21000;
 
-    for (const auto &key : topKeys) {
-        const auto &votesKey = std::get<0>(key);
-        const CRegIDKey &regIdKey = std::get<1>(key);
-        VoteDelegate votedDelegate;
-        votedDelegate.regid = regIdKey.regid;
-        votedDelegate.votes = ULONG_MAX - votesKey.value;
-        topVotedDelegates.push_back(votedDelegate);
+bool CDelegateDBCache::GetTopVoteDelegates(uint32_t delegateNum, uint64_t delegateVoteMin,
+                                           VoteDelegateVector &topVoteDelegates) {
+
+    topVoteDelegates.clear();
+    topVoteDelegates.reserve(delegateNum);
+    auto spIt = CreateTopDelegateIterator();
+    for (spIt->First(); spIt->IsValid() && topVoteDelegates.size() <= delegateNum; spIt->Next()) {
+        uint64_t vote = spIt->GetVote();
+        if (vote < BP_DELEGATE_VOTE_MIN) {
+            LogPrint(BCLog::ERROR, "[WARNING] %s, the %lluTH delegate vote=%llu less than %llu!"
+                     " dest_delegate_num=%d\n",
+                     __func__, topVoteDelegates.size(), BP_DELEGATE_VOTE_MIN, delegateNum);
+            break;
+        }
+        topVoteDelegates.emplace_back(spIt->GetRegid(), spIt->GetVote());
     }
-
+    if (topVoteDelegates.empty())
+        return ERRORMSG("[WARNING] %s, topVoteDelegates is empty! dest_delegate_num=%d\n",
+                    __func__, delegateNum);
+    if (topVoteDelegates.size() != delegateNum) {
+        LogPrint(BCLog::INFO, "[WARNING] %s, the top delegates size=%d is less than"
+                    " specified_delegate_num=%d\n",
+                    __func__, topVoteDelegates.size(), BP_DELEGATE_VOTE_MIN, delegateNum);
+        while (topVoteDelegates.size() < delegateNum) {
+            topVoteDelegates.push_back(VoteDelegate());
+        }
+    }
     return true;
 }
 
