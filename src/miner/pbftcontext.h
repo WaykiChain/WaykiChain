@@ -91,7 +91,6 @@ public:
 
 class CPBFTContext {
 
-
 public:
 
     CPBFTMessageMan<CBlockConfirmMessage> confirmMessageMan;

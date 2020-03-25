@@ -580,12 +580,8 @@ bool CGovAxcOutProposal::CheckProposal(CTxExecuteContext& context ) {
         return state.DoS(100, ERRORMSG("CGovAxcOutProposal::CheckProposal: self_chain_token_symbol=%s is invalid",
                                        self_chain_token_symbol), REJECT_INVALID, "self_chain_token_symbol-not-valid");
     }
-    ChainType  peer_chain_type = coinPair.peer_chain_type;
 
-    if ((kXChainSwapOutTokenMap.find(self_chain_token_symbol) == kXChainSwapOutTokenMap.end())
-        && !cw.assetCache.CheckAsset(self_chain_token_symbol, AssetPermType::PERM_XCHAIN_SWAP))
-        return state.DoS(100, ERRORMSG("CGovAxcOutProposal::CheckProposal: self_chain_token_symbol=%s is invalid",
-                                        self_chain_token_symbol), REJECT_INVALID, "self_chain_token_symbol-not-valid");
+    ChainType  peer_chain_type = coinPair.peer_chain_type;
 
     if ((peer_chain_type == ChainType::BITCOIN && (peer_chain_addr.size() < 26 || peer_chain_addr.size() > 35)) ||
         (peer_chain_type == ChainType::ETHEREUM && (peer_chain_addr.size() > 42)))

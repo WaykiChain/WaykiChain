@@ -91,10 +91,10 @@ static const unordered_map<SysParamType, std::pair<uint64_t, uint64_t>, SysParam
     { DEX_OPERATOR_REGISTER_FEE,                 RANGE(0,0)        },  // dex operator register fee = 1100 WICC
     { DEX_OPERATOR_UPDATE_FEE,                   RANGE(0,0)        },  // dex operator update fee = 110 WICC
     { PROPOSAL_EXPIRE_BLOCK_COUNT,               RANGE(0,0)        },  //
-    { TRANSFER_SCOIN_RESERVE_FEE_RATIO,          RANGE(0,10000)        },  // WUSD friction fee to risk reserve
+    { TRANSFER_SCOIN_RESERVE_FEE_RATIO,          RANGE(0,10000)    },  // WUSD friction fee to risk reserve
     { ASSET_RISK_FEE_RATIO,                      RANGE(0,10000)    },
     { DEX_OPERATOR_RISK_FEE_RATIO,               RANGE(0,10000)    },
-    { AXC_SWAP_FEE_RATIO,                        RANGE(0,1000)      }    //max 10%
+    { AXC_SWAP_FEE_RATIO,                        RANGE(0,1000)     }    //max 10%
 
 };
 
