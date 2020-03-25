@@ -57,7 +57,7 @@ bool CDelegateDBCache::GetTopVoteDelegates(uint32_t delegateNum, uint64_t delega
 
 bool CDelegateDBCache::SetDelegateVotes(const CRegID &regId, const uint64_t votes) {
     // If CRegID is empty, ignore received votes for forward compatibility.
-    if (regId.IsEmpty()) {
+    if (regId.IsEmpty() || votes == 0) {
         return true;
     }
     auto key = std::make_pair(DelegateVoteToKey(votes), CRegIDKey(regId));
@@ -66,7 +66,7 @@ bool CDelegateDBCache::SetDelegateVotes(const CRegID &regId, const uint64_t vote
 
 bool CDelegateDBCache::EraseDelegateVotes(const CRegID &regId, const uint64_t votes) {
     // If CRegID is empty, ignore received votes for forward compatibility.
-    if (regId.IsEmpty()) {
+    if (regId.IsEmpty() || votes == 0) {
         return true;
     }
     auto key = std::make_pair(DelegateVoteToKey(votes), CRegIDKey(regId));
@@ -78,8 +78,9 @@ bool CDelegateDBCache::EraseDelegateVotes(const CRegID &regId, const uint64_t vo
 int32_t CDelegateDBCache::GetLastVoteHeight() {
     CVarIntValue<uint32_t> height;
     if (last_vote_height_cache.GetData(height))
-            return (int32_t)(height.get());
-    return 0;
+        return (int32_t)(height.get());
+    else
+        return 0;
 }
 
 bool CDelegateDBCache::SetLastVoteHeight(int32_t height) {
