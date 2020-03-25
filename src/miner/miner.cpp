@@ -181,7 +181,7 @@ bool VerifyRewardTx(const CBlock *pBlock, CCacheWrapper &cwIn, VoteDelegate &cur
 
     VoteDelegateVector delegates;
     if (!cwIn.delegateCache.GetActiveDelegates(delegates))
-        return false;
+        return ERRORMSG("VerifyRewardTx() : get active delegates failed");
 
     totalDelegateNumOut = delegates.size();
     ShuffleDelegates(pBlock->GetHeight(),pBlock->GetTime(), delegates);
