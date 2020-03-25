@@ -182,12 +182,24 @@ public:
 
     template <typename ID>
     ID& get() {
-        return std::get<ID>(uid);
+        try {
+            return std::get<ID>(uid);
+        } catch (std::exception &e) {
+            ERRORMSG("CUserID::get(%s) exception=%s", typeid(ID).name(), e.what());
+            throw runtime_error(strprintf("CUserID::get(%s) exception=%s",
+                                          typeid(ID).name(), e.what()));
+        }
     }
 
     template <typename ID>
     const ID& get() const {
-        return std::get<ID>(uid);
+        try {
+            return std::get<ID>(uid);
+        } catch (std::exception &e) {
+            ERRORMSG("CUserID::get(%s) exception=%s", typeid(ID).name(), e.what());
+            throw runtime_error(strprintf("CUserID::get(%s) exception=%s",
+                                          typeid(ID).name(), e.what()));
+        }
     }
 
     template <typename ID>

@@ -231,13 +231,12 @@ namespace dex {
                                        ERRORMSG("%s, the coinSymbol=%s is same to assetSymbol=%s",
                                                 TX_ERR_TITLE, coinSymbol, assetSymbol),
                                        REJECT_INVALID, "same-coin-asset-symbol");
-        if (!context.pCw->assetCache.CheckDexBaseSymbol(coinSymbol))
-            return context.pState->DoS(100, ERRORMSG("%s, unsupported dex order coin_symbol=%s", TX_ERR_TITLE, coinSymbol),
-                                    REJECT_INVALID, "unsupported-order-coin-symbol");
-
-        if (!context.pCw->assetCache.CheckDexQuoteSymbol(assetSymbol))
+        if (!context.pCw->assetCache.CheckDexBaseSymbol(assetSymbol))
             return context.pState->DoS(100, ERRORMSG("%s, unsupported dex order asset_symbol=%s", TX_ERR_TITLE, assetSymbol),
                                     REJECT_INVALID, "unsupported-order-asset-symbol");
+        if (!context.pCw->assetCache.CheckDexQuoteSymbol(coinSymbol))
+            return context.pState->DoS(100, ERRORMSG("%s, unsupported dex order coin_symbol=%s", TX_ERR_TITLE, coinSymbol),
+                                    REJECT_INVALID, "unsupported-order-coin-symbol");
         return true;
     }
 
