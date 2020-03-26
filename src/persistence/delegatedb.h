@@ -11,6 +11,7 @@
 #include "entities/vote.h"
 #include "commons/serialize.h"
 #include "dbaccess.h"
+#include "dbiterator.h"
 #include "dbconf.h"
 
 #include <map>
@@ -18,6 +19,22 @@
 #include <vector>
 
 using namespace std;
+
+/*  CCompositeKVCache  prefixType     key                              value                   variable       */
+/*  -------------------- -------------- --------------------------  ----------------------- -------------- */
+    // {vote(MAX - $votedBcoins)}{$RegId} -> 1
+    // vote(MAX - $votedBcoins) save as CFixedUInt64 to ensure that the keys are sorted by vote value from big to small
+typedef CCompositeKVCache<dbk::VOTE,  std::pair<CFixedUInt64, CRegIDKey>,  uint8_t>         CVoteRegIdCache;
+
+class CTopDelegatesIterator: public CDbIterator<CVoteRegIdCache> {
+public:
+    typedef CDbIterator<CVoteRegIdCache> Base;
+    using Base::Base;
+
+    uint64_t GetVote() const;
+
+    const CRegID &GetRegid() const;
+};
 
 class CDelegateDBCache {
 public:
@@ -36,7 +53,8 @@ public:
         pending_delegates_cache(pBaseIn->pending_delegates_cache),
         active_delegates_cache(pBaseIn->active_delegates_cache) {}
 
-    bool GetTopVoteDelegates(uint32_t delegateNum, VoteDelegateVector &topVotedDelegates);
+    bool GetTopVoteDelegates(uint32_t delegateNum, uint64_t delegateVoteMin,
+                             VoteDelegateVector &topVoteDelegates);
 
     bool SetDelegateVotes(const CRegID &regid, const uint64_t votes);
     bool EraseDelegateVotes(const CRegID &regid, const uint64_t votes);
@@ -86,12 +104,14 @@ public:
         pending_delegates_cache.RegisterUndoFunc(undoDataFuncMap);
         active_delegates_cache.RegisterUndoFunc(undoDataFuncMap);
     }
+
+    shared_ptr<CTopDelegatesIterator> CreateTopDelegateIterator();
 public:
 /*  CCompositeKVCache  prefixType     key                              value                   variable       */
 /*  -------------------- -------------- --------------------------  ----------------------- -------------- */
     // {vote(MAX - $votedBcoins)}{$RegId} -> 1
-    // vote(MAX - $votedBcoins) save as CFixedUInt64 to ensure that the keys are sorted by vote value from large to small
-    CCompositeKVCache<dbk::VOTE,       std::pair<CFixedUInt64, CRegIDKey>,  uint8_t>                voteRegIdCache;
+    // vote(MAX - $votedBcoins) save as CFixedUInt64 to ensure that the keys are sorted by vote value from big to small
+    CVoteRegIdCache voteRegIdCache;
 
     CCompositeKVCache<dbk::REGID_VOTE, CRegIDKey,         vector<CCandidateReceivedVote>> regId2VoteCache;
 

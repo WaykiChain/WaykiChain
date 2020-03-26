@@ -40,7 +40,6 @@ enum AssetPermType : uint64_t {
     PERM_DEX_QUOTE      = (1 << 1 ), // as quote symbol of dex trading pair(baseSymbol/quoteSymbol)
     PERM_CDP_BCOIN      = (1 << 2 ), // bcoins must have the perm while stable coins are only hard coded
     PERM_PRICE_FEED     = (1 << 3 ), // as base symbol of price feed coin pair(baseSymbol/quoteSymbol)
-    PERM_XCHAIN_SWAP    = (1 << 4 ),
 
 };
 
@@ -49,8 +48,6 @@ static const unordered_map<uint64_t, string> kAssetPermTitleMap = {
     {   PERM_DEX_QUOTE,     "PERM_DEX_QUOTE"    },
     {   PERM_CDP_BCOIN,     "PERM_CDP_BCOIN"    },
     {   PERM_PRICE_FEED,    "PERM_PRICE_FEED"   },
-    {   PERM_XCHAIN_SWAP,   "PERM_XCHAIN_SWAP"  }
-
 };
 
 
@@ -176,11 +173,13 @@ inline TokenSymbol GetCdpScoinByQuoteSymbol(const TokenSymbol &quoteSymbol) {
 }
 
 struct ComboMoney {
-    TokenSymbol     symbol;     //E.g. WICC
-    uint64_t        amount;
-    CoinUnitName    unit;       //E.g. sawi
+    TokenSymbol     symbol = SYMB::WICC;     //E.g. WICC
+    uint64_t        amount = 0;
+    CoinUnitName    unit = "";       //E.g. sawi
 
-    ComboMoney() : symbol(SYMB::WICC), amount(0), unit(COIN_UNIT::SAWI){};
+    ComboMoney() {};
+    ComboMoney(const TokenSymbol &symbolIn, uint64_t amountIn, const CoinUnitName &unit)
+        : symbol(symbolIn), amount(amountIn), unit(unit){};
 
     uint64_t GetAmountInSawi() const {
         auto it = CoinUnitTypeMap.find(unit);

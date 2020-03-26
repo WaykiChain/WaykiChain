@@ -170,7 +170,7 @@ bool CMulsigTx::ExecuteTx(CTxExecuteContext &context) {
             }
         }
 
-        if (srcAccount.IsMyUid(transfer.to_uid)) {
+        if (srcAccount.IsSelfUid(transfer.to_uid)) {
             if (!srcAccount.OperateBalance(transfer.coin_symbol, ADD_FREE, actualCoinsToSend)) {
                 return state.DoS(100, ERRORMSG("CMulsigTx::ExecuteTx, transfers[%d], failed to add coins in toUid %s account",
                     i, transfer.to_uid.ToDebugString()), UPDATE_ACCOUNT_FAIL, "failed-add-coins");

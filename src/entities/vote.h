@@ -172,6 +172,9 @@ struct VoteDelegate {
     CRegID regid;       // the voted delegate regid
     uint64_t votes = 0;     // the received votes
 
+    VoteDelegate() {}
+    VoteDelegate(const CRegID &regidIn, uint64_t votesIn) : regid(regidIn), votes(votesIn) {}
+
     IMPLEMENT_SERIALIZE(
         READWRITE(regid);
         READWRITE(VARINT(votes));
@@ -241,7 +244,8 @@ struct PendingDelegates {
             delegatesStr += "{" + item.ToString() + "},\n";
         return strprintf("state=%d", (int)state/*TODO:... */) + "," +
                 strprintf("counted_vote_height=%d", counted_vote_height) + ", " +
-                strprintf("top_vote_delegates=[%s]", counted_vote_height);
+                strprintf("delegate_num=%d", top_vote_delegates.size()) + ", " +
+                strprintf("top_vote_delegates=[%s]", delegatesStr);
     }
 };
 

@@ -247,9 +247,9 @@ Object CAccount::ToJsonObj() const {
         Object tokenObj;
         const CAccountToken &token = tokenPair.second;
 
-        uint64_t total_amount = token.free_amount + token.staked_amount + token.frozen_amount 
+        uint64_t total_amount = token.free_amount + token.staked_amount + token.frozen_amount
                                 + token.voted_amount + token.pledged_amount;
-        
+
         if (total_amount == 0)
             continue;
 
@@ -500,7 +500,7 @@ bool CAccount::StakeVoteBcoins(VoteType type, const uint64_t votes) {
     return true;
 }
 
-bool CAccount::IsMyUid(const CUserID &uid) {
+bool CAccount::IsSelfUid(const CUserID &uid) {
     if (uid.is<CKeyID>()) {
         return keyid == uid.get<CKeyID>();
     } else if (uid.is<CRegID>()) {

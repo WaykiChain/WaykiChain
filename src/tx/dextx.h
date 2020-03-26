@@ -375,10 +375,11 @@ namespace dex {
                 READWRITE(VARINT(tx.price));
                 READWRITE(VARINT(tx.dex_id));
                 READWRITE_ENUM(tx.public_mode, uint8_t);
-                READWRITE(tx.memo);
                 READWRITE(VARINT(tx.maker_fee_ratio));
                 READWRITE(VARINT(tx.taker_fee_ratio));
                 READWRITE(tx.operator_uid);
+                READWRITE(VARINT(tx.operator_tx_fee));
+                READWRITE(tx.memo);
             )
         };
 
@@ -387,12 +388,14 @@ namespace dex {
             has_operator_config = true;
         }
 
-        CDEXOperatorOrderTx(const CUserID &txUidIn, int32_t validHeightIn, const TokenSymbol &feeSymbol,
-                            uint64_t fees, OrderType orderTypeIn, OrderSide orderSideIn,
-                            const TokenSymbol &coinSymbolIn, const TokenSymbol &assetSymbolIn,
-                            uint64_t coinAmountIn, uint64_t assetAmountIn, uint64_t priceIn,
-                            DexID dexIdIn, PublicMode publicModeIn, const string &memoIn,
-                            uint64_t makerFeeRatioIn, uint64_t takerFeeRatioIn, const CUserID &operatorUidIn)
+        CDEXOperatorOrderTx(const CUserID &txUidIn, int32_t validHeightIn,
+                            const TokenSymbol &feeSymbol, uint64_t fees, OrderType orderTypeIn,
+                            OrderSide orderSideIn, const TokenSymbol &coinSymbolIn,
+                            const TokenSymbol &assetSymbolIn, uint64_t coinAmountIn,
+                            uint64_t assetAmountIn, uint64_t priceIn, DexID dexIdIn,
+                            PublicMode publicModeIn, uint64_t makerFeeRatioIn,
+                            uint64_t takerFeeRatioIn, const CUserID &operatorUidIn,
+                            uint64_t operatorTxFeeIn, const string &memoIn)
             : CDEXOrderBaseTx(DEX_OPERATOR_ORDER_TX, txUidIn, validHeightIn, feeSymbol, fees) {
             order_type          = orderTypeIn;
             order_side          = orderSideIn;
@@ -408,6 +411,7 @@ namespace dex {
             maker_fee_ratio     = makerFeeRatioIn;
             taker_fee_ratio     = takerFeeRatioIn;
             operator_uid        = operatorUidIn;
+            operator_tx_fee     = operatorTxFeeIn;
         }
 
         IMPLEMENT_SERIALIZE(

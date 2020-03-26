@@ -164,7 +164,7 @@ bool CDEXOperatorRegisterTx::ExecuteTx(CTxExecuteContext &context) {
     }
 
     shared_ptr<CAccount> pOwnerAccount;
-    if (pTxAccount->IsMyUid(data.owner_uid)) {
+    if (pTxAccount->IsSelfUid(data.owner_uid)) {
         pOwnerAccount = pTxAccount;
     } else {
         pOwnerAccount = make_shared<CAccount>();
@@ -173,7 +173,7 @@ bool CDEXOperatorRegisterTx::ExecuteTx(CTxExecuteContext &context) {
                 data.owner_uid.ToDebugString()), REJECT_INVALID, "owner-account-not-exist");
     }
     shared_ptr<CAccount> pMatchAccount;
-    if (!pTxAccount->IsMyUid(data.fee_receiver_uid) && !pOwnerAccount->IsMyUid(data.fee_receiver_uid)) {
+    if (!pTxAccount->IsSelfUid(data.fee_receiver_uid) && !pOwnerAccount->IsSelfUid(data.fee_receiver_uid)) {
         if (!cw.accountCache.HasAccount(data.fee_receiver_uid))
             return state.DoS(100, ERRORMSG("CDEXOperatorRegisterTx::ExecuteTx, get match account failed! fee_receiver_uid=%s",
                 data.fee_receiver_uid.ToDebugString()), REJECT_INVALID, "match-account-not-exist");
@@ -369,7 +369,7 @@ bool CDEXOperatorUpdateTx::ExecuteTx(CTxExecuteContext &context) {
                                        update_data.dexId), UPDATE_ACCOUNT_FAIL, "dexoperator-not-exist");
     }
 
-    if (!pTxAccount->IsMyUid(oldDetail.owner_regid)) {
+    if (!pTxAccount->IsSelfUid(oldDetail.owner_regid)) {
         return state.DoS(100, ERRORMSG("CDEXOperatorUpdateTx::ExecuteTx, only owner can update dexoperator!， owner_regid=%s, txUid=%s, dexId=%u",
                                        oldDetail.owner_regid.ToString(),txUid.ToString(), update_data.dexId),
                                                UPDATE_ACCOUNT_FAIL, "dexoperator-update-permession-deny");
