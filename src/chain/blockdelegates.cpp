@@ -65,7 +65,7 @@ bool chain::ProcessBlockDelegates(CBlock &block, CCacheWrapper &cw, CValidationS
         activateDelegateInterval = ACTIVATE_DELEGATE_DELAY_AFTER_V3;
     } else {
         countVoteInterval = COUNT_VOTE_INTERVAL_BEFORE_V3;
-        activateDelegateInterval = COUNT_VOTE_INTERVAL_AFTER_V3;
+        activateDelegateInterval = ACTIVATE_DELEGATE_DELAY_BEFORE_V3;
     }
 
     PendingDelegates pendingDelegates;

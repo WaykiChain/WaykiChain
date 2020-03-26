@@ -151,14 +151,22 @@ bool CGovBpMcListProposal::ExecuteProposal(CTxExecuteContext& context, const TxI
 
 
 bool CGovBpSizeProposal:: CheckProposal(CTxExecuteContext& context ) {
-    CValidationState& state = *context.pState;
+
+    IMPLEMENT_DEFINE_CW_STATE;
 
     if (total_bps_size == 0) //total_bps_size > BP_MAX_COUNT: always false
         return state.DoS(100, ERRORMSG("CGovBpSizeProposal::CheckProposal, total_bps_size must be between 1 and 255"),
                          REJECT_INVALID,"bad-bp-count");
 
-    if (effective_height < (uint32_t) context.height + GOVERN_EFFECTIVE_AFTER_BLOCK_COUNT)
-        return state.DoS(100, ERRORMSG("CGovBpSizeProposal::CheckProposal: effective_height must be >= current height + 3600"),
+    uint64_t  effective_after_block_count;
+
+    if(!cw.sysParamCache.GetParam(SysParamType::BPSSIZE_EFFECTIVE_AFTER_BLOCK_COUNT, effective_after_block_count)) {
+        return state.DoS(100, ERRORMSG("CGovBpSizeProposal::CheckProposal: effective_height get error"),
+                         REJECT_INVALID,"bad-read-effective-height");
+
+    }
+    if (effective_height < (uint32_t) context.height + effective_after_block_count)
+        return state.DoS(100, ERRORMSG("CGovBpSizeProposal::CheckProposal: effective_height must be >= current height + %d", effective_after_block_count),
                          REJECT_INVALID,"bad-effective-height");
 
     return true;
@@ -276,7 +284,6 @@ bool CGovCoinTransferProposal:: ExecuteProposal(CTxExecuteContext& context, cons
         return state.DoS(100, ERRORMSG("CGovCoinTransferProposal::ExecuteProposal, save receipts error, kyeId=%s",
                                        desAccount.keyid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-save-receipts");
 
-
     return true;
 }
 
@@ -373,6 +380,7 @@ bool CGovCdpParamProposal::CheckProposal(CTxExecuteContext& context) {
 
     return true;
 }
+
 bool CGovCdpParamProposal::ExecuteProposal(CTxExecuteContext& context, const TxID& proposalId) {
     CCacheWrapper &cw       = *context.pCw;
     for (auto pa: param_values){
@@ -416,6 +424,7 @@ bool CGovDexOpProposal::CheckProposal(CTxExecuteContext& context ) {
 
     return true;
 }
+
 bool CGovDexOpProposal::ExecuteProposal(CTxExecuteContext& context, const TxID& proposalId) {
     IMPLEMENT_DEFINE_CW_STATE
 
@@ -478,6 +487,7 @@ bool CGovFeedCoinPairProposal::CheckProposal(CTxExecuteContext& context ) {
     }
     return true;
 }
+
 bool CGovFeedCoinPairProposal::ExecuteProposal(CTxExecuteContext& context, const TxID& proposalId) {
     CCacheWrapper& cw = *context.pCw;
     PriceCoinPair coinPair(base_symbol, quote_symbol);
@@ -520,6 +530,7 @@ bool CGovAxcInProposal::CheckProposal(CTxExecuteContext& context ) {
     if (swap_amount < DUST_AMOUNT_THRESHOLD)
         return state.DoS(100, ERRORMSG("CGovAxcInProposal::CheckProposal: swap_amount=%llu too small",
                                         swap_amount), REJECT_INVALID, "swap_amount-dust");
+
     uint64_t mintAmount = 0;
     if (cw.axcCache.GetSwapInMintRecord(peer_chain_type, peer_chain_txid, mintAmount))
         return state.DoS(100, ERRORMSG("CGovAxcInProposal::CheckProposal: GetSwapInMintRecord existing err  %s", peer_chain_txid),
@@ -544,7 +555,6 @@ bool CGovAxcInProposal::ExecuteProposal(CTxExecuteContext& context, const TxID& 
                         REJECT_INVALID, "bad-get-swap_fee_ratio");
 
     uint64_t swap_amount_after_fees = swap_amount * (1 - swap_fee_ratio * 1.0 / RATIO_BOOST);
-
 
     CAccount acct;
     if (!cw.accountCache.GetAccount(self_chain_uid, acct))

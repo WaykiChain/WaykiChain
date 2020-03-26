@@ -34,7 +34,7 @@ bool CDelegateDBCache::GetTopVoteDelegates(uint32_t delegateNum, uint64_t delega
     topVoteDelegates.clear();
     topVoteDelegates.reserve(delegateNum);
     auto spIt = CreateTopDelegateIterator();
-    for (spIt->First(); spIt->IsValid() && topVoteDelegates.size() <= delegateNum; spIt->Next()) {
+    for (spIt->First(); spIt->IsValid() && topVoteDelegates.size() < delegateNum; spIt->Next()) {
         uint64_t vote = spIt->GetVote();
         if (vote < BP_DELEGATE_VOTE_MIN) {
             LogPrint(BCLog::ERROR, "[WARNING] %s, the %lluTH delegate vote=%llu less than %llu!"

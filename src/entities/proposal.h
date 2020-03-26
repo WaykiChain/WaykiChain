@@ -90,7 +90,6 @@ struct CGovSysParamProposal: CProposal {
     IMPLEMENT_SERIALIZE(
         READWRITE(VARINT(expiry_block_height));
         READWRITE(approval_min_count);
-
         READWRITE(param_values);
     );
 
@@ -189,7 +188,8 @@ struct CGovBpSizeProposal: CProposal {
 
     std::string ToString() override {
         std::string baseString = CProposal::ToString();
-        return baseString ;
+        return strprintf("%s, total_bps_size=%d, effective_height=%d ",
+                         baseString, total_bps_size, effective_height) ;
     }
 
     bool CheckProposal(CTxExecuteContext& context) override;
@@ -298,6 +298,7 @@ struct CGovAccountPermProposal: CProposal {
     }
 
     std::string ToString() override {
+
         return  strprintf("account_uid=%s, proposed_perms_sum=%llu",
                         account_uid.ToString(), proposed_perms_sum);
     }
@@ -334,8 +335,9 @@ struct CGovAssetPermProposal: CProposal {
     }
 
     std::string ToString() override {
-        return  strprintf("asset_symbol=%s, proposed_perms_sum=%llu",
-                        asset_symbol, proposed_perms_sum);
+        string baseProposalString = CProposal::ToString();
+        return  strprintf("%s, asset_symbol=%s, proposed_perms_sum=%llu",
+                        baseProposalString,asset_symbol, proposed_perms_sum);
     }
 
 
@@ -454,7 +456,8 @@ struct CGovFeedCoinPairProposal: CProposal {
     }
 
     string ToString() override {
-        return  strprintf("base_symbol=%s,quote_symbol=%s",base_symbol, quote_symbol ) + ", " +
+        std::string baseString = CProposal::ToString();
+        return  strprintf("%s, base_symbol=%s,quote_symbol=%s",baseString, base_symbol, quote_symbol ) + ", " +
                 strprintf("op_type=%d", op_type);
     }
     shared_ptr<CProposal> GetNewInstance() override { return make_shared<CGovFeedCoinPairProposal>(*this); }
@@ -489,7 +492,8 @@ struct CGovAxcCoinProposal: CProposal {
     }
 
     string ToString() override {
-        return  strprintf("peer_chain_coin_symbol=%s,peer_chain_type=%d",peer_chain_coin_symbol, peer_chain_type ) + ", " +
+        std::string baseString = CProposal::ToString();
+        return  strprintf("%s, peer_chain_coin_symbol=%s,peer_chain_type=%d",baseString, peer_chain_coin_symbol, peer_chain_type ) + ", " +
                 strprintf("op_type=%d", op_type);
     }
     shared_ptr<CProposal> GetNewInstance() override { return make_shared<CGovAxcCoinProposal>(*this); }
@@ -540,9 +544,10 @@ struct CGovAxcInProposal: CProposal {
     }
 
     std::string ToString() override {
-        return  strprintf(" peer_chain_token_symbol=%s, "
+        std::string baseString = CProposal::ToString();
+        return  strprintf("%s, peer_chain_token_symbol=%s, "
                           "peer_chain_addr=%, peer_chain_txid=%, self_chain_uid=%s,swap_amount=%llu",
-                         peer_chain_token_symbol,
+                         baseString,peer_chain_token_symbol,
                         peer_chain_addr, peer_chain_txid, self_chain_uid.ToString(), swap_amount);
     }
     shared_ptr<CProposal> GetNewInstance() override { return make_shared<CGovAxcInProposal>(*this); }
@@ -594,8 +599,9 @@ struct CGovAxcOutProposal: CProposal {
     }
 
     std::string ToString() override {
-        return  strprintf("self_chain_uid=%s, self_chain_token_symbol=%s, peer_chain_addr=%, swap_amount=%llu",
-                        self_chain_uid.ToString(), self_chain_token_symbol, peer_chain_addr, swap_amount);
+        std::string baseString = CProposal::ToString();
+        return  strprintf("%s,self_chain_uid=%s, self_chain_token_symbol=%s, peer_chain_addr=%, swap_amount=%llu",
+                        baseString, self_chain_uid.ToString(), self_chain_token_symbol, peer_chain_addr, swap_amount);
     }
 
     shared_ptr<CProposal> GetNewInstance() override { return make_shared<CGovAxcOutProposal>(*this); } ;

@@ -229,23 +229,24 @@ public:
     }
     bool SetCurrentTotalBpsSize(uint8_t totalBpsSize) {
 
-        return current_total_bps_size_cache.SetData(totalBpsSize) ;
+        return current_total_bps_size_cache.SetData(totalBpsSize);
     }
+
     uint8_t GetTotalBpsSize(uint32_t height) {
 
-        pair<CVarIntValue<uint32_t>,uint8_t> value ;
+        pair<CVarIntValue<uint32_t>,uint8_t> value;
         if(new_total_bps_size_cache.GetData(value)){
             auto effectiveHeight = std::get<0>(value);
             if(height >= effectiveHeight.get()) {
-                return std::get<1>(value) ;
+                return std::get<1>(value);
             }
         }
-        uint8_t totalBpsSize ;
+        uint8_t totalBpsSize;
         if(current_total_bps_size_cache.GetData(totalBpsSize)){
             return totalBpsSize;
         }
 
-        return IniCfg().GetTotalDelegateNum() ;
+        return IniCfg().GetTotalDelegateNum();
     }
 
 public:

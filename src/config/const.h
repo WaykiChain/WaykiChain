@@ -259,10 +259,8 @@ static const uint8_t BP_MAX_COUNT = 255;    //max number of allowed BPs
 ////////////////////////////////////////////////////////////////////////////////
 // delegate
 static const uint32_t COUNT_VOTE_INTERVAL_BEFORE_V3 = 0;        //<! count vote interval before V3, unit: block count
-static const uint32_t COUNT_VOTE_INTERVAL_AFTER_V3 = 0;         //<! count vote interval after V3, unit: block count
-static const uint32_t ACTIVATE_DELEGATE_DELAY_BEFORE_V3 = 100;  //<! activate delegate delay before V3, unit: block count
+static const uint32_t COUNT_VOTE_INTERVAL_AFTER_V3 = 100;         //<! count vote interval after V3, unit: block count
+static const uint32_t ACTIVATE_DELEGATE_DELAY_BEFORE_V3 = 0;  //<! activate delegate delay before V3, unit: block count
 static const uint32_t ACTIVATE_DELEGATE_DELAY_AFTER_V3 = 100;   //<! activate delegate delay after V3, unit: block count
-
-static const uint16_t GOVERN_EFFECTIVE_AFTER_BLOCK_COUNT = 50; //blocks number
 
 #endif //CONFIG_CONST_H
