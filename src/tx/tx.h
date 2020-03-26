@@ -289,11 +289,6 @@ public:
         return state.DoS(100, ERRORMSG("%s, arguments's size too large", __FUNCTION__), REJECT_INVALID,         \
                          "arguments-size-toolarge");
 
-#define IMPLEMENT_DISABLE_TX_PRE_STABLE_COIN_RELEASE                                                            \
-    if (GetFeatureForkVersion(context.height) == MAJOR_VER_R1)                                                  \
-        return state.DoS(100, ERRORMSG("%s, unsupported tx type in pre-stable coin release", __FUNCTION__),     \
-                         REJECT_INVALID, "unsupported-tx-type-pre-stable-coin-release");
-
 #define IMPLEMENT_CHECK_TX_REGID(txUid)                                                            \
     if (!txUid.is<CRegID>()) {                                                                     \
         return state.DoS(100, ERRORMSG("%s, txUid must be CRegID", __FUNCTION__), REJECT_INVALID,  \

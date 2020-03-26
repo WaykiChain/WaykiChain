@@ -176,13 +176,16 @@ bool CBaseTx::CheckBaseTx(CTxExecuteContext &context) {
         }
     }
 
-    { //4. IMPLEMENT_DISABLE_TX_PRE_STABLE_COIN_RELEASE , for testnet/regtest backward compatibility
+    { //4. check tx is available by soft-fork version, for testnet/regtest backward compatibility
         switch (nTxType) {
             case BCOIN_TRANSFER_TX:
             case LCONTRACT_DEPLOY_TX:
             case LCONTRACT_INVOKE_TX:
-            case DELEGATE_VOTE_TX: break;
-            default: IMPLEMENT_DISABLE_TX_PRE_STABLE_COIN_RELEASE; break;
+            case DELEGATE_VOTE_TX: break; // tx available from MAJOR_VER_R1
+            default: {
+                if (CheckTxAvailableFromVer(context, MAJOR_VER_R2)) return false;
+            }
+            // TODO: check new tx available from MAJOR_VER_R3
         }
     }
 

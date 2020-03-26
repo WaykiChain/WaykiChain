@@ -15,7 +15,6 @@
 
 bool CMulsigTx::CheckTx(CTxExecuteContext &context) {
     IMPLEMENT_DEFINE_CW_STATE
-    IMPLEMENT_DISABLE_TX_PRE_STABLE_COIN_RELEASE;
     if (!CheckFee(context)) return false;
     IMPLEMENT_CHECK_TX_MEMO;
 
