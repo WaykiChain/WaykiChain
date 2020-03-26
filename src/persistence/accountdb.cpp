@@ -311,12 +311,14 @@ Object CAccountDBCache::GetAccountDBStats() {
 
     map<CKeyID, CAccount> items;
     accountCache.GetAllElements(items);
-    for (auto &item : items) {
+    CDbIterator it(accountCache);
+    for (it.First(); it.IsValid(); it.Next()) {
+        const CAccount &account = it.GetValue();
         totalRegIds++;
 
-        CAccountToken wicc = item.second.GetToken(SYMB::WICC);
-        CAccountToken wusd = item.second.GetToken(SYMB::WUSD);
-        CAccountToken wgrt = item.second.GetToken(SYMB::WGRT);
+        CAccountToken wicc = account.GetToken(SYMB::WICC);
+        CAccountToken wusd = account.GetToken(SYMB::WUSD);
+        CAccountToken wgrt = account.GetToken(SYMB::WGRT);
 
         bcoinsStates[0] += wicc.free_amount;
         bcoinsStates[1] += wicc.voted_amount;
