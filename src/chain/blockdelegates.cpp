@@ -19,18 +19,21 @@ static std::string ToString(const VoteDelegateVector &activeDelegates) {
     return strprintf("{count=%d, [%s]}", activeDelegates.size(), s);
 }
 
-static const int BP_DELEGATE_VOTE_MIN = 21000;
-
 static bool GenPendingDelegates(CBlock &block, uint32_t delegateNum, CCacheWrapper &cw,
                                 const VoteDelegateVector activeDelegates,
                                 PendingDelegates &pendingDelegates) {
 
     pendingDelegates.counted_vote_height = block.GetHeight();
+    uint64_t bpDelegateVoteMin;
+    if (!cw.sysParamCache.GetParam(SysParamType::BP_DELEGATE_VOTE_MIN, bpDelegateVoteMin))
+        return ERRORMSG("%s, get sys param BP_DELEGATE_VOTE_MIN failed! block=%d:%s\n",
+                __func__, block.GetHeight(), block.GetHash().ToString());
+
     VoteDelegateVector topVoteDelegates;
     if (!cw.delegateCache.GetTopVoteDelegates(delegateNum, BP_DELEGATE_VOTE_MIN, topVoteDelegates)) {
         LogPrint(BCLog::INFO, "[WARNING] %s, GetTopVoteDelegates() failed! no need to update pending delegates! "
                 "block=%d:%s, delegate_num=%d\n",
-                __FUNCTION__, block.GetHeight(), block.GetHash().ToString(), delegateNum);
+                __func__, block.GetHeight(), block.GetHash().ToString(), delegateNum);
         return true;
     };
 
@@ -38,7 +41,7 @@ static bool GenPendingDelegates(CBlock &block, uint32_t delegateNum, CCacheWrapp
 
     if (!activeDelegates.empty() && pendingDelegates.top_vote_delegates == activeDelegates) {
         LogPrint(BCLog::INFO, "%s, the top vote delegates are unchanged! block=%d:%s, num=%d, dest_num=%d\n",
-                __FUNCTION__, block.GetHeight(), block.GetHash().ToString(),
+                __func__, block.GetHeight(), block.GetHash().ToString(),
                 pendingDelegates.top_vote_delegates.size(), delegateNum);
         // update counted_vote_height and top_vote_delegates to skip unchanged delegates to next count vote slot height
         return true;
