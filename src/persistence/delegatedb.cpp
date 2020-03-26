@@ -100,7 +100,7 @@ uint32_t CDelegateDBCache::GetActivedDelegateNum() {
     if (GetActiveDelegates(dv)){
         return dv.size();
     }
-    return 11;
+    throw runtime_error("get actived delegate num error");
 }
 
 bool CDelegateDBCache::IsActiveDelegate(const CRegID &regid) {

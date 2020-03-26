@@ -167,7 +167,7 @@ bool CGovBpSizeProposal:: CheckProposal(CTxExecuteContext& context ) {
 bool CGovBpSizeProposal:: ExecuteProposal(CTxExecuteContext& context, const TxID& proposalId) {
     IMPLEMENT_DEFINE_CW_STATE;
 
-    auto currentTotalBpsSize = cw.delegateCache.GetActivedDelegateNum();
+    auto currentTotalBpsSize = cw.sysParamCache.GetTotalBpsSize(context.height);
     if (!cw.sysParamCache.SetCurrentTotalBpsSize(currentTotalBpsSize)) {
         return state.DoS(100, ERRORMSG("CGovBpSizeProposal::ExecuteProposal, save current bp count failed!"),
                 REJECT_INVALID, "save-currtotalbpssize-failed");
