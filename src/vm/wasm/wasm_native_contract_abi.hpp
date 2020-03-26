@@ -3,6 +3,13 @@
 
 namespace wasm {
 
+//fixme:should be have a mutex protect
+#define REGISTER_NATIVE_CONTRACT_ABIS()                              \
+        if (get_native_contract_abis().size() == 0) {                \
+            register_native_contract_abis(wasm::wasmio, wasmio_contract_abi());            \
+            register_native_contract_abis(wasm::wasmio_bank, wasmio_bank_contract_abi());  \
+        }
+
     static inline std::vector<char> wasmio_contract_abi() {
 
         abi_def abi;
@@ -63,10 +70,12 @@ namespace wasm {
 
     inline bool get_native_contract_abi(uint64_t contract, std::vector<char>& abi){
         //fixme:should be have a mutex protect
-        if (get_native_contract_abis().size() == 0) {
-            register_native_contract_abis(wasm::wasmio, wasmio_contract_abi());
-            register_native_contract_abis(wasm::wasmio_bank, wasmio_bank_contract_abi());
-        }
+        // if (get_native_contract_abis().size() == 0) {
+        //     register_native_contract_abis(wasm::wasmio, wasmio_contract_abi());
+        //     register_native_contract_abis(wasm::wasmio_bank, wasmio_bank_contract_abi());
+        // }
+
+        REGISTER_NATIVE_CONTRACT_ABIS();
 
         auto ret = get_native_contract_abis().find(contract);
         if (ret != get_native_contract_abis().end()) {
@@ -79,10 +88,12 @@ namespace wasm {
 
     inline bool is_native_contract(uint64_t contract){
         //fixme:should be have a mutex protect
-        if (get_native_contract_abis().size() == 0) {
-            register_native_contract_abis(wasm::wasmio, wasmio_contract_abi());
-            register_native_contract_abis(wasm::wasmio_bank, wasmio_bank_contract_abi());
-        }
+        // if (get_native_contract_abis().size() == 0) {
+        //     register_native_contract_abis(wasm::wasmio, wasmio_contract_abi());
+        //     register_native_contract_abis(wasm::wasmio_bank, wasmio_bank_contract_abi());
+        // }
+
+        REGISTER_NATIVE_CONTRACT_ABIS();
 
         auto ret = get_native_contract_abis().find(contract);
         if (ret != get_native_contract_abis().end()) {
