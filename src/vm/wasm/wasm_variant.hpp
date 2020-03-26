@@ -28,7 +28,7 @@ namespace wasm {
 
     typedef Config::Value_type::Config_type Config_type;
 
-    static inline string FromHex( string str ) {
+    static inline string from_hex( string str ) {
 
         std::map<char, uint8_t> hex = {
                 {'0', 0x00},
@@ -66,7 +66,7 @@ namespace wasm {
     }
 
     template<typename T>
-    static inline string ToHex( const T &t, string separator = "" ) {
+    static inline string to_hex( const T &t, string separator = "" ) {
         const std::string hex = "0123456789abcdef";
         std::ostringstream o;
 
@@ -77,7 +77,7 @@ namespace wasm {
 
     }
 
-    static inline string FromTime( const std::time_t &t ) {
+    static inline string from_time( const std::time_t &t ) {
 
         char szTime[128];
         std::tm *p;
@@ -88,7 +88,7 @@ namespace wasm {
         return string(szTime);
     }
 
-    static inline std::time_t ToTime( const std::string &t ) {
+    static inline std::time_t to_time( const std::string &t ) {
 
         int year, month, day, hour, minute, second;
         sscanf((char *) t.data(), "%d-%d-%dT%d:%d:%d", &year, &month, &day, &hour, &minute, &second);
@@ -185,7 +185,7 @@ namespace wasm {
     static inline void to_variant( const system_clock::time_point &t, wasm::variant &v ) {
 
         std::time_t time = std::chrono::system_clock::to_time_t(t);
-        v = wasm::variant(FromTime(time));
+        v = wasm::variant(from_time(time));
     }
 
 
@@ -220,7 +220,7 @@ namespace wasm {
     static inline void to_variant( const wasm::checksum160_type &t, wasm::variant &v ) {
         //to_variant(t.hash, v);
         string str(&t.hash[0], &t.hash[sizeof(t.hash) / sizeof(t.hash[0])]);
-        v = wasm::variant(ToHex(str, ""));
+        v = wasm::variant(to_hex(str, ""));
 
 
     }
@@ -229,14 +229,14 @@ namespace wasm {
         //to_variant(t.hash, v);
         string str(&t.hash[0], &t.hash[sizeof(t.hash) / sizeof(t.hash[0])]);
         //WASM_TRACE("%s", ToHex(str,"").c_str())
-        v = wasm::variant(ToHex(str, ""));
+        v = wasm::variant(to_hex(str, ""));
 
     }
 
     static inline void to_variant( const wasm::checksum512_type &t, wasm::variant &v ) {
         string str(&t.hash[0], &t.hash[sizeof(t.hash) / sizeof(t.hash[0])]);
 
-        v = wasm::variant(ToHex(str, ""));
+        v = wasm::variant(to_hex(str, ""));
     }
 
 
@@ -468,7 +468,7 @@ namespace wasm {
 
     static inline void from_variant( const wasm::variant &v, system_clock::time_point &t ) {
         if (v.type() == json_spirit::str_type) {
-            t = std::chrono::system_clock::from_time_t(ToTime(v.get_str()));
+            t = std::chrono::system_clock::from_time_t(to_time(v.get_str()));
             return;
         }
         CHAIN_THROW(wasm_chain::abi_parse_exception, "abi parse fail:%s", "json variant must be a string")
@@ -513,7 +513,7 @@ namespace wasm {
 
     static inline void from_variant( const wasm::variant &v, wasm::checksum160_type &t ) {
         if (v.type() == json_spirit::str_type) {
-            FromHex(v.get_str()).copy((char *) &t, sizeof(t));
+            from_hex(v.get_str()).copy((char *) &t, sizeof(t));
             return;
         }
 
@@ -522,7 +522,7 @@ namespace wasm {
 
     static inline void from_variant( const wasm::variant &v, wasm::checksum256_type &t ) {
         if (v.type() == json_spirit::str_type) {
-            FromHex(v.get_str()).copy((char *) &t, sizeof(t));
+            from_hex(v.get_str()).copy((char *) &t, sizeof(t));
             return;
         }
         CHAIN_THROW(wasm_chain::abi_parse_exception, "abi parse fail:%s", "json variant must be a string")
@@ -531,7 +531,7 @@ namespace wasm {
 
     static inline void from_variant( const wasm::variant &v, checksum512_type &t ) {
         if (v.type() == json_spirit::str_type) {
-            FromHex(v.get_str()).copy((char *) &t, sizeof(t));
+            from_hex(v.get_str()).copy((char *) &t, sizeof(t));
             return;
         }
         CHAIN_THROW(wasm_chain::abi_parse_exception, "abi parse fail:%s", "json variant must be a string")

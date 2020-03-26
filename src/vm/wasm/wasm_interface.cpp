@@ -282,7 +282,7 @@ namespace wasm {
 
             CHAIN_ASSERT( pWasmContext->set_data(contract, k, v), 
                           wasm_chain::wasm_assert_exception, 
-                          "db_store failed, key: %s", ToHex(k))
+                          "db_store failed, key: %s", to_hex(k))
 
             pWasmContext->update_storage_usage(payer, k.size() + v.size());
             return 1;
@@ -299,7 +299,7 @@ namespace wasm {
 
             CHAIN_ASSERT( pWasmContext->erase_data(contract, k),
                           wasm_chain::wasm_assert_exception, 
-                          "db_remove failed, key: %s", ToHex(k))
+                          "db_remove failed, key: %s", to_hex(k))
 
             pWasmContext->update_storage_usage(payer, k.size());
             return 1;
@@ -344,7 +344,7 @@ namespace wasm {
 
             CHAIN_ASSERT( pWasmContext->set_data(contract, k, v), 
                           wasm_chain::wasm_assert_exception, 
-                          "db_update failed, key: %s", ToHex(k))
+                          "db_update failed, key: %s", to_hex(k))
 
             pWasmContext->update_storage_usage(payer, k.size() + v.size());
             return 1;
@@ -525,7 +525,7 @@ namespace wasm {
 
             if (!print_ignore) {
                 string str((const char*)data, data_len);
-                pWasmContext->console_append(ToHex(str));
+                pWasmContext->console_append(to_hex(str));
             }
         }
         

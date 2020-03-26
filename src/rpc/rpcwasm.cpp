@@ -325,7 +325,7 @@ Value gettablewasm( const Array &params, bool fHelp ) {
 
         std::vector<char> key_prefix = wasm::pack(std::tuple(contract_name.value, contract_table.value));
         string search_key(key_prefix.data(),key_prefix.size());
-        string start_key = (params.size() > 3) ? FromHex(params[3].get_str()) : "";
+        string start_key = (params.size() > 3) ? from_hex(params[3].get_str()) : "";
 
         auto pContractDataIt = database_contract->CreateContractDataIterator(contract.regid, search_key);
         // JSON_RPC_ASSERT(pContractDataIt, RPC_INVALID_PARAMS,
@@ -350,8 +350,8 @@ Value gettablewasm( const Array &params, bool fHelp ) {
             json_spirit::Object& object_json = value_json.get_obj();
 
             //append key and value
-            object_json.push_back(Pair("key",   ToHex(key, "")));
-            object_json.push_back(Pair("value", ToHex(value, "")));
+            object_json.push_back(Pair("key",   to_hex(key, "")));
+            object_json.push_back(Pair("value", to_hex(value, "")));
 
             row_json.push_back(value_json);
         }
@@ -391,7 +391,7 @@ Value jsontobinwasm( const Array &params, bool fHelp ) {
         if( abi.size() > 0 ) action_data = wasm::abi_serializer::pack(abi, contract_action.to_string(), arguments, max_serialization_time);
 
         json_spirit::Object object_return;
-        object_return.push_back(Pair("data", wasm::ToHex(action_data,"")));
+        object_return.push_back(Pair("data", wasm::to_hex(action_data,"")));
         return object_return;
 
     } JSON_RPC_CAPTURE_AND_RETHROW;
@@ -418,7 +418,7 @@ Value bintojsonwasm( const Array &params, bool fHelp ) {
             abi = std::vector<char>(contract_store.abi.begin(), contract_store.abi.end());
         }
 
-        string arguments = FromHex(params[2].get_str());
+        string arguments = from_hex(params[2].get_str());
         CHAIN_ASSERT( !arguments.empty() && arguments.size() < MAX_CONTRACT_ARGUMENT_SIZE,
                       wasm_chain::rpc_params_size_exceeds_exception,
                       "arguments is empty or out of size")
@@ -454,7 +454,7 @@ Value getcodewasm( const Array &params, bool fHelp ) {
         get_contract(database_account, database_contract, contract_name, contract, contract_store );
 
         json_spirit::Object object_return;
-        object_return.push_back(Pair("code", wasm::ToHex(contract_store.code,"")));
+        object_return.push_back(Pair("code", wasm::to_hex(contract_store.code,"")));
         return object_return;
 
     } JSON_RPC_CAPTURE_AND_RETHROW;
@@ -543,7 +543,7 @@ Value abidefjsontobinwasm( const Array &params, bool fHelp ) {
         std::vector<char> abi_bytes = wasm::pack<wasm::abi_def>(abi_struct);
 
         json_spirit::Object object_return;
-        object_return.push_back(Pair("data", wasm::ToHex(abi_bytes,"")));
+        object_return.push_back(Pair("data", wasm::to_hex(abi_bytes,"")));
         return object_return;
 
     } JSON_RPC_CAPTURE_AND_RETHROW;

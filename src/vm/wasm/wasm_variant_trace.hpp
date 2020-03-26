@@ -83,7 +83,7 @@ static inline void to_variant(const wasm::inline_transaction &t, json_spirit::Va
         arr.push_back(tmp);
     }
     json_spirit::Config::add(obj, "authorization", json_spirit::Value(arr));
-    to_variant(ToHex(t.data, ""), val);
+    to_variant(to_hex(t.data, ""), val);
     json_spirit::Config::add(obj, "data", val);
 
     v = obj;
@@ -119,11 +119,11 @@ static inline void to_variant(const wasm::inline_transaction &t, json_spirit::Va
                 val = wasm::abi_serializer::unpack(abi, wasm::name(t.action).to_string(), t.data,
                                                    max_serialization_time);
             } catch (...) {
-                to_variant(ToHex(t.data, ""), val);
+                to_variant(to_hex(t.data, ""), val);
             }
         }
     } else
-        to_variant(ToHex(t.data, ""), val);
+        to_variant(to_hex(t.data, ""), val);
 
     json_spirit::Config::add(obj, "data", val);
 

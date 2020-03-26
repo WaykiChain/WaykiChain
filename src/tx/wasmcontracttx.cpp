@@ -146,7 +146,7 @@ CWasmContractTx::get_accounts_from_signatures(CCacheWrapper& database, std::vect
         CHAIN_ASSERT( account.owner_pubkey.Verify(signature_hash, s.signature),
                       wasm_chain::unsatisfied_authorization,
                       "can not verify signature '%s bye public key '%s' and hash '%s' ",
-                      ToHex(s.signature), account.owner_pubkey.ToString(), signature_hash.ToString() )
+                      to_hex(s.signature), account.owner_pubkey.ToString(), signature_hash.ToString() )
 
         authorization_account = wasm::name(s.account).value;
         add_signature_to_cache(s.signature, authorization_account);
