@@ -165,6 +165,7 @@ bool CBaseTx::CheckBaseTx(CTxExecuteContext &context) {
 
     {//3. check Tx RegID or PubKey
         switch (nTxType) {
+            case ACCOUNT_REGISTER_TX: break; // will check txUid in CheckTx()
             case LCONTRACT_DEPLOY_TX:
             case ASSET_ISSUE_TX:
             case UCONTRACT_DEPLOY_TX:
