@@ -183,7 +183,7 @@ bool CBaseTx::CheckBaseTx(CTxExecuteContext &context) {
             case LCONTRACT_INVOKE_TX:
             case DELEGATE_VOTE_TX: break; // tx available from MAJOR_VER_R1
             default: {
-                if (CheckTxAvailableFromVer(context, MAJOR_VER_R2)) return false;
+                if (!CheckTxAvailableFromVer(context, MAJOR_VER_R2)) return false;
             }
             // TODO: check new tx available from MAJOR_VER_R3
         }
