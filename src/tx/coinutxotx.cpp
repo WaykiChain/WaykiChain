@@ -205,7 +205,7 @@ inline bool CheckUtxoOutCondition( const CTxExecuteContext &context, const bool 
             if (isPrevUtxoOut) {
                 bool found = false;
                 for (auto inputCond : input.conds) {
-                    if (cond.sp_utxo_cond->cond_type == UtxoCondType::IP2PH) {
+                    if (inputCond.sp_utxo_cond->cond_type == UtxoCondType::IP2PH) {
                         found = true;
                         CPasswordHashLockCondIn& p2phCondIn = dynamic_cast< CPasswordHashLockCondIn& > (*inputCond.sp_utxo_cond);
 
@@ -219,7 +219,7 @@ inline bool CheckUtxoOutCondition( const CTxExecuteContext &context, const bool 
                             prevUtxoTxKeyId = prevUtxoTxUid.get<CKeyID>();
                         else {
                             CAccount acct;
-                            if (cw.accountCache.GetAccount(prevUtxoTxUid, acct)) {
+                            if (!cw.accountCache.GetAccount(prevUtxoTxUid, acct)) {
                                 errMsg = strprintf("prevUtxoTxUid(%s)'s account not found", prevUtxoTxUid.ToString());
                                 return false;
                             }
@@ -464,14 +464,15 @@ bool CCoinUtxoTransferTx::ExecuteTx(CTxExecuteContext &context) {
                         "insufficient-account-coin-amount");
 
     vector<CReceipt> receipts;
-    int diff = totalInAmount - totalOutAmount - llFees;
-    if (diff < 0) {
-        if (!srcAccount.OperateBalance(coin_symbol, SUB_FREE, abs(diff))) {
+
+    uint64_t totalAccountOutAmount  = totalOutAmount + llFees;
+    if (totalInAmount <  totalAccountOutAmount) {
+        if (!srcAccount.OperateBalance(coin_symbol, SUB_FREE,  totalAccountOutAmount - totalInAmount)) {
             return state.DoS(100, ERRORMSG("CCoinUtxoTransferTx::ExecuteTx, failed to deduct coin_amount in txUid %s account",
                             txUid.ToString()), UPDATE_ACCOUNT_FAIL, "insufficient-fund-utxo");
         }
-    } else if (diff > 0) {
-        if (!srcAccount.OperateBalance(coin_symbol, ADD_FREE, diff)) {
+    } else if (totalInAmount > totalAccountOutAmount ) {
+        if (!srcAccount.OperateBalance(coin_symbol, ADD_FREE, totalInAmount - totalAccountOutAmount)) {
             return state.DoS(100, ERRORMSG("CCoinUtxoTransferTx::ExecuteTx, failed to add coin_amount in txUid %s account",
                             txUid.ToString()), UPDATE_ACCOUNT_FAIL, "insufficient-fund-utxo");
         }

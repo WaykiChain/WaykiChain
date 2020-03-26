@@ -22,20 +22,12 @@ uint32_t GetFinalBlockMinerCount() {
 }
 
 CBlockIndex* CPBFTMan::GetLocalFinIndex(){
-
-    if (!localFinIndex) {
-        return chainActive[0];
-    }
-    return localFinIndex;
+    return localFinIndex ? localFinIndex : chainActive[0];
 }
 
 
 CBlockIndex* CPBFTMan::GetGlobalFinIndex(){
-
-    if(!globalFinIndex) {
-        return chainActive[0];
-    }
-    return globalFinIndex;
+    return globalFinIndex ? globalFinIndex : chainActive[0];
 }
 
 uint256 CPBFTMan::GetGlobalFinBlockHash() {
@@ -370,7 +362,6 @@ bool BroadcastBlockConfirm(const CBlockIndex* block) {
     CBlockConfirmMessage msg(block->height, block->GetBlockHash(), preHash);
 
     {
-
         for(auto delegate: delegates){
             Miner miner;
             if(!PbftFindMiner(delegate, miner))
@@ -389,7 +380,6 @@ bool BroadcastBlockConfirm(const CBlockIndex* block) {
                 }
             }
             msgMan.SaveMessageByBlock(msg.blockHash,msg);
-
         }
     }
 
@@ -414,7 +404,7 @@ bool CheckPBFTMessage(const int32_t msgType ,const CPBFTMessage& msg){
     //check height
 
     CBlockIndex* localFinBlock = pbftMan.GetLocalFinIndex();
-    if(msg.height - chainActive.Height()>500 || (localFinBlock && msg.height < (uint32_t)localFinBlock->height) ) {
+    if(msg.height - chainActive.Height() > 500 || (localFinBlock && msg.height < (uint32_t)localFinBlock->height) ) {
         return ERRORMSG("checkPBftMessage():: messagesHeight is out range");
     }
 

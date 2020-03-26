@@ -57,10 +57,10 @@ public:
 
         set<CRegID> regids;
         if (GetGovernors(regids)) {
-            return (regids.size() / 3) * 2 + regids.size()%3;
+            return regids.size() - (regids.size() / 3);
         }
 
-        return 1 ;
+        throw runtime_error("get governer list error");
     }
 
     bool SetProposal(const uint256& txid,  shared_ptr<CProposal>& proposal) {

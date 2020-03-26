@@ -637,7 +637,7 @@ Value submittotalbpssizeupdateproposal(const Array& params,bool fHelp) {
     RPC_PARAM::CheckAccountBalance(account, fee.symbol, SUB_FREE, fee.GetAmountInSawi());
 
     if(totalBpsSize <=0 || totalBpsSize > BP_MAX_COUNT)
-        throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("the range of total_bps_size is [0,%d]", BP_MAX_COUNT));
+        throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("the range of total_bps_size is (0,%d]", BP_MAX_COUNT));
 
     CGovBpSizeProposal proposal;
     proposal.total_bps_size = totalBpsSize;

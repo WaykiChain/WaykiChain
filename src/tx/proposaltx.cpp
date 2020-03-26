@@ -39,7 +39,7 @@ uint8_t GetGovernorApprovalMinCount(ProposalType proposalType, CCacheWrapper& cw
         VoteDelegateVector delegateList;
         if (!cw.delegateCache.GetActiveDelegates(delegateList))
             return 8;
-        return (delegateList.size()/3)*2+delegateList.size()%3;
+        return static_cast<uint8_t>(delegateList.size() - (delegateList.size() / 3));
 
     } else{
         return cw.sysGovernCache.GetGovernorApprovalMinCount();

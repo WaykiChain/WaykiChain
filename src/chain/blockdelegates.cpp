@@ -81,7 +81,6 @@ bool chain::ProcessBlockDelegates(CBlock &block, CCacheWrapper &cw, CValidationS
         }
         int32_t lastVoteHeight = cw.delegateCache.GetLastVoteHeight();
         uint32_t delegateNum = cw.sysParamCache.GetTotalBpsSize(block.GetHeight()) ;
-        assert(delegateNum < uint32_t(BP_MAX_COUNT));
 
         if (pendingDelegates.counted_vote_height == 0 ||
             lastVoteHeight > (int32_t)pendingDelegates.counted_vote_height
