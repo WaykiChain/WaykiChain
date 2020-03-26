@@ -128,42 +128,6 @@ namespace RPC_PARAM {
         return (uint64_t)coinAmount;
     }
 
-    ComboMoney GetOperatorTxFee(const Array& params, const size_t index) {
-        ComboMoney fee;
-        if (params.size() > index) {
-            return GetComboMoney(params[index], SYMB::WICC);
-        } else {
-            return {SYMB::WICC, 0, COIN_UNIT::SAWI};
-        }
-    }
-
-    void CheckOrderFee(const CAccount &txAccount, uint64_t txFee, uint64_t minFee,
-        CAccount *pOperatorAccount = nullptr, uint64_t operatorTxFee = 0) {
-
-        HeightType height = chainActive.Height() + 1;
-        if (GetFeatureForkVersion(height) > MAJOR_VER_R3) {
-            uint64_t totalFees = txFee;
-            auto stakedAmount = txAccount.GetToken(SYMB::WICC).staked_amount;
-            if (pOperatorAccount != nullptr && operatorTxFee != 0) {
-                totalFees += operatorTxFee;
-                stakedAmount = max(stakedAmount, pOperatorAccount->GetToken(SYMB::WICC).staked_amount);
-            }
-
-            if (stakedAmount > 0) {
-                minFee = std::max(std::min(COIN * COIN / stakedAmount, minFee), (uint64_t)1);
-            }
-            if (totalFees < minFee){
-                throw JSONRPCError(RPC_INVALID_PARAMS,
-                    strprintf("The given fee is too small: %llu < %llu sawi when wicc staked_amount=%llu",
-                        txFee, minFee, stakedAmount));
-            }
-        } else {
-            if (txFee < minFee)
-                throw JSONRPCError(RPC_INVALID_PARAMS,
-                    strprintf("The given fee is too small: %llu < %llu sawi", txFee, minFee));
-        }
-    }
-
 } // namespace RPC_PARAM
 
 Object SubmitOrderTx(const CKeyID &txKeyid, const DexOperatorDetail &operatorDetail,
@@ -469,8 +433,7 @@ Value gendexoperatorordertx(const Array& params, bool fHelp) {
     if (fHelp || params.size() < 10 || params.size() > 12) {
         throw runtime_error(
             "gendexoperatorordertx \"addr\" \"order_type\" \"order_side\" \"coins\" \"assets\""
-                " dex_id \"pubilc_mode\" taker_fee_ratio maker_fee_ratio \"[symbol:fee:unit]\""
-                " \"[symbol:operator_tx_fee:unit]\" \"[memo]\"\n"
+                " dex_id \"pubilc_mode\" taker_fee_ratio maker_fee_ratio [symbol:fee:unit] \"[memo]\"\n"
             "\ngenerator an operator dex order tx, support operator config, and must be signed by operator before sumiting.\n"
             "\nArguments:\n"
             "1.\"addr\": (string required) order owner address\n"
@@ -485,10 +448,8 @@ Value gendexoperatorordertx(const Array& params, bool fHelp) {
             "8.\"public_mode\": (string, required) indicate the order is PUBLIC or PRIVATE\n"
             "9.\"taker_fee_ratio\": (numeric, required) taker fee ratio config by operator, boost 100000000\n"
             "10.\"maker_fee_ratio\": (numeric, required) maker fee ratio config by operator, boost 100000000\n"
-            "11.\"symbol:fee:unit\":(string:numeric:string, optional) fee pay by tx user to miner, default is WICC:10000:sawi\n"
-            "12.\"symbol:operator_tx_fee:unit\":(string:numeric:string, optional) tx fee pay by operator to miner,"
-                                            "symbol must equal to fee, default is WICC:0:sawi\n"
-            "13.\"memo\": (string, optional) memo\n"
+            "11.\"symbol:fee:unit\":(string:numeric:string, optional) fee paid for miner, default is WICC:10000:sawi\n"
+            "12.\"memo\": (string, optional) memo\n"
             "\nResult:\n"
             "\"txid\" (string) The transaction id.\n"
             "\nExamples:\n"
@@ -505,21 +466,18 @@ Value gendexoperatorordertx(const Array& params, bool fHelp) {
     FeatureForkVersionEnum version = GetFeatureForkVersion(validHeight);
     const TxType txType = version  < MAJOR_VER_R3 ? DEX_MARKET_SELL_ORDER_TX : DEX_ORDER_TX;
 
-    const CUserID &userId               = RPC_PARAM::GetUserId(params[0], true);
-    OrderType orderType                 = RPC_PARAM::GetOrderType(params[1]);
-    OrderSide orderSide                 = RPC_PARAM::GetOrderSide(params[2]);
-    const ComboMoney &coins             = RPC_PARAM::GetComboMoney(params[3]);
-    const ComboMoney &assets            = RPC_PARAM::GetComboMoney(params[4], SYMB::WICC);
-    uint64_t price                      = RPC_PARAM::GetPrice(params[5]);
-    DexID dexId                         = RPC_PARAM::GetDexId(params[6]);
-    PublicMode publicMode               = RPC_PARAM::GetOrderPublicMode(params[7]);
-    uint64_t takerFeeRatio              = RPC_PARAM::GetOperatorFeeRatio(params[8]);
-    uint64_t makerFeeRatio              = RPC_PARAM::GetOperatorFeeRatio(params[9]);
-    ComboMoney fee;
-    uint64_t minFee;
-    RPC_PARAM::ParseTxFee(params, 10, txType, fee, minFee);
-    ComboMoney operatorTxFee = RPC_PARAM::GetOperatorTxFee(params, 11);
-    string memo                         = RPC_PARAM::GetMemo(params, 12);
+    const CUserID &userId    = RPC_PARAM::GetUserId(params[0], true);
+    OrderType orderType      = RPC_PARAM::GetOrderType(params[1]);
+    OrderSide orderSide      = RPC_PARAM::GetOrderSide(params[2]);
+    const ComboMoney &coins  = RPC_PARAM::GetComboMoney(params[3]);
+    const ComboMoney &assets = RPC_PARAM::GetComboMoney(params[4], SYMB::WICC);
+    uint64_t price           = RPC_PARAM::GetPrice(params[5]);
+    DexID dexId              = RPC_PARAM::GetDexId(params[6]);
+    PublicMode publicMode    = RPC_PARAM::GetOrderPublicMode(params[7]);
+    uint64_t takerFeeRatio   = RPC_PARAM::GetOperatorFeeRatio(params[8]);
+    uint64_t makerFeeRatio   = RPC_PARAM::GetOperatorFeeRatio(params[9]);
+    ComboMoney cmFee         = RPC_PARAM::GetFee(params, 10, txType);
+    string memo              = RPC_PARAM::GetMemo(params, 11);
 
     RPC_PARAM::CheckOrderSymbols(__func__, coins.symbol, assets.symbol);
 
@@ -552,18 +510,13 @@ Value gendexoperatorordertx(const Array& params, bool fHelp) {
 
     DexOperatorDetail operatorDetail = RPC_PARAM::GetDexOperator(dexId);
 
+    if (!pCdMan->pAccountCache->HasAccount(operatorDetail.fee_receiver_regid))
+        throw JSONRPCError(RPC_INVALID_PARAMS, strprintf("operator account not existed! operator_regid=%s",
+            operatorDetail.fee_receiver_regid.ToString()));
+
+    // Get account for checking balance
     CAccount txAccount = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, userId);
-    CAccount operatorAccount = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, operatorDetail.fee_receiver_regid);
-
-    if (fee.symbol != operatorTxFee.symbol)
-        throw JSONRPCError(RPC_INVALID_PARAMS,
-            strprintf("operator_tx_fee_symbol=%s does not euqal to fee_symbol=%s",
-                fee.symbol, operatorTxFee.symbol));
-
-    RPC_PARAM::CheckOrderFee(txAccount, fee.GetAmountInSawi(), minFee, &operatorAccount, operatorTxFee.GetAmountInSawi());
-
-    RPC_PARAM::CheckAccountBalance(txAccount, fee.symbol, SUB_FREE,
-            fee.GetAmountInSawi() + operatorTxFee.GetAmountInSawi());
+    RPC_PARAM::CheckAccountBalance(txAccount, cmFee.symbol, SUB_FREE, cmFee.GetAmountInSawi());
 
 
     if (orderSide == ORDER_BUY) {
@@ -582,10 +535,9 @@ Value gendexoperatorordertx(const Array& params, bool fHelp) {
     }
 
     shared_ptr<CDEXOrderBaseTx> pOrderBaseTx = make_shared<CDEXOperatorOrderTx>(
-        userId, validHeight, fee.symbol, fee.GetAmountInSawi(), orderType, orderSide, coins.symbol,
-        assets.symbol, coins.GetAmountInSawi(), assets.GetAmountInSawi(), price, dexId, publicMode,
-        makerFeeRatio, takerFeeRatio, operatorDetail.fee_receiver_regid,
-        operatorTxFee.GetAmountInSawi(), memo);
+        userId, validHeight, cmFee.symbol, cmFee.GetAmountInSawi(), orderType, orderSide,
+        coins.symbol, assets.symbol, coins.GetAmountInSawi(), assets.GetAmountInSawi(), price, dexId,
+        publicMode, memo, makerFeeRatio, takerFeeRatio, operatorDetail.fee_receiver_regid);
 
     CDataStream ds(SER_DISK, CLIENT_VERSION);
     ds << pOrderBaseTx;

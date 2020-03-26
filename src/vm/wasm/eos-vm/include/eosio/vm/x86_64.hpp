@@ -13,6 +13,7 @@
 #include <cstring>
 #include <variant>
 #include <vector>
+#include <cpuid.h>
 
 
 namespace eosio { namespace vm {
@@ -1035,25 +1036,65 @@ namespace eosio { namespace vm {
 
       // --------------- i32 unops ----------------------
 
-      // FIXME: detect whether lzcnt/tzcnt are supported
+      bool has_tzcnt_impl() {
+         unsigned a, b, c, d;
+         return __get_cpuid_count(7, 0, &a, &b, &c, &d) && (b & bit_BMI) &&
+                __get_cpuid(0x80000001, &a, &b, &c, &d) && (c & bit_LZCNT);
+      }
+
+      bool has_tzcnt() {
+         static bool result = has_tzcnt_impl();
+         return result;
+      }
+
       void emit_i32_clz() {
-         auto icount = fixed_size_instr(6);
-         // popq %rax
-         emit_bytes(0x58);
-         // lzcntl %eax, %eax
-         emit_bytes(0xf3, 0x0f, 0xbd, 0xc0);
-         // pushq %rax
-         emit_bytes(0x50);
+         auto icount = fixed_size_instr(has_tzcnt()?6:18);
+         if(!has_tzcnt()) {
+            // pop %rax
+            emit_bytes(0x58);
+            // mov $-1, %ecx
+            emit_bytes(0xb9, 0xff, 0xff, 0xff, 0xff);
+            // bsr %eax, %eax
+            emit_bytes(0x0f, 0xbd, 0xc0);
+            // cmovz %ecx, %eax
+            emit_bytes(0x0f, 0x44, 0xc1);
+            // sub $31, %eax
+            emit_bytes(0x83, 0xe8, 0x1f);
+            // neg %eax
+            emit_bytes(0xf7, 0xd8);
+            // push %rax
+            emit_bytes(0x50);
+         } else {
+            // popq %rax
+            emit_bytes(0x58);
+            // lzcntl %eax, %eax
+            emit_bytes(0xf3, 0x0f, 0xbd, 0xc0);
+            // pushq %rax
+            emit_bytes(0x50);
+         }
       }
 
       void emit_i32_ctz() {
-         auto icount = fixed_size_instr(6);
-         // popq %rax
-         emit_bytes(0x58);
-         // tzcntl %eax, %eax
-         emit_bytes(0xf3, 0x0f, 0xbc, 0xc0);
-         // pushq %rax
-         emit_bytes(0x50);
+         auto icount = fixed_size_instr(has_tzcnt()?6:13);
+         if(!has_tzcnt()) {
+            // pop %rax
+            emit_bytes(0x58);
+            // mov $32, %ecx
+            emit_bytes(0xb9, 0x20, 0x00, 0x00, 0x00);
+            // bsf %eax, %eax
+            emit_bytes(0x0f, 0xbc, 0xc0);
+            // cmovz %ecx, %eax
+            emit_bytes(0x0f, 0x44, 0xc1);
+            // push %rax
+            emit_bytes(0x50);
+         } else {
+            // popq %rax
+            emit_bytes(0x58);
+            // tzcntl %eax, %eax
+            emit_bytes(0xf3, 0x0f, 0xbc, 0xc0);
+            // pushq %rax
+            emit_bytes(0x50);
+         }
       }
 
       void emit_i32_popcnt() {
@@ -1155,25 +1196,54 @@ namespace eosio { namespace vm {
 
       // --------------- i64 unops ----------------------
 
-      // FIXME: detect whether lzcnt/tzcnt are supported
       void emit_i64_clz() {
-         auto icount = fixed_size_instr(7);
-         // popq %rax
-         emit_bytes(0x58);
-         // lzcntq %eax, %eax
-         emit_bytes(0xf3, 0x48, 0x0f, 0xbd, 0xc0);
-         // pushq %rax
-         emit_bytes(0x50);
+         auto icount = fixed_size_instr(has_tzcnt()?7:24);
+         if(!has_tzcnt()) {
+            // pop %rax
+            emit_bytes(0x58);
+            // mov $-1, %ecx
+            emit_bytes(0x48, 0xc7, 0xc1, 0xff, 0xff, 0xff, 0xff);
+            // bsr %eax, %eax
+            emit_bytes(0x48, 0x0f, 0xbd, 0xc0);
+            // cmovz %ecx, %eax
+            emit_bytes(0x48, 0x0f, 0x44, 0xc1);
+            // sub $63, %eax
+            emit_bytes(0x48, 0x83, 0xe8, 0x3f);
+            // neg %eax
+            emit_bytes(0x48, 0xf7, 0xd8);
+            // push %rax
+            emit_bytes(0x50);
+         } else {
+            // popq %rax
+            emit_bytes(0x58);
+            // lzcntq %eax, %eax
+            emit_bytes(0xf3, 0x48, 0x0f, 0xbd, 0xc0);
+            // pushq %rax
+            emit_bytes(0x50);
+         }
       }
 
       void emit_i64_ctz() {
-         auto icount = fixed_size_instr(7);
-         // popq %rax
-         emit_bytes(0x58);
-         // tzcntq %eax, %eax
-         emit_bytes(0xf3, 0x48, 0x0f, 0xbc, 0xc0);
-         // pushq %rax
-         emit_bytes(0x50);
+         auto icount = fixed_size_instr(has_tzcnt()?7:17);
+         if(!has_tzcnt()) {
+            // pop %rax
+            emit_bytes(0x58);
+            // mov $64, %ecx
+            emit_bytes(0x48, 0xc7, 0xc1, 0x40, 0x00, 0x00, 0x00);
+            // bsf %eax, %eax
+            emit_bytes(0x48, 0x0f, 0xbc, 0xc0);
+            // cmovz %ecx, %eax
+            emit_bytes(0x48, 0x0f, 0x44, 0xc1);
+            // push %rax
+            emit_bytes(0x50);
+         } else {
+            // popq %rax
+            emit_bytes(0x58);
+            // tzcntq %eax, %eax
+            emit_bytes(0xf3, 0x48, 0x0f, 0xbc, 0xc0);
+            // pushq %rax
+            emit_bytes(0x50);
+         }
       }
 
       void emit_i64_popcnt() {

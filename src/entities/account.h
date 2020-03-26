@@ -167,7 +167,7 @@ struct CAccount {
     uint64_t last_vote_height;      //!< account's last vote block height used for computing interest
     uint64_t last_vote_epoch;       //!< account's last vote epoch used for computing interest
 
-    uint64_t perms_sum
+    uint64_t perms_sum 
                 = kAccountAllPerms; //! a sum of granted perms to the account
 
     mutable uint256 sigHash;        //!< in-memory only
@@ -248,7 +248,7 @@ struct CAccount {
 
     void SetRegId(CRegID & regIdIn) { regid = regIdIn; }
 
-    bool IsSelfUid(const CUserID &uid);
+    bool IsMyUid(const CUserID &uid);
 
     bool IsBcoinWithinRange(uint64_t nAddMoney);
     bool IsFcoinWithinRange(uint64_t nAddMoney);

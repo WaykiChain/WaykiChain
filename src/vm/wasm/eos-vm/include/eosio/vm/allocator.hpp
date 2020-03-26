@@ -17,8 +17,6 @@
 #include <sys/mman.h>
 #include <unistd.h>
 
-#include <iostream>
-
 namespace eosio { namespace vm {
    class bounded_allocator {
     public:
@@ -92,7 +90,7 @@ namespace eosio { namespace vm {
    };
 
    class jit_allocator {
-      static constexpr std::size_t segment_size = std::size_t{1024u} * 1024u * 1024u;
+       static constexpr std::size_t segment_size = std::size_t{1024u} * 1024u * 1024u;
    public:
       // allocates page aligned memory with executable permission
       void * alloc(std::size_t size) {
@@ -233,9 +231,8 @@ namespace eosio { namespace vm {
    };
 
    class growable_allocator {
-     public:
-    //   static constexpr size_t max_memory_size = 1024 * 1024 * 1024; // 1GB
-      static constexpr size_t max_memory_size = 4 * 1024 * 1024;    // 4MB
+    public:
+      static constexpr size_t max_memory_size = 1024 * 1024 * 1024; // 1GB
       static constexpr size_t chunk_size      = 128 * 1024;         // 128KB
       template<std::size_t align_amt>
       static constexpr size_t align_offset(size_t offset) { return (offset + align_amt - 1) & ~(align_amt - 1); }
@@ -262,7 +259,6 @@ namespace eosio { namespace vm {
       ~growable_allocator() {
          munmap(_base, _capacity);
          if (is_jit) {
-            //fixme:will crash while system out
             jit_allocator::instance().free(_code_base);
          }
       }
@@ -445,9 +441,7 @@ namespace eosio { namespace vm {
       template <typename T>
       inline T* create_pointer(uint32_t offset) { return reinterpret_cast<T*>(raw + offset); }
       inline int32_t get_current_page() const { return page; }
-      bool is_in_region(const char* p) { return p >= raw && p < raw + max_memory;       }
-      bool is_in_range(const char* p)  { 
-         //std::cout << "page:" << page << " raw:" << reinterpret_cast<uint64_t>(raw) << " end:" << reinterpret_cast<uint64_t>(raw) +  page * page_size << std::endl;
-         return p >= raw && p < raw + page * page_size; }
+      bool is_in_region(char* p) { return p >= raw && p < raw + max_memory; }
+      bool is_in_range(const char* p)  { return p >= raw && p < raw + page * page_size; }
    };
 }} // namespace eosio::vm

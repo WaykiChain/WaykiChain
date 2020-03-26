@@ -19,6 +19,7 @@ class CRegID;
 class CBlockConfirmMessage;
 class CBlockFinalityMessage;
 
+
 template <typename MsgType>
 class CPBFTMessageMan {
 
@@ -41,15 +42,16 @@ public:
         messageKnown.max_size(maxSize);
     }
 
+public:
+
     bool IsBroadcastedBlock(uint256 blockHash) {
         return broadcastedBlockHashSet.count(blockHash) > 0;
     }
 
     bool SaveBroadcastedBlock(uint256 blockHash) {
         broadcastedBlockHashSet.insert(blockHash);
-        return true;
+        return true ;
     }
-
     bool IsKnown(const MsgType msg) {
         return messageKnown.count(msg) != 0;
     }
@@ -88,18 +90,25 @@ public:
 };
 
 class CPBFTContext {
+
+
 public:
+
     CPBFTMessageMan<CBlockConfirmMessage> confirmMessageMan;
     CPBFTMessageMan<CBlockFinalityMessage> finalityMessageMan;
-    limitedmap<uint256, set<CRegID>> blockMinerListMap;
+    limitedmap<uint256, set<CRegID>> blockMinerListMap ;
 
     CPBFTContext(){
         blockMinerListMap.max_size(500);
+
     }
 
     bool GetMinerListByBlockHash(const uint256 blockHash, set<CRegID>& delegates);
 
     bool SaveMinersByHash(uint256 blockhash, VoteDelegateVector delegates);
+
+
 };
+
 
 #endif //MINER_PBFTCONTEXT_H

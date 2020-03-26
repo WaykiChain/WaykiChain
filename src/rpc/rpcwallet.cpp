@@ -280,30 +280,28 @@ Value signmessage(const Array& params, bool fHelp) {
     return EncodeBase64(&vchSig[0], vchSig.size());
 }
 
-
-
 Value submitsendtx(const Array& params, bool fHelp) {
     if (fHelp || (params.size() != 4 && params.size() != 5))
         throw runtime_error(
-                "submitsendtx \"from\" \"to\" \"symbol:coin:unit\" \"symbol:fee:unit\" [\"memo\"]\n"
-                "\nSend coins to a given address.\n" +
-                HelpRequiringPassphrase() +
-                "\nArguments:\n"
-                "1.\"from\":                (string, required) The address where coins are sent from\n"
-                "2.\"to\":                  (string, required) The address where coins are received\n"
-                "3.\"symbol:coin:unit\":    (symbol:amount:unit, required) transferred coins\n"
-                "4.\"symbol:fee:unit\":     (symbol:amount:unit, required) fee paid to miner, default is WICC:10000:sawi\n"
-                "5.\"memo\":                (string, optional)\n"
-                "\nResult:\n"
-                "\"txid\"                   (string) The transaction id.\n"
-                "\nExamples:\n" +
-                HelpExampleCli("submitsendtx",
-                               "\"wLKf2NqwtHk3BfzK5wMDfbKYN1SC3weyR4\" \"wNDue1jHcgRSioSDL4o1AzXz3D72gCMkP6\" "
-                               "\"WICC:1000000:sawi\" \"WICC:10000:sawi\" \"Hello, WaykiChain!\"") +
-                "\nAs json rpc call\n" +
-                HelpExampleRpc("submitsendtx",
-                               "\"wLKf2NqwtHk3BfzK5wMDfbKYN1SC3weyR4\", \"wNDue1jHcgRSioSDL4o1AzXz3D72gCMkP6\", "
-                               "\"WICC:1000000:sawi\", \"WICC:10000:sawi\", \"Hello, WaykiChain!\""));
+            "submitsendtx \"from\" \"to\" \"symbol:coin:unit\" \"symbol:fee:unit\" [\"memo\"]\n"
+            "\nSend coins to a given address.\n" +
+            HelpRequiringPassphrase() +
+            "\nArguments:\n"
+            "1.\"from\":                (string, required) The address where coins are sent from\n"
+            "2.\"to\":                  (string, required) The address where coins are received\n"
+            "3.\"symbol:coin:unit\":    (symbol:amount:unit, required) transferred coins\n"
+            "4.\"symbol:fee:unit\":     (symbol:amount:unit, required) fee paid to miner, default is WICC:10000:sawi\n"
+            "5.\"memo\":                (string, optional)\n"
+            "\nResult:\n"
+            "\"txid\"                   (string) The transaction id.\n"
+            "\nExamples:\n" +
+            HelpExampleCli("submitsendtx",
+                           "\"wLKf2NqwtHk3BfzK5wMDfbKYN1SC3weyR4\" \"wNDue1jHcgRSioSDL4o1AzXz3D72gCMkP6\" "
+                           "\"WICC:1000000:sawi\" \"WICC:10000:sawi\" \"Hello, WaykiChain!\"") +
+            "\nAs json rpc call\n" +
+            HelpExampleRpc("submitsendtx",
+                           "\"wLKf2NqwtHk3BfzK5wMDfbKYN1SC3weyR4\", \"wNDue1jHcgRSioSDL4o1AzXz3D72gCMkP6\", "
+                           "\"WICC:1000000:sawi\", \"WICC:10000:sawi\", \"Hello, WaykiChain!\""));
 
     EnsureWalletIsUnlocked();
 
@@ -328,84 +326,22 @@ Value submitsendtx(const Array& params, bool fHelp) {
 
     if (GetFeatureForkVersion(height) >= MAJOR_VER_R2) {
         pBaseTx = std::make_shared<CCoinTransferTx>(sendUserId, recvUserId, height, cmCoin.symbol,
-                                                    cmCoin.GetAmountInSawi(), cmFee.symbol, cmFee.GetAmountInSawi(), memo);
+            cmCoin.GetAmountInSawi(), cmFee.symbol, cmFee.GetAmountInSawi(), memo);
     } else { // MAJOR_VER_R1
         if (cmCoin.symbol != SYMB::WICC || cmFee.symbol != SYMB::WICC)
             throw JSONRPCError(REJECT_INVALID, strprintf("Only support WICC for coin symbol or fee symbol before "
-                                                         "height=%u! current height=%d", SysCfg().GetFeatureForkHeight(), height));
+                "height=%u! current height=%d", SysCfg().GetFeatureForkHeight(), height));
 
         if (sendUserId.is<CKeyID>())
             throw JSONRPCError(REJECT_INVALID, strprintf("%s is unregistered, should register first",
                                                          sendUserId.get<CKeyID>().ToAddress()));
 
         pBaseTx = std::make_shared<CBaseCoinTransferTx>(sendUserId, recvUserId, height, cmCoin.GetAmountInSawi(),
-                                                        cmFee.GetAmountInSawi(), memo);
+            cmFee.GetAmountInSawi(), memo);
     }
 
-    LogPrint(BCLog::RPCCMD, "submitsendtx: from=%s, to=%s, coin=%s, fee=%s", sendUserId.ToString(),
-             recvUserId.ToString(), cmCoin.ToString(), cmFee.ToString());
-
-    return SubmitTx(account.keyid, *pBaseTx);
-}
-
-
-
-
-Value submitsendmultitx(const Array& params, bool fHelp) {
-    if (fHelp || (params.size() != 3 && params.size() != 4))
-        throw runtime_error(
-            "submitsendmultitx \"from\" \"to\" \"transfer_array\" \"fee\" [\"memo\"]\n"
-            "\nSend coins to many addresses.\n" +
-            HelpRequiringPassphrase() +
-            "\nArguments:\n"
-            "1.\"from\":                (string, required) The address where coins are sent from\n"
-            "2.\"transfer_array\"        (Array(string),  required) the transfer info array\n "
-            "                           \"[{\n"
-            "                               \"to_uid\":              (string,required) The address where coins are received\n"
-            "                               \"symbol_amount_unit\":  (comboMoney, required) transferred coins\n"
-            "                            }]\"\n"
-            "3.\"fee\":                 bt(symbol:amount:unit, required) fee paid to miner, default is WICC:10000:sawi\n"
-            "4.\"memo\":                (string, optional)\n"
-            "\nResult:\n"
-            "\"txid\"                   (string) The transaction id.\n"
-            "\nExamples:\n" +
-            HelpExampleCli("submitsendmultitx",
-                           R"("wLKf2NqwtHk3BfzK5wMDfbKYN1SC3weyR4" "[{"to_uid":"0-1", "symbol_amount_unit":"WICC:100:WI"}]" "Hello, WaykiChain!")") +
-            "\nAs json rpc call\n" +
-            HelpExampleRpc("submitsendmultitx",
-                           R"("wLKf2NqwtHk3BfzK5wMDfbKYN1SC3weyR4",  "[{"to_uid":"0-1", "symbol_amount_unit":"WICC:100:WI"}]", "Hello, WaykiChain!")"));
-
-    EnsureWalletIsUnlocked();
-
-    CUserID sendUserId = RPC_PARAM::GetUserId(params[0], true);
-    Array transferArr = params[1].get_array();
-    ComboMoney fee   = RPC_PARAM::GetFee(params, 2, UCOIN_TRANSFER_TX);
-    string memo = params.size() > 3 ? params[3].get_str() : "";
-
-    CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, sendUserId);
-
-    vector<SingleTransfer> vTransfers;
-    for (auto transfer: transferArr) {
-        const Value& to_uidV = JSON::GetObjectFieldValue(transfer, "to_uid");
-        CUserID uid = RPC_PARAM::GetUserId(to_uidV);
-        const Value& amountV = JSON::GetObjectFieldValue(transfer, "symbol_amount_unit");
-        ComboMoney amount = RPC_PARAM::GetComboMoney(amountV);
-        if (amount.GetAmountInSawi() == 0)
-            throw JSONRPCError(RPC_INVALID_PARAMETER, "Coins is zero!");
-        if (!pCdMan->pAssetCache->CheckAsset(amount.symbol))
-            throw JSONRPCError(REJECT_INVALID, strprintf("Invalid coin symbol=%s!", amount.symbol));
-
-        SingleTransfer trx(uid, amount.symbol, amount.GetAmountInSawi());
-        vTransfers.push_back(trx);
-        account.OperateBalance(amount.symbol, SUB_FREE, amount.GetAmountInSawi());
-    }
-
-    RPC_PARAM::CheckAccountBalance(account, fee.symbol, SUB_FREE, fee.GetAmountInSawi());
-
-
-    int32_t height = chainActive.Height();
-    std::shared_ptr<CBaseTx> pBaseTx = std::make_shared<CCoinTransferTx>(sendUserId,
-            vTransfers, height, fee.symbol, fee.GetAmountInSawi(), memo);
+    LogPrint(BCLog::RPCCMD, "submitsendtx: from=%s, to=%s, coin=%s, fee=%s", sendUserId.ToString(), 
+            recvUserId.ToString(), cmCoin.ToString(), cmFee.ToString());
 
     return SubmitTx(account.keyid, *pBaseTx);
 }

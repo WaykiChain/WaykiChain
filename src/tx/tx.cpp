@@ -105,7 +105,7 @@ uint64_t CBaseTx::GetFuel(int32_t height, uint32_t fuelRate) {
 }
 
 bool CBaseTx::CheckBaseTx(CTxExecuteContext &context) {
-    CValidationState &state = *context.pState;
+    IMPLEMENT_DEFINE_CW_STATE;
 
     if(nTxType == BLOCK_REWARD_TX
     || nTxType == PRICE_MEDIAN_TX
@@ -150,13 +150,6 @@ bool CBaseTx::CheckBaseTx(CTxExecuteContext &context) {
         switch (nTxType) {
             case LCONTRACT_DEPLOY_TX:
             case LCONTRACT_INVOKE_TX:
-            case DEX_LIMIT_BUY_ORDER_TX:
-            case DEX_LIMIT_SELL_ORDER_TX:
-            case DEX_MARKET_BUY_ORDER_TX:
-            case DEX_MARKET_SELL_ORDER_TX:
-            case DEX_ORDER_TX:
-            case DEX_OPERATOR_ORDER_TX:
-            case DEX_CANCEL_ORDER_TX:
             case UCOIN_TRANSFER_TX: break; //to be checked in Tx Code but not here
             default:
                 if(!CheckFee(context)) return false;

@@ -165,7 +165,11 @@ namespace eosio { namespace vm {
       guarded_vector<uint32_t> import_functions = { allocator, 0 };
       guarded_vector<uint32_t> type_aliases     = { allocator, 0 };
       guarded_vector<uint32_t> fast_functions   = { allocator, 0 };
-      uint64_t                 maximum_stack = 0;
+      uint64_t                 maximum_stack    = 0;
+      // If non-null, indicates that the parser encountered an error
+      // that would prevent successful instantiation.  Must refer
+      // to memory with static storage duration.
+      const char *             error            = nullptr;
 
       void finalize() {
          import_functions.resize(get_imported_functions_size());

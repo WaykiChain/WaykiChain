@@ -23,7 +23,7 @@ namespace eosio { namespace vm {
       virtual const char* what()const throw() { return _what; }                   \
       virtual const char* detail()const throw() { return msg; }                   \
       uint32_t code()const { return _code; }                                      \
-      const char* msg = nullptr;                                                            \
+      const char* msg;                                                            \
    };
 
 namespace eosio { namespace vm {

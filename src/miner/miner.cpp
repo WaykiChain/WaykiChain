@@ -181,7 +181,7 @@ bool VerifyRewardTx(const CBlock *pBlock, CCacheWrapper &cwIn, VoteDelegate &cur
 
     VoteDelegateVector delegates;
     if (!cwIn.delegateCache.GetActiveDelegates(delegates))
-        return ERRORMSG("VerifyRewardTx() : get active delegates failed");
+        return false;
 
     totalDelegateNumOut = delegates.size();
     ShuffleDelegates(pBlock->GetHeight(),pBlock->GetTime(), delegates);
@@ -238,7 +238,7 @@ bool VerifyRewardTx(const CBlock *pBlock, CCacheWrapper &cwIn, VoteDelegate &cur
     const auto &blockHash      = pBlock->GetHash();
     const auto &blockSignature = pBlock->GetSignature();
 
-    if (blockSignature.size() == 0 || blockSignature.size() > MAX_SIGNATURE_SIZE)
+    if (blockSignature.size() == 0 || blockSignature.size() > MAX_SIGNATURE_SIZE) 
         return ERRORMSG("VerifyRewardTx() : invalid block signature size, hash=%s", blockHash.ToString());
 
     if (!VerifySignature(blockHash, blockSignature, account.owner_pubkey) &&
@@ -337,11 +337,15 @@ static bool CreateNewBlockForPreStableCoinRelease(CCacheWrapper &cwIn, std::uniq
                 CTxExecuteContext context(height, index + 1, fuelRate, blockTime, prevBlockTime, spCW.get(), &state,
                                         TxExecuteContextType::PRODUCE_BLOCK);
 
-                if (!pBaseTx->CheckAndExecuteTx(context)) {
+                if (!pBaseTx->CheckBaseTx(context) ||
+                    !pBaseTx->CheckTx(context) ||
+                    !pBaseTx->ExecuteTx(context)) {
                     LogPrint(BCLog::MINER, "CreateNewBlockForPreStableCoinRelease() : Check/ExecuteTx failed, txid: %s\n",
                             pBaseTx->GetHash().GetHex());
 
-                    pCdMan->pLogCache->SetExecuteFail(height, pBaseTx->GetHash(), state.GetRejectCode(), state.GetRejectReason());
+                    pCdMan->pLogCache->SetExecuteFail(height, pBaseTx->GetHash(), state.GetRejectCode(),
+                                                      state.GetRejectReason());
+
                     continue;
                 }
 
@@ -493,11 +497,14 @@ static bool CreateNewBlockForStableCoinRelease(int64_t startMiningMs, CCacheWrap
                 CTxExecuteContext context(height, index + 1, fuelRate, blockTime, prevBlockTime, spCW.get(), &state,
                                         TxExecuteContextType::PRODUCE_BLOCK);
 
-                if (!pBaseTx->CheckAndExecuteTx(context)) {
+                if (!pBaseTx->CheckBaseTx(context) ||
+                    !pBaseTx->CheckTx(context) ||
+                    !pBaseTx->ExecuteTx(context)) {
                     LogPrint(BCLog::MINER, "CreateNewBlockForStableCoinRelease() : failed to check/exec tx: %s\n",
                              pBaseTx->ToString(spCW->accountCache));
 
-                    pCdMan->pLogCache->SetExecuteFail(height, pBaseTx->GetHash(), state.GetRejectCode(), state.GetRejectReason());
+                    pCdMan->pLogCache->SetExecuteFail(height, pBaseTx->GetHash(), state.GetRejectCode(),
+                                                      state.GetRejectReason());
                     continue;
                 }
 

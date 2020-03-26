@@ -58,7 +58,6 @@ namespace BCLog { //blockchain log
         LIBEVENT    = (1 << 20),
         DEX         = (1 << 21),
         RPCCMD      = (1 << 22),
-        DELEGATE    = (1 << 23),
         ALL         = ~(uint32_t)0,
     };
 

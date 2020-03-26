@@ -202,7 +202,6 @@ extern Value submitassetpermproposal(const Array& params , bool fHelp);
 
 extern Value submitutxotransfertx(const Array& params, bool fHelp);
 extern Value submitpasswordprooftx(const Array& params, bool fHelp);
-extern Value submitsendmultitx(const Array& params, bool fHelp);
 
 extern Value submitaxcinproposal(const Array& params, bool fHelp);
 extern Value submitaxcoutproposal(const Array& params, bool fHelp);

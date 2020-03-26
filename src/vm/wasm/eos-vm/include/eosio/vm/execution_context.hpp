@@ -61,6 +61,8 @@ namespace eosio { namespace vm {
       inline std::error_code get_error_code() const { return _error_code; }
 
       inline void reset() {
+         EOS_VM_ASSERT(_mod.error == nullptr, wasm_interpreter_exception, _mod.error);
+
          _linear_memory = _wasm_alloc->get_base_ptr<char>();
          if (_mod.memories.size()) {
             grow_linear_memory(_mod.memories[0].limits.initial - _wasm_alloc->get_current_page());
@@ -108,7 +110,6 @@ namespace eosio { namespace vm {
             /* TODO fix this */
             assert(!"??????");
          }
-         
          throw wasm_memory_exception{ "wasm memory out-of-bounds" };
       }
 

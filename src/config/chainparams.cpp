@@ -432,11 +432,12 @@ CBaseParams::CBaseParams() {
     fBenchmark              = false;
     fTxIndex                = false;
     fLogFailures            = false;
-    fServer                 = false;
     nTxCacheHeight          = 500;
     nTimeBestReceived       = 0;
     nCacheSize              = 300 << 10;  // 300K bytes
     nDefaultPort            = 0;
+    fServer                 = 0;
+    fServer                 = 0;
     nRPCPort                = 0;
     nMaxForkTime            = 24 * 60 * 60;  // 86400 seconds
 }

@@ -9,43 +9,43 @@
 
 #include "chain/chain.h"
 
-class CBlockConfirmMessage;
-class CBlockFinalityMessage;
-class CPBFTMessage;
+class CBlockConfirmMessage ;
+class CBlockFinalityMessage ;
+class CPBFTMessage ;
 
 class CPBFTMan {
 
 private:
-    CBlockIndex* localFinIndex = nullptr;
-    int64_t localFinLastUpdate = 0;
-    CBlockIndex* globalFinIndex = nullptr;
+    CBlockIndex* localFinIndex = nullptr ;
+    int64_t localFinLastUpdate = 0 ;
+    CBlockIndex* globalFinIndex = nullptr ;
     uint256 globalFinHash = uint256();
-    CCriticalSection cs_finblock;
+    CCriticalSection cs_finblock ;
     bool UpdateLocalFinBlock(const uint32_t height);
     bool UpdateGlobalFinBlock(const uint32_t height);
 
 public:
 
     CBlockIndex *GetLocalFinIndex();
-    CBlockIndex *GetGlobalFinIndex();
-    uint256 GetGlobalFinBlockHash();
-//    bool UpdateFinalityBlock();
-    bool SetLocalFinTimeout();
+    CBlockIndex *GetGlobalFinIndex() ;
+    uint256 GetGlobalFinBlockHash() ;
+//    bool UpdateFinalityBlock() ;
+    bool SetLocalFinTimeout() ;
     bool UpdateLocalFinBlock(const CBlockIndex* pIndex);
     bool UpdateLocalFinBlock(const CBlockConfirmMessage& msg, const uint32_t messageCount);
     bool UpdateGlobalFinBlock(const CBlockIndex* pIndex);
     bool UpdateGlobalFinBlock(const CBlockFinalityMessage& msg, const uint32_t messageCount);
-    int64_t  GetLocalFinLastUpdate() const;
+    int64_t  GetLocalFinLastUpdate() const ;
 };
 
-bool BroadcastBlockConfirm(const CBlockIndex* block);
+bool BroadcastBlockConfirm(const CBlockIndex* block) ;
 
-bool BroadcastBlockFinality(const CBlockIndex* block);
+bool BroadcastBlockFinality(const CBlockIndex* block) ;
 
-bool CheckPBFTMessage(const int32_t msgType ,const CPBFTMessage& msg);
+bool CheckPBFTMessage(const int32_t msgType ,const CPBFTMessage& msg) ;
 
-bool CheckPBFTMessageSignaturer(const CPBFTMessage& msg);
-bool RelayBlockConfirmMessage(const CBlockConfirmMessage& msg);
+bool CheckPBFTMessageSignaturer(const CPBFTMessage& msg) ;
+bool RelayBlockConfirmMessage(const CBlockConfirmMessage& msg) ;
 
-bool RelayBlockFinalityMessage(const CBlockFinalityMessage& msg);
+bool RelayBlockFinalityMessage(const CBlockFinalityMessage& msg) ;
 #endif //MINER_PBFTMANAGER_H

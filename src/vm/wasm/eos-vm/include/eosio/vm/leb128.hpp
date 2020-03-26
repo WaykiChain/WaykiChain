@@ -37,7 +37,7 @@ namespace eosio { namespace vm {
          }
          inline constexpr void from(uint32_t v) {
 	    bytes_used = 0;
-            //#pragma unroll
+//            #pragma unroll
             for (; bytes_used < bytes_needed<N>(); bytes_used++) {
                storage[bytes_used] = v & 0x7f;
                v >>= 7;
@@ -78,7 +78,7 @@ namespace eosio { namespace vm {
          template <size_t M=N, typename = typename std::enable_if_t<M == 32, int>>
          inline constexpr uint32_t to() { 
             uint32_t ret = 0;
-            //#pragma unroll
+ //           #pragma unroll
             for (int i=bytes_used-1; i >= 0; i--) {
                ret <<= 7;
                ret |= storage[i] & 0x7f;
@@ -170,7 +170,7 @@ namespace eosio { namespace vm {
          template <typename T>
          inline constexpr void _from(T v) {
             bytes_used = 0;
-            //#pragma unroll
+ //           #pragma unroll
             for (; bytes_used < bytes_needed<N>(); bytes_used++) {
 	       storage[bytes_used] = v & 0x7f;
 	       v >>= 7;
@@ -184,7 +184,7 @@ namespace eosio { namespace vm {
          template <typename T>
          inline constexpr T _to() {
             typename std::make_unsigned<T>::type ret = 0;
-            //#pragma unroll
+ //           #pragma unroll
             for (int i=bytes_used-1; i >= 0; i--) {
                ret <<= 7;
                ret |= storage[i] & 0x7f;

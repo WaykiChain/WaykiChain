@@ -189,6 +189,7 @@ public:
 
     bool CheckBaseTx(CTxExecuteContext &context);
     virtual bool CheckTx(CTxExecuteContext &context) = 0;
+
     virtual bool ExecuteTx(CTxExecuteContext &context) = 0;
 
     bool IsValidHeight(int32_t nCurHeight, int32_t nTxCacheHeight) const;
@@ -202,10 +203,6 @@ public:
     bool IsCoinRewardTx()   { return nTxType == UCOIN_REWARD_TX; }
 
     const string& GetTxTypeName() const { return ::GetTxTypeName(nTxType); }
-
-    bool CheckAndExecuteTx(CTxExecuteContext& context) {
-        return CheckBaseTx(context) && CheckTx(context) && ExecuteTx(context);
-    }
 
 public:
     static unsigned int GetSerializePtrSize(const std::shared_ptr<CBaseTx> &pBaseTx, int nType, int nVersion){

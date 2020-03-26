@@ -207,7 +207,7 @@ Value submitpasswordprooftx(const Array& params, bool fHelp) {
                 "2.\"prev_utxo_txid\":       (string, required) The utxo txid you want to spend\n"
                 "3.\"prev_utxo_vout_index\": (string, required) The index of utxo output \n"
                 "4.\"password\":            (symbol:amount:unit, required) password\n"
-                "5.\"pre_utxo_tx_uid\"      (string, required) the txUid of prev utxotx that provide prevOutput\n "
+                "5.\"pre_utxo_tx_uid\"      (string, required) the txUid of prev utxotx that provide prevOutput "
                 "6.\"symbol:fee:unit\":     (symbol:amount:unit, optinal) fee paid to miner\n"
                 "\nResult:\n"
                 "\"txid\"                   (string) The transaction id.\n"

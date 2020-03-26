@@ -50,9 +50,9 @@ namespace dex {
                 if (stakedAmount > 0) {
                     minFee = std::max(std::min(COIN * COIN / stakedAmount, minFee), (uint64_t)1);
                 }
-                if (totalFees < minFee){
-                    string err = strprintf("The given fees is too small: %llu < %llu sawi when wicc staked_amount=%llu",
-                        totalFees, minFee, stakedAmount);
+                if (baseTx.llFees < minFee){
+                    string err = strprintf("The given fee is too small: %llu < %llu sawi when wicc staked_amount=%llu",
+                        baseTx.llFees, minFee, stakedAmount);
                     return context.pState->DoS(100, ERRORMSG("%s, tx=%s, height=%d, fee_symbol=%s",
                         err, baseTx.GetTxTypeName(), context.height, baseTx.fee_symbol), REJECT_INVALID, err);
                 }
@@ -231,12 +231,13 @@ namespace dex {
                                        ERRORMSG("%s, the coinSymbol=%s is same to assetSymbol=%s",
                                                 TX_ERR_TITLE, coinSymbol, assetSymbol),
                                        REJECT_INVALID, "same-coin-asset-symbol");
-        if (!context.pCw->assetCache.CheckDexBaseSymbol(assetSymbol))
-            return context.pState->DoS(100, ERRORMSG("%s, unsupported dex order asset_symbol=%s", TX_ERR_TITLE, assetSymbol),
-                                    REJECT_INVALID, "unsupported-order-asset-symbol");
-        if (!context.pCw->assetCache.CheckDexQuoteSymbol(coinSymbol))
+        if (!context.pCw->assetCache.CheckDexBaseSymbol(coinSymbol))
             return context.pState->DoS(100, ERRORMSG("%s, unsupported dex order coin_symbol=%s", TX_ERR_TITLE, coinSymbol),
                                     REJECT_INVALID, "unsupported-order-coin-symbol");
+
+        if (!context.pCw->assetCache.CheckDexQuoteSymbol(assetSymbol))
+            return context.pState->DoS(100, ERRORMSG("%s, unsupported dex order asset_symbol=%s", TX_ERR_TITLE, assetSymbol),
+                                    REJECT_INVALID, "unsupported-order-asset-symbol");
         return true;
     }
 

@@ -283,6 +283,48 @@ public:
         return db.Read(prefix, value);
     }
 
+    template <typename KeyType>
+    bool GetTopNElements(const uint32_t maxNum, const dbk::PrefixType prefixType, set<KeyType> &expiredKeys,
+                         set<KeyType> &keys) {
+        KeyType key;
+        uint32_t count             = 0;
+        shared_ptr<leveldb::Iterator> pCursor = NewIterator();
+
+        CDataStream ssKey(SER_DISK, CLIENT_VERSION);
+        const string &prefix = dbk::GetKeyPrefix(prefixType);
+        ssKey.write(prefix.c_str(), prefix.size());
+        pCursor->Seek(ssKey.str());
+
+        for (; (count < maxNum) && pCursor->Valid(); pCursor->Next()) {
+            boost::this_thread::interruption_point();
+
+            try {
+                leveldb::Slice slKey = pCursor->key();
+                if (!dbk::ParseDbKey(slKey, prefixType, key)) {
+                    break;
+                }
+
+                if (expiredKeys.count(key)) {
+                    continue;
+                } else if (keys.count(key)) {
+                    // skip it if the element existed in memory cache(upper level cache)
+                    continue;
+                } else {
+                    // Got an valid element.
+                    auto ret = keys.emplace(key);
+                    if (!ret.second)
+                        throw runtime_error(strprintf("%s :  %s, alloc new cache item failed", __FUNCTION__, __LINE__));
+
+                    ++count;
+                }
+            } catch (std::exception &e) {
+                return ERRORMSG("%s : Deserialize or I/O error - %s", __FUNCTION__, e.what());
+            }
+        }
+
+        return true;
+    }
+
     template <typename KeyType, typename ValueType>
     bool GetAllElements(const dbk::PrefixType prefixType, map<KeyType, ValueType> &elements) {
         KeyType key;
@@ -488,6 +530,27 @@ public:
         return size;
     }
 
+    bool GetTopNElements(const uint32_t maxNum, set<KeyType> &keys) {
+        // 1. Get all candidate elements.
+        set<KeyType> expiredKeys;
+        set<KeyType> candidateKeys;
+        if (!GetTopNElements(maxNum, expiredKeys, candidateKeys)) {
+            // TODO: log
+            return false;
+        }
+
+        // 2. Get the top N elements.
+        uint32_t count  = 0;
+        for (const auto item : candidateKeys) {
+            if (count ++ == maxNum) {
+                break;
+            }
+            keys.emplace(item);
+        }
+
+        return keys.size() == maxNum;
+    }
+
     // map<string, ValueType>
     bool GetAllElements(const KeyType &endKey, Map &elements) {
         set<KeyType> expiredKeys;
@@ -677,6 +740,35 @@ private:
     template <typename Data>
     inline uint32_t CalcDataSize(const Data &d) const {
         return ::GetSerializeSize(d, SER_DISK, CLIENT_VERSION);
+    }
+
+    bool GetTopNElements(const uint32_t maxNum, set<KeyType> &expiredKeys, set<KeyType> &keys) {
+        if (!mapData.empty()) {
+            uint32_t count = 0;
+            auto iter      = mapData.begin();
+
+            for (; (count < maxNum) && iter != mapData.end(); ++iter) {
+                if (db_util::IsEmpty(iter->second)) {
+                    expiredKeys.insert(iter->first);
+                } else if (expiredKeys.count(iter->first) || keys.count(iter->first)) {
+                    // TODO: log
+                    continue;
+                } else {
+                    // Got a valid element.
+                    keys.insert(iter->first);
+
+                    ++count;
+                }
+            }
+        }
+
+        if (pBase != nullptr) {
+            return pBase->GetTopNElements(maxNum, expiredKeys, keys);
+        } else if (pDbAccess != nullptr) {
+            return pDbAccess->GetTopNElements(maxNum, PREFIX_TYPE, expiredKeys, keys);
+        }
+
+        return true;
     }
 
     // map<string, ValueType>

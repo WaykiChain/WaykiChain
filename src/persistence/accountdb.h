@@ -85,6 +85,7 @@ public:
     bool GetNickIdHeight(uint64_t nickIdValue,uint32_t& regHeight) ;
 
     uint32_t GetCacheSize() const;
+    Object ToJsonObj(dbk::PrefixType prefix = dbk::EMPTY);
 
     void SetBaseViewPtr(CAccountDBCache *pBaseIn) {
         accountCache.SetBase(&pBaseIn->accountCache);

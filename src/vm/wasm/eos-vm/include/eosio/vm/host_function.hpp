@@ -1,6 +1,5 @@
 #pragma once
 #pragma GCC diagnostic ignored "-Wunused-but-set-parameter"
-
 #include <eosio/vm/allocator.hpp>
 #include <eosio/vm/wasm_stack.hpp>
 #include <eosio/vm/utils.hpp>
@@ -377,19 +376,13 @@ namespace eosio { namespace vm {
             return as_value(val.template get<f32_const_t>().data.f);
          else if constexpr (std::is_floating_point_v<S> && sizeof(S) == 8)
             return as_value(val.template get<f64_const_t>().data.f);
-         else if constexpr (std::is_void_v<std::decay_t<std::remove_pointer_t<S>>>){
-            EOS_VM_ASSERT(alloc->is_in_range(alloc->template get_base_ptr<char>() + val.template get<i32_const_t>().data.ui), wasm_memory_exception, "access violation")
+         else if constexpr (std::is_void_v<std::decay_t<std::remove_pointer_t<S>>>)
             return reinterpret_cast<S>(alloc->template get_base_ptr<char>() + val.template get<i32_const_t>().data.ui);
-         }
-         else if constexpr (std::is_pointer_v<std::decay_t<S>>){
-            EOS_VM_ASSERT(alloc->is_in_range(alloc->template get_base_ptr<char>() + val.template get<i32_const_t>().data.ui), wasm_memory_exception, "access violation")
+         //xiaoyu1998
+         else if constexpr (std::is_pointer_v<std::decay_t<S>>)
             return reinterpret_cast<S>(alloc->template get_base_ptr<char>() + val.template get<i32_const_t>().data.ui);
-         }
-         else if constexpr (std::is_lvalue_reference_v<S>){
-            EOS_VM_ASSERT(alloc->is_in_range(alloc->template get_base_ptr<char>() + val.template get<i32_const_t>().data.ui), wasm_memory_exception, "access violation")
+         else if constexpr (std::is_lvalue_reference_v<S>)
             return *(std::remove_const_t<std::remove_reference_t<S>>*)(alloc->template get_base_ptr<uint8_t>() + val.template get<i32_const_t>().data.ui);
-         }
-
          else {
             return detail::make_value_getter<S, Cons>().template apply<S>(alloc, static_cast<T&&>(val), tail);
          }
@@ -408,6 +401,7 @@ namespace eosio { namespace vm {
          else if constexpr (std::is_void_v<std::decay_t<std::remove_pointer_t<T>>>)
             return i32_const_t{ static_cast<uint32_t>(reinterpret_cast<uintptr_t>(res) -
                                                       reinterpret_cast<uintptr_t>(alloc->template get_base_ptr<char>())) };
+         //xiaoyu1998
          else if constexpr (std::is_pointer_v<std::decay_t<T>>)
             return i32_const_t{ static_cast<uint32_t>(reinterpret_cast<uintptr_t>(res) -
                                                       reinterpret_cast<uintptr_t>(alloc->template get_base_ptr<char>())) };
@@ -585,8 +579,6 @@ namespace eosio { namespace vm {
             std::string mod_name =
                   std::string((char*)mod.imports[i].module_str.raw(), mod.imports[i].module_str.size());
             std::string fn_name = std::string((char*)mod.imports[i].field_str.raw(), mod.imports[i].field_str.size());
-
-            // std::cout << std::string("no mapping for imported function mod_name:") << mod_name  << std::string(" , fn_name:") << fn_name << std::endl;
             EOS_VM_ASSERT(current_mappings.named_mapping.count({ mod_name, fn_name }), wasm_link_exception,
                           "no mapping for imported function");
             imports[i] = current_mappings.named_mapping[{ mod_name, fn_name }];
@@ -605,7 +597,6 @@ namespace eosio { namespace vm {
       registered_function(std::string mod, std::string name) {
          registered_host_functions<Cls>::template add<Cls2, F, wasm_allocator>(mod, name);
       }
-
    };
 
 #undef AUTO_PARAM_WORKAROUND
