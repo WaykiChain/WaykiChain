@@ -310,7 +310,6 @@ Object CAccountDBCache::GetAccountDBStats() {
     uint64_t fcoinsStates[5] = {0};
 
     map<CKeyID, CAccount> items;
-    accountCache.GetAllElements(items);
     CDbIterator it(accountCache);
     for (it.First(); it.IsValid(); it.Next()) {
         const CAccount &account = it.GetValue();
