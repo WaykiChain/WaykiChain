@@ -45,8 +45,8 @@ static bool GetBcoinMedianPrice(CBaseTx &tx, CTxExecuteContext &context, const C
     PriceCoinPair priceCoinPair(cdpCoinPair.bcoin_symbol, quoteSymbol);
     context.pCw->priceFeedCache.GetMedianPriceDetail(priceCoinPair, priceDetail);
     if (priceDetail.price == 0 || !priceDetail.IsActive(context.height, priceTimeoutBlocks)) {
-        return context.pState->DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, the price of %s:%s is empty or inactive! "
-                "price=%llu, last_feed_height=%u", CoinPairToString(priceCoinPair),
+        return context.pState->DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, the price of %s is empty or inactive! "
+                "price=%llu, last_feed_height=%u", CoinPairToString(priceCoinPair), priceDetail.price,
                 priceDetail.last_feed_height), REJECT_INVALID, "invalid-bcoin-price");
     }
     bcoinPrice = priceDetail.price;
