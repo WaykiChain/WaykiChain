@@ -374,30 +374,3 @@ Object CAccountDBCache::GetAccountDBStats() {
     return obj;
 
 }
-
-Object CAccountDBCache::ToJsonObj(dbk::PrefixType prefix) {
-    return Object();
-/* TODO: CCompositeKVCache::ToJsonObj()
-    Object obj;
-    obj.push_back(Pair("blockHash", blockHash.ToString()));
-
-    Array arrayObj;
-    for (auto& item : mapKeyId2Account) {
-        Object obj;
-        obj.push_back(Pair("keyId", item.first.ToString()));
-        obj.push_back(Pair("account", item.second.ToString()));
-        arrayObj.push_back(obj);
-    }
-    obj.push_back(Pair("mapKeyId2Account", arrayObj));
-
-    for (auto& item : mapRegId2KeyId) {
-        Object obj;
-        obj.push_back(Pair("regId", item.first.ToString()));
-        obj.push_back(Pair("keyId", item.second.ToString()));
-        arrayObj.push_back(obj);
-    }
-    obj.push_back(Pair("mapRegId2KeyId", arrayObj));
-
-    return obj;
-    */
-}
