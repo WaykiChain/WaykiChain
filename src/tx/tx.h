@@ -308,13 +308,16 @@ public:
 
 #define IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(uid)                                                    \
     if (GetFeatureForkVersion(context.height) == MAJOR_VER_R1 && !uid.is<CRegID>()) {              \
-        return state.DoS(                                                                          \
-            100, ERRORMSG("%s, txUid must be CRegID pre-stable coin release", __FUNCTION__),       \
-            REJECT_INVALID, "txUid-type-error");                                                   \
+        return state.DoS(100,                                                                      \
+                         ERRORMSG("%s, txUid must be CRegID pre-stable coin release! tx=%s",       \
+                                  __FUNCTION__, GetTxTypeName()),                                  \
+                         REJECT_INVALID, "txUid-type-error");                                      \
     }                                                                                              \
     if ((!uid.is<CRegID>()) && (!uid.is<CPubKey>())) {                                             \
-        return state.DoS(100, ERRORMSG("%s, txUid must be CRegID or CPubKey", __FUNCTION__),       \
-                         REJECT_INVALID, "txUid-type-error");                                      \
+        return state.DoS(                                                                          \
+            100,                                                                                   \
+            ERRORMSG("%s, txUid must be CRegID or CPubKey! tx=%s", __FUNCTION__, GetTxTypeName()), \
+            REJECT_INVALID, "txUid-type-error");                                                   \
     }
 
 #define IMPLEMENT_CHECK_TX_CANDIDATE_REGID_OR_PUBKEY(candidateUid)                                              \
