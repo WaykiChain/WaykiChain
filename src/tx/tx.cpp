@@ -150,6 +150,13 @@ bool CBaseTx::CheckBaseTx(CTxExecuteContext &context) {
         switch (nTxType) {
             case LCONTRACT_DEPLOY_TX:
             case LCONTRACT_INVOKE_TX:
+            case DEX_LIMIT_BUY_ORDER_TX:
+            case DEX_LIMIT_SELL_ORDER_TX:
+            case DEX_MARKET_BUY_ORDER_TX:
+            case DEX_MARKET_SELL_ORDER_TX:
+            case DEX_ORDER_TX:
+            case DEX_OPERATOR_ORDER_TX:
+            case DEX_CANCEL_ORDER_TX:
             case UCOIN_TRANSFER_TX: break; //to be checked in Tx Code but not here
             default:
                 if(!CheckFee(context)) return false;
