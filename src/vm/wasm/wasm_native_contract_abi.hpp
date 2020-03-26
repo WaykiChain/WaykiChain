@@ -20,10 +20,10 @@ namespace wasm {
 
         abi.structs.emplace_back(struct_def{
                 "setcode", "", {
-                        {"account", "name"},
-                        {"code", "bytes"},
-                        {"abi", "bytes"},
-                        {"memo", "string"}
+                        {"account", "name"  },
+                        {"code",    "bytes" },
+                        {"abi",     "bytes" },
+                        {"memo",    "string"}
                 }
         });
 
@@ -44,10 +44,10 @@ namespace wasm {
 
         abi.structs.emplace_back(struct_def{
             "transfer", "", {
-                    {"from", "name"},
-                    {"to", "name"},
-                    {"quantity", "asset"},
-                    {"memo", "string"}
+                    {"from",     "name"  },
+                    {"to",       "name"  },
+                    {"quantity", "asset" },
+                    {"memo",     "string"}
             }
         });
 
@@ -61,7 +61,6 @@ namespace wasm {
     inline  map<uint64_t, std::vector<char>>&  get_native_contract_abis(){
         static map<uint64_t, std::vector<char>> native_contract_abis;
         return native_contract_abis;
-
     }
 
     inline void register_native_contract_abis(uint64_t contract, const std::vector<char>& abi){
@@ -69,11 +68,6 @@ namespace wasm {
     }
 
     inline bool get_native_contract_abi(uint64_t contract, std::vector<char>& abi){
-        //fixme:should be have a mutex protect
-        // if (get_native_contract_abis().size() == 0) {
-        //     register_native_contract_abis(wasm::wasmio, wasmio_contract_abi());
-        //     register_native_contract_abis(wasm::wasmio_bank, wasmio_bank_contract_abi());
-        // }
 
         REGISTER_NATIVE_CONTRACT_ABIS();
 
@@ -82,16 +76,10 @@ namespace wasm {
             abi = ret->second;
             return true;
         }
-
         return false;
     }
 
     inline bool is_native_contract(uint64_t contract){
-        //fixme:should be have a mutex protect
-        // if (get_native_contract_abis().size() == 0) {
-        //     register_native_contract_abis(wasm::wasmio, wasmio_contract_abi());
-        //     register_native_contract_abis(wasm::wasmio_bank, wasmio_bank_contract_abi());
-        // }
 
         REGISTER_NATIVE_CONTRACT_ABIS();
 

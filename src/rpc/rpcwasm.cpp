@@ -99,7 +99,7 @@ void read_and_validate_code(const string& path, string& code){
         // WASM_ASSERT(read_file_limit(path, code, MAX_CONTRACT_CODE_SIZE),
         //             file_read_exception,
         //             "wasm code file is empty or larger than max limited '%d' bytes", MAX_CONTRACT_CODE_SIZE)
-        read_file_limit(path, code, MAX_CONTRACT_CODE_SIZE);
+        read_file_limit(path, code, MAX_WASM_CONTRACT_CODE_BYTES);
 
         vector <uint8_t> c;
         c.insert(c.begin(), code.begin(), code.end());
@@ -117,7 +117,7 @@ void read_and_validate_abi(const string& abi_file, string& abi){
     //                 file_read_exception,
     //                 "wasm abi file is empty or larger than max limited '%d' bytes", MAX_CONTRACT_CODE_SIZE)
 
-        read_file_limit(abi_file, abi, MAX_CONTRACT_CODE_SIZE);
+        read_file_limit(abi_file, abi, MAX_WASM_CONTRACT_ABI_BYTES);
         json_spirit::Value abi_json;
         json_spirit::read_string(abi, abi_json);
 

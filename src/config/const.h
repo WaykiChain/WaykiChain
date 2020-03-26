@@ -236,6 +236,9 @@ static const int32_t MAX_MULSIG_NUMBER           = 15;         // m-n multisig, 
 static const int32_t MAX_MULSIG_SCRIPT_SIZE      = 1000;       // multisig script max size
 static const uint32_t MAX_TRANSFER_SIZE          = 100;        // maximun transfer pair size
 
+static const uint32_t MAX_WASM_CONTRACT_CODE_BYTES = 1024 * 1024;      // 1 MB max for wasm contract code bytes
+static const uint32_t MAX_WASM_CONTRACT_ABI_BYTES  = 1024 * 1024;      // 1 MB max for wasm contract abi bytes
+
 static const string LUA_CONTRACT_LOCATION_PREFIX = "/tmp/lua/";  // prefix of lua contract file location
 static const string LUA_CONTRACT_HEADLINE        = "mylib = require";
 
