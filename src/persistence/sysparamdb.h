@@ -222,6 +222,15 @@ public:
         return result ;
     }
 
+    bool GetAxcSwapGwRegId(CRegID& regid) {
+        uint64_t param ;
+        if(GetParam(SysParamType::AXC_SWAP_GATEWAY_REGID, param)) {
+            regid = ParseNumToRegID(param);
+            return !regid.IsEmpty();
+        }
+        return false;
+    }
+
 
 public:
     bool SetNewTotalBpsSize(uint8_t newTotalBpsSize, uint32_t effectiveHeight) {

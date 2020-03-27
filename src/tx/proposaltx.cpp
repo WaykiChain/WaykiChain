@@ -64,7 +64,7 @@ Object CProposalRequestTx::ToJson(const CAccountDBCache &accountCache) const {
 }  // json-rpc usage
 
  bool CProposalRequestTx::CheckTx(CTxExecuteContext &context) {
-     return proposal.sp_proposal->CheckProposal(context);
+     return proposal.sp_proposal->CheckProposal(context, *this);
  }
 
 
@@ -103,14 +103,14 @@ bool CProposalRequestTx::ExecuteTx(CTxExecuteContext &context) {
 string CProposalApprovalTx::ToString(CAccountDBCache &accountCache) {
 
     return strprintf("txType=%s, hash=%s, ver=%d, proposalid=%s, llFees=%ld, keyid=%s, valid_height=%d",
-                     GetTxType(nTxType), GetHash().ToString(), nVersion, txid.GetHex(), llFees,
+                     GetTxType(nTxType), GetHash().ToString(), nVersion, proposal_id.GetHex(), llFees,
                      txUid.ToString(), valid_height);
 }
 
 Object CProposalApprovalTx::ToJson(const CAccountDBCache &accountCache) const {
 
      Object result = CBaseTx::ToJson(accountCache);
-     result.push_back(Pair("proposal_id", txid.ToString()));
+     result.push_back(Pair("proposal_id", proposal_id.ToString()));
      if(axc_signature.size() > 0)
          result.push_back(Pair("axc_signatur", HexStr(axc_signature)));
      return result;
@@ -120,13 +120,13 @@ bool CProposalApprovalTx::CheckTx(CTxExecuteContext &context) {
     IMPLEMENT_DEFINE_CW_STATE;
 
     shared_ptr<CProposal> proposal;
-    if (!cw.sysGovernCache.GetProposal(txid, proposal)) {
-        return state.DoS(100, ERRORMSG("CProposalApprovalTx::CheckTx, proposal(id=%s)  not found", txid.ToString()),
+    if (!cw.sysGovernCache.GetProposal(proposal_id, proposal)) {
+        return state.DoS(100, ERRORMSG("CProposalApprovalTx::CheckTx, proposal(id=%s)  not found", proposal_id.ToString()),
                           READ_ACCOUNT_FAIL, "proposal-not-found");
     }
 
     if(!CheckIsGovernor(txUid.get<CRegID>(), proposal->proposal_type, cw)){
-        return state.DoS(100, ERRORMSG("CProposalApprovalTx::CheckTx, the tx commiter(%s) is not a governor", txid.ToString()),
+        return state.DoS(100, ERRORMSG("CProposalApprovalTx::CheckTx, the tx commiter(%s) is not a governor", proposal_id.ToString()),
                           READ_ACCOUNT_FAIL, "permission-deney");
     }
 
@@ -143,11 +143,11 @@ bool CProposalApprovalTx::ExecuteTx(CTxExecuteContext &context) {
     IMPLEMENT_DEFINE_CW_STATE;
 
     shared_ptr<CProposal> spProposal;
-    if (!cw.sysGovernCache.GetProposal(txid, spProposal))
-        return state.DoS(100, ERRORMSG("CProposalApprovalTx::CheckTx, proposal(id=%s)  not found", txid.ToString()),
+    if (!cw.sysGovernCache.GetProposal(proposal_id, spProposal))
+        return state.DoS(100, ERRORMSG("CProposalApprovalTx::CheckTx, proposal(id=%s)  not found", proposal_id.ToString()),
                         WRITE_ACCOUNT_FAIL, "proposal-not-found");
 
-    auto assentedCount = cw.sysGovernCache.GetApprovalCount(txid);
+    auto assentedCount = cw.sysGovernCache.GetApprovalCount(proposal_id);
     if (assentedCount >= spProposal->approval_min_count)
         return state.DoS(100, ERRORMSG("CProposalApprovalTx::ExecuteTx, proposal executed already"),
                         WRITE_ACCOUNT_FAIL, "proposal-executed-already");
@@ -160,16 +160,16 @@ bool CProposalApprovalTx::ExecuteTx(CTxExecuteContext &context) {
         return state.DoS(100, ERRORMSG("CProposalApprovalTx::ExecuteTx, account has insufficient funds"),
                         UPDATE_ACCOUNT_FAIL, "operate-minus-account-failed");
     if (spProposal->expiry_block_height < (uint32_t)context.height)
-        return state.DoS(100, ERRORMSG("CProposalApprovalTx::ExecuteTx, proposal(id=%s)  is expired", txid.ToString()),
+        return state.DoS(100, ERRORMSG("CProposalApprovalTx::ExecuteTx, proposal(id=%s)  is expired", proposal_id.ToString()),
                         WRITE_ACCOUNT_FAIL, "proposal-expired");
     if (!cw.accountCache.SetAccount(CUserID(srcAccount.keyid), srcAccount))
         return state.DoS(100, ERRORMSG("CProposalApprovalTx::ExecuteTx, set account info error"),
                         WRITE_ACCOUNT_FAIL, "bad-write-accountdb");
 
-    if (!cw.sysGovernCache.SetApproval(txid, txUid.get<CRegID>()))
+    if (!cw.sysGovernCache.SetApproval(proposal_id, txUid.get<CRegID>()))
         return state.DoS(100, ERRORMSG("CProposalApprovalTx::ExecuteTx, set proposal approval info error"),
                         WRITE_ACCOUNT_FAIL, "bad-write-proposaldb");
-    if ((assentedCount + 1 == spProposal->approval_min_count) && (!spProposal->ExecuteProposal(context, txid)))
+    if ((assentedCount + 1 == spProposal->approval_min_count) && (!spProposal->ExecuteProposal(context, *this)))
         return state.DoS(100, ERRORMSG("CProposalApprovalTx::ExecuteTx, proposal execute error"),
                         WRITE_ACCOUNT_FAIL, "proposal-execute-error");
 
@@ -177,7 +177,7 @@ bool CProposalApprovalTx::ExecuteTx(CTxExecuteContext &context) {
         auto axcOutProposal = dynamic_cast<CGovAxcOutProposal&>(*spProposal);
         axcOutProposal.peer_chain_tx_multisigs.push_back(axc_signature);
         auto savedSp = axcOutProposal.GetNewInstance();
-        if (!cw.sysGovernCache.SetProposal(txid, savedSp))
+        if (!cw.sysGovernCache.SetProposal(proposal_id, savedSp))
             return state.DoS(100, ERRORMSG("CProposalApprovalTx::ExecuteTx, set proposal info error"),
                         WRITE_ACCOUNT_FAIL, "bad-write-proposaldb");
     }

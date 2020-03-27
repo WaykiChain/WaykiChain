@@ -49,7 +49,7 @@ public:
 
 class CProposalApprovalTx: public CBaseTx {
 public:
-    TxID txid;
+    TxID proposal_id;
 
     UnsignedCharArray axc_signature; //only applicable for AXC with multiple UTXO
 
@@ -57,8 +57,8 @@ public:
     CProposalApprovalTx(): CBaseTx(PROPOSAL_APPROVAL_TX) {}
 
     CProposalApprovalTx(const CUserID &txUidIn, int32_t validHeightIn, const TokenSymbol &feeSymbolIn,
-                        uint64_t feesIn, const TxID& txidIn) : 
-                        CBaseTx(PROPOSAL_APPROVAL_TX, txUidIn, validHeightIn, feeSymbolIn, feesIn), txid(txidIn) {}
+                        uint64_t feesIn, const TxID& proposalidIn) :
+                        CBaseTx(PROPOSAL_APPROVAL_TX, txUidIn, validHeightIn, feeSymbolIn, feesIn), proposal_id(proposalidIn) {}
 
     ~CProposalApprovalTx() {}
 
@@ -69,7 +69,7 @@ public:
         READWRITE(txUid);
         READWRITE(fee_symbol);
         READWRITE(VARINT(llFees));
-        READWRITE(txid);
+        READWRITE(proposal_id);
         READWRITE(axc_signature);
         READWRITE(signature);
     )
@@ -77,7 +77,7 @@ public:
 
     virtual void SerializeForHash(CHashWriter &hw) const {
         hw << VARINT(nVersion) << uint8_t(nTxType) << VARINT(valid_height) << txUid << VARINT(llFees)
-           << fee_symbol << txid <<axc_signature ;
+           << fee_symbol << proposal_id <<axc_signature ;
     }
 
     std::shared_ptr<CBaseTx> GetNewInstance() const override { return std::make_shared<CProposalApprovalTx>(*this); }

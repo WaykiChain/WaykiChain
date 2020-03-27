@@ -86,8 +86,6 @@ static const unordered_set<TokenSymbol> kPriceQuoteSymbolSet = {
 static const UnorderedPairSet<TokenSymbol, TokenSymbol> kPriceFeedCoinPairSet = {
     {SYMB::WICC, SYMB::USD},
     {SYMB::WGRT, SYMB::USD},
-    // {SYMB::WBTC, SYMB::USD},
-    // {SYMB::WETH, SYMB::USD},
 };
 
 
