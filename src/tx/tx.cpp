@@ -178,6 +178,7 @@ bool CBaseTx::CheckBaseTx(CTxExecuteContext &context) {
 
     { //4. check tx is available by soft-fork version, for testnet/regtest backward compatibility
         switch (nTxType) {
+            case ACCOUNT_REGISTER_TX:
             case BCOIN_TRANSFER_TX:
             case LCONTRACT_DEPLOY_TX:
             case LCONTRACT_INVOKE_TX:
