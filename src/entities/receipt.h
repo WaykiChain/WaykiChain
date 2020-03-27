@@ -75,6 +75,7 @@ static CUserID nullId;
     DEFINE(ASSET_UPDATED_FEE_TO_RESERVE,        702, "asset updated fee to risk reserve") \
     DEFINE(ASSET_ISSUED_FEE_TO_MINER,           703, "asset issued fee to miner") \
     DEFINE(ASSET_UPDATED_FEE_TO_MINER,          704, "asset updated fee to miner") \
+    DEFINE(ASSET_MINT_NEW_AMOUNT,               705, "asset minted with new amount") \
     /*** cross-chain */ \
     DEFINE(AXC_MINT_COINS,                      801, "cross-chain asset minted onchain") \
     DEFINE(AXC_BURN_COINS,                      802, "cross-chain asset burned onchain") \

@@ -14,6 +14,8 @@ bool CBlockRewardTx::CheckTx(CTxExecuteContext &context) { return true; }
 bool CBlockRewardTx::ExecuteTx(CTxExecuteContext &context) {
     IMPLEMENT_DEFINE_CW_STATE;
 
+    ReceiptList receipts;
+
     CAccount account;
     if (!cw.accountCache.GetAccount(txUid, account)) {
         return state.DoS(100, ERRORMSG("CBlockRewardTx::ExecuteTx, read source addr %s account info error",
@@ -25,16 +27,12 @@ bool CBlockRewardTx::ExecuteTx(CTxExecuteContext &context) {
     } else if (-1 == context.index) {
         // When the reward transaction is mature, update account's balances, i.e, assign the reward value to
         // the target account.
-        if (!account.OperateBalance(SYMB::WICC, ADD_FREE, reward_fees)) {
+        CReceipt receipt(ReceiptCode::BLOCK_REWARD_TO_MINER);
+        if (!account.OperateBalance(SYMB::WICC, ADD_FREE, reward_fees, receipt)) {
             return state.DoS(100, ERRORMSG("CBlockRewardTx::ExecuteTx, opeate account failed"), UPDATE_ACCOUNT_FAIL,
                              "operate-account-failed");
         }
-
-        CReceipt receipt(nullId, txUid, SYMB::WICC, reward_fees, ReceiptCode::BLOCK_REWARD_TO_MINER);
-        if (!cw.txReceiptCache.SetTxReceipts(GetHash(), {receipt})) {
-            return state.DoS(100, ERRORMSG("CBlockRewardTx::ExecuteTx, set tx receipts failed!! txid=%s",
-                            GetHash().ToString()), REJECT_INVALID, "set-tx-receipt-failed");
-        }
+        receipts.push_back(receipt);
     } else {
         return ERRORMSG("CBlockRewardTx::ExecuteTx, invalid index");
     }
@@ -43,6 +41,10 @@ bool CBlockRewardTx::ExecuteTx(CTxExecuteContext &context) {
         return state.DoS(100, ERRORMSG("CBlockRewardTx::ExecuteTx, write secure account info error"),
                          UPDATE_ACCOUNT_FAIL, "bad-save-accountdb");
     }
+
+    if (!receipts.empty() && !cw.txReceiptCache.SetTxReceipts(GetHash(), receipts))
+        return state.DoS(100, ERRORMSG("CBlockRewardTx::ExecuteTx, save receipts error, kyeId=%s",
+                                       GetHash().ToString()), UPDATE_ACCOUNT_FAIL, "bad-save-receipts");
 
     return true;
 }

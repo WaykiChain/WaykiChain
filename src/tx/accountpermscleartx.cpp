@@ -26,9 +26,13 @@ bool CAccountPermsClearTx::ExecuteTx(CTxExecuteContext &context) {
         return state.DoS(100, ERRORMSG("%s(), get tx account info failed! uid=%s",
                 __func__, txUid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
 
-    if (!acct.OperateBalance(fee_symbol, BalanceOpType::SUB_FREE, llFees, CReceipt(ReceiptCode::NULL)))
+    ReceiptList receipts;
+    CReceipt receipt(ReceiptCode::BLOCK_REWARD_TO_MINER);
+    if (!acct.OperateBalance(fee_symbol, BalanceOpType::SUB_FREE, llFees, receipt)
         return state.DoS(100, ERRORMSG("CAccountPermsClearTx::ExecuteTx, deduct fees from regId=%s failed,",
                                        txUid.ToString()), UPDATE_ACCOUNT_FAIL, "deduct-account-fee-failed");
+    receipts.push_back(receipt);
+    
     acct.perms_sum = 0;
     if (!cw.accountCache.SetAccount(txUid, acct))
         return state.DoS(100, ERRORMSG("%s(), save tx account info failed! txuid=%s",
