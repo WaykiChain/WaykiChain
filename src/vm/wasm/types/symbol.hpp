@@ -33,6 +33,7 @@ namespace wasm {
     inline constexpr bool valid_character_in_symbol_name(const char& c){
         if( c >= '0' && c <= '9' ) return true;
         if( c >= 'A' && c <= 'Z' ) return true;
+        if( c >= 'a' && c <= 'z' ) return true;
         if( c == '-' ) return true;
         if( c == '@' ) return true;
         if( c == '.' ) return true;

@@ -199,36 +199,23 @@ bool CWasmContractTx::CheckTx(CTxExecuteContext& context) {
     return true;
 }
 
-static uint64_t get_fuel_fee_to_miner(CBaseTx& tx, CTxExecuteContext& context) {
-
-    uint64_t min_fee;
-    CHAIN_ASSERT(GetTxMinFee(tx.nTxType, context.height, tx.fee_symbol, min_fee), wasm_chain::fee_exhausted_exception, "get_fuel_limit, get minFee failed")
-    uint64_t fee_for_miner = min_fee * CONTRACT_CALL_RESERVED_FEES_RATIO / 100;
-
-    return fee_for_miner;
-}
-
-static uint64_t get_fuel_fee_limit(CBaseTx& tx, CTxExecuteContext& context) {
-
-    uint64_t fuel_rate    = context.fuel_rate;
-    CHAIN_ASSERT(fuel_rate > 0, wasm_chain::fee_exhausted_exception, "%s", "fuel_rate cannot be 0")
+static uint64_t get_min_fee_in_wicc(CBaseTx& tx, CTxExecuteContext& context) {
 
     uint64_t min_fee;
     CHAIN_ASSERT(GetTxMinFee(tx.nTxType, context.height, tx.fee_symbol, min_fee), wasm_chain::fee_exhausted_exception, "get minFee failed")
-    CHAIN_ASSERT(tx.llFees >= min_fee, wasm_chain::fee_exhausted_exception, "fee must >= min fee '%ld', but get '%ld'", min_fee, tx.llFees)
 
-    uint64_t fee_for_miner = min_fee * CONTRACT_CALL_RESERVED_FEES_RATIO  / 100;
-    uint64_t fee_for_gas   = tx.llFees - fee_for_miner;
-    uint64_t fuel_limit    = std::min<uint64_t>((fee_for_gas / fuel_rate) *  100 , MAX_BLOCK_RUN_STEP);//1.2 WICC
-    CHAIN_ASSERT(fuel_limit > 0, wasm_chain::fee_exhausted_exception, "fuel limit equal 0")
-
-    // WASM_TRACE("fuel_rate:%ld",fuel_rate )
-    // WASM_TRACE("min_fee:%ld",min_fee )
-    // WASM_TRACE("fee_for_gas:%ld",fee_for_gas )
-    // WASM_TRACE("fee:%ld",fuel_limit )
-
-    return fuel_limit;
+    return min_fee;
 }
+
+static uint64_t get_run_fee_in_wicc(const uint64_t& run_steps, CBaseTx& tx, CTxExecuteContext& context) {
+
+    uint64_t fuel_rate    = context.fuel_rate;
+    CHAIN_ASSERT(fuel_rate           >  0, wasm_chain::fee_exhausted_exception, "%s", "fuel_rate cannot be 0")
+    CHAIN_ASSERT(MAX_BLOCK_RUN_STEP  >= run_steps, wasm_chain::fee_exhausted_exception, "run steps '%ld' > max block run steps '%ld'", run_steps, MAX_BLOCK_RUN_STEP)
+     
+    return run_steps / 100 * fuel_rate;
+}
+
 
 static void inline_trace_to_receipts(const wasm::inline_transaction_trace& trace,
                                      vector<CReceipt>&                     receipts,
@@ -315,25 +302,21 @@ bool CWasmContractTx::ExecuteTx(CTxExecuteContext &context) {
         CHAIN_ASSERT( trx_trace.elapsed.count() < max_transaction_duration.count() * 1000,
                       wasm_chain::tx_cpu_usage_exceeded,
                       "Tx execution time must be in '%d' microseconds, but get '%d' microseconds",
-                      max_transaction_duration * 1000, trx_trace.elapsed.count())                   
+                      max_transaction_duration * 1000, trx_trace.elapsed.count())                
 
         //check storage usage with the limited fuel
-        auto fuel_fee_to_miner = get_fuel_fee_to_miner(*this, context) ;
-        auto fuel_fee          = get_fuel_fee_limit(*this, context);
-        run_cost               = run_cost + recipients_size * notice_fuel_fee_per_recipient;
+        run_cost                = run_cost + recipients_size * notice_fuel_fee_per_recipient;
+        auto min_fee  = get_min_fee_in_wicc(*this, context) ;
+        auto run_fee  = get_run_fee_in_wicc(run_cost, *this, context);
 
-        CHAIN_ASSERT( fuel_fee > run_cost, wasm_chain::fee_exhausted_exception, 
-                      "fuel fee '%ld' is not enough to charge cost '%ld', fuel_rate:%ld", 
-                      (fuel_fee == MAX_BLOCK_RUN_STEP)?fuel_fee:fuel_fee + fuel_fee_to_miner, 
-                      (fuel_fee == MAX_BLOCK_RUN_STEP)?run_cost:run_cost + fuel_fee_to_miner,
-                      context.fuel_rate);
+        auto minimum_tx_execute_fee = std::max<uint64_t>( min_fee, run_fee);
+
+        CHAIN_ASSERT( minimum_tx_execute_fee <= llFees, wasm_chain::fee_exhausted_exception, 
+                      "tx.llFees '%ld' is not enough to charge minimum tx execute fee '%ld' , fuel_rate:%ld", 
+                      llFees, minimum_tx_execute_fee, context.fuel_rate);
 
         trx_trace.fuel_rate = context.fuel_rate;
-        trx_trace.run_cost  = run_cost;
-
-        // WASM_TRACE("fuel_fee: '%ld' ,run_cost: '%ld'", 
-        //               (fuel_fee == MAX_BLOCK_RUN_STEP)?fuel_fee: fuel_fee + fuel_fee_to_miner, 
-        //               (fuel_fee == MAX_BLOCK_RUN_STEP)?run_cost: run_cost + fuel_fee_to_miner);    
+        trx_trace.run_cost  = run_cost;  
 
         //save trx trace
         std::vector<char> trace_bytes = wasm::pack<transaction_trace>(trx_trace);

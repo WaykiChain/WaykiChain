@@ -20,14 +20,14 @@ namespace wasm {
     const static uint16_t max_inline_transaction_bytes = 4096;
     const static uint32_t max_wasm_api_data_bytes      = 64*1024;
     const static uint16_t max_inline_transactions_size = 1024;
-    const static uint16_t max_signatures_size          = 16;
+    const static uint16_t max_signatures_size          = 64;
 
     const static uint64_t wasmio       = N(wasmio);
     const static uint64_t wasmio_bank  = N(wasmio.bank);
     const static uint64_t wasmio_code  = N(wasmio.code);
     const static uint64_t wasmio_owner = N(wasmio.owner);
 
-    const static uint64_t store_fuel_fee_per_byte       = 100;
+    const static uint64_t store_fuel_fee_per_byte       = 10;
     const static uint64_t notice_fuel_fee_per_recipient = 10000;
 
 
