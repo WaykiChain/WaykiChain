@@ -733,7 +733,7 @@ Value submitaxcinproposal(const Array& params, bool fHelp) {
     string peerAddr = params[2].get_str();
     string peerTxid =params[3].get_str();
     CUserID selfUid = RPC_PARAM::GetUserId(params[4]);
-    uint64_t swapCoinAmount = AmountToRawValue(params[5]);
+    uint64_t swapCoinAmount = roundint64(params[5].get_real());
     ComboMoney fee          = RPC_PARAM::GetFee(params, 6, PROPOSAL_REQUEST_TX);
     int32_t validHeight  = chainActive.Height();
     CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, txUid);
