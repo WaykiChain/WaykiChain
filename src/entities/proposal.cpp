@@ -117,12 +117,11 @@ bool CGovBpMcListProposal::CheckProposal(CTxExecuteContext& context ){
                          "operate_type-illegal");
     }
 
-    CAccount governor_account;
-    if (!cw.accountCache.GetAccount(governor_regid,governor_account)){
+    CAccount bpMcAccount;
+    if (!cw.accountCache.GetAccount(governor_regid, bpMcAccount)){
         return state.DoS(100, ERRORMSG("CProposalRequestTx::CheckTx, governor regid(%s) is not exist!", governor_regid.ToString()), REJECT_INVALID,
                          "governor-not-exist");
     }
-    vector<CRegID> governers;
 
     if (op_type == ProposalOperateType ::DISABLE&&!cw.sysGovernCache.CheckIsGovernor(governor_regid)){
         return state.DoS(100, ERRORMSG("CProposalRequestTx::CheckTx, regid(%s) is not a governor!", governor_regid.ToString()), REJECT_INVALID,
