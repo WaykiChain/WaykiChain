@@ -225,7 +225,8 @@ struct CAccount {
     bool SetToken(const TokenSymbol &tokenSymbol, const CAccountToken &accountToken);
 
     bool GetBalance(const TokenSymbol &tokenSymbol, const BalanceType balanceType, uint64_t &value);
-    bool OperateBalance(const TokenSymbol &tokenSymbol, const BalanceOpType opType, const uint64_t &value);
+    bool OperateBalance(const TokenSymbol &tokenSymbol, const BalanceOpType opType, const uint64_t &value, CReceipt &receipt,
+                        const CAccount *pOtherAccount = nullptr);
 
     bool StakeVoteBcoins(VoteType type, const uint64_t votes);
     bool ProcessCandidateVotes(const vector<CCandidateVote>& candidateVotesIn,

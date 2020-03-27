@@ -63,6 +63,7 @@ public:
     UndoDataFuncMap GetUndoDataFuncMap();
 
     void SetDbOpLogMap(CDBOpLogMap *pDbOpLogMap);
+
 private:
     CCacheWrapper(const CCacheWrapper&) = delete;
     CCacheWrapper& operator=(const CCacheWrapper&) = delete;

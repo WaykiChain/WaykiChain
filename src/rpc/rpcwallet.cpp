@@ -384,7 +384,7 @@ Value submitsendmultitx(const Array& params, bool fHelp) {
 
     CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, sendUserId);
 
-    vector<SingleTransfer> vTransfers;
+    vector<SingleTransfer> transfers;
     for (auto transfer: transferArr) {
         const Value& to_uidV = JSON::GetObjectFieldValue(transfer, "to_uid");
         CUserID uid = RPC_PARAM::GetUserId(to_uidV);
@@ -396,16 +396,18 @@ Value submitsendmultitx(const Array& params, bool fHelp) {
             throw JSONRPCError(REJECT_INVALID, strprintf("Invalid coin symbol=%s!", amount.symbol));
 
         SingleTransfer trx(uid, amount.symbol, amount.GetAmountInSawi());
-        vTransfers.push_back(trx);
-        account.OperateBalance(amount.symbol, SUB_FREE, amount.GetAmountInSawi());
+        transfers.push_back(trx);
+
+        //check only && no persistence!
+        if (!account.OperateBalance(amount.symbol, SUB_FREE, amount.GetAmountInSawi(), CReceipt(ReceiptCode::NULL_TYPE)))
+            throw JSONRPCError(REJECT_INVALID, strprintf("Insufficient coins: %llu", amount.GetAmountInSawi()));
     }
 
     RPC_PARAM::CheckAccountBalance(account, fee.symbol, SUB_FREE, fee.GetAmountInSawi());
 
-
     int32_t height = chainActive.Height();
-    std::shared_ptr<CBaseTx> pBaseTx = std::make_shared<CCoinTransferTx>(sendUserId,
-            vTransfers, height, fee.symbol, fee.GetAmountInSawi(), memo);
+    std::shared_ptr<CBaseTx> pBaseTx = std::make_shared<CCoinTransferTx>(sendUserId, transfers, height,
+                                        fee.symbol, fee.GetAmountInSawi(), memo);
 
     return SubmitTx(account.keyid, *pBaseTx);
 }

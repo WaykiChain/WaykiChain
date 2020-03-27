@@ -799,6 +799,8 @@ static bool FindUndoPos(CValidationState &state, int32_t nFile, CDiskBlockPos &p
 }
 
 static bool ProcessGenesisBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValidationState &state) {
+
+    ReceiptList receipts;
     cw.blockCache.SetBestBlock(pIndex->GetBlockHash());
     for (uint32_t i = 1; i < block.vptx.size(); i++) {
         if (block.vptx[i]->nTxType == BLOCK_REWARD_TX) {
@@ -813,9 +815,11 @@ static bool ProcessGenesisBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *p
             account.owner_pubkey = pubKey;
             account.regid        = regId;
 
-            account.OperateBalance(SYMB::WICC, BalanceOpType::ADD_FREE, pRewardTx->reward_fees);
+            CReceipt receipt(ReceiptCode::BLOCK_REWARD_TO_MINER);
+            account.OperateBalance(SYMB::WICC, BalanceOpType::ADD_FREE, pRewardTx->reward_fees, receipt);
+            receipts.push_back(receipt);
 
-            assert(cw.accountCache.SaveAccount(account));
+            assert( cw.accountCache.SaveAccount(account) );
         } else if (block.vptx[i]->nTxType == DELEGATE_VOTE_TX) {
             CDelegateVoteTx *pDelegateTx = (CDelegateVoteTx *)block.vptx[i].get();
             assert(pDelegateTx->txUid.is<CRegID>());  // Vote Tx must use RegId
@@ -860,11 +864,15 @@ static bool ProcessGenesisBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *p
                          return vote1.GetVotedBcoins() > vote2.GetVotedBcoins();
                      });
             }
-            assert(voterAcct.GetToken(SYMB::WICC).free_amount >= maxVotes);
-            voterAcct.OperateBalance(SYMB::WICC, BalanceOpType::VOTE, maxVotes);
+
+            asset( voterAcct.GetToken(SYMB::WICC).free_amount >= maxVotes );
+
+            CReceipt receipt(ReceiptCode::DELEGATE_ADD_VOTE);
+            voterAcct.OperateBalance(SYMB::WICC, BalanceOpType::VOTE, maxVotes, receipt);
+            receipts.push_back(receipt);
+
             cw.accountCache.SaveAccount(voterAcct);
-            assert(cw.delegateCache.SetCandidateVotes(pDelegateTx->txUid.get<CRegID>(),
-                                                      candidateVotes));
+            assert( cw.delegateCache.SetCandidateVotes(pDelegateTx->txUid.get<CRegID>(), candidateVotes) );
         }
     }
 
@@ -879,6 +887,11 @@ static bool ProcessGenesisBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *p
             block.GetHeight(), block.GetHash().ToString()),
             REJECT_INVALID, "process-block-delegates-failed");
     }
+
+    if (!cw.txReceiptCache.SetTxReceipts(TxID(), receipts))
+        return state.DoS(100, ERRORMSG("ConnectBlock() ::ProcessGenesisBlock, set genesis block receipts failed!",
+                        GetHash().ToString()), REJECT_INVALID, "set-tx-receipt-failed");
+
     return true;
 }
 

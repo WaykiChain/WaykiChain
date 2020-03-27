@@ -37,7 +37,7 @@ bool CGovSysParamProposal::CheckProposal(CTxExecuteContext& context ) {
 
      return true;
 }
-bool CGovSysParamProposal::ExecuteProposal(CTxExecuteContext& context, const TxID& proposalId) {
+bool CGovSysParamProposal::ExecuteProposal(CTxExecuteContext& context, const TxID& proposalId, ReceiptList &receipts) {
     CCacheWrapper &cw = *context.pCw;
 
     for( auto pa: param_values){
@@ -76,7 +76,7 @@ bool CGovBpMcListProposal::CheckProposal(CTxExecuteContext& context ){
     return true;
 }
 
-bool CGovBpMcListProposal::ExecuteProposal(CTxExecuteContext& context, const TxID& proposalId) {
+bool CGovBpMcListProposal::ExecuteProposal(CTxExecuteContext& context, const TxID& proposalId, ReceiptList &receipts) {
     CCacheWrapper &cw       = *context.pCw;
 
     switch (op_type) {
@@ -105,7 +105,7 @@ bool CGovBpSizeProposal:: CheckProposal(CTxExecuteContext& context ) {
     return true;
 }
 
-bool CGovBpSizeProposal:: ExecuteProposal(CTxExecuteContext& context, const TxID& proposalId) {
+bool CGovBpSizeProposal::ExecuteProposal(CTxExecuteContext& context, const TxID& proposalId, ReceiptList &receipts) {
     IMPLEMENT_DEFINE_CW_STATE;
 
     auto currentTotalBpsSize = cw.sysParamCache.GetTotalBpsSize(context.height);
@@ -173,49 +173,36 @@ bool CGovCoinTransferProposal:: CheckProposal(CTxExecuteContext& context ) {
     return true;
 }
 
-bool CGovCoinTransferProposal:: ExecuteProposal(CTxExecuteContext& context, const TxID& proposalId) {
+bool CGovCoinTransferProposal::ExecuteProposal(CTxExecuteContext& context, const TxID& proposalId, ReceiptList &receipts) {
     IMPLEMENT_DEFINE_CW_STATE;
 
     CAccount srcAccount;
-    if (!cw.accountCache.GetAccount(from_uid, srcAccount)) {
+    if (!cw.accountCache.GetAccount(from_uid, srcAccount))
         return state.DoS(100, ERRORMSG("CGovCoinTransferProposal::ExecuteProposal, read source addr account info error"),
                          READ_ACCOUNT_FAIL, "bad-read-accountdb");
+
+    CAccount desAccount;
+    if (!cw.accountCache.GetAccount(to_uid, desAccount)) {
+        if (!to_uid.is<CKeyID>()) // first involved in transaction
+            return state.DoS(100, ERRORMSG("CGovCoinTransferProposal::ExecuteProposal, get account info failed"),
+                             READ_ACCOUNT_FAIL, "bad-read-accountdb");
+
+        desAccount.keyid = to_uid.get<CKeyID>();
     }
 
-    uint64_t minusValue = amount;
-    if (!srcAccount.OperateBalance(token, BalanceOpType::SUB_FREE, minusValue)) {
+    CReceipt receipt(ReceiptCode::TRANSFER_PROPOSAL);
+    if (!srcAccount.OperateBalance(token, BalanceOpType::SUB_FREE, amount, receipt, desAccount))
         return state.DoS(100, ERRORMSG("CGovCoinTransferProposal::ExecuteProposal, account has insufficient funds"),
                          UPDATE_ACCOUNT_FAIL, "operate-minus-account-failed");
-    }
+    receipts.push_back(receipt);
 
     if (!cw.accountCache.SetAccount(CUserID(srcAccount.keyid), srcAccount))
         return state.DoS(100, ERRORMSG("CGovCoinTransferProposal::ExecuteProposal, save account info error"), WRITE_ACCOUNT_FAIL,
                          "bad-write-accountdb");
 
-    CAccount desAccount;
-    if (!cw.accountCache.GetAccount(to_uid, desAccount)) {
-        if (to_uid.is<CKeyID>()) {  // first involved in transaction
-            desAccount.keyid = to_uid.get<CKeyID>();
-        } else {
-            return state.DoS(100, ERRORMSG("CGovCoinTransferProposal::ExecuteProposal, get account info failed"),
-                             READ_ACCOUNT_FAIL, "bad-read-accountdb");
-        }
-    }
-
-    if (!desAccount.OperateBalance(token, BalanceOpType::ADD_FREE, amount)) {
-        return state.DoS(100, ERRORMSG("CGovCoinTransferProposal::ExecuteProposal, operate accounts error"),
-                         UPDATE_ACCOUNT_FAIL, "operate-add-account-failed");
-    }
-
     if (!cw.accountCache.SetAccount(to_uid, desAccount))
         return state.DoS(100, ERRORMSG("CGovCoinTransferProposal::ExecuteProposal, save account error, kyeId=%s",
                                        desAccount.keyid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-save-account");
-
-    vector<CReceipt> vReps;
-    vReps.emplace_back(from_uid, to_uid,token,amount, ReceiptCode::TRANSFER_PROPOSAL);
-    if (!cw.txReceiptCache.SetTxReceipts(proposalId,vReps))
-        return state.DoS(100, ERRORMSG("CGovCoinTransferProposal::ExecuteProposal, save receipts error, kyeId=%s",
-                                       desAccount.keyid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-save-receipts");
 
     return true;
 }
@@ -233,7 +220,7 @@ bool CGovAccountPermProposal::CheckProposal(CTxExecuteContext& context ) {
     return true;
 
 }
-bool CGovAccountPermProposal::ExecuteProposal(CTxExecuteContext& context, const TxID& proposalId) {
+bool CGovAccountPermProposal::ExecuteProposal(CTxExecuteContext& context, const TxID& proposalId, ReceiptList &receipts) {
     CCacheWrapper &cw = *context.pCw;
 
     CAccount acct;
@@ -245,7 +232,6 @@ bool CGovAccountPermProposal::ExecuteProposal(CTxExecuteContext& context, const 
         return false;
 
     return true;
-
 }
 
 bool CGovAssetPermProposal::CheckProposal(CTxExecuteContext& context ) {
@@ -263,7 +249,7 @@ bool CGovAssetPermProposal::CheckProposal(CTxExecuteContext& context ) {
     return true;
 
 }
-bool CGovAssetPermProposal::ExecuteProposal(CTxExecuteContext& context, const TxID& proposalId) {
+bool CGovAssetPermProposal::ExecuteProposal(CTxExecuteContext& context, const TxID& proposalId, ReceiptList &receipts) {
     CValidationState &state = *context.pState;
     CCacheWrapper &cw       = *context.pCw;
 
@@ -314,7 +300,7 @@ bool CGovCdpParamProposal::CheckProposal(CTxExecuteContext& context) {
     return true;
 }
 
-bool CGovCdpParamProposal::ExecuteProposal(CTxExecuteContext& context, const TxID& proposalId) {
+bool CGovCdpParamProposal::ExecuteProposal(CTxExecuteContext& context, const TxID& proposalId, ReceiptList &receipts) {
     CCacheWrapper &cw       = *context.pCw;
     for (auto pa: param_values){
         auto itr = CdpParamTable.find(CdpParamType(pa.first));
@@ -357,7 +343,7 @@ bool CGovDexOpProposal::CheckProposal(CTxExecuteContext& context ) {
     return true;
 }
 
-bool CGovDexOpProposal::ExecuteProposal(CTxExecuteContext& context, const TxID& proposalId) {
+bool CGovDexOpProposal::ExecuteProposal(CTxExecuteContext& context, const TxID& proposalId, ReceiptList &receipts) {
     IMPLEMENT_DEFINE_CW_STATE
 
     DexOperatorDetail dexOperator;
@@ -420,7 +406,7 @@ bool CGovFeedCoinPairProposal::CheckProposal(CTxExecuteContext& context ) {
     return true;
 }
 
-bool CGovFeedCoinPairProposal::ExecuteProposal(CTxExecuteContext& context, const TxID& proposalId) {
+bool CGovFeedCoinPairProposal::ExecuteProposal(CTxExecuteContext& context, const TxID& proposalId, ReceiptList &receipts) {
     CCacheWrapper& cw = *context.pCw;
     PriceCoinPair coinPair(base_symbol, quote_symbol);
     if (ProposalOperateType::ENABLE == op_type)
@@ -469,7 +455,7 @@ bool CGovAxcInProposal::CheckProposal(CTxExecuteContext& context ) {
                         REJECT_INVALID, "get_swapin_mint-record-err");
     return true;
 }
-bool CGovAxcInProposal::ExecuteProposal(CTxExecuteContext& context, const TxID& proposalId) {
+bool CGovAxcInProposal::ExecuteProposal(CTxExecuteContext& context, const TxID& proposalId, ReceiptList &receipts) {
     IMPLEMENT_DEFINE_CW_STATE;
 
     AxcSwapCoinPair coinPair;
@@ -501,10 +487,15 @@ bool CGovAxcInProposal::ExecuteProposal(CTxExecuteContext& context, const TxID& 
             return state.DoS(100, ERRORMSG("CGovAxcInProposal::ExecuteProposal, failed to get BP account (%s)", bpRegID.ToString()),
                         REJECT_INVALID, "bad-get-bp-account");
 
-        if (!bpAcct.OperateBalance(self_chain_token_symbol, BalanceOpType::ADD_FREE, swapFeesPerBp))
+        CReceipt receipt(ReceiptCode::AXC_REWARD_FEE_TO_BP);
+        if (!bpAcct.OperateBalance(self_chain_token_symbol, BalanceOpType::ADD_FREE, swapFeesPerBp, receipt))
             return state.DoS(100, ERRORMSG("CGovAxcInProposal::ExecuteProposal, opreate balance failed, swapFeesPerBp=%llu",
                         swapFeesPerBp), REJECT_INVALID, "bad-operate-balance");
+        receipts.push_back(receipt);
     }
+
+    //reward axc GW
+    //TODO
 
     CAccount acct;
     if (!cw.accountCache.GetAccount(self_chain_uid, acct))
@@ -512,9 +503,11 @@ bool CGovAxcInProposal::ExecuteProposal(CTxExecuteContext& context, const TxID& 
                         "bad-getaccount");
 
     // mint the new mirro-coin (self_chain_token_symbol) out of thin air
-    if (!acct.OperateBalance(self_chain_token_symbol, BalanceOpType::ADD_FREE, swap_amount_after_fees))
+    CReceipt receipt(ReceiptCode::AXC_MINT_COINS);
+    if (!acct.OperateBalance(self_chain_token_symbol, BalanceOpType::ADD_FREE, swap_amount_after_fees, receipt))
         return state.DoS(100, ERRORMSG("CGovAxcInProposal::ExecuteProposal, opreate balance failed, swap_amount_after_fees=%llu",
                         swap_amount_after_fees), REJECT_INVALID, "bad-operate-balance");
+    receipts.push_back(receipt);
 
     if (!cw.accountCache.SetAccount(self_chain_uid, acct))
         return state.DoS(100, ERRORMSG("CGovAxcInProposal::ExecuteProposal, write account failed"), REJECT_INVALID,
@@ -564,7 +557,7 @@ bool CGovAxcOutProposal::CheckProposal(CTxExecuteContext& context ) {
     return true;
 }
 
-bool CGovAxcOutProposal::ExecuteProposal(CTxExecuteContext& context, const TxID& proposalId) {
+bool CGovAxcOutProposal::ExecuteProposal(CTxExecuteContext& context, const TxID& proposalId, ReceiptList &receipts) {
     IMPLEMENT_DEFINE_CW_STATE;
 
     uint64_t swap_fee_ratio;
@@ -578,9 +571,11 @@ bool CGovAxcOutProposal::ExecuteProposal(CTxExecuteContext& context, const TxID&
                         "bad-getaccount");
 
     // burn the mirroed tokens from self-chain
-    if (!acct.OperateBalance(self_chain_token_symbol, BalanceOpType::SUB_FREE, swap_amount))
+    CReceipt receipt(ReceiptCode::AXC_BURN_COINS);
+    if (!acct.OperateBalance(self_chain_token_symbol, BalanceOpType::SUB_FREE, swap_amount, receipt))
         return state.DoS(100, ERRORMSG("CGovAxcOutProposal::ExecuteProposal, opreate balance failed, swap_amount=%llu",
                         swap_amount), REJECT_INVALID, "bad-operate-balance");
+    receipts.push_back(receipt);
 
     if (!cw.accountCache.SetAccount(self_chain_uid, acct))
         return state.DoS(100, ERRORMSG("CGovAxcInProposal::ExecuteProposal, write account failed"), REJECT_INVALID,
@@ -626,20 +621,21 @@ bool CGovAxcCoinProposal::CheckProposal(CTxExecuteContext& context ) {
 
     return true;
 }
-bool  CGovAxcCoinProposal::ExecuteProposal(CTxExecuteContext& context, const TxID& proposalId) {
+bool  CGovAxcCoinProposal::ExecuteProposal(CTxExecuteContext& context, const TxID& proposalId, ReceiptList &receipts) {
     IMPLEMENT_DEFINE_CW_STATE
 
     if(op_type == ProposalOperateType::DISABLE) {
-        if(!cw.axcCache.EraseAxcSwapPair(peer_chain_coin_symbol)){
+        if(!cw.axcCache.EraseAxcSwapPair(peer_chain_coin_symbol))
             return state.DoS(100, ERRORMSG("CGovAxcCoinProposal::ExecuteProposal, write db error"), REJECT_INVALID,
                              "db-error");
-        }
-    } else if(op_type == ProposalOperateType::ENABLE){
-        if(!cw.axcCache.AddAxcSwapPair(peer_chain_coin_symbol, TokenSymbol(strprintf("%s%s", "m", peer_chain_coin_symbol)), peer_chain_type)){
+
+    } else if (op_type == ProposalOperateType::ENABLE) {
+        if (!cw.axcCache.AddAxcSwapPair(peer_chain_coin_symbol, TokenSymbol(strprintf("%s%s", "m", peer_chain_coin_symbol)), peer_chain_type))
             return state.DoS(100, ERRORMSG("CGovAxcCoinProposal::ExecuteProposal, write db error"), REJECT_INVALID,
                              "db-error");
-        }
-    }
+
+    } else
+        return false;
 
     return true;
 }

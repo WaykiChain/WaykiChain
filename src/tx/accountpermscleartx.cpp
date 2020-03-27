@@ -19,7 +19,6 @@ bool CAccountPermsClearTx::CheckTx(CTxExecuteContext &context) {
     return true;
 }
 bool CAccountPermsClearTx::ExecuteTx(CTxExecuteContext &context) {
-
     IMPLEMENT_DEFINE_CW_STATE
 
     CAccount acct;
@@ -27,7 +26,7 @@ bool CAccountPermsClearTx::ExecuteTx(CTxExecuteContext &context) {
         return state.DoS(100, ERRORMSG("%s(), get tx account info failed! uid=%s",
                 __func__, txUid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
 
-    if (!acct.OperateBalance(fee_symbol, BalanceOpType::SUB_FREE, llFees))
+    if (!acct.OperateBalance(fee_symbol, BalanceOpType::SUB_FREE, llFees, CReceipt(ReceiptCode::NULL)))
         return state.DoS(100, ERRORMSG("CAccountPermsClearTx::ExecuteTx, deduct fees from regId=%s failed,",
                                        txUid.ToString()), UPDATE_ACCOUNT_FAIL, "deduct-account-fee-failed");
     acct.perms_sum = 0;
@@ -35,6 +34,9 @@ bool CAccountPermsClearTx::ExecuteTx(CTxExecuteContext &context) {
         return state.DoS(100, ERRORMSG("%s(), save tx account info failed! txuid=%s",
                 __func__, txUid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-write-accountdb");
 
+    if (!receipts.empty() && !cw.txReceiptCache.SetTxReceipts(GetHash(), receipts))
+        return state.DoS(100, ERRORMSG("CGovCoinTransferProposal::ExecuteProposal, save receipts error, kyeId=%s",
+                                       GetHash().ToString()), UPDATE_ACCOUNT_FAIL, "bad-save-receipts");
 
     return true;
 }

@@ -30,7 +30,7 @@ Object AssetToJson(const CAccountDBCache &accountCache, const CAsset &asset){
     return asset.ToJsonObj();
 }
 static bool ProcessAssetFee(CCacheWrapper &cw, CValidationState &state, const string &action,
-    CAccount &txAccount, vector<CReceipt> &receipts,uint32_t currHeight) {
+    CAccount &txAccount, vector<CReceipt> &receipts, uint32_t currHeight) {
 
     uint64_t assetFee = 0;
     if (action == ASSET_ACTION_ISSUE) {
@@ -44,9 +44,11 @@ static bool ProcessAssetFee(CCacheWrapper &cw, CValidationState &state, const st
                             REJECT_INVALID, "read-sysparam-error");
     }
 
-    if (!txAccount.OperateBalance(SYMB::WICC, BalanceOpType::SUB_FREE, assetFee))
+    CReceipt assetFeeReceipt(ReceiptCode::ASSET_)
+    if (!txAccount.OperateBalance(SYMB::WICC, BalanceOpType::SUB_FREE, assetFee, assetFeeReceipt))
         return state.DoS(100, ERRORMSG("ProcessAssetFee, insufficient funds in account for %s asset fee=%llu, tx_regid=%s",
                         action, assetFee, txAccount.regid.ToString()), UPDATE_ACCOUNT_FAIL, "insufficent-funds");
+    receipts.push_back(assetFeeReceipt);
 
     uint64_t assetRiskFeeRatio;
     if(!cw.sysParamCache.GetParam(SysParamType::ASSET_RISK_FEE_RATIO, assetRiskFeeRatio)) {
@@ -62,14 +64,13 @@ static bool ProcessAssetFee(CCacheWrapper &cw, CValidationState &state, const st
         return state.DoS(100, ERRORMSG("ProcessAssetFee, get risk reserve account failed"),
                         READ_ACCOUNT_FAIL, "get-account-failed");
 
-    if (!fcoinGenesisAccount.OperateBalance(SYMB::WICC, BalanceOpType::ADD_FREE, riskFee)) {
+    ReceiptCode code = (action == ASSET_ACTION_ISSUE) ? ReceiptCode::ASSET_ISSUED_FEE_TO_RESERVE : ReceiptCode::ASSET_UPDATED_FEE_TO_RESERVE);
+    CReceipt receipt(code);
+    if (!fcoinGenesisAccount.OperateBalance(SYMB::WICC, BalanceOpType::ADD_FREE, riskFee, receipt)) {
         return state.DoS(100, ERRORMSG("ProcessAssetFee, operate balance failed! add %s asset fee=%llu to risk reserve account error",
             action, riskFee), UPDATE_ACCOUNT_FAIL, "update-account-failed");
     }
-    if (action == ASSET_ACTION_ISSUE)
-        receipts.emplace_back(txAccount.regid, fcoinGenesisAccount.regid, SYMB::WICC, riskFee, ReceiptCode::ASSET_ISSUED_FEE_TO_RESERVE);
-    else
-        receipts.emplace_back(txAccount.regid, fcoinGenesisAccount.regid, SYMB::WICC, riskFee, ReceiptCode::ASSET_UPDATED_FEE_TO_RESERVE);
+    receipts.push_back(code);
 
     if (!cw.accountCache.SetAccount(fcoinGenesisAccount.keyid, fcoinGenesisAccount))
         return state.DoS(100, ERRORMSG("ProcessAssetFee, write fcoin genesis account info error, regid=%s",
@@ -92,7 +93,8 @@ static bool ProcessAssetFee(CCacheWrapper &cw, CValidationState &state, const st
         uint64_t minerUpdatedFee = minerTotalFee / delegates.size();
         if (i == 0) minerUpdatedFee += minerTotalFee % delegates.size(); // give the dust amount to topmost miner
 
-        if (!delegateAccount.OperateBalance(SYMB::WICC, BalanceOpType::ADD_FREE, minerUpdatedFee)) {
+        CReceipt receipt(ReceiptCode::)
+        if (!delegateAccount.OperateBalance(SYMB::WICC, BalanceOpType::ADD_FREE, minerUpdatedFee, receipt)) {
             return state.DoS(100, ERRORMSG("ProcessAssetFee, add %s asset fee to miner failed, miner regid=%s",
                 action, delegateRegid.ToString()), UPDATE_ACCOUNT_FAIL, "operate-account-failed");
         }

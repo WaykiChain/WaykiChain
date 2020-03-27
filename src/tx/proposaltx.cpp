@@ -73,11 +73,11 @@ bool CProposalRequestTx::ExecuteTx(CTxExecuteContext &context) {
 
     CAccount srcAccount;
     if (!cw.accountCache.GetAccount(txUid, srcAccount))
-    return state.DoS(100, ERRORMSG("CProposalRequestTx::ExecuteTx, read source addr account info error"),
+        return state.DoS(100, ERRORMSG("CProposalRequestTx::ExecuteTx, read source addr account info error"),
                     READ_ACCOUNT_FAIL, "bad-read-accountdb");
 
     if (!srcAccount.OperateBalance(fee_symbol, SUB_FREE, llFees))
-    return state.DoS(100, ERRORMSG("CProposalRequestTx::ExecuteTx, account has insufficient funds"),
+        return state.DoS(100, ERRORMSG("CProposalRequestTx::ExecuteTx, account has insufficient funds"),
                     UPDATE_ACCOUNT_FAIL, "operate-minus-account-failed");
 
     if (!cw.accountCache.SetAccount(CUserID(srcAccount.keyid), srcAccount))
@@ -86,7 +86,7 @@ bool CProposalRequestTx::ExecuteTx(CTxExecuteContext &context) {
 
     uint64_t expiryBlockCount;
     if(!cw.sysParamCache.GetParam(PROPOSAL_EXPIRE_BLOCK_COUNT, expiryBlockCount))
-    return state.DoS(100, ERRORMSG("CProposalRequestTx::ExecuteTx,get proposal expire block count error"),
+        return state.DoS(100, ERRORMSG("CProposalRequestTx::ExecuteTx,get proposal expire block count error"),
                     WRITE_ACCOUNT_FAIL, "get-expire-block-count-error");
 
     auto proposalToSave = proposal.sp_proposal->GetNewInstance();
@@ -169,7 +169,9 @@ bool CProposalApprovalTx::ExecuteTx(CTxExecuteContext &context) {
     if (!cw.sysGovernCache.SetApproval(txid, txUid.get<CRegID>()))
         return state.DoS(100, ERRORMSG("CProposalApprovalTx::ExecuteTx, set proposal approval info error"),
                         WRITE_ACCOUNT_FAIL, "bad-write-proposaldb");
-    if ((assentedCount + 1 == spProposal->approval_min_count) && (!spProposal->ExecuteProposal(context, txid)))
+
+    ReceiptList receipts;
+    if ((assentedCount + 1 == spProposal->approval_min_count) && (!spProposal->ExecuteProposal(context, txid, receipts)))
         return state.DoS(100, ERRORMSG("CProposalApprovalTx::ExecuteTx, proposal execute error"),
                         WRITE_ACCOUNT_FAIL, "proposal-execute-error");
 
@@ -182,5 +184,9 @@ bool CProposalApprovalTx::ExecuteTx(CTxExecuteContext &context) {
                         WRITE_ACCOUNT_FAIL, "bad-write-proposaldb");
     }
 
-     return true;
+    if (!receipts.empty() && !cw.txReceiptCache.SetTxReceipts(txid, receipts))
+        return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, set tx receipts failed!! txid=%s",
+                        txid.ToString()), REJECT_INVALID, "set-tx-receipt-failed");
+
+    return true;
 }

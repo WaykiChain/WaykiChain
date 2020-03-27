@@ -18,6 +18,7 @@ static CUserID nullId;
 //         ReceiptCode                   CodeValue         memo
 //       -----------------              ----------  ----------------------------
 #define RECEIPT_CODE_LIST(DEFINE) \
+    DEFINE(NULL,                                 0,  "null type") \
     /**** reward */ \
     DEFINE(BLOCK_REWARD_TO_MINER,               101, "block reward to miner") \
     DEFINE(COIN_BLOCK_REWARD_TO_MINER,          102, "coin block reward to miner") \
@@ -73,7 +74,11 @@ static CUserID nullId;
     DEFINE(ASSET_ISSUED_FEE_TO_RESERVE,         701, "asset issued fee to risk reserve") \
     DEFINE(ASSET_UPDATED_FEE_TO_RESERVE,        702, "asset updated fee to risk reserve") \
     DEFINE(ASSET_ISSUED_FEE_TO_MINER,           703, "asset issued fee to miner") \
-    DEFINE(ASSET_UPDATED_FEE_TO_MINER,          704, "asset updated fee to miner")
+    DEFINE(ASSET_UPDATED_FEE_TO_MINER,          704, "asset updated fee to miner") \
+    /*** cross-chain */ \
+    DEFINE(AXC_MINT_COINS,                      801, "cross-chain asset minted onchain") \
+    DEFINE(AXC_BURN_COINS,                      802, "cross-chain asset burned onchain") \
+    DEFINE(AXC_REWARD_FEE_TO_BP,                803, "cross-chain reward fees to BP")
 
 #define DEFINE_RECEIPT_CODE_TYPE(enumType, code, enumName) enumType = code,
 enum ReceiptCode: uint16_t {
@@ -103,9 +108,9 @@ public:
 public:
     CReceipt() {}
 
-    CReceipt(const CUserID &fromUid, const CUserID &toUid, const TokenSymbol &coinSymbol, const uint64_t coinAmount,
-             ReceiptCode codeIn)
-        : from_uid(fromUid), to_uid(toUid), coin_symbol(coinSymbol), coin_amount(coinAmount), code(codeIn) {}
+    CReceipt(ReceiptCode codeIn) : code(codeIn) {}
+    CReceipt(const CUserID &fromUid, const CUserID &toUid, const TokenSymbol &coinSymbol, const uint64_t coinAmount, ReceiptCode codeIn) :
+            from_uid(fromUid), to_uid(toUid), coin_symbol(coinSymbol), coin_amount(coinAmount), code(codeIn) {}
 
     IMPLEMENT_SERIALIZE(
         READWRITE(from_uid);
@@ -115,6 +120,13 @@ public:
         READWRITE_CONVERT(uint16_t, code);
     )
 
+    void SetInfo(const CUserID &fromUid, const CUserID &toUid, const TokenSymbol &coinSymbol, const uint64_t coinAmount) {
+        from_uid    = fromUid;
+        to_uid      = toUid;
+        coin_symbol = coinSymbol;
+        coin_amount = coinAmount;
+    }
+
     string ToString() const {
         return strprintf("from_uid=%s", from_uid.ToString()) + ", " +
         strprintf("to_uid=%s", to_uid.ToString()) + ", " +
@@ -123,5 +135,7 @@ public:
         strprintf("code=%s", GetReceiptCodeName(code));
     }
 };
+
+typedef vector<CReceipt> ReceiptList;
 
 #endif  // ENTITIES_RECEIPT_H

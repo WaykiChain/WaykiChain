@@ -30,12 +30,27 @@ bool CAccount::GetBalance(const TokenSymbol &tokenSymbol, const BalanceType bala
     return true;
 }
 
-bool CAccount::OperateBalance(const TokenSymbol &tokenSymbol, const BalanceOpType opType, const uint64_t &value) {
+bool CAccount::OperateBalance(const TokenSymbol &tokenSymbol, const BalanceOpType opType, const uint64_t &value,
+                            CReceipt &receipt, const CAccount *pOtherAccount) {
+
     CAccountToken &accountToken = tokens[tokenSymbol];
+    CUserID otherUid = CNullID();
+
     switch (opType) {
         case ADD_FREE: {
             accountToken.free_amount += value;
-            return true;
+
+            if (pOtherAccount != nullptr) {
+                CAccountToken token = pOtherAccount->GetToken(tokenSymbol);
+                if (token.free_amount < value)
+                    return false;
+
+                token.free_amount -= value;
+                pOtherAccount->SetToken(token);
+                otherUid = pOtherAccount.txUid;
+            }
+
+            break;
         }
         case SUB_FREE: {
             if (accountToken.free_amount < value)
@@ -43,7 +58,19 @@ bool CAccount::OperateBalance(const TokenSymbol &tokenSymbol, const BalanceOpTyp
                                 accountToken.free_amount, value, tokenSymbol);
 
             accountToken.free_amount -= value;
-            return true;
+
+
+            if (pOtherAccount != nullptr) {
+                CAccountToken token = !pOtherAccount->GetToken(tokenSymbol);
+                if (token.free_amount < value)
+                    return false;
+
+                token.free_amount += value;
+                pOtherAccount->SetToken(token);
+                otherUid = pOtherAccount.txUid;
+            }
+
+            break;
         }
         case STAKE: {
             if (accountToken.free_amount < value)
@@ -52,7 +79,9 @@ bool CAccount::OperateBalance(const TokenSymbol &tokenSymbol, const BalanceOpTyp
 
             accountToken.free_amount -= value;
             accountToken.staked_amount += value;
-            return true;
+            otherUid = txUid;
+
+            break;
         }
         case UNSTAKE: {
             if (accountToken.staked_amount < value)
@@ -61,7 +90,9 @@ bool CAccount::OperateBalance(const TokenSymbol &tokenSymbol, const BalanceOpTyp
 
             accountToken.free_amount += value;
             accountToken.staked_amount -= value;
-            return true;
+            otherUid = txUid;
+
+            break;
         }
         case FREEZE: {
             if (accountToken.free_amount < value)
@@ -70,7 +101,9 @@ bool CAccount::OperateBalance(const TokenSymbol &tokenSymbol, const BalanceOpTyp
 
             accountToken.free_amount -= value;
             accountToken.frozen_amount += value;
-            return true;
+            otherUid = txUid;
+
+            break;
         }
         case UNFREEZE: {
             if (accountToken.frozen_amount < value)
@@ -79,7 +112,9 @@ bool CAccount::OperateBalance(const TokenSymbol &tokenSymbol, const BalanceOpTyp
 
             accountToken.free_amount += value;
             accountToken.frozen_amount -= value;
-            return true;
+            otherUid = txUid;
+
+            break;
         }
         case VOTE: {
             if (accountToken.free_amount < value)
@@ -88,7 +123,9 @@ bool CAccount::OperateBalance(const TokenSymbol &tokenSymbol, const BalanceOpTyp
 
             accountToken.free_amount -= value;
             accountToken.voted_amount += value;
-            return true;
+            otherUid = txUid;
+
+            break;
         }
         case UNVOTE: {
             if (accountToken.voted_amount < value)
@@ -97,7 +134,9 @@ bool CAccount::OperateBalance(const TokenSymbol &tokenSymbol, const BalanceOpTyp
 
             accountToken.free_amount += value;
             accountToken.voted_amount -= value;
-            return true;
+            otherUid = txUid;
+
+            break;
         }
         case PLEDGE: {
             if (accountToken.free_amount < value)
@@ -106,7 +145,9 @@ bool CAccount::OperateBalance(const TokenSymbol &tokenSymbol, const BalanceOpTyp
 
             accountToken.free_amount -= value;
             accountToken.pledged_amount += value;
-            return true;
+            otherUid = txUid;
+
+            break;
         }
         case UNPLEDGE: {
             if (accountToken.pledged_amount < value)
@@ -115,10 +156,15 @@ bool CAccount::OperateBalance(const TokenSymbol &tokenSymbol, const BalanceOpTyp
 
             accountToken.free_amount += value;
             accountToken.pledged_amount -= value;
-            return true;
+            otherUid = txUid;
+
+            break;
         }
         default: return false;
     }
+
+    receipt.SetInfo(this.txUid, otherUid, tokenSymbol, value);
+    return true;
 }
 
 uint64_t CAccount::ComputeVoteBcoinInterest(const uint64_t lastVotedBcoins, const uint32_t currHeight) {
@@ -201,6 +247,7 @@ uint64_t CAccount::ComputeBlockInflateInterest(const uint32_t currHeight, const 
     FeatureForkVersionEnum version = GetFeatureForkVersion(currHeight);
     if (version == MAJOR_VER_R1)
         return 0;
+
     uint64_t activeVotes = received_votes;
     if (version >= MAJOR_VER_R3) {
         activeVotes = curDelegate.votes;
@@ -225,7 +272,7 @@ CAccountToken CAccount::GetToken(const TokenSymbol &tokenSymbol) const {
     if (iter != tokens.end())
         return iter->second;
 
-    return CAccountToken();
+    return CAccountToken(); //initialize the token
 }
 
 bool CAccount::SetToken(const TokenSymbol &tokenSymbol, const CAccountToken &accountToken) {
@@ -419,13 +466,15 @@ bool CAccount::ProcessCandidateVotes(const vector<CCandidateVote> &candidateVote
 
     if (newTotalVotes > lastTotalVotes) {
         uint64_t addedVotes = newTotalVotes - lastTotalVotes;
-        if (!OperateBalance(SYMB::WICC, BalanceOpType::VOTE, addedVotes)) {
+        CReceipt receipt(BalanceOpType::VOTE);
+        if (!OperateBalance(SYMB::WICC, BalanceOpType::VOTE, addedVotes, receipt)) {
             return ERRORMSG(
-                "ProcessCandidateVotes() : delegate votes exceeds account bcoins when voting! "
-                "newTotalVotes=%llu, lastTotalVotes=%llu, freeAmount=%llu",
-                newTotalVotes, lastTotalVotes, GetToken(SYMB::WICC).free_amount);
+                        "ProcessCandidateVotes() : delegate votes exceeds account bcoins when voting! "
+                        "newTotalVotes=%llu, lastTotalVotes=%llu, freeAmount=%llu",
+                        newTotalVotes, lastTotalVotes, GetToken(SYMB::WICC).free_amount);
         }
-        receipts.emplace_back(regid, nullId, SYMB::WICC, addedVotes, ReceiptCode::DELEGATE_ADD_VOTE);
+        receipts.push_back(receipt);
+
     } else if (newTotalVotes < lastTotalVotes) {
         uint64_t subVotes = lastTotalVotes - newTotalVotes;
         if (!OperateBalance(SYMB::WICC, BalanceOpType::UNVOTE, subVotes)) {
