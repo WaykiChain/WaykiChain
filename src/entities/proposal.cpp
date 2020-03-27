@@ -93,16 +93,15 @@ bool CGovSysParamProposal::CheckProposal(CTxExecuteContext& context ) {
      return true;
 }
 bool CGovSysParamProposal::ExecuteProposal(CTxExecuteContext& context, const TxID& proposalId) {
-    CCacheWrapper &cw       = *context.pCw;
+    CCacheWrapper &cw = *context.pCw;
 
     for( auto pa: param_values){
         auto itr = SysParamTable.find(SysParamType(pa.first));
         if (itr == SysParamTable.end())
             return false;
 
-        if (!cw.sysParamCache.SetParam(SysParamType(pa.first), pa.second)){
+        if (!cw.sysParamCache.SetParam(SysParamType(pa.first), pa.second))
             return false;
-        }
     }
 
     return true;
@@ -112,26 +111,23 @@ bool CGovSysParamProposal::ExecuteProposal(CTxExecuteContext& context, const TxI
 bool CGovBpMcListProposal::CheckProposal(CTxExecuteContext& context ){
     IMPLEMENT_DEFINE_CW_STATE
 
-    if (op_type != ProposalOperateType::ENABLE && op_type != ProposalOperateType::DISABLE){
+    if (op_type != ProposalOperateType::ENABLE && op_type != ProposalOperateType::DISABLE)
         return state.DoS(100, ERRORMSG("CProposalRequestTx::CheckTx, operate type is illegal!"), REJECT_INVALID,
                          "operate_type-illegal");
-    }
 
-    CAccount bpMcAccount;
-    if (!cw.accountCache.GetAccount(gov_bp_regid, bpMcAccount)){
+    CAccount govBpAccount;
+    if (!cw.accountCache.GetAccount(gov_bp_regid, govBpAccount))
         return state.DoS(100, ERRORMSG("CProposalRequestTx::CheckTx, governor regid(%s) is not exist!", gov_bp_regid.ToString()), REJECT_INVALID,
                          "governor-not-exist");
-    }
 
-    if (op_type == ProposalOperateType::DISABLE && !cw.sysGovernCache.CheckIsGovernor(gov_bp_regid)){
+    if (op_type == ProposalOperateType::DISABLE && !cw.sysGovernCache.CheckIsGovernor(gov_bp_regid))
         return state.DoS(100, ERRORMSG("CProposalRequestTx::CheckTx, regid(%s) is not a governor!", gov_bp_regid.ToString()), REJECT_INVALID,
                          "regid-not-governor");
-    }
 
-    if (op_type == ProposalOperateType::ENABLE && cw.sysGovernCache.CheckIsGovernor(gov_bp_regid)){
+    if (op_type == ProposalOperateType::ENABLE && cw.sysGovernCache.CheckIsGovernor(gov_bp_regid))
         return state.DoS(100, ERRORMSG("CProposalRequestTx::CheckTx, regid(%s) is a governor already!", gov_bp_regid.ToString()), REJECT_INVALID,
                          "regid-is-governor");
-    }
+
     return true;
 }
 
