@@ -293,10 +293,10 @@ namespace dex {
 
     class CDEXOrderTx : public CDEXOrderBaseTx {
     public:
-        struct OrderDataSerializer {
+        struct OrderData {
             CDEXOrderTx &tx;
 
-            OrderDataSerializer(const CDEXOrderTx *pTxIn): tx((CDEXOrderTx&)*pTxIn) {}
+            OrderData(const CDEXOrderTx &txIn): tx(REF(txIn)) {}
 
             IMPLEMENT_SERIALIZE(
                 READWRITE_ENUM(tx.order_type, uint8_t);
@@ -339,20 +339,18 @@ namespace dex {
 
             READWRITE(fee_symbol);
             READWRITE(VARINT(llFees));
-            READWRITE(order_data_ser);
+            READWRITE(REF(OrderData(*this)));
 
             READWRITE(signature);
         )
 
         virtual void SerializeForHash(CHashWriter &hw) const {
             hw << VARINT(nVersion) << (uint8_t)nTxType << VARINT(valid_height) << txUid << fee_symbol
-            << VARINT(llFees) << order_data_ser;
+            << VARINT(llFees) << OrderData(*this);
         }
 
         virtual std::shared_ptr<CBaseTx> GetNewInstance() const { return std::make_shared<CDEXOrderTx>(*this); }
         virtual bool CheckTx(CTxExecuteContext &context);
-    private:
-        OrderDataSerializer order_data_ser = OrderDataSerializer(this);
     };
 
     ////////////////////////////////////////////////////////////////////////////////
@@ -360,10 +358,10 @@ namespace dex {
 
     class CDEXOperatorOrderTx : public CDEXOrderBaseTx {
     public:
-        struct OrderDataSerializer {
+        struct OrderData {
             CDEXOperatorOrderTx &tx;
 
-            OrderDataSerializer(const CDEXOperatorOrderTx *pTxIn): tx((CDEXOperatorOrderTx&)*pTxIn) {}
+            OrderData(const CDEXOperatorOrderTx &txIn): tx(REF(txIn)) {}
 
             IMPLEMENT_SERIALIZE(
                 READWRITE_ENUM(tx.order_type, uint8_t);
@@ -422,7 +420,7 @@ namespace dex {
 
             READWRITE(fee_symbol);
             READWRITE(VARINT(llFees));
-            READWRITE(order_data_ser);
+            READWRITE(REF(OrderData(*this)));
 
             READWRITE(signature);
             READWRITE(operator_signature);
@@ -430,13 +428,11 @@ namespace dex {
 
         virtual void SerializeForHash(CHashWriter &hw) const {
             hw << VARINT(nVersion) << (uint8_t)nTxType << VARINT(valid_height) << txUid << fee_symbol
-            << VARINT(llFees) << order_data_ser;
+            << VARINT(llFees) << OrderData(*this);
         }
 
         virtual std::shared_ptr<CBaseTx> GetNewInstance() const { return std::make_shared<CDEXOperatorOrderTx>(*this); }
         virtual bool CheckTx(CTxExecuteContext &context);
-    private:
-        OrderDataSerializer order_data_ser = OrderDataSerializer(this);
     };
 
     ////////////////////////////////////////////////////////////////////////////////
