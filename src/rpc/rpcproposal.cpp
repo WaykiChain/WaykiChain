@@ -780,7 +780,7 @@ Value submitaxcoutproposal(const Array& params, bool fHelp) {
     CUserID selfChainUid = RPC_PARAM::GetUserId(params[1]);
     TokenSymbol selfChainTokenSymbol(params[2].get_str());
     string peerAddr = params[3].get_str();
-    uint64_t swapCoinAmount = AmountToRawValue(params[4]);
+    uint64_t swapCoinAmount = roundint64(params[4].get_real());
     ComboMoney fee          = RPC_PARAM::GetFee(params, 5, PROPOSAL_REQUEST_TX);
 
     int32_t validHeight  = chainActive.Height();
