@@ -289,7 +289,23 @@ inline bool CheckUtxoOutCondition( const CTxExecuteContext &context, const bool 
             CReClaimLockCondOut& theCond = dynamic_cast< CReClaimLockCondOut& > (*cond.sp_utxo_cond);
 
             if (isPrevUtxoOut) {
-                if (prevUtxoTxUid == txAcct.keyid) { // for reclaiming the coins
+
+
+                CKeyID prevUtxoTxKeyId ;
+                if(prevUtxoTxUid.is<CKeyID>()) {
+                    prevUtxoTxKeyId = prevUtxoTxUid.get<CKeyID>();
+                }
+                else {
+                    CAccount acct;
+                    if (!cw.accountCache.GetAccount(prevUtxoTxUid, acct)) {
+                        errMsg = strprintf("prevUtxoTxUid(%s)'s account not found", prevUtxoTxUid.ToString());
+                        return false;
+                    }
+                    prevUtxoTxKeyId = acct.keyid;
+                }
+
+
+                if (prevUtxoTxKeyId == txAcct.keyid) { // for reclaiming the coins
                     if (theCond.height == 0 || (uint64_t) context.height <= theCond.height) {
                         errMsg = "theCond.height == 0 or context.height <= theCond.height";
                         return false;

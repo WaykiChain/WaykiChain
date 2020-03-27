@@ -886,8 +886,14 @@ Value getsysparam(const Array& params, bool fHelp){
             throw JSONRPCError(RPC_INVALID_PARAMETER, "get param error");
 
         Object obj;
-        obj.push_back(Pair(paramName, pv));
+        if(itr->second == SysParamType::AXC_SWAP_GATEWAY_REGID){
+            obj.push_back(Pair(paramName, ParseNumToRegID(pv).ToString()));
+        } else {
+            obj.push_back(Pair(paramName, pv));
+        }
+
         return obj;
+
     } else {
         Object obj;
         for(auto kv : paramNameToSysParamTypeMap) {
@@ -895,6 +901,10 @@ Value getsysparam(const Array& params, bool fHelp){
             uint64_t pv = 0;
             pCdMan->pSysParamCache->GetParam(kv.second, pv);
 
+            if(kv.second == SysParamType::AXC_SWAP_GATEWAY_REGID){
+                obj.push_back(Pair(paramName, ParseNumToRegID(pv).ToString()));
+                continue;
+            }
             obj.push_back(Pair(paramName, pv));
 
         }
