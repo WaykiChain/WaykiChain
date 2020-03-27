@@ -24,16 +24,16 @@ using namespace std;
 class CSysParamDBCache; // need to read slide window param
 class CConsecutiveBlockPrice;
 
-typedef map<int32_t /* block height */, map<CRegID, uint64_t /* price */>> BlockUserPriceMap;
+typedef map<HeightType /* block height */, map<CRegID, uint64_t /* price */>> BlockUserPriceMap;
 typedef map<PriceCoinPair, CConsecutiveBlockPrice> CoinPricePointMap;
 
 // Price Points in 11 consecutive blocks
 class CConsecutiveBlockPrice {
 public:
-    void AddUserPrice(const int32_t blockHeight, const CRegID &regId, const uint64_t price);
+    void AddUserPrice(const HeightType blockHeight, const CRegID &regId, const uint64_t price);
     // delete user price by specific block height.
-    void DeleteUserPrice(const int32_t blockHeight);
-    bool ExistBlockUserPrice(const int32_t blockHeight, const CRegID &regId);
+    void DeleteUserPrice(const HeightType blockHeight);
+    bool ExistBlockUserPrice(const HeightType blockHeight, const CRegID &regId);
 
 public:
     BlockUserPriceMap mapBlockUserPrices;
@@ -49,33 +49,33 @@ public:
     bool ReleadBlocks(CSysParamDBCache &sysParamCache, CBlockIndex *pTipBlockIdx);
     bool PushBlock(CSysParamDBCache &sysParamCache, CBlockIndex *pTipBlockIdx);
     bool UndoBlock(CSysParamDBCache &sysParamCache, CBlockIndex *pTipBlockIdx);
-    bool AddPrice(const int32_t blockHeight, const CRegID &regId, const vector<CPricePoint> &pps);
+    bool AddPrice(const HeightType blockHeight, const CRegID &regId, const vector<CPricePoint> &pps);
 
-    bool CalcMedianPrices(CCacheWrapper &cw, const int32_t blockHeight, PriceMap &medianPrices);
-    bool CalcMedianPriceDetails(CCacheWrapper &cw, const int32_t blockHeight, PriceDetailMap &medianPrices);
+    bool CalcMedianPrices(CCacheWrapper &cw, const HeightType blockHeight, PriceMap &medianPrices);
+    bool CalcMedianPriceDetails(CCacheWrapper &cw, const HeightType blockHeight, PriceDetailMap &medianPrices);
 
     void SetBaseViewPtr(CPricePointMemCache *pBaseIn);
     void Flush();
 
 private:
-    CMedianPriceDetail GetMedianPrice(const int32_t blockHeight, const uint64_t slideWindow, const PriceCoinPair &coinPricePair);
+    CMedianPriceDetail GetMedianPrice(const HeightType blockHeight, const uint64_t slideWindow, const PriceCoinPair &coinPricePair);
 
     bool AddPriceByBlock(const CBlock &block);
     // delete block price point by specific block height.
     bool DeleteBlockFromCache(const CBlock &block);
 
-    bool DeleteBlockPricePoint(const int32_t blockHeight);
+    bool DeleteBlockPricePoint(const HeightType blockHeight);
 
-    bool ExistBlockUserPrice(const int32_t blockHeight, const CRegID &regId, const PriceCoinPair &coinPricePair);
+    bool ExistBlockUserPrice(const HeightType blockHeight, const CRegID &regId, const PriceCoinPair &coinPricePair);
 
     void BatchWrite(const CoinPricePointMap &mapCoinPricePointCacheIn);
 
-    bool GetBlockUserPrices(const PriceCoinPair &coinPricePair, set<int32_t> &expired, BlockUserPriceMap &blockUserPrices);
+    bool GetBlockUserPrices(const PriceCoinPair &coinPricePair, set<HeightType> &expired, BlockUserPriceMap &blockUserPrices);
     bool GetBlockUserPrices(const PriceCoinPair &coinPricePair, BlockUserPriceMap &blockUserPrices);
 
-    CMedianPriceDetail ComputeBlockMedianPrice(const int32_t blockHeight, const uint64_t slideWindow,
+    CMedianPriceDetail ComputeBlockMedianPrice(const HeightType blockHeight, const uint64_t slideWindow,
                                      const PriceCoinPair &coinPricePair);
-    CMedianPriceDetail ComputeBlockMedianPrice(const int32_t blockHeight, const uint64_t slideWindow,
+    CMedianPriceDetail ComputeBlockMedianPrice(const HeightType blockHeight, const uint64_t slideWindow,
                                      const BlockUserPriceMap &blockUserPrices);
     static uint64_t ComputeMedianNumber(vector<uint64_t> &numbers);
 

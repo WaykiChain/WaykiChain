@@ -17,16 +17,16 @@ static inline bool ReadSlideWindow(CSysParamDBCache &sysParamCache, uint64_t &sl
     return true;
 }
 
-void CConsecutiveBlockPrice::AddUserPrice(const int32_t blockHeight, const CRegID &regId, const uint64_t price) {
+void CConsecutiveBlockPrice::AddUserPrice(const HeightType blockHeight, const CRegID &regId, const uint64_t price) {
     mapBlockUserPrices[blockHeight][regId] = price;
 }
 
-void CConsecutiveBlockPrice::DeleteUserPrice(const int32_t blockHeight) {
+void CConsecutiveBlockPrice::DeleteUserPrice(const HeightType blockHeight) {
     // Marked the value empty, the base cache will delete it when Flush() is called.
     mapBlockUserPrices[blockHeight].clear();
 }
 
-bool CConsecutiveBlockPrice::ExistBlockUserPrice(const int32_t blockHeight, const CRegID &regId) {
+bool CConsecutiveBlockPrice::ExistBlockUserPrice(const HeightType blockHeight, const CRegID &regId) {
     if (mapBlockUserPrices.count(blockHeight) == 0)
         return false;
 
@@ -67,9 +67,9 @@ bool CPricePointMemCache::PushBlock(CSysParamDBCache &sysParamCache, CBlockIndex
     uint64_t slideWindow = 0;
     if (!ReadSlideWindow(sysParamCache, slideWindow, __func__)) return false;
     // remove the oldest block
-    if (pTipBlockIdx->height > (int32_t)slideWindow) {
+    if ((HeightType)pTipBlockIdx->height > (HeightType)slideWindow) {
         CBlockIndex *pDeleteBlockIndex = pTipBlockIdx;
-        int32_t height           = slideWindow;
+        HeightType height           = slideWindow;
         while (pDeleteBlockIndex && height-- > 0) {
             pDeleteBlockIndex = pDeleteBlockIndex->pprev;
         }
@@ -97,9 +97,9 @@ bool CPricePointMemCache::UndoBlock(CSysParamDBCache &sysParamCache, CBlockIndex
         return ERRORMSG("%s() : delete block=[%d]%s from price point memory cache failed",
                 __func__, pTipBlockIdx->height, pTipBlockIdx->GetBlockHash().ToString());
     }
-    if (pTipBlockIdx->height > (int32_t)slideWindow) {
+    if ((HeightType)pTipBlockIdx->height > (HeightType)slideWindow) {
         CBlockIndex *pReLoadBlockIndex = pTipBlockIdx;
-        int32_t nCacheHeight           = slideWindow;
+        HeightType nCacheHeight           = slideWindow;
         while (pReLoadBlockIndex && nCacheHeight-- > 0) {
             pReLoadBlockIndex = pReLoadBlockIndex->pprev;
         }
@@ -118,7 +118,7 @@ bool CPricePointMemCache::UndoBlock(CSysParamDBCache &sysParamCache, CBlockIndex
     return true;
 }
 
-bool CPricePointMemCache::AddPrice(const int32_t blockHeight, const CRegID &regId,
+bool CPricePointMemCache::AddPrice(const HeightType blockHeight, const CRegID &regId,
                                                     const vector<CPricePoint> &pps) {
     for (CPricePoint pp : pps) {
         if (ExistBlockUserPrice(blockHeight, regId, pp.GetCoinPricePair())) {
@@ -140,7 +140,7 @@ bool CPricePointMemCache::AddPrice(const int32_t blockHeight, const CRegID &regI
     return true;
 }
 
-bool CPricePointMemCache::ExistBlockUserPrice(const int32_t blockHeight, const CRegID &regId,
+bool CPricePointMemCache::ExistBlockUserPrice(const HeightType blockHeight, const CRegID &regId,
                                               const PriceCoinPair &coinPricePair) {
     if (mapCoinPricePointCache.count(coinPricePair) &&
         mapCoinPricePointCache[coinPricePair].ExistBlockUserPrice(blockHeight, regId))
@@ -174,7 +174,7 @@ bool CPricePointMemCache::AddPriceByBlock(const CBlock &block) {
     return true;
 }
 
-bool CPricePointMemCache::DeleteBlockPricePoint(const int32_t blockHeight) {
+bool CPricePointMemCache::DeleteBlockPricePoint(const HeightType blockHeight) {
     if (mapCoinPricePointCache.empty()) {
         // TODO: multi stable coin
         mapCoinPricePointCache[PriceCoinPair(SYMB::WICC, SYMB::USD)].DeleteUserPrice(blockHeight);
@@ -192,7 +192,7 @@ bool CPricePointMemCache::DeleteBlockFromCache(const CBlock &block) { return Del
 
 void CPricePointMemCache::BatchWrite(const CoinPricePointMap &mapCoinPricePointCacheIn) {
     for (const auto &item : mapCoinPricePointCacheIn) {
-        // map<int32_t /* block height */, map<CRegID, uint64_t /* price */>>
+        // map<HeightType /* block height */, map<CRegID, uint64_t /* price */>>
         const auto &mapBlockUserPrices = item.second.mapBlockUserPrices;
         for (const auto &userPrice : mapBlockUserPrices) {
             if (userPrice.second.empty()) {
@@ -220,7 +220,7 @@ void CPricePointMemCache::Flush() {
     mapCoinPricePointCache.clear();
 }
 
-bool CPricePointMemCache::GetBlockUserPrices(const PriceCoinPair &coinPricePair, set<int32_t> &expired,
+bool CPricePointMemCache::GetBlockUserPrices(const PriceCoinPair &coinPricePair, set<HeightType> &expired,
                                              BlockUserPriceMap &blockUserPrices) {
     const auto &iter = mapCoinPricePointCache.find(coinPricePair);
     if (iter != mapCoinPricePointCache.end()) {
@@ -246,7 +246,7 @@ bool CPricePointMemCache::GetBlockUserPrices(const PriceCoinPair &coinPricePair,
 }
 
 bool CPricePointMemCache::GetBlockUserPrices(const PriceCoinPair &coinPricePair, BlockUserPriceMap &blockUserPrices) {
-    set<int32_t /* block height */> expired;
+    set<HeightType /* block height */> expired;
     if (!GetBlockUserPrices(coinPricePair, expired, blockUserPrices)) {
         // TODO: log
         return false;
@@ -255,7 +255,7 @@ bool CPricePointMemCache::GetBlockUserPrices(const PriceCoinPair &coinPricePair,
     return true;
 }
 
-CMedianPriceDetail CPricePointMemCache::ComputeBlockMedianPrice(const int32_t blockHeight, const uint64_t slideWindow,
+CMedianPriceDetail CPricePointMemCache::ComputeBlockMedianPrice(const HeightType blockHeight, const uint64_t slideWindow,
                                                       const PriceCoinPair &coinPricePair) {
     // 1. merge block user prices with base cache.
     BlockUserPriceMap blockUserPrices;
@@ -267,7 +267,7 @@ CMedianPriceDetail CPricePointMemCache::ComputeBlockMedianPrice(const int32_t bl
     return ComputeBlockMedianPrice(blockHeight, slideWindow, blockUserPrices);
 }
 
-CMedianPriceDetail CPricePointMemCache::ComputeBlockMedianPrice(const int32_t blockHeight, const uint64_t slideWindow,
+CMedianPriceDetail CPricePointMemCache::ComputeBlockMedianPrice(const HeightType blockHeight, const uint64_t slideWindow,
                                                       const BlockUserPriceMap &blockUserPrices) {
     // for (const auto &item : blockUserPrices) {
     //     string price;
@@ -281,8 +281,10 @@ CMedianPriceDetail CPricePointMemCache::ComputeBlockMedianPrice(const int32_t bl
 
     CMedianPriceDetail priceDetail;
     vector<uint64_t> prices;
-    int32_t beginBlockHeight = std::max<int32_t>((blockHeight - slideWindow), 0);
-    for (int32_t height = blockHeight; height > beginBlockHeight; --height) {
+    HeightType beginBlockHeight = 0;
+    if (blockHeight > slideWindow)
+        beginBlockHeight = blockHeight - slideWindow;
+    for (HeightType height = blockHeight; height > beginBlockHeight; --height) {
         const auto &iter = blockUserPrices.find(height);
         if (iter != blockUserPrices.end()) {
             if (height == blockHeight)
@@ -307,7 +309,7 @@ CMedianPriceDetail CPricePointMemCache::ComputeBlockMedianPrice(const int32_t bl
 }
 
 uint64_t CPricePointMemCache::ComputeMedianNumber(vector<uint64_t> &numbers) {
-    int32_t size = numbers.size();
+    uint32_t size = numbers.size();
     if (size < 2) {
         return size == 0 ? 0 : numbers[0];
     }
@@ -315,25 +317,30 @@ uint64_t CPricePointMemCache::ComputeMedianNumber(vector<uint64_t> &numbers) {
     return (size % 2 == 0) ? (numbers[size / 2 - 1] + numbers[size / 2]) / 2 : numbers[size / 2];
 }
 
-CMedianPriceDetail CPricePointMemCache::GetMedianPrice(const int32_t blockHeight, const uint64_t slideWindow,
+CMedianPriceDetail CPricePointMemCache::GetMedianPrice(const HeightType blockHeight, const uint64_t slideWindow,
                                              const PriceCoinPair &coinPricePair) {
     CMedianPriceDetail priceDetail;
     priceDetail = ComputeBlockMedianPrice(blockHeight, slideWindow, coinPricePair);
+    auto it = latest_median_prices.find(coinPricePair);
+    if (it != latest_median_prices.end()) {
+        if (priceDetail.price == 0) {
+            priceDetail = it->second;
+            LogPrint(BCLog::PRICEFEED,
+                    "%s(), use previous block median price! blockHeight=%d, "
+                    "coin_pair={%s}, new_price={%s}\n",
+                    blockHeight, CoinPairToString(coinPricePair), priceDetail.ToString());
+        } else if (priceDetail.last_feed_height != blockHeight) {
+            priceDetail.last_feed_height = it->second.last_feed_height;
 
-    if (priceDetail.price == 0) {
-        auto it = latest_median_prices.find(coinPricePair);
-        priceDetail = it != latest_median_prices.end() ? it->second : CMedianPriceDetail();
-
-        LogPrint(BCLog::PRICEFEED,
-                 "CPricePointMemCache::GetMedianPrice, use previous block median price: blockHeight: %d, "
-                 "coin_pair=%s:%s price_detail={%s}\n",
-                 blockHeight, coinPricePair.first, coinPricePair.second, priceDetail.ToString());
+            LogPrint(BCLog::PRICEFEED, "%s, current block not have price feed! new_price={%s}\n",
+                    priceDetail.ToString());
+        }
     }
 
     return priceDetail;
 }
 
-bool CPricePointMemCache::CalcMedianPrices(CCacheWrapper &cw, const int32_t blockHeight, PriceMap &medianPrices) {
+bool CPricePointMemCache::CalcMedianPrices(CCacheWrapper &cw, const HeightType blockHeight, PriceMap &medianPrices) {
 
     PriceDetailMap priceDetailMap;
     if (!CalcMedianPriceDetails(cw, blockHeight, priceDetailMap))
@@ -345,7 +352,7 @@ bool CPricePointMemCache::CalcMedianPrices(CCacheWrapper &cw, const int32_t bloc
     return true;
 }
 
-bool CPricePointMemCache::CalcMedianPriceDetails(CCacheWrapper &cw, const int32_t blockHeight, PriceDetailMap &medianPrices)  {
+bool CPricePointMemCache::CalcMedianPriceDetails(CCacheWrapper &cw, const HeightType blockHeight, PriceDetailMap &medianPrices)  {
 
     // TODO: support more price pair
     uint64_t slideWindow = 0;
@@ -372,7 +379,7 @@ bool CPricePointMemCache::CalcMedianPriceDetails(CCacheWrapper &cw, const int32_
     }
     // get hard code PriceFeedCoinPairs
     coinPairSet.insert(kPriceFeedCoinPairSet.begin(), kPriceFeedCoinPairSet.end());
-
+    medianPrices.clear();
     for (const auto& item : coinPairSet) {
         CMedianPriceDetail bcoinMedianPrice = GetMedianPrice(blockHeight, slideWindow, item);
         if (bcoinMedianPrice.price == 0) {
