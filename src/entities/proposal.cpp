@@ -482,11 +482,29 @@ bool CGovAxcInProposal::ExecuteProposal(CTxExecuteContext& context, const TxID& 
 
 
     uint64_t swap_fee_ratio;
-    if (!cw.sysParamCache.GetParam(AXC_SWAP_FEE_RATIO, swap_fee_ratio))
+    if (!cw.sysParamCache.GetParam(AXC_SWAP_FEE_RATIO, swap_fee_ratio) || swap_fee_ratio * 1.0 / RATIO_BOOST > 1)
         return state.DoS(100, ERRORMSG("CGovAxcInProposal::ExecuteProposal, get sysparam: axc_swap_fee_ratio failed"),
                         REJECT_INVALID, "bad-get-swap_fee_ratio");
 
-    uint64_t swap_amount_after_fees = swap_amount * (1 - swap_fee_ratio * 1.0 / RATIO_BOOST);
+    uint64_t swap_fees = swap_fee_ratio * (swap_amount * 1.0 / RATIO_BOOST);
+    uint64_t swap_amount_after_fees = swap_amount - swap_fees;
+
+    set<CRegID> govBpRegIds;
+    if (!cw.governors_cache.GetGovernors(govBpRegIds) || govBpRegIds.size() == 0)
+        return state.DoS(100, ERRORMSG("CGovAxcInProposal::ExecuteProposal, failed to get BP Governors"),
+                        REJECT_INVALID, "bad-get-bp-governors");
+
+    uint64_t swapFeesPerBp = swap_fees / govBpRegIds.size();
+    for (const auto &bpRegID : govBpRegIds) {
+        CAccount bpAcct;
+        if (!cw.accountCache.GetAccount(bpRegID, bpAcct))
+            return state.DoS(100, ERRORMSG("CGovAxcInProposal::ExecuteProposal, failed to get BP account (%s)", bpRegID.ToString()),
+                        REJECT_INVALID, "bad-get-bp-account");
+
+        if (!bpAcct.OperateBalance(self_chain_token_symbol, BalanceOpType::ADD_FREE, swapFeesPerBp))
+            return state.DoS(100, ERRORMSG("CGovAxcInProposal::ExecuteProposal, opreate balance failed, swapFeesPerBp=%llu",
+                        swapFeesPerBp), REJECT_INVALID, "bad-operate-balance");
+    }
 
     CAccount acct;
     if (!cw.accountCache.GetAccount(self_chain_uid, acct))
