@@ -21,9 +21,9 @@ namespace SYMB {
     static const string WUSD        = "WUSD";
     static const string WCNY        = "WCNY";
 
-    static const string XBTC        = "XBTC";
-    static const string XETH        = "XETH";
-    static const string XEOS        = "XEOS";
+    static const string mBTC        = "mBTC";
+    static const string mETH        = "mETH";
+    static const string mEOS        = "mEOS";
 
     static const string USD         = "USD";
     static const string CNY         = "CNY";
@@ -33,13 +33,11 @@ namespace SYMB {
     static const string ETH         = "ETH";
     static const string EOS         = "EOS";
 
-    static const string BTC_USDT    = "BTC_USDT";
-    static const string ETH_USDT    = "ETH_USDT";   //ERC20 USDT
-    static const string ETH_DAI     = "ETH_DAI";    //ERC20 DAI
+    static const string USDT        = "USDT";   //ERC20 USDT
+    static const string DAI         = "DAI";    //ERC20 DAI
 
-    static const string XBTC_USDT   = "XBTC_USDT";   //BTC USDT mirrored
-    static const string XETH_USDT   = "XETH_USDT";   //ERC20 USDT mirrored
-    static const string XETH_DAI    = "XETH_DAI";    //ERC20 DAI mirrored
+    static const string mUSDT       = "mUSDT";   //ERC20 USDT mirrored
+    static const string mDAI        = "mDAI";    //ERC20 DAI mirrored
 
     static const string GOLD        = "GOLD";
     static const string KWH         = "KWH";
@@ -106,14 +104,18 @@ static const unordered_set<string> kCdpScoinSymbolSet = {
 
 //can be expanded thru DeGov
 static const unordered_map<TokenSymbol, std::pair<TokenSymbol,ChainType>> kXChainSwapInTokenMap =  {
-    { SYMB::BTC,        make_pair(SYMB::XBTC, ChainType ::BITCOIN)          },
-    { SYMB::ETH,        make_pair(SYMB::XETH, ChainType ::ETHEREUM)         },
-    { SYMB::ETH_USDT,   make_pair(SYMB::XETH_USDT, ChainType ::ETHEREUM)    },
+    { SYMB::BTC,        make_pair(SYMB::mBTC, ChainType ::BITCOIN)          },
+    { SYMB::ETH,        make_pair(SYMB::mETH, ChainType ::ETHEREUM)         },
+    { SYMB::USDT,       make_pair(SYMB::mUSDT, ChainType ::ETHEREUM)        },
+    { SYMB::DAI,        make_pair(SYMB::mDAI, ChainType::ETHEREUM)},
+    { SYMB::EOS,        make_pair(SYMB::mEOS, ChainType::EOS)}
 };
 static const unordered_map<TokenSymbol, std::pair<TokenSymbol,ChainType>> kXChainSwapOutTokenMap =  {
-    { SYMB::XBTC,       make_pair(SYMB::BTC, ChainType ::BITCOIN)             },
-    { SYMB::XETH,       make_pair(SYMB::ETH, ChainType ::ETHEREUM)            },
-    { SYMB::XETH_USDT,  make_pair(SYMB::ETH_USDT, ChainType ::ETHEREUM)       },
+    { SYMB::mBTC,       make_pair(SYMB::BTC, ChainType ::BITCOIN)             },
+    { SYMB::mETH,       make_pair(SYMB::ETH, ChainType ::ETHEREUM)            },
+    { SYMB::mUSDT,  make_pair(SYMB::USDT, ChainType ::ETHEREUM)       },
+    { SYMB::mDAI,        make_pair(SYMB::DAI, ChainType::ETHEREUM)},
+    { SYMB::mEOS,        make_pair(SYMB::EOS, ChainType::EOS)}
 };
 
 struct CoinUnitTypeHash {

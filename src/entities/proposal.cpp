@@ -490,7 +490,7 @@ bool CGovAxcInProposal::ExecuteProposal(CTxExecuteContext& context, const TxID& 
     uint64_t swap_amount_after_fees = swap_amount - swap_fees;
 
     set<CRegID> govBpRegIds;
-    if (!cw.governors_cache.GetGovernors(govBpRegIds) || govBpRegIds.size() == 0)
+    if (!cw.sysGovernCache.GetGovernors(govBpRegIds) || govBpRegIds.size() == 0)
         return state.DoS(100, ERRORMSG("CGovAxcInProposal::ExecuteProposal, failed to get BP Governors"),
                         REJECT_INVALID, "bad-get-bp-governors");
 
@@ -589,6 +589,7 @@ bool CGovAxcOutProposal::ExecuteProposal(CTxExecuteContext& context, const TxID&
     return true;
 }
 
+
 bool CGovAxcCoinProposal::CheckProposal(CTxExecuteContext& context ) {
     IMPLEMENT_DEFINE_CW_STATE;
 
@@ -631,10 +632,10 @@ bool  CGovAxcCoinProposal::ExecuteProposal(CTxExecuteContext& context, const TxI
     if(op_type == ProposalOperateType::DISABLE) {
         if(!cw.axcCache.EraseAxcSwapPair(peer_chain_coin_symbol)){
             return state.DoS(100, ERRORMSG("CGovAxcCoinProposal::ExecuteProposal, write db error"), REJECT_INVALID,
-                                      "db-error");
+                             "db-error");
         }
     } else if(op_type == ProposalOperateType::ENABLE){
-        if(!cw.axcCache.AddAxcSwapPair(peer_chain_coin_symbol, TokenSymbol(strprintf("%s%s", "XW", peer_chain_coin_symbol)), peer_chain_type)){
+        if(!cw.axcCache.AddAxcSwapPair(peer_chain_coin_symbol, TokenSymbol(strprintf("%s%s", "m", peer_chain_coin_symbol)), peer_chain_type)){
             return state.DoS(100, ERRORMSG("CGovAxcCoinProposal::ExecuteProposal, write db error"), REJECT_INVALID,
                              "db-error");
         }
