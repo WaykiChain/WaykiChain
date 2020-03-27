@@ -213,18 +213,14 @@ inline bool CheckUtxoOutCondition( const CTxExecuteContext &context, const bool 
                             errMsg = strprintf("p2phCondIn.password.size() =%d > 256", p2phCondIn.password.size());
                             return false;
                         }
-
+                        CAccount acct;
                         CKeyID prevUtxoTxKeyId ;
-                        if(prevUtxoTxUid.is<CKeyID>())
-                            prevUtxoTxKeyId = prevUtxoTxUid.get<CKeyID>();
-                        else {
-                            CAccount acct;
-                            if (!cw.accountCache.GetAccount(prevUtxoTxUid, acct)) {
-                                errMsg = strprintf("prevUtxoTxUid(%s)'s account not found", prevUtxoTxUid.ToString());
-                                return false;
-                            }
-                            prevUtxoTxKeyId = acct.keyid;
+
+                        if (!cw.accountCache.GetAccount(prevUtxoTxUid, acct)) {
+                            errMsg = strprintf("prevUtxoTxUid(%s)'s account not found", prevUtxoTxUid.ToString());
+                            return false;
                         }
+                        prevUtxoTxKeyId = acct.keyid;
 
                         if (theCond.password_proof_required) { //check if existing password ownership proof
                             string text = strprintf("%s%s%s%s%d", p2phCondIn.password,
@@ -235,7 +231,7 @@ inline bool CheckUtxoOutCondition( const CTxExecuteContext &context, const bool 
                             uint256 proof = uint256();
                             CRegIDKey regIdKey(txAcct.regid);
                             auto proofKey = std::make_tuple(input.prev_utxo_txid, CFixedUInt16(input.prev_utxo_vout_index), regIdKey);
-                            if (context.pCw->txUtxoCache.GetUtxoPasswordProof(proofKey, proof)) {
+                            if (!context.pCw->txUtxoCache.GetUtxoPasswordProof(proofKey, proof)) {
                                 errMsg = "GetUtxoPasswordProof failed";
                                 return false;
                             }

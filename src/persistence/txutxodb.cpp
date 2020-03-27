@@ -33,11 +33,7 @@ bool CTxUTXODBCache::SetUtxoPasswordProof(const tuple<TxID, CFixedUInt16, CRegID
 }
 
 bool CTxUTXODBCache::GetUtxoPasswordProof(const tuple<TxID, CFixedUInt16, CRegIDKey> &proofKey, uint256 &proof) {
-    bool result = txUtxoPasswordProofCache.GetData(proofKey, proof);
-    if (!result)
-        return false;
-    
-    return true;
+    return txUtxoPasswordProofCache.GetData(proofKey, proof);
 }
 
 bool CTxUTXODBCache::DelUtoxPasswordProof(const tuple<TxID, CFixedUInt16, CRegIDKey> &proofKey) {

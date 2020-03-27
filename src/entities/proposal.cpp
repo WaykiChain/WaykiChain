@@ -158,15 +158,9 @@ bool CGovBpSizeProposal:: CheckProposal(CTxExecuteContext& context ) {
         return state.DoS(100, ERRORMSG("CGovBpSizeProposal::CheckProposal, total_bps_size must be between 1 and 255"),
                          REJECT_INVALID,"bad-bp-count");
 
-    uint64_t  effective_after_block_count;
 
-    if(!cw.sysParamCache.GetParam(SysParamType::BPSSIZE_EFFECTIVE_AFTER_BLOCK_COUNT, effective_after_block_count)) {
-        return state.DoS(100, ERRORMSG("CGovBpSizeProposal::CheckProposal: effective_height get error"),
-                         REJECT_INVALID,"bad-read-effective-height");
-
-    }
-    if (effective_height < (uint32_t) context.height + effective_after_block_count)
-        return state.DoS(100, ERRORMSG("CGovBpSizeProposal::CheckProposal: effective_height must be >= current height + %d", effective_after_block_count),
+    if (effective_height < (uint32_t) context.height + BPSSIZE_EFFECTIVE_AFTER_BLOCK_COUNT)
+        return state.DoS(100, ERRORMSG("CGovBpSizeProposal::CheckProposal: effective_height must be >= current height + %d", BPSSIZE_EFFECTIVE_AFTER_BLOCK_COUNT),
                          REJECT_INVALID,"bad-effective-height");
 
     return true;

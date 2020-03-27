@@ -32,7 +32,6 @@ enum SysParamType : uint8_t {
     ASSET_RISK_FEE_RATIO                    = 26,
     DEX_OPERATOR_RISK_FEE_RATIO             = 27,
     AXC_SWAP_FEE_RATIO                      = 28,
-    BPSSIZE_EFFECTIVE_AFTER_BLOCK_COUNT     = 29,
     BP_DELEGATE_VOTE_MIN                    = 50,
 };
 
@@ -52,7 +51,6 @@ static const unordered_map<string, SysParamType> paramNameToSysParamTypeMap = {
         {"ASSET_RISK_FEE_RATIO",                        ASSET_RISK_FEE_RATIO                        },
         {"DEX_OPERATOR_RISK_FEE_RATIO",                 DEX_OPERATOR_RISK_FEE_RATIO                 },
         {"AXC_SWAP_FEE_RATIO",                          AXC_SWAP_FEE_RATIO                          },
-        {"BPSSIZE_EFFECTIVE_AFTER_BLOCK_COUNT",         BPSSIZE_EFFECTIVE_AFTER_BLOCK_COUNT         },
         {"BP_DELEGATE_VOTE_MIN",                        BP_DELEGATE_VOTE_MIN                        }
 };
 
@@ -78,7 +76,6 @@ static const unordered_map<SysParamType, std::tuple< uint64_t,string >, SysParam
     { ASSET_RISK_FEE_RATIO,                     make_tuple( 4000,        "ASSET_RISK_FEE_RATIO")                    },
     { DEX_OPERATOR_RISK_FEE_RATIO,              make_tuple( 4000,        "DEX_OPERATOR_RISK_FEE_RATIO")             },
     { AXC_SWAP_FEE_RATIO,                       make_tuple( 20,          "AXC_SWAP_FEE_RATIO")                      },  // 0.2%, boosted by 10000
-    { BPSSIZE_EFFECTIVE_AFTER_BLOCK_COUNT,      make_tuple( 50,          "BPSSIZE_EFFECTIVE_AFTER_BLOCK_COUNT")     },
     { BP_DELEGATE_VOTE_MIN,                     make_tuple( 21000,       "BP_DELEGATE_VOTE_MIN")                    }  // 21000 sawi, the min votes of delegate to be bp
 
 };
@@ -100,7 +97,6 @@ static const unordered_map<SysParamType, std::pair<uint64_t, uint64_t>, SysParam
     { ASSET_RISK_FEE_RATIO,                      RANGE(0,10000)    },
     { DEX_OPERATOR_RISK_FEE_RATIO,               RANGE(0,10000)    },
     { AXC_SWAP_FEE_RATIO,                        RANGE(0,1000)     },    //max 10%
-    { BPSSIZE_EFFECTIVE_AFTER_BLOCK_COUNT,       RANGE(0,0)        },
     { BP_DELEGATE_VOTE_MIN,                      RANGE(0,0)        }    //max 10%
 
 };

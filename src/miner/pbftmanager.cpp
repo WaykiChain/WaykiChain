@@ -19,6 +19,7 @@ extern CCacheDBManager *pCdMan;
 uint32_t GetFinalBlockMinerCount() {
     uint32_t totalBpsSize =  pCdMan->pDelegateCache->GetActivedDelegateNum();
     return totalBpsSize - totalBpsSize/3;
+
 }
 
 CBlockIndex* CPBFTMan::GetLocalFinIndex(){
@@ -110,7 +111,7 @@ bool CPBFTMan::UpdateLocalFinBlock(const CBlockIndex* pIndex){
 
     uint32_t needConfirmCount = GetFinalBlockMinerCount();
 
-    while(height > GetLocalFinIndex()->height&& height>0 &&height > pIndex->height-10){
+    while(height > GetLocalFinIndex()->height&& height>0 && height > pIndex->height-10){
 
         CBlockIndex* pTemp = chainActive[height];
 
@@ -194,6 +195,7 @@ bool CPBFTMan::UpdateGlobalFinBlock(const CBlockIndex* pIndex){
 
         if (pbftContext.finalityMessageMan.GetMessagesByBlockHash(pTemp->GetBlockHash(), messageSet)
            && pbftContext.GetMinerListByBlockHash(pTemp->pprev->GetBlockHash(),miners)){
+
 
             if (messageSet.size() >= needConfirmCount){
                 uint32_t count =0;

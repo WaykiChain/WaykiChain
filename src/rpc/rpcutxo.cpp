@@ -227,13 +227,14 @@ Value submitpasswordprooftx(const Array& params, bool fHelp) {
     TxID prevUtxoTxid = uint256S(params[1].get_str()) ;
     uint16_t prevUtxoVoutIndex = params[2].get_int() ;
     string password = params[3].get_str() ;
-    CKeyID preUtxoTxUid = RPC_PARAM::GetKeyId(params[4]);
+    CUserID preUtxoTxUid = RPC_PARAM::GetUserId(params[4]);
+    CAccount preUtxoTxAccount = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, preUtxoTxUid);
     ComboMoney fee = RPC_PARAM::GetFee(params, 5 ,TxType::UTXO_PASSWORD_PROOF_TX) ;
     CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, txUid);
     RPC_PARAM::CheckAccountBalance(account, fee.symbol, SUB_FREE, fee.GetAmountInSawi());
 
     string text = strprintf("%s%s%s%s%d", password,
-                            preUtxoTxUid.ToString(), account.keyid.ToString(),
+                            preUtxoTxAccount.keyid.ToString(), account.keyid.ToString(),
                             prevUtxoTxid.ToString(), prevUtxoVoutIndex);
     uint256 passwordProof = Hash(text);
     int32_t validHeight  = chainActive.Height();

@@ -21,9 +21,9 @@ namespace SYMB {
     static const string WUSD        = "WUSD";
     static const string WCNY        = "WCNY";
 
-    static const string WBTC        = "WBTC";
-    static const string WETH        = "WETH";
-    static const string WEOS        = "WEOS";
+    static const string XBTC        = "XBTC";
+    static const string XETH        = "XETH";
+    static const string XEOS        = "XEOS";
 
     static const string USD         = "USD";
     static const string CNY         = "CNY";
@@ -37,9 +37,9 @@ namespace SYMB {
     static const string ETH_USDT    = "ETH_USDT";   //ERC20 USDT
     static const string ETH_DAI     = "ETH_DAI";    //ERC20 DAI
 
-    static const string WBTC_USDT   = "WBTC_USDT";   //BTC USDT mirrored
-    static const string WETH_USDT   = "WETH_USDT";   //ERC20 USDT mirrored
-    static const string WETH_DAI    = "WETH_DAI";    //ERC20 DAI mirrored
+    static const string XBTC_USDT   = "XBTC_USDT";   //BTC USDT mirrored
+    static const string XETH_USDT   = "XETH_USDT";   //ERC20 USDT mirrored
+    static const string XETH_DAI    = "XETH_DAI";    //ERC20 DAI mirrored
 
     static const string GOLD        = "GOLD";
     static const string KWH         = "KWH";
@@ -106,14 +106,14 @@ static const unordered_set<string> kCdpScoinSymbolSet = {
 
 //can be expanded thru DeGov
 static const unordered_map<TokenSymbol, std::pair<TokenSymbol,ChainType>> kXChainSwapInTokenMap =  {
-    { SYMB::BTC,        make_pair(SYMB::WBTC, ChainType ::BITCOIN)          },
-    { SYMB::ETH,        make_pair(SYMB::WETH, ChainType ::ETHEREUM)         },
-    { SYMB::ETH_USDT,   make_pair(SYMB::WETH_USDT, ChainType ::ETHEREUM)    },
+    { SYMB::BTC,        make_pair(SYMB::XBTC, ChainType ::BITCOIN)          },
+    { SYMB::ETH,        make_pair(SYMB::XETH, ChainType ::ETHEREUM)         },
+    { SYMB::ETH_USDT,   make_pair(SYMB::XETH_USDT, ChainType ::ETHEREUM)    },
 };
 static const unordered_map<TokenSymbol, std::pair<TokenSymbol,ChainType>> kXChainSwapOutTokenMap =  {
-    { SYMB::WBTC,       make_pair(SYMB::BTC, ChainType ::BITCOIN)             },
-    { SYMB::WETH,       make_pair(SYMB::ETH, ChainType ::ETHEREUM)            },
-    { SYMB::WETH_USDT,  make_pair(SYMB::ETH_USDT, ChainType ::ETHEREUM)       },
+    { SYMB::XBTC,       make_pair(SYMB::BTC, ChainType ::BITCOIN)             },
+    { SYMB::XETH,       make_pair(SYMB::ETH, ChainType ::ETHEREUM)            },
+    { SYMB::XETH_USDT,  make_pair(SYMB::ETH_USDT, ChainType ::ETHEREUM)       },
 };
 
 struct CoinUnitTypeHash {
@@ -258,6 +258,7 @@ static const uint32_t CONTRACT_CALL_RESERVED_FEES_RATIO = 10;  // boosted by 10^
 static const string EMPTY_STRING = "";
 
 static const uint8_t BP_MAX_COUNT = 255;    //max number of allowed BPs
+static const uint64_t BPSSIZE_EFFECTIVE_AFTER_BLOCK_COUNT = 50;
 
 ////////////////////////////////////////////////////////////////////////////////
 // delegate

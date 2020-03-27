@@ -48,7 +48,7 @@ bool CDelegateDBCache::GetTopVoteDelegates(uint32_t delegateNum, uint64_t delega
         return ERRORMSG("[WARNING] %s, topVoteDelegates is empty! dest_delegate_num=%d\n",
                     __func__, delegateNum);
     if (topVoteDelegates.size() != delegateNum) {
-        LogPrint(BCLog::INFO, "[WARNING] %s, the top delegates size=%d is less than"
+        LogPrint(BCLog::INFO, "[WARNING] %s, the top delegates size=%d is less than %d"
                     " specified_delegate_num=%d\n",
                     __func__, topVoteDelegates.size(), BP_DELEGATE_VOTE_MIN, delegateNum);
     }
