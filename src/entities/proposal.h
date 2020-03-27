@@ -130,7 +130,7 @@ struct CGovSysParamProposal: CProposal {
 
 
 struct CGovBpMcListProposal: CProposal{
-    CRegID governor_regid ;
+    CRegID gov_bp_regid ;
     ProposalOperateType op_type  = ProposalOperateType::NULL_PROPOSAL_OP;
 
     CGovBpMcListProposal(): CProposal(ProposalType::GOV_BPMC_LIST){}
@@ -139,21 +139,21 @@ struct CGovBpMcListProposal: CProposal{
         READWRITE(VARINT(expiry_block_height));
         READWRITE(approval_min_count);
 
-        READWRITE(governor_regid);
+        READWRITE(gov_bp_regid);
         READWRITE((uint8_t&)op_type);
     );
 
     Object ToJson() override {
         Object o = CProposal::ToJson();
-        o.push_back(Pair("governor_regid",governor_regid.ToString())) ;
+        o.push_back(Pair("gov_bp_regid",gov_bp_regid.ToString())) ;
         o.push_back(Pair("operate_type", op_type));
         return o ;
     }
 
     std::string ToString() override {
         std::string baseString = CProposal::ToString() ;
-        return strprintf("%s, governor_regid=%s, operate_type=%d", baseString,
-                governor_regid.ToString(),op_type) ;
+        return strprintf("%s, gov_bp_regid=%s, operate_type=%d", baseString,
+                gov_bp_regid.ToString(),op_type) ;
 
     }
     shared_ptr<CProposal> GetNewInstance() override { return make_shared<CGovBpMcListProposal>(*this); }

@@ -253,7 +253,7 @@ Value submitgovernorupdateproposal(const Array& params , bool fHelp) {
     RPC_PARAM::CheckAccountBalance(account, fee.symbol, SUB_FREE, fee.GetAmountInSawi());
 
     CGovBpMcListProposal proposal;
-    proposal.governor_regid = governorId.get<CRegID>();
+    proposal.gov_bp_regid = governorId.get<CRegID>();
     proposal.op_type = ProposalOperateType(operateType);
 
     CProposalRequestTx tx;
