@@ -17,61 +17,6 @@
 extern bool CheckIsGovernor(CRegID account, ProposalType proposalType, CCacheWrapper& cw );
 extern uint8_t GetGovernorApprovalMinCount(ProposalType proposalType, CCacheWrapper& cw );
 
-
-bool CGovAxcCoinProposal::CheckProposal(CTxExecuteContext& context ) {
-    IMPLEMENT_DEFINE_CW_STATE;
-
-    if (op_type != ProposalOperateType::ENABLE && op_type != ProposalOperateType::DISABLE)
-        return state.DoS(100, ERRORMSG("CGovAxcCoinProposal::CheckProposal, op_type is not 0 or 1"), REJECT_INVALID,
-                         "op_type-error");
-
-    bool hasCoinPair = cw.axcCache.HasAxcCoinPairByPeerSymbol(peer_chain_coin_symbol);
-    if(op_type == ProposalOperateType::ENABLE && hasCoinPair)
-        return state.DoS(100, ERRORMSG("CGovAxcCoinProposal::CheckProposal, the peer coin symbol is exist"), REJECT_INVALID,
-                         "coin-exist");
-
-    if(op_type == ProposalOperateType::DISABLE && !hasCoinPair)
-        return state.DoS(100, ERRORMSG("CGovAxcCoinProposal::CheckProposal, the peer coin symbol is not exist"), REJECT_INVALID,
-                         "coin-not-exist");
-
-    switch (peer_chain_type) {
-        case ChainType ::BITCOIN:
-        case ChainType ::EOS:
-        case ChainType ::ETHEREUM:
-            break;
-        default:
-            return state.DoS(100, ERRORMSG("CGovAxcCoinProposal::CheckProposal, chain type is not eos, btc, ethereum"), REJECT_INVALID,
-                             "chain_type-error");
-    }
-
-    if(kXChainSwapInTokenMap.find(peer_chain_coin_symbol) != kXChainSwapInTokenMap.end())
-        return state.DoS(100, ERRORMSG("CGovAxcCoinProposal::CheckProposal,default pair can't be governed"), REJECT_INVALID,
-                         "default-coin-error");
-
-    if (peer_chain_coin_symbol.size() >= 6)
-        return state.DoS(100, ERRORMSG("CGovAxcCoinProposal::CheckProposal, peer_chain_coin_symbol size is too long"), REJECT_INVALID,
-                         "peer_coin_symbol-error");
-
-    return true;
-}
-bool  CGovAxcCoinProposal::ExecuteProposal(CTxExecuteContext& context, const TxID& proposalId) {
-    IMPLEMENT_DEFINE_CW_STATE
-
-    if(op_type == ProposalOperateType::DISABLE) {
-        if(!cw.axcCache.EraseAxcSwapPair(peer_chain_coin_symbol)){
-            return state.DoS(100, ERRORMSG("CGovAxcCoinProposal::ExecuteProposal, write db error"), REJECT_INVALID,
-                                      "db-error");
-        }
-    } else if(op_type == ProposalOperateType::ENABLE){
-        if(!cw.axcCache.AddAxcSwapPair(peer_chain_coin_symbol, TokenSymbol(strprintf("%s%s", "XW", peer_chain_coin_symbol)), peer_chain_type)){
-            return state.DoS(100, ERRORMSG("CGovAxcCoinProposal::ExecuteProposal, write db error"), REJECT_INVALID,
-                             "db-error");
-        }
-    }
-
-    return true;
-}
-
 bool CGovSysParamProposal::CheckProposal(CTxExecuteContext& context ) {
      CValidationState &state = *context.pState;
 
@@ -394,10 +339,10 @@ bool CGovDexOpProposal::CheckProposal(CTxExecuteContext& context ) {
     if (dexid == 0)
         return state.DoS(100,ERRORMSG("the No.0 dex operator can't be disable"),
                 REJECT_INVALID, "operator0-can't-disable");
-    if (operate_type != ProposalOperateType::ENABLE && operate_type != ProposalOperateType::DISABLE){
+
+    if (operate_type != ProposalOperateType::ENABLE && operate_type != ProposalOperateType::DISABLE)
         return state.DoS(100, ERRORMSG("CProposalRequestTx::CheckTx, operate type error!"), REJECT_INVALID,
                          "operate-type-error");
-    }
 
     DexOperatorDetail dexOperator;
     if (!cw.dexCache.GetDexOperator(dexid, dexOperator))
@@ -405,10 +350,9 @@ bool CGovDexOpProposal::CheckProposal(CTxExecuteContext& context ) {
                          "dexoperator-not-exist");
 
     if ((dexOperator.activated && operate_type == ProposalOperateType::ENABLE)||
-        (!dexOperator.activated && operate_type == ProposalOperateType::DISABLE)){
+        (!dexOperator.activated && operate_type == ProposalOperateType::DISABLE))
         return state.DoS(100, ERRORMSG("CProposalRequestTx::CheckTx, dexoperator(%d) is activated or not activated already !", dexid), REJECT_INVALID,
                          "need-not-update");
-    }
 
     return true;
 }
@@ -422,10 +366,9 @@ bool CGovDexOpProposal::ExecuteProposal(CTxExecuteContext& context, const TxID& 
                          "dexoperator-not-exist");
 
     if ((dexOperator.activated && operate_type == ProposalOperateType::ENABLE)||
-       (!dexOperator.activated && operate_type == ProposalOperateType::DISABLE)){
+       (!dexOperator.activated && operate_type == ProposalOperateType::DISABLE))
         return state.DoS(100, ERRORMSG("CProposalRequestTx::CheckTx, dexoperator(%d) is activated or not activated already !", dexid), REJECT_INVALID,
                          "need-not-update");
-    }
 
     DexOperatorDetail newOperator = dexOperator;
     newOperator.activated = (operate_type == ProposalOperateType::ENABLE);
@@ -473,6 +416,7 @@ bool CGovFeedCoinPairProposal::CheckProposal(CTxExecuteContext& context ) {
                                        "is not a dex quote coin symbol ",base_symbol, quote_symbol),
                          REJECT_INVALID, "symbol-not-exist");
     }
+
     return true;
 }
 
@@ -623,6 +567,60 @@ bool CGovAxcOutProposal::ExecuteProposal(CTxExecuteContext& context, const TxID&
     if (!cw.accountCache.SetAccount(self_chain_uid, acct))
         return state.DoS(100, ERRORMSG("CGovAxcInProposal::ExecuteProposal, write account failed"), REJECT_INVALID,
                          "bad-writeaccount");
+
+    return true;
+}
+
+bool CGovAxcCoinProposal::CheckProposal(CTxExecuteContext& context ) {
+    IMPLEMENT_DEFINE_CW_STATE;
+
+    if (op_type != ProposalOperateType::ENABLE && op_type != ProposalOperateType::DISABLE)
+        return state.DoS(100, ERRORMSG("CGovAxcCoinProposal::CheckProposal, op_type is not 0 or 1"), REJECT_INVALID,
+                         "op_type-error");
+
+    bool hasCoinPair = cw.axcCache.HasAxcCoinPairByPeerSymbol(peer_chain_coin_symbol);
+    if(op_type == ProposalOperateType::ENABLE && hasCoinPair)
+        return state.DoS(100, ERRORMSG("CGovAxcCoinProposal::CheckProposal, the peer coin symbol is exist"), REJECT_INVALID,
+                         "coin-exist");
+
+    if(op_type == ProposalOperateType::DISABLE && !hasCoinPair)
+        return state.DoS(100, ERRORMSG("CGovAxcCoinProposal::CheckProposal, the peer coin symbol is not exist"), REJECT_INVALID,
+                         "coin-not-exist");
+
+    switch (peer_chain_type) {
+        case ChainType ::BITCOIN:
+        case ChainType ::EOS:
+        case ChainType ::ETHEREUM:
+            break;
+        default:
+            return state.DoS(100, ERRORMSG("CGovAxcCoinProposal::CheckProposal, chain type is not eos, btc, ethereum"), REJECT_INVALID,
+                             "chain_type-error");
+    }
+
+    if(kXChainSwapInTokenMap.find(peer_chain_coin_symbol) != kXChainSwapInTokenMap.end())
+        return state.DoS(100, ERRORMSG("CGovAxcCoinProposal::CheckProposal,default pair can't be governed"), REJECT_INVALID,
+                         "default-coin-error");
+
+    if (peer_chain_coin_symbol.size() >= 6)
+        return state.DoS(100, ERRORMSG("CGovAxcCoinProposal::CheckProposal, peer_chain_coin_symbol size is too long"), REJECT_INVALID,
+                         "peer_coin_symbol-error");
+
+    return true;
+}
+bool  CGovAxcCoinProposal::ExecuteProposal(CTxExecuteContext& context, const TxID& proposalId) {
+    IMPLEMENT_DEFINE_CW_STATE
+
+    if(op_type == ProposalOperateType::DISABLE) {
+        if(!cw.axcCache.EraseAxcSwapPair(peer_chain_coin_symbol)){
+            return state.DoS(100, ERRORMSG("CGovAxcCoinProposal::ExecuteProposal, write db error"), REJECT_INVALID,
+                                      "db-error");
+        }
+    } else if(op_type == ProposalOperateType::ENABLE){
+        if(!cw.axcCache.AddAxcSwapPair(peer_chain_coin_symbol, TokenSymbol(strprintf("%s%s", "XW", peer_chain_coin_symbol)), peer_chain_type)){
+            return state.DoS(100, ERRORMSG("CGovAxcCoinProposal::ExecuteProposal, write db error"), REJECT_INVALID,
+                             "db-error");
+        }
+    }
 
     return true;
 }
