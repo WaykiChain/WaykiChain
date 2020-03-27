@@ -503,7 +503,7 @@ Value gendexoperatorordertx(const Array& params, bool fHelp) {
     EnsureWalletIsUnlocked();
     int32_t validHeight = chainActive.Height();
     FeatureForkVersionEnum version = GetFeatureForkVersion(validHeight);
-    const TxType txType = version  < MAJOR_VER_R3 ? DEX_MARKET_SELL_ORDER_TX : DEX_ORDER_TX;
+    const TxType txType = DEX_OPERATOR_ORDER_TX;
 
     const CUserID &userId               = RPC_PARAM::GetUserId(params[0], true);
     OrderType orderType                 = RPC_PARAM::GetOrderType(params[1]);
