@@ -399,7 +399,8 @@ Value submitsendmultitx(const Array& params, bool fHelp) {
         transfers.push_back(trx);
 
         //check only && no persistence!
-        if (!account.OperateBalance(amount.symbol, SUB_FREE, amount.GetAmountInSawi(), ReceiptCode::NULL_CODE, ReceiptList()))
+        ReceiptList receipts;
+        if (!account.OperateBalance(amount.symbol, SUB_FREE, amount.GetAmountInSawi(), ReceiptCode::NULL_CODE, receipts))
             throw JSONRPCError(REJECT_INVALID, strprintf("Insufficient coins: %llu", amount.GetAmountInSawi()));
     }
 
