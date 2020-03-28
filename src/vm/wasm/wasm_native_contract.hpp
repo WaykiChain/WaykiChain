@@ -13,7 +13,7 @@ namespace wasm {
     using set_code_data_type = std::tuple<uint64_t, string, string, string>;
 
     void wasmio_native_setcode( wasm_context & );
-    void wasmio_bank_native_transfer( wasm_context &, ReceiptList & );
+    void wasmio_bank_native_transfer( wasm_context &);
 
     // inline bool is_native_contract(uint64_t contract){
     //     if(contract == wasmio ||

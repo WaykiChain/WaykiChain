@@ -59,7 +59,7 @@ namespace wasm {
                       wasm::name(contract_name).to_string())
     }
     
-    void wasmio_bank_native_transfer(wasm_context &context, ReceiptList &txReceipts) {
+    void wasmio_bank_native_transfer(wasm_context &context) {
 
         CHAIN_ASSERT( context._receiver == wasmio_bank,
                       wasm_chain::native_contract_assert_exception, 
@@ -88,14 +88,14 @@ namespace wasm {
                       wasm_chain::native_contract_assert_exception,
                       "from account '%s' does not exist",
                       wasm::name(from).to_string())
-        sub_balance( from_account, quantity, database, txReceipts );
+        sub_balance( from_account, quantity, database, context.control_trx.receipts );
 
         CAccount to_account;
         CHAIN_ASSERT( database.GetAccount(CNickID(to), to_account),
                       wasm_chain::native_contract_assert_exception,
                       "to account '%s' does not exist",
                       wasm::name(to).to_string())
-        add_balance( to_account, quantity, database, txReceipts );
+        add_balance( to_account, quantity, database, context.control_trx.receipts   );
 
         context.require_recipient(from);
         context.require_recipient(to);
