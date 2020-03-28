@@ -492,7 +492,7 @@ bool CAccount::ProcessCandidateVotes(const vector<CCandidateVote> &candidateVote
 
         if (fcoinAmountToInflate > 0) {
             if (!OperateBalance(SYMB::WGRT, BalanceOpType::ADD_FREE, fcoinAmountToInflate, 
-                                 ReceiptCode::DELEGATE_VOTE_INTERES, receipts)) {
+                                 ReceiptCode::DELEGATE_VOTE_INTEREST, receipts)) {
                 return ERRORMSG("ProcessCandidateVotes() : add fcoins to inflate failed");
             }
         }
