@@ -800,7 +800,6 @@ static bool FindUndoPos(CValidationState &state, int32_t nFile, CDiskBlockPos &p
 
 static bool ProcessGenesisBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValidationState &state) {
 
-    ReceiptList receipts;
     cw.blockCache.SetBestBlock(pIndex->GetBlockHash());
     for (uint32_t i = 1; i < block.vptx.size(); i++) {
         if (block.vptx[i]->nTxType == BLOCK_REWARD_TX) {
@@ -816,10 +815,16 @@ static bool ProcessGenesisBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *p
             account.regid        = regId;
 
             account.OperateBalance(SYMB::WICC, BalanceOpType::ADD_FREE, pRewardTx->reward_fees, 
-                                   ReceiptCode::BLOCK_REWARD_TO_MINER, receipts);
+                                   ReceiptCode::BLOCK_REWARD_TO_MINER, pRewardTx->receipts);
+
+
+            if (!cw.txReceiptCache.SetTxReceipts(pRewardTx->GetHash(), pRewardTx->receipts))
+                return state.DoS(100, ERRORMSG("ConnectBlock() ::ProcessGenesisBlock, set genesis block receipts failed!"),
+                                 REJECT_INVALID, "set-tx-receipt-failed");
 
             assert( cw.accountCache.SaveAccount(account) );
         } else if (block.vptx[i]->nTxType == DELEGATE_VOTE_TX) {
+
             CDelegateVoteTx *pDelegateTx = (CDelegateVoteTx *)block.vptx[i].get();
             assert(pDelegateTx->txUid.is<CRegID>());  // Vote Tx must use RegId
 
@@ -867,7 +872,11 @@ static bool ProcessGenesisBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *p
             assert( voterAcct.GetToken(SYMB::WICC).free_amount >= maxVotes );
 
             voterAcct.OperateBalance(SYMB::WICC, BalanceOpType::VOTE, maxVotes, 
-                                    ReceiptCode::DELEGATE_ADD_VOTE, receipts);
+                                    ReceiptCode::DELEGATE_ADD_VOTE, pDelegateTx->receipts);
+
+            if (!cw.txReceiptCache.SetTxReceipts(pDelegateTx->GetHash(), pDelegateTx->receipts))
+                return state.DoS(100, ERRORMSG("ConnectBlock() ::ProcessGenesisBlock, set genesis block receipts failed!"),
+                                 REJECT_INVALID, "set-tx-receipt-failed");
 
             cw.accountCache.SaveAccount(voterAcct);
             assert( cw.delegateCache.SetCandidateVotes(pDelegateTx->txUid.get<CRegID>(), candidateVotes) );
@@ -886,9 +895,6 @@ static bool ProcessGenesisBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *p
             REJECT_INVALID, "process-block-delegates-failed");
     }
 
-    if (!cw.txReceiptCache.SetTxReceipts(TxID(), receipts))
-        return state.DoS(100, ERRORMSG("ConnectBlock() ::ProcessGenesisBlock, set genesis block receipts failed!"), 
-                        REJECT_INVALID, "set-tx-receipt-failed");
 
     return true;
 }
