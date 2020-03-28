@@ -46,7 +46,7 @@ static bool GetFuelLimit(CBaseTx &tx, CTxExecuteContext &context, uint64_t &fuel
 
 bool CLuaContractDeployTx::CheckTx(CTxExecuteContext &context) {
     IMPLEMENT_DEFINE_CW_STATE;
-    
+
     if (!contract.IsValid())
         return state.DoS(100, ERRORMSG("CLuaContractDeployTx::CheckTx, contract is invalid"),
                          REJECT_INVALID, "vmscript-invalid");
@@ -82,22 +82,6 @@ bool CLuaContractDeployTx::CheckTx(CTxExecuteContext &context) {
 bool CLuaContractDeployTx::ExecuteTx(CTxExecuteContext &context) {
     CCacheWrapper &cw       = *context.pCw;
     CValidationState &state = *context.pState;
-
-    CAccount account;
-    if (!cw.accountCache.GetAccount(txUid, account)) {
-        return state.DoS(100, ERRORMSG("CLuaContractDeployTx::ExecuteTx, read regist addr %s account info error", txUid.ToString()),
-                         UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
-    }
-
-    CAccount accountLog(account);
-    if (!account.OperateBalance(SYMB::WICC, BalanceOpType::SUB_FREE, llFees)) {
-            return state.DoS(100, ERRORMSG("CLuaContractDeployTx::ExecuteTx, operate account failed ,regId=%s",
-                            txUid.ToString()), UPDATE_ACCOUNT_FAIL, "operate-account-failed");
-    }
-
-    if (!cw.accountCache.SetAccount(CUserID(account.keyid), account))
-        return state.DoS(100, ERRORMSG("CLuaContractDeployTx::ExecuteTx, save account info error"), UPDATE_ACCOUNT_FAIL,
-                         "bad-save-accountdb");
 
     // create script account
     CAccount contractAccount;
@@ -180,34 +164,16 @@ bool CLuaContractInvokeTx::ExecuteTx(CTxExecuteContext &context) {
     if (!GetFuelLimit(*this, context, fuelLimit))
         return false;
 
-    CAccount srcAccount;
-    if (!cw.accountCache.GetAccount(txUid, srcAccount)) {
-        return state.DoS(100, ERRORMSG("CLuaContractInvokeTx::ExecuteTx, read source addr account info error"),
-                         READ_ACCOUNT_FAIL, "bad-read-accountdb");
-    }
-
-    if (!GenerateRegID(context, srcAccount)) {
-        return false;
-    }
-
-    if (!srcAccount.OperateBalance(SYMB::WICC, BalanceOpType::SUB_FREE, llFees + coin_amount))
-        return state.DoS(100, ERRORMSG("CLuaContractInvokeTx::ExecuteTx, accounts hash insufficient funds"),
-                         UPDATE_ACCOUNT_FAIL, "operate-minus-account-failed");
-
-    if (!cw.accountCache.SetAccount(CUserID(srcAccount.keyid), srcAccount))
-        return state.DoS(100, ERRORMSG("CLuaContractInvokeTx::ExecuteTx, save account info error"),
-                         WRITE_ACCOUNT_FAIL, "bad-write-accountdb");
-
     CAccount desAccount;
     if (!cw.accountCache.GetAccount(app_uid, desAccount)) {
         return state.DoS(100, ERRORMSG("CLuaContractInvokeTx::ExecuteTx, get account info failed by regid:%s",
                         app_uid.get<CRegID>().ToString()), READ_ACCOUNT_FAIL, "bad-read-accountdb");
     }
 
-    if (!desAccount.OperateBalance(SYMB::WICC, BalanceOpType::ADD_FREE, coin_amount)) {
-        return state.DoS(100, ERRORMSG("CLuaContractInvokeTx::ExecuteTx, operate accounts error"),
-                        UPDATE_ACCOUNT_FAIL, "operate-add-account-failed");
-    }
+    if (!srcAccount.OperateBalance(SYMB::WICC, BalanceOpType::SUB_FREE, coin_amount,
+                                ReceiptCode::LUAVM_TRANSFER_ACTUAL_COINS, receipts, &desAccount))
+        return state.DoS(100, ERRORMSG("CLuaContractInvokeTx::ExecuteTx, accounts hash insufficient funds"),
+                         UPDATE_ACCOUNT_FAIL, "operate-minus-account-failed");
 
     if (!cw.accountCache.SetAccount(app_uid, desAccount))
         return state.DoS(100, ERRORMSG("CLuaContractInvokeTx::ExecuteTx, save account error, kyeId=%s",
@@ -277,7 +243,7 @@ Object CLuaContractInvokeTx::ToJson(const CAccountDBCache &accountCache) const {
 
 bool CUniversalContractDeployTx::CheckTx(CTxExecuteContext &context) {
     IMPLEMENT_DEFINE_CW_STATE;
-    
+
     if (contract.vm_type != VMType::LUA_VM)
         return state.DoS(100, ERRORMSG("CUniversalContractDeployTx::CheckTx, support LuaVM only"), REJECT_INVALID,
                          "vm-type-error");
@@ -416,7 +382,7 @@ Object CUniversalContractDeployTx::ToJson(const CAccountDBCache &accountCache) c
 
 bool CUniversalContractInvokeTx::CheckTx(CTxExecuteContext &context) {
     IMPLEMENT_DEFINE_CW_STATE;
-    
+
     IMPLEMENT_CHECK_TX_ARGUMENTS;
     IMPLEMENT_CHECK_TX_APPID(app_uid);
 
@@ -427,7 +393,7 @@ bool CUniversalContractInvokeTx::CheckTx(CTxExecuteContext &context) {
     if (!cw.assetCache.CheckAsset(coin_symbol))
         return state.DoS(100, ERRORMSG("CUniversalContractInvokeTx::CheckTx, invalid coin_symbol=%s", coin_symbol),
                         REJECT_INVALID, "invalid-coin-symbol");
-    
+
     CUniversalContract contract;
     if (!cw.contractCache.GetContract(app_uid.get<CRegID>(), contract))
         return state.DoS(100, ERRORMSG("CUniversalContractInvokeTx::CheckTx, read script failed, regId=%s",

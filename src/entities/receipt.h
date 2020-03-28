@@ -27,9 +27,10 @@ static CUserID nullId;
     /**** transfer */ \
     DEFINE(TRANSFER_FEE_TO_RESERVE,             201, "transferred fee to risk reserve") \
     DEFINE(TRANSFER_ACTUAL_COINS,               202, "common account to transfer coins") \
-    DEFINE(WASM_TRANSFER_ACTUAL_COINS,          203, "WASM contract to transfer coins") \
-    DEFINE(TRANSFER_UTXO_COINS,                 204, "transferred utxo coins") \
-    DEFINE(TRANSFER_PROPOSAL,                   205, "transfered coins in proposal") \
+    DEFINE(LUAVM_TRANSFER_ACTUAL_COINS,         203, "Lua contract to transfer coins") \
+    DEFINE(WASM_TRANSFER_ACTUAL_COINS,          204, "WASM contract to transfer coins") \
+    DEFINE(TRANSFER_UTXO_COINS,                 205, "transferred utxo coins") \
+    DEFINE(TRANSFER_PROPOSAL,                   206, "transfered coins in proposal") \
     /**** delegate */ \
     DEFINE(DELEGATE_ADD_VOTE,                   301, "delegate add votes") \
     DEFINE(DELEGATE_SUB_VOTE,                   302, "delegate sub votes") \
