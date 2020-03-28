@@ -315,8 +315,9 @@ bool CWasmContractTx::ExecuteTx(CTxExecuteContext &context) {
                       "Tx execution time must be in '%d' microseconds, but get '%d' microseconds",
                       max_transaction_duration * 1000, trx_trace.elapsed.count())                
 
-        //check storage usage with the limited fuel
-        run_cost                = run_cost + recipients_size * notice_fuel_fee_per_recipient;
+        //bytes add margin
+        run_cost      = run_cost + recipients_size * notice_fuel_fee_per_recipient;
+
         auto min_fee  = get_min_fee_in_wicc(*this, context) ;
         auto run_fee  = get_run_fee_in_wicc(run_cost, *this, context);
 
@@ -326,8 +327,8 @@ bool CWasmContractTx::ExecuteTx(CTxExecuteContext &context) {
                       "tx.llFees '%ld' is not enough to charge minimum tx execute fee '%ld' , fuel_rate:%ld", 
                       llFees, minimum_tx_execute_fee, context.fuel_rate);
 
-        trx_trace.fuel_rate = context.fuel_rate;
-        trx_trace.run_cost  = run_cost;  
+        trx_trace.fuel_rate               = context.fuel_rate;
+        trx_trace.minimum_tx_execute_fee  = minimum_tx_execute_fee;  
 
         //save trx trace
         std::vector<char> trace_bytes = wasm::pack<transaction_trace>(trx_trace);

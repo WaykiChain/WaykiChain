@@ -29,10 +29,10 @@ namespace wasm {
         uint256                   trx_id;
         std::chrono::microseconds elapsed;
         uint64_t                  fuel_rate;
-        uint64_t                  run_cost;
+        uint64_t                  minimum_tx_execute_fee;
         vector <inline_transaction_trace> traces;
 
-        WASM_REFLECT( transaction_trace, (trx_id)(elapsed)(fuel_rate)(run_cost)(traces) )
+        WASM_REFLECT( transaction_trace, (trx_id)(elapsed)(fuel_rate)(minimum_tx_execute_fee)(traces) )
     };
 
    /**

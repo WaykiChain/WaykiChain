@@ -26,10 +26,10 @@ namespace wasm {
     const static uint64_t wasmio_bank  = N(wasmio.bank);
     const static uint64_t wasmio_code  = N(wasmio.code);
     const static uint64_t wasmio_owner = N(wasmio.owner);
+    const static uint64_t wayki        = N(wayki);
 
     const static uint64_t store_fuel_fee_per_byte       = 10;
     const static uint64_t notice_fuel_fee_per_recipient = 10000;
-
 
     namespace wasm_constraints {
         constexpr unsigned maximum_linear_memory      = 33*1024*1024;//bytes
