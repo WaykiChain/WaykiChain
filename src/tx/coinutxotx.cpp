@@ -515,22 +515,11 @@ bool CCoinUtxoPasswordProofTx::ExecuteTx(CTxExecuteContext &context) {
 
     IMPLEMENT_DEFINE_CW_STATE
 
-    CAccount srcAccount;
-    if (!cw.accountCache.GetAccount(txUid, srcAccount))
-        return state.DoS(100, ERRORMSG("CCoinUtxoTransferTx::ExecuteTx, read txUid %s account info error",
-                        txUid.ToString()), READ_ACCOUNT_FAIL, "bad-read-accountdb");
-
-    if (!GenerateRegID(context, srcAccount))
-        return false;
-
-    if (!srcAccount.OperateBalance(fee_symbol, BalanceOpType::SUB_FREE, llFees))
-        return state.DoS(100, ERRORMSG("CCoinUtxoPasswordProofTx::ExecuteTx, deduct fees from regId=%s failed,",
-                                       txUid.ToString()), UPDATE_ACCOUNT_FAIL, "deduct-account-fee-failed");
-    if (!cw.accountCache.SetAccount(txUid, srcAccount))
+    if (!cw.accountCache.SetAccount(txUid, txAccount))
         return state.DoS(100, ERRORMSG("%s(), save tx account info failed! txuid=%s",
                                        __func__, txUid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-write-accountdb");
 
-    CRegIDKey regIdKey(srcAccount.regid);
+    CRegIDKey regIdKey(txAccount.regid);
     if (!cw.txUtxoCache.SetUtxoPasswordProof(std::make_tuple(utxo_txid, CFixedUInt16(utxo_vout_index), regIdKey), password_proof))
         return state.DoS(100, ERRORMSG("CCoinUtxoTransferTx::ExecuteTx, bad saving utxo proof",
                         txUid.ToString()), READ_ACCOUNT_FAIL, "bad-save-utxo-passwordproof");

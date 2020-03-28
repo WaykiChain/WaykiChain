@@ -281,7 +281,7 @@ bool CLuaVMRunEnv::OperateAccount(const vector<CVmOperate>& operates) {
                  pAccount->ToString());
 
         ReceiptCode code = (operate.opType == BalanceOpType::ADD_FREE) ? ReceiptCode::CONTRACT_ACCOUNT_OPERATE_ADD :
-                            ReceiptCode::CONTRACT_ACCOUNT_OPERATE_SUB);
+                            ReceiptCode::CONTRACT_ACCOUNT_OPERATE_SUB;
 
         if (!pAccount->OperateBalance(SYMB::WICC, operate.opType, value, code, receipts)) {
             LogPrint(BCLog::LUAVM, "[ERR]CLuaVMRunEnv::OperateAccount(), operate account failed! uid=%s, operate=%s\n",
@@ -341,7 +341,7 @@ bool CLuaVMRunEnv::TransferAccountAsset(lua_State *L, const vector<AssetTransfer
 
         uint64_t fromAcctBalance;
         if (!pFromAccount->OperateBalance(transfer.tokenType, SUB_FREE, transfer.tokenAmount,
-                                        ReceiptCode::CONTRACT_ACCOUNT_TRANSFER_ASSET, receipts, pToAccount) ||
+                                        ReceiptCode::CONTRACT_ACCOUNT_TRANSFER_ASSET, receipts, pToAccount.get()) ||
             !pFromAccount->GetBalance(transfer.tokenType, BalanceType::FREE_VALUE, fromAcctBalance)) {
             LogPrint(BCLog::LUAVM, "[ERR]CLuaVMRunEnv::TransferAccountAsset(), operate SUB_FREE in from_account failed! "
                 "from_uid=%s, isContractAccount=%d, symbol=%s, amount=%llu, account_amount=%llu\n",
