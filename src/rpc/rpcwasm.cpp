@@ -192,11 +192,11 @@ Value submitwasmcontractdeploytx( const Array &params, bool fHelp ) {
             tx.inline_transactions.push_back({wasmio, wasm::N(setcode), std::vector<permission>{{authorizer_name.value, wasmio_owner}},
                                              wasm::pack(std::tuple(contract.value, code, abi, ""))});
 
-            tx.signatures.push_back({authorizer_name.value, vector<uint8_t>()});
+            //tx.signatures.push_back({authorizer_name.value, vector<uint8_t>()});
             CHAIN_ASSERT( wallet->Sign(authorizer.keyid, tx.GetHash(), tx.signature),
                           wasm_chain::wallet_sign_exception, "wallet sign error")
 
-            tx.set_signature({authorizer_name.value, tx.signature});
+            //tx.set_signature({authorizer_name.value, tx.signature});
         }
 
         string retMsg;
@@ -278,10 +278,10 @@ Value submitwasmcontractcalltx( const Array &params, bool fHelp ) {
             //for(int i = 0; i < 300 ; i++)
             tx.inline_transactions.push_back({contract_name.value, action.value, std::vector<permission>{{authorizer_name.value, wasmio_owner}}, action_data});
 
-            tx.signatures.push_back({authorizer_name.value, vector<uint8_t>()});
+            //tx.signatures.push_back({authorizer_name.value, vector<uint8_t>()});
             CHAIN_ASSERT( wallet->Sign(authorizer.keyid, tx.GetHash(), tx.signature),
                           wasm_chain::wallet_sign_exception, "wallet sign error")
-            tx.set_signature({authorizer_name.value, tx.signature});
+            //tx.set_signature({authorizer_name.value, tx.signature});
         }
 
         string retMsg;
