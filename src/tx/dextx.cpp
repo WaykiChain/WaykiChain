@@ -1097,11 +1097,6 @@ namespace dex {
                             READ_ACCOUNT_FAIL, "bad-read-accountdb");
         }
 
-        if (!pTxAccount->OperateBalance(fee_symbol, SUB_FREE, llFees)) {
-            return state.DoS(100, ERRORMSG("%s, account has insufficient funds", TX_ERR_TITLE),
-                            UPDATE_ACCOUNT_FAIL, "operate-minus-account-failed");
-        }
-
         map<CRegID, shared_ptr<CAccount>> accountMap = {
             {pTxAccount->regid, pTxAccount}
         };
@@ -1123,9 +1118,6 @@ namespace dex {
                     WRITE_ACCOUNT_FAIL, "bad-write-accountdb");
         }
 
-        if(!cw.txReceiptCache.SetTxReceipts(GetHash(), receipts))
-            return state.DoS(100, ERRORMSG("%s, set tx receipts failed!! txid=%s", TX_ERR_TITLE,
-                            GetHash().ToString()), REJECT_INVALID, "set-tx-receipt-failed");
         return true;
     }
 
