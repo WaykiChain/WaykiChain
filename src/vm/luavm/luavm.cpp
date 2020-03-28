@@ -9,6 +9,7 @@
 #include <assert.h>
 #include <stdio.h>
 #include <string.h>
+#include <cstdarg>
 
 #include <openssl/des.h>
 #include <vector>
@@ -239,6 +240,19 @@ static std::string GetLuaError(lua_State *L, int status, std::string prefix) {
     return ret;
 }
 
+#ifdef TRACE_LUA_VM_BURN
+
+void TraceVmBurning(lua_State *L, const char* caption, const char* format, ...) {
+    char* pStr = new char[2048];
+    va_list ap;
+    va_start(ap, format);
+    vsprintf(pStr, format, ap);
+    va_end(ap);
+    LogPrint(BCLog::LUAVM, "%s(), %s, %s", __func__, caption, pStr);
+    delete[] pStr;
+}
+#endif//TRACE_LUA_VM_BURN
+
 tuple<uint64_t, string> CLuaVM::Run(uint64_t fuelLimit, CLuaVMRunEnv *pVmRunEnv) {
     if (NULL == pVmRunEnv) {
         return std::make_tuple(-1, string("pVmRunEnv == NULL"));
@@ -257,6 +271,10 @@ tuple<uint64_t, string> CLuaVM::Run(uint64_t fuelLimit, CLuaVMRunEnv *pVmRunEnv)
         LogPrint(BCLog::LUAVM, "CLuaVM::Run lua_StartBurner() failed\n");
         return std::make_tuple(-1, string("CLuaVM::Run lua_StartBurner() failed\n"));
     }
+
+#ifdef TRACE_LUA_VM_BURN
+    lua_SetBurnerTracer(lua_state, TraceVmBurning);
+#endif//TRACE_LUA_VM_BURN
 
     //打开需要的库
     vm_openlibs(lua_state);
