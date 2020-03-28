@@ -93,29 +93,27 @@ struct CUserCDP {
         READWRITE(scoin_symbol);
         READWRITE(VARINT(total_staked_bcoins));
         READWRITE(VARINT(total_owed_scoins));
-        // if (fRead) {
-        //     ComputeCollateralRatioBase(0);
-        // }
+        if (fRead) {
+            ComputeCollateralRatioBase();
+        }
     )
 
     string ToString() const;
 
     Object ToJson(uint64_t bcoinMedianPrice) const;
 
-    inline void ComputeCollateralRatioBase(uint64_t scoinsInterestToRepay) const {
-        uin64_t totalOwedScoins = total_owed_scoins + scoinsInterestToRepay;
-
-        if (total_staked_bcoins != 0 && totalOwedScoins == 0) {
+    inline void ComputeCollateralRatioBase() const {
+        if (total_staked_bcoins != 0 && total_owed_scoins == 0) {
             collateral_ratio_base = UINT64_MAX;  // big safe percent
-        } else if (total_staked_bcoins == 0 || totalOwedScoins == 0) {
+        } else if (total_staked_bcoins == 0 || total_owed_scoins == 0) {
             collateral_ratio_base = 0;
         } else {
-            collateral_ratio_base = double(total_staked_bcoins) / totalOwedScoins;
+            collateral_ratio_base = double(total_staked_bcoins) / total_owed_scoins;
         }
     }
 
-    uint64_t GetCollateralRatio(uint64_t bcoinPrice, uint64_t scoinsInterestToRepay) {
-        ComputeCollateralRatioBase(scoinsInterestToRepay);
+    uint64_t GetCollateralRatio(uint64_t bcoinPrice) {
+        ComputeCollateralRatioBase();
         if(collateral_ratio_base == UINT64_MAX)
             return UINT64_MAX;
 

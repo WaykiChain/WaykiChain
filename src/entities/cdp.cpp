@@ -28,30 +28,30 @@ Object CUserCDP::ToJson(uint64_t bcoinMedianPrice) const {
     return result;
 }
 
-void CUserCDP::Redeem(int32_t blockHeight, uint64_t bcoinsToRedeem, uint64_t scoinsToRepay, uint64_t scoinsIntrestToRepay) {
+void CUserCDP::Redeem(int32_t blockHeight, uint64_t bcoinsToRedeem, uint64_t scoinsToRepay) {
     assert(total_staked_bcoins >= bcoinsToRedeem);
     assert(total_owed_scoins >= scoinsToRepay);
     block_height = blockHeight;
     total_staked_bcoins -= bcoinsToRedeem;
     total_owed_scoins -= scoinsToRepay;
-    ComputeCollateralRatioBase(scoinsIntrestToRepay);
+    ComputeCollateralRatioBase();
 }
 
-void CUserCDP::AddStake(int32_t blockHeight, uint64_t bcoinsToStake, uint64_t mintedScoins, uint64_t scoinsIntrestToRepay) {
+void CUserCDP::AddStake(int32_t blockHeight, uint64_t bcoinsToStake, uint64_t mintedScoins) {
     assert(total_staked_bcoins + bcoinsToStake >= total_staked_bcoins);
     assert(total_owed_scoins + mintedScoins >= total_owed_scoins);
     block_height = blockHeight;
     total_staked_bcoins += bcoinsToStake;
     total_owed_scoins += mintedScoins;
-    ComputeCollateralRatioBase(scoinsIntrestToRepay);
+    ComputeCollateralRatioBase();
 }
 
-void CUserCDP::PartialLiquidate(int32_t blockHeight, uint64_t bcoinsToLiquidate, uint64_t scoinsToLiquidate, uint64_t scoinsIntrestToRepay) {
+void CUserCDP::PartialLiquidate(int32_t blockHeight, uint64_t bcoinsToLiquidate, uint64_t scoinsToLiquidate) {
     assert(total_staked_bcoins >= bcoinsToLiquidate);
     assert(total_owed_scoins >= scoinsToLiquidate);
     // Attention: do NOT try to update height, depend it to compute interest while staking or redeeming.
     // block_height = blockHeight;
     total_staked_bcoins -= bcoinsToLiquidate;
     total_owed_scoins -= scoinsToLiquidate;
-    ComputeCollateralRatioBase(scoinsIntrestToRepay);
+    ComputeCollateralRatioBase();
 }

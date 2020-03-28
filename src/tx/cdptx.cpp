@@ -521,12 +521,7 @@ bool CCDPRedeemTx::ExecuteTx(CTxExecuteContext &context) {
                          "account-balance-insufficient");
     }
 
-    uint64_t scoinsInterestToRepay = 0;
-    if (!ComputeCDPInterest(context, cdpCoinPair, cdp.total_owed_scoins, cdp.block_height, context.height,
-                            scoinsInterestToRepay)) {
-        return false;
-    }
-    cdp.Redeem(context.height, assetAmount, actualScoinsToRepay, scoinsInterestToRepay);
+    cdp.Redeem(context.height, assetAmount, actualScoinsToRepay);
 
     // check and save CDP to db
     if (cdp.IsFinished()) {
@@ -547,12 +542,7 @@ bool CCDPRedeemTx::ExecuteTx(CTxExecuteContext &context) {
         }
     } else { // partial redeem
         if (assetAmount != 0) {
-            uint64_t scoinsInterestToRepay = 0;
-            if (!ComputeCDPInterest(context, cdpCoinPair, cdp.total_owed_scoins, cdp.block_height, context.height,
-                                    scoinsInterestToRepay)) {
-                return false;
-            }
-            uint64_t collateralRatio  = cdp.GetCollateralRatio(bcoinMedianPrice, scoinsInterestToRepay);
+            uint64_t collateralRatio  = cdp.GetCollateralRatio(bcoinMedianPrice);
             if (collateralRatio < startingCdpCollateralRatio) {
                 return state.DoS(100,
                                  ERRORMSG("CCDPRedeemTx::ExecuteTx, CDP collatera ratio=%.2f%% < %.2f%% error"
@@ -754,12 +744,7 @@ bool CCDPLiquidateTx::ExecuteTx(CTxExecuteContext &context) {
     uint64_t totalScoinsToReturnSysFund    = 0;
     uint64_t totalBcoinsToCdpOwner         = 0;
 
-    uint64_t scoinsInterestToRepay = 0;
-    if (!ComputeCDPInterest(context, cdpCoinPair, cdp.total_owed_scoins, cdp.block_height, context.height,
-            scoinsInterestToRepay)) {
-        return false;
-    }
-    uint64_t collateralRatio = cdp.GetCollateralRatio(bcoinMedianPrice, scoinsInterestToRepay);
+    uint64_t collateralRatio = cdp.GetCollateralRatio(bcoinMedianPrice);
     if (collateralRatio > startingCdpLiquidateRatio) {  // 1.5++
         return state.DoS(100,
                          ERRORMSG("CCDPLiquidateTx::ExecuteTx, cdp collateralRatio(%.2f%%) > %.2f%%, price: %llu",
