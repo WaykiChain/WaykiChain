@@ -887,8 +887,8 @@ static bool ProcessGenesisBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *p
     }
 
     if (!cw.txReceiptCache.SetTxReceipts(TxID(), receipts))
-        return state.DoS(100, ERRORMSG("ConnectBlock() ::ProcessGenesisBlock, set genesis block receipts failed!",
-                        GetHash().ToString()), REJECT_INVALID, "set-tx-receipt-failed");
+        return state.DoS(100, ERRORMSG("ConnectBlock() ::ProcessGenesisBlock, set genesis block receipts failed!"), 
+                        REJECT_INVALID, "set-tx-receipt-failed");
 
     return true;
 }
