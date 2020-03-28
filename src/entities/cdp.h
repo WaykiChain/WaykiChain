@@ -104,7 +104,9 @@ struct CUserCDP {
 
     Object ToJson(uint64_t bcoinMedianPrice) const;
 
-    inline void ComputeCollateralRatioBase() const {
+    inline void ComputeCollateralRatioBase(uint64_t scoinsInterestToRepay) const {
+        total_owed_scoins += scoinsInterestToRepay;
+
         if (total_staked_bcoins != 0 && total_owed_scoins == 0) {
             collateral_ratio_base = UINT64_MAX;  // big safe percent
         } else if (total_staked_bcoins == 0 || total_owed_scoins == 0) {
@@ -114,8 +116,8 @@ struct CUserCDP {
         }
     }
 
-    uint64_t GetCollateralRatio(uint64_t bcoinPrice) {
-        ComputeCollateralRatioBase();
+    uint64_t GetCollateralRatio(uint64_t bcoinPrice, uint64_t scoinsInterestToRepay) {
+        ComputeCollateralRatioBase(scoinsInterestToRepay);
         if(collateral_ratio_base == UINT64_MAX)
             return UINT64_MAX;
 
