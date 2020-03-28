@@ -85,18 +85,18 @@ const PriceMap& CBlock::GetBlockMedianPrice() const {
     }
 
     for (size_t index = 1; index < vptx.size(); ++ index) {
-        if (vptx[index]->IsPriceFeedTx()) {
+        if (vptx[index]->IsPriceFeedTx())
             continue;
-        } else if (vptx[index]->IsPriceMedianTx()) {
+
+        if (vptx[index]->IsPriceMedianTx())
             return ((CBlockPriceMedianTx*)vptx[index].get())->median_prices;
-        } else {
-            break;
-        }
+
+        break;
     }
 
     LogPrint(BCLog::ERROR, "GetBlockMedianPrice() : failed to acquire median price, height: %u, hash: %s\n", GetHeight(),
              GetHash().GetHex());
-    assert(false && "block does not have price median tx");
+    assert(false && "block has NO price median tx");
     return EMPTY_PRICE_MAP;
 }
 

@@ -438,7 +438,7 @@ bool CPriceFeedCache::AddFeedCoinPair(const PriceCoinPair &coinPair) {
 
     set<PriceCoinPair> coinPairs;
     price_feed_coin_pairs_cache.GetData(coinPairs);
-    if (coinPairs.count(coinPair) > 0 )
+    if (coinPairs.count(coinPair) > 0)
         return true;
 
     coinPairs.insert(coinPair);
