@@ -62,9 +62,7 @@ struct CUserCDP {
           bcoin_symbol(bcoinSymbol),
           scoin_symbol(scoinSymbol),
           total_staked_bcoins(totalStakedBcoins),
-          total_owed_scoins(totalOwedScoins) {
-              ComputeCollateralRatioBase(0);
-          }
+          total_owed_scoins(totalOwedScoins) {}
 
     // Attention: NEVER use block_height as a comparative factor, as block_height may not change, i.e. liquidating
     // partially.
@@ -105,14 +103,14 @@ struct CUserCDP {
     Object ToJson(uint64_t bcoinMedianPrice) const;
 
     inline void ComputeCollateralRatioBase(uint64_t scoinsInterestToRepay) const {
-        total_owed_scoins += scoinsInterestToRepay;
+        uin64_t totalOwedScoins = total_owed_scoins + scoinsInterestToRepay;
 
-        if (total_staked_bcoins != 0 && total_owed_scoins == 0) {
+        if (total_staked_bcoins != 0 && totalOwedScoins == 0) {
             collateral_ratio_base = UINT64_MAX;  // big safe percent
-        } else if (total_staked_bcoins == 0 || total_owed_scoins == 0) {
+        } else if (total_staked_bcoins == 0 || totalOwedScoins == 0) {
             collateral_ratio_base = 0;
         } else {
-            collateral_ratio_base = double(total_staked_bcoins) / total_owed_scoins;
+            collateral_ratio_base = double(total_staked_bcoins) / totalOwedScoins;
         }
     }
 
