@@ -71,8 +71,10 @@ struct CProposal {
     virtual Object ToJson(){
         Object o ;
         o.push_back(Pair("proposal_type", proposal_type)) ;
-        o.push_back(Pair("approval_min_count", approval_min_count)) ;
-        o.push_back(Pair("expiry_block_height", expiry_block_height)) ;
+        if(approval_min_count > 0)
+            o.push_back(Pair("approval_min_count", approval_min_count)) ;
+        if(expiry_block_height > 0)
+            o.push_back(Pair("expiry_block_height", expiry_block_height)) ;
 
         return o ;
     };
@@ -558,7 +560,7 @@ struct CGovAxcInProposal: CProposal {
 };
 
 struct CGovAxcOutProposal: CProposal {
-
+    CUserID     self_chain_uid;
     TokenSymbol self_chain_token_symbol; // from kXChainSwapOutTokenMap to get the target token symbol
     string      peer_chain_addr;  // swap-out peer-chain address (usually different from swap-in fromAddr for bitcoin)
     uint64_t    swap_amount;
@@ -575,7 +577,7 @@ struct CGovAxcOutProposal: CProposal {
     IMPLEMENT_SERIALIZE(
         READWRITE(VARINT(expiry_block_height));
         READWRITE(approval_min_count);
-
+        READWRITE(self_chain_uid);
         READWRITE(self_chain_token_symbol);
         READWRITE(peer_chain_addr);
         READWRITE(VARINT(swap_amount));
@@ -585,6 +587,8 @@ struct CGovAxcOutProposal: CProposal {
     Object ToJson() override {
         Object obj = CProposal::ToJson();
         obj.push_back(Pair("self_chain_token_symbol", self_chain_token_symbol));
+        if(!self_chain_uid.is<CNullID>())
+            obj.push_back(Pair("self_chain_uid", self_chain_uid.ToString()));
         obj.push_back(Pair("peer_chain_addr", peer_chain_addr));
         obj.push_back(Pair("swap_amount", ValueFromAmount(swap_amount)));
         Array arr;
