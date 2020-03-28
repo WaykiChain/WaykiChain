@@ -104,15 +104,15 @@ namespace dex {
 
     bool CDEXOrderBaseTx::ExecuteTx(CTxExecuteContext &context) {
         CCacheWrapper &cw = *context.pCw; CValidationState &state = *context.pState;
-   
+
         if (has_operator_config) {
             DexOperatorDetail operatorDetail;
             if (!GetOrderOperator(context, operatorDetail)) return false;
             CAccount operatorAccount;
             if (!GetOperatorAccount(context, operatorDetail.fee_receiver_regid, operatorAccount)) return false;
-            if (!operatorAccount.OperateBalance(fee_symbol, SUB_FREE, operator_tx_fee, 
+            if (!operatorAccount.OperateBalance(fee_symbol, SUB_FREE, operator_tx_fee,
                                                 ReceiptCode::DEX_COIN_FEE_TO_SETTLER, receipts)) {
-                return state.DoS(100, ERRORMSG("%s, operator account has insufficient funds for tx fee", 
+                return state.DoS(100, ERRORMSG("%s, operator account has insufficient funds for tx fee",
                                 ERROR_TITLE(GetTxTypeName())), UPDATE_ACCOUNT_FAIL, "operator-account-insufficient");
             }
         }
@@ -349,7 +349,7 @@ namespace dex {
         return true;
     }
 
-    bool CDEXOrderBaseTx::FreezeBalance(CTxExecuteContext &context, CAccount &account, const TokenSymbol &tokenSymbol, 
+    bool CDEXOrderBaseTx::FreezeBalance(CTxExecuteContext &context, CAccount &account, const TokenSymbol &tokenSymbol,
                                         const uint64_t &amount, ReceiptCode code) {
 
         if (!account.OperateBalance(tokenSymbol, FREEZE, amount, code, receipts)) {
@@ -785,7 +785,7 @@ namespace dex {
         // - unfree and subtract the coins from buyer account
         if (   !pBuyOrderAccount->OperateBalance(buyOrder.coin_symbol, UNFREEZE, dealItem.dealCoinAmount,
                                                 ReceiptCode::DEX_ASSET_TO_BUYER, receipts)
-            || !pBuyOrderAccount->OperateBalance(buyOrder.coin_symbol, SUB_FREE, dealItem.dealCoinAmount),
+            || !pBuyOrderAccount->OperateBalance(buyOrder.coin_symbol, SUB_FREE, dealItem.dealCoinAmount,
                                                 ReceiptCode::DEX_COIN_TO_SELLER, receipts) {// - subtract buyer's coins
             return state.DoS(100, ERRORMSG("%s, subtract coins from buyer account failed!"
                 " deal_info={%s}, coin_symbol=%s",
@@ -846,7 +846,7 @@ namespace dex {
         }
 
         // 10. add the buyer's assets and seller's coins
-        if (   !pBuyOrderAccount->OperateBalance(buyOrder.asset_symbol, ADD_FREE, buyerReceivedAssets, 
+        if (   !pBuyOrderAccount->OperateBalance(buyOrder.asset_symbol, ADD_FREE, buyerReceivedAssets,
                                                 ReceiptCode::DEX_ASSET_TO_BUYER, receipts)    // + add buyer's assets
             || !pSellOrderAccount->OperateBalance(sellOrder.coin_symbol, ADD_FREE, sellerReceivedCoins,
                                                 ReceiptCode::DEX_COIN_TO_SELLER, receipts)){ // + add seller's coin

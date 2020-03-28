@@ -419,7 +419,6 @@ bool CCoinUtxoTransferTx::CheckTx(CTxExecuteContext &context) {
  * only deal with account balance states change...nothing on UTXO
  */
 bool CCoinUtxoTransferTx::ExecuteTx(CTxExecuteContext &context) {
-    CCacheWrapper &cw       = *context.pCw;
     CValidationState &state = *context.pState;
 
     uint64_t totalInAmount = 0;

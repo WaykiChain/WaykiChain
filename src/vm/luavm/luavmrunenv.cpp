@@ -280,16 +280,13 @@ bool CLuaVMRunEnv::OperateAccount(const vector<CVmOperate>& operates) {
         LogPrint(BCLog::LUAVM, "uid=%s\nbefore account: %s\n", uid.ToString(),
                  pAccount->ToString());
 
-        if (!pAccount->OperateBalance(SYMB::WICC, operate.opType, value)) {
+        ReceiptCode code = (operate.opType == BalanceOpType::ADD_FREE) ? ReceiptCode::CONTRACT_ACCOUNT_OPERATE_ADD :
+                            ReceiptCode::CONTRACT_ACCOUNT_OPERATE_SUB);
+
+        if (!pAccount->OperateBalance(SYMB::WICC, operate.opType, value, code, receipts)) {
             LogPrint(BCLog::LUAVM, "[ERR]CLuaVMRunEnv::OperateAccount(), operate account failed! uid=%s, operate=%s\n",
                 uid.ToString(), GetBalanceOpTypeName(operate.opType));
             return false;
-        }
-
-        if (operate.opType == BalanceOpType::ADD_FREE) {
-            receipts.emplace_back(nullId, uid, SYMB::WICC, value, ReceiptCode::CONTRACT_ACCOUNT_OPERATE_ADD);
-        } else if (operate.opType == BalanceOpType::SUB_FREE) {
-            receipts.emplace_back(uid, nullId, SYMB::WICC, value, ReceiptCode::CONTRACT_ACCOUNT_OPERATE_SUB);
         }
 
         if (!p_context->p_cw->accountCache.SetAccount(pAccount->keyid, *pAccount)) {
@@ -343,19 +340,13 @@ bool CLuaVMRunEnv::TransferAccountAsset(lua_State *L, const vector<AssetTransfer
         }
 
         uint64_t fromAcctBalance;
-        if (!pFromAccount->OperateBalance(transfer.tokenType, SUB_FREE, transfer.tokenAmount) ||
+        if (!pFromAccount->OperateBalance(transfer.tokenType, SUB_FREE, transfer.tokenAmount,
+                                        ReceiptCode::CONTRACT_ACCOUNT_TRANSFER_ASSET, receipts, pToAccount) ||
             !pFromAccount->GetBalance(transfer.tokenType, BalanceType::FREE_VALUE, fromAcctBalance)) {
             LogPrint(BCLog::LUAVM, "[ERR]CLuaVMRunEnv::TransferAccountAsset(), operate SUB_FREE in from_account failed! "
                 "from_uid=%s, isContractAccount=%d, symbol=%s, amount=%llu, account_amount=%llu\n",
                 fromUid.ToString(), (int)transfer.isContractAccount, transfer.tokenType,
                 transfer.tokenAmount, fromAcctBalance);
-            ret = false; break;
-        }
-
-        if (!pToAccount->OperateBalance(transfer.tokenType, ADD_FREE, transfer.tokenAmount)) {
-            LogPrint(BCLog::LUAVM, "[ERR]CLuaVMRunEnv::TransferAccountAsset(), operate ADD_FREE in to_account failed! "
-                     "to_uid=%s, symbol=%s, amount=%llu\n",
-                     transfer.toUid.ToString(), transfer.tokenType, transfer.tokenAmount);
             ret = false; break;
         }
 
@@ -373,8 +364,6 @@ bool CLuaVMRunEnv::TransferAccountAsset(lua_State *L, const vector<AssetTransfer
                      transfer.toUid.ToString(), (int)transfer.isContractAccount);
             ret = false; break;
         }
-
-        receipts.emplace_back(fromUid, transfer.toUid, transfer.tokenType, transfer.tokenAmount, ReceiptCode::CONTRACT_ACCOUNT_TRANSFER_ASSET);
 
         if (isNewAccount) {
             LUA_BurnAccount(L, FUEL_ACCOUNT_NEW, BURN_VER_R2);

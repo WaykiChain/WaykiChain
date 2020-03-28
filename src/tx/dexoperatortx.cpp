@@ -33,7 +33,7 @@ static bool ProcessDexOperatorFee(CCacheWrapper &cw, CValidationState &state, co
                             REJECT_INVALID, "read-sysparam-error");
     }
 
-    if (!txAccount.OperateBalance(SYMB::WICC, BalanceOpType::SUB_FREE, exchangeFee, 
+    if (!txAccount.OperateBalance(SYMB::WICC, BalanceOpType::SUB_FREE, exchangeFee,
                                 ReceiptCode::DEX_ASSET_FEE_TO_SETTLER, receipts))
         return state.DoS(100, ERRORMSG("%s(), tx account insufficient funds for operator %s fee! fee=%llu, tx_addr=%s",
                         __func__, action, exchangeFee, txAccount.keyid.ToAddress()),
@@ -59,7 +59,7 @@ static bool ProcessDexOperatorFee(CCacheWrapper &cw, CValidationState &state, co
         return state.DoS(100, ERRORMSG("%s(), operate balance failed! add %s asset fee=%llu to risk reserve account error",
             __func__, action, riskFee), UPDATE_ACCOUNT_FAIL, "update-account-failed");
     }
-  
+
     if (!cw.accountCache.SetAccount(fcoinGenesisAccount.keyid, fcoinGenesisAccount))
         return state.DoS(100, ERRORMSG("%s(), write risk reserve account error, regid=%s",
             __func__, fcoinGenesisAccount.regid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
@@ -92,7 +92,7 @@ static bool ProcessDexOperatorFee(CCacheWrapper &cw, CValidationState &state, co
         if (!cw.accountCache.SetAccount(delegateRegid, delegateAccount))
             return state.DoS(100, ERRORMSG("%s(), write delegate account info error, delegate regid=%s",
                 __func__, delegateRegid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
-     
+
     }
 
     return true;
@@ -341,16 +341,6 @@ bool CDEXOperatorUpdateTx::CheckTx(CTxExecuteContext &context) {
 
 bool CDEXOperatorUpdateTx::ExecuteTx(CTxExecuteContext &context) {
     CCacheWrapper &cw = *context.pCw; CValidationState &state = *context.pState;
-    vector<CReceipt> receipts;
-    shared_ptr<CAccount> pTxAccount = make_shared<CAccount>();
-    if (pTxAccount == nullptr || !cw.accountCache.GetAccount(txUid, *pTxAccount))
-        return state.DoS(100, ERRORMSG("CDEXOperatorUpdateTx::ExecuteTx, read tx account by txUid=%s error",
-                                       txUid.ToDebugString()), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
-
-    if (!pTxAccount->OperateBalance(fee_symbol, BalanceOpType::SUB_FREE, llFees)) {
-        return state.DoS(100, ERRORMSG("CDEXOperatorUpdateTx::ExecuteTx, insufficient funds in account to sub fees, fees=%llu, txUid=%s",
-                                       llFees, txUid.ToDebugString()), UPDATE_ACCOUNT_FAIL, "insufficent-funds");
-    }
 
     DexOperatorDetail oldDetail  ;
     if(!cw.dexCache.GetDexOperator((DexID)update_data.dexId, oldDetail)){
@@ -358,13 +348,13 @@ bool CDEXOperatorUpdateTx::ExecuteTx(CTxExecuteContext &context) {
                                        update_data.dexId), UPDATE_ACCOUNT_FAIL, "dexoperator-not-exist");
     }
 
-    if (!pTxAccount->IsSelfUid(oldDetail.owner_regid)) {
+    if (txAccount.IsSelfUid(oldDetail.owner_regid)) {
         return state.DoS(100, ERRORMSG("CDEXOperatorUpdateTx::ExecuteTx, only owner can update dexoperator!， owner_regid=%s, txUid=%s, dexId=%u",
                                        oldDetail.owner_regid.ToString(),txUid.ToString(), update_data.dexId),
                                                UPDATE_ACCOUNT_FAIL, "dexoperator-update-permession-deny");
     }
 
-    if (!ProcessDexOperatorFee(cw, state, OPERATOR_ACTION_UPDATE, *pTxAccount, receipts,context.height))
+    if (!ProcessDexOperatorFee(cw, state, OPERATOR_ACTION_UPDATE, *pTxAccount, receipts, context.height))
          return false;
 
     DexOperatorDetail detail = oldDetail;

@@ -394,7 +394,7 @@ bool CUniversalContractInvokeTx::ExecuteTx(CTxExecuteContext &context) {
                         app_uid.get<CRegID>().ToString()), READ_ACCOUNT_FAIL, "bad-read-accountdb");
     }
 
-    if (!srcAccount.OperateBalance(coin_symbol, BalanceOpType::SUB_FREE, coin_amount,
+    if (!txAccount.OperateBalance(coin_symbol, BalanceOpType::SUB_FREE, coin_amount,
                                   ReceiptCode::LUAVM_TRANSFER_ACTUAL_COINS, receipts, &desAccount))
         return state.DoS(100, ERRORMSG("CUniversalContractInvokeTx::ExecuteTx, accounts hash insufficient funds"),
                          UPDATE_ACCOUNT_FAIL, "operate-minus-account-failed");
@@ -419,7 +419,7 @@ bool CUniversalContractInvokeTx::ExecuteTx(CTxExecuteContext &context) {
     luaContext.fuel_limit        = fuelLimit;
     luaContext.transfer_symbol   = coin_symbol;
     luaContext.transfer_amount   = coin_amount;
-    luaContext.p_tx_user_account = &srcAccount;
+    luaContext.p_tx_user_account = &txAccount;
     luaContext.p_app_account     = &desAccount;
     luaContext.p_contract        = &contract;
     luaContext.p_arguments       = &arguments;
