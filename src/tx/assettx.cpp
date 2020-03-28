@@ -149,63 +149,50 @@ bool CUserIssueAssetTx::CheckTx(CTxExecuteContext &context) {
 bool CUserIssueAssetTx::ExecuteTx(CTxExecuteContext &context) {
     IMPLEMENT_DEFINE_CW_STATE;
 
-    shared_ptr<CAccount> pTxAccount = make_shared<CAccount>();
-    if (pTxAccount == nullptr || !cw.accountCache.GetAccount(txUid, *pTxAccount))
-        return state.DoS(100, ERRORMSG("CUserIssueAssetTx::ExecuteTx, read source txUid %s account info error",
-            txUid.ToDebugString()), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
-
-    if (!pTxAccount->OperateBalance(fee_symbol, BalanceOpType::SUB_FREE, llFees))
-        return state.DoS(100, ERRORMSG("CUserIssueAssetTx::ExecuteTx, insufficient funds in account to sub fees, fees=%llu, txUid=%s",
-                        llFees, txUid.ToDebugString()), UPDATE_ACCOUNT_FAIL, "insufficent-funds");
-
     if (cw.assetCache.HasAsset(asset.asset_symbol))
         return state.DoS(100, ERRORMSG("CUserIssueAssetTx::ExecuteTx, the asset has been issued! symbol=%s",
             asset.asset_symbol), REJECT_INVALID, "asset-existed-error");
 
-    shared_ptr<CAccount> pOwnerAccount;
-    if (pTxAccount->IsSelfUid(asset.owner_uid)) {
-        pOwnerAccount = pTxAccount;
+    CAccount ownerAccount;
+    if (txAccount.IsSelfUid(asset.owner_uid)) {
+        ownerAccount = txAccount;
     } else {
-        pOwnerAccount = make_shared<CAccount>();
-        if (pOwnerAccount == nullptr || !cw.accountCache.GetAccount(asset.owner_uid, *pOwnerAccount))
+        if (!cw.accountCache.GetAccount(asset.owner_uid, ownerAccount))
             return state.DoS(100, ERRORMSG("CUserIssueAssetTx::CheckTx, read account failed! asset owner "
                 "account not exist, owner_uid=%s", asset.owner_uid.ToDebugString()), REJECT_INVALID, "bad-getaccount");
     }
 
-    if (pOwnerAccount->regid.IsEmpty() || !pOwnerAccount->regid.IsMature(context.height)) {
+    if (ownerAccount.regid.IsEmpty() || !ownerAccount.regid.IsMature(context.height)) {
         return state.DoS(100, ERRORMSG("CUserIssueAssetTx::CheckTx, owner regid=%s account is unregistered or immature",
             asset.owner_uid.get<CRegID>().ToString()), REJECT_INVALID, "owner-account-unregistered-or-immature");
     }
 
-    if (!ProcessAssetFee(cw, state, ASSET_ACTION_ISSUE, *pTxAccount, context.height, receipts))
+    if (!ProcessAssetFee(cw, state, ASSET_ACTION_ISSUE, txAccount, context.height, receipts))
         return false;
 
-    if (!pOwnerAccount->OperateBalance(asset.asset_symbol, BalanceOpType::ADD_FREE, asset.total_supply)) {
+    if (!ownerAccount.OperateBalance(asset.asset_symbol, BalanceOpType::ADD_FREE, asset.total_supply, 
+                                        ReceiptCode::ASSET_MINT_NEW_AMOUNT, receipts)) {
         return state.DoS(100, ERRORMSG("CUserIssueAssetTx::ExecuteTx, fail to add total_supply to issued account! total_supply=%llu, txUid=%s",
                         asset.total_supply, txUid.ToDebugString()), UPDATE_ACCOUNT_FAIL, "insufficent-funds");
     }
 
-    if (!cw.accountCache.SetAccount(txUid, *pTxAccount))
+    if (!cw.accountCache.SetAccount(txUid, txAccount))
         return state.DoS(100, ERRORMSG("CUserIssueAssetTx::ExecuteTx, set tx account to db failed! txUid=%s",
             txUid.ToDebugString()), UPDATE_ACCOUNT_FAIL, "bad-set-accountdb");
 
-    if (pOwnerAccount != pTxAccount) {
-         if (!cw.accountCache.SetAccount(pOwnerAccount->keyid, *pOwnerAccount))
+    if (ownerAccount.keyid != txAccount.keyid) {
+         if (!cw.accountCache.SetAccount(ownerAccount.keyid, ownerAccount))
             return state.DoS(100, ERRORMSG("CUserIssueAssetTx::ExecuteTx, set asset owner account to db failed! owner_uid=%s",
                 asset.owner_uid.ToDebugString()), UPDATE_ACCOUNT_FAIL, "bad-set-accountdb");
     }
 
     //Persist with Owner's RegID to save space than other User ID types
     CAsset savedAsset(asset.asset_symbol, asset.asset_name, AssetType::UIA, AssetPermType::PERM_DEX_BASE,
-                    CUserID(pOwnerAccount->regid), asset.total_supply, asset.mintable);
+                    CUserID(ownerAccount.regid), asset.total_supply, asset.mintable);
 
     if (!cw.assetCache.SetAsset(savedAsset))
         return state.DoS(100, ERRORMSG("CUserIssueAssetTx::ExecuteTx, save asset failed! txUid=%s",
             txUid.ToDebugString()), UPDATE_ACCOUNT_FAIL, "save-asset-failed");
-
-    if (!receipts.empty() && !cw.txReceiptCache.SetTxReceipts(GetHash(), receipts))
-        return state.DoS(100, ERRORMSG("CUserIssueAssetTx::ExecuteTx, set tx receipts failed!! txid=%s",
-                        GetHash().ToString()), REJECT_INVALID, "set-tx-receipt-failed");
 
     return true;
 }
