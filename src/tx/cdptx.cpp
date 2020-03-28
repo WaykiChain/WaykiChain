@@ -321,13 +321,8 @@ bool CCDPStakeTx::ExecuteTx(CTxExecuteContext &context) {
                             strprintf("deduct-interest(%llu)-error", scoinsInterestToRepay));
         }
 
-        uint64_t scoinsInterestToRepay = 0;
-        if (!ComputeCDPInterest(context, cdpCoinPair, cdp.total_owed_scoins, cdp.block_height, context.height,
-                                scoinsInterestToRepay)) {
-            return false;
-        }
         // settle cdp state & persist
-        cdp.AddStake(context.height, assetAmount, scoins_to_mint, scoinsInterestToRepay);
+        cdp.AddStake(context.height, assetAmount, scoins_to_mint);
         if (!cw.cdpCache.UpdateCDP(oldCDP, cdp)) {
             return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, save changed cdp to db failed"),
                             READ_SYS_PARAM_FAIL, "save-changed-cdp-failed");
@@ -890,12 +885,8 @@ bool CCDPLiquidateTx::ExecuteTx(CTxExecuteContext &context) {
 
         assert(cdp.total_owed_scoins > scoinsToCloseout);
         assert(cdp.total_staked_bcoins > bcoinsToLiquidate);
-        uint64_t scoinsInterestToRepay = 0;
-        if (!ComputeCDPInterest(context, cdpCoinPair, cdp.total_owed_scoins, cdp.block_height, context.height,
-                                scoinsInterestToRepay)) {
-            return false;
-        }
-        cdp.PartialLiquidate(context.height, bcoinsToLiquidate, scoinsToCloseout, scoinsInterestToRepay);
+
+        cdp.PartialLiquidate(context.height, bcoinsToLiquidate, scoinsToCloseout);
 
         uint64_t bcoinsToStakeAmountMinInScoin;
         if (!ReadCdpParam(*this, context, cdpCoinPair, CDP_BCOINSTOSTAKE_AMOUNT_MIN_IN_SCOIN,
