@@ -26,9 +26,10 @@ static CUserID nullId;
     DEFINE(COIN_STAKE,                          104, "stake user's coins") \
     /**** transfer */ \
     DEFINE(TRANSFER_FEE_TO_RESERVE,             201, "transferred fee to risk reserve") \
-    DEFINE(TRANSFER_ACTUAL_COINS,               202, "actual transferred coins") \
-    DEFINE(TRANSFER_UTXO_COINS,                 203, "transferred utxo coins") \
-    DEFINE(TRANSFER_PROPOSAL,                   204, "transfered coins in proposal") \
+    DEFINE(TRANSFER_ACTUAL_COINS,               202, "common account to transfer coins") \
+    DEFINE(WASM_TRANSFER_ACTUAL_COINS,          203, "WASM contract to transfer coins") \
+    DEFINE(TRANSFER_UTXO_COINS,                 204, "transferred utxo coins") \
+    DEFINE(TRANSFER_PROPOSAL,                   205, "transfered coins in proposal") \
     /**** delegate */ \
     DEFINE(DELEGATE_ADD_VOTE,                   301, "delegate add votes") \
     DEFINE(DELEGATE_SUB_VOTE,                   302, "delegate sub votes") \

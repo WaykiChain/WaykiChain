@@ -30,7 +30,8 @@ namespace wasm {
                       "The precision of system coin %s must be %d",
                       symbol, 8)
 
-        CHAIN_ASSERT( owner.OperateBalance(symbol, BalanceOpType::SUB_FREE, quantity.amount),
+        CHAIN_ASSERT( owner.OperateBalance(symbol, BalanceOpType::SUB_FREE, quantity.amount, 
+                                           ReceiptCode::WASM_TRANSFER_ACTUAL_COINS, receipts),
                       account_access_exception,
                       "Account %s overdrawn balance",
                       owner.nickid.ToString())
