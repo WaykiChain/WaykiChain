@@ -79,7 +79,7 @@ bool CPriceFeedTx::ExecuteTx(CTxExecuteContext &context) {
         return state.DoS(100, ERRORMSG("CPriceFeedTx::ExecuteTx, read PRICE_FEED_BCOIN_STAKE_AMOUNT_MIN error",
                         txUid.ToString()), READ_SYS_PARAM_FAIL, "read-sysparamdb-error");
     }
-    CAccountToken accountToken = account.GetToken(SYMB::WICC, accountToken);
+    CAccountToken accountToken = account.GetToken(SYMB::WICC);
     if (accountToken.staked_amount < stakedAmountMin * COIN) // must stake enough bcoins to be a price feeder
         return state.DoS(100, ERRORMSG("CPriceFeedTx::ExecuteTx, Staked Bcoins insufficient(%llu vs %llu) by txUid %s account error",
                         accountToken.voted_amount, stakedAmountMin, txUid.ToString()),
