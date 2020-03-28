@@ -158,11 +158,6 @@ bool CDEXOperatorRegisterTx::ExecuteTx(CTxExecuteContext &context) {
         return state.DoS(100, ERRORMSG("CDEXOperatorRegisterTx::ExecuteTx, read tx account by txUid=%s error",
             txUid.ToDebugString()), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
 
-    if (!pTxAccount->OperateBalance(fee_symbol, BalanceOpType::SUB_FREE, llFees)) {
-        return state.DoS(100, ERRORMSG("CDEXOperatorRegisterTx::ExecuteTx, insufficient funds in account to sub fees, fees=%llu, txUid=%s",
-                        llFees, txUid.ToDebugString()), UPDATE_ACCOUNT_FAIL, "insufficent-funds");
-    }
-
     shared_ptr<CAccount> pOwnerAccount;
     if (pTxAccount->IsSelfUid(data.owner_uid)) {
         pOwnerAccount = pTxAccount;
@@ -201,17 +196,11 @@ bool CDEXOperatorRegisterTx::ExecuteTx(CTxExecuteContext &context) {
         data.taker_fee_ratio,
         data.memo
     };
+
     if (!cw.dexCache.CreateDexOperator(new_id, detail))
         return state.DoS(100, ERRORMSG("%s, save new dex operator error! new_id=%u", __func__, new_id),
                          UPDATE_ACCOUNT_FAIL, "save-operator-error");
 
-    if (!cw.accountCache.SetAccount(txUid, *pTxAccount))
-        return state.DoS(100, ERRORMSG("CUserUpdateAssetTx::ExecuteTx, set tx account to db failed! txUid=%s",
-            txUid.ToDebugString()), UPDATE_ACCOUNT_FAIL, "bad-set-accountdb");
-
-    if(!cw.txReceiptCache.SetTxReceipts(GetHash(), receipts))
-        return state.DoS(100, ERRORMSG("CUserUpdateAssetTx::ExecuteTx, set tx receipts failed!! txid=%s",
-                        GetHash().ToString()), REJECT_INVALID, "set-tx-receipt-failed");
     return true;
 }
 
@@ -388,12 +377,5 @@ bool CDEXOperatorUpdateTx::ExecuteTx(CTxExecuteContext &context) {
         return state.DoS(100, ERRORMSG("%s, save updated dex operator error! dex_id=%u", __func__, update_data.dexId),
                          UPDATE_ACCOUNT_FAIL, "save-updated-operator-error");
 
-    if (!cw.accountCache.SetAccount(txUid, *pTxAccount))
-        return state.DoS(100, ERRORMSG("CUserUpdateAssetTx::ExecuteTx, set tx account to db failed! txUid=%s",
-                                       txUid.ToDebugString()), UPDATE_ACCOUNT_FAIL, "bad-set-accountdb");
-
-    if(!cw.txReceiptCache.SetTxReceipts(GetHash(), receipts))
-        return state.DoS(100, ERRORMSG("CUserUpdateAssetTx::ExecuteTx, set tx receipts failed!! txid=%s",
-                                       GetHash().ToString()), REJECT_INVALID, "set-tx-receipt-failed");
     return true;
 }

@@ -640,7 +640,8 @@ bool CCDPRedeemTx::SellInterestForFcoins(const CTxCord &txCord, const CUserCDP &
     }
 
     // should freeze user's coin for buying the asset
-    if (!fcoinGenesisAccount.OperateBalance(SYMB::WUSD, BalanceOpType::FREEZE, scoinsInterestToRepay)) {
+    if (!fcoinGenesisAccount.OperateBalance(SYMB::WUSD, BalanceOpType::FREEZE, scoinsInterestToRepay, 
+                                            ReceiptCode::CDP_INTEREST_BUY_DEFLATE_FCOINS, receipts)) {
         return state.DoS(100, ERRORMSG("CCDPRedeemTx::SellInterestForFcoins, account has insufficient funds"),
                         UPDATE_ACCOUNT_FAIL, "operate-fcoin-genesis-account-failed");
     }
@@ -658,8 +659,6 @@ bool CCDPRedeemTx::SellInterestForFcoins(const CTxCord &txCord, const CUserCDP &
     }
 
     assert(!fcoinGenesisAccount.regid.IsEmpty());
-    receipts.emplace_back(txUid, fcoinGenesisAccount.regid, cdp.scoin_symbol, scoinsInterestToRepay,
-                          ReceiptCode::CDP_INTEREST_BUY_DEFLATE_FCOINS);
 
     return true;
 }
