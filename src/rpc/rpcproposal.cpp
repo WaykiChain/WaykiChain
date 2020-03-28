@@ -127,7 +127,7 @@ Value submitparamgovernproposal(const Array& params, bool fHelp){
 
     const CUserID& txUid = RPC_PARAM::GetUserId(params[0], true);
     string paramName = params[1].get_str();
-    uint64_t paramValue = AmountToRawValue(params[2]);
+    uint64_t paramValue = RPC_PARAM::GetUint64(params[2]);
     ComboMoney fee          = RPC_PARAM::GetFee(params, 3, PROPOSAL_REQUEST_TX);
     int32_t validHeight  = chainActive.Height();
     CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, txUid);
@@ -186,7 +186,7 @@ Value submitcdpparamgovernproposal(const Array& params, bool fHelp){
 
     const CUserID& txUid = RPC_PARAM::GetUserId(params[0], true);
     string paramName = params[1].get_str();
-    uint64_t paramValue = AmountToRawValue(params[2]);
+    uint64_t paramValue = RPC_PARAM::GetUint64(params[2]);
     string bcoinSymbol = params[3].get_str();
     string scoinSymbol = params[4].get_str();
     ComboMoney fee          = RPC_PARAM::GetFee(params, 5, PROPOSAL_REQUEST_TX);
@@ -246,7 +246,7 @@ Value submitgovernorupdateproposal(const Array& params , bool fHelp) {
     if(!governorId.is<CRegID>())
         throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("the price governor(%s) must be registered(have regid)",
                                                             governorId.ToString() ));
-    uint64_t operateType = AmountToRawValue(params[2]);
+    uint64_t operateType = RPC_PARAM::GetUint64(params[2]);
     ComboMoney fee          = RPC_PARAM::GetFee(params, 3, PROPOSAL_REQUEST_TX);
     int32_t validHeight  = chainActive.Height();
     CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, txUid);
@@ -441,7 +441,7 @@ Value submitfeedcoinpairproposal(const Array& params, bool fHelp) {
     const CUserID& txUid = RPC_PARAM::GetUserId(params[0], true);
     string baseSymbol = params[1].get_str();
     string quoteSymbol = params[2].get_str();
-    uint64_t operateType = params[3].get_int();
+    uint64_t operateType = RPC_PARAM::GetUint64(params[3]);
     ComboMoney fee          = RPC_PARAM::GetFee(params, 4, PROPOSAL_REQUEST_TX);
     int32_t validHeight  = chainActive.Height();
     CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, txUid);
@@ -492,10 +492,10 @@ Value submitaxccoinproposal(const Array& params, bool fHelp) {
     EnsureWalletIsUnlocked();
     const CUserID& txUid = RPC_PARAM::GetUserId(params[0], true);
     string peerCoinSymbol = params[1].get_str();
-    int chainType = params[2].get_int();
+    int chainType = RPC_PARAM::GetUint64(params[2]);
     int opType = params[3].get_int();
-    ComboMoney fee          = RPC_PARAM::GetFee(params, 4, PROPOSAL_REQUEST_TX);
-    int32_t validHeight  = chainActive.Height();
+    ComboMoney fee = RPC_PARAM::GetFee(params, 4, PROPOSAL_REQUEST_TX);
+    int32_t validHeight = chainActive.Height();
     CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, txUid);
     RPC_PARAM::CheckAccountBalance(account, fee.symbol, SUB_FREE, fee.GetAmountInSawi());
 
@@ -540,8 +540,8 @@ Value submitdexswitchproposal(const Array& params, bool fHelp) {
 
     EnsureWalletIsUnlocked();
     const CUserID& txUid = RPC_PARAM::GetUserId(params[0], true);
-    uint64_t dexId = params[1].get_int();
-    uint64_t operateType = params[2].get_int();
+    uint64_t dexId = RPC_PARAM::GetUint64(params[1]);
+    uint64_t operateType = RPC_PARAM::GetUint64(params[2]);
     ComboMoney fee          = RPC_PARAM::GetFee(params, 3, PROPOSAL_REQUEST_TX);
     int32_t validHeight  = chainActive.Height();
     CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, txUid);
@@ -631,8 +631,8 @@ Value submittotalbpssizeupdateproposal(const Array& params,bool fHelp) {
 
     EnsureWalletIsUnlocked();
     const CUserID& txUid = RPC_PARAM::GetUserId(params[0], true );
-    uint32_t totalBpsSize = params[1].get_int();
-    uint32_t effectiveHeight = params[2].get_int();
+    uint32_t totalBpsSize = RPC_PARAM::GetUint32(params[1]);
+    uint32_t effectiveHeight = RPC_PARAM::GetUint32(params[2]);
     ComboMoney fee = RPC_PARAM::GetFee(params, 3, PROPOSAL_REQUEST_TX);
     int32_t validHeight  = chainActive.Height();
     CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, txUid);

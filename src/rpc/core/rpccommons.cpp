@@ -404,7 +404,7 @@ Array JSON::ToJson(const CAccountDBCache &accountCache, const vector<CReceipt> &
 
 uint32_t RPC_PARAM::GetUint32(const Value &jsonValue) {
     int64_t ret = jsonValue.get_int64();
-    if (ret < 0) {
+    if (ret < 0 || ret > uint32_t(-1)) {
         throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("value=%lld out of range", ret));
     }
     return uint32_t(ret);

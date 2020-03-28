@@ -64,7 +64,7 @@ Object CProposalRequestTx::ToJson(const CAccountDBCache &accountCache) const {
 }  // json-rpc usage
 
  bool CProposalRequestTx::CheckTx(CTxExecuteContext &context) {
-     return proposal.sp_proposal->CheckProposal(context, *this);
+     return proposal.sp_proposal->CheckProposal(context);
  }
 
 
