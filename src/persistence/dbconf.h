@@ -78,6 +78,7 @@ namespace dbk {
         DEFINE( SYS_GOVERN,           "govn",   SYSGOVERN )       /* govn --> $list of governors */ \
         DEFINE( GOVN_PROP,            "pgvn",   SYSGOVERN )       /* pgvn{propid} --> proposal */ \
         DEFINE( GOVN_APPROVAL_LIST,   "galt",   SYSGOVERN )       /* sgvn{propid} --> vector(regid) */ \
+        DEFINE( AXCOUT_PROPOSAL_TXUID, "aptu",  SYSGOVERN )     \
         /*** Asset Registry DB */ \
         DEFINE( ASSET,                "asst",   ASSET )          /* asst{$AssetName} --> $Asset */ \
         DEFINE( PERM_ASSETS,          "pats",   ASSET )          /* [prefix]{$perm}{$asset_symbol} --> $assetStatus */ \

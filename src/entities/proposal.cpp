@@ -557,7 +557,7 @@ bool CGovAxcOutProposal::CheckProposal(CTxExecuteContext& context, CBaseTx& tx) 
                         "bad-getaccount");
     if (!acct.OperateBalance(self_chain_token_symbol, BalanceOpType::SUB_FREE, swap_amount))
         return state.DoS(100, ERRORMSG("CGovAxcOutProposal::ExecuteProposal, opreate balance failed, swap_amount=%llu",
-                                       swap_amount), REJECT_INVALID, "bad-operate-balance");
+                                       swap_amount), REJECT_INVALID, "balance-not-enough");
 
     if (swap_amount < DUST_AMOUNT_THRESHOLD)
         return state.DoS(100, ERRORMSG("CGovAxcOutProposal::CheckProposal: swap_amount=%llu too small",
@@ -575,7 +575,7 @@ bool CGovAxcOutProposal::ExecuteProposal(CTxExecuteContext& context, CBaseTx& tx
                         REJECT_INVALID, "bad-get-swap_fee_ratio");
 
     CAccount acct;
-    if (!cw.accountCache.GetAccount(tx.txUid, acct))
+    if (!cw.accountCache.GetAccount(self_chain_uid, acct))
         return state.DoS(100, ERRORMSG("CGovAxcInProposal::ExecuteProposal, read account failed"), REJECT_INVALID,
                         "bad-getaccount");
 
@@ -584,7 +584,7 @@ bool CGovAxcOutProposal::ExecuteProposal(CTxExecuteContext& context, CBaseTx& tx
         return state.DoS(100, ERRORMSG("CGovAxcOutProposal::ExecuteProposal, opreate balance failed, swap_amount=%llu",
                         swap_amount), REJECT_INVALID, "bad-operate-balance");
 
-    if (!cw.accountCache.SetAccount(tx.txUid, acct))
+    if (!cw.accountCache.SetAccount(self_chain_uid, acct))
         return state.DoS(100, ERRORMSG("CGovAxcInProposal::ExecuteProposal, write account failed"), REJECT_INVALID,
                          "bad-writeaccount");
 

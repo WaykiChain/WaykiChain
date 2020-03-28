@@ -50,6 +50,7 @@ public:
         governors_cache.SetDbOpLogMap(pDbOpLogMapIn);
         proposals_cache.SetDbOpLogMap(pDbOpLogMapIn);
         approvals_cache.SetDbOpLogMap(pDbOpLogMapIn);
+        approvals_cache.SetDbOpLogMap(pDbOpLogMapIn);
     }
 
 
@@ -128,7 +129,6 @@ public:
     bool EraseGovernor(const CRegID governor){
         set<CRegID> governors;
         governors_cache.GetData(governors);
-
         governors.erase(governor);
         return governors_cache.SetData(governors) ;
     }
@@ -151,5 +151,6 @@ public:
     CCompositeKVCache< dbk::GOVN_PROP,             uint256,     CProposalStorageBean>          proposals_cache;
     // sgvn{txid}->vector(regid)
     CCompositeKVCache< dbk::GOVN_APPROVAL_LIST,    uint256,     vector<CRegID> >               approvals_cache;
+
 
 };

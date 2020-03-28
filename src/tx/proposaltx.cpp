@@ -93,9 +93,19 @@ bool CProposalRequestTx::ExecuteTx(CTxExecuteContext &context) {
     proposalToSave->expiry_block_height = context.height + expiryBlockCount;
     proposalToSave->approval_min_count = GetGovernorApprovalMinCount(proposal.sp_proposal->proposal_type, cw);
 
+
     if (!cw.sysGovernCache.SetProposal(GetHash(), proposalToSave))
         return state.DoS(100, ERRORMSG("CProposalRequestTx::ExecuteTx, set proposal info error"),
                     WRITE_ACCOUNT_FAIL, "bad-write-proposaldb");
+
+    if (proposalToSave->proposal_type == ProposalType::GOV_AXC_OUT) {
+        auto axcOutProposal = dynamic_cast<CGovAxcOutProposal&>(*proposalToSave);
+        axcOutProposal.self_chain_uid = txUid;
+        auto savedSp = axcOutProposal.GetNewInstance();
+        if (!cw.sysGovernCache.SetProposal(GetHash(), savedSp))
+            return state.DoS(100, ERRORMSG("CProposalApprovalTx::ExecuteTx, set proposal info error"),
+                             WRITE_ACCOUNT_FAIL, "bad-write-proposaldb");
+    }
 
     return true;
 }
