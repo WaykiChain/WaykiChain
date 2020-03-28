@@ -10,7 +10,7 @@
 
 class CCoinStakeTx: public CBaseTx {
 private:
-    BalanceOpType stake_type;
+    BalanceOpType stake_type; //only limited to Stake/Unstake
     TokenSymbol coin_symbol;
     uint64_t coin_amount;
 

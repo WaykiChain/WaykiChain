@@ -139,6 +139,8 @@ public:
     uint64_t nRunStep;     //!< only in memory
     int32_t nFuelRate;     //!< only in memory
     mutable TxID sigHash;  //!< only in memory
+    CAccount txAccount;    //!< only in memory
+    ReceiptList receipts;  //!< not persisted within Tx Cache
 
 public:
     CBaseTx(int32_t nVersionIn, TxType nTxTypeIn, CUserID txUidIn, int32_t nValidHeightIn, uint64_t llFeesIn) :
@@ -190,6 +192,11 @@ public:
     bool CheckBaseTx(CTxExecuteContext &context);
     virtual bool CheckTx(CTxExecuteContext &context) = 0;
     virtual bool ExecuteTx(CTxExecuteContext &context) = 0;
+    bool ExecuteFullTx(CTxExecuteContext &context);
+    
+    inline bool CheckAndExecuteTx(CTxExecuteContext& context) {
+        return CheckBaseTx(context) && CheckTx(context) && ExecuteFullTx(context);
+    }
 
     bool IsValidHeight(int32_t nCurHeight, int32_t nTxCacheHeight) const;
 
@@ -203,9 +210,8 @@ public:
 
     const string& GetTxTypeName() const { return ::GetTxTypeName(nTxType); }
 
-    bool CheckAndExecuteTx(CTxExecuteContext& context) {
-        return CheckBaseTx(context) && CheckTx(context) && ExecuteTx(context);
-    }
+    
+
 
 public:
     static unsigned int GetSerializePtrSize(const std::shared_ptr<CBaseTx> &pBaseTx, int nType, int nVersion){

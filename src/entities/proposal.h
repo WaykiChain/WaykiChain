@@ -61,7 +61,7 @@ struct CProposal {
 
     CProposal() {}
     CProposal(ProposalType proposalTypeIn) : proposal_type(proposalTypeIn) {}
-    virtual shared_ptr<CProposal> GetNewInstance() = 0;
+    virtual std::shared_ptr<CProposal> GetNewInstance() = 0;
     virtual bool CheckProposal(CTxExecuteContext& context) = 0;
     virtual bool ExecuteProposal(CTxExecuteContext& context, const TxID& proposalId, ReceiptList &receipts) = 0;
     virtual std::string ToString() {
@@ -121,10 +121,11 @@ struct CGovSysParamProposal: CProposal {
         }
         return baseString ;
     }
-    shared_ptr<CProposal> GetNewInstance() override { return make_shared<CGovSysParamProposal>(*this); } ;
+
+    std::shared_ptr<CProposal> GetNewInstance() override { return make_shared<CGovSysParamProposal>(*this); } ;
 
     bool CheckProposal(CTxExecuteContext& context ) override;
-    bool ExecuteProposal(CTxExecuteContext& context, const TxID& proposalId) override;
+    bool ExecuteProposal(CTxExecuteContext& context, const TxID& proposalId, ReceiptList &receipts) override;
 
 };
 
@@ -156,7 +157,7 @@ struct CGovBpMcListProposal: CProposal{
                 gov_bp_regid.ToString(),op_type) ;
 
     }
-    shared_ptr<CProposal> GetNewInstance() override { return make_shared<CGovBpMcListProposal>(*this); }
+    shared_ptr<CProposal> GetNewInstance() override { return std::make_shared<CGovBpMcListProposal>(*this); }
 
     bool CheckProposal(CTxExecuteContext& context ) override;
     bool ExecuteProposal(CTxExecuteContext& context, const TxID& proposalId, ReceiptList &receipts) override;

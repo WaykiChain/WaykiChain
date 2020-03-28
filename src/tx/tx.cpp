@@ -201,6 +201,35 @@ bool CBaseTx::CheckBaseTx(CTxExecuteContext &context) {
     return true;
 }
 
+bool CBaseTx::ExecuteFullTx(CTxExecuteContext &context) {
+    IMPLEMENT_DEFINE_CW_STATE;
+
+    if (!cw.accountCache.GetAccount(txUid, txAccount))
+        return state.DoS(100, ERRORMSG("ExecuteFullTx: read txUid %s account info error",
+                        txUid.ToString()), READ_ACCOUNT_FAIL, "bad-read-accountdb");
+
+    if (!GenerateRegID(context, txAccount))
+            return false;
+
+    if (llFees > 0 && !txAccount.OperateBalance(fee_symbol, SUB_FREE, llFees, ReceiptCode::BLOCK_REWARD_TO_MINER, receipts))
+            return state.DoS(100, ERRORMSG("CDEXCancelOrderTx::ExecuteTx, account has insufficient funds"),
+                            UPDATE_ACCOUNT_FAIL, "operate-minus-account-failed");
+
+    /////////////////////////
+    // ExecuteTx 
+    if (!ExecuteTx(context))
+        return false;
+
+    if (!cw.accountCache.SaveAccount(txAccount))
+        return state.DoS(100, ERRORMSG("ExecuteFullTx, write source addr %s account info error",
+                        txUid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
+
+    if (!receipts.empty() && !cw.txReceiptCache.SetTxReceipts(GetHash(), receipts))
+        return state.DoS(100, ERRORMSG("ExecuteFullTx: save receipts error, txid=%s",
+                                    GetHash().ToString()), WRITE_RECEIPT_FAIL, "bad-save-receipts");
+}
+
+
 bool CBaseTx::CheckTxFeeSufficient(const TokenSymbol &feeSymbol, const uint64_t llFees, const int32_t height) const {
     uint64_t minFee;
     if (!GetTxMinFee(nTxType, height, feeSymbol, minFee)) {

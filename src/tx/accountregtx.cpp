@@ -52,14 +52,10 @@ bool CAccountRegisterTx::ExecuteTx(CTxExecuteContext &context) {
     account.regid        = regId;
     account.owner_pubkey = txUid.get<CPubKey>();
 
-    ReceiptList receipts;
-
-    CReceipt receipt(ReceiptCode::BLOCK_REWARD_TO_MINER);
-    if (!account.OperateBalance(SYMB::WICC, BalanceOpType::SUB_FREE, llFees, receipt)) {
+    if (!account.OperateBalance(SYMB::WICC, BalanceOpType::SUB_FREE, llFees, ReceiptCode::BLOCK_REWARD_TO_MINER, receipts)) {
         return state.DoS(100, ERRORMSG("CAccountRegisterTx::ExecuteTx, insufficient funds in account, keyid=%s",
                         keyId.ToString()), UPDATE_ACCOUNT_FAIL, "insufficent-funds");
     }
-    receipts.push_back(receipt);
 
     if (minerUid.is<CPubKey>()) {
         account.miner_pubkey = minerUid.get<CPubKey>();
@@ -72,11 +68,6 @@ bool CAccountRegisterTx::ExecuteTx(CTxExecuteContext &context) {
     if (!cw.accountCache.SaveAccount(account))
         return state.DoS(100, ERRORMSG("CAccountRegisterTx::ExecuteTx, write source addr %s account info error",
                         regId.ToString()), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
-
-
-    if (!receipts.empty() && !cw.txReceiptCache.SetTxReceipts(GetHash(), receipts))
-        return state.DoS(100, ERRORMSG("CGovCoinTransferProposal::ExecuteProposal, save receipts error, kyeId=%s",
-                                       GetHash().ToString()), UPDATE_ACCOUNT_FAIL, "bad-save-receipts");
 
     return true;
 }

@@ -33,7 +33,8 @@ static bool ProcessDexOperatorFee(CCacheWrapper &cw, CValidationState &state, co
                             REJECT_INVALID, "read-sysparam-error");
     }
 
-    if (!txAccount.OperateBalance(SYMB::WICC, BalanceOpType::SUB_FREE, exchangeFee))
+    if (!txAccount.OperateBalance(SYMB::WICC, BalanceOpType::SUB_FREE, exchangeFee, 
+                                ReceiptCode::DEX_ASSET_FEE_TO_SETTLER, receipts))
         return state.DoS(100, ERRORMSG("%s(), tx account insufficient funds for operator %s fee! fee=%llu, tx_addr=%s",
                         __func__, action, exchangeFee, txAccount.keyid.ToAddress()),
                         UPDATE_ACCOUNT_FAIL, "insufficent-funds");
@@ -51,15 +52,14 @@ static bool ProcessDexOperatorFee(CCacheWrapper &cw, CValidationState &state, co
         return state.DoS(100, ERRORMSG("%s(), get risk reserve account failed", __func__),
                         READ_ACCOUNT_FAIL, "get-account-failed");
 
-    if (!fcoinGenesisAccount.OperateBalance(SYMB::WICC, BalanceOpType::ADD_FREE, riskFee)) {
+    ReceiptCode code = (action == OPERATOR_ACTION_REGISTER) ? ReceiptCode::DEX_OPERATOR_REG_FEE_TO_RESERVE :
+                                                              ReceiptCode::DEX_OPERATOR_UPDATED_FEE_TO_RESERVE;
+
+    if (!fcoinGenesisAccount.OperateBalance(SYMB::WICC, BalanceOpType::ADD_FREE, riskFee, code, receipts)) {
         return state.DoS(100, ERRORMSG("%s(), operate balance failed! add %s asset fee=%llu to risk reserve account error",
             __func__, action, riskFee), UPDATE_ACCOUNT_FAIL, "update-account-failed");
     }
-    if (action == OPERATOR_ACTION_REGISTER)
-        receipts.emplace_back(txAccount.regid, fcoinGenesisAccount.regid, SYMB::WICC, riskFee, ReceiptCode::DEX_OPERATOR_REG_FEE_TO_RESERVE);
-    else
-        receipts.emplace_back(txAccount.regid, fcoinGenesisAccount.regid, SYMB::WICC, riskFee, ReceiptCode::DEX_OPERATOR_UPDATED_FEE_TO_RESERVE);
-
+  
     if (!cw.accountCache.SetAccount(fcoinGenesisAccount.keyid, fcoinGenesisAccount))
         return state.DoS(100, ERRORMSG("%s(), write risk reserve account error, regid=%s",
             __func__, fcoinGenesisAccount.regid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
@@ -81,7 +81,10 @@ static bool ProcessDexOperatorFee(CCacheWrapper &cw, CValidationState &state, co
         uint64_t minerFee = minerTotalFee / delegates.size();
         if (i == 0) minerFee += minerTotalFee % delegates.size(); // give the dust amount to topmost miner
 
-        if (!delegateAccount.OperateBalance(SYMB::WICC, BalanceOpType::ADD_FREE, minerFee)) {
+        ReceiptCode code = (action == OPERATOR_ACTION_REGISTER) ? ReceiptCode::DEX_OPERATOR_REG_FEE_TO_MINER :
+                            ReceiptCode::DEX_OPERATOR_UPDATED_FEE_TO_MINER;
+
+        if (!delegateAccount.OperateBalance(SYMB::WICC, BalanceOpType::ADD_FREE, minerFee, code, receipts)) {
             return state.DoS(100, ERRORMSG("%s(), add %s asset fee to miner failed, miner regid=%s",
                 __func__, action, delegateRegid.ToString()), UPDATE_ACCOUNT_FAIL, "operate-account-failed");
         }
@@ -89,12 +92,9 @@ static bool ProcessDexOperatorFee(CCacheWrapper &cw, CValidationState &state, co
         if (!cw.accountCache.SetAccount(delegateRegid, delegateAccount))
             return state.DoS(100, ERRORMSG("%s(), write delegate account info error, delegate regid=%s",
                 __func__, delegateRegid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
-
-        if (action == OPERATOR_ACTION_REGISTER)
-            receipts.emplace_back(txAccount.regid, delegateRegid, SYMB::WICC, minerFee, ReceiptCode::DEX_OPERATOR_REG_FEE_TO_MINER);
-        else
-            receipts.emplace_back(txAccount.regid, delegateRegid, SYMB::WICC, minerFee, ReceiptCode::DEX_OPERATOR_UPDATED_FEE_TO_MINER);
+     
     }
+
     return true;
 }
 

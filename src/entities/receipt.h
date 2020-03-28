@@ -23,6 +23,7 @@ static CUserID nullId;
     DEFINE(BLOCK_REWARD_TO_MINER,               101, "block reward to miner") \
     DEFINE(COIN_BLOCK_REWARD_TO_MINER,          102, "coin block reward to miner") \
     DEFINE(COIN_BLOCK_INFLATE,                  103, "inflate coins to user of tx") \
+    DEFINE(COIN_STAKE,                          104, "stake user's coins") \
     /**** transfer */ \
     DEFINE(TRANSFER_FEE_TO_RESERVE,             201, "transferred fee to risk reserve") \
     DEFINE(TRANSFER_ACTUAL_COINS,               202, "actual transferred coins") \
@@ -36,6 +37,8 @@ static CUserID nullId;
     DEFINE(CDP_STAKED_ASSET_FROM_OWNER,         401, "staked assets from cdp owner") \
     DEFINE(CDP_MINTED_SCOIN_TO_OWNER,           402, "minted scoins to cdp owner") \
     DEFINE(CDP_INTEREST_BUY_DEFLATE_FCOINS,     403, "cdp interest scoins to buy fcoins for deflating") \
+    DEFINE(CDP_REPAY_INTEREST,                  404, "repay cdp interest scoins to owner") \
+    DEFINE(CDP_REPAY_INTEREST_TO_FUND,          405, "repay cdp interest scoins to fund") \
     /**** CDP redeem*/ \
     DEFINE(CDP_REPAID_SCOIN_FROM_OWNER,         420, "actual repaid scoins from cdp owner") \
     DEFINE(CDP_REDEEMED_ASSET_TO_OWNER,         421, "redeemed assets to cdp owner") \

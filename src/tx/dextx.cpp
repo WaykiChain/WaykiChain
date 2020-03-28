@@ -6,6 +6,7 @@
 #include "dextx.h"
 
 #include "config/configuration.h"
+#include "entities/receipt.h"
 #include "main.h"
 
 #include <algorithm>
@@ -103,29 +104,16 @@ namespace dex {
 
     bool CDEXOrderBaseTx::ExecuteTx(CTxExecuteContext &context) {
         CCacheWrapper &cw = *context.pCw; CValidationState &state = *context.pState;
-        CAccount txAccount;
-        if (!cw.accountCache.GetAccount(txUid, txAccount)) {
-            return state.DoS(100, ERRORMSG("%s, read source addr account info error", ERROR_TITLE(GetTxTypeName())),
-                            READ_ACCOUNT_FAIL, "bad-read-accountdb");
-        }
-
-        if (!GenerateRegID(context, txAccount)) {
-            return false;
-        }
-
-        if (!txAccount.OperateBalance(fee_symbol, SUB_FREE, llFees)) {
-            return state.DoS(100, ERRORMSG("%s, tx account has insufficient funds for tx fee", ERROR_TITLE(GetTxTypeName())),
-                            UPDATE_ACCOUNT_FAIL, "tx-account-insufficient");
-        }
-
+   
         if (has_operator_config) {
             DexOperatorDetail operatorDetail;
             if (!GetOrderOperator(context, operatorDetail)) return false;
             CAccount operatorAccount;
             if (!GetOperatorAccount(context, operatorDetail.fee_receiver_regid, operatorAccount)) return false;
-            if (!operatorAccount.OperateBalance(fee_symbol, SUB_FREE, operator_tx_fee)) {
-                return state.DoS(100, ERRORMSG("%s, operator account has insufficient funds for tx fee", ERROR_TITLE(GetTxTypeName())),
-                                UPDATE_ACCOUNT_FAIL, "operator-account-insufficient");
+            if (!operatorAccount.OperateBalance(fee_symbol, SUB_FREE, operator_tx_fee, 
+                                                ReceiptCode::DEX_COIN_FEE_TO_SETTLER, receipts)) {
+                return state.DoS(100, ERRORMSG("%s, operator account has insufficient funds for tx fee", 
+                                ERROR_TITLE(GetTxTypeName())), UPDATE_ACCOUNT_FAIL, "operator-account-insufficient");
             }
         }
 
@@ -134,10 +122,10 @@ namespace dex {
             coinAmount = CDEXOrderBaseTx::CalcCoinAmount(asset_amount, price);
 
         if (order_side == ORDER_BUY) {
-            if (!FreezeBalance(context, txAccount, coin_symbol, coinAmount)) return false;
+            if (!FreezeBalance(context, txAccount, coin_symbol, coinAmount, ReceiptCode::DEX_ASSET_TO_BUYER)) return false;
         } else {
             assert(order_side == ORDER_SELL);
-            if (!FreezeBalance(context, txAccount, asset_symbol, asset_amount)) return false;
+            if (!FreezeBalance(context, txAccount, asset_symbol, asset_amount, ReceiptCode::DEX_COIN_TO_SELLER)) return false;
         }
 
         assert(!txAccount.regid.IsEmpty());
@@ -361,9 +349,10 @@ namespace dex {
         return true;
     }
 
-    bool CDEXOrderBaseTx::FreezeBalance(CTxExecuteContext &context, CAccount &account, const TokenSymbol &tokenSymbol, const uint64_t &amount) {
+    bool CDEXOrderBaseTx::FreezeBalance(CTxExecuteContext &context, CAccount &account, const TokenSymbol &tokenSymbol, 
+                                        const uint64_t &amount, ReceiptCode code) {
 
-        if (!account.OperateBalance(tokenSymbol, FREEZE, amount)) {
+        if (!account.OperateBalance(tokenSymbol, FREEZE, amount, code, receipts)) {
             return context.pState->DoS(100,
                 ERRORMSG("%s, account has insufficient funds! regid=%s, symbol=%s, amount=%llu", TX_ERR_TITLE,
                         account.regid.ToString(), tokenSymbol, amount),
@@ -462,21 +451,6 @@ namespace dex {
     bool CDEXCancelOrderTx::ExecuteTx(CTxExecuteContext &context) {
         IMPLEMENT_DEFINE_CW_STATE;
 
-        CAccount txAccount;
-        if (!cw.accountCache.GetAccount(txUid, txAccount)) {
-            return state.DoS(100, ERRORMSG("CDEXCancelOrderTx::ExecuteTx, read source addr account info error"),
-                            READ_ACCOUNT_FAIL, "bad-read-accountdb");
-        }
-
-        if (!GenerateRegID(context, txAccount)) {
-            return false;
-        }
-
-        if (!txAccount.OperateBalance(fee_symbol, SUB_FREE, llFees)) {
-            return state.DoS(100, ERRORMSG("CDEXCancelOrderTx::ExecuteTx, account has insufficient funds"),
-                            UPDATE_ACCOUNT_FAIL, "operate-minus-account-failed");
-        }
-
         CDEXOrderDetail activeOrder;
         if (!cw.dexCache.GetActiveOrder(order_id, activeOrder)) {
             return state.DoS(100, ERRORMSG("CDEXCancelOrderTx::ExecuteTx, the order is inactive or not existed"),
@@ -513,7 +487,7 @@ namespace dex {
             assert(false && "Order side must be ORDER_BUY|ORDER_SELL");
         }
 
-        if (!txAccount.OperateBalance(frozenSymbol, UNFREEZE, frozenAmount)) {
+        if (!txAccount.OperateBalance(frozenSymbol, UNFREEZE, frozenAmount, ReceiptCode::DEX_UNFREEZE_COIN_TO_BUYER, receipts)) {
             return state.DoS(100, ERRORMSG("CDEXCancelOrderTx::ExecuteTx, account has insufficient frozen amount to unfreeze"),
                             UPDATE_ACCOUNT_FAIL, "unfreeze-account-coin");
         }

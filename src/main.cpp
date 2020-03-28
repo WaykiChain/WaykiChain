@@ -815,9 +815,8 @@ static bool ProcessGenesisBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *p
             account.owner_pubkey = pubKey;
             account.regid        = regId;
 
-            CReceipt receipt(ReceiptCode::BLOCK_REWARD_TO_MINER);
-            account.OperateBalance(SYMB::WICC, BalanceOpType::ADD_FREE, pRewardTx->reward_fees, receipt);
-            receipts.push_back(receipt);
+            account.OperateBalance(SYMB::WICC, BalanceOpType::ADD_FREE, pRewardTx->reward_fees, 
+                                   ReceiptCode::BLOCK_REWARD_TO_MINER, receipts);
 
             assert( cw.accountCache.SaveAccount(account) );
         } else if (block.vptx[i]->nTxType == DELEGATE_VOTE_TX) {
@@ -865,11 +864,10 @@ static bool ProcessGenesisBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *p
                      });
             }
 
-            asset( voterAcct.GetToken(SYMB::WICC).free_amount >= maxVotes );
+            assert( voterAcct.GetToken(SYMB::WICC).free_amount >= maxVotes );
 
-            CReceipt receipt(ReceiptCode::DELEGATE_ADD_VOTE);
-            voterAcct.OperateBalance(SYMB::WICC, BalanceOpType::VOTE, maxVotes, receipt);
-            receipts.push_back(receipt);
+            voterAcct.OperateBalance(SYMB::WICC, BalanceOpType::VOTE, maxVotes, 
+                                    ReceiptCode::DELEGATE_ADD_VOTE, receipts);
 
             cw.accountCache.SaveAccount(voterAcct);
             assert( cw.delegateCache.SetCandidateVotes(pDelegateTx->txUid.get<CRegID>(), candidateVotes) );
@@ -1163,7 +1161,7 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
         CTxExecuteContext context(pIndex->height, 0, pIndex->nFuelRate, pIndex->nTime, prevBlockTime, &cw, &state);
         CTxUndoOpLogger rewardOpLogger(cw, block.vptx[0]->GetHash(), blockUndo);
 
-        if (!block.vptx[0]->ExecuteTx(context)) {
+        if (!block.vptx[0]->ExecuteFullTx(context)) {
             pCdMan->pLogCache->SetExecuteFail(pIndex->height, block.vptx[0]->GetHash(), state.GetRejectCode(),
                                             state.GetRejectReason());
             return state.DoS(100, ERRORMSG("ConnectBlock() : failed to execute reward transaction"));
@@ -1207,7 +1205,7 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
             uint32_t prevBlockTime = pIndex->pprev != nullptr ? pIndex->pprev->GetBlockTime() : pIndex->GetBlockTime();
             CTxExecuteContext context(pIndex->height, -1, pIndex->nFuelRate, pIndex->nTime, prevBlockTime, &cw, &state);
             CTxUndoOpLogger rewardOpLogger(cw, block.vptx[0]->GetHash(), blockUndo);
-            if (!matureBlock.vptx[0]->ExecuteTx(context)) {
+            if (!matureBlock.vptx[0]->ExecuteFullTx(context)) {
                 pCdMan->pLogCache->SetExecuteFail(pIndex->height, matureBlock.vptx[0]->GetHash(), state.GetRejectCode(),
                                                   state.GetRejectReason());
                 return state.DoS(100, ERRORMSG("ConnectBlock() : execute mature block reward tx error"));

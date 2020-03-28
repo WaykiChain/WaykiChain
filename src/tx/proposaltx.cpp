@@ -71,16 +71,11 @@ Object CProposalRequestTx::ToJson(const CAccountDBCache &accountCache) const {
 bool CProposalRequestTx::ExecuteTx(CTxExecuteContext &context) {
     IMPLEMENT_DEFINE_CW_STATE;
 
-    CAccount srcAccount;
-    if (!cw.accountCache.GetAccount(txUid, srcAccount))
-        return state.DoS(100, ERRORMSG("CProposalRequestTx::ExecuteTx, read source addr account info error"),
-                    READ_ACCOUNT_FAIL, "bad-read-accountdb");
-
-    if (!srcAccount.OperateBalance(fee_symbol, SUB_FREE, llFees))
+    if (!txAccount.OperateBalance(fee_symbol, SUB_FREE, llFees, ReceiptCode::BLOCK_REWARD_TO_MINER, receipts))
         return state.DoS(100, ERRORMSG("CProposalRequestTx::ExecuteTx, account has insufficient funds"),
                     UPDATE_ACCOUNT_FAIL, "operate-minus-account-failed");
 
-    if (!cw.accountCache.SetAccount(CUserID(srcAccount.keyid), srcAccount))
+    if (!cw.accountCache.SetAccount(CUserID(txAccount.keyid), txAccount))
         return state.DoS(100, ERRORMSG("CProposalRequestTx::ExecuteTx, set account info error"),
                     WRITE_ACCOUNT_FAIL, "bad-write-accountdb");
 
@@ -152,17 +147,17 @@ bool CProposalApprovalTx::ExecuteTx(CTxExecuteContext &context) {
         return state.DoS(100, ERRORMSG("CProposalApprovalTx::ExecuteTx, proposal executed already"),
                         WRITE_ACCOUNT_FAIL, "proposal-executed-already");
 
-    CAccount srcAccount;
-    if (!cw.accountCache.GetAccount(txUid, srcAccount))
+    CAccount txAccount;
+    if (!cw.accountCache.GetAccount(txUid, txAccount))
         return state.DoS(100, ERRORMSG("CProposalApprovalTx::ExecuteTx, read source addr account info error"),
                         READ_ACCOUNT_FAIL, "bad-read-accountdb");
-    if (!srcAccount.OperateBalance(fee_symbol, SUB_FREE, llFees))
+    if (!txAccount.OperateBalance(fee_symbol, SUB_FREE, llFees))
         return state.DoS(100, ERRORMSG("CProposalApprovalTx::ExecuteTx, account has insufficient funds"),
                         UPDATE_ACCOUNT_FAIL, "operate-minus-account-failed");
     if (spProposal->expiry_block_height < (uint32_t)context.height)
         return state.DoS(100, ERRORMSG("CProposalApprovalTx::ExecuteTx, proposal(id=%s)  is expired", txid.ToString()),
                         WRITE_ACCOUNT_FAIL, "proposal-expired");
-    if (!cw.accountCache.SetAccount(CUserID(srcAccount.keyid), srcAccount))
+    if (!cw.accountCache.SetAccount(CUserID(txAccount.keyid), txAccount))
         return state.DoS(100, ERRORMSG("CProposalApprovalTx::ExecuteTx, set account info error"),
                         WRITE_ACCOUNT_FAIL, "bad-write-accountdb");
 

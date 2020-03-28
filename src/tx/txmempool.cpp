@@ -106,7 +106,7 @@ bool CTxMemPool::CheckTxInMemPool(const uint256 &txid, const CTxMemPoolEntry &me
         CTxExecuteContext context(newHeight, 0, fuelRate, blockTime, prevBlockTime, spCW.get(), &state, 
                                 TxExecuteContextType::VALIDATE_MEMPOOL);
 
-        if (!memPoolEntry.GetTransaction()->ExecuteTx(context)) { //rehearsal only within cache env
+        if (!memPoolEntry.GetTransaction()->ExecuteFullTx(context)) { //rehearsal only within cache env
             pCdMan->pLogCache->SetExecuteFail(newHeight, memPoolEntry.GetTransaction()->GetHash(),
                                               state.GetRejectCode(), state.GetRejectReason());
             return false;

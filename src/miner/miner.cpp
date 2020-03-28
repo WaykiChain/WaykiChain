@@ -261,7 +261,7 @@ bool VerifyRewardTx(const CBlock *pBlock, CCacheWrapper &cwIn, VoteDelegate &cur
     //             pBlockIndex->pprev != nullptr ? pBlockIndex->pprev->GetBlockTime() : pBlockIndex->GetBlockTime();
     //         CTxExecuteContext context(pBlock->GetHeight(), i, pBlock->GetFuelRate(), pBlock->GetTime(), prevBlockTime,
     //                                   spCW.get(), &state);
-    //         if (!pBaseTx->ExecuteTx(context)) {
+    //         if (!pBaseTx->ExecuteFullTx(context)) {
     //             pCdMan->pLogCache->SetExecuteFail(pBlock->GetHeight(), pBaseTx->GetHash(), state.GetRejectCode(),
     //                                               state.GetRejectReason());
     //             return ERRORMSG("VerifyRewardTx() : failed to execute transaction, txid=%s",
