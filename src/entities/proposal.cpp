@@ -220,7 +220,12 @@ bool CGovAccountPermProposal::CheckProposal(CTxExecuteContext& context) {
 }
 
 bool CGovAccountPermProposal::ExecuteProposal(CTxExecuteContext& context, const TxID& proposalId, ReceiptList &receipts) {
-    CCacheWrapper &cw = *context.pCw;
+    CValidationState &state = *context.pState;
+    CCacheWrapper &cw       = *context.pCw;
+
+    if (proposed_perms_sum == 0)
+        return state.DoS(100, ERRORMSG("CGovAssetPermProposal::CheckTx, proposed perms is invalid: %llu",
+                        proposed_perms_sum), REJECT_INVALID, "asset-perms-invalid");
 
     CAccount acct;
     if (!cw.accountCache.GetAccount(account_uid, acct))
@@ -229,17 +234,7 @@ bool CGovAccountPermProposal::ExecuteProposal(CTxExecuteContext& context, const 
     acct.perms_sum = proposed_perms_sum;
     if (!cw.accountCache.SetAccount(account_uid, acct))
         return false;
-    CValidationState &state = *context.pState;
-    CCacheWrapper &cw       = *context.pCw;
 
-    CAsset asset;
-    if (!cw.assetCache.GetAsset(asset_symbol, asset))
-        return state.DoS(100, ERRORMSG("CGovAssetPermProposal::CheckTx, asset symbol not found"),
-                        REJECT_INVALID, "asset-symbol-invalid");
-
-    if (proposed_perms_sum == 0)
-        return state.DoS(100, ERRORMSG("CGovAssetPermProposal::CheckTx, proposed perms is invalid: %llu",
-                        proposed_perms_sum), REJECT_INVALID, "asset-perms-invalid");
     return true;
 
 }

@@ -127,7 +127,7 @@ struct CGovSysParamProposal: CProposal {
 
     std::shared_ptr<CProposal> GetNewInstance() override { return make_shared<CGovSysParamProposal>(*this); } ;
 
-    bool CheckProposal(CTxExecuteContext& context, CBaseTx& tx) override;
+    bool CheckProposal(CTxExecuteContext& context) override;
     bool ExecuteProposal(CTxExecuteContext& context, const TxID& proposalId, ReceiptList &receipts) override;
 
 };
