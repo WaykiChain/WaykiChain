@@ -2497,67 +2497,83 @@ int32_t ExGetAssetPriceFunc(lua_State *L) {
     return 1;
 }
 
-static const luaL_Reg mylib[] = {
-    {"Int64Mul",                    ExInt64MulFunc},
-    {"Int64Add",                    ExInt64AddFunc},
-    {"Int64Sub",                    ExInt64SubFunc},
-    {"Int64Div",                    ExInt64DivFunc},
-    {"Sha256",                      ExSha256Func},
-    {"Sha256Once",                  ExSha256OnceFunc},
-    {"Des",                         ExDesFunc},
 
-    {"VerifySignature",             ExVerifySignatureFunc},
-    {"LogPrint",                    ExLogPrintFunc},
-    {"GetTxContract",               ExGetTxContractFunc},
-    {"GetTxRegID",                  ExGetTxRegIDFunc},
-    {"GetAccountPublickey",         ExGetAccountPublickeyFunc},
-    {"QueryAccountBalance",         ExQueryAccountBalanceFunc},
-    {"GetTxConfirmHeight",          ExGetTxConfirmHeightFunc},
-    {"GetTxConFirmHeight",          ExGetTxConfirmHeightFunc}, /** deprecated */
-    {"GetBlockHash",                ExGetBlockHashFunc},
+///////////////////////////////////////////////////////////////////////////////
+// functions added in MAJOR_VER_R1
+#define ADDED_MYLIB_FUNC_V1 \
+    {"Int64Mul",                    ExInt64MulFunc},\
+    {"Int64Add",                    ExInt64AddFunc},\
+    {"Int64Sub",                    ExInt64SubFunc},\
+    {"Int64Div",                    ExInt64DivFunc},\
+    {"Sha256",                      ExSha256Func},\
+    {"Sha256Once",                  ExSha256OnceFunc},\
+    {"Des",                         ExDesFunc},\
+\
+    {"VerifySignature",             ExVerifySignatureFunc},\
+    {"LogPrint",                    ExLogPrintFunc},\
+    {"GetTxContract",               ExGetTxContractFunc},\
+    {"GetTxRegID",                  ExGetTxRegIDFunc},\
+    {"GetAccountPublickey",         ExGetAccountPublickeyFunc},\
+    {"QueryAccountBalance",         ExQueryAccountBalanceFunc},\
+    {"GetTxConfirmHeight",          ExGetTxConfirmHeightFunc},\
+    {"GetTxConFirmHeight",          ExGetTxConfirmHeightFunc}, /** deprecated */\
+    {"GetBlockHash",                ExGetBlockHashFunc},\
+\
+    {"GetCurTxHash",                ExGetCurTxHash},\
+    {"GetCurRunEnvHeight",          ExGetCurRunEnvHeightFunc},\
+\
+    {"WriteData",                   ExWriteDataDBFunc},\
+    {"ReadData",                    ExReadDataDBFunc},\
+    {"ModifyData",                  ExModifyDataDBFunc},\
+    {"DeleteData",                  ExDeleteDataDBFunc},\
+\
+    {"WriteOutput",                 ExWriteOutputFunc},\
+    {"GetScriptData",               ExGetContractDataFunc}, /** deprecated */\
+    {"GetContractData",             ExGetContractDataFunc},\
+    {"GetScriptID",                 ExGetContractRegIdFunc}, /** deprecated */\
+    {"GetContractRegId",            ExGetContractRegIdFunc},\
+    {"GetCurTxAccount",             ExGetCurTxAccountFunc},\
+    {"GetCurTxPayAmount",           ExGetCurTxPayAmountFunc},\
+\
+    {"GetUserAppAccValue",          ExGetUserAppAccValueFunc},\
+    {"GetUserAppAccFundWithTag",    ExGetUserAppAccFundWithTagFunc},\
+    {"WriteOutAppOperate",          ExWriteOutAppOperateFunc},\
+\
+    {"GetBase58Addr",               ExGetBase58AddrFunc},\
+    {"ByteToInteger",               ExByteToIntegerFunc},\
+    {"IntegerToByte4",              ExIntegerToByte4Func},\
+    {"IntegerToByte8",              ExIntegerToByte8Func},\
+    {"TransferContractAsset",       ExTransferContractAsset},\
+    {"TransferSomeAsset",           ExTransferSomeAsset},\
+    {"GetBlockTimestamp",           ExGetBlockTimestamp}
 
-    {"GetCurTxHash",                ExGetCurTxHash},
-    {"GetCurRunEnvHeight",          ExGetCurRunEnvHeightFunc},
-
-    {"WriteData",                   ExWriteDataDBFunc},
-    {"ReadData",                    ExReadDataDBFunc},
-    {"ModifyData",                  ExModifyDataDBFunc},
-    {"DeleteData",                  ExDeleteDataDBFunc},
-
-    {"WriteOutput",                 ExWriteOutputFunc},
-    {"GetScriptData",               ExGetContractDataFunc}, /** deprecated */
-    {"GetContractData",             ExGetContractDataFunc},
-    {"GetScriptID",                 ExGetContractRegIdFunc}, /** deprecated */
-    {"GetContractRegId",            ExGetContractRegIdFunc},
-    {"GetCurTxAccount",             ExGetCurTxAccountFunc},
-    {"GetCurTxPayAmount",           ExGetCurTxPayAmountFunc},
-
-    {"GetUserAppAccValue",          ExGetUserAppAccValueFunc},
-    {"GetUserAppAccFundWithTag",    ExGetUserAppAccFundWithTagFunc},
-    {"WriteOutAppOperate",          ExWriteOutAppOperateFunc},
-
-    {"GetBase58Addr",               ExGetBase58AddrFunc},
-    {"ByteToInteger",               ExByteToIntegerFunc},
-    {"IntegerToByte4",              ExIntegerToByte4Func},
-    {"IntegerToByte8",              ExIntegerToByte8Func},
-    {"TransferContractAsset",       ExTransferContractAsset},
-    {"TransferSomeAsset",           ExTransferSomeAsset},
-    {"GetBlockTimestamp",           ExGetBlockTimestamp},
 
 ///////////////////////////////////////////////////////////////////////////////
 // new function add in MAJOR_VER_R2
-    {"TransferAccountAsset",        ExTransferAccountAssetFunc},
-    {"TransferAccountAssets",       ExTransferAccountAssetsFunc},
-    {"GetCurTxInputAsset",          ExGetCurTxInputAssetFunc},
-    {"GetAccountAsset",             ExGetAccountAssetFunc},
-
+#define ADDED_MYLIB_FUNC_V2 \
+    {"TransferAccountAsset",        ExTransferAccountAssetFunc},\
+    {"TransferAccountAssets",       ExTransferAccountAssetsFunc},\
+    {"GetCurTxInputAsset",          ExGetCurTxInputAssetFunc},\
+    {"GetAccountAsset",             ExGetAccountAssetFunc}
 
 ///////////////////////////////////////////////////////////////////////////////
-// new function added in MAJOR_VER_R3
-    {"GetAssetPrice",               ExGetAssetPriceFunc},
+// new function add in MAJOR_VER_R3
+#define ADDED_MYLIB_FUNC_V3 \
+    {"GetAssetPrice",               ExGetAssetPriceFunc}
 
+#define MYLIB_FUNC_END \
     {nullptr, nullptr}
 
+static const luaL_Reg MYLIB_FUNC_V1[] = {
+    ADDED_MYLIB_FUNC_V1, MYLIB_FUNC_END
+};
+
+static const luaL_Reg MYLIB_FUNC_V2[] = {
+    ADDED_MYLIB_FUNC_V1, ADDED_MYLIB_FUNC_V2, MYLIB_FUNC_END
+};
+
+static const luaL_Reg MYLIB_FUNC_V3[] = {
+    ADDED_MYLIB_FUNC_V1, ADDED_MYLIB_FUNC_V2, ADDED_MYLIB_FUNC_V3, MYLIB_FUNC_END
 };
 
 // replace all global(in the _G) functions
@@ -2569,7 +2585,7 @@ static const luaL_Reg baseLibsEx[] = {
 };
 
 /*
- * 注册一个新Lua模块*/
+ * register mylib to lua module*/
 #ifdef WIN_DLL
     extern "C" __declspec(dllexport)int32_t luaopen_mylib(lua_State *L)
 #else
@@ -2577,7 +2593,15 @@ static const luaL_Reg baseLibsEx[] = {
 #endif
 
 {
-    luaL_newlib(L, mylib); //生成一个table,把mylibs所有函数填充进去
+    CLuaVMRunEnv* pVmRunEnv = GetVmRunEnvByContext(L);
+    auto featureForkVersion = GetFeatureForkVersion(pVmRunEnv->GetContext().height);
+    switch(featureForkVersion) {
+        case MAJOR_VER_R1:  luaL_newlib(L, MYLIB_FUNC_V1); break;
+        case MAJOR_VER_R2:  luaL_newlib(L, MYLIB_FUNC_V2); break;
+        case MAJOR_VER_R3:
+        default:            luaL_newlib(L, MYLIB_FUNC_V3); break;
+    }
+
     return 1;
 }
 
