@@ -18,7 +18,7 @@ static CUserID nullId;
 //         ReceiptCode                   CodeValue         memo
 //       -----------------              ----------  ----------------------------
 #define RECEIPT_CODE_LIST(DEFINE) \
-    DEFINE(NULL,                                 0,  "null type") \
+    DEFINE(NULL_CODE,                            0,  "null type") \
     /**** reward */ \
     DEFINE(BLOCK_REWARD_TO_MINER,               101, "block reward to miner") \
     DEFINE(COIN_BLOCK_REWARD_TO_MINER,          102, "coin block reward to miner") \

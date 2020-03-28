@@ -679,7 +679,7 @@ void RPC_PARAM::CheckAccountBalance(CAccount &account, const TokenSymbol &tokenS
     if (!pCdMan->pAssetCache->CheckAsset(tokenSymbol))
         throw JSONRPCError(RPC_WALLET_ERROR, strprintf("Unsupported coin symbol: %s", tokenSymbol));
 
-    if (!account.OperateBalance(tokenSymbol, opType, value, ReceiptCode::NULL, ReceiptList()))
+    if (!account.OperateBalance(tokenSymbol, opType, value, ReceiptCode::NULL_CODE, ReceiptList()))
         throw JSONRPCError(RPC_WALLET_INSUFFICIENT_FUNDS, strprintf("Account does not have enough %s", tokenSymbol));
 }
 
