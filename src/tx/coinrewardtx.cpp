@@ -35,7 +35,7 @@ bool CCoinRewardTx::ExecuteTx(CTxExecuteContext &context) {
     account.regid        = regId;
     account.keyid        = keyId;
 
-    if (!account.OperateBalance(coin_symbol, ADD_FREE, coin_amount))
+    if (!account.OperateBalance(coin_symbol, ADD_FREE, coin_amount, ReceiptCode::COIN_BLOCK_REWARD_TO_MINER, receipt))
         return state.DoS(100, ERRORMSG("CCoinRewardTx::ExecuteTx, operate account failed"), UPDATE_ACCOUNT_FAIL,
                          "operate-account-failed");
 

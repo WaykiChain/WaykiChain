@@ -30,7 +30,7 @@ Object AssetToJson(const CAccountDBCache &accountCache, const CAsset &asset){
     return asset.ToJsonObj();
 }
 static bool ProcessAssetFee(CCacheWrapper &cw, CValidationState &state, const string &action,
-    CAccount &txAccount, vector<CReceipt> &receipts,uint32_t currHeight) {
+    CAccount &txAccount, uint32_t currHeight, ReceiptList &receipts) {
 
     uint64_t assetFee = 0;
     if (action == ASSET_ACTION_ISSUE) {
@@ -44,7 +44,7 @@ static bool ProcessAssetFee(CCacheWrapper &cw, CValidationState &state, const st
                             REJECT_INVALID, "read-sysparam-error");
     }
 
-    if (!txAccount.OperateBalance(SYMB::WICC, BalanceOpType::SUB_FREE, assetFee))
+    if (!txAccount.OperateBalance(SYMB::WICC, BalanceOpType::SUB_FREE, assetFee, ReceiptCode::TRANSFER_ACTUAL_COINS, receipts))
         return state.DoS(100, ERRORMSG("ProcessAssetFee, insufficient funds in account for %s asset fee=%llu, tx_regid=%s",
                         action, assetFee, txAccount.regid.ToString()), UPDATE_ACCOUNT_FAIL, "insufficent-funds");
 
@@ -62,14 +62,13 @@ static bool ProcessAssetFee(CCacheWrapper &cw, CValidationState &state, const st
         return state.DoS(100, ERRORMSG("ProcessAssetFee, get risk reserve account failed"),
                         READ_ACCOUNT_FAIL, "get-account-failed");
 
-    if (!fcoinGenesisAccount.OperateBalance(SYMB::WICC, BalanceOpType::ADD_FREE, riskFee)) {
+    ReceiptCode code = (action == ASSET_ACTION_ISSUE) ? ReceiptCode::ASSET_ISSUED_FEE_TO_RESERVE : 
+                                                        ReceiptCode::ASSET_UPDATED_FEE_TO_RESERVE;
+
+    if (!fcoinGenesisAccount.OperateBalance(SYMB::WICC, BalanceOpType::ADD_FREE, riskFee, code, receipts)) {
         return state.DoS(100, ERRORMSG("ProcessAssetFee, operate balance failed! add %s asset fee=%llu to risk reserve account error",
             action, riskFee), UPDATE_ACCOUNT_FAIL, "update-account-failed");
     }
-    if (action == ASSET_ACTION_ISSUE)
-        receipts.emplace_back(txAccount.regid, fcoinGenesisAccount.regid, SYMB::WICC, riskFee, ReceiptCode::ASSET_ISSUED_FEE_TO_RESERVE);
-    else
-        receipts.emplace_back(txAccount.regid, fcoinGenesisAccount.regid, SYMB::WICC, riskFee, ReceiptCode::ASSET_UPDATED_FEE_TO_RESERVE);
 
     if (!cw.accountCache.SetAccount(fcoinGenesisAccount.keyid, fcoinGenesisAccount))
         return state.DoS(100, ERRORMSG("ProcessAssetFee, write fcoin genesis account info error, regid=%s",
@@ -92,7 +91,9 @@ static bool ProcessAssetFee(CCacheWrapper &cw, CValidationState &state, const st
         uint64_t minerUpdatedFee = minerTotalFee / delegates.size();
         if (i == 0) minerUpdatedFee += minerTotalFee % delegates.size(); // give the dust amount to topmost miner
 
-        if (!delegateAccount.OperateBalance(SYMB::WICC, BalanceOpType::ADD_FREE, minerUpdatedFee)) {
+        ReceiptCode code = (action == ASSET_ACTION_ISSUE) ? ReceiptCode::ASSET_ISSUED_FEE_TO_MINER : 
+                                                            ReceiptCode::ASSET_UPDATED_FEE_TO_MINER;
+        if (!delegateAccount.OperateBalance(SYMB::WICC, BalanceOpType::ADD_FREE, minerUpdatedFee, code, receipts)) {
             return state.DoS(100, ERRORMSG("ProcessAssetFee, add %s asset fee to miner failed, miner regid=%s",
                 action, delegateRegid.ToString()), UPDATE_ACCOUNT_FAIL, "operate-account-failed");
         }
@@ -101,11 +102,8 @@ static bool ProcessAssetFee(CCacheWrapper &cw, CValidationState &state, const st
             return state.DoS(100, ERRORMSG("ProcessAssetFee, write delegate account info error, delegate regid=%s",
                 delegateRegid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
 
-        if (action == ASSET_ACTION_ISSUE)
-            receipts.emplace_back(txAccount.regid, delegateRegid, SYMB::WICC, minerUpdatedFee, ReceiptCode::ASSET_ISSUED_FEE_TO_MINER);
-        else
-            receipts.emplace_back(txAccount.regid, delegateRegid, SYMB::WICC, minerUpdatedFee, ReceiptCode::ASSET_UPDATED_FEE_TO_MINER);
     }
+
     return true;
 }
 
@@ -151,7 +149,6 @@ bool CUserIssueAssetTx::CheckTx(CTxExecuteContext &context) {
 bool CUserIssueAssetTx::ExecuteTx(CTxExecuteContext &context) {
     IMPLEMENT_DEFINE_CW_STATE;
 
-    vector<CReceipt> receipts;
     shared_ptr<CAccount> pTxAccount = make_shared<CAccount>();
     if (pTxAccount == nullptr || !cw.accountCache.GetAccount(txUid, *pTxAccount))
         return state.DoS(100, ERRORMSG("CUserIssueAssetTx::ExecuteTx, read source txUid %s account info error",
@@ -180,9 +177,8 @@ bool CUserIssueAssetTx::ExecuteTx(CTxExecuteContext &context) {
             asset.owner_uid.get<CRegID>().ToString()), REJECT_INVALID, "owner-account-unregistered-or-immature");
     }
 
-    if (!ProcessAssetFee(cw, state, ASSET_ACTION_ISSUE, *pTxAccount, receipts,context.height)) {
+    if (!ProcessAssetFee(cw, state, ASSET_ACTION_ISSUE, *pTxAccount, context.height, receipts))
         return false;
-    }
 
     if (!pOwnerAccount->OperateBalance(asset.asset_symbol, BalanceOpType::ADD_FREE, asset.total_supply)) {
         return state.DoS(100, ERRORMSG("CUserIssueAssetTx::ExecuteTx, fail to add total_supply to issued account! total_supply=%llu, txUid=%s",
@@ -207,9 +203,10 @@ bool CUserIssueAssetTx::ExecuteTx(CTxExecuteContext &context) {
         return state.DoS(100, ERRORMSG("CUserIssueAssetTx::ExecuteTx, save asset failed! txUid=%s",
             txUid.ToDebugString()), UPDATE_ACCOUNT_FAIL, "save-asset-failed");
 
-    if(!cw.txReceiptCache.SetTxReceipts(GetHash(), receipts))
+    if (!receipts.empty() && !cw.txReceiptCache.SetTxReceipts(GetHash(), receipts))
         return state.DoS(100, ERRORMSG("CUserIssueAssetTx::ExecuteTx, set tx receipts failed!! txid=%s",
                         GetHash().ToString()), REJECT_INVALID, "set-tx-receipt-failed");
+
     return true;
 }
 
@@ -374,7 +371,7 @@ bool CUserUpdateAssetTx::CheckTx(CTxExecuteContext &context) {
 
 bool CUserUpdateAssetTx::ExecuteTx(CTxExecuteContext &context) {
     IMPLEMENT_DEFINE_CW_STATE;
-    vector<CReceipt> receipts;
+
     CAccount account;
     if (!cw.accountCache.GetAccount(txUid, account))
         return state.DoS(100, ERRORMSG("CUserUpdateAssetTx::ExecuteTx, read source txUid %s account info error",
@@ -393,7 +390,6 @@ bool CUserUpdateAssetTx::ExecuteTx(CTxExecuteContext &context) {
     if (!asset.mintable)
         return state.DoS(100, ERRORMSG("CUserUpdateAssetTx::ExecuteTx, the asset is not mintable"),
                     REJECT_INVALID, "asset-not-mintable");
-
 
     switch (update_data.GetType()) {
         case CUserUpdateAsset::OWNER_UID: {
@@ -428,24 +424,25 @@ bool CUserUpdateAssetTx::ExecuteTx(CTxExecuteContext &context) {
                             mintAmount, asset.total_supply, MAX_ASSET_TOTAL_SUPPLY), REJECT_INVALID, "invalid-mint-amount");
             }
 
-            if (!account.OperateBalance(asset_symbol, BalanceOpType::ADD_FREE, mintAmount)) {
+            if (!account.OperateBalance(asset_symbol, BalanceOpType::ADD_FREE, mintAmount, 
+                                        ReceiptCode::ASSET_MINT_NEW_AMOUNT, receipts)) {
                 return state.DoS(100, ERRORMSG("CUserUpdateAssetTx::ExecuteTx, add mintAmount to asset owner account failed, txUid=%s, mintAmount=%llu",
                                 txUid.ToDebugString(), mintAmount), UPDATE_ACCOUNT_FAIL, "account-add-free-failed");
             }
+
             asset.total_supply = newTotalSupply;
             break;
         }
         default: assert(false);
     }
 
-    if (!account.OperateBalance(fee_symbol, BalanceOpType::SUB_FREE, llFees)) {
+    if (!account.OperateBalance(fee_symbol, BalanceOpType::SUB_FREE, llFees, ReceiptCode::COIN_BLOCK_REWARD_TO_MINER, receipts)) {
         return state.DoS(100, ERRORMSG("CUserUpdateAssetTx::ExecuteTx, insufficient funds in account, txUid=%s",
                         txUid.ToDebugString()), UPDATE_ACCOUNT_FAIL, "insufficent-funds");
     }
 
-    if (!ProcessAssetFee(cw, state, ASSET_ACTION_UPDATE, account, receipts,context.height)) {
+    if (!ProcessAssetFee(cw, state, ASSET_ACTION_UPDATE, account, context.height, receipts))
         return false;
-    }
 
     if (!cw.assetCache.SetAsset(asset))
         return state.DoS(100, ERRORMSG("CUserUpdateAssetTx::ExecuteTx, save asset failed",
@@ -455,8 +452,5 @@ bool CUserUpdateAssetTx::ExecuteTx(CTxExecuteContext &context) {
         return state.DoS(100, ERRORMSG("CUserUpdateAssetTx::ExecuteTx, write txUid %s account info error",
             txUid.ToDebugString()), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
 
-    if(!cw.txReceiptCache.SetTxReceipts(GetHash(), receipts))
-        return state.DoS(100, ERRORMSG("CUserUpdateAssetTx::ExecuteTx, set tx receipts failed!! txid=%s",
-                        GetHash().ToString()), REJECT_INVALID, "set-tx-receipt-failed");
     return true;
 }

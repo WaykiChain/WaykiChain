@@ -18,10 +18,12 @@ static CUserID nullId;
 //         ReceiptCode                   CodeValue         memo
 //       -----------------              ----------  ----------------------------
 #define RECEIPT_CODE_LIST(DEFINE) \
+    DEFINE(NULL_CODE,                            0,  "null type") \
     /**** reward */ \
     DEFINE(BLOCK_REWARD_TO_MINER,               101, "block reward to miner") \
     DEFINE(COIN_BLOCK_REWARD_TO_MINER,          102, "coin block reward to miner") \
     DEFINE(COIN_BLOCK_INFLATE,                  103, "inflate coins to user of tx") \
+    DEFINE(COIN_STAKE,                          104, "stake user's coins") \
     /**** transfer */ \
     DEFINE(TRANSFER_FEE_TO_RESERVE,             201, "transferred fee to risk reserve") \
     DEFINE(TRANSFER_ACTUAL_COINS,               202, "actual transferred coins") \
@@ -35,6 +37,8 @@ static CUserID nullId;
     DEFINE(CDP_STAKED_ASSET_FROM_OWNER,         401, "staked assets from cdp owner") \
     DEFINE(CDP_MINTED_SCOIN_TO_OWNER,           402, "minted scoins to cdp owner") \
     DEFINE(CDP_INTEREST_BUY_DEFLATE_FCOINS,     403, "cdp interest scoins to buy fcoins for deflating") \
+    DEFINE(CDP_REPAY_INTEREST,                  404, "repay cdp interest scoins to owner") \
+    DEFINE(CDP_REPAY_INTEREST_TO_FUND,          405, "repay cdp interest scoins to fund") \
     /**** CDP redeem*/ \
     DEFINE(CDP_REPAID_SCOIN_FROM_OWNER,         420, "actual repaid scoins from cdp owner") \
     DEFINE(CDP_REDEEMED_ASSET_TO_OWNER,         421, "redeemed assets to cdp owner") \
@@ -73,7 +77,12 @@ static CUserID nullId;
     DEFINE(ASSET_ISSUED_FEE_TO_RESERVE,         701, "asset issued fee to risk reserve") \
     DEFINE(ASSET_UPDATED_FEE_TO_RESERVE,        702, "asset updated fee to risk reserve") \
     DEFINE(ASSET_ISSUED_FEE_TO_MINER,           703, "asset issued fee to miner") \
-    DEFINE(ASSET_UPDATED_FEE_TO_MINER,          704, "asset updated fee to miner")
+    DEFINE(ASSET_UPDATED_FEE_TO_MINER,          704, "asset updated fee to miner") \
+    DEFINE(ASSET_MINT_NEW_AMOUNT,               705, "asset minted with new amount") \
+    /*** cross-chain */ \
+    DEFINE(AXC_MINT_COINS,                      801, "cross-chain asset minted onchain") \
+    DEFINE(AXC_BURN_COINS,                      802, "cross-chain asset burned onchain") \
+    DEFINE(AXC_REWARD_FEE_TO_BP,                803, "cross-chain reward fees to BP")
 
 #define DEFINE_RECEIPT_CODE_TYPE(enumType, code, enumName) enumType = code,
 enum ReceiptCode: uint16_t {
@@ -103,9 +112,9 @@ public:
 public:
     CReceipt() {}
 
-    CReceipt(const CUserID &fromUid, const CUserID &toUid, const TokenSymbol &coinSymbol, const uint64_t coinAmount,
-             ReceiptCode codeIn)
-        : from_uid(fromUid), to_uid(toUid), coin_symbol(coinSymbol), coin_amount(coinAmount), code(codeIn) {}
+    CReceipt(ReceiptCode codeIn) : code(codeIn) {}
+    CReceipt(const CUserID &fromUid, const CUserID &toUid, const TokenSymbol &coinSymbol, const uint64_t coinAmount, ReceiptCode codeIn) :
+            from_uid(fromUid), to_uid(toUid), coin_symbol(coinSymbol), coin_amount(coinAmount), code(codeIn) {}
 
     IMPLEMENT_SERIALIZE(
         READWRITE(from_uid);
@@ -115,6 +124,13 @@ public:
         READWRITE_CONVERT(uint16_t, code);
     )
 
+    void SetInfo(const CUserID &fromUid, const CUserID &toUid, const TokenSymbol &coinSymbol, const uint64_t coinAmount) {
+        from_uid    = fromUid;
+        to_uid      = toUid;
+        coin_symbol = coinSymbol;
+        coin_amount = coinAmount;
+    }
+
     string ToString() const {
         return strprintf("from_uid=%s", from_uid.ToString()) + ", " +
         strprintf("to_uid=%s", to_uid.ToString()) + ", " +
@@ -123,5 +139,7 @@ public:
         strprintf("code=%s", GetReceiptCodeName(code));
     }
 };
+
+typedef vector<CReceipt> ReceiptList;
 
 #endif  // ENTITIES_RECEIPT_H

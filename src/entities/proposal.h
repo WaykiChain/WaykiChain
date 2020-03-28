@@ -61,9 +61,9 @@ struct CProposal {
 
     CProposal() {}
     CProposal(ProposalType proposalTypeIn) : proposal_type(proposalTypeIn) {}
-    virtual shared_ptr<CProposal> GetNewInstance() = 0;
-    virtual bool CheckProposal(CTxExecuteContext& context, CBaseTx& tx) = 0;
-    virtual bool ExecuteProposal(CTxExecuteContext& context, CBaseTx& tx) = 0;
+    virtual std::shared_ptr<CProposal> GetNewInstance() = 0;
+    virtual bool CheckProposal(CTxExecuteContext& context) = 0;
+    virtual bool ExecuteProposal(CTxExecuteContext& context, const TxID& proposalId, ReceiptList &receipts) = 0;
     virtual std::string ToString() {
         return strprintf("proposal_type=%d,approval_min_count=%d,expiry_block_height=%d",
                         proposal_type, approval_min_count, expiry_block_height) ;
@@ -123,10 +123,16 @@ struct CGovSysParamProposal: CProposal {
         }
         return baseString ;
     }
-    shared_ptr<CProposal> GetNewInstance() override { return make_shared<CGovSysParamProposal>(*this); } ;
 
+    std::shared_ptr<CProposal> GetNewInstance() override { return make_shared<CGovSysParamProposal>(*this); } ;
+
+<<<<<<< HEAD
     bool CheckProposal(CTxExecuteContext& context, CBaseTx& tx) override;
     bool ExecuteProposal(CTxExecuteContext& context, CBaseTx& tx) override;
+=======
+    bool CheckProposal(CTxExecuteContext& context ) override;
+    bool ExecuteProposal(CTxExecuteContext& context, const TxID& proposalId, ReceiptList &receipts) override;
+>>>>>>> v3-receipt-revamp
 
 };
 
@@ -158,10 +164,15 @@ struct CGovBpMcListProposal: CProposal{
                 gov_bp_regid.ToString(),op_type) ;
 
     }
-    shared_ptr<CProposal> GetNewInstance() override { return make_shared<CGovBpMcListProposal>(*this); }
+    shared_ptr<CProposal> GetNewInstance() override { return std::make_shared<CGovBpMcListProposal>(*this); }
 
+<<<<<<< HEAD
     bool CheckProposal(CTxExecuteContext& context, CBaseTx& tx) override;
     bool ExecuteProposal(CTxExecuteContext& context, CBaseTx& tx) override;
+=======
+    bool CheckProposal(CTxExecuteContext& context ) override;
+    bool ExecuteProposal(CTxExecuteContext& context, const TxID& proposalId, ReceiptList &receipts) override;
+>>>>>>> v3-receipt-revamp
 
 };
 
@@ -194,8 +205,13 @@ struct CGovBpSizeProposal: CProposal {
                          baseString, total_bps_size, effective_height) ;
     }
 
+<<<<<<< HEAD
     bool CheckProposal(CTxExecuteContext& context, CBaseTx& tx) override;
     bool ExecuteProposal(CTxExecuteContext& context, CBaseTx& tx) override;
+=======
+    bool CheckProposal(CTxExecuteContext& context) override;
+    bool ExecuteProposal(CTxExecuteContext& context, const TxID& proposalId, ReceiptList &receipts) override;
+>>>>>>> v3-receipt-revamp
 
 };
 
@@ -216,8 +232,13 @@ struct CGovMinerFeeProposal: CProposal {
     )
     shared_ptr<CProposal> GetNewInstance() override { return make_shared<CGovMinerFeeProposal>(*this); }
 
+<<<<<<< HEAD
     bool CheckProposal(CTxExecuteContext& context, CBaseTx& tx) override;
     bool ExecuteProposal(CTxExecuteContext& context, CBaseTx& tx) override;
+=======
+    bool CheckProposal(CTxExecuteContext& context ) override;
+    bool ExecuteProposal(CTxExecuteContext& context, const TxID& proposalId, ReceiptList &receipts) override;
+>>>>>>> v3-receipt-revamp
 
     Object ToJson() override {
         Object o = CProposal::ToJson();
@@ -257,8 +278,13 @@ struct CGovCoinTransferProposal: CProposal {
 
     shared_ptr<CProposal> GetNewInstance() override { return make_shared<CGovCoinTransferProposal>(*this); } ;
 
+<<<<<<< HEAD
     bool CheckProposal(CTxExecuteContext& context, CBaseTx& tx) override;
     bool ExecuteProposal(CTxExecuteContext& context, CBaseTx& tx) override;
+=======
+    bool CheckProposal(CTxExecuteContext& context ) override;
+    bool ExecuteProposal(CTxExecuteContext& context, const TxID& proposalId, ReceiptList &receipts) override;
+>>>>>>> v3-receipt-revamp
 
     virtual Object ToJson() override {
         Object o = CProposal::ToJson();
@@ -307,8 +333,13 @@ struct CGovAccountPermProposal: CProposal {
 
     shared_ptr<CProposal> GetNewInstance() override { return make_shared<CGovAccountPermProposal>(*this); } ;
 
+<<<<<<< HEAD
     bool CheckProposal(CTxExecuteContext& context, CBaseTx& tx) override;
     bool ExecuteProposal(CTxExecuteContext& context, CBaseTx& tx) override;
+=======
+    bool CheckProposal(CTxExecuteContext& context) override;
+    bool ExecuteProposal(CTxExecuteContext& context, const TxID& proposalId, ReceiptList &receipts) override;
+>>>>>>> v3-receipt-revamp
 
 };
 
@@ -345,8 +376,13 @@ struct CGovAssetPermProposal: CProposal {
 
     shared_ptr<CProposal> GetNewInstance() override { return make_shared<CGovAssetPermProposal>(*this); } ;
 
+<<<<<<< HEAD
     bool CheckProposal(CTxExecuteContext& context, CBaseTx& tx) override;
     bool ExecuteProposal(CTxExecuteContext& context, CBaseTx& tx) override;
+=======
+    bool CheckProposal(CTxExecuteContext& context) override;
+    bool ExecuteProposal(CTxExecuteContext& context, const TxID& proposalId, ReceiptList &receipts) override;
+>>>>>>> v3-receipt-revamp
 
 };
 
@@ -395,8 +431,13 @@ struct CGovCdpParamProposal: CProposal {
 
     shared_ptr<CProposal> GetNewInstance() override { return make_shared<CGovCdpParamProposal>(*this); } ;
 
+<<<<<<< HEAD
     bool CheckProposal(CTxExecuteContext& context, CBaseTx& tx) override;
     bool ExecuteProposal(CTxExecuteContext& context, CBaseTx& tx) override;
+=======
+    bool CheckProposal(CTxExecuteContext& context ) override;
+    bool ExecuteProposal(CTxExecuteContext& context, const TxID& proposalId, ReceiptList &receipts) override;
+>>>>>>> v3-receipt-revamp
 
 };
 
@@ -414,8 +455,13 @@ struct CGovDexOpProposal: CProposal{
 
     CGovDexOpProposal(): CProposal(ProposalType::GOV_DEX_OP) {}
 
+<<<<<<< HEAD
     bool CheckProposal(CTxExecuteContext& context, CBaseTx& tx) override;
     bool ExecuteProposal(CTxExecuteContext& context, CBaseTx& tx) override;
+=======
+    bool CheckProposal(CTxExecuteContext& context ) override;
+    bool ExecuteProposal(CTxExecuteContext& context, const TxID& proposalId, ReceiptList &receipts) override;
+>>>>>>> v3-receipt-revamp
     shared_ptr<CProposal> GetNewInstance() { return make_shared<CGovDexOpProposal>(*this); } ;
 
     Object ToJson() override {
@@ -464,8 +510,13 @@ struct CGovFeedCoinPairProposal: CProposal {
     }
     shared_ptr<CProposal> GetNewInstance() override { return make_shared<CGovFeedCoinPairProposal>(*this); }
 
+<<<<<<< HEAD
     bool CheckProposal(CTxExecuteContext& context, CBaseTx& tx) override;
     bool ExecuteProposal(CTxExecuteContext& context, CBaseTx& tx) override;
+=======
+    bool CheckProposal(CTxExecuteContext& context ) override;
+    bool ExecuteProposal(CTxExecuteContext& context, const TxID& proposalId, ReceiptList &receipts) override;
+>>>>>>> v3-receipt-revamp
 
 };
 
@@ -500,8 +551,13 @@ struct CGovAxcCoinProposal: CProposal {
     }
     shared_ptr<CProposal> GetNewInstance() override { return make_shared<CGovAxcCoinProposal>(*this); }
 
+<<<<<<< HEAD
     bool CheckProposal(CTxExecuteContext& context, CBaseTx& tx) override;
     bool ExecuteProposal(CTxExecuteContext& context, CBaseTx& tx) override;
+=======
+    bool CheckProposal(CTxExecuteContext& context ) override;
+    bool ExecuteProposal(CTxExecuteContext& context, const TxID& proposalId, ReceiptList &receipts) override;
+>>>>>>> v3-receipt-revamp
 
 };
 
@@ -554,8 +610,13 @@ struct CGovAxcInProposal: CProposal {
     }
     shared_ptr<CProposal> GetNewInstance() override { return make_shared<CGovAxcInProposal>(*this); }
 
+<<<<<<< HEAD
     bool CheckProposal(CTxExecuteContext& context, CBaseTx& tx) override;
     bool ExecuteProposal(CTxExecuteContext& context, CBaseTx& tx) override;
+=======
+    bool CheckProposal(CTxExecuteContext& context) override;
+    bool ExecuteProposal(CTxExecuteContext& context, const TxID& proposalId, ReceiptList &receipts) override;
+>>>>>>> v3-receipt-revamp
 
 };
 
@@ -606,8 +667,13 @@ struct CGovAxcOutProposal: CProposal {
 
     shared_ptr<CProposal> GetNewInstance() override { return make_shared<CGovAxcOutProposal>(*this); } ;
 
+<<<<<<< HEAD
     bool CheckProposal(CTxExecuteContext& context, CBaseTx& tx) override;
     bool ExecuteProposal(CTxExecuteContext& context, CBaseTx& tx) override;
+=======
+    bool CheckProposal(CTxExecuteContext& context) override;
+    bool ExecuteProposal(CTxExecuteContext& context, const TxID& proposalId, ReceiptList &receipts) override;
+>>>>>>> v3-receipt-revamp
 
 };
 

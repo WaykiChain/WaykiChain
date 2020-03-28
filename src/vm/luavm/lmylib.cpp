@@ -1106,15 +1106,15 @@ int32_t ExQueryAccountBalanceFunc(lua_State *L) {
     CUserID userid(addrKeyId);
     CAccount account;
     int32_t len = 0;
-    if (!pVmRunEnv->GetCatchView()->GetAccount(userid, account)) {
-        len = 0;
-    } else {
-        uint64_t nbalance = account.GetToken(SYMB::WICC).free_amount;
-        CDataStream tep(SER_DISK, CLIENT_VERSION);
-        tep << nbalance;
-        vector<uint8_t> TMP(tep.begin(), tep.end());
-        len = RetRstToLua(L, TMP);
-    }
+    if (!pVmRunEnv->GetCatchView()->GetAccount(userid, account))
+        return 0;
+
+    uint64_t nbalance = account.GetToken(SYMB::WICC).free_amount;
+    CDataStream tep(SER_DISK, CLIENT_VERSION);
+    tep << nbalance;
+    vector<uint8_t> TMP(tep.begin(), tep.end());
+    len = RetRstToLua(L, TMP);
+
     return len;
 }
 

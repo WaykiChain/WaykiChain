@@ -27,8 +27,8 @@ bool CDelegateVoteTx::CheckTx(CTxExecuteContext &context) {
         return state.DoS(100, ERRORMSG("CDelegateVoteTx::CheckTx, public key is invalid"), REJECT_INVALID,
                         "bad-publickey");
 
-    CAccount srcAccount;
-    if (!cw.accountCache.GetAccount(txUid, srcAccount)) {
+    CAccount txAccount;
+    if (!cw.accountCache.GetAccount(txUid, txAccount)) {
         return state.DoS(100, ERRORMSG("CDelegateVoteTx::CheckTx, get account info error, userid=%s", txUid.ToString()),
                          REJECT_INVALID, "bad-read-accountdb");
     }
@@ -60,27 +60,12 @@ bool CDelegateVoteTx::ExecuteTx(CTxExecuteContext &context) {
     CCacheWrapper &cw       = *context.pCw;
     CValidationState &state = *context.pState;
 
-    CAccount srcAccount;
-    if (!cw.accountCache.GetAccount(txUid, srcAccount)) {
-        return state.DoS(100, ERRORMSG("CDelegateVoteTx::ExecuteTx, read account info error"), UPDATE_ACCOUNT_FAIL,
-                         "bad-read-accountdb");
-    }
-
-    if (!GenerateRegID(context, srcAccount)) {
-        return false;
-    }
-
-    if (!srcAccount.OperateBalance(SYMB::WICC, SUB_FREE, llFees)) {
-        return state.DoS(100, ERRORMSG("CDelegateVoteTx::ExecuteTx, operate account failed, txUid=%s",
-                        txUid.ToString()), UPDATE_ACCOUNT_FAIL, "operate-account-failed");
-    }
-
     vector<CCandidateReceivedVote> candidateVotesInOut;
-    CRegID &regId = srcAccount.regid;
+    CRegID &regId = txAccount.regid;
     cw.delegateCache.GetCandidateVotes(regId, candidateVotesInOut);
 
     vector<CReceipt> receipts;
-    if (!srcAccount.ProcessCandidateVotes(candidateVotes, candidateVotesInOut, context.height, context.block_time,
+    if (!txAccount.ProcessCandidateVotes(candidateVotes, candidateVotesInOut, context.height, context.block_time,
                                           cw.accountCache, receipts)) {
         return state.DoS(
             100, ERRORMSG("CDelegateVoteTx::ExecuteTx, operate candidate votes failed, txUid=%s", txUid.ToString()),
@@ -91,7 +76,7 @@ bool CDelegateVoteTx::ExecuteTx(CTxExecuteContext &context) {
                         WRITE_CANDIDATE_VOTES_FAIL, "write-candidate-votes-failed");
     }
 
-    if (!cw.accountCache.SaveAccount(srcAccount)) {
+    if (!cw.accountCache.SaveAccount(txAccount)) {
         return state.DoS(100, ERRORMSG("CDelegateVoteTx::ExecuteTx, save account info error"), UPDATE_ACCOUNT_FAIL,
                          "bad-save-accountdb");
     }
@@ -130,8 +115,6 @@ bool CDelegateVoteTx::ExecuteTx(CTxExecuteContext &context) {
         return state.DoS(100, ERRORMSG("CDelegateVoteTx::ExecuteTx, save last vote height error"),
             UPDATE_ACCOUNT_FAIL, "bad-save-last-vote-height");
     }
-
-    cw.txReceiptCache.SetTxReceipts(GetHash(), receipts);
 
     return true;
 }
