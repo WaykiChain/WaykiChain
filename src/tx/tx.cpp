@@ -231,6 +231,7 @@ bool CBaseTx::ExecuteFullTx(CTxExecuteContext &context) {
     if (!receipts.empty() && !cw.txReceiptCache.SetTxReceipts(GetHash(), receipts))
         return state.DoS(100, ERRORMSG("ExecuteFullTx: save receipts error, txid=%s",
                                     GetHash().ToString()), WRITE_RECEIPT_FAIL, "bad-save-receipts");
+    return true;
 }
 
 

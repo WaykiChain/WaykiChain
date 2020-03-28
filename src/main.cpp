@@ -2006,10 +2006,6 @@ bool AcceptBlock(CBlock &block, CValidationState &state, CDiskBlockPos *dbp, boo
 
         VoteDelegateVector delegates;
         if (pCdMan->pDelegateCache->GetActiveDelegates(delegates)) {
-
-
-
-
             pbftContext.SaveMinersByHash(blockHash, delegates);
         }
 
@@ -2019,9 +2015,6 @@ bool AcceptBlock(CBlock &block, CValidationState &state, CDiskBlockPos *dbp, boo
             pbftMan.UpdateGlobalFinBlock(pTip);
         }
     }
-
-
-
 
     return true;
 }

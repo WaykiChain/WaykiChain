@@ -64,7 +64,7 @@ Object CProposalRequestTx::ToJson(const CAccountDBCache &accountCache) const {
 }  // json-rpc usage
 
  bool CProposalRequestTx::CheckTx(CTxExecuteContext &context) {
-     return proposal.sp_proposal->CheckProposal(context);
+     return proposal.sp_proposal->CheckProposal(context, *this);
  }
 
 
@@ -165,7 +165,7 @@ bool CProposalApprovalTx::ExecuteTx(CTxExecuteContext &context) {
         return state.DoS(100, ERRORMSG("CProposalApprovalTx::ExecuteTx, set proposal approval info error"),
                         WRITE_ACCOUNT_FAIL, "bad-write-proposaldb");
 
-    if ((assentedCount + 1 == spProposal->approval_min_count) && (!spProposal->ExecuteProposal(context, proposal_id, receipts)))
+    if ((assentedCount + 1 == spProposal->approval_min_count) && (!spProposal->ExecuteProposal(context, *this)))
         return state.DoS(100, ERRORMSG("CProposalApprovalTx::ExecuteTx, proposal execute error"),
                         WRITE_ACCOUNT_FAIL, "proposal-execute-error");
 

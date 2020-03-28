@@ -403,7 +403,9 @@ Value submitassetpermproposal(const Array& params , bool fHelp) {
 
     uint64_t permSum = asset.perms_sum;
     ParsePerms(permsArr, permSum);
-    CGovAssetPermProposal proposal(assetSymbol, permSum);
+    CGovAssetPermProposal proposal;
+    proposal.asset_symbol = assetSymbol;
+    proposal.proposed_perms_sum = permSum;
     CProposalRequestTx tx;
     tx.txUid        = txUid;
     tx.llFees       = fee.GetAmountInSawi();
@@ -733,7 +735,7 @@ Value submitaxcinproposal(const Array& params, bool fHelp) {
     string peerAddr = params[2].get_str();
     string peerTxid =params[3].get_str();
     CUserID selfUid = RPC_PARAM::GetUserId(params[4]);
-    uint64_t swapCoinAmount = roundint64(params[5].get_real());
+    uint64_t swapCoinAmount = RPC_PARAM::GetUint64(params[5]);
     ComboMoney fee          = RPC_PARAM::GetFee(params, 6, PROPOSAL_REQUEST_TX);
     int32_t validHeight  = chainActive.Height();
     CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, txUid);
@@ -778,7 +780,7 @@ Value submitaxcoutproposal(const Array& params, bool fHelp) {
     const CUserID& txUid = RPC_PARAM::GetUserId(params[0], true);
     TokenSymbol selfChainTokenSymbol(params[1].get_str());
     string peerAddr = params[2].get_str();
-    uint64_t swapCoinAmount = roundint64(params[3].get_real());
+    uint64_t swapCoinAmount = RPC_PARAM::GetUint64(params[3]);
     ComboMoney fee          = RPC_PARAM::GetFee(params, 4, PROPOSAL_REQUEST_TX);
 
     int32_t validHeight  = chainActive.Height();
