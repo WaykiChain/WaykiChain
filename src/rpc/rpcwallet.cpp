@@ -324,11 +324,13 @@ Value submitsendtx(const Array& params, bool fHelp) {
 
     string memo    = params.size() == 5 ? params[4].get_str() : "";
     int32_t height = chainActive.Height();
-    std::shared_ptr<CBaseTx> pBaseTx;
 
+    Object obj;
     if (GetFeatureForkVersion(height) >= MAJOR_VER_R2) {
-        pBaseTx = std::make_shared<CCoinTransferTx>(sendUserId, recvUserId, height, cmCoin.symbol,
-                                                    cmCoin.GetAmountInSawi(), cmFee.symbol, cmFee.GetAmountInSawi(), memo);
+
+        CCoinTransferTx tx(sendUserId, recvUserId, height, cmCoin.symbol,
+                        cmCoin.GetAmountInSawi(), cmFee.symbol, cmFee.GetAmountInSawi(), memo);
+        obj = SubmitTx(account.keyid, tx);
     } else { // MAJOR_VER_R1
         if (cmCoin.symbol != SYMB::WICC || cmFee.symbol != SYMB::WICC)
             throw JSONRPCError(REJECT_INVALID, strprintf("Only support WICC for coin symbol or fee symbol before "
@@ -338,14 +340,12 @@ Value submitsendtx(const Array& params, bool fHelp) {
             throw JSONRPCError(REJECT_INVALID, strprintf("%s is unregistered, should register first",
                                                          sendUserId.get<CKeyID>().ToAddress()));
 
-        pBaseTx = std::make_shared<CBaseCoinTransferTx>(sendUserId, recvUserId, height, cmCoin.GetAmountInSawi(),
+        CBaseCoinTransferTx tx(sendUserId, recvUserId, height, cmCoin.GetAmountInSawi(),
                                                         cmFee.GetAmountInSawi(), memo);
+        obj = SubmitTx(account.keyid, tx);
     }
 
-    LogPrint(BCLog::RPCCMD, "submitsendtx: from=%s, to=%s, coin=%s, fee=%s", sendUserId.ToString(),
-             recvUserId.ToString(), cmCoin.ToString(), cmFee.ToString());
-
-    return SubmitTx(account.keyid, *pBaseTx);
+    return obj;
 }
 
 

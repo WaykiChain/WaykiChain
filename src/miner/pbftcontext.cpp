@@ -6,6 +6,7 @@
 
 #include "pbftcontext.h"
 #include "p2p/protocol.h"
+#include "logging.h"
 
 CPBFTContext pbftContext ;
 
@@ -15,6 +16,10 @@ bool CPBFTContext::GetMinerListByBlockHash(const uint256 blockHash, set<CRegID>&
     if (it == blockMinerListMap.end())
         return false;
     miners = it->second;
+
+    for(auto x: miners) {
+       ERRORMSG("minerlist -----------%s",x.ToString());
+    }
     return true;
 }
 
