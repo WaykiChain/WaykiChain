@@ -528,15 +528,6 @@ bool CGovAxcOutProposal::CheckProposal(CTxExecuteContext& context) {
         return state.DoS(100, ERRORMSG("CGovAxcOutProposal::CheckProposal: peer_chain_addr=%s invalid",
                                         peer_chain_addr), REJECT_INVALID, "peer_chain_addr-invalid");
 
-
-    CAccount acct;
-    if (!cw.accountCache.GetAccount(tx.txUid, acct))
-        return state.DoS(100, ERRORMSG("CGovAxcOutProposal::CheckProposal: read account failed"), REJECT_INVALID,
-                        "bad-getaccount");
-    if (!acct.OperateBalance(self_chain_token_symbol, BalanceOpType::SUB_FREE, swap_amount))
-        return state.DoS(100, ERRORMSG("CGovAxcOutProposal::ExecuteProposal, opreate balance failed, swap_amount=%llu",
-                                       swap_amount), REJECT_INVALID, "balance-not-enough");
-
     if (swap_amount < DUST_AMOUNT_THRESHOLD)
         return state.DoS(100, ERRORMSG("CGovAxcOutProposal::CheckProposal: swap_amount=%llu too small",
                                         swap_amount), REJECT_INVALID, "swap_amount-dust");
