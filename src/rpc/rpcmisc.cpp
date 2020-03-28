@@ -316,7 +316,7 @@ Value dumpdb(const Array& params, bool fHelp) {
         );
 
     string prefixTypeStr = "";
-    if (params.size() > 1)
+    if (params.size() > 0)
         prefixTypeStr = params[0].get_str();
     string filePath = "";
     if (params.size() > 1)
