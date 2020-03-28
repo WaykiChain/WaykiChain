@@ -422,15 +422,6 @@ bool CCoinUtxoTransferTx::ExecuteTx(CTxExecuteContext &context) {
     CCacheWrapper &cw       = *context.pCw;
     CValidationState &state = *context.pState;
 
-    CAccount srcAccount;
-    if (!cw.accountCache.GetAccount(txUid, srcAccount))
-        return state.DoS(100, ERRORMSG("CCoinUtxoTransferTx::ExecuteTx, read txUid %s account info error",
-                        txUid.ToString()), READ_ACCOUNT_FAIL, "bad-read-accountdb");
-
-    if (!GenerateRegID(context, srcAccount)) {
-        return false;
-    }
-
     uint64_t totalInAmount = 0;
     for (auto &input : vins) {
         auto utxoKey = std::make_pair(input.prev_utxo_txid, CFixedUInt16(input.prev_utxo_vout_index));
@@ -451,7 +442,7 @@ bool CCoinUtxoTransferTx::ExecuteTx(CTxExecuteContext &context) {
                             "del-prev-utxo-err");
 
         uint256 proof = uint256();
-        CRegIDKey regIdKey(srcAccount.regid);
+        CRegIDKey regIdKey(txAccount.regid);
         auto proofKey = std::make_tuple(input.prev_utxo_txid, CFixedUInt16(input.prev_utxo_vout_index), regIdKey);
         if (context.pCw->txUtxoCache.GetUtxoPasswordProof(proofKey, proof)) {
             context.pCw->txUtxoCache.DelUtoxPasswordProof(proofKey);
@@ -470,38 +461,25 @@ bool CCoinUtxoTransferTx::ExecuteTx(CTxExecuteContext &context) {
     }
 
     uint64_t accountBalance;
-    if ( !srcAccount.GetBalance(coin_symbol, BalanceType::FREE_VALUE, accountBalance) ||
+    if ( !txAccount.GetBalance(coin_symbol, BalanceType::FREE_VALUE, accountBalance) ||
          (accountBalance + totalInAmount < totalOutAmount + llFees) )
         return state.DoS(100, ERRORMSG("CCoinUtxoTransferTx::CheckTx, account balance coin_amount insufficient!"), REJECT_INVALID,
                         "insufficient-account-coin-amount");
 
-    vector<CReceipt> receipts;
-
     uint64_t totalAccountOutAmount  = totalOutAmount + llFees;
     if (totalInAmount <  totalAccountOutAmount) {
-        if (!srcAccount.OperateBalance(coin_symbol, SUB_FREE,  totalAccountOutAmount - totalInAmount)) {
+        if (!txAccount.OperateBalance(coin_symbol, SUB_FREE,  totalAccountOutAmount - totalInAmount,
+                                    ReceiptCode::TRANSFER_UTXO_COINS, receipts)) {
             return state.DoS(100, ERRORMSG("CCoinUtxoTransferTx::ExecuteTx, failed to deduct coin_amount in txUid %s account",
                             txUid.ToString()), UPDATE_ACCOUNT_FAIL, "insufficient-fund-utxo");
         }
-    } else if (totalInAmount > totalAccountOutAmount ) {
-        if (!srcAccount.OperateBalance(coin_symbol, ADD_FREE, totalInAmount - totalAccountOutAmount)) {
+    } else if (totalInAmount > totalAccountOutAmount) {
+        if (!txAccount.OperateBalance(coin_symbol, ADD_FREE, totalInAmount - totalAccountOutAmount,
+                                    ReceiptCode::TRANSFER_UTXO_COINS, receipts)) {
             return state.DoS(100, ERRORMSG("CCoinUtxoTransferTx::ExecuteTx, failed to add coin_amount in txUid %s account",
                             txUid.ToString()), UPDATE_ACCOUNT_FAIL, "insufficient-fund-utxo");
         }
     }
-
-    if (totalInAmount > totalOutAmount)
-        receipts.emplace_back(CNullID(), txUid, coin_symbol, (totalInAmount - totalOutAmount), ReceiptCode::TRANSFER_UTXO_COINS);
-    else if (totalInAmount < totalOutAmount)
-        receipts.emplace_back(txUid, CNullID(), coin_symbol, (totalOutAmount - totalInAmount), ReceiptCode::TRANSFER_UTXO_COINS);
-
-    if (!cw.accountCache.SaveAccount(srcAccount))
-        return state.DoS(100, ERRORMSG("CCoinUtxoTransferTx::ExecuteTx, write source addr %s account info error",
-                        txUid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
-
-    if (!receipts.empty() && !cw.txReceiptCache.SetTxReceipts(GetHash(), receipts))
-        return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, set tx receipts failed!! txid=%s",
-                        GetHash().ToString()), REJECT_INVALID, "set-tx-receipt-failed");
 
     return true;
 }

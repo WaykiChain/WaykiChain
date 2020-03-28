@@ -291,7 +291,7 @@ bool CCDPStakeTx::ExecuteTx(CTxExecuteContext &context) {
         uint64_t mintScoinForInterest = 0;
         if (scoinsInterestToRepay > ownerScoins) {
             mintScoinForInterest = scoinsInterestToRepay - ownerScoins;
-            account.OperateBalance(scoin_symbol, BalanceOpType::ADD_FREE, mintScoinForInterest, 
+            account.OperateBalance(scoin_symbol, BalanceOpType::ADD_FREE, mintScoinForInterest,
                                    ReceiptCode::CDP_MINTED_SCOIN_TO_OWNER, receipts);
             LogPrint(BCLog::CDP, "Mint scoins=%llu for interest!\n", mintScoinForInterest);
         }
@@ -336,7 +336,7 @@ bool CCDPStakeTx::ExecuteTx(CTxExecuteContext &context) {
                          "bcoins-insufficient-error");
     }
 
-    if (!account.OperateBalance(scoin_symbol, BalanceOpType::ADD_FREE, scoins_to_mint, 
+    if (!account.OperateBalance(scoin_symbol, BalanceOpType::ADD_FREE, scoins_to_mint,
                                 ReceiptCode::CDP_MINTED_SCOIN_TO_OWNER, receipts)) {
         return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, add scoins failed"), UPDATE_ACCOUNT_FAIL,
                          "add-scoins-error");
@@ -634,13 +634,14 @@ bool CCDPRedeemTx::SellInterestForFcoins(const CTxCord &txCord, const CUserCDP &
     CAccount fcoinGenesisAccount;
     cw.accountCache.GetFcoinGenesisAccount(fcoinGenesisAccount);
     // send interest to fcoin genesis account
-    if (!fcoinGenesisAccount.OperateBalance(SYMB::WUSD, BalanceOpType::ADD_FREE, scoinsInterestToRepay)) {
+    if (!fcoinGenesisAccount.OperateBalance(SYMB::WUSD, BalanceOpType::ADD_FREE, scoinsInterestToRepay,
+                                            ReceiptCode::CDP_INTEREST_BUY_DEFLATE_FCOINS, receipts)) {
         return state.DoS(100, ERRORMSG("CCDPRedeemTx::SellInterestForFcoins, operate balance failed"),
                         UPDATE_ACCOUNT_FAIL, "operate-fcoin-genesis-account-failed");
     }
 
     // should freeze user's coin for buying the asset
-    if (!fcoinGenesisAccount.OperateBalance(SYMB::WUSD, BalanceOpType::FREEZE, scoinsInterestToRepay, 
+    if (!fcoinGenesisAccount.OperateBalance(SYMB::WUSD, BalanceOpType::FREEZE, scoinsInterestToRepay,
                                             ReceiptCode::CDP_INTEREST_BUY_DEFLATE_FCOINS, receipts)) {
         return state.DoS(100, ERRORMSG("CCDPRedeemTx::SellInterestForFcoins, account has insufficient funds"),
                         UPDATE_ACCOUNT_FAIL, "operate-fcoin-genesis-account-failed");
@@ -874,7 +875,7 @@ bool CCDPLiquidateTx::ExecuteTx(CTxExecuteContext &context) {
         assert(liquidateRate < 1);
         totalBcoinsToReturnLiquidator *= liquidateRate;
 
-        if (!account.OperateBalance(cdp.scoin_symbol, SUB_FREE, scoins_to_liquidate, 
+        if (!account.OperateBalance(cdp.scoin_symbol, SUB_FREE, scoins_to_liquidate,
                                     ReceiptCode::CDP_SCOIN_FROM_LIQUIDATOR, receipts)) {
             return state.DoS(100, ERRORMSG("CCDPLiquidateTx::ExecuteTx, sub scoins to liquidator failed"),
                              UPDATE_ACCOUNT_FAIL, "sub-scoins-to-liquidator-failed");
@@ -1013,7 +1014,7 @@ bool CCDPLiquidateTx::ProcessPenaltyFees(CTxExecuteContext &context, const CUser
         }
 
         // should freeze user's coin for buying the asset
-        if (!fcoinGenesisAccount.OperateBalance(cdp.scoin_symbol, BalanceOpType::FREEZE, leftScoinPenalty, 
+        if (!fcoinGenesisAccount.OperateBalance(cdp.scoin_symbol, BalanceOpType::FREEZE, leftScoinPenalty,
                                                 ReceiptCode::CDP_PENALTY_TO_RESERVE, receipts)) {
             return state.DoS(100, ERRORMSG("CdpLiquidateTx::ProcessPenaltyFees, account has insufficient funds"),
                             UPDATE_ACCOUNT_FAIL, "operate-fcoin-genesis-account-failed");
