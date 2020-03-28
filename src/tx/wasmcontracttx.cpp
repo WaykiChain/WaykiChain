@@ -418,15 +418,15 @@ string CWasmContractTx::ToString(CAccountDBCache &accountCache) {
     if (inline_transactions.size() == 0) return string("");
     inline_transaction trx = inline_transactions[0];
 
-    CAccount authorizer;
-    if (!accountCache.GetAccount(txUid, authorizer)) {
+    CAccount payer;
+    if (!accountCache.GetAccount(txUid, payer)) {
         return string("");
     }
 
     return strprintf(
-            "txType=%s, hash=%s, ver=%d, authorizer=%s, llFees=%llu, contract=%s, action=%s, arguments=%s, "
+            "txType=%s, hash=%s, ver=%d, payer=%s, llFees=%llu, contract=%s, action=%s, arguments=%s, "
             "valid_height=%d",
-            GetTxType(nTxType), GetHash().ToString(), nVersion, authorizer.nickid.ToString(), llFees,
+            GetTxType(nTxType), GetHash().ToString(), nVersion, payer.nickid.ToString(), llFees,
             wasm::name(trx.contract).to_string(), wasm::name(trx.action).to_string(),
             HexStr(trx.data), valid_height);
 }
@@ -448,15 +448,18 @@ Object CWasmContractTx::ToJson(const CAccountDBCache &accountCache) const {
     result.push_back(Pair("fees",             llFees));
     result.push_back(Pair("valid_height",     valid_height));
 
-    if(inline_transactions.size() == 1){
-        Value tmp;
-        to_variant(inline_transactions[0], tmp);
-        result.push_back(Pair("inline_transaction", tmp));
-    } else if(inline_transactions.size() > 1) {
-        Value inline_transactions_arr;
-        to_variant(inline_transactions, inline_transactions_arr);
-        result.push_back(Pair("inline_transactions", inline_transactions_arr));
-    }
+    // if(inline_transactions.size() == 1){
+    //     Value tmp;
+    //     to_variant(inline_transactions[0], tmp);
+    //     result.push_back(Pair("inline_transaction", tmp));
+    // } else if(inline_transactions.size() > 1) {
+    //     Value inline_transactions_arr;
+    //     to_variant(inline_transactions, inline_transactions_arr);
+    //     result.push_back(Pair("inline_transactions", inline_transactions_arr));
+    // }
+    Value inline_transactions_arr;
+    to_variant(inline_transactions, inline_transactions_arr);
+    result.push_back(Pair("inline_transactions", inline_transactions_arr));
 
     Value signature_payer;
     to_variant(signature_pair{payer.nickid.value, signature}, signature_payer);
@@ -466,7 +469,6 @@ Object CWasmContractTx::ToJson(const CAccountDBCache &accountCache) const {
         Value signatures_arr;
         to_variant(signatures, signatures_arr);
         result.push_back(Pair("signature_pairs", signatures_arr));
-        result.push_back(Pair("signature_payer", signature_payer));
     }
 
     return result;
