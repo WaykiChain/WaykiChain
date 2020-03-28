@@ -63,7 +63,7 @@ struct CUserCDP {
           scoin_symbol(scoinSymbol),
           total_staked_bcoins(totalStakedBcoins),
           total_owed_scoins(totalOwedScoins) {
-              ComputeCollateralRatioBase();
+              ComputeCollateralRatioBase(0);
           }
 
     // Attention: NEVER use block_height as a comparative factor, as block_height may not change, i.e. liquidating
@@ -95,9 +95,9 @@ struct CUserCDP {
         READWRITE(scoin_symbol);
         READWRITE(VARINT(total_staked_bcoins));
         READWRITE(VARINT(total_owed_scoins));
-        if (fRead) {
-            ComputeCollateralRatioBase();
-        }
+        // if (fRead) {
+        //     ComputeCollateralRatioBase(0);
+        // }
     )
 
     string ToString() const;

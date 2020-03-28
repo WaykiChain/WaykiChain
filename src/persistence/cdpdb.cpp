@@ -178,8 +178,7 @@ CdpRatioSortedCache::KeyType CCdpDBCache::MakeCdpRatioSortedKey(const CUserCDP &
     CCdpCoinPair cdpCoinPair = cdp.GetCoinPair();
     uint64_t boostedRatio = cdp.collateral_ratio_base * CDP_BASE_RATIO_BOOST;
     uint64_t ratio        = (boostedRatio < cdp.collateral_ratio_base /* overflown */) ? UINT64_MAX : boostedRatio;
-    CdpRatioSortedCache::KeyType key(cdpCoinPair, CFixedUInt64(ratio), CFixedUInt64(cdp.block_height),
-         cdp.cdpid);
+    CdpRatioSortedCache::KeyType key(cdpCoinPair, CFixedUInt64(ratio), CFixedUInt64(cdp.block_height), cdp.cdpid);
     return key;
 }
 
