@@ -18,7 +18,7 @@
 extern bool CheckIsGovernor(CRegID account, ProposalType proposalType, CCacheWrapper& cw );
 extern uint8_t GetGovernorApprovalMinCount(ProposalType proposalType, CCacheWrapper& cw );
 
-bool CGovSysParamProposal::CheckProposal(CTxExecuteContext& context, CBaseTx& tx) {
+bool CGovSysParamProposal::CheckProposal(CTxExecuteContext& context) {
      CValidationState &state = *context.pState;
 
      if (param_values.size() == 0 || param_values.size() > 50)
@@ -54,7 +54,7 @@ bool CGovSysParamProposal::ExecuteProposal(CTxExecuteContext& context, const TxI
 }
 
 
-bool CGovBpMcListProposal::CheckProposal(CTxExecuteContext& context, CBaseTx& tx){
+bool CGovBpMcListProposal::CheckProposal(CTxExecuteContext& context){
     IMPLEMENT_DEFINE_CW_STATE
 
     if (op_type != ProposalOperateType::ENABLE && op_type != ProposalOperateType::DISABLE)
@@ -77,11 +77,7 @@ bool CGovBpMcListProposal::CheckProposal(CTxExecuteContext& context, CBaseTx& tx
     return true;
 }
 
-<<<<<<< HEAD
-bool CGovBpMcListProposal::ExecuteProposal(CTxExecuteContext& context, CBaseTx& tx) {
-=======
 bool CGovBpMcListProposal::ExecuteProposal(CTxExecuteContext& context, const TxID& proposalId, ReceiptList &receipts) {
->>>>>>> v3-receipt-revamp
     CCacheWrapper &cw       = *context.pCw;
 
     switch (op_type) {
@@ -94,8 +90,7 @@ bool CGovBpMcListProposal::ExecuteProposal(CTxExecuteContext& context, const TxI
 }
 
 
-bool CGovBpSizeProposal:: CheckProposal(CTxExecuteContext& context, CBaseTx& tx ) {
-
+bool CGovBpSizeProposal:: CheckProposal(CTxExecuteContext& context) {
     CValidationState &state = *context.pState;;
 
     if (total_bps_size == 0) //total_bps_size > BP_MAX_COUNT: always false
@@ -110,11 +105,7 @@ bool CGovBpSizeProposal:: CheckProposal(CTxExecuteContext& context, CBaseTx& tx 
     return true;
 }
 
-<<<<<<< HEAD
-bool CGovBpSizeProposal:: ExecuteProposal(CTxExecuteContext& context, CBaseTx& tx) {
-=======
 bool CGovBpSizeProposal::ExecuteProposal(CTxExecuteContext& context, const TxID& proposalId, ReceiptList &receipts) {
->>>>>>> v3-receipt-revamp
     IMPLEMENT_DEFINE_CW_STATE;
 
     auto currentTotalBpsSize = cw.sysParamCache.GetTotalBpsSize(context.height);
@@ -132,7 +123,7 @@ bool CGovBpSizeProposal::ExecuteProposal(CTxExecuteContext& context, const TxID&
 
 }
 
-bool CGovMinerFeeProposal:: CheckProposal(CTxExecuteContext& context,CBaseTx& tx) {
+bool CGovMinerFeeProposal:: CheckProposal(CTxExecuteContext& context) {
     CValidationState& state = *context.pState;
 
     if (!kFeeSymbolSet.count(fee_symbol)) {
@@ -162,12 +153,12 @@ bool CGovMinerFeeProposal:: CheckProposal(CTxExecuteContext& context,CBaseTx& tx
     return true;
 }
 
-bool CGovMinerFeeProposal:: ExecuteProposal(CTxExecuteContext& context, CBaseTx& tx) {
+bool CGovMinerFeeProposal:: ExecuteProposal(CTxExecuteContext& context) {
     CCacheWrapper &cw       = *context.pCw;
     return cw.sysParamCache.SetMinerFee(tx_type, fee_symbol, fee_sawi_amount);
 }
 
-bool CGovCoinTransferProposal:: CheckProposal(CTxExecuteContext& context, CBaseTx& tx) {
+bool CGovCoinTransferProposal::CheckProposal(CTxExecuteContext& context) {
     IMPLEMENT_DEFINE_CW_STATE
 
     if (amount < DUST_AMOUNT_THRESHOLD)
@@ -182,11 +173,7 @@ bool CGovCoinTransferProposal:: CheckProposal(CTxExecuteContext& context, CBaseT
     return true;
 }
 
-<<<<<<< HEAD
-bool CGovCoinTransferProposal:: ExecuteProposal(CTxExecuteContext& context, CBaseTx& tx) {
-=======
 bool CGovCoinTransferProposal::ExecuteProposal(CTxExecuteContext& context, const TxID& proposalId, ReceiptList &receipts) {
->>>>>>> v3-receipt-revamp
     IMPLEMENT_DEFINE_CW_STATE;
 
     CAccount srcAccount;
@@ -215,20 +202,10 @@ bool CGovCoinTransferProposal::ExecuteProposal(CTxExecuteContext& context, const
         return state.DoS(100, ERRORMSG("CGovCoinTransferProposal::ExecuteProposal, save account error, kyeId=%s",
                                        desAccount.keyid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-save-account");
 
-<<<<<<< HEAD
-    vector<CReceipt> vReps;
-    vReps.emplace_back(from_uid, to_uid,token,amount, ReceiptCode::TRANSFER_PROPOSAL);
-    CProposalApprovalTx approvalTx = dynamic_cast<CProposalApprovalTx&>(tx);
-    if (!cw.txReceiptCache.SetTxReceipts(approvalTx.proposal_id,vReps))
-        return state.DoS(100, ERRORMSG("CGovCoinTransferProposal::ExecuteProposal, save receipts error, kyeId=%s",
-                                       desAccount.keyid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-save-receipts");
-
-=======
->>>>>>> v3-receipt-revamp
     return true;
 }
 
-bool CGovAccountPermProposal::CheckProposal(CTxExecuteContext& context, CBaseTx& tx) {
+bool CGovAccountPermProposal::CheckProposal(CTxExecuteContext& context) {
     CValidationState &state = *context.pState;
 
     if (account_uid.IsEmpty())
@@ -241,11 +218,8 @@ bool CGovAccountPermProposal::CheckProposal(CTxExecuteContext& context, CBaseTx&
     return true;
 
 }
-<<<<<<< HEAD
-bool CGovAccountPermProposal::ExecuteProposal(CTxExecuteContext& context, CBaseTx& tx) {
-=======
+
 bool CGovAccountPermProposal::ExecuteProposal(CTxExecuteContext& context, const TxID& proposalId, ReceiptList &receipts) {
->>>>>>> v3-receipt-revamp
     CCacheWrapper &cw = *context.pCw;
 
     CAccount acct;
@@ -255,11 +229,6 @@ bool CGovAccountPermProposal::ExecuteProposal(CTxExecuteContext& context, const 
     acct.perms_sum = proposed_perms_sum;
     if (!cw.accountCache.SetAccount(account_uid, acct))
         return false;
-
-    return true;
-}
-
-bool CGovAssetPermProposal::CheckProposal(CTxExecuteContext& context, CBaseTx& tx) {
     CValidationState &state = *context.pState;
     CCacheWrapper &cw       = *context.pCw;
 
@@ -274,11 +243,8 @@ bool CGovAssetPermProposal::CheckProposal(CTxExecuteContext& context, CBaseTx& t
     return true;
 
 }
-<<<<<<< HEAD
-bool CGovAssetPermProposal::ExecuteProposal(CTxExecuteContext& context, CBaseTx& tx) {
-=======
+
 bool CGovAssetPermProposal::ExecuteProposal(CTxExecuteContext& context, const TxID& proposalId, ReceiptList &receipts) {
->>>>>>> v3-receipt-revamp
     CValidationState &state = *context.pState;
     CCacheWrapper &cw       = *context.pCw;
 
@@ -307,7 +273,7 @@ bool CGovAssetPermProposal::ExecuteProposal(CTxExecuteContext& context, const Tx
 
 }
 
-bool CGovCdpParamProposal::CheckProposal(CTxExecuteContext& context, CBaseTx& tx) {
+bool CGovCdpParamProposal::CheckProposal(CTxExecuteContext& context) {
     CValidationState &state = *context.pState;
 
     if (param_values.size() == 0 || param_values.size() > 50)
@@ -329,11 +295,7 @@ bool CGovCdpParamProposal::CheckProposal(CTxExecuteContext& context, CBaseTx& tx
     return true;
 }
 
-<<<<<<< HEAD
-bool CGovCdpParamProposal::ExecuteProposal(CTxExecuteContext& context, CBaseTx& tx) {
-=======
 bool CGovCdpParamProposal::ExecuteProposal(CTxExecuteContext& context, const TxID& proposalId, ReceiptList &receipts) {
->>>>>>> v3-receipt-revamp
     CCacheWrapper &cw       = *context.pCw;
     for (auto pa: param_values){
         auto itr = CdpParamTable.find(CdpParamType(pa.first));
@@ -352,7 +314,7 @@ bool CGovCdpParamProposal::ExecuteProposal(CTxExecuteContext& context, const TxI
     return true;
 }
 
-bool CGovDexOpProposal::CheckProposal(CTxExecuteContext& context, CBaseTx& tx) {
+bool CGovDexOpProposal::CheckProposal(CTxExecuteContext& context) {
     IMPLEMENT_DEFINE_CW_STATE
 
     if (dexid == 0)
@@ -376,11 +338,7 @@ bool CGovDexOpProposal::CheckProposal(CTxExecuteContext& context, CBaseTx& tx) {
     return true;
 }
 
-<<<<<<< HEAD
-bool CGovDexOpProposal::ExecuteProposal(CTxExecuteContext& context, CBaseTx& tx) {
-=======
 bool CGovDexOpProposal::ExecuteProposal(CTxExecuteContext& context, const TxID& proposalId, ReceiptList &receipts) {
->>>>>>> v3-receipt-revamp
     IMPLEMENT_DEFINE_CW_STATE
 
     DexOperatorDetail dexOperator;
@@ -403,7 +361,7 @@ bool CGovDexOpProposal::ExecuteProposal(CTxExecuteContext& context, const TxID& 
     return true;
 }
 
-bool CGovFeedCoinPairProposal::CheckProposal(CTxExecuteContext& context, CBaseTx& tx) {
+bool CGovFeedCoinPairProposal::CheckProposal(CTxExecuteContext& context) {
     IMPLEMENT_DEFINE_CW_STATE;
 
     if (op_type == ProposalOperateType::NULL_PROPOSAL_OP)
@@ -443,11 +401,7 @@ bool CGovFeedCoinPairProposal::CheckProposal(CTxExecuteContext& context, CBaseTx
     return true;
 }
 
-<<<<<<< HEAD
-bool CGovFeedCoinPairProposal::ExecuteProposal(CTxExecuteContext& context, CBaseTx& tx) {
-=======
 bool CGovFeedCoinPairProposal::ExecuteProposal(CTxExecuteContext& context, const TxID& proposalId, ReceiptList &receipts) {
->>>>>>> v3-receipt-revamp
     CCacheWrapper& cw = *context.pCw;
     PriceCoinPair coinPair(base_symbol, quote_symbol);
     if (ProposalOperateType::ENABLE == op_type)
@@ -456,7 +410,7 @@ bool CGovFeedCoinPairProposal::ExecuteProposal(CTxExecuteContext& context, const
         return cw.priceFeedCache.EraseFeedCoinPair(coinPair);
 
 }
-bool CGovAxcInProposal::CheckProposal(CTxExecuteContext& context, CBaseTx& tx) {
+bool CGovAxcInProposal::CheckProposal(CTxExecuteContext& context) {
     IMPLEMENT_DEFINE_CW_STATE;
 
     AxcSwapCoinPair coinPair;
@@ -476,11 +430,7 @@ bool CGovAxcInProposal::CheckProposal(CTxExecuteContext& context, CBaseTx& tx) {
          (peer_chain_type == ChainType::ETHEREUM && (peer_chain_txid.size() != 65)) )
         return state.DoS(100, ERRORMSG("CGovAxcInProposal::CheckProposal: peer_chain_txid=%s invalid",
                                         peer_chain_txid), REJECT_INVALID, "peer_chain_txid-invalid");
-
     if (self_chain_uid.IsEmpty())
-        return state.DoS(100, ERRORMSG("CGovAxcInProposal::CheckProposal: self_chain_uid empty",
-                                        peer_chain_txid), REJECT_INVALID, "self_chain_uid-empty");
-
     CAccount acct;
     if (!cw.accountCache.GetAccount(self_chain_uid, acct))
         return state.DoS(100, ERRORMSG("CGovAxcInProposal::CheckProposal: read account failed"), REJECT_INVALID,
@@ -496,11 +446,8 @@ bool CGovAxcInProposal::CheckProposal(CTxExecuteContext& context, CBaseTx& tx) {
                         REJECT_INVALID, "get_swapin_mint-record-err");
     return true;
 }
-<<<<<<< HEAD
-bool CGovAxcInProposal::ExecuteProposal(CTxExecuteContext& context, CBaseTx& tx) {
-=======
+
 bool CGovAxcInProposal::ExecuteProposal(CTxExecuteContext& context, const TxID& proposalId, ReceiptList &receipts) {
->>>>>>> v3-receipt-revamp
     IMPLEMENT_DEFINE_CW_STATE;
 
     AxcSwapCoinPair coinPair;
@@ -568,7 +515,7 @@ bool CGovAxcInProposal::ExecuteProposal(CTxExecuteContext& context, const TxID& 
     return true;
 }
 
-bool CGovAxcOutProposal::CheckProposal(CTxExecuteContext& context, CBaseTx& tx) {
+bool CGovAxcOutProposal::CheckProposal(CTxExecuteContext& context) {
     IMPLEMENT_DEFINE_CW_STATE;
 
     AxcSwapCoinPair coinPair;
@@ -600,11 +547,7 @@ bool CGovAxcOutProposal::CheckProposal(CTxExecuteContext& context, CBaseTx& tx) 
     return true;
 }
 
-<<<<<<< HEAD
-bool CGovAxcOutProposal::ExecuteProposal(CTxExecuteContext& context, CBaseTx& tx) {
-=======
 bool CGovAxcOutProposal::ExecuteProposal(CTxExecuteContext& context, const TxID& proposalId, ReceiptList &receipts) {
->>>>>>> v3-receipt-revamp
     IMPLEMENT_DEFINE_CW_STATE;
 
     uint64_t swap_fee_ratio;
@@ -630,7 +573,7 @@ bool CGovAxcOutProposal::ExecuteProposal(CTxExecuteContext& context, const TxID&
 }
 
 
-bool CGovAxcCoinProposal::CheckProposal(CTxExecuteContext& context, CBaseTx& tx) {
+bool CGovAxcCoinProposal::CheckProposal(CTxExecuteContext& context) {
     IMPLEMENT_DEFINE_CW_STATE;
 
     if (op_type != ProposalOperateType::ENABLE && op_type != ProposalOperateType::DISABLE)
@@ -656,7 +599,7 @@ bool CGovAxcCoinProposal::CheckProposal(CTxExecuteContext& context, CBaseTx& tx)
                              "chain_type-error");
     }
 
-    if(kXChainSwapInTokenMap.find(peer_chain_coin_symbol) != kXChainSwapInTokenMap.end())
+    if (kXChainSwapInTokenMap.find(peer_chain_coin_symbol) != kXChainSwapInTokenMap.end())
         return state.DoS(100, ERRORMSG("CGovAxcCoinProposal::CheckProposal,default pair can't be governed"), REJECT_INVALID,
                          "default-coin-error");
 
@@ -666,11 +609,8 @@ bool CGovAxcCoinProposal::CheckProposal(CTxExecuteContext& context, CBaseTx& tx)
 
     return true;
 }
-<<<<<<< HEAD
-bool  CGovAxcCoinProposal::ExecuteProposal(CTxExecuteContext& context, CBaseTx& tx) {
-=======
+
 bool  CGovAxcCoinProposal::ExecuteProposal(CTxExecuteContext& context, const TxID& proposalId, ReceiptList &receipts) {
->>>>>>> v3-receipt-revamp
     IMPLEMENT_DEFINE_CW_STATE
 
     if(op_type == ProposalOperateType::DISABLE) {
