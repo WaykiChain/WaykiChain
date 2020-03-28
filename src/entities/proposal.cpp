@@ -153,7 +153,7 @@ bool CGovMinerFeeProposal:: CheckProposal(CTxExecuteContext& context) {
     return true;
 }
 
-bool CGovMinerFeeProposal:: ExecuteProposal(CTxExecuteContext& context) {
+bool CGovMinerFeeProposal::ExecuteProposal(CTxExecuteContext& context, const TxID& proposalId, ReceiptList &receipts) {
     CCacheWrapper &cw       = *context.pCw;
     return cw.sysParamCache.SetMinerFee(tx_type, fee_symbol, fee_sawi_amount);
 }
@@ -426,6 +426,8 @@ bool CGovAxcInProposal::CheckProposal(CTxExecuteContext& context) {
         return state.DoS(100, ERRORMSG("CGovAxcInProposal::CheckProposal: peer_chain_txid=%s invalid",
                                         peer_chain_txid), REJECT_INVALID, "peer_chain_txid-invalid");
     if (self_chain_uid.IsEmpty())
+        return state.DoS(100, ERRORMSG("CGovAxcInProposal::CheckProposal: self_chain_uid empty"), 
+                                        REJECT_INVALID, "self_chain_uid-empty");
     CAccount acct;
     if (!cw.accountCache.GetAccount(self_chain_uid, acct))
         return state.DoS(100, ERRORMSG("CGovAxcInProposal::CheckProposal: read account failed"), REJECT_INVALID,
