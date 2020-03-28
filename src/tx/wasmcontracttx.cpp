@@ -290,7 +290,7 @@ bool CWasmContractTx::ExecuteTx(CTxExecuteContext &context) {
                       wasm_chain::account_access_exception,
                       "payer does not exist, payer uid = '%s'",
                       txUid.ToString())
-        sub_balance(payer, wasm::asset(llFees, wasm::symbol(SYMB::WICC, 8)), database.accountCache);
+        sub_balance(payer, wasm::asset(llFees, wasm::symbol(SYMB::WICC, 8)), database.accountCache, receipts);
 
         recipients_size        = 0;
         pseudo_start           = system_clock::now();//pseudo start for reduce code loading duration

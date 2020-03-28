@@ -1,5 +1,6 @@
 #pragma once
 
+#include "entities/receipt.h"
 #include "wasm/wasm_context.hpp"
 #include "wasm/types/asset.hpp"
 
@@ -12,7 +13,7 @@ namespace wasm {
     using set_code_data_type = std::tuple<uint64_t, string, string, string>;
 
     void wasmio_native_setcode( wasm_context & );
-    void wasmio_bank_native_transfer( wasm_context & );
+    void wasmio_bank_native_transfer( wasm_context &, ReceiptList & );
 
     // inline bool is_native_contract(uint64_t contract){
     //     if(contract == wasmio ||
@@ -21,7 +22,7 @@ namespace wasm {
     //     return false;
     // }
 
-    inline void sub_balance(CAccount& owner, const wasm::asset& quantity, CAccountDBCache &database) {
+    inline void sub_balance(CAccount& owner, const wasm::asset& quantity, CAccountDBCache &database, ReceiptList &receipts) {
 
         string symbol     = quantity.symbol.code().to_string();
         uint8_t precision = quantity.symbol.precision();
@@ -40,7 +41,7 @@ namespace wasm {
                       "Save account error")
     }
 
-    inline void add_balance(CAccount& owner, const wasm::asset& quantity, CAccountDBCache &database){
+    inline void add_balance(CAccount& owner, const wasm::asset& quantity, CAccountDBCache &database, ReceiptList &receipts){
 
         string symbol     = quantity.symbol.code().to_string();
         uint8_t precision = quantity.symbol.precision();
@@ -49,7 +50,8 @@ namespace wasm {
                       "The precision of system coin %s must be %d",
                       symbol, 8)
 
-        CHAIN_ASSERT( owner.OperateBalance(symbol, BalanceOpType::ADD_FREE, quantity.amount),
+        CHAIN_ASSERT( owner.OperateBalance(symbol, BalanceOpType::ADD_FREE, quantity.amount, 
+                                            ReceiptCode::WASM_TRANSFER_ACTUAL_COINS, receipts),
                       account_access_exception,
                       "Operate account %s failed",
                       owner.nickid.ToString().c_str())
