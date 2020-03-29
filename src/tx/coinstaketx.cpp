@@ -28,30 +28,11 @@ bool CCoinStakeTx::CheckTx(CTxExecuteContext &context) {
 }
 
 bool CCoinStakeTx::ExecuteTx(CTxExecuteContext &context) {
-    CCacheWrapper &cw = *context.pCw; CValidationState &state = *context.pState;
-    CAccount account;
-    if (!cw.accountCache.GetAccount(txUid, account))
-        return state.DoS(100, ERRORMSG("CCoinStakeTx::ExecuteTx, read txUid %s account info error",
-                        txUid.ToString()), UCOIN_STAKE_FAIL, "bad-read-accountdb");
+    CValidationState &state = *context.pState;
 
-    if (!GenerateRegID(context, account)) {
-        return false;
-    }
-
-    if (!account.OperateBalance(fee_symbol, BalanceOpType::SUB_FREE, llFees, 
-                                ReceiptCode::COIN_BLOCK_REWARD_TO_MINER, receipts)) {
-        return state.DoS(100, ERRORMSG("CCoinStakeTx::ExecuteTx, insufficient coins in txUid %s account",
-                        txUid.ToString()), UPDATE_ACCOUNT_FAIL, "insufficient-coins");
-    }
-
-    if (!account.OperateBalance(coin_symbol, stake_type, coin_amount, ReceiptCode::COIN_STAKE, receipts)) {
+    if (!txAccount.OperateBalance(coin_symbol, stake_type, coin_amount, ReceiptCode::COIN_STAKE, receipts))
         return state.DoS(100, ERRORMSG("CCoinStakeTx::ExecuteTx, insufficient coins to stake in txUid(%s)",
                         txUid.ToString()), UPDATE_ACCOUNT_FAIL, "insufficient-coin-amount");
-    }
-
-    if (!cw.accountCache.SaveAccount(account))
-        return state.DoS(100, ERRORMSG("CCoinStakeTx::ExecuteTx, write source addr %s account info error",
-                        txUid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
 
     return true;
 }
