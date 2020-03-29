@@ -471,33 +471,25 @@ namespace dex {
         }
 
         // get frozen money
-        vector<CReceipt> receipts;
         TokenSymbol frozenSymbol;
         uint64_t frozenAmount = 0;
+        ReceiptCode code;
         if (activeOrder.order_side == ORDER_BUY) {
             frozenSymbol = activeOrder.coin_symbol;
             frozenAmount = activeOrder.coin_amount - activeOrder.total_deal_coin_amount;
+            code = ReceiptCode::DEX_UNFREEZE_COIN_TO_BUYER;
 
-            receipts.emplace_back(CUserID::NULL_ID, activeOrder.user_regid, frozenSymbol, frozenAmount,
-                                ReceiptCode::DEX_UNFREEZE_COIN_TO_BUYER);
         } else if(activeOrder.order_side == ORDER_SELL) {
             frozenSymbol = activeOrder.asset_symbol;
             frozenAmount = activeOrder.asset_amount - activeOrder.total_deal_asset_amount;
-
-            receipts.emplace_back(CUserID::NULL_ID, activeOrder.user_regid, frozenSymbol, frozenAmount,
-                                ReceiptCode::DEX_UNFREEZE_ASSET_TO_SELLER);
+            code = ReceiptCode::DEX_UNFREEZE_ASSET_TO_SELLER;
         } else {
             assert(false && "Order side must be ORDER_BUY|ORDER_SELL");
         }
 
-        if (!txAccount.OperateBalance(frozenSymbol, UNFREEZE, frozenAmount, ReceiptCode::DEX_UNFREEZE_COIN_TO_BUYER, receipts)) {
+        if (!txAccount.OperateBalance(frozenSymbol, UNFREEZE, frozenAmount, code, receipts))
             return state.DoS(100, ERRORMSG("CDEXCancelOrderTx::ExecuteTx, account has insufficient frozen amount to unfreeze"),
                             UPDATE_ACCOUNT_FAIL, "unfreeze-account-coin");
-        }
-
-        if (!cw.accountCache.SetAccount(CUserID(txAccount.keyid), txAccount))
-            return state.DoS(100, ERRORMSG("CDEXCancelOrderTx::ExecuteTx, set account info error"),
-                            WRITE_ACCOUNT_FAIL, "bad-write-accountdb");
 
         if (!cw.dexCache.EraseActiveOrder(order_id, activeOrder)) {
             return state.DoS(100, ERRORMSG("CDEXCancelOrderTx::ExecuteTx, erase active order failed! order_id=%s", order_id.ToString()),
