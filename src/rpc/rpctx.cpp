@@ -93,7 +93,7 @@ Value submitaccountregistertx(const Array& params, bool fHelp) {
 
     CAccountRegisterTx tx;
     tx.txUid        = pubkey;
-    tx.minerUid     = minerUid;
+    tx.miner_uid    = minerUid;
     tx.llFees       = fee.GetAmountInSawi();
     tx.valid_height = validHeight;
 

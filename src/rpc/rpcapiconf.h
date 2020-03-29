@@ -49,10 +49,7 @@ static const CRPCCommand vRPCCommands[] =
     { "submitblock",                    &submitblock,                       true,      false,       false   },
     { "getminedblocks",                 &getminedblocks,                    true,      true,        false   },
     { "getminerbyblocktime",            &getminerbyblocktime,               true,      true,        false   },
-    /* Raw transactions */
-    { "genmulsigtx",                    &genmulsigtx,                       true,      false,       false   },
     /* uses wallet if enabled */
-    { "addmulsigaddr",                  &addmulsigaddr,                     false,     false,       true    },
     { "getaccountinfo",                 &getaccountinfo,                    true,      false,       true    },
     { "getnewaddr",                     &getnewaddr,                        false,     false,       true    },
     { "gettxdetail",                    &gettxdetail,                       true,      false,       true    },
@@ -87,7 +84,6 @@ static const CRPCCommand vRPCCommands[] =
     { "getsignature",                   &getsignature,                      true,      false,       true    },
     { "listdelegates",                  &listdelegates,                     true,      false,       true    },
     { "decodetxraw",                    &decodetxraw,                       true,       false,      false   },
-    { "decodemulsigscript",             &decodemulsigscript,                true,       false,      false   },
     /* submit raw tx */
     { "submittxraw",                    &submittxraw,                       true,       false,      false   },
     /* basic tx */
