@@ -37,37 +37,23 @@ bool CAccountRegisterTx::CheckTx(CTxExecuteContext &context) {
 
 bool CAccountRegisterTx::ExecuteTx(CTxExecuteContext &context) {
     CCacheWrapper &cw = *context.pCw; CValidationState &state = *context.pState;
-    CAccount account;
-    CRegID regId(context.height, context.index);
-    CKeyID keyId = txUid.get<CPubKey>().GetKeyId();
-    if (!cw.accountCache.GetAccount(txUid, account))
-        return state.DoS(100, ERRORMSG("CAccountRegisterTx::ExecuteTx, read source keyId %s account info error",
-                        keyId.ToString()), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
 
-    if (account.HaveOwnerPubKey()) {
+    CKeyID keyId = txUid.get<CPubKey>().GetKeyId();
+    if (txAccount.HaveOwnerPubKey()) {
         return state.DoS(100, ERRORMSG("CAccountRegisterTx::ExecuteTx, keyId %s duplicate register", keyId.ToString()),
                          UPDATE_ACCOUNT_FAIL, "duplicate-register-account");
     }
 
-    account.regid        = regId;
-    account.owner_pubkey = txUid.get<CPubKey>();
+    txAccount.regid        = CRegID(context.height, context.index);
+    txAccount.owner_pubkey = txUid.get<CPubKey>();
 
-    if (!account.OperateBalance(SYMB::WICC, BalanceOpType::SUB_FREE, llFees, ReceiptCode::BLOCK_REWARD_TO_MINER, receipts)) {
-        return state.DoS(100, ERRORMSG("CAccountRegisterTx::ExecuteTx, insufficient funds in account, keyid=%s",
-                        keyId.ToString()), UPDATE_ACCOUNT_FAIL, "insufficent-funds");
-    }
-
-    if (minerUid.is<CPubKey>()) {
-        account.miner_pubkey = minerUid.get<CPubKey>();
-        if (!account.miner_pubkey.IsFullyValid()) {
+    if (miner_uid.is<CPubKey>()) {
+        txAccount.miner_pubkey = miner_uid.get<CPubKey>();
+        if (!txAccount.miner_pubkey.IsFullyValid()) {
             return state.DoS(100, ERRORMSG("CAccountRegisterTx::ExecuteTx, minerPubKey:%s Is Invalid",
-                            account.miner_pubkey.ToString()), UPDATE_ACCOUNT_FAIL, "MinerPKey Is Invalid");
+                            txAccount.miner_pubkey.ToString()), UPDATE_ACCOUNT_FAIL, "MinerPKey Is Invalid");
         }
     }
-
-    if (!cw.accountCache.SaveAccount(account))
-        return state.DoS(100, ERRORMSG("CAccountRegisterTx::ExecuteTx, write source addr %s account info error",
-                        regId.ToString()), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
 
     return true;
 }

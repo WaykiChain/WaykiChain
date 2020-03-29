@@ -11,12 +11,12 @@
 
 class CAccountRegisterTx : public CBaseTx {
 public:
-    mutable CUserID minerUid;  // miner pubkey
+    mutable CUserID miner_uid;  // miner pubkey
 
 public:
     CAccountRegisterTx(const CUserID &txUidIn, const CUserID &minerUidIn, int64_t feesIn, int32_t validHeightIn) :
         CBaseTx(ACCOUNT_REGISTER_TX, txUidIn, validHeightIn, feesIn) {
-        minerUid = minerUidIn;
+        miner_uid = minerUidIn;
     }
     CAccountRegisterTx(): CBaseTx(ACCOUNT_REGISTER_TX) {}
 
@@ -28,13 +28,13 @@ public:
         READWRITE(VARINT(valid_height));
         READWRITE(txUid);
 
-        READWRITE(minerUid);
+        READWRITE(miner_uid);
         READWRITE(VARINT(llFees));
         READWRITE(signature);)
 
     virtual void SerializeForHash(CHashWriter &hw) const {
         hw << VARINT(nVersion) << uint8_t(nTxType) << VARINT(valid_height) << txUid
-                   << minerUid << VARINT(llFees);
+                   << miner_uid << VARINT(llFees);
     }
 
     virtual std::shared_ptr<CBaseTx> GetNewInstance() const { return std::make_shared<CAccountRegisterTx>(*this); }
