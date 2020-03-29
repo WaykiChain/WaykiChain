@@ -1081,16 +1081,10 @@ namespace dex {
 
     bool CDEXSettleTx::ExecuteTx(CTxExecuteContext &context) {
         IMPLEMENT_DEFINE_CW_STATE;
-        vector<CReceipt> receipts;
 
-        shared_ptr<CAccount> pTxAccount = make_shared<CAccount>();
-        if (!cw.accountCache.GetAccount(txUid, *pTxAccount)) {
-            return state.DoS(100, ERRORMSG("%s, read source addr account info error", TX_ERR_TITLE),
-                            READ_ACCOUNT_FAIL, "bad-read-accountdb");
-        }
-
-        map<CRegID, shared_ptr<CAccount>> accountMap = {
-            {pTxAccount->regid, pTxAccount}
+        auto pTxAccount = std::make_shared<CAccount>(txAccount);
+        map<CRegID, std::shared_ptr<CAccount>> accountMap = {
+            {txAccount.regid, pTxAccount}
         };
 
         for (size_t i = 0; i < dealItems.size(); i++) {
