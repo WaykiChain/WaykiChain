@@ -19,7 +19,7 @@ bool CPBFTContext::GetMinerListByBlockHash(const uint256 blockHash, set<CRegID>&
     miners = it->second;
 
     for (auto &miner : miners)
-       LogPrint(BCLog::DEBUG, "BP -----------%s\n", miner.ToString());
+       LogPrint(BCLog::DEBUG, "BP --> %s\n", miner.ToString());
     
     return true;
 }
