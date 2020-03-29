@@ -152,33 +152,27 @@ bool CDEXOperatorRegisterTx::CheckTx(CTxExecuteContext &context) {
 
 bool CDEXOperatorRegisterTx::ExecuteTx(CTxExecuteContext &context) {
     CCacheWrapper &cw = *context.pCw; CValidationState &state = *context.pState;
-    vector<CReceipt> receipts;
-    shared_ptr<CAccount> pTxAccount = make_shared<CAccount>();
-    if (pTxAccount == nullptr || !cw.accountCache.GetAccount(txUid, *pTxAccount))
-        return state.DoS(100, ERRORMSG("CDEXOperatorRegisterTx::ExecuteTx, read tx account by txUid=%s error",
-            txUid.ToDebugString()), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
 
-    shared_ptr<CAccount> pOwnerAccount;
-    if (pTxAccount->IsSelfUid(data.owner_uid)) {
-        pOwnerAccount = pTxAccount;
+    CAccount ownerAccount;
+    if (txAccount.IsSelfUid(data.owner_uid)) {
+        ownerAccount = txAccount;
     } else {
-        pOwnerAccount = make_shared<CAccount>();
-        if (pOwnerAccount == nullptr || !cw.accountCache.GetAccount(data.owner_uid, *pOwnerAccount))
+        if (!cw.accountCache.GetAccount(data.owner_uid, ownerAccount))
             return state.DoS(100, ERRORMSG("CDEXOperatorRegisterTx::ExecuteTx, read owner account failed! owner_uid=%s",
                 data.owner_uid.ToDebugString()), REJECT_INVALID, "owner-account-not-exist");
     }
     shared_ptr<CAccount> pMatchAccount;
-    if (!pTxAccount->IsSelfUid(data.fee_receiver_uid) && !pOwnerAccount->IsSelfUid(data.fee_receiver_uid)) {
+    if (!txAccount.IsSelfUid(data.fee_receiver_uid) && !ownerAccount.IsSelfUid(data.fee_receiver_uid)) {
         if (!cw.accountCache.HasAccount(data.fee_receiver_uid))
             return state.DoS(100, ERRORMSG("CDEXOperatorRegisterTx::ExecuteTx, get match account failed! fee_receiver_uid=%s",
                 data.fee_receiver_uid.ToDebugString()), REJECT_INVALID, "match-account-not-exist");
     }
 
-    if(cw.dexCache.HaveDexOperatorByOwner(pOwnerAccount->regid))
+    if(cw.dexCache.HaveDexOperatorByOwner(ownerAccount.regid))
         return state.DoS(100, ERRORMSG("%s, the owner already has a dex operator! owner_regid=%s", __func__,
-            pOwnerAccount->regid.ToString()), REJECT_INVALID, "owner-had-dexoperator-already");
+                        ownerAccount.regid.ToString()), REJECT_INVALID, "owner-had-dexoperator-already");
 
-    if (!ProcessDexOperatorFee(cw, state, OPERATOR_ACTION_REGISTER, *pTxAccount, receipts,context.height))
+    if (!ProcessDexOperatorFee(cw, state, OPERATOR_ACTION_REGISTER, txAccount, receipts,context.height))
         return false;
 
     uint32_t new_id;
