@@ -306,7 +306,6 @@ bool CUniversalContractDeployTx::ExecuteTx(CTxExecuteContext &context) {
         uint64_t fuel = GetFuel(context.height, context.fuel_rate);
         CAccount fcoinGenesisAccount;
         cw.accountCache.GetFcoinGenesisAccount(fcoinGenesisAccount);
-
         if (!fcoinGenesisAccount.OperateBalance(SYMB::WUSD, BalanceOpType::ADD_FREE, fuel,
                                                 ReceiptCode::CONTRACT_FUEL_TO_RISK_RESERVE, receipts)) {
             return state.DoS(100, ERRORMSG("CUniversalContractDeployTx::ExecuteTx, operate balance failed"),

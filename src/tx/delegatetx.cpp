@@ -76,11 +76,6 @@ bool CDelegateVoteTx::ExecuteTx(CTxExecuteContext &context) {
                         WRITE_CANDIDATE_VOTES_FAIL, "write-candidate-votes-failed");
     }
 
-    if (!cw.accountCache.SaveAccount(txAccount)) {
-        return state.DoS(100, ERRORMSG("CDelegateVoteTx::ExecuteTx, save account info error"), UPDATE_ACCOUNT_FAIL,
-                         "bad-save-accountdb");
-    }
-
     for (const auto &vote : candidateVotes) {
         CAccount delegateAcct;
         const CUserID &delegateUId = vote.GetCandidateUid();
