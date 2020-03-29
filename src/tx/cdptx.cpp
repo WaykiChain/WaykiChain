@@ -153,21 +153,21 @@ bool CCDPStakeTx::CheckTx(CTxExecuteContext &context) {
 
 bool CCDPStakeTx::ExecuteTx(CTxExecuteContext &context) {
     CCacheWrapper &cw = *context.pCw; CValidationState &state = *context.pState;
-    //0. check preconditions
 
+    //0. check preconditions
     assert(assets_to_stake.size() == 1);
     const TokenSymbol &assetSymbol = assets_to_stake.begin()->first;
     uint64_t assetAmount = assets_to_stake.begin()->second.get();
     CCdpCoinPair cdpCoinPair(assetSymbol, scoin_symbol);
 
     const TokenSymbol &quoteSymbol = GetQuoteSymbolByCdpScoin(scoin_symbol);
-    if (quoteSymbol.empty()) {
+    if (quoteSymbol.empty())
         return state.DoS(100, ERRORMSG("%s(), get price quote by cdp scoin=%s failed!", __func__, scoin_symbol),
                         REJECT_INVALID, "get-price-quote-by-cdp-scoin-failed");
-    }
 
     uint64_t bcoinMedianPrice = 0;
-    if (!GetBcoinMedianPrice(*this, context, cdpCoinPair, bcoinMedianPrice)) return false;
+    if (!GetBcoinMedianPrice(*this, context, cdpCoinPair, bcoinMedianPrice)) 
+        return false;
 
     uint64_t globalCollateralRatioMin;
     if (!ReadCdpParam(*this, context, cdpCoinPair, CdpParamType::CDP_GLOBAL_COLLATERAL_RATIO_MIN, globalCollateralRatioMin))
@@ -196,39 +196,23 @@ bool CCDPStakeTx::ExecuteTx(CTxExecuteContext &context) {
              "CCDPStakeTx::ExecuteTx, globalCollateralRatioMin: %llu, bcoinMedianPrice: %llu, globalCollateralCeiling: %llu\n",
              globalCollateralRatioMin, bcoinMedianPrice, globalCollateralCeiling);
 
-    CAccount account;
-    if (!cw.accountCache.GetAccount(txUid, account))
-        return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, read txUid %s account info error",
-                        txUid.ToString()), PRICE_FEED_FAIL, "bad-read-accountdb");
-
-    if (!GenerateRegID(context, account)) {
-        return false;
-    }
-
-    //1. pay miner fees (WICC)
-    if (!account.OperateBalance(fee_symbol, BalanceOpType::SUB_FREE, llFees, ReceiptCode::COIN_BLOCK_REWARD_TO_MINER, receipts))
-        return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, deduct fees from regId=%s failed,",
-                        txUid.ToString()), UPDATE_ACCOUNT_FAIL, "deduct-account-fee-failed");
-
     //2. check collateral ratio: parital or total >= 200%
     uint64_t startingCdpCollateralRatio;
     if (!ReadCdpParam(*this, context, cdpCoinPair, CdpParamType::CDP_START_COLLATERAL_RATIO, startingCdpCollateralRatio))
         return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, read CDP_START_COLLATERAL_RATIO error!!"),
                         READ_SYS_PARAM_FAIL, "read-sysparamdb-error");
 
-    vector<CReceipt> receipts;
     uint64_t newMintScoins = scoins_to_mint;
 
     if (cdp_txid.IsEmpty()) { // 1st-time CDP creation
-        if (assetAmount == 0 || scoins_to_mint == 0) {
+        if (assetAmount == 0 || scoins_to_mint == 0)
             return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, invalid amount"), REJECT_INVALID, "invalid-amount");
-        }
 
         vector<CUserCDP> userCdps;
-        if (cw.cdpCache.UserHaveCdp(account.regid, assetSymbol, scoin_symbol)) {
+        if (cw.cdpCache.UserHaveCdp(txAccount.regid, assetSymbol, scoin_symbol)) {
             return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, the user (regid=%s) has existing CDP (txid=%s)!"
                             "asset_symbol=%s, scoin_symbol=%s",
-                             GetHash().GetHex(), account.regid.ToString(), assetSymbol, scoin_symbol),
+                             GetHash().GetHex(), txAccount.regid.ToString(), assetSymbol, scoin_symbol),
                              REJECT_INVALID, "user-cdp-created");
         }
 
@@ -241,7 +225,7 @@ bool CCDPStakeTx::ExecuteTx(CTxExecuteContext &context) {
                                       100.0 * startingCdpCollateralRatio / RATIO_BOOST, bcoinMedianPrice),
                              REJECT_INVALID, "CDP-collateral-ratio-toosmall");
 
-        CUserCDP cdp(account.regid, GetHash(), context.height, assetSymbol, scoin_symbol, assetAmount, scoins_to_mint);
+        CUserCDP cdp(txAccount.regid, GetHash(), context.height, assetSymbol, scoin_symbol, assetAmount, scoins_to_mint);
 
         if (!cw.cdpCache.NewCDP(context.height, cdp)) {
             return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, save new cdp to db failed"),
@@ -270,7 +254,7 @@ bool CCDPStakeTx::ExecuteTx(CTxExecuteContext &context) {
             return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, the asset symbol=%s does not match with the current CDP's=%s",
                             assetSymbol, cdp.bcoin_symbol), REJECT_INVALID, "invalid-asset-symbol");
 
-        if (account.regid != cdp.owner_regid)
+        if (txAccount.regid != cdp.owner_regid)
             return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, permission denied! cdp_txid=%s, owner(%s) vs operator(%s)",
                             cdp_txid.ToString(), cdp.owner_regid.ToString(), txUid.ToString()), REJECT_INVALID, "permission-denied");
 
@@ -287,11 +271,11 @@ bool CCDPStakeTx::ExecuteTx(CTxExecuteContext &context) {
             return false;
         }
 
-        uint64_t ownerScoins = account.GetToken(scoin_symbol).free_amount;
+        uint64_t ownerScoins = txAccount.GetToken(scoin_symbol).free_amount;
         uint64_t mintScoinForInterest = 0;
         if (scoinsInterestToRepay > ownerScoins) {
             mintScoinForInterest = scoinsInterestToRepay - ownerScoins;
-            account.OperateBalance(scoin_symbol, BalanceOpType::ADD_FREE, mintScoinForInterest,
+            txAccount.OperateBalance(scoin_symbol, BalanceOpType::ADD_FREE, mintScoinForInterest,
                                    ReceiptCode::CDP_MINTED_SCOIN_TO_OWNER, receipts);
             LogPrint(BCLog::CDP, "Mint scoins=%llu for interest!\n", mintScoinForInterest);
         }
@@ -314,38 +298,26 @@ bool CCDPStakeTx::ExecuteTx(CTxExecuteContext &context) {
         if (!SellInterestForFcoins(CTxCord(context.height, context.index), cdp, scoinsInterestToRepay, cw, state, receipts))
             return false;
 
-        if (!account.OperateBalance(scoin_symbol, BalanceOpType::SUB_FREE, scoinsInterestToRepay,
-                                    ReceiptCode::CDP_REPAY_INTEREST, receipts)) {
+        if (!txAccount.OperateBalance(scoin_symbol, BalanceOpType::SUB_FREE, scoinsInterestToRepay, ReceiptCode::CDP_REPAY_INTEREST, receipts))
             return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, scoins balance < scoinsInterestToRepay: %llu",
                             scoinsInterestToRepay), UPDATE_ACCOUNT_FAIL,
                             strprintf("deduct-interest(%llu)-error", scoinsInterestToRepay));
-        }
 
         // settle cdp state & persist
         cdp.AddStake(context.height, assetAmount, scoins_to_mint);
-        if (!cw.cdpCache.UpdateCDP(oldCDP, cdp)) {
+        if (!cw.cdpCache.UpdateCDP(oldCDP, cdp))
             return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, save changed cdp to db failed"),
                             READ_SYS_PARAM_FAIL, "save-changed-cdp-failed");
-        }
     }
 
     // update account accordingly
-    if (!account.OperateBalance(assetSymbol, BalanceOpType::PLEDGE, assetAmount,
-                                ReceiptCode::CDP_STAKED_ASSET_FROM_OWNER, receipts)) {
+    if (!txAccount.OperateBalance(assetSymbol, BalanceOpType::PLEDGE, assetAmount, ReceiptCode::CDP_STAKED_ASSET_FROM_OWNER, receipts))
         return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, bcoins insufficient to pledge"), UPDATE_ACCOUNT_FAIL,
                          "bcoins-insufficient-error");
-    }
 
-    if (!account.OperateBalance(scoin_symbol, BalanceOpType::ADD_FREE, scoins_to_mint,
-                                ReceiptCode::CDP_MINTED_SCOIN_TO_OWNER, receipts)) {
+    if (!txAccount.OperateBalance(scoin_symbol, BalanceOpType::ADD_FREE, scoins_to_mint, ReceiptCode::CDP_MINTED_SCOIN_TO_OWNER, receipts))
         return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, add scoins failed"), UPDATE_ACCOUNT_FAIL,
                          "add-scoins-error");
-    }
-
-    if (!cw.accountCache.SaveAccount(account)) {
-        return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, update account %s failed",
-                        txUid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-save-account");
-    }
 
     return true;
 }
