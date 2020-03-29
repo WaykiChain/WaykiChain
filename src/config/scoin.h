@@ -84,7 +84,7 @@ struct CdpParamTypeHash {
     }
 };
 
-static const unordered_map<CdpParamType, std::tuple< uint64_t,string >, CdpParamTypeHash> CdpParamTable = {
+static const unordered_map<CdpParamType, std::tuple< uint64_t,string >, CdpParamTypeHash> kCdpParamTable = {
         { CDP_GLOBAL_COLLATERAL_CEILING_AMOUNT,     make_tuple(  52500000,     "CDP_GLOBAL_COLLATERAL_CEILING_AMOUNT")    },  // 25% * 210000000
         { CDP_GLOBAL_COLLATERAL_RATIO_MIN,          make_tuple(  8000,         "CDP_GLOBAL_COLLATERAL_RATIO_MIN")         },  // 80% * 10000
         { CDP_START_COLLATERAL_RATIO,               make_tuple(  19000,        "CDP_START_COLLATERAL_RATIO")              },  // 190% * 10000 : starting collateral ratio
@@ -99,7 +99,7 @@ static const unordered_map<CdpParamType, std::tuple< uint64_t,string >, CdpParam
         { CDP_CONVERT_INTEREST_TO_DEBT_DAYS,        make_tuple(  30,           "CDP_CONVERT_INTEREST_TO_DEBT_DAYS")       },  // after 30 days, unpaid interest will be converted into debt
 };
 
-static const unordered_map<CdpParamType, std::pair<uint64_t,uint64_t>, CdpParamTypeHash> cdpParamRangeTable = {
+static const unordered_map<CdpParamType, std::pair<uint64_t,uint64_t>, CdpParamTypeHash> kCdpParamRangeTable = {
         { CDP_GLOBAL_COLLATERAL_CEILING_AMOUNT,     RANGE(0,0)          },  // 25% * 210000000
         { CDP_GLOBAL_COLLATERAL_RATIO_MIN,          RANGE(0,0)          },  // 80% * 10000
         { CDP_START_COLLATERAL_RATIO,               RANGE(10000,100000) },  // 190% * 10000 : starting collateral ratio
@@ -116,9 +116,9 @@ static const unordered_map<CdpParamType, std::pair<uint64_t,uint64_t>, CdpParamT
 
 
 inline string CheckCdpParamValue(const CdpParamType paramType, uint64_t value){
-    if (cdpParamRangeTable.count(paramType) == 0)
+    if (kCdpParamRangeTable.count(paramType) == 0)
         return strprintf("check param scope error:don't find param type (%d)", paramType);
-    auto itr = cdpParamRangeTable.find(paramType) ;
+    auto itr = kCdpParamRangeTable.find(paramType) ;
 
     auto min = std::get<0>(itr->second);
     auto max = std::get<1>(itr->second);
@@ -132,15 +132,15 @@ inline string CheckCdpParamValue(const CdpParamType paramType, uint64_t value){
 }
 
 inline uint64_t GetCdpParamDefaultValue(CdpParamType paramType) {
-    auto it = CdpParamTable.find(paramType);
-    if (it != CdpParamTable.end())
+    auto it = kCdpParamTable.find(paramType);
+    if (it != kCdpParamTable.end())
         return std::get<0>(it->second);
     return 0;
 }
 
 inline const string& GetCdpParamName(CdpParamType paramType) {
-    auto it = CdpParamTable.find(paramType);
-    if (it != CdpParamTable.end())
+    auto it = kCdpParamTable.find(paramType);
+    if (it != kCdpParamTable.end())
         return std::get<1>(it->second);
     return EMPTY_STRING;
 }

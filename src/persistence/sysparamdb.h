@@ -73,10 +73,10 @@ public:
     }
 
     bool GetCdpParam(const CCdpCoinPair& coinPair, const CdpParamType &paramType, uint64_t& paramValue) {
-        if (CdpParamTable.count(paramType) == 0)
+        if (kCdpParamTable.count(paramType) == 0)
             return false;
 
-        auto iter = CdpParamTable.find(paramType);
+        auto iter = kCdpParamTable.find(paramType);
         auto key = std::make_pair(coinPair, paramType);
         CVarIntValue<uint64_t > value ;
         if (!cdp_param_cache.GetData(key, value)) {

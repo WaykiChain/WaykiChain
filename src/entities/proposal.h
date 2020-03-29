@@ -374,8 +374,8 @@ struct CGovCdpParamProposal: CProposal {
             subItem.push_back(Pair("param_code", item.first));
 
             std::string param_name = "" ;
-            auto itr = CdpParamTable.find(CdpParamType(item.first)) ;
-            if(itr != CdpParamTable.end())
+            auto itr = kCdpParamTable.find(CdpParamType(item.first)) ;
+            if(itr != kCdpParamTable.end())
                 param_name = std::get<1>(itr->second);
 
             subItem.push_back(Pair("param_name", param_name));

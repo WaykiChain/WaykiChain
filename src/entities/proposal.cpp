@@ -291,7 +291,7 @@ bool CGovCdpParamProposal::CheckProposal(CTxExecuteContext& context) {
                          "params-empty");
 
     for (auto pa: param_values) {
-        if (CdpParamTable.count(CdpParamType(pa.first)) == 0) {
+        if (kCdpParamTable.count(CdpParamType(pa.first)) == 0) {
             return state.DoS(100, ERRORMSG("CProposalRequestTx::CheckTx, parameter name (%s) is not in sys params list ", pa.first),
                             REJECT_INVALID, "params-error");
         }
@@ -308,8 +308,8 @@ bool CGovCdpParamProposal::CheckProposal(CTxExecuteContext& context) {
 bool CGovCdpParamProposal::ExecuteProposal(CTxExecuteContext& context, CBaseTx& tx) {
     CCacheWrapper &cw       = *context.pCw;
     for (auto pa: param_values){
-        auto itr = CdpParamTable.find(CdpParamType(pa.first));
-        if (itr == CdpParamTable.end())
+        auto itr = kCdpParamTable.find(CdpParamType(pa.first));
+        if (itr == kCdpParamTable.end())
             return false;
 
         if (!cw.sysParamCache.SetCdpParam(coin_pair,CdpParamType(pa.first), pa.second))
