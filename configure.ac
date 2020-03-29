@@ -16,7 +16,7 @@ AH_TOP([#define COIN_CONFIG_H])
 AH_BOTTOM([#endif //COIN_CONFIG_H])
 
 # Silence warning: ar: 'u' modifier ignored since 'D' is the default
-AC_SUBST(AR_FLAGS, [crD])
+AC_SUBST(ARFLAGS, [cr])
 
 # This m4 will only be used if a system copy cannot be found. This is helpful
 # on systems where autotools are installed but the pkg-config macros are not in
