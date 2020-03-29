@@ -292,13 +292,13 @@ bool CGovCdpParamProposal::CheckProposal(CTxExecuteContext& context) {
 
     for (auto pa: param_values) {
         if (kCdpParamTable.count(CdpParamType(pa.first)) == 0) {
-            return state.DoS(100, ERRORMSG("CProposalRequestTx::CheckTx, parameter name (%s) is not in sys params list ", pa.first),
-                            REJECT_INVALID, "params-error");
+            return state.DoS(100, ERRORMSG("CProposalRequestTx::CheckTx, parameter name (%s) is not in sys params list ", 
+                            pa.first), REJECT_INVALID, "params-error");
         }
 
-        string errorInfo = CheckCdpParamValue(CdpParamType(pa.first), pa.second);
-        if (errorInfo != EMPTY_STRING)
-            return state.DoS(100, ERRORMSG("CProposalRequestTx::CheckTx failed: %s ", errorInfo),
+        string errMsg;
+        if (!CheckCdpParamValue(CdpParamType(pa.first), pa.second, errMsg))
+            return state.DoS(100, ERRORMSG("CProposalRequestTx::CheckTx failed: %s ", errMsg),
                              REJECT_INVALID, "params-range-error");
     }
 

@@ -115,20 +115,28 @@ static const unordered_map<CdpParamType, std::pair<uint64_t,uint64_t>, CdpParamT
 };
 
 
-inline string CheckCdpParamValue(const CdpParamType paramType, uint64_t value){
-    if (kCdpParamRangeTable.count(paramType) == 0)
-        return strprintf("check param scope error:don't find param type (%d)", paramType);
-    auto itr = kCdpParamRangeTable.find(paramType) ;
+inline bool CheckCdpParamValue(const CdpParamType paramType, uint64_t value, string &errMsg) {
 
+    if (kCdpParamRangeTable.count(paramType) == 0) {
+        errMsg = strprintf("check param scope error:don't find param type (%d)", paramType);
+        return false;
+    }
+
+    auto itr = kCdpParamRangeTable.find(paramType);
     auto min = std::get<0>(itr->second);
     auto max = std::get<1>(itr->second);
-    if(min == 0 && max == 0)
-        return EMPTY_STRING;
-    if( value < min || value >max)
-        return strprintf("check param scope error: the scope of param type(%d) "
-                         "is [%d,%d],but the value you submited is %d", paramType, min,max,value );
-    return EMPTY_STRING;
 
+    if (min == 0 && max == 0)
+        return true;
+
+    if (value < min || value >max) {
+        errMsg = strprintf("check param scope error: the scope of param type(%d) "
+                         "is [%d,%d],but the value you submited is %d", paramType, min, max, value);
+
+        return false;
+    }
+
+    return true;
 }
 
 inline uint64_t GetCdpParamDefaultValue(CdpParamType paramType) {

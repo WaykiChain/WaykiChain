@@ -198,9 +198,9 @@ Value submitcdpparamgovernproposal(const Array& params, bool fHelp){
     if(type == CdpParamType::NULL_CDP_PARAM_TYPE)
         throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("system param type(%s) is not exist",paramName));
 
-    string errorInfo = CheckCdpParamValue(type, paramValue );
-    if(errorInfo != EMPTY_STRING)
-        throw JSONRPCError(RPC_INVALID_PARAMETER, errorInfo);
+    string errMsg;
+    if(!CheckCdpParamValue(type, paramValue, errMsg))
+        throw JSONRPCError(RPC_INVALID_PARAMETER, errMsg);
 
     CGovCdpParamProposal proposal;
     proposal.param_values.push_back(std::make_pair(type, paramValue));
