@@ -353,17 +353,12 @@ bool CUserUpdateAssetTx::CheckTx(CTxExecuteContext &context) {
 bool CUserUpdateAssetTx::ExecuteTx(CTxExecuteContext &context) {
     IMPLEMENT_DEFINE_CW_STATE;
 
-    CAccount account;
-    if (!cw.accountCache.GetAccount(txUid, account))
-        return state.DoS(100, ERRORMSG("CUserUpdateAssetTx::ExecuteTx, read source txUid %s account info error",
-            txUid.ToDebugString()), READ_ACCOUNT_FAIL, "bad-read-accountdb");
-
     CAsset asset;
     if (!cw.assetCache.GetAsset(asset_symbol, asset))
         return state.DoS(100, ERRORMSG("CUserUpdateAssetTx::ExecuteTx, get asset by symbol=%s failed",
             asset_symbol), REJECT_INVALID, "get-asset-failed");
 
-    if (!account.IsSelfUid(asset.owner_uid))
+    if (!txAccount.IsSelfUid(asset.owner_uid))
         return state.DoS(100, ERRORMSG("CUserUpdateAssetTx::ExecuteTx, no privilege to update asset, uid dismatch,"
             " txUid=%s, old_asset_uid=%s",
             txUid.ToDebugString(), asset.owner_uid.ToString()), REJECT_INVALID, "asset-uid-dismatch");
@@ -375,7 +370,7 @@ bool CUserUpdateAssetTx::ExecuteTx(CTxExecuteContext &context) {
     switch (update_data.GetType()) {
         case CUserUpdateAsset::OWNER_UID: {
             const CUserID &newOwnerUid = update_data.get<CUserID>();
-            if (account.IsSelfUid(newOwnerUid))
+            if (txAccount.IsSelfUid(newOwnerUid))
                 return state.DoS(100, ERRORMSG("CUserUpdateAssetTx::ExecuteTx, the new owner uid=%s is belong to old owner account",
                     newOwnerUid.ToDebugString()), REJECT_INVALID, "invalid-new-asset-owner-uid");
 
@@ -405,7 +400,7 @@ bool CUserUpdateAssetTx::ExecuteTx(CTxExecuteContext &context) {
                             mintAmount, asset.total_supply, MAX_ASSET_TOTAL_SUPPLY), REJECT_INVALID, "invalid-mint-amount");
             }
 
-            if (!account.OperateBalance(asset_symbol, BalanceOpType::ADD_FREE, mintAmount, 
+            if (!txAccount.OperateBalance(asset_symbol, BalanceOpType::ADD_FREE, mintAmount, 
                                         ReceiptCode::ASSET_MINT_NEW_AMOUNT, receipts)) {
                 return state.DoS(100, ERRORMSG("CUserUpdateAssetTx::ExecuteTx, add mintAmount to asset owner account failed, txUid=%s, mintAmount=%llu",
                                 txUid.ToDebugString(), mintAmount), UPDATE_ACCOUNT_FAIL, "account-add-free-failed");
@@ -417,21 +412,12 @@ bool CUserUpdateAssetTx::ExecuteTx(CTxExecuteContext &context) {
         default: assert(false);
     }
 
-    if (!account.OperateBalance(fee_symbol, BalanceOpType::SUB_FREE, llFees, ReceiptCode::COIN_BLOCK_REWARD_TO_MINER, receipts)) {
-        return state.DoS(100, ERRORMSG("CUserUpdateAssetTx::ExecuteTx, insufficient funds in account, txUid=%s",
-                        txUid.ToDebugString()), UPDATE_ACCOUNT_FAIL, "insufficent-funds");
-    }
-
-    if (!ProcessAssetFee(cw, state, ASSET_ACTION_UPDATE, account, context.height, receipts))
+    if (!ProcessAssetFee(cw, state, ASSET_ACTION_UPDATE, txAccount, context.height, receipts))
         return false;
 
     if (!cw.assetCache.SetAsset(asset))
         return state.DoS(100, ERRORMSG("CUserUpdateAssetTx::ExecuteTx, save asset failed",
             txUid.ToDebugString()), UPDATE_ACCOUNT_FAIL, "save-asset-failed");
-
-    if (!cw.accountCache.SetAccount(txUid, account))
-        return state.DoS(100, ERRORMSG("CUserUpdateAssetTx::ExecuteTx, write txUid %s account info error",
-            txUid.ToDebugString()), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
 
     return true;
 }

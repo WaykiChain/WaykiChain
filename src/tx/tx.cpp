@@ -199,6 +199,8 @@ bool CBaseTx::CheckBaseTx(CTxExecuteContext &context) {
 bool CBaseTx::ExecuteFullTx(CTxExecuteContext &context) {
     IMPLEMENT_DEFINE_CW_STATE;
 
+    /////////////////////////
+    // 1. Prior ExecuteTx
     if (nTxType != UCOIN_REWARD_TX) {
         if (!cw.accountCache.GetAccount(txUid, txAccount))
             return state.DoS(100, ERRORMSG("ExecuteFullTx: read txUid %s account info error",
@@ -208,24 +210,25 @@ bool CBaseTx::ExecuteFullTx(CTxExecuteContext &context) {
                 return false;
 
         if (llFees > 0 && !txAccount.OperateBalance(fee_symbol, SUB_FREE, llFees, ReceiptCode::BLOCK_REWARD_TO_MINER, receipts))
-                return state.DoS(100, ERRORMSG("CDEXCancelOrderTx::ExecuteTx, account has insufficient funds"),
-                                UPDATE_ACCOUNT_FAIL, "operate-minus-account-failed");
+                return state.DoS(100, ERRORMSG("ExecuteFullTx: account has insufficient funds"),
+                                UPDATE_ACCOUNT_FAIL, "sub-account-fees-failed");
     }
 
     /////////////////////////
-    // ExecuteTx
+    // 2. ExecuteTx
     if (!ExecuteTx(context))
         return false;
 
-    if (nTxType != UCOIN_REWARD_TX) {
-        if (!cw.accountCache.SaveAccount(txAccount))
+    /////////////////////////
+    // 3. Post ExecuteTx
+    if ( nTxType != UCOIN_REWARD_TX && !cw.accountCache.SaveAccount(txAccount) )
             return state.DoS(100, ERRORMSG("ExecuteFullTx, write source addr %s account info error",
                             txUid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
-    }
 
     if (!receipts.empty() && !cw.txReceiptCache.SetTxReceipts(GetHash(), receipts))
         return state.DoS(100, ERRORMSG("ExecuteFullTx: save receipts error, txid=%s",
                                     GetHash().ToString()), WRITE_RECEIPT_FAIL, "bad-save-receipts");
+                                    
     return true;
 }
 
