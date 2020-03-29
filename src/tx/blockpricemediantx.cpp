@@ -65,14 +65,13 @@ bool CBlockPriceMedianTx::ExecuteTx(CTxExecuteContext &context) {
     IMPLEMENT_DEFINE_CW_STATE;
 
     PriceDetailMap priceDetails;
-    if (!cw.ppCache.CalcMedianPriceDetails(cw, context.height, priceDetails)) {
+    if (!cw.ppCache.CalcMedianPriceDetails(cw, context.height, priceDetails))
         return state.DoS(100, ERRORMSG("CBlockPriceMedianTx::ExecuteTx, calc block median price points failed"),
                          READ_PRICE_POINT_FAIL, "calc-median-prices-failed");
-    }
 
     if (!EqualToCalculatedPrices(priceDetails)) {
         string str;
-        for (const auto item : priceDetails) {
+        for (const auto &item : priceDetails) {
             str += strprintf("{coin_pair=%s, price:%llu},", CoinPairToString(item.first), item.second.price);
         }
 
@@ -80,7 +79,7 @@ bool CBlockPriceMedianTx::ExecuteTx(CTxExecuteContext &context) {
                 context.height, str);
 
         str.clear();
-        for (const auto item : median_prices) {
+        for (const auto &item : median_prices) {
             str += strprintf("{coin_pair=%s, price=%llu}", CoinPairToString(item.first), item.second);
         }
 
@@ -91,17 +90,14 @@ bool CBlockPriceMedianTx::ExecuteTx(CTxExecuteContext &context) {
                          "bad-median-price-points");
     }
 
-    if (!cw.priceFeedCache.SetMedianPrices(priceDetails)) {
+    if (!cw.priceFeedCache.SetMedianPrices(priceDetails))
         return state.DoS(100, ERRORMSG("CBlockPriceMedianTx::ExecuteTx, save median prices to db failed"), REJECT_INVALID,
                          "save-median-prices-failed");
-    }
 
     CAccount fcoinGenesisAccount;
-    if (!cw.accountCache.GetFcoinGenesisAccount(fcoinGenesisAccount)) {
+    if (!cw.accountCache.GetFcoinGenesisAccount(fcoinGenesisAccount))
         return state.DoS(100, ERRORMSG("%s(), get fcoin genesis account failed", __func__), REJECT_INVALID,
                          "get-fcoin-genesis-account-failed");
-
-    }
 
     if (!ForceLiquidateCdps(context, priceDetails))
         return false; // error msg has been processed
