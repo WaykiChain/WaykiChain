@@ -400,6 +400,7 @@ bool CCDPRedeemTx::CheckTx(CTxExecuteContext &context) {
 
 bool CCDPRedeemTx::ExecuteTx(CTxExecuteContext &context) {
     CCacheWrapper &cw = *context.pCw; CValidationState &state = *context.pState;
+
     //0. check preconditions
     CUserCDP cdp;
     if (!cw.cdpCache.GetCDP(cdp_txid, cdp)) {
@@ -643,8 +644,8 @@ bool CCDPRedeemTx::SellInterestForFcoins(const CTxCord &txCord, const CUserCDP &
   */
 bool CCDPLiquidateTx::ExecuteTx(CTxExecuteContext &context) {
     CCacheWrapper &cw = *context.pCw; CValidationState &state = *context.pState;
-    //0. check preconditions
 
+    //0. check preconditions
     CUserCDP cdp;
     if (!cw.cdpCache.GetCDP(cdp_txid, cdp)) {
         return state.DoS(100, ERRORMSG("CCDPLiquidateTx::ExecuteTx, cdp (%s) not exist!",
@@ -677,13 +678,7 @@ bool CCDPLiquidateTx::ExecuteTx(CTxExecuteContext &context) {
                          "global-cdp-lock-is-on");
     }
 
-    //1. pay miner fees (WICC)
-    if (!txAccount.OperateBalance(fee_symbol, SUB_FREE, llFees, ReceiptCode::BLOCK_REWARD_TO_MINER, receipts)) {
-        return state.DoS(100, ERRORMSG("CCDPLiquidateTx::ExecuteTx, deduct fees from regId=%s failed",
-                        txUid.ToString()), UPDATE_ACCOUNT_FAIL, "deduct-account-fee-failed");
-    }
-
-    //2. pay penalty fees: 0.13lN --> 50% burn, 50% to Risk Reserve
+    //1. pay penalty fees: 0.13lN --> 50% burn, 50% to Risk Reserve
     CAccount cdpOwnerAccount;
     if (!cw.accountCache.GetAccount(CUserID(cdp.owner_regid), cdpOwnerAccount)) {
         return state.DoS(100, ERRORMSG("CCDPLiquidateTx::ExecuteTx, read CDP Owner txUid %s account info error",
