@@ -23,7 +23,7 @@ bool CAccountRegisterTx::CheckTx(CTxExecuteContext &context) {
         return state.DoS(100, ERRORMSG("CAccountRegisterTx::CheckTx, userId must be CPubKey"), REJECT_INVALID,
                          "uid-type-error");
 
-    if (!minerUid.is<CPubKey>() && !minerUid.is<CNullID>())
+    if (!miner_uid.is<CPubKey>() && !miner_uid.is<CNullID>())
         return state.DoS(100, ERRORMSG("CAccountRegisterTx::CheckTx, minerId must be CPubKey or CNullID"),
                          REJECT_INVALID, "minerUid-type-error");
 
@@ -64,7 +64,7 @@ Object CAccountRegisterTx::ToJson(const CAccountDBCache &accountCache) const {
 
     Object result = CBaseTx::ToJson(accountCache);
     result.push_back(Pair("pubkey",         txUid.ToString()));
-    result.push_back(Pair("miner_pubkey",   minerUid.ToString()));
+    result.push_back(Pair("miner_pubkey",   miner_uid.ToString()));
 
     return result;
 }

@@ -157,7 +157,7 @@ namespace dex {
         }
         // other fields keep as is
 
-        if (!context.pCw->dexCache.CreateActiveOrder(txid, orderDetail))
+        if (!cw.dexCache.CreateActiveOrder(txid, orderDetail))
             return context.pState->DoS(100, ERRORMSG("%s, create active buy order failed! txid=%s",
                 TX_ERR_TITLE, txid.ToString()), REJECT_INVALID, "bad-write-dexdb");
 

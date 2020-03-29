@@ -60,7 +60,7 @@ Object CBlockRewardTx::ToJson(const CAccountDBCache &accountCache) const {
 bool CUCoinBlockRewardTx::CheckTx(CTxExecuteContext &context) { return true; }
 
 bool CUCoinBlockRewardTx::ExecuteTx(CTxExecuteContext &context) {
-    IMPLEMENT_DEFINE_CW_STATE;
+    CValidationState &state = *context.pState;
 
     int32_t index = context.index;
     if (0 == index) {
