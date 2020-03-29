@@ -128,31 +128,28 @@ private:
 };
 
 inline FeatureForkVersionEnum GetFeatureForkVersion(const int32_t currBlockHeight) {
-    if (currBlockHeight >= (int32_t)SysCfg().GetVer3ForkHeight())
+    if (currBlockHeight >= (int32_t) SysCfg().GetVer3ForkHeight())
         return MAJOR_VER_R3;
 
-    else if (currBlockHeight >= (int32_t)SysCfg().GetFeatureForkHeight())
+    if (currBlockHeight >= (int32_t) SysCfg().GetFeatureForkHeight())
         return MAJOR_VER_R2;
 
-    else
-        return MAJOR_VER_R1;
+    return MAJOR_VER_R1;
 }
 
 inline uint32_t GetBlockInterval(const int32_t currBlockHeight) {
-
-    if (currBlockHeight< (int32_t)SysCfg().GetFeatureForkHeight())
-        return SysCfg().GetBlockIntervalPreStableCoinRelease();
-    else
-        return SysCfg().GetBlockIntervalStableCoinRelease();
+    return 
+        (currBlockHeight < (int32_t)SysCfg().GetFeatureForkHeight()) ?
+            SysCfg().GetBlockIntervalPreStableCoinRelease() : 
+            SysCfg().GetBlockIntervalStableCoinRelease();
 }
 
 
 inline uint32_t GetContinuousBlockCount(const int32_t currHeight){
-
-    if (currHeight  < (int32_t)SysCfg().GetVer3ForkHeight())
-        return SysCfg().GetContinuousCountBeforeFork();
-    else
-        return SysCfg().GetContinuousCountAfterFork();
+    return 
+        (currHeight  < (int32_t)SysCfg().GetVer3ForkHeight()) ?
+            SysCfg().GetContinuousCountBeforeFork() :
+            SysCfg().GetContinuousCountAfterFork();
 
 }
 

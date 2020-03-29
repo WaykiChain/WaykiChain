@@ -154,7 +154,7 @@ inline int64_t GetShuffleOriginSeed(const int32_t curHeight, const int64_t block
 
 void ShuffleDelegates(const int32_t curHeight, const int64_t blockTime, VoteDelegateVector &delegates) {
 
-    int64_t oriSeed =GetShuffleOriginSeed( curHeight,blockTime );
+    int64_t oriSeed = GetShuffleOriginSeed( curHeight,blockTime );
     auto totalDelegateNum = delegates.size() ;
 
     string seedSource = strprintf("%u", oriSeed / totalDelegateNum + (oriSeed % totalDelegateNum > 0 ? 1 : 0));

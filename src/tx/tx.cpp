@@ -205,7 +205,7 @@ bool CBaseTx::ExecuteFullTx(CTxExecuteContext &context) {
 
     /////////////////////////
     // 1. Prior ExecuteTx
-    if (nTxType != UCOIN_REWARD_TX) {
+    if (nTxType != UCOIN_REWARD_TX && nTxType!= UCOIN_BLOCK_REWARD_TX) {
         if (!cw.accountCache.GetAccount(txUid, txAccount))
             return state.DoS(100, ERRORMSG("ExecuteFullTx: read txUid %s account info error",
                             txUid.ToString()), READ_ACCOUNT_FAIL, "bad-read-accountdb");

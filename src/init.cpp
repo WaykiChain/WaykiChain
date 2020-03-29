@@ -766,7 +766,7 @@ bool AppInit(boost::thread_group &threadGroup) {
 
     if (SysCfg().IsArgCount("-printblock")) {
         string strMatch = SysCfg().GetArg("-printblock", "");
-        int32_t nFound      = 0;
+        int32_t nFound  = 0;
         for (map<uint256, CBlockIndex *>::iterator mi = mapBlockIndex.begin(); mi != mapBlockIndex.end(); ++mi) {
             uint256 hash = (*mi).first;
             if (strncmp(hash.ToString().c_str(), strMatch.c_str(), strMatch.size()) == 0) {
@@ -774,7 +774,9 @@ bool AppInit(boost::thread_group &threadGroup) {
                 CBlock block;
                 ReadBlockFromDisk(pIndex, block);
                 block.BuildMerkleTree();
+
                 block.Print();
+                
                 nFound++;
             }
         }

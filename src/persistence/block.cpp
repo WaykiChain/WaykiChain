@@ -89,7 +89,7 @@ const PriceMap& CBlock::GetBlockMedianPrice() const {
             continue;
 
         if (vptx[index]->IsPriceMedianTx())
-            return ((CBlockPriceMedianTx*)vptx[index].get())->median_prices;
+            return ((CBlockPriceMedianTx*) vptx[index].get())->median_prices;
 
         break;
     }
