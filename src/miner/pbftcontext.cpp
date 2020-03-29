@@ -15,19 +15,22 @@ bool CPBFTContext::GetMinerListByBlockHash(const uint256 blockHash, set<CRegID>&
     auto it = blockMinerListMap.find(blockHash);
     if (it == blockMinerListMap.end())
         return false;
+
     miners = it->second;
 
-    for(auto x: miners) {
-       ERRORMSG("minerlist -----------%s",x.ToString());
-    }
+    for (auto &miner : miners)
+       LogPrint(BCLog::DEBUG, "BP -----------%s", miner.ToString());
+    
     return true;
 }
 
 bool CPBFTContext::SaveMinersByHash(uint256 blockhash, VoteDelegateVector delegates) {
     set<CRegID> miners;
-    for(auto delegate: delegates){
+
+    for (auto &delegate : delegates)
         miners.insert(delegate.regid);
-    }
+
     blockMinerListMap.insert(std::make_pair(blockhash, miners));
+    
     return true;
 }
