@@ -176,15 +176,9 @@ bool CUserIssueAssetTx::ExecuteTx(CTxExecuteContext &context) {
                         asset.total_supply, txUid.ToDebugString()), UPDATE_ACCOUNT_FAIL, "insufficent-funds");
     }
 
-    if (!cw.accountCache.SetAccount(txUid, txAccount))
-        return state.DoS(100, ERRORMSG("CUserIssueAssetTx::ExecuteTx, set tx account to db failed! txUid=%s",
-            txUid.ToDebugString()), UPDATE_ACCOUNT_FAIL, "bad-set-accountdb");
-
-    if (ownerAccount.keyid != txAccount.keyid) {
-         if (!cw.accountCache.SetAccount(ownerAccount.keyid, ownerAccount))
-            return state.DoS(100, ERRORMSG("CUserIssueAssetTx::ExecuteTx, set asset owner account to db failed! owner_uid=%s",
-                asset.owner_uid.ToDebugString()), UPDATE_ACCOUNT_FAIL, "bad-set-accountdb");
-    }
+    if ( ownerAccount.keyid != txAccount.keyid && !cw.accountCache.SetAccount(ownerAccount.keyid, ownerAccount) )
+        return state.DoS(100, ERRORMSG("CUserIssueAssetTx::ExecuteTx, set asset owner account to db failed! owner_uid=%s",
+                        asset.owner_uid.ToDebugString()), UPDATE_ACCOUNT_FAIL, "bad-set-accountdb");
 
     //Persist with Owner's RegID to save space than other User ID types
     CAsset savedAsset(asset.asset_symbol, asset.asset_name, AssetType::UIA, AssetPermType::PERM_DEX_BASE,
