@@ -14,7 +14,7 @@ bool CCoinRewardTx::CheckTx(CTxExecuteContext &context) {
 }
 
 bool CCoinRewardTx::ExecuteTx(CTxExecuteContext &context) {
-    CCacheWrapper &cw = *context.pCw; CValidationState &state = *context.pState;
+    CValidationState &state = *context.pState;
 
     if (!txAccount.OperateBalance(coin_symbol, ADD_FREE, coin_amount, ReceiptCode::COIN_BLOCK_REWARD_TO_MINER, receipts))
         return state.DoS(100, ERRORMSG("CCoinRewardTx::ExecuteTx, operate account failed"), UPDATE_ACCOUNT_FAIL,
