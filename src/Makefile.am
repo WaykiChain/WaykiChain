@@ -385,7 +385,6 @@ libcoin_server_a_SOURCES = \
   tx/dextx.cpp \
   tx/dexoperatortx.cpp \
   tx/coinstaketx.cpp \
-  tx/mulsigtx.cpp \
   tx/proposaltx.cpp \
   tx/pricefeedtx.cpp \
   tx/tx.cpp \

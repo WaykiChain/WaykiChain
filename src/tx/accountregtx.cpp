@@ -36,7 +36,7 @@ bool CAccountRegisterTx::CheckTx(CTxExecuteContext &context) {
 
 
 bool CAccountRegisterTx::ExecuteTx(CTxExecuteContext &context) {
-    CCacheWrapper &cw = *context.pCw; CValidationState &state = *context.pState;
+    CValidationState &state = *context.pState;
 
     CKeyID keyId = txUid.get<CPubKey>().GetKeyId();
     if (txAccount.HaveOwnerPubKey())
