@@ -20,18 +20,9 @@ bool CAccountPermsClearTx::CheckTx(CTxExecuteContext &context) {
 
 bool CAccountPermsClearTx::ExecuteTx(CTxExecuteContext &context) {
     IMPLEMENT_DEFINE_CW_STATE
-
-    CAccount acct;
-    if (!cw.accountCache.GetAccount(txUid, acct))
-        return state.DoS(100, ERRORMSG("%s(), get tx account info failed! uid=%s",
-                __func__, txUid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
-
-    if (!acct.OperateBalance(fee_symbol, BalanceOpType::SUB_FREE, llFees, ReceiptCode::BLOCK_REWARD_TO_MINER, receipts))
-        return state.DoS(100, ERRORMSG("CAccountPermsClearTx::ExecuteTx, deduct fees from regId=%s failed,",
-                                       txUid.ToString()), UPDATE_ACCOUNT_FAIL, "deduct-account-fee-failed");
     
-    acct.perms_sum = 0;
-    if (!cw.accountCache.SetAccount(txUid, acct))
+    txAccount.perms_sum = 0;
+    if (!cw.accountCache.SetAccount(txUid, txAccount))
         return state.DoS(100, ERRORMSG("%s(), save tx account info failed! txuid=%s",
                 __func__, txUid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-write-accountdb");
 
