@@ -96,7 +96,7 @@ static const unordered_map<CdpParamType, std::tuple< uint64_t,string >, CdpParam
         { CDP_INTEREST_PARAM_A,                     make_tuple(  2,            "CDP_INTEREST_PARAM_A")                    },  // a = 2
         { CDP_INTEREST_PARAM_B,                     make_tuple(  1,            "CDP_INTEREST_PARAM_B")                    },  // b = 1
         { CDP_SYSORDER_PENALTY_FEE_MIN,             make_tuple(  10,           "CDP_SYSORDER_PENALTY_FEE_MIN")            },  // min penalty fee = 10
-        { CDP_CONVERT_INTEREST_TO_DEBT_DAYS,        make_tuple(  30,           "CDP_CONVERT_INTEREST_TO_DEBT_DAYS")       },  // after 30 days, unpaid interest will be converted into debt
+        { CDP_CONVERT_INTEREST_TO_DEBT_DAYS,        make_tuple(  365,           "CDP_CONVERT_INTEREST_TO_DEBT_DAYS")       },  // after 30 days, unpaid interest will be converted into debt
 };
 
 static const unordered_map<CdpParamType, std::pair<uint64_t,uint64_t>, CdpParamTypeHash> kCdpParamRangeTable = {
