@@ -21,6 +21,9 @@ AC_PATH_TOOL(RANLIB, ranlib)
 AC_PATH_TOOL(STRIP, strip)
 AX_PROG_CC_FOR_BUILD
 
+# Silence warning: ar: 'u' modifier ignored since 'D' is the default
+AC_SUBST(ARFLAGS, [cr])
+
 if test "x$CFLAGS" = "x"; then
   CFLAGS="-g"
 fi
