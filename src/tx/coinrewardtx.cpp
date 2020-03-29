@@ -16,32 +16,9 @@ bool CCoinRewardTx::CheckTx(CTxExecuteContext &context) {
 bool CCoinRewardTx::ExecuteTx(CTxExecuteContext &context) {
     CCacheWrapper &cw = *context.pCw; CValidationState &state = *context.pState;
 
-    CAccount account;
-    CRegID regId(context.height, context.index);
-    CKeyID keyId;
-    CPubKey pubKey;
-    if (txUid.is<CPubKey>()) {
-        pubKey = txUid.get<CPubKey>();
-        assert(pubKey.IsFullyValid());
-        keyId = pubKey.GetKeyId();
-    } else if (txUid.is<CNullID>()) {
-        keyId = Hash160(regId.GetRegIdRaw());
-    } else {
-        assert(false && "txUid must be CPubKey or CNullID");
-    }
-
-    account.nickid       = CNickID();
-    account.owner_pubkey = pubKey;
-    account.regid        = regId;
-    account.keyid        = keyId;
-
-    if (!account.OperateBalance(coin_symbol, ADD_FREE, coin_amount, ReceiptCode::COIN_BLOCK_REWARD_TO_MINER, receipts))
+    if (!txAccount.OperateBalance(coin_symbol, ADD_FREE, coin_amount, ReceiptCode::COIN_BLOCK_REWARD_TO_MINER, receipts))
         return state.DoS(100, ERRORMSG("CCoinRewardTx::ExecuteTx, operate account failed"), UPDATE_ACCOUNT_FAIL,
                          "operate-account-failed");
-
-    if (!cw.accountCache.SaveAccount(account))
-        return state.DoS(100, ERRORMSG("CCoinRewardTx::ExecuteTx, write secure account info error"),
-                         UPDATE_ACCOUNT_FAIL, "bad-save-accountdb");
 
     return true;
 }

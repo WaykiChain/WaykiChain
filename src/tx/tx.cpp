@@ -82,15 +82,19 @@ bool CBaseTx::IsValidHeight(int32_t nCurrHeight, int32_t nTxCacheHeight) const {
 
 bool CBaseTx::GenerateRegID(CTxExecuteContext &context) {
     if (txUid.is<CPubKey>()) {
-        txAccount.owner_pubkey = txUid.get<CPubKey>();
-
         CRegID regId;
         if (context.pCw->accountCache.GetRegId(txUid, regId)) // account already registered
             return true;
 
         // generate a new regid for the account
         txAccount.regid = CRegID(context.height, context.index);
+        txAccount.keyid = txUid.get<CPubKey>().GetKeyId();
+        txAccount.nickid = CNickID();
+        txAccount.owner_pubkey = txUid.get<CPubKey>();
     }
+
+    if (txUid.is<CNullID>())
+        txAccount.keyid = Hash160(txAccount.regid.GetRegIdRaw());
 
     return true;
 }
@@ -228,7 +232,7 @@ bool CBaseTx::ExecuteFullTx(CTxExecuteContext &context) {
     if (!receipts.empty() && !cw.txReceiptCache.SetTxReceipts(GetHash(), receipts))
         return state.DoS(100, ERRORMSG("ExecuteFullTx: save receipts error, txid=%s",
                                     GetHash().ToString()), WRITE_RECEIPT_FAIL, "bad-save-receipts");
-                                    
+
     return true;
 }
 
