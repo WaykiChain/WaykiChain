@@ -29,14 +29,6 @@ bool CBaseCoinTransferTx::CheckTx(CTxExecuteContext &context) {
 bool CBaseCoinTransferTx::ExecuteTx(CTxExecuteContext &context) {
     IMPLEMENT_DEFINE_CW_STATE;
 
-    CAccount txAccount;
-    if (!cw.accountCache.GetAccount(txUid, txAccount))
-        return state.DoS(100, ERRORMSG("CBaseCoinTransferTx::ExecuteTx, read source addr account info error"),
-                         READ_ACCOUNT_FAIL, "bad-read-accountdb");
-
-    if (!GenerateRegID(context, txAccount))
-        return false;
-
     CAccount desAccount;
     if (!cw.accountCache.GetAccount(toUid, desAccount)) {
         if (toUid.is<CKeyID>()) {  // first involved in transaction
@@ -47,16 +39,10 @@ bool CBaseCoinTransferTx::ExecuteTx(CTxExecuteContext &context) {
         }
     }
 
-    uint64_t minusValue = llFees + coin_amount;
-    if (!txAccount.OperateBalance(SYMB::WICC, BalanceOpType::SUB_FREE, minusValue, 
-                                   ReceiptCode::TRANSFER_ACTUAL_COINS, receipts, &desAccount)) {
+    if (!txAccount.OperateBalance(SYMB::WICC, BalanceOpType::SUB_FREE, coin_amount, 
+                                ReceiptCode::TRANSFER_ACTUAL_COINS, receipts, &desAccount))
         return state.DoS(100, ERRORMSG("CBaseCoinTransferTx::ExecuteTx, account has insufficient funds"),
                          UPDATE_ACCOUNT_FAIL, "operate-minus-account-failed");
-    }
-
-    if (!cw.accountCache.SetAccount(CUserID(txAccount.keyid), txAccount))
-        return state.DoS(100, ERRORMSG("CBaseCoinTransferTx::ExecuteTx, save account info error"), WRITE_ACCOUNT_FAIL,
-                         "bad-write-accountdb");
 
     if (!cw.accountCache.SetAccount(toUid, desAccount))
         return state.DoS(100, ERRORMSG("CBaseCoinTransferTx::ExecuteTx, save account error, kyeId=%s",
