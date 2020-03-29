@@ -116,11 +116,6 @@ bool CCoinTransferTx::ExecuteTx(CTxExecuteContext &context) {
     CCacheWrapper &cw       = *context.pCw;
     CValidationState &state = *context.pState;
 
-    if (!txAccount.OperateBalance(fee_symbol, SUB_FREE, llFees, ReceiptCode::BLOCK_REWARD_TO_MINER, receipts)) {
-        return state.DoS(100, ERRORMSG("CCoinTransferTx::ExecuteTx, insufficient coin_amount in txUid %s account",
-                        txUid.ToString()), UPDATE_ACCOUNT_FAIL, "insufficient-coin_amount");
-    }
-
     for (size_t i = 0; i < transfers.size(); i++) {
         const auto &transfer = transfers[i];
 

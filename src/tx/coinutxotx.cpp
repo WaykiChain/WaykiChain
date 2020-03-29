@@ -512,7 +512,6 @@ bool CCoinUtxoPasswordProofTx::CheckTx(CTxExecuteContext &context) {
 }
 
 bool CCoinUtxoPasswordProofTx::ExecuteTx(CTxExecuteContext &context) {
-
     IMPLEMENT_DEFINE_CW_STATE
 
     CRegIDKey regIdKey(txAccount.regid);

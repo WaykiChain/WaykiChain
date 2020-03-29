@@ -208,10 +208,7 @@ bool CLuaContractInvokeTx::ExecuteTx(CTxExecuteContext &context) {
 
     LogPrint(BCLog::LUAVM, "execute contract elapse: %lld, txid=%s\n", GetTimeMillis() - llTime, GetHash().GetHex());
 
-    if (!cw.txReceiptCache.SetTxReceipts(GetHash(), vmRunEnv.GetReceipts()))
-        return state.DoS(
-            100, ERRORMSG("CLuaContractInvokeTx::ExecuteTx, set tx receipts failed!! txid=%s", GetHash().ToString()),
-            REJECT_INVALID, "set-tx-receipt-failed");
+    receipts = vmRunEnv.GetReceipts();
 
     return true;
 }
