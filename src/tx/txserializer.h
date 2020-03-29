@@ -58,8 +58,6 @@ void CBaseTx::SerializePtr(Stream& os, const std::shared_ptr<CBaseTx> &pBaseTx, 
         case DELEGATE_VOTE_TX:
             ::Serialize(os, (const CDelegateVoteTx&)tx, serType, version); break;
 
-        case UCOIN_TRANSFER_MTX:
-            ::Serialize(os, (const CMulsigTx&)tx, serType, version); break;
         case UCOIN_STAKE_TX:
             ::Serialize(os, (const CCoinStakeTx&)tx, serType, version); break;
         case ASSET_ISSUE_TX:
@@ -170,12 +168,6 @@ void CBaseTx::UnserializePtr(Stream& is, std::shared_ptr<CBaseTx> &pBaseTx, int 
         case DELEGATE_VOTE_TX: {
             pBaseTx = std::make_shared<CDelegateVoteTx>();
             ::Unserialize(is, *((CDelegateVoteTx *)(pBaseTx.get())), serType, version);
-            break;
-        }
-
-        case UCOIN_TRANSFER_MTX: {
-            pBaseTx = std::make_shared<CMulsigTx>();
-            ::Unserialize(is, *((CMulsigTx *)(pBaseTx.get())), serType, version);
             break;
         }
 

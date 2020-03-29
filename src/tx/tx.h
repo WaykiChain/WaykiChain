@@ -46,7 +46,6 @@ static const std::unordered_map<TxType, AccountPermType> kTxTypePermMap = {
     { BCOIN_TRANSFER_TX,            AccountPermType::PERM_SEND_COIN  },
     { DELEGATE_VOTE_TX,             AccountPermType::PERM_SEND_VOTE  },
     { UCOIN_TRANSFER_TX,            AccountPermType::PERM_SEND_COIN  },
-    { UCOIN_TRANSFER_MTX,           AccountPermType::PERM_SEND_COIN  },
 
     { UCOIN_STAKE_TX,               AccountPermType::PERM_STAKE_COIN },
 

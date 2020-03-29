@@ -127,12 +127,6 @@ Array RPCConvertValues(const string &strMethod, const vector<string> &strParams)
 
     if (strMethod == "walletpassphrase"       && n > 1) ConvertTo<int64_t>(params[1]);
 
-    if (strMethod == "addmulsigaddr"          && n > 0) ConvertTo<int64_t>(params[0]);
-    if (strMethod == "addmulsigaddr"          && n > 1) ConvertTo<Array>(params[1]);
-    if (strMethod == "createmulsig"           && n > 0) ConvertTo<int64_t>(params[0]);
-    if (strMethod == "createmulsig"           && n > 1) ConvertTo<Array>(params[1]);
-    if (strMethod == "signtxraw"              && n > 1) ConvertTo<Array>(params[1]);
-
     if (strMethod == "getblock"               && n > 1) ConvertTo<bool>(params[1]);
     if (strMethod == "getchaininfo"           && n > 0) ConvertTo<int32_t>(params[0]);
     if (strMethod == "getchaininfo"           && n > 1) ConvertTo<int32_t>(params[1]);
