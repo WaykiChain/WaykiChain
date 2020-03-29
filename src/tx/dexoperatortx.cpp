@@ -337,25 +337,22 @@ bool CDEXOperatorUpdateTx::ExecuteTx(CTxExecuteContext &context) {
     CCacheWrapper &cw = *context.pCw; CValidationState &state = *context.pState;
 
     DexOperatorDetail oldDetail  ;
-    if(!cw.dexCache.GetDexOperator((DexID)update_data.dexId, oldDetail)){
+    if (!cw.dexCache.GetDexOperator((DexID)update_data.dexId, oldDetail))
         return state.DoS(100, ERRORMSG("CDEXOperatorUpdateTx::ExecuteTx, the dexoperator( id= %u) is not exist!",
                                        update_data.dexId), UPDATE_ACCOUNT_FAIL, "dexoperator-not-exist");
-    }
 
-    if (txAccount.IsSelfUid(oldDetail.owner_regid)) {
-        return state.DoS(100, ERRORMSG("CDEXOperatorUpdateTx::ExecuteTx, only owner can update dexoperator!， owner_regid=%s, txUid=%s, dexId=%u",
+    if (!txAccount.IsSelfUid(oldDetail.owner_regid))
+        return state.DoS(100, ERRORMSG("CDEXOperatorUpdateTx::ExecuteTx, only owner can update dexoperator! owner_regid=%s, txUid=%s, dexId=%u",
                                        oldDetail.owner_regid.ToString(),txUid.ToString(), update_data.dexId),
                                                UPDATE_ACCOUNT_FAIL, "dexoperator-update-permession-deny");
-    }
 
     if (!ProcessDexOperatorFee(cw, state, OPERATOR_ACTION_UPDATE, txAccount, receipts, context.height))
          return false;
 
     DexOperatorDetail detail = oldDetail;
-    if(!update_data.UpdateToDexOperator(detail,cw) ){
+    if (!update_data.UpdateToDexOperator(detail, cw))
         return state.DoS(100, ERRORMSG("%s, copy updated dex operator error! dex_id=%u", __func__, update_data.dexId),
                          UPDATE_ACCOUNT_FAIL, "copy-updated-operator-error");
-    }
 
     if (!cw.dexCache.UpdateDexOperator(update_data.dexId, oldDetail, detail))
         return state.DoS(100, ERRORMSG("%s, save updated dex operator error! dex_id=%u", __func__, update_data.dexId),
