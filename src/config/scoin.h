@@ -57,24 +57,25 @@ enum CdpParamType : uint8_t {
     CDP_INTEREST_PARAM_A                    = 10,
     CDP_INTEREST_PARAM_B                    = 11,
     CDP_SYSORDER_PENALTY_FEE_MIN            = 12,
+    CDP_CONVERT_INTEREST_TO_DEBT_DAYS       = 13, //beyond this will result in force converting interest to debt
 
 };
 
 
 
 static const unordered_map<string, CdpParamType> paramNameToCdpParamTypeMap = {
-
-        {"CDP_GLOBAL_COLLATERAL_CEILING_AMOUNT",            CDP_GLOBAL_COLLATERAL_CEILING_AMOUNT    },
-        {"CDP_GLOBAL_COLLATERAL_RATIO_MIN",                 CDP_GLOBAL_COLLATERAL_RATIO_MIN         },
-        {"CDP_START_COLLATERAL_RATIO",                      CDP_START_COLLATERAL_RATIO              },
-        {"CDP_START_LIQUIDATE_RATIO",                       CDP_START_LIQUIDATE_RATIO               },
-        {"CDP_NONRETURN_LIQUIDATE_RATIO",                   CDP_NONRETURN_LIQUIDATE_RATIO           },
-        {"CDP_FORCE_LIQUIDATE_RATIO",                       CDP_FORCE_LIQUIDATE_RATIO               },
-        {"CDP_LIQUIDATE_DISCOUNT_RATIO",                    CDP_LIQUIDATE_DISCOUNT_RATIO            },
-        {"CDP_BCOINSTOSTAKE_AMOUNT_MIN_IN_SCOIN",           CDP_BCOINSTOSTAKE_AMOUNT_MIN_IN_SCOIN   },
-        {"CDP_INTEREST_PARAM_A",                            CDP_INTEREST_PARAM_A                    },
-        {"CDP_INTEREST_PARAM_B",                            CDP_INTEREST_PARAM_B                    },
-        {"CDP_SYSORDER_PENALTY_FEE_MIN",                    CDP_SYSORDER_PENALTY_FEE_MIN            }
+    {"CDP_GLOBAL_COLLATERAL_CEILING_AMOUNT",            CDP_GLOBAL_COLLATERAL_CEILING_AMOUNT    },
+    {"CDP_GLOBAL_COLLATERAL_RATIO_MIN",                 CDP_GLOBAL_COLLATERAL_RATIO_MIN         },
+    {"CDP_START_COLLATERAL_RATIO",                      CDP_START_COLLATERAL_RATIO              },
+    {"CDP_START_LIQUIDATE_RATIO",                       CDP_START_LIQUIDATE_RATIO               },
+    {"CDP_NONRETURN_LIQUIDATE_RATIO",                   CDP_NONRETURN_LIQUIDATE_RATIO           },
+    {"CDP_FORCE_LIQUIDATE_RATIO",                       CDP_FORCE_LIQUIDATE_RATIO               },
+    {"CDP_LIQUIDATE_DISCOUNT_RATIO",                    CDP_LIQUIDATE_DISCOUNT_RATIO            },
+    {"CDP_BCOINSTOSTAKE_AMOUNT_MIN_IN_SCOIN",           CDP_BCOINSTOSTAKE_AMOUNT_MIN_IN_SCOIN   },
+    {"CDP_INTEREST_PARAM_A",                            CDP_INTEREST_PARAM_A                    },
+    {"CDP_INTEREST_PARAM_B",                            CDP_INTEREST_PARAM_B                    },
+    {"CDP_SYSORDER_PENALTY_FEE_MIN",                    CDP_SYSORDER_PENALTY_FEE_MIN            },
+    {"CDP_CONVERT_INTEREST_TO_DEBT_DAYS",               CDP_CONVERT_INTEREST_TO_DEBT_DAYS       }
 };
 
 struct CdpParamTypeHash {
@@ -94,26 +95,28 @@ static const unordered_map<CdpParamType, std::tuple< uint64_t,string >, CdpParam
         { CDP_BCOINSTOSTAKE_AMOUNT_MIN_IN_SCOIN,    make_tuple(  90000000,     "CDP_BCOINSTOSTAKE_AMOUNT_MIN_IN_SCOIN")   },  // 0.9 WUSD, dust amount (<0.9) rejected
         { CDP_INTEREST_PARAM_A,                     make_tuple(  2,            "CDP_INTEREST_PARAM_A")                    },  // a = 2
         { CDP_INTEREST_PARAM_B,                     make_tuple(  1,            "CDP_INTEREST_PARAM_B")                    },  // b = 1
-        { CDP_SYSORDER_PENALTY_FEE_MIN,             make_tuple(  10,           "CDP_SYSORDER_PENALTY_FEE_MIN")            }  // min penalty fee = 10
+        { CDP_SYSORDER_PENALTY_FEE_MIN,             make_tuple(  10,           "CDP_SYSORDER_PENALTY_FEE_MIN")            },  // min penalty fee = 10
+        { CDP_CONVERT_INTEREST_TO_DEBT_DAYS,        make_tuple(  30,           "CDP_CONVERT_INTEREST_TO_DEBT_DAYS")       },  // after 30 days, unpaid interest will be converted into debt
 };
 
 static const unordered_map<CdpParamType, std::pair<uint64_t,uint64_t>, CdpParamTypeHash> cdpParamRangeTable = {
-        { CDP_GLOBAL_COLLATERAL_CEILING_AMOUNT,     RANGE(0,0)        },  // 25% * 210000000
-        { CDP_GLOBAL_COLLATERAL_RATIO_MIN,          RANGE(0,0)        },  // 80% * 10000
-        { CDP_START_COLLATERAL_RATIO,               RANGE(10000,100000)        },  // 190% * 10000 : starting collateral ratio
-        { CDP_START_LIQUIDATE_RATIO,                RANGE(10000,15000)        },  // 1.13 ~ 1.5  : common liquidation
-        { CDP_NONRETURN_LIQUIDATE_RATIO,            RANGE(10400,11300)        },  // 1.04 ~ 1.13 : Non-return to CDP owner
-        { CDP_FORCE_LIQUIDATE_RATIO,                RANGE(10000,10400)        },  // 0 ~ 1.04    : forced liquidation only
-        { CDP_LIQUIDATE_DISCOUNT_RATIO,             RANGE(0,10000)        },  // discount: 97%
-        { CDP_BCOINSTOSTAKE_AMOUNT_MIN_IN_SCOIN,    RANGE(0,0)        },  // 0.9 WUSD, dust amount (<0.9) rejected
-        { CDP_INTEREST_PARAM_A,                     RANGE(0,0)        },  // a = 2
-        { CDP_INTEREST_PARAM_B,                     RANGE(0,0)        },  // b = 1
-        { CDP_SYSORDER_PENALTY_FEE_MIN,             RANGE(0,0)        }  // min penalty fee = 10
+        { CDP_GLOBAL_COLLATERAL_CEILING_AMOUNT,     RANGE(0,0)          },  // 25% * 210000000
+        { CDP_GLOBAL_COLLATERAL_RATIO_MIN,          RANGE(0,0)          },  // 80% * 10000
+        { CDP_START_COLLATERAL_RATIO,               RANGE(10000,100000) },  // 190% * 10000 : starting collateral ratio
+        { CDP_START_LIQUIDATE_RATIO,                RANGE(10000,15000)  },  // 1.13 ~ 1.5  : common liquidation
+        { CDP_NONRETURN_LIQUIDATE_RATIO,            RANGE(10400,11300)  },  // 1.04 ~ 1.13 : Non-return to CDP owner
+        { CDP_FORCE_LIQUIDATE_RATIO,                RANGE(10000,10400)  },  // 0 ~ 1.04    : forced liquidation only
+        { CDP_LIQUIDATE_DISCOUNT_RATIO,             RANGE(0,10000)      },  // discount: 97%
+        { CDP_BCOINSTOSTAKE_AMOUNT_MIN_IN_SCOIN,    RANGE(0,0)          },  // 0.9 WUSD, dust amount (<0.9) rejected
+        { CDP_INTEREST_PARAM_A,                     RANGE(0,0)          },  // a = 2
+        { CDP_INTEREST_PARAM_B,                     RANGE(0,0)          },  // b = 1
+        { CDP_SYSORDER_PENALTY_FEE_MIN,             RANGE(0,0)          },  // min penalty fee = 10
+        { CDP_CONVERT_INTEREST_TO_DEBT_DAYS,        RANGE(0,3650)       },  // max 10 years
 };
 
 
 inline string CheckCdpParamValue(const CdpParamType paramType, uint64_t value){
-    if(cdpParamRangeTable.count(paramType) == 0)
+    if (cdpParamRangeTable.count(paramType) == 0)
         return strprintf("check param scope error:don't find param type (%d)", paramType);
     auto itr = cdpParamRangeTable.find(paramType) ;
 
