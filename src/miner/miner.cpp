@@ -698,7 +698,7 @@ static bool ProduceBlock(int64_t startMiningMs, CBlockIndex *pPrevIndex, Miner &
         miningBlockInfo.SetNull();
     }
 
-    LogPrint(BCLog::INFO, "%s(), succeed to mine a new block, height=%d, regid=%s, hash=%s, "
+    LogPrint(BCLog::INFO, "%s(), mined a new block: height=%d, regid=%s, hash=%s, "
         "used_time_ms=%lld\n", __FUNCTION__, blockHeight, miner.account.regid.ToString(), pBlock->GetHash().ToString(),
         GetTimeMillis() - startMiningMs);
     return true;
