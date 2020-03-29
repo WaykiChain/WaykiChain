@@ -681,14 +681,14 @@ static bool ProduceBlock(int64_t startMiningMs, CBlockIndex *pPrevIndex, Miner &
         lastTime = GetTimeMillis();
         success  = CheckWork(pBlock.get());
         if (!success) {
-            LogPrint(BCLog::MINER, "ProduceBlock(), fail to check work for new block, height=%d, regid=%s, "
+            LogPrint(BCLog::MINER, "ProduceBlock(), failed to check work for new block, height=%d, regid=%s, "
                 "used_time_ms=%lld\n", blockHeight, miner.account.regid.ToString(), GetTimeMillis() - lastTime);
             return false;
         }
-        LogPrint(BCLog::MINER, "ProduceBlock(), succeed to check work of new block, height=%d, regid=%s, hash=%s, "
-            "used_time_ms=%lld\n", blockHeight, miner.account.regid.ToString(), pBlock->GetHash().ToString(),
-            GetTimeMillis() - lastTime);
 
+        LogPrint(BCLog::MINER, "ProduceBlock(), succeeded in check work for new block: height=%d, regid=%s, hash=%s, "
+                "used_time_ms=%lld\n", blockHeight, miner.account.regid.ToString(), pBlock->GetHash().ToString(),
+                GetTimeMillis() - lastTime);
     }
 
     {
