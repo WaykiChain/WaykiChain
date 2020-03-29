@@ -62,13 +62,6 @@ bool CUCoinBlockRewardTx::CheckTx(CTxExecuteContext &context) { return true; }
 bool CUCoinBlockRewardTx::ExecuteTx(CTxExecuteContext &context) {
     IMPLEMENT_DEFINE_CW_STATE;
 
-    CAccount account;
-    if (!cw.accountCache.GetAccount(txUid, account)) {
-        return state.DoS(
-            100, ERRORMSG("CUCoinBlockRewardTx::ExecuteTx, read source addr %s account info error", txUid.ToString()),
-            UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
-    }
-
     int32_t index = context.index;
     if (0 == index) {
         // When the reward transaction is immature, should NOT update account's balances.
@@ -80,7 +73,7 @@ bool CUCoinBlockRewardTx::ExecuteTx(CTxExecuteContext &context) {
             TokenSymbol coinSymbol = item.first;
             // FIXME: support WICC/WUSD only.
             if (coinSymbol == SYMB::WICC || coinSymbol == SYMB::WUSD) {
-                if (!account.OperateBalance(coinSymbol, ADD_FREE, rewardAmount, ReceiptCode::COIN_BLOCK_REWARD_TO_MINER, receipts)) {
+                if (!txAccount.OperateBalance(coinSymbol, ADD_FREE, rewardAmount, ReceiptCode::COIN_BLOCK_REWARD_TO_MINER, receipts)) {
                     return state.DoS(100, ERRORMSG("CUCoinBlockRewardTx::ExecuteTx, opeate account failed"),
                                      UPDATE_ACCOUNT_FAIL, "operate-account-failed");
                 }
@@ -90,17 +83,11 @@ bool CUCoinBlockRewardTx::ExecuteTx(CTxExecuteContext &context) {
         }
 
         // Assign profits to the delegate's account.
-        if (!account.OperateBalance(SYMB::WICC, ADD_FREE, inflated_bcoins, ReceiptCode::COIN_BLOCK_INFLATE, receipts)) {
+        if (!txAccount.OperateBalance(SYMB::WICC, ADD_FREE, inflated_bcoins, ReceiptCode::COIN_BLOCK_INFLATE, receipts))
             return state.DoS(100, ERRORMSG("CUCoinBlockRewardTx::ExecuteTx, opeate account failed"),
                              UPDATE_ACCOUNT_FAIL, "operate-account-failed");
-        }
     } else {
         return ERRORMSG("CUCoinBlockRewardTx::ExecuteTx, invalid index");
-    }
-
-    if (!cw.accountCache.SetAccount(CUserID(account.keyid), account)) {
-        return state.DoS(100, ERRORMSG("CUCoinBlockRewardTx::ExecuteTx, write secure account info error"),
-                         UPDATE_ACCOUNT_FAIL, "bad-save-accountdb");
     }
 
     return true;
