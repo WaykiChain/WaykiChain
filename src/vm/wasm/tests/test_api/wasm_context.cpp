@@ -51,6 +51,7 @@ namespace wasm {
         return true;
 
     };
+    
     void CWasmContractTx::execute_inline_transaction( wasm::inline_transaction_trace& trace,
                                     wasm::inline_transaction& trx,
                                      uint64_t receiver,

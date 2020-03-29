@@ -60,22 +60,12 @@ bool CNickIdRegisterTx::CheckTx(CTxExecuteContext &context) {
 bool CNickIdRegisterTx::ExecuteTx(CTxExecuteContext &context) {
     IMPLEMENT_DEFINE_CW_STATE;
 
-    if (!GenerateRegID(context, txAccount))
-        return false;
-
-    if(!txAccount.nickid.IsEmpty()){
+    if (!txAccount.nickid.IsEmpty())
         return state.DoS(100, ERRORMSG("CNickIdRegisterTx::ExecuteTx, the account have nickid already!", txUid.ToString()),
                          UPDATE_ACCOUNT_FAIL, "nickid-exist");
-    }
-
-    if (!txAccount.OperateBalance(fee_symbol, BalanceOpType::SUB_FREE, llFees, ReceiptCode::BLOCK_REWARD_TO_MINER, receipts)) {
-        return state.DoS(100, ERRORMSG("CNickIdRegisterTx::ExecuteTx, insufficient funds in account, txUid=%s",
-                                       txUid.ToString()), UPDATE_ACCOUNT_FAIL, "insufficent-funds");
-    }
 
     CNickID  nick = CNickID(wasm::string_to_name(nickId.c_str()));
     txAccount.nickid  = nick;
-
     if (!cw.accountCache.SetNickId(txAccount, context.height))
         return state.DoS(100, ERRORMSG("CNickIdRegisterTx::ExecuteTx, write source addr %s account info error",
                                        nick.ToString()), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
