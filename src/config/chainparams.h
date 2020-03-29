@@ -183,7 +183,7 @@ public:
     const uint256& GetGenesisBlockHash() const { return genesisBlockHash; }
     bool CreateGenesisBlockRewardTx(vector<std::shared_ptr<CBaseTx> >& vptx, NET_TYPE type);
     bool CreateGenesisDelegateTx(vector<std::shared_ptr<CBaseTx> >& vptx, NET_TYPE type);
-    bool CreateFundCoinRewardTx(vector<std::shared_ptr<CBaseTx> >& vptx, NET_TYPE type);
+    bool CreateFundCoinMintTx(vector<std::shared_ptr<CBaseTx> >& vptx, NET_TYPE type);
     virtual bool RequireRPCPassword() const { return true; }
     const string& DataDir() const { return strDataDir; }
     virtual NET_TYPE NetworkID() const = 0;

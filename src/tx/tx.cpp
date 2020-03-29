@@ -108,7 +108,7 @@ bool CBaseTx::CheckBaseTx(CTxExecuteContext &context) {
 
     if(nTxType == BLOCK_REWARD_TX
     || nTxType == PRICE_MEDIAN_TX
-    || nTxType == UCOIN_REWARD_TX
+    || nTxType == UCOIN_MINT_TX
     || nTxType == UCOIN_BLOCK_REWARD_TX) {
         return true;
     }
@@ -210,7 +210,7 @@ bool CBaseTx::ExecuteFullTx(CTxExecuteContext &context) {
             return state.DoS(100, ERRORMSG("ExecuteFullTx: read txUid %s account info error",
                             txUid.ToString()), READ_ACCOUNT_FAIL, "bad-read-accountdb");
 
-        if (nTxType != UCOIN_REWARD_TX && nTxType != UCOIN_BLOCK_REWARD_TX) {
+        if (nTxType != UCOIN_MINT_TX && nTxType != UCOIN_BLOCK_REWARD_TX) {
             if (llFees > 0 && !txAccount.OperateBalance(fee_symbol, SUB_FREE, llFees, ReceiptCode::BLOCK_REWARD_TO_MINER, receipts))
                     return state.DoS(100, ERRORMSG("ExecuteFullTx: account has insufficient funds"),
                                     UPDATE_ACCOUNT_FAIL, "sub-account-fees-failed");
@@ -224,7 +224,7 @@ bool CBaseTx::ExecuteFullTx(CTxExecuteContext &context) {
 
     /////////////////////////
     // 3. Post ExecuteTx
-    if ( nTxType != UCOIN_REWARD_TX && !cw.accountCache.SaveAccount(txAccount) )
+    if ( nTxType != UCOIN_MINT_TX && !cw.accountCache.SaveAccount(txAccount) )
             return state.DoS(100, ERRORMSG("ExecuteFullTx, write source addr %s account info error",
                             txUid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
 

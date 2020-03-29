@@ -185,7 +185,7 @@ coin_CORE_H = \
   tx/blockrewardtx.h \
   tx/blockpricemediantx.h \
   tx/cdptx.h \
-  tx/coinrewardtx.h \
+  tx/coinminttx.h \
   tx/contracttx.h \
   tx/cointransfertx.h \
   tx/coinutxotx.h \
@@ -377,7 +377,7 @@ libcoin_server_a_SOURCES = \
   tx/blockrewardtx.cpp \
   tx/blockpricemediantx.cpp \
   tx/cdptx.cpp \
-  tx/coinrewardtx.cpp \
+  tx/coinminttx.cpp \
   tx/contracttx.cpp \
   tx/cointransfertx.cpp \
   tx/coinutxotx.cpp \
@@ -451,7 +451,7 @@ libcoin_common_a_SOURCES = \
   commons/json/json_spirit_value.cpp \
   commons/json/json_spirit_writer.cpp \
   sync.cpp \
-  tx/coinrewardtx.cpp \
+  tx/coinminttx.cpp \
   $(COIN_CORE_H)
 
 if GLIBC_BACK_COMPAT

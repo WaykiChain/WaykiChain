@@ -4,26 +4,26 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 
-#include "coinrewardtx.h"
+#include "coinminttx.h"
 
 #include "main.h"
 
-bool CCoinRewardTx::CheckTx(CTxExecuteContext &context) {
+bool CCoinMintTx::CheckTx(CTxExecuteContext &context) {
     // Only used in stable coin genesis.
     return context.height == (int32_t) SysCfg().GetStableCoinGenesisHeight() ? true : false;
 }
 
-bool CCoinRewardTx::ExecuteTx(CTxExecuteContext &context) {
+bool CCoinMintTx::ExecuteTx(CTxExecuteContext &context) {
     CValidationState &state = *context.pState;
 
-    if (!txAccount.OperateBalance(coin_symbol, ADD_FREE, coin_amount, ReceiptCode::COIN_BLOCK_REWARD_TO_MINER, receipts))
-        return state.DoS(100, ERRORMSG("CCoinRewardTx::ExecuteTx, operate account failed"), UPDATE_ACCOUNT_FAIL,
+    if (!txAccount.OperateBalance(coin_symbol, ADD_FREE, coin_amount, ReceiptCode::COIN_MINT_ONCHAIN, receipts))
+        return state.DoS(100, ERRORMSG("CCoinMintTx::ExecuteTx, operate account failed"), UPDATE_ACCOUNT_FAIL,
                          "operate-account-failed");
 
     return true;
 }
 
-string CCoinRewardTx::ToString(CAccountDBCache &accountCache) {
+string CCoinMintTx::ToString(CAccountDBCache &accountCache) {
     assert(txUid.is<CPubKey>() || txUid.is<CNullID>());
     string toAddr = txUid.is<CPubKey>() ? txUid.get<CPubKey>().GetKeyId().ToAddress() : "";
 
@@ -32,7 +32,7 @@ string CCoinRewardTx::ToString(CAccountDBCache &accountCache) {
                      coin_amount, valid_height);
 }
 
-Object CCoinRewardTx::ToJson(const CAccountDBCache &accountCache) const {
+Object CCoinMintTx::ToJson(const CAccountDBCache &accountCache) const {
     assert(txUid.is<CPubKey>() || txUid.is<CNullID>());
     Object result;
     string toAddr = txUid.is<CPubKey>() ? txUid.get<CPubKey>().GetKeyId().ToAddress() : "";

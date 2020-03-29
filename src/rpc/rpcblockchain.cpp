@@ -17,7 +17,7 @@
 #include "sync.h"
 #include "tx/merkletx.h"
 #include "tx/tx.h"
-#include "tx/coinrewardtx.h"
+#include "tx/coinminttx.h"
 #include "wallet/wallet.h"
 #include "persistence/blockundo.h"
 
@@ -87,22 +87,22 @@ Value getfcoingenesistxinfo(const Array& params, bool fHelp) {
     Object output;
 
     NET_TYPE netType = SysCfg().NetworkID();
-    uint32_t nStableCoinGenesisHeight           = IniCfg().GetStableCoinGenesisHeight(netType);
+    uint32_t nStableCoinGenesisHeight = IniCfg().GetStableCoinGenesisHeight(netType);
 
     // Stablecoin Global Reserve Account with its initial reseve creation
-    auto pTx      = std::make_shared<CCoinRewardTx>(CNullID(), nStableCoinGenesisHeight, SYMB::WUSD,
+    auto pTx = std::make_shared<CCoinMintTx>(CNullID(), nStableCoinGenesisHeight, SYMB::WUSD,
                                                FUND_COIN_GENESIS_INITIAL_RESERVE_AMOUNT * COIN);
     pTx->nVersion = INIT_TX_VERSION;
     output.push_back(Pair("fcoin_global_account_txid", pTx->GetHash().GetHex()));
 
     // FundCoin Genesis Account with the total FundCoin release creation
-    pTx = std::make_shared<CCoinRewardTx>(CPubKey(ParseHex(IniCfg().GetInitFcoinOwnerPubKey(netType))),
+    pTx = std::make_shared<CCoinMintTx>(CPubKey(ParseHex(IniCfg().GetInitFcoinOwnerPubKey(netType))),
                                           nStableCoinGenesisHeight, SYMB::WGRT,
                                           FUND_COIN_GENESIS_TOTAL_RELEASE_AMOUNT * COIN);
     output.push_back(Pair("fcoin_genesis_account_txid", pTx->GetHash().GetHex()));
 
     // DEX Order Matching Service Account
-    pTx = std::make_shared<CCoinRewardTx>(CPubKey(ParseHex(IniCfg().GetDexMatchServicePubKey(netType))),
+    pTx = std::make_shared<CCoinMintTx>(CPubKey(ParseHex(IniCfg().GetDexMatchServicePubKey(netType))),
                                           nStableCoinGenesisHeight, SYMB::WGRT, 0);
     output.push_back(Pair("dex_match_account_txid", pTx->GetHash().GetHex()));
 

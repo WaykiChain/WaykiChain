@@ -21,7 +21,7 @@ static CUserID nullId;
     DEFINE(NULL_CODE,                            0,  "null type") \
     /**** reward */ \
     DEFINE(BLOCK_REWARD_TO_MINER,               101, "block reward to miner") \
-    DEFINE(COIN_BLOCK_REWARD_TO_MINER,          102, "coin block reward to miner") \
+    DEFINE(COIN_MINT_ONCHAIN,                   102, "coin minted onchain") \
     DEFINE(COIN_BLOCK_INFLATE,                  103, "inflate coins to user of tx") \
     DEFINE(COIN_STAKE,                          104, "stake user's coins") \
     /**** transfer */ \

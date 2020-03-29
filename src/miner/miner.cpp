@@ -404,7 +404,7 @@ static bool CreateStableCoinGenesisBlock(std::unique_ptr<CBlock> &pBlock) {
     pBlock->vptx.push_back(std::make_shared<CBlockRewardTx>());
 
     // Create stale coin genesis transactions.
-    SysCfg().CreateFundCoinRewardTx(pBlock->vptx, SysCfg().NetworkID());
+    SysCfg().CreateFundCoinMintTx(pBlock->vptx, SysCfg().NetworkID());
 
     // Fill in header
     CBlockIndex *pIndexPrev = chainActive.Tip();

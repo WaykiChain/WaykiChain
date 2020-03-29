@@ -9,21 +9,21 @@
 #include "entities/asset.h"
 #include "tx.h"
 
-class CCoinRewardTx : public CBaseTx {
+class CCoinMintTx : public CBaseTx {
 public:
     TokenSymbol coin_symbol;  // default: WICC
     uint64_t coin_amount;
 
 public:
-    CCoinRewardTx() : CBaseTx(UCOIN_REWARD_TX), coin_symbol(SYMB::WICC), coin_amount(0) {}
+    CCoinMintTx() : CBaseTx(UCOIN_MINT_TX), coin_symbol(SYMB::WICC), coin_amount(0) {}
 
-    CCoinRewardTx(const CUserID &txUidIn, const int32_t validHeightIn,
+    CCoinMintTx(const CUserID &txUidIn, const int32_t validHeightIn,
                   const TokenSymbol &coinSymbol, const uint64_t coinAmount)
-        : CBaseTx(UCOIN_REWARD_TX, txUidIn, validHeightIn, 0),
+        : CBaseTx(UCOIN_MINT_TX, txUidIn, validHeightIn, 0),
           coin_symbol(coinSymbol),
           coin_amount(coinAmount) {}
 
-    ~CCoinRewardTx() {}
+    ~CCoinMintTx() {}
 
     IMPLEMENT_SERIALIZE(
         READWRITE(VARINT(this->nVersion));
@@ -42,7 +42,7 @@ public:
            << VARINT(coin_amount);
     }
 
-    std::shared_ptr<CBaseTx> GetNewInstance() const { return std::make_shared<CCoinRewardTx>(*this); }
+    std::shared_ptr<CBaseTx> GetNewInstance() const { return std::make_shared<CCoinMintTx>(*this); }
 
     virtual string ToString(CAccountDBCache &accountCache);
     virtual Object ToJson(const CAccountDBCache &accountCache) const;

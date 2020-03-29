@@ -73,7 +73,7 @@ bool CUCoinBlockRewardTx::ExecuteTx(CTxExecuteContext &context) {
             TokenSymbol coinSymbol = item.first;
             // FIXME: support WICC/WUSD only.
             if (coinSymbol == SYMB::WICC || coinSymbol == SYMB::WUSD) {
-                if (!txAccount.OperateBalance(coinSymbol, ADD_FREE, rewardAmount, ReceiptCode::COIN_BLOCK_REWARD_TO_MINER, receipts)) {
+                if (!txAccount.OperateBalance(coinSymbol, ADD_FREE, rewardAmount, ReceiptCode::BLOCK_REWARD_TO_MINER, receipts)) {
                     return state.DoS(100, ERRORMSG("CUCoinBlockRewardTx::ExecuteTx, opeate account failed"),
                                      UPDATE_ACCOUNT_FAIL, "operate-account-failed");
                 }

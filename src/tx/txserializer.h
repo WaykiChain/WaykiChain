@@ -14,7 +14,7 @@
 #include "tx/blockpricemediantx.h"
 #include "tx/blockrewardtx.h"
 #include "tx/cdptx.h"
-#include "tx/coinrewardtx.h"
+#include "tx/coinminttx.h"
 #include "tx/cointransfertx.h"
 #include "tx/coinutxotx.h"
 #include "tx/contracttx.h"
@@ -71,8 +71,8 @@ void CBaseTx::SerializePtr(Stream& os, const std::shared_ptr<CBaseTx> &pBaseTx, 
 
         case UCOIN_TRANSFER_TX:
             ::Serialize(os, (const CCoinTransferTx&)tx, serType, version); break;
-        case UCOIN_REWARD_TX:
-            ::Serialize(os, (const CCoinRewardTx&)tx, serType, version); break;
+        case UCOIN_MINT_TX:
+            ::Serialize(os, (const CCoinMintTx&)tx, serType, version); break;
         case UCOIN_BLOCK_REWARD_TX:
             ::Serialize(os, (const CUCoinBlockRewardTx&)tx, serType, version); break;
         case UCONTRACT_DEPLOY_TX:
@@ -206,9 +206,9 @@ void CBaseTx::UnserializePtr(Stream& is, std::shared_ptr<CBaseTx> &pBaseTx, int 
             break;
         }
 
-        case UCOIN_REWARD_TX: {
-            pBaseTx = std::make_shared<CCoinRewardTx>();
-            ::Unserialize(is, *((CCoinRewardTx *)(pBaseTx.get())), serType, version);
+        case UCOIN_MINT_TX: {
+            pBaseTx = std::make_shared<CCoinMintTx>();
+            ::Unserialize(is, *((CCoinMintTx *)(pBaseTx.get())), serType, version);
             break;
         }
         case UCOIN_BLOCK_REWARD_TX: {

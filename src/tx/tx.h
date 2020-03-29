@@ -205,11 +205,9 @@ public:
     bool IsBlockRewardTx()  { return nTxType == BLOCK_REWARD_TX || nTxType == UCOIN_BLOCK_REWARD_TX; }
     bool IsPriceMedianTx()  { return nTxType == PRICE_MEDIAN_TX; }
     bool IsPriceFeedTx()    { return nTxType == PRICE_FEED_TX; }
-    bool IsCoinRewardTx()   { return nTxType == UCOIN_REWARD_TX; }
+    bool IsCoinMintTx()     { return nTxType == UCOIN_MINT_TX; }
 
     const string& GetTxTypeName() const { return ::GetTxTypeName(nTxType); }
-
-    
 
 
 public:
