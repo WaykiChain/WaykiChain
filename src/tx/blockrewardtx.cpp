@@ -19,10 +19,9 @@ bool CBlockRewardTx::ExecuteTx(CTxExecuteContext &context) {
     } else if (-1 == context.index) {
         // When the reward transaction is mature, update account's balances, i.e, assign the reward value to
         // the target account.
-        if (!txAccount.OperateBalance(SYMB::WICC, ADD_FREE, reward_fees, ReceiptCode::BLOCK_REWARD_TO_MINER, receipts)) {
+        if (!txAccount.OperateBalance(SYMB::WICC, ADD_FREE, reward_fees, ReceiptCode::BLOCK_REWARD_TO_MINER, receipts))
             return state.DoS(100, ERRORMSG("CBlockRewardTx::ExecuteTx, opeate account failed"), UPDATE_ACCOUNT_FAIL,
                              "operate-account-failed");
-        }
     } else {
         return ERRORMSG("CBlockRewardTx::ExecuteTx, invalid index");
     }
