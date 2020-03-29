@@ -14,18 +14,12 @@ bool CBlockRewardTx::CheckTx(CTxExecuteContext &context) { return true; }
 bool CBlockRewardTx::ExecuteTx(CTxExecuteContext &context) {
     IMPLEMENT_DEFINE_CW_STATE;
 
-    CAccount account;
-    if (!cw.accountCache.GetAccount(txUid, account)) {
-        return state.DoS(100, ERRORMSG("CBlockRewardTx::ExecuteTx, read source addr %s account info error",
-            txUid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
-    }
-
     if (0 == context.index) {
         // When the reward transaction is immature, should NOT update account's balances.
     } else if (-1 == context.index) {
         // When the reward transaction is mature, update account's balances, i.e, assign the reward value to
         // the target account.
-        if (!account.OperateBalance(SYMB::WICC, ADD_FREE, reward_fees, ReceiptCode::BLOCK_REWARD_TO_MINER, receipts)) {
+        if (!txAccount.OperateBalance(SYMB::WICC, ADD_FREE, reward_fees, ReceiptCode::BLOCK_REWARD_TO_MINER, receipts)) {
             return state.DoS(100, ERRORMSG("CBlockRewardTx::ExecuteTx, opeate account failed"), UPDATE_ACCOUNT_FAIL,
                              "operate-account-failed");
         }
@@ -33,10 +27,9 @@ bool CBlockRewardTx::ExecuteTx(CTxExecuteContext &context) {
         return ERRORMSG("CBlockRewardTx::ExecuteTx, invalid index");
     }
 
-    if (!cw.accountCache.SetAccount(CUserID(account.keyid), account)) {
+    if (!cw.accountCache.SetAccount(CUserID(txAccount.keyid), txAccount))
         return state.DoS(100, ERRORMSG("CBlockRewardTx::ExecuteTx, write secure account info error"),
                          UPDATE_ACCOUNT_FAIL, "bad-save-accountdb");
-    }
 
     return true;
 }
