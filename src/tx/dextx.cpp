@@ -155,7 +155,7 @@ namespace dex {
                 taker_fee_ratio,
             };
         }
-        // other fields keep the default value
+        // other fields keep as is
 
         if (!context.pCw->dexCache.CreateActiveOrder(txid, orderDetail))
             return context.pState->DoS(100, ERRORMSG("%s, create active buy order failed! txid=%s",

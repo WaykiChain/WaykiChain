@@ -17,7 +17,6 @@
 #include "vm/luavm/appaccount.h"
 #include "wallet/wallet.h"
 #include "wallet/walletdb.h"
-#include "tx/mulsigtx.h"
 
 #include <stdint.h>
 #include <boost/assign/list_of.hpp>

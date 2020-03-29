@@ -18,8 +18,6 @@
 #include "tx/pricefeedtx.h"
 #include "tx/assettx.h"
 #include "tx/coinstaketx.h"
-#include "tx/mulsigtx.h"
-
 
 Value submitpricefeedtx(const Array& params, bool fHelp) {
     if (fHelp || params.size() < 2 || params.size() > 3) {

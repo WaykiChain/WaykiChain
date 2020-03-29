@@ -20,7 +20,6 @@
 #include "tx/coinstaketx.h"
 #include "tx/nickidregtx.h"
 #include "tx/accountregtx.h"
-#include "tx/mulsigtx.h"
 #include "tx/dextx.h"
 #include "tx/txserializer.h"
 #include "config/scoin.h"
