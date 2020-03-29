@@ -80,21 +80,16 @@ bool CBaseTx::IsValidHeight(int32_t nCurrHeight, int32_t nTxCacheHeight) const {
     return true;
 }
 
-bool CBaseTx::GenerateRegID(CTxExecuteContext &context, CAccount &account) {
+bool CBaseTx::GenerateRegID(CTxExecuteContext &context) {
     if (txUid.is<CPubKey>()) {
-        account.owner_pubkey = txUid.get<CPubKey>();
+        txAccount.owner_pubkey = txUid.get<CPubKey>();
 
         CRegID regId;
-        if (context.pCw->accountCache.GetRegId(txUid, regId)) {
-            // account has regid already, return
+        if (context.pCw->accountCache.GetRegId(txUid, regId)) // account already registered
             return true;
-        }
 
         // generate a new regid for the account
-        account.regid = CRegID(context.height, context.index);
-        if (!context.pCw->accountCache.SaveAccount(account))
-            return context.pState->DoS(100, ERRORMSG("CBaseTx::GenerateRegID, save account info error"), WRITE_ACCOUNT_FAIL,
-                             "bad-write-accountdb");
+        txAccount.regid = CRegID(context.height, context.index);
     }
 
     return true;
@@ -209,7 +204,7 @@ bool CBaseTx::ExecuteFullTx(CTxExecuteContext &context) {
             return state.DoS(100, ERRORMSG("ExecuteFullTx: read txUid %s account info error",
                             txUid.ToString()), READ_ACCOUNT_FAIL, "bad-read-accountdb");
 
-        if (!GenerateRegID(context, txAccount))
+        if (!GenerateRegID(context))
                 return false;
 
         if (llFees > 0 && !txAccount.OperateBalance(fee_symbol, SUB_FREE, llFees, ReceiptCode::BLOCK_REWARD_TO_MINER, receipts))

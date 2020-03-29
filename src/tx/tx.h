@@ -201,7 +201,7 @@ public:
     bool IsValidHeight(int32_t nCurHeight, int32_t nTxCacheHeight) const;
 
     // If the sender has no regid before, generate a regid for the sender.
-    bool GenerateRegID(CTxExecuteContext &context, CAccount &account);
+    bool GenerateRegID(CTxExecuteContext &context);
 
     bool IsBlockRewardTx()  { return nTxType == BLOCK_REWARD_TX || nTxType == UCOIN_BLOCK_REWARD_TX; }
     bool IsPriceMedianTx()  { return nTxType == PRICE_MEDIAN_TX; }

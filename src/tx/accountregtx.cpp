@@ -39,20 +39,15 @@ bool CAccountRegisterTx::ExecuteTx(CTxExecuteContext &context) {
     CCacheWrapper &cw = *context.pCw; CValidationState &state = *context.pState;
 
     CKeyID keyId = txUid.get<CPubKey>().GetKeyId();
-    if (txAccount.HaveOwnerPubKey()) {
+    if (txAccount.HaveOwnerPubKey())
         return state.DoS(100, ERRORMSG("CAccountRegisterTx::ExecuteTx, keyId %s duplicate register", keyId.ToString()),
                          UPDATE_ACCOUNT_FAIL, "duplicate-register-account");
-    }
-
-    txAccount.regid        = CRegID(context.height, context.index);
-    txAccount.owner_pubkey = txUid.get<CPubKey>();
 
     if (miner_uid.is<CPubKey>()) {
         txAccount.miner_pubkey = miner_uid.get<CPubKey>();
-        if (!txAccount.miner_pubkey.IsFullyValid()) {
+        if (!txAccount.miner_pubkey.IsFullyValid())
             return state.DoS(100, ERRORMSG("CAccountRegisterTx::ExecuteTx, minerPubKey:%s Is Invalid",
                             txAccount.miner_pubkey.ToString()), UPDATE_ACCOUNT_FAIL, "MinerPKey Is Invalid");
-        }
     }
 
     return true;
