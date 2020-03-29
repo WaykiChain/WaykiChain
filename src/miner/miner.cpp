@@ -450,7 +450,7 @@ static bool CreateNewBlockForStableCoinRelease(int64_t startMiningMs, CCacheWrap
         // Push block price median transaction into queue.
         txPriorities.emplace(TxPriority(PRICE_MEDIAN_TRANSACTION_PRIORITY, 0, std::make_shared<CBlockPriceMedianTx>(height)));
 
-        LogPrint(BCLog::MINER, "CreateNewBlockForStableCoinRelease() : got %lu transaction(s) sorted by priority rules\n",
+        LogPrint(BCLog::MINER, "CreateNewBlockForStableCoinRelease() : got %lu trx(s), sorted by priority\n",
                  txPriorities.size());
 
         // Collect transactions into the block.
@@ -486,7 +486,7 @@ static bool CreateNewBlockForStableCoinRelease(int64_t startMiningMs, CCacheWrap
                         return ERRORMSG("%s(), calculate block median prices error", __func__);
                 }
 
-                LogPrint(BCLog::MINER, "CreateNewBlockForStableCoinRelease() : begin to pack transaction: %s\n",
+                LogPrint(BCLog::MINER, "CreateNewBlockForStableCoinRelease() : begin to pack trx: %s\n",
                          pBaseTx->ToString(spCW->accountCache));
 
                 uint32_t prevBlockTime = pIndexPrev->GetBlockTime();
@@ -650,8 +650,10 @@ static bool ProduceBlock(int64_t startMiningMs, CBlockIndex *pPrevIndex, Miner &
 
         if (blockHeight == (int32_t)SysCfg().GetStableCoinGenesisHeight()) {
             success = CreateStableCoinGenesisBlock(pBlock);  // stable coin genesis
+
         } else if (GetFeatureForkVersion(blockHeight) == MAJOR_VER_R1) {
             success = CreateNewBlockForPreStableCoinRelease(*spCW, pBlock); // pre-stable coin release
+
         } else {
             success = CreateNewBlockForStableCoinRelease(startMiningMs, *spCW, pBlock);    // stable coin release
         }
@@ -670,23 +672,23 @@ static bool ProduceBlock(int64_t startMiningMs, CBlockIndex *pPrevIndex, Miner &
         lastTime = GetTimeMillis();
         success  = CreateBlockRewardTx(miner, pBlock.get(), totalDelegateNum);
         if (!success) {
-            LogPrint(BCLog::MINER, "ProduceBlock() : fail to create block reward tx! height=%d, regid=%s, "
+            LogPrint(BCLog::MINER, "ProduceBlock() : failed in CreateBlockRewardTx: height=%d, regid=%s, "
                 "used_time_ms=%lld\n", blockHeight, miner.account.regid.ToString(), GetTimeMillis() - lastTime);
             return false;
         }
-        LogPrint(BCLog::MINER, "ProduceBlock() : succeed to create block reward tx! height=%d, regid=%s, reward_txid=%s, "
+        LogPrint(BCLog::MINER, "ProduceBlock() : succeeded in CreateBlockRewardTx: height=%d, regid=%s, reward_txid=%s, "
             "used_time_ms=%lld\n", blockHeight, miner.account.regid.ToString(), pBlock->vptx[0]->GetHash().ToString(),
             GetTimeMillis() - lastTime);
 
         lastTime = GetTimeMillis();
         success  = CheckWork(pBlock.get());
         if (!success) {
-            LogPrint(BCLog::MINER, "ProduceBlock(), failed to check work for new block, height=%d, regid=%s, "
+            LogPrint(BCLog::MINER, "ProduceBlock(), failed in CheckWork for new block, height=%d, regid=%s, "
                 "used_time_ms=%lld\n", blockHeight, miner.account.regid.ToString(), GetTimeMillis() - lastTime);
             return false;
         }
 
-        LogPrint(BCLog::MINER, "ProduceBlock(), succeeded in check work for new block: height=%d, regid=%s, hash=%s, "
+        LogPrint(BCLog::MINER, "ProduceBlock(), succeeded in CheckWork for new block: height=%d, regid=%s, hash=%s, "
                 "used_time_ms=%lld\n", blockHeight, miner.account.regid.ToString(), pBlock->GetHash().ToString(),
                 GetTimeMillis() - lastTime);
     }
