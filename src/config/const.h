@@ -21,9 +21,9 @@ namespace SYMB {
     static const string WUSD        = "WUSD";
     static const string WCNY        = "WCNY";
 
-    static const string mBTC        = "mBTC";
-    static const string mETH        = "mETH";
-    static const string mEOS        = "mEOS";
+    static const string mBTC        = "mBTC"; //mirrored BTC
+    static const string mETH        = "mETH"; //mirrored ETH
+    static const string mEOS        = "mEOS"; //mirrored EOS
 
     static const string USD         = "USD";
     static const string CNY         = "CNY";
@@ -109,11 +109,11 @@ static const unordered_map<TokenSymbol, std::pair<TokenSymbol,ChainType>> kXChai
     { SYMB::EOS,        make_pair(SYMB::mEOS, ChainType::EOS)}
 };
 static const unordered_map<TokenSymbol, std::pair<TokenSymbol,ChainType>> kXChainSwapOutTokenMap =  {
-    { SYMB::mBTC,       make_pair(SYMB::BTC, ChainType ::BITCOIN)             },
-    { SYMB::mETH,       make_pair(SYMB::ETH, ChainType ::ETHEREUM)            },
-    { SYMB::mUSDT,  make_pair(SYMB::USDT, ChainType ::ETHEREUM)       },
-    { SYMB::mDAI,        make_pair(SYMB::DAI, ChainType::ETHEREUM)},
-    { SYMB::mEOS,        make_pair(SYMB::EOS, ChainType::EOS)}
+    { SYMB::mBTC,       make_pair(SYMB::BTC, ChainType ::BITCOIN)           },
+    { SYMB::mETH,       make_pair(SYMB::ETH, ChainType ::ETHEREUM)          },
+    { SYMB::mUSDT,      make_pair(SYMB::USDT, ChainType ::ETHEREUM)         },
+    { SYMB::mDAI,       make_pair(SYMB::DAI, ChainType::ETHEREUM)           },
+    { SYMB::mEOS,       make_pair(SYMB::EOS, ChainType::EOS)                }
 };
 
 struct CoinUnitTypeHash {
