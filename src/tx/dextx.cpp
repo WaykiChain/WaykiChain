@@ -504,10 +504,6 @@ namespace dex {
                             REJECT_INVALID, "order-erase-failed");
         }
 
-        if (!cw.txReceiptCache.SetTxReceipts(GetHash(), receipts))
-            return state.DoS(100, ERRORMSG("CDEXCancelOrderTx::ExecuteTx, write tx receipt failed! txid=%s", GetHash().ToString()),
-                            REJECT_INVALID, "write-tx-receipt-failed");
-
         return true;
     }
 
