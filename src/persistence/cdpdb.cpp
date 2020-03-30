@@ -11,14 +11,16 @@ CCdpDBCache::CCdpDBCache(CDBAccess *pDbAccess)
       cdpCache(pDbAccess),
       bcoinStatusCache(pDbAccess),
       userCdpCache(pDbAccess),
-      cdpRatioSortedCache(pDbAccess) {}
+      cdpRatioSortedCache(pDbAccess),
+      cdp_height_index_cache(pDbAccess) {}
 
 CCdpDBCache::CCdpDBCache(CCdpDBCache *pBaseIn)
     : cdpGlobalDataCache(pBaseIn->cdpGlobalDataCache),
       cdpCache(pBaseIn->cdpCache),
       bcoinStatusCache(pBaseIn->bcoinStatusCache),
       userCdpCache(pBaseIn->userCdpCache),
-      cdpRatioSortedCache(pBaseIn->cdpRatioSortedCache) {}
+      cdpRatioSortedCache(pBaseIn->cdpRatioSortedCache),
+      cdp_height_index_cache(pBaseIn->cdp_height_index_cache) {}
 
 bool CCdpDBCache::NewCDP(const int32_t blockHeight, CUserCDP &cdp) {
     assert(!cdpCache.HasData(cdp.cdpid));
@@ -26,19 +28,19 @@ bool CCdpDBCache::NewCDP(const int32_t blockHeight, CUserCDP &cdp) {
 
     return cdpCache.SetData(cdp.cdpid, cdp) &&
         userCdpCache.SetData(make_pair(CRegIDKey(cdp.owner_regid), cdp.GetCoinPair()), cdp.cdpid) &&
-        SaveCDPToRatioDB(cdp);
+        SaveCdpIndexData(cdp);
 }
 
 bool CCdpDBCache::EraseCDP(const CUserCDP &oldCDP, const CUserCDP &cdp) {
     return cdpCache.SetData(cdp.cdpid, cdp) &&
         userCdpCache.EraseData(make_pair(CRegIDKey(cdp.owner_regid), cdp.GetCoinPair())) &&
-        EraseCDPFromRatioDB(oldCDP);
+        EraseCdpIndexData(oldCDP);
 }
 
 // Need to delete the old cdp(before updating cdp), then save the new cdp if necessary.
 bool CCdpDBCache::UpdateCDP(const CUserCDP &oldCDP, const CUserCDP &newCDP) {
     assert(!newCDP.IsEmpty());
-    return cdpCache.SetData(newCDP.cdpid, newCDP) && EraseCDPFromRatioDB(oldCDP) && SaveCDPToRatioDB(newCDP);
+    return cdpCache.SetData(newCDP.cdpid, newCDP) && EraseCdpIndexData(oldCDP) && SaveCdpIndexData(newCDP);
 }
 
 bool CCdpDBCache::UserHaveCdp(const CRegID &regid, const TokenSymbol &assetSymbol, const TokenSymbol &scoinSymbol) {
@@ -75,19 +77,25 @@ bool CCdpDBCache::EraseCDPFromDB(const CUserCDP &cdp) {
     return cdpCache.EraseData(cdp.cdpid);
 }
 
-bool CCdpDBCache::SaveCDPToRatioDB(const CUserCDP &userCdp) {
+bool CCdpDBCache::SaveCdpIndexData(const CUserCDP &userCdp) {
     CCdpCoinPair cdpCoinPair = userCdp.GetCoinPair();
     CCdpGlobalData cdpGlobalData = GetCdpGlobalData(cdpCoinPair);
 
     cdpGlobalData.total_staked_assets += userCdp.total_staked_bcoins;
     cdpGlobalData.total_owed_scoins += userCdp.total_owed_scoins;
 
-    if (!cdpGlobalDataCache.SetData(cdpCoinPair, cdpGlobalData)) return false;
+    if (!cdpGlobalDataCache.SetData(cdpCoinPair, cdpGlobalData))
+        return false;
 
-    return cdpRatioSortedCache.SetData(MakeCdpRatioSortedKey(userCdp), userCdp);
+    if (!cdpRatioSortedCache.SetData(MakeCdpRatioSortedKey(userCdp), userCdp))
+        return false;
+
+    if (!cdp_height_index_cache.SetData(MakeCdpHeightIndexKey(userCdp), userCdp))
+        return false;
+    return true;
 }
 
-bool CCdpDBCache::EraseCDPFromRatioDB(const CUserCDP &userCdp) {
+bool CCdpDBCache::EraseCdpIndexData(const CUserCDP &userCdp) {
     CCdpCoinPair cdpCoinPair = userCdp.GetCoinPair();
     CCdpGlobalData cdpGlobalData = GetCdpGlobalData(cdpCoinPair);
 
@@ -96,7 +104,11 @@ bool CCdpDBCache::EraseCDPFromRatioDB(const CUserCDP &userCdp) {
 
     cdpGlobalDataCache.SetData(cdpCoinPair, cdpGlobalData);
 
-    return cdpRatioSortedCache.EraseData(MakeCdpRatioSortedKey(userCdp));
+    if (!cdpRatioSortedCache.EraseData(MakeCdpRatioSortedKey(userCdp)))
+        return false;
+
+    if (!cdp_height_index_cache.EraseData(MakeCdpHeightIndexKey(userCdp)))
+        return false;
 }
 
 bool CCdpDBCache::GetCdpListByCollateralRatio(const CCdpCoinPair &cdpCoinPair,
@@ -146,8 +158,8 @@ void CCdpDBCache::SetBaseViewPtr(CCdpDBCache *pBaseIn) {
     cdpCache.SetBase(&pBaseIn->cdpCache);
     bcoinStatusCache.SetBase(&pBaseIn->bcoinStatusCache);
     userCdpCache.SetBase(&pBaseIn->userCdpCache);
-
     cdpRatioSortedCache.SetBase(&pBaseIn->cdpRatioSortedCache);
+    cdp_height_index_cache.SetBase(&pBaseIn->cdp_height_index_cache);
 }
 
 void CCdpDBCache::SetDbOpLogMap(CDBOpLogMap *pDbOpLogMapIn) {
@@ -156,11 +168,12 @@ void CCdpDBCache::SetDbOpLogMap(CDBOpLogMap *pDbOpLogMapIn) {
     bcoinStatusCache.SetDbOpLogMap(pDbOpLogMapIn);
     userCdpCache.SetDbOpLogMap(pDbOpLogMapIn);
     cdpRatioSortedCache.SetDbOpLogMap(pDbOpLogMapIn);
+    cdp_height_index_cache.SetDbOpLogMap(pDbOpLogMapIn);
 }
 
 uint32_t CCdpDBCache::GetCacheSize() const {
     return cdpGlobalDataCache.GetCacheSize() + cdpCache.GetCacheSize() + bcoinStatusCache.GetCacheSize() +
-            userCdpCache.GetCacheSize() + cdpRatioSortedCache.GetCacheSize();
+            userCdpCache.GetCacheSize() + cdpRatioSortedCache.GetCacheSize() + cdp_height_index_cache.GetCacheSize();
 }
 
 bool CCdpDBCache::Flush() {
@@ -168,6 +181,7 @@ bool CCdpDBCache::Flush() {
     cdpCache.Flush();
     bcoinStatusCache.Flush();
     userCdpCache.Flush();
+    cdpRatioSortedCache.Flush();
     cdpRatioSortedCache.Flush();
 
     return true;

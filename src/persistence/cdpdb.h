@@ -22,8 +22,11 @@ using namespace std;
 /*  CCompositeKVCache     prefixType        key                  value           variable  */
 /*  ----------------   --------------      -----------------    --------------   -----------*/
 // cdpr{$Ratio}{$height}{$cdpid} -> CUserCDP
-// height: allows data of the same ratio to be sorted by height
+// height: allows data of the same ratio to be sorted by height, from low to high
 typedef CCompositeKVCache<dbk::CDP_RATIO, tuple<CCdpCoinPair, CFixedUInt64, CFixedUInt64, uint256>, CUserCDP>      CdpRatioSortedCache;
+// cdpr{$height}{$cdpid} -> CUserCDP
+// cdp sort by height, from low to high
+typedef CCompositeKVCache<dbk::CDP_HEIGHT_INDEX, tuple<CCdpCoinPair, CFixedUInt64, uint256>, CUserCDP>      CCdpHeightIndexCache;
 
 class CCdpDBCache {
 public:
@@ -71,10 +74,11 @@ private:
     bool EraseCDPFromDB(const CUserCDP &cdp);
 
     // Usage: before modification, erase the old cdp; after modification, save the new cdp.
-    bool SaveCDPToRatioDB(const CUserCDP &userCdp);
-    bool EraseCDPFromRatioDB(const CUserCDP &userCdp);
+    bool SaveCdpIndexData(const CUserCDP &userCdp);
+    bool EraseCdpIndexData(const CUserCDP &userCdp);
 
     CdpRatioSortedCache::KeyType MakeCdpRatioSortedKey(const CUserCDP &cdp);
+    CCdpHeightIndexCache::KeyType MakeCdpHeightIndexKey(const CUserCDP &cdp);
 public:
     /*  CCompositeKVCache  prefixType       key                            value             variable  */
     /*  ---------------- --------------   ------------                --------------    ----- --------*/
@@ -88,6 +92,7 @@ public:
     CCompositeKVCache<  dbk::USER_CDP, pair<CRegIDKey, CCdpCoinPair>, optional<uint256>> userCdpCache;
     // cdpr{Ratio}{$cdpid} -> CUserCDP
     CdpRatioSortedCache           cdpRatioSortedCache;
+    CCdpHeightIndexCache         cdp_height_index_cache;
 };
 
 enum CDPCloseType: uint8_t {
