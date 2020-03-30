@@ -111,7 +111,7 @@ namespace dbk {
         DEFINE( CDP,                  "cid",    CDP )           /* cid{$cdpid} --> CUserCDP */ \
         DEFINE( CDP_BCOIN_STATUS,     "cbcs",   CDP )           /* [prefix]{$bcoin_symbol} --> $bcoinStatus */ \
         DEFINE( USER_CDP,             "ucdp",   CDP )           /* [prefix]{$RegID}{$AssetSymbol}{$ScoinSymbol} --> {set<cdpid>} */ \
-        DEFINE( CDP_RATIO,            "cdpr",   CDP )           /* [prefix]{$cdpCoinPair}{$Ratio}{$height}{$cdpid} --> $userCDP */ \
+        DEFINE( CDP_RATIO_INDEX,      "crid",   CDP )           /* [prefix]{$cdpCoinPair}{$Ratio}{$height}{$cdpid} --> $userCDP */ \
         DEFINE( CDP_HEIGHT_INDEX,     "chid",   CDP )           /* [prefix]{$cdpCoinPair}{$height}{$cdpid} -> $userCDP */ \
         DEFINE( CDP_GLOBAL_DATA,      "cgdt",   CDP )           /* [prefix]{$cdpCoinPair} -> $cdpGlobalData */ \
         /**** cdp closed by redeem/forced or manned liquidate ***/  \

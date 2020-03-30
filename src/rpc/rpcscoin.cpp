@@ -330,7 +330,7 @@ Object GetCdpInfoJson(const CCdpCoinPair &cdpCoinPair, uint64_t price) {
         throw JSONRPCError(RPC_INTERNAL_ERROR, "Acquire cdp force liquidate ratio error");
     }
 
-    CdpRatioSortedCache::Map forceLiquidateCdps;
+    CCdpRatioIndexCache::Map forceLiquidateCdps;
     pCdMan->pCdpCache->GetCdpListByCollateralRatio(cdpCoinPair, forceLiquidateRatio, price, forceLiquidateCdps);
 
     Object obj;

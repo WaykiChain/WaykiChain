@@ -49,7 +49,7 @@ private:
     uint256 GenOrderId(const CUserCDP &cdp, TokenSymbol assetSymbol);
 
 
-    bool ForceLiquidateCDPCompat(CdpRatioSortedCache::Map &cdps, ReceiptList &receipts);
+    bool ForceLiquidateCDPCompat(CCdpRatioIndexCache::Map &cdps, ReceiptList &receipts);
 
     uint256 GenOrderIdCompat(const uint256 &txid, uint32_t index);
 };
@@ -255,7 +255,7 @@ bool CCdpForceLiquidator::Execute() {
     }
 
     // 2. get all CDPs to be force settled
-    CdpRatioSortedCache::Map cdpMap;
+    CCdpRatioIndexCache::Map cdpMap;
     uint64_t forceLiquidateRatio = 0;
     if (!cw.sysParamCache.GetCdpParam(cdpCoinPair, CdpParamType::CDP_FORCE_LIQUIDATE_RATIO, forceLiquidateRatio)) {
         return state.DoS(100, ERRORMSG("%s(), read force liquidate ratio param error! cdpCoinPair=%s",
@@ -439,7 +439,7 @@ uint256 CCdpForceLiquidator::GenOrderId(const CUserCDP &cdp, TokenSymbol assetSy
 }
 
 
-bool CCdpForceLiquidator::ForceLiquidateCDPCompat(CdpRatioSortedCache::Map &cdps, ReceiptList &receipts) {
+bool CCdpForceLiquidator::ForceLiquidateCDPCompat(CCdpRatioIndexCache::Map &cdps, ReceiptList &receipts) {
 
     int32_t cdpIndex             = 0;
     uint64_t totalCloseoutScoins = 0;

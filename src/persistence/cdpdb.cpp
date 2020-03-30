@@ -11,7 +11,7 @@ CCdpDBCache::CCdpDBCache(CDBAccess *pDbAccess)
       cdpCache(pDbAccess),
       bcoinStatusCache(pDbAccess),
       userCdpCache(pDbAccess),
-      cdpRatioSortedCache(pDbAccess),
+      cdpRatioIndexCache(pDbAccess),
       cdp_height_index_cache(pDbAccess) {}
 
 CCdpDBCache::CCdpDBCache(CCdpDBCache *pBaseIn)
@@ -19,7 +19,7 @@ CCdpDBCache::CCdpDBCache(CCdpDBCache *pBaseIn)
       cdpCache(pBaseIn->cdpCache),
       bcoinStatusCache(pBaseIn->bcoinStatusCache),
       userCdpCache(pBaseIn->userCdpCache),
-      cdpRatioSortedCache(pBaseIn->cdpRatioSortedCache),
+      cdpRatioIndexCache(pBaseIn->cdpRatioIndexCache),
       cdp_height_index_cache(pBaseIn->cdp_height_index_cache) {}
 
 bool CCdpDBCache::NewCDP(const int32_t blockHeight, CUserCDP &cdp) {
@@ -87,7 +87,7 @@ bool CCdpDBCache::SaveCdpIndexData(const CUserCDP &userCdp) {
     if (!cdpGlobalDataCache.SetData(cdpCoinPair, cdpGlobalData))
         return false;
 
-    if (!cdpRatioSortedCache.SetData(MakeCdpRatioSortedKey(userCdp), userCdp))
+    if (!cdpRatioIndexCache.SetData(MakeCdpRatioIndexKey(userCdp), userCdp))
         return false;
 
     if (!cdp_height_index_cache.SetData(MakeCdpHeightIndexKey(userCdp), userCdp))
@@ -104,7 +104,7 @@ bool CCdpDBCache::EraseCdpIndexData(const CUserCDP &userCdp) {
 
     cdpGlobalDataCache.SetData(cdpCoinPair, cdpGlobalData);
 
-    if (!cdpRatioSortedCache.EraseData(MakeCdpRatioSortedKey(userCdp)))
+    if (!cdpRatioIndexCache.EraseData(MakeCdpRatioIndexKey(userCdp)))
         return false;
 
     if (!cdp_height_index_cache.EraseData(MakeCdpHeightIndexKey(userCdp)))
@@ -114,13 +114,13 @@ bool CCdpDBCache::EraseCdpIndexData(const CUserCDP &userCdp) {
 
 bool CCdpDBCache::GetCdpListByCollateralRatio(const CCdpCoinPair &cdpCoinPair,
         const uint64_t collateralRatio, const uint64_t bcoinMedianPrice,
-        CdpRatioSortedCache::Map &userCdps) {
+        CCdpRatioIndexCache::Map &userCdps) {
     double ratio = (double(collateralRatio) / RATIO_BOOST) / (double(bcoinMedianPrice) / PRICE_BOOST);
     assert(uint64_t(ratio * CDP_BASE_RATIO_BOOST) < UINT64_MAX);
     uint64_t ratioBoost = uint64_t(ratio * CDP_BASE_RATIO_BOOST) + 1;
-    CdpRatioSortedCache::KeyType endKey(cdpCoinPair, ratioBoost, 0, uint256());
+    CCdpRatioIndexCache::KeyType endKey(cdpCoinPair, ratioBoost, 0, uint256());
 
-    return cdpRatioSortedCache.GetAllElements(endKey, userCdps);
+    return cdpRatioIndexCache.GetAllElements(endKey, userCdps);
 }
 
 CCdpGlobalData CCdpDBCache::GetCdpGlobalData(const CCdpCoinPair &cdpCoinPair) const {
@@ -159,7 +159,7 @@ void CCdpDBCache::SetBaseViewPtr(CCdpDBCache *pBaseIn) {
     cdpCache.SetBase(&pBaseIn->cdpCache);
     bcoinStatusCache.SetBase(&pBaseIn->bcoinStatusCache);
     userCdpCache.SetBase(&pBaseIn->userCdpCache);
-    cdpRatioSortedCache.SetBase(&pBaseIn->cdpRatioSortedCache);
+    cdpRatioIndexCache.SetBase(&pBaseIn->cdpRatioIndexCache);
     cdp_height_index_cache.SetBase(&pBaseIn->cdp_height_index_cache);
 }
 
@@ -168,13 +168,13 @@ void CCdpDBCache::SetDbOpLogMap(CDBOpLogMap *pDbOpLogMapIn) {
     cdpCache.SetDbOpLogMap(pDbOpLogMapIn);
     bcoinStatusCache.SetDbOpLogMap(pDbOpLogMapIn);
     userCdpCache.SetDbOpLogMap(pDbOpLogMapIn);
-    cdpRatioSortedCache.SetDbOpLogMap(pDbOpLogMapIn);
+    cdpRatioIndexCache.SetDbOpLogMap(pDbOpLogMapIn);
     cdp_height_index_cache.SetDbOpLogMap(pDbOpLogMapIn);
 }
 
 uint32_t CCdpDBCache::GetCacheSize() const {
     return cdpGlobalDataCache.GetCacheSize() + cdpCache.GetCacheSize() + bcoinStatusCache.GetCacheSize() +
-            userCdpCache.GetCacheSize() + cdpRatioSortedCache.GetCacheSize() + cdp_height_index_cache.GetCacheSize();
+            userCdpCache.GetCacheSize() + cdpRatioIndexCache.GetCacheSize() + cdp_height_index_cache.GetCacheSize();
 }
 
 bool CCdpDBCache::Flush() {
@@ -182,13 +182,13 @@ bool CCdpDBCache::Flush() {
     cdpCache.Flush();
     bcoinStatusCache.Flush();
     userCdpCache.Flush();
-    cdpRatioSortedCache.Flush();
-    cdpRatioSortedCache.Flush();
+    cdpRatioIndexCache.Flush();
+    cdpRatioIndexCache.Flush();
 
     return true;
 }
 
-CdpRatioSortedCache::KeyType CCdpDBCache::MakeCdpRatioSortedKey(const CUserCDP &cdp) {
+CCdpRatioIndexCache::KeyType CCdpDBCache::MakeCdpRatioIndexKey(const CUserCDP &cdp) {
 
     uint64_t boostedRatio = cdp.collateral_ratio_base * CDP_BASE_RATIO_BOOST;
     uint64_t ratio        = (boostedRatio < cdp.collateral_ratio_base /* overflown */) ? UINT64_MAX : boostedRatio;

@@ -23,10 +23,10 @@ using namespace std;
 /*  ----------------   --------------      -----------------    --------------   -----------*/
 // cdpr{$Ratio}{$height}{$cdpid} -> CUserCDP
 // height: allows data of the same ratio to be sorted by height, from low to high
-typedef CCompositeKVCache<dbk::CDP_RATIO, tuple<CCdpCoinPair, CFixedUInt64, CFixedUInt64, uint256>, CUserCDP>      CdpRatioSortedCache;
+typedef CCompositeKVCache<dbk::CDP_RATIO_INDEX, tuple<CCdpCoinPair, CFixedUInt64, CFixedUInt64, uint256>, CUserCDP>  CCdpRatioIndexCache;
 // cdpr{$height}{$cdpid} -> CUserCDP
 // cdp sort by height, from low to high
-typedef CCompositeKVCache<dbk::CDP_HEIGHT_INDEX, tuple<CCdpCoinPair, CFixedUInt64, uint256>, CUserCDP>      CCdpHeightIndexCache;
+typedef CCompositeKVCache<dbk::CDP_HEIGHT_INDEX, tuple<CCdpCoinPair, CFixedUInt64, uint256>, CUserCDP> CCdpHeightIndexCache;
 
 class CCdpDBCache {
 public:
@@ -43,7 +43,7 @@ public:
     bool GetCDP(const uint256 cdpid, CUserCDP &cdp);
 
     bool GetCdpListByCollateralRatio(const CCdpCoinPair &cdpCoinPair, const uint64_t collateralRatio,
-            const uint64_t bcoinMedianPrice, CdpRatioSortedCache::Map &userCdps);
+            const uint64_t bcoinMedianPrice, CCdpRatioIndexCache::Map &userCdps);
 
     inline uint64_t GetGlobalStakedBcoins() const;
     inline uint64_t GetGlobalOwedScoins() const;
@@ -61,7 +61,7 @@ public:
         cdpCache.RegisterUndoFunc(undoDataFuncMap);
         bcoinStatusCache.RegisterUndoFunc(undoDataFuncMap);
         userCdpCache.RegisterUndoFunc(undoDataFuncMap);
-        cdpRatioSortedCache.RegisterUndoFunc(undoDataFuncMap);
+        cdpRatioIndexCache.RegisterUndoFunc(undoDataFuncMap);
     }
 
     uint32_t GetCacheSize() const;
@@ -73,7 +73,7 @@ private:
     bool SaveCdpIndexData(const CUserCDP &userCdp);
     bool EraseCdpIndexData(const CUserCDP &userCdp);
 
-    CdpRatioSortedCache::KeyType MakeCdpRatioSortedKey(const CUserCDP &cdp);
+    CCdpRatioIndexCache::KeyType MakeCdpRatioIndexKey(const CUserCDP &cdp);
     CCdpHeightIndexCache::KeyType MakeCdpHeightIndexKey(const CUserCDP &cdp);
 public:
     /*  CCompositeKVCache  prefixType       key                            value             variable  */
@@ -87,7 +87,7 @@ public:
     // ucdp${CRegID}{$cdpCoinPair} -> set<cdpid>
     CCompositeKVCache<  dbk::USER_CDP, pair<CRegIDKey, CCdpCoinPair>, optional<uint256>> userCdpCache;
     // cdpr{Ratio}{$cdpid} -> CUserCDP
-    CdpRatioSortedCache           cdpRatioSortedCache;
+    CCdpRatioIndexCache          cdpRatioIndexCache;
     CCdpHeightIndexCache         cdp_height_index_cache;
 };
 
@@ -147,7 +147,7 @@ public:
         closedTxCdpCache.RegisterUndoFunc(undoDataFuncMap);
     }
 private:
-    CdpRatioSortedCache::KeyType MakeCdpRatioSortedKey(const CUserCDP &cdp);
+    CCdpRatioIndexCache::KeyType MakeCdpRatioIndexKey(const CUserCDP &cdp);
 public:
     /*  CCompositeKVCache     prefixType     key               value             variable  */
     /*  ----------------   --------------   ------------   --------------    ----- --------*/

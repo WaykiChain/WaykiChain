@@ -223,7 +223,7 @@ Value verifymessage(const Array& params, bool fHelp) {
     /**** cdp db                                                                     */ \
     DEFINE( CDP,                  pCdpCache,  cdpCache) \
     DEFINE( USER_CDP,             pCdpCache,  userCdpCache) \
-    DEFINE( CDP_RATIO,            pCdpCache,  cdpRatioSortedCache) \
+    DEFINE( CDP_RATIO_INDEX,            pCdpCache,  cdpRatioIndexCache) \
     DEFINE( CDP_GLOBAL_DATA,      pCdpCache,  cdpGlobalDataCache) \
     /*DEFINE( CDP_GLOBAL_HALT,      pCdpCache,  cdpGlobalDataCache)           */ \
     /**** cdp closed by redeem/forced or manned liquidate ***/  \
