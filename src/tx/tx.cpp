@@ -230,7 +230,7 @@ bool CBaseTx::ExecuteFullTx(CTxExecuteContext &context) {
 
     /////////////////////////
     // 3. Post ExecuteTx
-    if (!cw.accountCache.SaveAccount(txAccount))
+    if (nTxType != PRICE_MEDIAN_TX && !cw.accountCache.SaveAccount(txAccount))
             return state.DoS(100, ERRORMSG("ExecuteFullTx, write source addr %s account info error",
                             txUid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
 
