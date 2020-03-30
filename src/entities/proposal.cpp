@@ -548,7 +548,7 @@ bool CGovAxcOutProposal::CheckProposal(CTxExecuteContext& context, CBaseTx& tx) 
         uid = tx.txUid;
     else
         uid = self_chain_uid;
-    if (!cw.accountCache.GetAccount(self_chain_uid, acct))
+    if (!cw.accountCache.GetAccount(uid, acct))
         return state.DoS(100, ERRORMSG("CGovAxcInProposal::ExecuteProposal, read account failed"), REJECT_INVALID,
                          "bad-getaccount");
     ReceiptList receipts;
