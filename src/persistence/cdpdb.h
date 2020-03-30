@@ -146,8 +146,6 @@ public:
         closedCdpTxCache.RegisterUndoFunc(undoDataFuncMap);
         closedTxCdpCache.RegisterUndoFunc(undoDataFuncMap);
     }
-private:
-    CCdpRatioIndexCache::KeyType MakeCdpRatioIndexKey(const CUserCDP &cdp);
 public:
     /*  CCompositeKVCache     prefixType     key               value             variable  */
     /*  ----------------   --------------   ------------   --------------    ----- --------*/

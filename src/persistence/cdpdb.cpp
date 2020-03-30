@@ -188,13 +188,6 @@ bool CCdpDBCache::Flush() {
     return true;
 }
 
-CCdpRatioIndexCache::KeyType CCdpDBCache::MakeCdpRatioIndexKey(const CUserCDP &cdp) {
-
-    uint64_t boostedRatio = cdp.collateral_ratio_base * CDP_BASE_RATIO_BOOST;
-    uint64_t ratio        = (boostedRatio < cdp.collateral_ratio_base /* overflown */) ? UINT64_MAX : boostedRatio;
-    return { cdp.GetCoinPair(), CFixedUInt64(ratio), CFixedUInt64(cdp.block_height), cdp.cdpid };
-}
-
 CCdpHeightIndexCache::KeyType CCdpDBCache::MakeCdpHeightIndexKey(const CUserCDP &cdp) {
 
     return {cdp.GetCoinPair(), CFixedUInt64(cdp.block_height), cdp.cdpid};
