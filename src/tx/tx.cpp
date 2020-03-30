@@ -85,14 +85,15 @@ bool CBaseTx::GenerateRegID(CTxExecuteContext &context) {
         txAccount.keyid = txUid.get<CPubKey>().GetKeyId();
 
         CRegID regId;
-        if (!context.pCw->accountCache.GetRegId(txAccount.keyid, regId)) // account already registered
+        if (context.pCw->accountCache.GetRegId(txAccount.keyid, regId)) // account already registered
             return true;
 
         txAccount.owner_pubkey = txUid.get<CPubKey>();
 
     } else if (txUid.is<CNullID>()) {
         txAccount.keyid = Hash160(txAccount.regid.GetRegIdRaw());
-    }
+    } else
+        return false;
 
     // generate a new regid for the account
     txAccount.regid = CRegID(context.height, context.index);
