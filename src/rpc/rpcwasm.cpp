@@ -260,12 +260,14 @@ Value submitwasmcontractcalltx( const Array &params, bool fHelp ) {
             CHAIN_ASSERT(database_account->GetAccount(CNickID(authorizer_name.value), authorizer), wasm_chain::account_access_exception,
                         "authorizer '%s' does not exist",authorizer_name.to_string())
 
-            std::vector<char> action_data(params[3].get_str().begin(), params[3].get_str().end());
-            CHAIN_ASSERT( !action_data.empty() && action_data.size() < MAX_CONTRACT_ARGUMENT_SIZE,
-                          wasm_chain::inline_transaction_data_size_exceeds_exception, "inline transaction data is empty or out of size")
+            std:string action_data_str = params[3].get_str();
 
-            if( abi.size() > 0 )
-                action_data = wasm::abi_serializer::pack(abi, action.to_string(), params[3].get_str(), max_serialization_time);
+            CHAIN_ASSERT( action_data_str.size() > 0 && action_data_str.size() < MAX_CONTRACT_ARGUMENT_SIZE,
+                          wasm_chain::inline_transaction_data_size_exceeds_exception, "inline transaction data is empty or out of size")
+            CHAIN_ASSERT( abi.size() > 0,
+                          wasm_chain::inline_transaction_data_size_exceeds_exception, "did not get abi")
+
+            std::vector<char> action_data = wasm::abi_serializer::pack(abi, action.to_string(), params[3].get_str(), max_serialization_time);
 
             ComboMoney fee  = RPC_PARAM::GetFee(params, 4, TxType::WASM_CONTRACT_TX);
 
