@@ -82,19 +82,22 @@ bool CBaseTx::IsValidHeight(int32_t nCurrHeight, int32_t nTxCacheHeight) const {
 
 bool CBaseTx::GenerateRegID(CTxExecuteContext &context) {
     if (txUid.is<CPubKey>()) {
+        txAccount.keyid = txUid.get<CPubKey>().GetKeyId();
+
         CRegID regId;
-        if (context.pCw->accountCache.GetRegId(txUid, regId)) // account already registered
+        if (context.pCw->accountCache.GetRegId(txAccount.keyid, regId)) // account already registered
             return true;
 
-        // generate a new regid for the account
-        txAccount.regid = CRegID(context.height, context.index);
-        txAccount.keyid = txUid.get<CPubKey>().GetKeyId();
-        txAccount.nickid = CNickID();
         txAccount.owner_pubkey = txUid.get<CPubKey>();
-    }
 
-    if (txUid.is<CNullID>())
+    } else if (txUid.is<CNullID>()) {
         txAccount.keyid = Hash160(txAccount.regid.GetRegIdRaw());
+    } else
+        return false;
+
+    // generate a new regid for the account
+    txAccount.regid = CRegID(context.height, context.index);
+    txAccount.nickid = CNickID();
 
     return true;
 }
@@ -206,14 +209,18 @@ bool CBaseTx::ExecuteFullTx(CTxExecuteContext &context) {
     /////////////////////////
     // 1. Prior ExecuteTx
     if (nTxType != PRICE_MEDIAN_TX) {
-        if (!GenerateRegID(context) && !cw.accountCache.GetAccount(txUid, txAccount))
+        if ( (txUid.is<CNullID>() || txUid.is<CPubKey>()) && !GenerateRegID(context) )
+            return state.DoS(100, ERRORMSG("ExecuteFullTx: initialize RegID error"), READ_ACCOUNT_FAIL, "bad-init-accountdb");
+
+        if ( !txUid.is<CNullID>() && nTxType != UCOIN_MINT_TX && !cw.accountCache.GetAccount(txUid, txAccount))
             return state.DoS(100, ERRORMSG("ExecuteFullTx: read txUid %s account info error",
                             txUid.ToString()), READ_ACCOUNT_FAIL, "bad-read-accountdb");
 
-        if (nTxType != UCOIN_MINT_TX && nTxType != UCOIN_BLOCK_REWARD_TX)
+        if (nTxType != UCOIN_MINT_TX && nTxType != UCOIN_BLOCK_REWARD_TX) {
             if (llFees > 0 && !txAccount.OperateBalance(fee_symbol, SUB_FREE, llFees, ReceiptCode::BLOCK_REWARD_TO_MINER, receipts))
                     return state.DoS(100, ERRORMSG("ExecuteFullTx: account has insufficient funds"),
                                     UPDATE_ACCOUNT_FAIL, "sub-account-fees-failed");
+        }
     }
 
     /////////////////////////
@@ -223,7 +230,7 @@ bool CBaseTx::ExecuteFullTx(CTxExecuteContext &context) {
 
     /////////////////////////
     // 3. Post ExecuteTx
-    if ( nTxType != UCOIN_MINT_TX && !cw.accountCache.SaveAccount(txAccount) )
+    if (nTxType != PRICE_MEDIAN_TX && !cw.accountCache.SaveAccount(txAccount))
             return state.DoS(100, ERRORMSG("ExecuteFullTx, write source addr %s account info error",
                             txUid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
 
