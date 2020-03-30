@@ -128,8 +128,12 @@ CNickID::CNickID(string nickIdIn) {
     }catch (...){
         value = 0 ;
     }
-
 }
+
+CNickID::CNickID(int32_t blockHeight, int32_t blockIndex) {
+    value = ((uint32_t) blockHeight << 32) + (uint32_t) blockIndex;
+}
+
 
 bool CNickID::IsMature(const uint32_t currHeight) const {
 
@@ -203,4 +207,3 @@ shared_ptr<CUserID> CUserID::ParseUserId(const string &idStr) {
 
     return nullptr;
 }
-
