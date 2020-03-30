@@ -54,7 +54,7 @@ public:
      */
     CRegID(const vector<uint8_t> &rawDataIn);
     CRegID(const uint32_t height = 0, const uint16_t index = 0);
-    CRegID(const uint64_t& regidNumber);
+    CRegID(const uint64_t& regIdIntValue);
 
 
     bool SetRegID(const string &regidStr);

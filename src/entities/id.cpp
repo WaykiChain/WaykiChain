@@ -21,9 +21,9 @@ CRegID::CRegID(const uint32_t heightIn, const uint16_t indexIn) {
     height = heightIn;
     index  = indexIn;
 }
-CRegID::CRegID(const NickID& nickid) {
-    height = nickid >> 20;
-    index  = nickid & 0xFFFFF;
+CRegID::CRegID(const uint64_t& regIdIntValue) {
+    height = regIdIntValue >> 20;
+    index  = regIdIntValue & 0xFFFFF;
 }
 
 bool IsDigitalString(const string str){
