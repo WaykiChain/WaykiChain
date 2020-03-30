@@ -109,6 +109,7 @@ bool CCdpDBCache::EraseCdpIndexData(const CUserCDP &userCdp) {
 
     if (!cdp_height_index_cache.EraseData(MakeCdpHeightIndexKey(userCdp)))
         return false;
+    return true;
 }
 
 bool CCdpDBCache::GetCdpListByCollateralRatio(const CCdpCoinPair &cdpCoinPair,
