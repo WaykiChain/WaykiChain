@@ -131,7 +131,7 @@ CNickID::CNickID(string nickIdIn) {
 }
 
 CNickID::CNickID(int32_t blockHeight, int32_t blockIndex) {
-    value = ((uint32_t) blockHeight << 32) + (uint32_t) blockIndex;
+    value = ((uint64_t) blockHeight << 32) + (uint64_t) blockIndex;
 }
 
 
