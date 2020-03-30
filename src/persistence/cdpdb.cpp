@@ -7,54 +7,54 @@
 #include "persistence/dbiterator.h"
 
 CCdpDBCache::CCdpDBCache(CDBAccess *pDbAccess)
-    : cdpGlobalDataCache(pDbAccess),
-      cdpCache(pDbAccess),
-      bcoinStatusCache(pDbAccess),
-      userCdpCache(pDbAccess),
-      cdpRatioIndexCache(pDbAccess),
+    : cdp_global_data_cache(pDbAccess),
+      cdp_cache(pDbAccess),
+      bcoin_status_cache(pDbAccess),
+      user_cdp_cache(pDbAccess),
+      cdp_ratio_index_cache(pDbAccess),
       cdp_height_index_cache(pDbAccess) {}
 
 CCdpDBCache::CCdpDBCache(CCdpDBCache *pBaseIn)
-    : cdpGlobalDataCache(pBaseIn->cdpGlobalDataCache),
-      cdpCache(pBaseIn->cdpCache),
-      bcoinStatusCache(pBaseIn->bcoinStatusCache),
-      userCdpCache(pBaseIn->userCdpCache),
-      cdpRatioIndexCache(pBaseIn->cdpRatioIndexCache),
+    : cdp_global_data_cache(pBaseIn->cdp_global_data_cache),
+      cdp_cache(pBaseIn->cdp_cache),
+      bcoin_status_cache(pBaseIn->bcoin_status_cache),
+      user_cdp_cache(pBaseIn->user_cdp_cache),
+      cdp_ratio_index_cache(pBaseIn->cdp_ratio_index_cache),
       cdp_height_index_cache(pBaseIn->cdp_height_index_cache) {}
 
 bool CCdpDBCache::NewCDP(const int32_t blockHeight, CUserCDP &cdp) {
-    assert(!cdpCache.HasData(cdp.cdpid));
-    assert(!userCdpCache.HasData(make_pair(CRegIDKey(cdp.owner_regid), cdp.GetCoinPair())));
+    assert(!cdp_cache.HasData(cdp.cdpid));
+    assert(!user_cdp_cache.HasData(make_pair(CRegIDKey(cdp.owner_regid), cdp.GetCoinPair())));
 
-    return cdpCache.SetData(cdp.cdpid, cdp) &&
-        userCdpCache.SetData(make_pair(CRegIDKey(cdp.owner_regid), cdp.GetCoinPair()), cdp.cdpid) &&
+    return cdp_cache.SetData(cdp.cdpid, cdp) &&
+        user_cdp_cache.SetData(make_pair(CRegIDKey(cdp.owner_regid), cdp.GetCoinPair()), cdp.cdpid) &&
         SaveCdpIndexData(cdp);
 }
 
 bool CCdpDBCache::EraseCDP(const CUserCDP &oldCDP, const CUserCDP &cdp) {
-    return cdpCache.SetData(cdp.cdpid, cdp) &&
-        userCdpCache.EraseData(make_pair(CRegIDKey(cdp.owner_regid), cdp.GetCoinPair())) &&
+    return cdp_cache.SetData(cdp.cdpid, cdp) &&
+        user_cdp_cache.EraseData(make_pair(CRegIDKey(cdp.owner_regid), cdp.GetCoinPair())) &&
         EraseCdpIndexData(oldCDP);
 }
 
 // Need to delete the old cdp(before updating cdp), then save the new cdp if necessary.
 bool CCdpDBCache::UpdateCDP(const CUserCDP &oldCDP, const CUserCDP &newCDP) {
     assert(!newCDP.IsEmpty());
-    return cdpCache.SetData(newCDP.cdpid, newCDP) && EraseCdpIndexData(oldCDP) && SaveCdpIndexData(newCDP);
+    return cdp_cache.SetData(newCDP.cdpid, newCDP) && EraseCdpIndexData(oldCDP) && SaveCdpIndexData(newCDP);
 }
 
 bool CCdpDBCache::UserHaveCdp(const CRegID &regid, const TokenSymbol &assetSymbol, const TokenSymbol &scoinSymbol) {
-    return userCdpCache.HasData(make_pair(CRegIDKey(regid), CCdpCoinPair(assetSymbol, scoinSymbol)));
+    return user_cdp_cache.HasData(make_pair(CRegIDKey(regid), CCdpCoinPair(assetSymbol, scoinSymbol)));
 }
 
 bool CCdpDBCache::GetCDPList(const CRegID &regid, vector<CUserCDP> &cdpList) {
 
     CRegIDKey prefixKey(regid);
-    CDBPrefixIterator<decltype(userCdpCache), CRegIDKey> dbIt(userCdpCache, prefixKey);
+    CDBPrefixIterator<decltype(user_cdp_cache), CRegIDKey> dbIt(user_cdp_cache, prefixKey);
     dbIt.First();
     for(dbIt.First(); dbIt.IsValid(); dbIt.Next()) {
         CUserCDP userCdp;
-        if (!cdpCache.GetData(dbIt.GetValue().value(), userCdp)) {
+        if (!cdp_cache.GetData(dbIt.GetValue().value(), userCdp)) {
             return false; // has invalid data
         }
 
@@ -65,16 +65,16 @@ bool CCdpDBCache::GetCDPList(const CRegID &regid, vector<CUserCDP> &cdpList) {
 }
 
 bool CCdpDBCache::GetCDP(const uint256 cdpid, CUserCDP &cdp) {
-    return cdpCache.GetData(cdpid, cdp);
+    return cdp_cache.GetData(cdpid, cdp);
 }
 
-// Attention: update cdpCache and userCdpCache synchronously.
+// Attention: update cdp_cache and user_cdp_cache synchronously.
 bool CCdpDBCache::SaveCDPToDB(const CUserCDP &cdp) {
-    return cdpCache.SetData(cdp.cdpid, cdp);
+    return cdp_cache.SetData(cdp.cdpid, cdp);
 }
 
 bool CCdpDBCache::EraseCDPFromDB(const CUserCDP &cdp) {
-    return cdpCache.EraseData(cdp.cdpid);
+    return cdp_cache.EraseData(cdp.cdpid);
 }
 
 bool CCdpDBCache::SaveCdpIndexData(const CUserCDP &userCdp) {
@@ -84,10 +84,10 @@ bool CCdpDBCache::SaveCdpIndexData(const CUserCDP &userCdp) {
     cdpGlobalData.total_staked_assets += userCdp.total_staked_bcoins;
     cdpGlobalData.total_owed_scoins += userCdp.total_owed_scoins;
 
-    if (!cdpGlobalDataCache.SetData(cdpCoinPair, cdpGlobalData))
+    if (!cdp_global_data_cache.SetData(cdpCoinPair, cdpGlobalData))
         return false;
 
-    if (!cdpRatioIndexCache.SetData(MakeCdpRatioIndexKey(userCdp), userCdp))
+    if (!cdp_ratio_index_cache.SetData(MakeCdpRatioIndexKey(userCdp), userCdp))
         return false;
 
     if (!cdp_height_index_cache.SetData(MakeCdpHeightIndexKey(userCdp), userCdp))
@@ -102,9 +102,9 @@ bool CCdpDBCache::EraseCdpIndexData(const CUserCDP &userCdp) {
     cdpGlobalData.total_staked_assets -= userCdp.total_staked_bcoins;
     cdpGlobalData.total_owed_scoins -= userCdp.total_owed_scoins;
 
-    cdpGlobalDataCache.SetData(cdpCoinPair, cdpGlobalData);
+    cdp_global_data_cache.SetData(cdpCoinPair, cdpGlobalData);
 
-    if (!cdpRatioIndexCache.EraseData(MakeCdpRatioIndexKey(userCdp)))
+    if (!cdp_ratio_index_cache.EraseData(MakeCdpRatioIndexKey(userCdp)))
         return false;
 
     if (!cdp_height_index_cache.EraseData(MakeCdpHeightIndexKey(userCdp)))
@@ -120,12 +120,12 @@ bool CCdpDBCache::GetCdpListByCollateralRatio(const CCdpCoinPair &cdpCoinPair,
     uint64_t ratioBoost = uint64_t(ratio * CDP_BASE_RATIO_BOOST) + 1;
     CCdpRatioIndexCache::KeyType endKey(cdpCoinPair, ratioBoost, 0, uint256());
 
-    return cdpRatioIndexCache.GetAllElements(endKey, userCdps);
+    return cdp_ratio_index_cache.GetAllElements(endKey, userCdps);
 }
 
 CCdpGlobalData CCdpDBCache::GetCdpGlobalData(const CCdpCoinPair &cdpCoinPair) const {
     CCdpGlobalData ret;
-    cdpGlobalDataCache.GetData(cdpCoinPair, ret);
+    cdp_global_data_cache.GetData(cdpCoinPair, ret);
     return ret;
 }
 
@@ -139,7 +139,7 @@ bool CCdpDBCache::GetBcoinStatus(const TokenSymbol &bcoinSymbol, CdpBcoinStatus 
         return false;
     }
     uint8_t act;
-    if (!bcoinStatusCache.GetData(bcoinSymbol, act)) return false;
+    if (!bcoin_status_cache.GetData(bcoinSymbol, act)) return false;
     activation = CdpBcoinStatus(act);
     return true;
 }
@@ -147,43 +147,43 @@ bool CCdpDBCache::GetBcoinStatus(const TokenSymbol &bcoinSymbol, CdpBcoinStatus 
 bool CCdpDBCache::IsBcoinActivated(const TokenSymbol &bcoinSymbol) {
     if (kCdpBcoinSymbolSet.count(bcoinSymbol) > 0) return true;
     if (bcoinSymbol == SYMB::WGRT || kCdpScoinSymbolSet.count(bcoinSymbol) > 0) return false;
-    return bcoinStatusCache.HasData(bcoinSymbol);
+    return bcoin_status_cache.HasData(bcoinSymbol);
 }
 
 bool CCdpDBCache::SetBcoinStatus(const TokenSymbol &bcoinSymbol, const CdpBcoinStatus &activation) {
-    return bcoinStatusCache.SetData(bcoinSymbol, (uint8_t)activation);
+    return bcoin_status_cache.SetData(bcoinSymbol, (uint8_t)activation);
 }
 
 void CCdpDBCache::SetBaseViewPtr(CCdpDBCache *pBaseIn) {
-    cdpGlobalDataCache.SetBase(&pBaseIn->cdpGlobalDataCache);
-    cdpCache.SetBase(&pBaseIn->cdpCache);
-    bcoinStatusCache.SetBase(&pBaseIn->bcoinStatusCache);
-    userCdpCache.SetBase(&pBaseIn->userCdpCache);
-    cdpRatioIndexCache.SetBase(&pBaseIn->cdpRatioIndexCache);
+    cdp_global_data_cache.SetBase(&pBaseIn->cdp_global_data_cache);
+    cdp_cache.SetBase(&pBaseIn->cdp_cache);
+    bcoin_status_cache.SetBase(&pBaseIn->bcoin_status_cache);
+    user_cdp_cache.SetBase(&pBaseIn->user_cdp_cache);
+    cdp_ratio_index_cache.SetBase(&pBaseIn->cdp_ratio_index_cache);
     cdp_height_index_cache.SetBase(&pBaseIn->cdp_height_index_cache);
 }
 
 void CCdpDBCache::SetDbOpLogMap(CDBOpLogMap *pDbOpLogMapIn) {
-    cdpGlobalDataCache.SetDbOpLogMap(pDbOpLogMapIn);
-    cdpCache.SetDbOpLogMap(pDbOpLogMapIn);
-    bcoinStatusCache.SetDbOpLogMap(pDbOpLogMapIn);
-    userCdpCache.SetDbOpLogMap(pDbOpLogMapIn);
-    cdpRatioIndexCache.SetDbOpLogMap(pDbOpLogMapIn);
+    cdp_global_data_cache.SetDbOpLogMap(pDbOpLogMapIn);
+    cdp_cache.SetDbOpLogMap(pDbOpLogMapIn);
+    bcoin_status_cache.SetDbOpLogMap(pDbOpLogMapIn);
+    user_cdp_cache.SetDbOpLogMap(pDbOpLogMapIn);
+    cdp_ratio_index_cache.SetDbOpLogMap(pDbOpLogMapIn);
     cdp_height_index_cache.SetDbOpLogMap(pDbOpLogMapIn);
 }
 
 uint32_t CCdpDBCache::GetCacheSize() const {
-    return cdpGlobalDataCache.GetCacheSize() + cdpCache.GetCacheSize() + bcoinStatusCache.GetCacheSize() +
-            userCdpCache.GetCacheSize() + cdpRatioIndexCache.GetCacheSize() + cdp_height_index_cache.GetCacheSize();
+    return cdp_global_data_cache.GetCacheSize() + cdp_cache.GetCacheSize() + bcoin_status_cache.GetCacheSize() +
+            user_cdp_cache.GetCacheSize() + cdp_ratio_index_cache.GetCacheSize() + cdp_height_index_cache.GetCacheSize();
 }
 
 bool CCdpDBCache::Flush() {
-    cdpGlobalDataCache.Flush();
-    cdpCache.Flush();
-    bcoinStatusCache.Flush();
-    userCdpCache.Flush();
-    cdpRatioIndexCache.Flush();
-    cdpRatioIndexCache.Flush();
+    cdp_global_data_cache.Flush();
+    cdp_cache.Flush();
+    bcoin_status_cache.Flush();
+    user_cdp_cache.Flush();
+    cdp_ratio_index_cache.Flush();
+    cdp_ratio_index_cache.Flush();
 
     return true;
 }

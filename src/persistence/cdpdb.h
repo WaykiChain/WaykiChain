@@ -57,11 +57,11 @@ public:
     void SetDbOpLogMap(CDBOpLogMap * pDbOpLogMapIn);
 
     void RegisterUndoFunc(UndoDataFuncMap &undoDataFuncMap) {
-        cdpGlobalDataCache.RegisterUndoFunc(undoDataFuncMap);
-        cdpCache.RegisterUndoFunc(undoDataFuncMap);
-        bcoinStatusCache.RegisterUndoFunc(undoDataFuncMap);
-        userCdpCache.RegisterUndoFunc(undoDataFuncMap);
-        cdpRatioIndexCache.RegisterUndoFunc(undoDataFuncMap);
+        cdp_global_data_cache.RegisterUndoFunc(undoDataFuncMap);
+        cdp_cache.RegisterUndoFunc(undoDataFuncMap);
+        bcoin_status_cache.RegisterUndoFunc(undoDataFuncMap);
+        user_cdp_cache.RegisterUndoFunc(undoDataFuncMap);
+        cdp_ratio_index_cache.RegisterUndoFunc(undoDataFuncMap);
     }
 
     uint32_t GetCacheSize() const;
@@ -79,15 +79,15 @@ public:
     /*  CCompositeKVCache  prefixType       key                            value             variable  */
     /*  ---------------- --------------   ------------                --------------    ----- --------*/
     // cdpCoinPair -> total staked assets
-    CCompositeKVCache<  dbk::CDP_GLOBAL_DATA, CCdpCoinPair,   CCdpGlobalData>    cdpGlobalDataCache;
+    CCompositeKVCache<  dbk::CDP_GLOBAL_DATA, CCdpCoinPair,   CCdpGlobalData>    cdp_global_data_cache;
     // cdp{$cdpid} -> CUserCDP
-    CCompositeKVCache<  dbk::CDP,       uint256,                    CUserCDP>           cdpCache;
+    CCompositeKVCache<  dbk::CDP,       uint256,                    CUserCDP>           cdp_cache;
     // cbca{$bcoin_symbol} -> $bcoinStatus
-    CCompositeKVCache<  dbk::CDP_BCOIN_STATUS, TokenSymbol,    uint8_t>           bcoinStatusCache;
+    CCompositeKVCache<  dbk::CDP_BCOIN_STATUS, TokenSymbol,    uint8_t>           bcoin_status_cache;
     // ucdp${CRegID}{$cdpCoinPair} -> set<cdpid>
-    CCompositeKVCache<  dbk::USER_CDP, pair<CRegIDKey, CCdpCoinPair>, optional<uint256>> userCdpCache;
+    CCompositeKVCache<  dbk::USER_CDP, pair<CRegIDKey, CCdpCoinPair>, optional<uint256>> user_cdp_cache;
     // cdpr{Ratio}{$cdpid} -> CUserCDP
-    CCdpRatioIndexCache          cdpRatioIndexCache;
+    CCdpRatioIndexCache          cdp_ratio_index_cache;
     CCdpHeightIndexCache         cdp_height_index_cache;
 };
 

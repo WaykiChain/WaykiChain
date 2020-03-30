@@ -221,11 +221,11 @@ Value verifymessage(const Array& params, bool fHelp) {
     DEFINE( ACTIVE_DELEGATES,     pDelegateCache,  active_delegates_cache) \
     DEFINE( REGID_VOTE,           pDelegateCache,  regId2VoteCache) \
     /**** cdp db                                                                     */ \
-    DEFINE( CDP,                  pCdpCache,  cdpCache) \
-    DEFINE( USER_CDP,             pCdpCache,  userCdpCache) \
-    DEFINE( CDP_RATIO_INDEX,            pCdpCache,  cdpRatioIndexCache) \
+    DEFINE( CDP,                  pCdpCache,  cdp_cache) \
+    DEFINE( USER_CDP,             pCdpCache,  user_cdp_cache) \
+    DEFINE( CDP_RATIO_INDEX,            pCdpCache,  cdp_ratio_index_cache) \
     DEFINE( CDP_HEIGHT_INDEX,            pCdpCache,  cdp_height_index_cache) \
-    DEFINE( CDP_GLOBAL_DATA,      pCdpCache,  cdpGlobalDataCache) \
+    DEFINE( CDP_GLOBAL_DATA,      pCdpCache,  cdp_global_data_cache) \
     /**** cdp closed by redeem/forced or manned liquidate ***/  \
     DEFINE( CLOSED_CDP_TX,        pClosedCdpCache, closedCdpTxCache) \
     DEFINE( CLOSED_TX_CDP,        pClosedCdpCache, closedTxCdpCache) \
