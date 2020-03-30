@@ -211,7 +211,7 @@ bool CBaseTx::ExecuteFullTx(CTxExecuteContext &context) {
         if ( (txUid.is<CNullID>() || txUid.is<CPubKey>()) && !GenerateRegID(context) )
             return state.DoS(100, ERRORMSG("ExecuteFullTx: initialize RegID error"), READ_ACCOUNT_FAIL, "bad-init-accountdb");
 
-        if ( !txUid.is<CNullID>() && !cw.accountCache.GetAccount(txAccount.keyid, txAccount))
+        if ( !txUid.is<CNullID>() && !cw.accountCache.GetAccount(txUid, txAccount))
             return state.DoS(100, ERRORMSG("ExecuteFullTx: read txUid %s account info error",
                             txUid.ToString()), READ_ACCOUNT_FAIL, "bad-read-accountdb");
 
