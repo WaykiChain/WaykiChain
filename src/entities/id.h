@@ -54,15 +54,19 @@ public:
      */
     CRegID(const vector<uint8_t> &rawDataIn);
     CRegID(const uint32_t height = 0, const uint16_t index = 0);
+    CRegID(const uint64_t& regidNumber);
+
 
     bool SetRegID(const string &regidStr);
     bool SetRegID(const vector<uint8_t> &rawDataIn);
+
 
     vector<uint8_t> GetRegIdRaw() const;
 
     CKeyID GetKeyId(const CAccountDBCache &accountCache) const;
     uint32_t GetHeight() const { return height; }
     uint16_t GetIndex() const { return index; }
+    uint64_t ToRegIDNumber() const { return (((uint64_t)height) << 20) + index; }
 
     bool IsMature(uint32_t curHeight) const;
 

@@ -107,16 +107,6 @@ static const unordered_map<SysParamType, std::pair<uint64_t, uint64_t>, SysParam
 };
 
 
-inline CRegID ParseNumToRegID(uint64_t regidNumber) {
-    uint64_t height = regidNumber >> 20;
-    uint64_t index  = regidNumber & 0xFFFFF;
-    return CRegID(height,index);
-}
-
-inline uint64_t ParseRegIDToNum(CRegID &regid) {
-    return (regid.GetHeight() << 20) + regid.GetIndex();
-}
-
 inline string CheckSysParamValue(const SysParamType paramType, uint64_t value){
     if(sysParamRangeTable.count(paramType) == 0)
         return strprintf("check param range error: don't find param type (%d)", paramType);

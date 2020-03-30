@@ -887,7 +887,7 @@ Value getsysparam(const Array& params, bool fHelp){
 
         Object obj;
         if(itr->second == SysParamType::AXC_SWAP_GATEWAY_REGID){
-            obj.push_back(Pair(paramName, ParseNumToRegID(pv).ToString()));
+            obj.push_back(Pair(paramName, CRegID(pv).ToString()));
         } else {
             obj.push_back(Pair(paramName, pv));
         }
@@ -902,7 +902,7 @@ Value getsysparam(const Array& params, bool fHelp){
             pCdMan->pSysParamCache->GetParam(kv.second, pv);
 
             if(kv.second == SysParamType::AXC_SWAP_GATEWAY_REGID){
-                obj.push_back(Pair(paramName, ParseNumToRegID(pv).ToString()));
+                obj.push_back(Pair(paramName, CRegID(pv).ToString()));
                 continue;
             }
             obj.push_back(Pair(paramName, pv));
