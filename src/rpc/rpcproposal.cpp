@@ -65,7 +65,7 @@ Value getswapcoindetail(const Array& params, bool fHelp) {
     string peerSymbol = params[0].get_str();
 
     AxcSwapCoinPair p;
-    if (!pCdMan->pAxcCache->GetAxcCoinPairByPeerSymbol(TokenSymbol(peerSymbol), p)){
+    if (!pCdMan->pAssetCache->GetAxcCoinPairByPeerSymbol(TokenSymbol(peerSymbol), p)){
         throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("don't find swap coin detail by peer coin (%s)",peerSymbol));
     }
 
@@ -887,7 +887,7 @@ Value getsysparam(const Array& params, bool fHelp){
 
         Object obj;
         if(itr->second == SysParamType::AXC_SWAP_GATEWAY_REGID){
-            obj.push_back(Pair(paramName, ParseNumToRegID(pv).ToString()));
+            obj.push_back(Pair(paramName, CRegID(pv).ToString()));
         } else {
             obj.push_back(Pair(paramName, pv));
         }
@@ -902,7 +902,7 @@ Value getsysparam(const Array& params, bool fHelp){
             pCdMan->pSysParamCache->GetParam(kv.second, pv);
 
             if(kv.second == SysParamType::AXC_SWAP_GATEWAY_REGID){
-                obj.push_back(Pair(paramName, ParseNumToRegID(pv).ToString()));
+                obj.push_back(Pair(paramName, CRegID(pv).ToString()));
                 continue;
             }
             obj.push_back(Pair(paramName, pv));

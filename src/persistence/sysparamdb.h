@@ -225,7 +225,7 @@ public:
     bool GetAxcSwapGwRegId(CRegID& regid) {
         uint64_t param ;
         if(GetParam(SysParamType::AXC_SWAP_GATEWAY_REGID, param)) {
-            regid = ParseNumToRegID(param);
+            regid = CRegID(param);
             return !regid.IsEmpty();
         }
         return false;

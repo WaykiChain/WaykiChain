@@ -21,6 +21,10 @@ CRegID::CRegID(const uint32_t heightIn, const uint16_t indexIn) {
     height = heightIn;
     index  = indexIn;
 }
+CRegID::CRegID(const NickID& nickid) {
+    height = nickid >> 20;
+    index  = nickid & 0xFFFFF;
+}
 
 bool IsDigitalString(const string str){
 
@@ -128,8 +132,12 @@ CNickID::CNickID(string nickIdIn) {
     }catch (...){
         value = 0 ;
     }
-
 }
+
+CNickID::CNickID(int32_t blockHeight, int32_t blockIndex) {
+    value = ((uint64_t) blockHeight << 32) + (uint64_t) blockIndex;
+}
+
 
 bool CNickID::IsMature(const uint32_t currHeight) const {
 
@@ -203,4 +211,3 @@ shared_ptr<CUserID> CUserID::ParseUserId(const string &idStr) {
 
     return nullptr;
 }
-

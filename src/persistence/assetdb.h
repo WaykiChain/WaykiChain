@@ -19,6 +19,32 @@
 #include <vector>
 
 
+struct AxcSwapCoinPair {
+
+    TokenSymbol peer_token_symbol;
+    TokenSymbol self_token_symbol;
+    ChainType   peer_chain_type;
+
+    AxcSwapCoinPair() {}
+    AxcSwapCoinPair(TokenSymbol peerSymbol, TokenSymbol selfSymbol, ChainType peerType):
+            peer_token_symbol(peerSymbol),self_token_symbol(selfSymbol), peer_chain_type(peerType){};
+
+    Object ToJson() {
+        Object o;
+        o.push_back(Pair("peer_token_symbol", peer_token_symbol));
+        o.push_back(Pair("self_token_symbol", self_token_symbol));
+
+        string chainTypeString;
+        auto itr = kChainTypeNameMap.find(peer_chain_type);
+        if (itr != kChainTypeNameMap.end())
+            o.push_back(Pair("peer_chain_type", itr->second));
+        else
+            o.push_back(Pair("peer_chain_type", peer_chain_type));
+        return o;
+
+    }
+};
+
 /*  CCompositeKVCache     prefixType            key              value           variable           */
 /*  -------------------- --------------------   --------------  -------------   --------------------- */
     // <asset$tokenSymbol -> asset>
@@ -42,9 +68,17 @@ class CAssetDbCache {
 public:
     CAssetDbCache() {}
 
-    CAssetDbCache(CDBAccess *pDbAccess) : assetCache(pDbAccess), perm_assets_cache(pDbAccess) {
+    CAssetDbCache(CDBAccess *pDbAccess) : asset_cache(pDbAccess),
+                                          perm_assets_cache(pDbAccess),
+                                          axc_swap_coin_ps_cache(pDbAccess),
+                                          axc_swap_coin_sp_cache(pDbAccess)  {
         assert(pDbAccess->GetDbNameType() == DBNameType::ASSET);
-    }
+    };
+
+    CAssetDbCache(CAssetDbCache *pBaseIn) : asset_cache(pBaseIn->asset_cache),
+                                            perm_assets_cache(pBaseIn->perm_assets_cache),
+                                            axc_swap_coin_ps_cache(pBaseIn->axc_swap_coin_ps_cache),
+                                            axc_swap_coin_sp_cache(pBaseIn->axc_swap_coin_sp_cache) {};
 
     ~CAssetDbCache() {}
 
@@ -58,30 +92,41 @@ public:
     bool SetAssetPerms(const CAsset &oldAsset, const CAsset &newAsset);
 
     bool Flush() {
-        assetCache.Flush();
+        asset_cache.Flush();
         perm_assets_cache.Flush();
+        axc_swap_coin_ps_cache.Flush();
+        axc_swap_coin_sp_cache.Flush();
         return true;
     }
 
-    uint32_t GetCacheSize() const { return assetCache.GetCacheSize() + perm_assets_cache.GetCacheSize(); }
+    uint32_t GetCacheSize() const { return asset_cache.GetCacheSize()
+                                         + perm_assets_cache.GetCacheSize()
+                                         + axc_swap_coin_ps_cache.GetCacheSize()
+                                         + axc_swap_coin_sp_cache.GetCacheSize(); }
 
     void SetBaseViewPtr(CAssetDbCache *pBaseIn) {
-        assetCache.SetBase(&pBaseIn->assetCache);
+        asset_cache.SetBase(&pBaseIn->asset_cache);
         perm_assets_cache.SetBase(&pBaseIn->perm_assets_cache);
+        axc_swap_coin_ps_cache.SetBase(&pBaseIn->axc_swap_coin_ps_cache);
+        axc_swap_coin_sp_cache.SetBase(&pBaseIn->axc_swap_coin_sp_cache);
     }
 
     void SetDbOpLogMap(CDBOpLogMap *pDbOpLogMapIn) {
-        assetCache.SetDbOpLogMap(pDbOpLogMapIn);
+        asset_cache.SetDbOpLogMap(pDbOpLogMapIn);
         perm_assets_cache.SetDbOpLogMap(pDbOpLogMapIn);
+        axc_swap_coin_ps_cache.SetDbOpLogMap(pDbOpLogMapIn);
+        axc_swap_coin_sp_cache.SetDbOpLogMap(pDbOpLogMapIn);
     }
 
     void RegisterUndoFunc(UndoDataFuncMap &undoDataFuncMap) {
-        assetCache.RegisterUndoFunc(undoDataFuncMap);
+        asset_cache.RegisterUndoFunc(undoDataFuncMap);
         perm_assets_cache.RegisterUndoFunc(undoDataFuncMap);
+        axc_swap_coin_sp_cache.RegisterUndoFunc(undoDataFuncMap);
+        axc_swap_coin_ps_cache.RegisterUndoFunc(undoDataFuncMap);
     }
 
     shared_ptr<CUserAssetsIterator> CreateUserAssetsIterator() {
-        return make_shared<CUserAssetsIterator>(assetCache);
+        return make_shared<CUserAssetsIterator>(asset_cache);
     }
 
     void GetDexQuoteSymbolSet(set<TokenSymbol> &symbolSet);
@@ -92,13 +137,26 @@ public:
     // check functions for dex order
     bool CheckDexBaseSymbol(const TokenSymbol &baseSymbol);
     bool CheckDexQuoteSymbol(const TokenSymbol &baseSymbol);
+
+    bool AddAxcSwapPair(TokenSymbol peerSymbol, TokenSymbol selfSymbol, ChainType peerType);
+    bool EraseAxcSwapPair(TokenSymbol peerSymbol);
+    bool HasAxcCoinPairByPeerSymbol(TokenSymbol peerSymbol);
+    bool GetAxcCoinPairBySelfSymbol(TokenSymbol token, AxcSwapCoinPair& p);
+    bool GetAxcCoinPairByPeerSymbol(TokenSymbol token, AxcSwapCoinPair& p);
 public:
 /*  CCompositeKVCache     prefixType            key              value           variable           */
 /*  -------------------- --------------------   --------------  -------------   --------------------- */
     // <asset_tokenSymbol -> asset>
-    DbAssetCache   assetCache;
+    DbAssetCache   asset_cache;
     // [prefix]{$perm}{$asset_symbol} --> $assetStatus
     PermAssetsCache      perm_assets_cache;
+
+    //peer_symbol -> pair<self_symbol, chainType>
+    CCompositeKVCache<dbk::AXC_COIN_PEERTOSELF,         string,            pair<string, uint8_t>>  axc_swap_coin_ps_cache;
+
+    //self_symbol -> pair<peer_symbol, chainType>
+    CCompositeKVCache<dbk::AXC_COIN_SELFTOPEER,         string,            pair<string, uint8_t>>  axc_swap_coin_sp_cache;
+
 };
 
 #endif  // PERSIST_ASSETDB_H

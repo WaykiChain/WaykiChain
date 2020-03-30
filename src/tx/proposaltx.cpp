@@ -64,7 +64,7 @@ Object CProposalRequestTx::ToJson(const CAccountDBCache &accountCache) const {
 }  // json-rpc usage
 
  bool CProposalRequestTx::CheckTx(CTxExecuteContext &context) {
-     return proposal.sp_proposal->CheckProposal(context);
+     return proposal.sp_proposal->CheckProposal(context, *this);
  }
 
 
@@ -165,9 +165,13 @@ bool CProposalApprovalTx::ExecuteTx(CTxExecuteContext &context) {
         return state.DoS(100, ERRORMSG("CProposalApprovalTx::ExecuteTx, set proposal approval info error"),
                         WRITE_ACCOUNT_FAIL, "bad-write-proposaldb");
 
-    if ((assentedCount + 1 == spProposal->approval_min_count) && (!spProposal->ExecuteProposal(context, *this)))
-        return state.DoS(100, ERRORMSG("CProposalApprovalTx::ExecuteTx, proposal execute error"),
-                        WRITE_ACCOUNT_FAIL, "proposal-execute-error");
+    if ((assentedCount + 1 == spProposal->approval_min_count)) {
+
+        if (!spProposal->CheckProposal(context, *this) || !spProposal->ExecuteProposal(context, *this)) {
+            return state.DoS(100, ERRORMSG("CProposalApprovalTx::ExecuteTx, proposal execute error"),
+                             WRITE_ACCOUNT_FAIL, "proposal-execute-error");
+        }
+    }
 
     if (spProposal->proposal_type == ProposalType::GOV_AXC_OUT) {
         auto axcOutProposal = dynamic_cast<CGovAxcOutProposal&>(*spProposal);

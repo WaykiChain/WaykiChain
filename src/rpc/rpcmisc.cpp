@@ -123,7 +123,7 @@ Value getinfo(const Array& params, bool fHelp) {
             obj.push_back(Pair("wallet_unlock_time", nWalletUnlockTime));
     }
 
-    obj.push_back(Pair("relay_fee_perkb",       ValueFromAmount(MIN_RELAY_TX_FEE)));
+    obj.push_back(Pair("relay_fee_perkb",       MIN_RELAY_TX_FEE));
 
     obj.push_back(Pair("tipblock_fuel_rate",    (int32_t)chainActive.Tip()->nFuelRate));
     obj.push_back(Pair("tipblock_fuel",         chainActive.Tip()->nFuel));
@@ -196,7 +196,7 @@ Value verifymessage(const Array& params, bool fHelp) {
 //               -------------------- -------------  ----------------------
 #define DBK_PREFIX_CACHE_LIST(DEFINE) \
     /*** Asset Registry DB */ \
-    DEFINE( ASSET,                pAssetCache, assetCache )  \
+    DEFINE( ASSET,                pAssetCache, asset_cache )  \
     /**** block db                                                                          */ \
     /*DEFINE( BLOCK_INDEX,          cw.blockCache.txDiskPosCache)         */ \
     DEFINE( BLOCKFILE_NUM_INFO,   pBlockCache, txDiskPosCache) \

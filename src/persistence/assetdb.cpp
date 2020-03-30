@@ -13,15 +13,15 @@
 using namespace std;
 
 bool CAssetDbCache::GetAsset(const TokenSymbol &tokenSymbol, CAsset &asset) {
-    return assetCache.GetData(tokenSymbol, asset);
+    return asset_cache.GetData(tokenSymbol, asset);
 }
 
 bool CAssetDbCache::SetAsset(const CAsset &asset) {
-    return assetCache.SetData(asset.asset_symbol, asset);
+    return asset_cache.SetData(asset.asset_symbol, asset);
 }
 
 bool CAssetDbCache::HasAsset(const TokenSymbol &tokenSymbol) {
-    return assetCache.HasData(tokenSymbol);
+    return asset_cache.HasData(tokenSymbol);
 }
 
 bool CAssetDbCache::CheckAsset(const TokenSymbol &symbol, uint64_t permsSum) {
@@ -103,4 +103,44 @@ bool CAssetDbCache::CheckDexQuoteSymbol(const TokenSymbol &quoteSymbol) {
     if (kDexQuoteSymbolSet.count(quoteSymbol) == 0)
         return ERRORMSG("%s(), unsupported dex quote_symbol=%s", __func__, quoteSymbol);
     return true;
+}
+
+bool CAssetDbCache::AddAxcSwapPair(TokenSymbol peerSymbol, TokenSymbol selfSymbol, ChainType peerType ) {
+    return axc_swap_coin_ps_cache.SetData(peerSymbol, std::make_pair(selfSymbol, peerType)) &&
+           axc_swap_coin_sp_cache.SetData(selfSymbol, std::make_pair(peerSymbol, peerType));
+}
+
+bool CAssetDbCache::EraseAxcSwapPair(TokenSymbol peerSymbol) {
+    pair<string, uint8_t> data;
+    if(!axc_swap_coin_ps_cache.GetData(peerSymbol, data)){
+
+    }
+    return axc_swap_coin_ps_cache.EraseData(peerSymbol) && axc_swap_coin_sp_cache.EraseData(data.first);
+}
+
+bool CAssetDbCache::HasAxcCoinPairByPeerSymbol(TokenSymbol peerSymbol) {
+    AxcSwapCoinPair p;
+    return GetAxcCoinPairByPeerSymbol(peerSymbol, p);
+}
+
+bool CAssetDbCache::GetAxcCoinPairBySelfSymbol(TokenSymbol token, AxcSwapCoinPair& p) {
+
+    pair<string, uint8_t> data;
+    if(axc_swap_coin_sp_cache.GetData(token, data)){
+        p = AxcSwapCoinPair(TokenSymbol(data.first),token, ChainType(data.second));
+        return true;
+    }
+
+    return false;
+}
+
+bool CAssetDbCache::GetAxcCoinPairByPeerSymbol(TokenSymbol token, AxcSwapCoinPair& p) {
+
+    pair<string, uint8_t> data;
+    if(axc_swap_coin_ps_cache.GetData(token, data)){
+        p = AxcSwapCoinPair(token, TokenSymbol(data.first),  ChainType(data.second));
+        return true;
+    }
+
+    return false;
 }
