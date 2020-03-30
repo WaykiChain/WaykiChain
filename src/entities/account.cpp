@@ -64,8 +64,6 @@ bool CAccount::OperateBalance(const TokenSymbol &tokenSymbol, const BalanceOpTyp
 
             if (pOtherAccount != nullptr) {
                 CAccountToken token = pOtherAccount->GetToken(tokenSymbol);
-                if (token.free_amount < value)
-                    return false;
 
                 token.free_amount += value;
                 pOtherAccount->SetToken(tokenSymbol, token);
