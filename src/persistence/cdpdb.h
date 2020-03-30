@@ -53,9 +53,6 @@ public:
     bool IsBcoinActivated(const TokenSymbol &bcoinSymbol);
     bool SetBcoinStatus(const TokenSymbol &bcoinSymbol, const CdpBcoinStatus &status);
 
-    //bool HaveCdpCoinPairStatus(const CCdpCoinPair &cdpCoinPair);
-    bool SetCdpCoinPairStatus(const CCdpCoinPair &cdpCoinPair, const CdpCoinPairStatus &status);
-
     void SetBaseViewPtr(CCdpDBCache *pBaseIn);
     void SetDbOpLogMap(CDBOpLogMap * pDbOpLogMapIn);
 
@@ -73,7 +70,6 @@ private:
     bool SaveCDPToDB(const CUserCDP &cdp);
     bool EraseCDPFromDB(const CUserCDP &cdp);
 
-    // Usage: before modification, erase the old cdp; after modification, save the new cdp.
     bool SaveCdpIndexData(const CUserCDP &userCdp);
     bool EraseCdpIndexData(const CUserCDP &userCdp);
 
