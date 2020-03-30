@@ -197,6 +197,11 @@ CdpRatioSortedCache::KeyType CCdpDBCache::MakeCdpRatioSortedKey(const CUserCDP &
     return key;
 }
 
+CCdpHeightIndexCache::KeyType CCdpDBCache::MakeCdpHeightIndexKey(const CUserCDP &cdp) {
+
+    return {cdp.GetCoinPair(), CFixedUInt64(cdp.block_height), cdp.cdpid};
+}
+
 string GetCdpCloseTypeName(const CDPCloseType type) {
     switch (type) {
         case CDPCloseType:: BY_REDEEM:
