@@ -64,7 +64,7 @@ Object CProposalRequestTx::ToJson(const CAccountDBCache &accountCache) const {
 }  // json-rpc usage
 
  bool CProposalRequestTx::CheckTx(CTxExecuteContext &context) {
-     return proposal.sp_proposal->CheckProposal(context);
+     return proposal.sp_proposal->CheckProposal(context, *this);
  }
 
 
@@ -167,7 +167,7 @@ bool CProposalApprovalTx::ExecuteTx(CTxExecuteContext &context) {
 
     if ((assentedCount + 1 == spProposal->approval_min_count)) {
 
-        if (!spProposal->CheckProposal(context) || !spProposal->ExecuteProposal(context, *this)) {
+        if (!spProposal->CheckProposal(context, *this) || !spProposal->ExecuteProposal(context, *this)) {
             return state.DoS(100, ERRORMSG("CProposalApprovalTx::ExecuteTx, proposal execute error"),
                              WRITE_ACCOUNT_FAIL, "proposal-execute-error");
         }

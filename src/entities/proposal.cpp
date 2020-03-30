@@ -18,7 +18,7 @@
 extern bool CheckIsGovernor(CRegID account, ProposalType proposalType, CCacheWrapper& cw );
 extern uint8_t GetGovernorApprovalMinCount(ProposalType proposalType, CCacheWrapper& cw );
 
-bool CGovSysParamProposal::CheckProposal(CTxExecuteContext& context) {
+bool CGovSysParamProposal::CheckProposal(CTxExecuteContext& context, CBaseTx& tx) {
      CValidationState &state = *context.pState;
 
      if (param_values.size() == 0 || param_values.size() > 50)
@@ -54,7 +54,7 @@ bool CGovSysParamProposal::ExecuteProposal(CTxExecuteContext& context, CBaseTx& 
 }
 
 
-bool CGovBpMcListProposal::CheckProposal(CTxExecuteContext& context){
+bool CGovBpMcListProposal::CheckProposal(CTxExecuteContext& context, CBaseTx& tx){
     IMPLEMENT_DEFINE_CW_STATE
 
     if (op_type != ProposalOperateType::ENABLE && op_type != ProposalOperateType::DISABLE)
@@ -90,7 +90,7 @@ bool CGovBpMcListProposal::ExecuteProposal(CTxExecuteContext& context, CBaseTx& 
 }
 
 
-bool CGovBpSizeProposal:: CheckProposal(CTxExecuteContext& context) {
+bool CGovBpSizeProposal:: CheckProposal(CTxExecuteContext& context, CBaseTx& tx) {
     CValidationState &state = *context.pState;;
 
     if (total_bps_size == 0) //total_bps_size > BP_MAX_COUNT: always false
@@ -123,7 +123,7 @@ bool CGovBpSizeProposal::ExecuteProposal(CTxExecuteContext& context, CBaseTx& tx
 
 }
 
-bool CGovMinerFeeProposal:: CheckProposal(CTxExecuteContext& context) {
+bool CGovMinerFeeProposal:: CheckProposal(CTxExecuteContext& context, CBaseTx& tx) {
     CValidationState& state = *context.pState;
 
     if (!kFeeSymbolSet.count(fee_symbol)) {
@@ -158,7 +158,7 @@ bool CGovMinerFeeProposal::ExecuteProposal(CTxExecuteContext& context, CBaseTx& 
     return cw.sysParamCache.SetMinerFee(tx_type, fee_symbol, fee_sawi_amount);
 }
 
-bool CGovCoinTransferProposal::CheckProposal(CTxExecuteContext& context) {
+bool CGovCoinTransferProposal::CheckProposal(CTxExecuteContext& context, CBaseTx& tx) {
     IMPLEMENT_DEFINE_CW_STATE
 
     if (amount < DUST_AMOUNT_THRESHOLD)
@@ -205,7 +205,7 @@ bool CGovCoinTransferProposal::ExecuteProposal(CTxExecuteContext& context, CBase
     return true;
 }
 
-bool CGovAccountPermProposal::CheckProposal(CTxExecuteContext& context) {
+bool CGovAccountPermProposal::CheckProposal(CTxExecuteContext& context, CBaseTx& tx) {
     CValidationState &state = *context.pState;
 
     if (account_uid.IsEmpty())
@@ -238,7 +238,7 @@ bool CGovAccountPermProposal::ExecuteProposal(CTxExecuteContext& context, CBaseT
     return true;
 
 }
-bool CGovAssetPermProposal::CheckProposal(CTxExecuteContext& context) {
+bool CGovAssetPermProposal::CheckProposal(CTxExecuteContext& context, CBaseTx& tx) {
     CValidationState &state = *context.pState;
     CCacheWrapper &cw       = *context.pCw;
 
@@ -283,7 +283,7 @@ bool CGovAssetPermProposal::ExecuteProposal(CTxExecuteContext& context, CBaseTx&
 
 }
 
-bool CGovCdpParamProposal::CheckProposal(CTxExecuteContext& context) {
+bool CGovCdpParamProposal::CheckProposal(CTxExecuteContext& context, CBaseTx& tx) {
     CValidationState &state = *context.pState;
 
     if (param_values.size() == 0 || param_values.size() > 50)
@@ -324,7 +324,7 @@ bool CGovCdpParamProposal::ExecuteProposal(CTxExecuteContext& context, CBaseTx& 
     return true;
 }
 
-bool CGovDexOpProposal::CheckProposal(CTxExecuteContext& context) {
+bool CGovDexOpProposal::CheckProposal(CTxExecuteContext& context, CBaseTx& tx) {
     IMPLEMENT_DEFINE_CW_STATE
 
     if (dexid == 0)
@@ -371,7 +371,7 @@ bool CGovDexOpProposal::ExecuteProposal(CTxExecuteContext& context, CBaseTx& tx)
     return true;
 }
 
-bool CGovFeedCoinPairProposal::CheckProposal(CTxExecuteContext& context) {
+bool CGovFeedCoinPairProposal::CheckProposal(CTxExecuteContext& context, CBaseTx& tx) {
     IMPLEMENT_DEFINE_CW_STATE;
 
     if (op_type == ProposalOperateType::NULL_PROPOSAL_OP)
@@ -420,7 +420,7 @@ bool CGovFeedCoinPairProposal::ExecuteProposal(CTxExecuteContext& context, CBase
         return cw.priceFeedCache.EraseFeedCoinPair(coinPair);
 
 }
-bool CGovAxcInProposal::CheckProposal(CTxExecuteContext& context) {
+bool CGovAxcInProposal::CheckProposal(CTxExecuteContext& context, CBaseTx& tx) {
     IMPLEMENT_DEFINE_CW_STATE;
 
     AxcSwapCoinPair coinPair;
@@ -527,7 +527,7 @@ bool CGovAxcInProposal::ExecuteProposal(CTxExecuteContext& context, CBaseTx& tx)
     return true;
 }
 
-bool CGovAxcOutProposal::CheckProposal(CTxExecuteContext& context) {
+bool CGovAxcOutProposal::CheckProposal(CTxExecuteContext& context, CBaseTx& tx) {
     IMPLEMENT_DEFINE_CW_STATE;
 
     AxcSwapCoinPair coinPair;
@@ -543,6 +543,11 @@ bool CGovAxcOutProposal::CheckProposal(CTxExecuteContext& context) {
                                         peer_chain_addr), REJECT_INVALID, "peer_chain_addr-invalid");
 
     CAccount acct;
+    CUserID uid;
+    if(tx.nTxType == TxType::PROPOSAL_REQUEST_TX)
+        uid = tx.txUid;
+    else
+        uid = self_chain_uid;
     if (!cw.accountCache.GetAccount(self_chain_uid, acct))
         return state.DoS(100, ERRORMSG("CGovAxcInProposal::ExecuteProposal, read account failed"), REJECT_INVALID,
                          "bad-getaccount");
@@ -550,7 +555,6 @@ bool CGovAxcOutProposal::CheckProposal(CTxExecuteContext& context) {
     if (!acct.OperateBalance(self_chain_token_symbol, SUB_FREE, swap_amount, ReceiptCode::NULL_CODE, receipts))
         return state.DoS(100, ERRORMSG("CGovAxcOutProposal::CheckProposal:Account does not have enough %s",
                                    self_chain_token_symbol), REJECT_INVALID, "balance-not-enough");
-
     if (swap_amount < DUST_AMOUNT_THRESHOLD)
         return state.DoS(100, ERRORMSG("CGovAxcOutProposal::CheckProposal: swap_amount=%llu too small",
                                         swap_amount), REJECT_INVALID, "swap_amount-dust");
@@ -584,7 +588,7 @@ bool CGovAxcOutProposal::ExecuteProposal(CTxExecuteContext& context, CBaseTx& tx
 }
 
 
-bool CGovAxcCoinProposal::CheckProposal(CTxExecuteContext& context) {
+bool CGovAxcCoinProposal::CheckProposal(CTxExecuteContext& context, CBaseTx& tx) {
     IMPLEMENT_DEFINE_CW_STATE;
 
     if (op_type != ProposalOperateType::ENABLE && op_type != ProposalOperateType::DISABLE)

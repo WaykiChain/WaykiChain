@@ -61,9 +61,14 @@ enum class AssetPermStatus: uint8_t {
     DISABLED,
 };
 
+enum TotalSupplyOpType:uint8_t {
+    ADD = 0,
+    SUB = 1,
+};
 ////////////////////////////////////////////////////////////////////
 /// Common Asset Definition, used when persisted inside state DB
 ////////////////////////////////////////////////////////////////////
+
 class CAsset {
 public:
     TokenSymbol asset_symbol;       //asset symbol, E.g WICC | WUSD
@@ -92,6 +97,19 @@ public:
         READWRITE(mintable);
     )
 
+    bool OperateToTalSupply(uint64_t amount, TotalSupplyOpType op) {
+        if (op == TotalSupplyOpType::ADD) {
+            total_supply += amount;
+        } else if (op == TotalSupplyOpType::SUB) {
+            if(total_supply < amount)
+                return false;
+            total_supply -= amount;
+        } else {
+            return false;
+        }
+
+        return true;
+    }
     bool HasPerms(uint64_t perms) const { return AssetHasPerms(perms_sum, perms); }
 
     bool IsEmpty() const { return asset_symbol.empty(); }
