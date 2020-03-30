@@ -61,7 +61,6 @@ public:
         cdpCache.RegisterUndoFunc(undoDataFuncMap);
         bcoinStatusCache.RegisterUndoFunc(undoDataFuncMap);
         userCdpCache.RegisterUndoFunc(undoDataFuncMap);
-        cdpCoinPairsCache.RegisterUndoFunc(undoDataFuncMap);
         cdpRatioSortedCache.RegisterUndoFunc(undoDataFuncMap);
     }
 
@@ -87,8 +86,6 @@ public:
     CCompositeKVCache<  dbk::CDP_BCOIN_STATUS, TokenSymbol,    uint8_t>           bcoinStatusCache;
     // ucdp${CRegID}{$cdpCoinPair} -> set<cdpid>
     CCompositeKVCache<  dbk::USER_CDP, pair<CRegIDKey, CCdpCoinPair>, optional<uint256>> userCdpCache;
-    // [prefix]${cdpCoinPair} -> ${cdpCoinPairStatus}
-    CCompositeKVCache<  dbk::UPDATE_CDP_COINPAIRS, CCdpCoinPair, uint8_t> cdpCoinPairsCache;
     // cdpr{Ratio}{$cdpid} -> CUserCDP
     CdpRatioSortedCache           cdpRatioSortedCache;
 };
