@@ -133,6 +133,8 @@ public:
 
     CNickID(string nickIdIn);
 
+    CNickID(int32_t blockHeight, int32_t blockIndex); //default setting upon 1st inbound trx
+
     bool IsMature(const uint32_t currHeight) const ;
     bool IsEmpty() const;
     void SetEmpty();
