@@ -230,7 +230,7 @@ bool CBaseTx::ExecuteFullTx(CTxExecuteContext &context) {
 
     /////////////////////////
     // 3. Post ExecuteTx
-    if ( nTxType != UCOIN_MINT_TX && !cw.accountCache.SaveAccount(txAccount) )
+    if (!cw.accountCache.SaveAccount(txAccount))
             return state.DoS(100, ERRORMSG("ExecuteFullTx, write source addr %s account info error",
                             txUid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
 
