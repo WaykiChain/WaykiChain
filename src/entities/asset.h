@@ -94,7 +94,7 @@ public:
 
     bool HasPerms(uint64_t perms) const { return AssetHasPerms(perms_sum, perms); }
 
-    bool IsEmpty() const { return owner_uid.IsEmpty(); }
+    bool IsEmpty() const { return asset_symbol.empty(); }
 
     void SetEmpty() {
         asset_symbol.clear();

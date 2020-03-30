@@ -424,7 +424,7 @@ bool CGovAxcInProposal::CheckProposal(CTxExecuteContext& context) {
     IMPLEMENT_DEFINE_CW_STATE;
 
     AxcSwapCoinPair coinPair;
-    if(!cw.axcCache.GetAxcCoinPairByPeerSymbol(peer_chain_token_symbol, coinPair)){
+    if(!cw.assetCache.GetAxcCoinPairByPeerSymbol(peer_chain_token_symbol, coinPair)){
         return state.DoS(100, ERRORMSG("CGovAxcInProposal::CheckProposal: swap pair is not exist"),
                 REJECT_INVALID, "find-swapcoinpair-error");
     }
@@ -463,7 +463,7 @@ bool CGovAxcInProposal::ExecuteProposal(CTxExecuteContext& context, CBaseTx& tx)
     IMPLEMENT_DEFINE_CW_STATE;
 
     AxcSwapCoinPair coinPair;
-    if(!cw.axcCache.GetAxcCoinPairByPeerSymbol(peer_chain_token_symbol, coinPair)){
+    if(!cw.assetCache.GetAxcCoinPairByPeerSymbol(peer_chain_token_symbol, coinPair)){
         return state.DoS(100, ERRORMSG("CGovAxcInProposal::CheckProposal: swap pair is not exist"),
                          REJECT_INVALID, "find-swapcoinpair-error");
     }
@@ -531,7 +531,7 @@ bool CGovAxcOutProposal::CheckProposal(CTxExecuteContext& context) {
     IMPLEMENT_DEFINE_CW_STATE;
 
     AxcSwapCoinPair coinPair;
-    if(!cw.axcCache.GetAxcCoinPairBySelfSymbol(self_chain_token_symbol, coinPair)){
+    if(!cw.assetCache.GetAxcCoinPairBySelfSymbol(self_chain_token_symbol, coinPair)){
         return state.DoS(100, ERRORMSG("CGovAxcOutProposal::CheckProposal: self_chain_token_symbol=%s is invalid",
                                        self_chain_token_symbol), REJECT_INVALID, "self_chain_token_symbol-not-valid");
     }
@@ -591,7 +591,8 @@ bool CGovAxcCoinProposal::CheckProposal(CTxExecuteContext& context) {
         return state.DoS(100, ERRORMSG("CGovAxcCoinProposal::CheckProposal, op_type is not 0 or 1"), REJECT_INVALID,
                          "op_type-error");
 
-    bool hasCoinPair = cw.axcCache.HasAxcCoinPairByPeerSymbol(peer_chain_coin_symbol);
+    bool hasCoinPair = cw.assetCache.HasAxcCoinPairByPeerSymbol(peer_chain_coin_symbol)
+                       || cw.assetCache.HasAsset(GenSelfChainCoinSymbol());
     if(op_type == ProposalOperateType::ENABLE && hasCoinPair)
         return state.DoS(100, ERRORMSG("CGovAxcCoinProposal::CheckProposal, the peer coin symbol is exist"), REJECT_INVALID,
                          "coin-exist");
@@ -610,8 +611,8 @@ bool CGovAxcCoinProposal::CheckProposal(CTxExecuteContext& context) {
                              "chain_type-error");
     }
 
-    if (kXChainSwapInTokenMap.find(peer_chain_coin_symbol) != kXChainSwapInTokenMap.end())
-        return state.DoS(100, ERRORMSG("CGovAxcCoinProposal::CheckProposal,default pair can't be governed"), REJECT_INVALID,
+    if (kXChainSwapInTokenMap.find(peer_chain_coin_symbol) != kXChainSwapInTokenMap.end() && op_type == ProposalOperateType::DISABLE)
+        return state.DoS(100, ERRORMSG("CGovAxcCoinProposal::CheckProposal,default pair can't be removed"), REJECT_INVALID,
                          "default-coin-error");
 
     if (peer_chain_coin_symbol.size() >= 6)
@@ -625,14 +626,23 @@ bool  CGovAxcCoinProposal::ExecuteProposal(CTxExecuteContext& context, CBaseTx& 
     IMPLEMENT_DEFINE_CW_STATE
 
     if(op_type == ProposalOperateType::DISABLE) {
-        if(!cw.axcCache.EraseAxcSwapPair(peer_chain_coin_symbol))
+        if(!cw.assetCache.EraseAxcSwapPair(peer_chain_coin_symbol))
             return state.DoS(100, ERRORMSG("CGovAxcCoinProposal::ExecuteProposal, write db error"), REJECT_INVALID,
                              "db-error");
 
     } else if (op_type == ProposalOperateType::ENABLE) {
-        if (!cw.axcCache.AddAxcSwapPair(peer_chain_coin_symbol, TokenSymbol(strprintf("%s%s", "m", peer_chain_coin_symbol)), peer_chain_type))
+        if (!cw.assetCache.AddAxcSwapPair(peer_chain_coin_symbol, TokenSymbol(GenSelfChainCoinSymbol()), peer_chain_type))
             return state.DoS(100, ERRORMSG("CGovAxcCoinProposal::ExecuteProposal, write db error"), REJECT_INVALID,
                              "db-error");
+
+
+        //Persist with Owner's RegID to save space than other User ID types
+        CAsset savedAsset(GenSelfChainCoinSymbol(), GenSelfChainCoinSymbol(), AssetType::DIA, 0,
+                          CNullID(), 0, false);
+
+        if (!cw.assetCache.SetAsset(savedAsset))
+            return state.DoS(100, ERRORMSG("CGovAxcCoinProposal::CGovAxcCoinProposal, save asset failed! peer_chain_coin_symbol=%s",
+                                           peer_chain_coin_symbol), UPDATE_ACCOUNT_FAIL, "save-asset-failed");
 
     } else
         return false;

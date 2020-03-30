@@ -156,7 +156,7 @@ bool parseSymbolAndAmount(vector<string>& comboMoneyArr, ComboMoney& comboMoney)
         return false;
 
     string strSymbol = comboMoneyArr[0];
-    std::for_each(strSymbol.begin(), strSymbol.end(), [](char &c) { c = ::toupper(c); });
+   // std::for_each(strSymbol.begin(), strSymbol.end(), [](char &c) { c = ::toupper(c); });
 
     comboMoney.symbol = strSymbol;
     comboMoney.amount = (uint64_t)iValue;
@@ -207,7 +207,7 @@ bool ParseRpcInputMoney(const string &comboMoneyStr, ComboMoney &comboMoney, con
                 return false;
 
             string strSymbol = comboMoneyArr[0];
-            std::for_each(strSymbol.begin(), strSymbol.end(), [](char &c) { c = ::toupper(c); });
+          //  std::for_each(strSymbol.begin(), strSymbol.end(), [](char &c) { c = ::toupper(c); });
             vector<string> amountAndUnit ;
             amountAndUnit.push_back(comboMoneyArr[1]);
             amountAndUnit.push_back(comboMoneyArr[2]);

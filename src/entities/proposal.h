@@ -496,6 +496,9 @@ struct CGovAxcCoinProposal: CProposal {
         return o;
     }
 
+    string GenSelfChainCoinSymbol() {
+        return strprintf("%s%s", "m", peer_chain_coin_symbol);
+    }
     string ToString() override {
         std::string baseString = CProposal::ToString();
         return  strprintf("%s, peer_chain_coin_symbol=%s,peer_chain_type=%d",baseString, peer_chain_coin_symbol, peer_chain_type ) + ", " +

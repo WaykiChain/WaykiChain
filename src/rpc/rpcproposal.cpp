@@ -65,7 +65,7 @@ Value getswapcoindetail(const Array& params, bool fHelp) {
     string peerSymbol = params[0].get_str();
 
     AxcSwapCoinPair p;
-    if (!pCdMan->pAxcCache->GetAxcCoinPairByPeerSymbol(TokenSymbol(peerSymbol), p)){
+    if (!pCdMan->pAssetCache->GetAxcCoinPairByPeerSymbol(TokenSymbol(peerSymbol), p)){
         throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("don't find swap coin detail by peer coin (%s)",peerSymbol));
     }
 
