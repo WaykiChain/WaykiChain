@@ -94,11 +94,6 @@ bool CBlockPriceMedianTx::ExecuteTx(CTxExecuteContext &context) {
         return state.DoS(100, ERRORMSG("CBlockPriceMedianTx::ExecuteTx, save median prices to db failed"), REJECT_INVALID,
                          "save-median-prices-failed");
 
-    CAccount fcoinGenesisAccount;
-    if (!cw.accountCache.GetFcoinGenesisAccount(fcoinGenesisAccount))
-        return state.DoS(100, ERRORMSG("%s(), get fcoin genesis account failed", __func__), REJECT_INVALID,
-                         "get-fcoin-genesis-account-failed");
-
     if (!ForceLiquidateCdps(context, priceDetails))
         return false; // error msg has been processed
 
