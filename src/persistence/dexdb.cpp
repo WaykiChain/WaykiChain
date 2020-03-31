@@ -470,7 +470,7 @@ bool CDexDBCache::HaveDexOperator(const DexID &id) {
     return operator_detail_cache.HasData(idKey);
 }
 
-bool CDexDBCache::HaveDexOperatorByOwner(const CRegID &regid) {
+bool CDexDBCache::HasDexOperatorByOwner(const CRegID &regid) {
      bool dbHave = operator_owner_map_cache.HasData(regid);
 
      if(!dbHave){
@@ -493,7 +493,7 @@ bool CDexDBCache::CreateDexOperator(const DexID &id, const DexOperatorDetail& de
         return ERRORMSG("%s, the dex operator is existed! id=%s\n", __func__, id);
     }
 
-    if (HaveDexOperatorByOwner(detail.owner_regid)) {
+    if (HasDexOperatorByOwner(detail.owner_regid)) {
         return ERRORMSG("%s, the owner already has a dex operator! owner=%s\n", __func__, detail.owner_regid.ToString());
     }
 

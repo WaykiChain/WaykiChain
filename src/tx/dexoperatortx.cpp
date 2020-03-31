@@ -168,7 +168,7 @@ bool CDEXOperatorRegisterTx::ExecuteTx(CTxExecuteContext &context) {
                 data.fee_receiver_uid.ToDebugString()), REJECT_INVALID, "match-account-not-exist");
     }
 
-    if(cw.dexCache.HaveDexOperatorByOwner(ownerAccount.regid))
+    if (cw.dexCache.HasDexOperatorByOwner(ownerAccount.regid))
         return state.DoS(100, ERRORMSG("%s, the owner already has a dex operator! owner_regid=%s", __func__,
                         ownerAccount.regid.ToString()), REJECT_INVALID, "owner-had-dexoperator-already");
 
@@ -325,7 +325,7 @@ bool CDEXOperatorUpdateTx::CheckTx(CTxExecuteContext &context) {
     }
 
     if(update_data.field == CDEXOperatorUpdateData::OWNER_UID){
-        if(cw.dexCache.HaveDexOperatorByOwner(CRegID(update_data.ValueToString())))
+        if(cw.dexCache.HasDexOperatorByOwner(CRegID(update_data.ValueToString())))
             return state.DoS(100, ERRORMSG("%s, the owner already has a dex operator! owner_regid=%s", __func__,
                                            update_data.ValueToString()), REJECT_INVALID, "owner-had-dexoperator");
     }

@@ -111,7 +111,7 @@ public:
     bool GetDexOperator(const DexID &id, DexOperatorDetail& detail);
     bool GetDexOperatorByOwner(const CRegID &regid, DexID &id, DexOperatorDetail& detail);
     bool HaveDexOperator(const DexID &id);
-    bool HaveDexOperatorByOwner(const CRegID &regid);
+    bool HasDexOperatorByOwner(const CRegID &regid);
     bool CreateDexOperator(const DexID &id, const DexOperatorDetail& detail);
     bool UpdateDexOperator(const DexID &id, const DexOperatorDetail& old_detail,
         const DexOperatorDetail& detail);
