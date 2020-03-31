@@ -175,7 +175,6 @@ coin_CORE_H = \
   rpc/rpcmisc.h \
   rpc/rpcnet.h \
   rpc/rpcvm.h \
-  rpc/rpcserialize.cpp \
   rpc/rpcwallet.h \
   commons/support/cleanse.h \
   sigcache.h \
@@ -369,6 +368,7 @@ libcoin_server_a_SOURCES = \
   rpc/rpcwallet.cpp \
   rpc/rpcwasm.cpp \
   rpc/rpcproposal.cpp \
+  rpc/rpctxserializer.cpp \
   sigcache.cpp \
   tx/assettx.cpp \
   tx/accountregtx.cpp \
