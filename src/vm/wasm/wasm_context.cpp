@@ -116,7 +116,7 @@ namespace wasm {
     // std::string wasm_context::get_abi(uint64_t account) {
     //     CUniversalContract contract;
     //     CAccount contract_account ;
-    //     database.accountCache.GetAccount(CNickID(wasm::name(account).to_string()),contract_account);
+    //     database.accountCache.GetAccount(CRegID(wasm::name(account).to_string()),contract_account);
     //     database.contractCache.GetContract(contract_account.regid, contract);
     //     return contract.abi;
     // }
