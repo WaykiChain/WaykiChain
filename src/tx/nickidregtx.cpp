@@ -21,7 +21,7 @@ bool CNickIdRegisterTx::CheckTx(CTxExecuteContext &context) {
     IMPLEMENT_DEFINE_CW_STATE;
 
     if(cw.accountCache.HasAccount(CNickID(nickId))){
-        return state.DoS(100, ERRORMSG("CNickIdRegisterTx::CheckTx, nickId is exist"), REJECT_INVALID, "nickid-exist");
+        return state.DoS(100, ERRORMSG("CNickIdRegisterTx::CheckTx, nickId exists!"), REJECT_INVALID, "nickid-exist");
     }
 
     try{

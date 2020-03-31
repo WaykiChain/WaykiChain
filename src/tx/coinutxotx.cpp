@@ -461,19 +461,18 @@ bool CCoinUtxoTransferTx::ExecuteTx(CTxExecuteContext &context) {
 
     uint64_t accountBalance;
     if ( !txAccount.GetBalance(coin_symbol, BalanceType::FREE_VALUE, accountBalance) ||
-         (accountBalance + totalInAmount < totalOutAmount + llFees) )
+         (accountBalance + totalInAmount < totalOutAmount) )
         return state.DoS(100, ERRORMSG("CCoinUtxoTransferTx::CheckTx, account balance coin_amount insufficient!"), REJECT_INVALID,
                         "insufficient-account-coin-amount");
 
-    uint64_t totalAccountOutAmount  = totalOutAmount + llFees;
-    if (totalInAmount <  totalAccountOutAmount) {
-        if (!txAccount.OperateBalance(coin_symbol, SUB_FREE,  totalAccountOutAmount - totalInAmount,
+    if (totalInAmount <  totalOutAmount) {
+        if (!txAccount.OperateBalance(coin_symbol, SUB_FREE,  totalOutAmount - totalInAmount,
                                     ReceiptCode::TRANSFER_UTXO_COINS, receipts)) {
             return state.DoS(100, ERRORMSG("CCoinUtxoTransferTx::ExecuteTx, failed to deduct coin_amount in txUid %s account",
                             txUid.ToString()), UPDATE_ACCOUNT_FAIL, "insufficient-fund-utxo");
         }
-    } else if (totalInAmount > totalAccountOutAmount) {
-        if (!txAccount.OperateBalance(coin_symbol, ADD_FREE, totalInAmount - totalAccountOutAmount,
+    } else if (totalInAmount > totalOutAmount) {
+        if (!txAccount.OperateBalance(coin_symbol, ADD_FREE, totalInAmount - totalOutAmount,
                                     ReceiptCode::TRANSFER_UTXO_COINS, receipts)) {
             return state.DoS(100, ERRORMSG("CCoinUtxoTransferTx::ExecuteTx, failed to add coin_amount in txUid %s account",
                             txUid.ToString()), UPDATE_ACCOUNT_FAIL, "insufficient-fund-utxo");
