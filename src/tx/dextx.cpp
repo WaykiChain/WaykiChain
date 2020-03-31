@@ -1047,13 +1047,14 @@ namespace dex {
     }
 
     bool CDEXSettleTx::CheckTx(CTxExecuteContext &context) {
-        CValidationState &state = *context.pState;
+        IMPLEMENT_DEFINE_CW_STATE
 
         if (!CheckTxAvailableFromVer(context, MAJOR_VER_R2)) return false;
 
-        if (txUid.get<CRegID>() != SysCfg().GetDexMatchSvcRegId()) {
+        CRegID matchRegId = cw.sysParamCache.GetDexMatchSvcRegId();
+        if (txUid.get<CRegID>() != matchRegId ) {
             return state.DoS(100, ERRORMSG("%s, account regid=%s is not authorized dex match-svc regId=%s", TX_ERR_TITLE,
-                            txUid.ToString(), SysCfg().GetDexMatchSvcRegId().ToString()), REJECT_INVALID, "unauthorized-settle-account");
+                            txUid.ToString(), matchRegId.ToString()), REJECT_INVALID, "unauthorized-settle-account");
         }
 
         if (dealItems.empty() || dealItems.size() > MAX_SETTLE_ITEM_COUNT)

@@ -178,6 +178,7 @@ public:
     uint32_t GetContinuousCountAfterFork() const { return nContinuousCountAfterFork; }
     CRegID GetFcoinGenesisRegId() const { return CRegID(nStableCoinGenesisHeight, 1); }
     CRegID GetDexMatchSvcRegId() const  { return CRegID(nStableCoinGenesisHeight, 3); }
+    CRegID GetDex0OwnerRegId() const  { return CRegID(nStableCoinGenesisHeight, 3); }
     virtual uint64_t GetMaxFee() const { return 1000 * COIN; }
     virtual const CBlock& GenesisBlock() const = 0;
     const uint256& GetGenesisBlockHash() const { return genesisBlockHash; }

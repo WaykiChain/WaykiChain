@@ -231,7 +231,17 @@ public:
         return false;
     }
 
-
+    CRegID GetDexMatchSvcRegId() {
+        uint64_t param ;
+        CRegID regid;
+        if(GetParam(SysParamType::DEX_MATCH_SVC_REGID, param)) {
+            regid = CRegID(param);
+            if(regid.IsEmpty()){
+                regid = SysCfg().GetDexMatchSvcRegId();
+            }
+        }
+        return regid;
+    }
 public:
     bool SetNewTotalBpsSize(uint8_t newTotalBpsSize, uint32_t effectiveHeight) {
         return new_total_bps_size_cache.SetData(std::make_pair(CVarIntValue(effectiveHeight), newTotalBpsSize)) ;

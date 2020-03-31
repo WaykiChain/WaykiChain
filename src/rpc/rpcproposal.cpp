@@ -938,6 +938,8 @@ Value getsysparam(const Array& params, bool fHelp){
         Object obj;
         if(itr->second == SysParamType::AXC_SWAP_GATEWAY_REGID){
             obj.push_back(Pair(paramName, CRegID(pv).ToString()));
+        } else if (itr->second == SysParamType::DEX_MATCH_SVC_REGID) {
+            obj.push_back(Pair(paramName, pCdMan->pSysParamCache->GetDexMatchSvcRegId().ToString()));
         } else {
             obj.push_back(Pair(paramName, pv));
         }
@@ -953,9 +955,13 @@ Value getsysparam(const Array& params, bool fHelp){
 
             if(kv.second == SysParamType::AXC_SWAP_GATEWAY_REGID){
                 obj.push_back(Pair(paramName, CRegID(pv).ToString()));
-                continue;
             }
-            obj.push_back(Pair(paramName, pv));
+            else if (kv.second == SysParamType::DEX_MATCH_SVC_REGID) {
+                obj.push_back(Pair(paramName, pCdMan->pSysParamCache->GetDexMatchSvcRegId().ToString()));
+            } else {
+                obj.push_back(Pair(paramName, pv));
+            }
+
 
         }
         return obj;

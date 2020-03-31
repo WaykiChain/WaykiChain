@@ -34,6 +34,7 @@ enum SysParamType : uint8_t {
     AXC_SWAP_FEE_RATIO                      = 28,
     AXC_SWAP_GATEWAY_REGID                  = 29,
     BP_DELEGATE_VOTE_MIN                    = 50,
+    DEX_MATCH_SVC_REGID                    = 51
 
 };
 
@@ -54,7 +55,8 @@ static const unordered_map<string, SysParamType> paramNameToSysParamTypeMap = {
         {"DEX_OPERATOR_RISK_FEE_RATIO",                 DEX_OPERATOR_RISK_FEE_RATIO                 },
         {"AXC_SWAP_FEE_RATIO",                          AXC_SWAP_FEE_RATIO                          },
         {"BP_DELEGATE_VOTE_MIN",                        BP_DELEGATE_VOTE_MIN                        },
-        {"AXC_SWAP_GATEWAY_REGID",                      AXC_SWAP_GATEWAY_REGID                      }
+        {"AXC_SWAP_GATEWAY_REGID",                      AXC_SWAP_GATEWAY_REGID                      },
+        {"DEX_MATCH_SVC_REGID",                         DEX_MATCH_SVC_REGID                         }
 };
 
 struct SysParamTypeHash {
@@ -80,10 +82,10 @@ static const unordered_map<SysParamType, std::tuple< uint64_t,string >, SysParam
     { DEX_OPERATOR_RISK_FEE_RATIO,              make_tuple( 4000,        "DEX_OPERATOR_RISK_FEE_RATIO")             },
     { AXC_SWAP_FEE_RATIO,                       make_tuple( 20,          "AXC_SWAP_FEE_RATIO")                      },  // 0.2%, boosted by 10000
     { BP_DELEGATE_VOTE_MIN,                     make_tuple( 21000,       "BP_DELEGATE_VOTE_MIN")                    },  // 21000 sawi, the min votes of delegate to be bp
-    { AXC_SWAP_GATEWAY_REGID,                   make_tuple( 0,           "AXC_SWAP_GATEWAY_REGID")                  }
-
-
+    { AXC_SWAP_GATEWAY_REGID,                   make_tuple( 0,           "AXC_SWAP_GATEWAY_REGID")                  },
+    { DEX_MATCH_SVC_REGID,                      make_tuple( 0,           "DEX_MATCH_SVC_REGID")                     }
 };
+
 
 static const unordered_map<SysParamType, std::pair<uint64_t, uint64_t>, SysParamTypeHash> sysParamRangeTable = {
     { MEDIAN_PRICE_SLIDE_WINDOW_BLOCKCOUNT,      RANGE(1,1000)     },
@@ -103,7 +105,8 @@ static const unordered_map<SysParamType, std::pair<uint64_t, uint64_t>, SysParam
     { DEX_OPERATOR_RISK_FEE_RATIO,               RANGE(0,10000)    },
     { AXC_SWAP_FEE_RATIO,                        RANGE(0,1000)     },    //max 10%
     { BP_DELEGATE_VOTE_MIN,                      RANGE(0,0)        },    //max 10%
-    { AXC_SWAP_GATEWAY_REGID,                    RANGE(0,0)        }
+    { AXC_SWAP_GATEWAY_REGID,                    RANGE(0,0)        },
+    { DEX_MATCH_SVC_REGID,                       RANGE(0,0)        }
 };
 
 

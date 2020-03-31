@@ -423,7 +423,7 @@ bool CDexDBCache::IncDexID(DexID &id) {
 
 bool Dex0(DexOperatorDetail& detail){
 
-    CRegID regid = SysCfg().GetDexMatchSvcRegId() ;
+    CRegID regid = SysCfg().GetDex0OwnerRegId() ;
     detail.owner_regid =  regid;
     detail.fee_receiver_regid = regid;
     detail.name = "wayki-dex" ;
@@ -452,7 +452,7 @@ bool CDexDBCache::GetDexOperatorByOwner(const CRegID &regid, DexID &idOut, DexOp
         idOut = dexID.value().get();
         return GetDexOperator(dexID.value().get(), detail);
     }else {
-        CRegID sysRegId = SysCfg().GetDexMatchSvcRegId() ;
+        CRegID sysRegId = SysCfg().GetDex0OwnerRegId() ;
         if(sysRegId == regid) {
             idOut = MAIN_DEX_ID ;
             bool result = GetDexOperator(idOut ,detail) ;
@@ -474,7 +474,7 @@ bool CDexDBCache::HaveDexOperatorByOwner(const CRegID &regid) {
      bool dbHave = operator_owner_map_cache.HasData(regid);
 
      if(!dbHave){
-         CRegID sysRegId = SysCfg().GetDexMatchSvcRegId() ;
+         CRegID sysRegId = SysCfg().GetDex0OwnerRegId() ;
          if(sysRegId == regid){
              DexOperatorDetail detail ;
              bool b = GetDexOperator(MAIN_DEX_ID , detail) ;

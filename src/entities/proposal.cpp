@@ -749,6 +749,10 @@ bool CGovDiaIssueProposal::CheckProposal(CTxExecuteContext& context, CBaseTx& tx
                          "bad-symbol-size");
     }
 
+    if (total_supply == 0 || total_supply > MAX_ASSET_TOTAL_SUPPLY)
+        return state.DoS(100, ERRORMSG("CUserIssueAssetTx::CheckTx, asset total_supply=%llu can not == 0 or > %llu",
+                                       total_supply, MAX_ASSET_TOTAL_SUPPLY), REJECT_INVALID, "invalid-total-supply");
+
     CAccount acct;
     if (!cw.accountCache.GetAccount(owner_uid, acct))
         return state.DoS(100, ERRORMSG("CGovDiaIssueProposal::CheckProposal, read account failed"), REJECT_INVALID,
