@@ -175,6 +175,7 @@ coin_CORE_H = \
   rpc/rpcmisc.h \
   rpc/rpcnet.h \
   rpc/rpcvm.h \
+  rpc/rpcserialize.cpp \
   rpc/rpcwallet.h \
   commons/support/cleanse.h \
   sigcache.h \
