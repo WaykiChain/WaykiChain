@@ -94,6 +94,26 @@ namespace wasm {
 
         }
 
+        static std::vector<char>
+        pack( const std::vector<char> &abi, const string &action, const json_spirit::Value &params, microseconds max_serialization_time ) {
+
+           vector<char> data;
+           try {
+
+                wasm::abi_def def = wasm::unpack<wasm::abi_def>(abi);
+                wasm::abi_serializer abis(def, max_serialization_time);
+                string action_type = abis.get_action_type(action);
+                if(action_type == string()){
+                    action_type = action;
+                }
+                data = abis.variant_to_binary(action_type, params, max_serialization_time);
+
+            }
+            CHAIN_CAPTURE_AND_RETHROW("abi_serializer pack error in action '%s'", action)
+
+            return data;
+        }
+
         static json_spirit::Value
         unpack( const std::vector<char> &abi, const string &action, const bytes &data, microseconds max_serialization_time ) {
 
