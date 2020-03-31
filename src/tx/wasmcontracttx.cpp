@@ -143,7 +143,7 @@ CWasmContractTx::get_accounts_from_signatures(CCacheWrapper& database, std::vect
             continue;
         }
 
-        CHAIN_ASSERT( payer.regid.value != s.account,
+        CHAIN_ASSERT( payer.regid.GetIntValue() != s.account,
                       wasm_chain::tx_duplicate_sig,
                       "duplicate signatures from payer '%s'", payer.regid.ToString())
 
@@ -464,7 +464,7 @@ Object CWasmContractTx::ToJson(const CAccountDBCache &accountCache) const {
     result.push_back(Pair("inline_transactions", inline_transactions_arr));
 
     Value signature_payer;
-    to_variant(signature_pair{payer.regid.value, signature}, signature_payer);
+    to_variant(signature_pair{payer.regid.GetIntValue(), signature}, signature_payer);
     result.push_back(Pair("signature_payer", signature_payer));
 
     if(signatures.size() > 0) {
