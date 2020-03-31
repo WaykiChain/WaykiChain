@@ -629,7 +629,7 @@ bool CGovAxcCoinProposal::CheckProposal(CTxExecuteContext& context, CBaseTx& tx)
 bool  CGovAxcCoinProposal::ExecuteProposal(CTxExecuteContext& context, CBaseTx& tx) {
     IMPLEMENT_DEFINE_CW_STATE
 
-    if(op_type == ProposalOperateType::DISABLE) {
+    if (op_type == ProposalOperateType::DISABLE) {
         if(!cw.assetCache.EraseAxcSwapPair(peer_chain_coin_symbol))
             return state.DoS(100, ERRORMSG("CGovAxcCoinProposal::ExecuteProposal, write db error"), REJECT_INVALID,
                              "db-error");
@@ -650,6 +650,40 @@ bool  CGovAxcCoinProposal::ExecuteProposal(CTxExecuteContext& context, CBaseTx& 
 
     } else
         return false;
+
+    return true;
+}
+
+bool CGovDiaIssueProposal::CheckProposal(CTxExecuteContext& context, CBaseTx& tx) {
+
+    IMPLEMENT_DEFINE_CW_STATE
+
+    if (asset_symbol.size() < 3 || asset_symbol.size() > 5) {
+        return state.DoS(100, ERRORMSG("CGovDiaIssueProposal::CheckProposal, the dia symbol size must be between 3 and 5"), REJECT_INVALID,
+                         "bad-symbol-size");
+    }
+
+    CAccount acct;
+    if (!cw.accountCache.GetAccount(owner_uid, acct))
+        return state.DoS(100, ERRORMSG("CGovDiaIssueProposal::CheckProposal, read account failed"), REJECT_INVALID,
+                         "bad-getaccount");
+
+    if (!cw.assetCache.HasAsset(asset_symbol))
+        return state.DoS(100, ERRORMSG("CGovDiaIssueProposal::CheckProposal, asset_symbol is exist"), REJECT_INVALID,
+                         "asset-exist");
+
+    return true;
+}
+bool CGovDiaIssueProposal::ExecuteProposal(CTxExecuteContext& context, CBaseTx& tx) {
+
+    IMPLEMENT_DEFINE_CW_STATE
+
+    CAsset asset(asset_symbol, asset_symbol, AssetType::DIA, 0, owner_uid, total_supply, false);
+
+    if (!cw.assetCache.SetAsset(asset)) {
+        return state.DoS(100, ERRORMSG("CGovDiaIssueProposal::ExecuteProposal,save asset error"), REJECT_INVALID,
+                         "asset-write-error");
+    }
 
     return true;
 }

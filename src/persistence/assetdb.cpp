@@ -21,7 +21,7 @@ bool CAssetDbCache::SetAsset(const CAsset &asset) {
 }
 
 bool CAssetDbCache::HasAsset(const TokenSymbol &tokenSymbol) {
-    return asset_cache.HasData(tokenSymbol);
+    return asset_cache.HasData(tokenSymbol) || kCoinTypeSet.count(tokenSymbol);
 }
 
 bool CAssetDbCache::CheckAsset(const TokenSymbol &symbol, uint64_t permsSum) {

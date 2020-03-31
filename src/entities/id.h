@@ -66,7 +66,7 @@ public:
     CKeyID GetKeyId(const CAccountDBCache &accountCache) const;
     uint32_t GetHeight() const { return height; }
     uint16_t GetIndex() const { return index; }
-    uint64_t ToRegIDNumber() const { return (((uint64_t)height) << 20) + index; }
+    uint64_t IntValue() const { return (((uint64_t)height) << 20) + index; }
 
     bool IsMature(uint32_t curHeight) const;
 
