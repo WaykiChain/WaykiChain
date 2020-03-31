@@ -276,7 +276,7 @@ namespace wasm {
                           "producer account does not register nick_id, regid = %s",
                           p.regid.ToString())
 
-            active_producers.push_back(producer.regid.IntValue());
+            active_producers.push_back(producer.regid.GetIntValue());
         }
         return active_producers;
     }
