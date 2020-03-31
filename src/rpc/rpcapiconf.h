@@ -13,8 +13,8 @@
 //
 
 static const CRPCCommand vRPCCommands[] =
-{ //  name                      actor (function)         okSafeMode threadSafe reqWallet
-  //  ------------------------  -----------------------  ---------- ---------- ---------
+{ //  name                      actor (function)                            okSafeMode threadSafe reqWallet
+  //  ------------------------  -----------------------                     ---------- ---------- ---------
     /* Overall control/query calls */
     { "help",                           &help,                              true,      true,        false   },
     { "getinfo",                        &getinfo,                           true,      false,       false   }, /* uses wallet if enabled */
@@ -177,6 +177,7 @@ static const CRPCCommand vRPCCommands[] =
     { "vmexecutescript",                &vmexecutescript,                   true,       true,       true    },
     /* debug */
     { "dumpdb",                         &dumpdb,                            true,       true,       true    },
+    /* UTXO */
     { "genutxomultiinputcondhash",      &genutxomultiinputcondhash,         true,       true,       false   },
     { "genutxomultisignaddr",           &genutxomultisignaddr,              true,       true,       false   },
     { "genutxomultisignature",          &genutxomultisignature,             true,       true,       false   },

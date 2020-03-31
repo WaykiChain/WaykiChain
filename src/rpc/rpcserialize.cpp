@@ -3,7 +3,16 @@
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php
 
+#include <stdint.h>
+#include <chrono>
+#include <boost/assign/list_of.hpp>
+
 #include "commons/base58.h"
+#include "commons/json/json_spirit_utils.h"
+#include "commons/json/json_spirit_value.h"
+#include "commons/json/json_spirit_reader.h"
+#include "commons/json/json_spirit_writer.h"
+#include "rpc/rpcapi.h"
 #include "rpc/core/rpcserver.h"
 #include "rpc/core/rpccommons.h"
 #include "tx/tx.h"
@@ -11,33 +20,23 @@
 #include "tx/proposaltx.h"
 #include "tx/wasmcontracttx.h"
 #include "init.h"
-#include "net.h"
-#include "netbase.h"
 #include "wallet/wallet.h"
-#include "rpc/rpcapi.h"
 #include "wallet/walletdb.h"
 #include "persistence/blockdb.h"
 #include "persistence/txdb.h"
 #include "config/configuration.h"
 #include "miner/miner.h"
 #include "main.h"
-#include <stdint.h>
-#include <chrono>
-
-#include <boost/assign/list_of.hpp>
-#include "commons/json/json_spirit_utils.h"
-#include "commons/json/json_spirit_value.h"
-#include "commons/json/json_spirit_reader.h"
-#include "commons/json/json_spirit_writer.h"
-
+#include "net.h"
+#include "netbase.h"
 #include "wasm/datastream.hpp"
 #include "wasm/abi_serializer.hpp"
 #include "wasm/types/name.hpp"
 #include "wasm/types/asset.hpp"
-#include "vm/wasm/wasm_native_contract_abi.hpp"
-#include "vm/wasm/types/inline_transaction.hpp"
-#include "vm/wasm/wasm_constants.hpp"
-#include "vm/wasm/exception/exceptions.hpp"
+#include "wasm/wasm_native_contract_abi.hpp"
+#include "wasm/types/inline_transaction.hpp"
+#include "wasm/wasm_constants.hpp"
+#include "wasm/exception/exceptions.hpp"
 
 using namespace std;
 using namespace boost;
@@ -45,17 +44,6 @@ using namespace json_spirit;
 using namespace boost::assign;
 using std::chrono::microseconds;
 
-/**
-{
-   "send": "",
-   "to": "",
-   "amount": "" ,
-   "fee": "",
-   "memo": "",
-   “height”: ""
-}
-//coind genrawtx submitsendtx '{"from":"0-1","to":"wcnDdWdWTSe8qv6wyoQknT8xCf4R5ahiK2", "amount":"WICC:10000:SAWI", "fee":"WICC:10000:SAWI", "height":100, "memo":"tesst"}'
-*/
 std::shared_ptr<CBaseTx> genSendTx(json_spirit::Value param_json) {
 
     const Value& str_from = JSON::GetObjectFieldValue(param_json, "sender");
@@ -83,7 +71,7 @@ std::shared_ptr<CBaseTx> genSendTx(json_spirit::Value param_json) {
    "fee": "",
    “height”: ""
 }*/
-std::shared_ptr<CBaseTx> genAccountPermScleartx(json_spirit::Value param_json) {
+std::shared_ptr<CBaseTx> genAccountPermsClearTx(json_spirit::Value param_json) {
 
     const Value& str_from = JSON::GetObjectFieldValue(param_json, "sender");
     const Value& str_fee = JSON::GetObjectFieldValue(param_json, "fee");
@@ -250,16 +238,29 @@ const char *gen_rawtx_rpc_help_message = R"=====(
 
 
 unordered_map <string, std::shared_ptr<CBaseTx> (*)(json_spirit::Value)> nameToFuncMap = {
-        {"submitsendtx",                &genSendTx },
-        {"submitaccountpermscleartx",   &genAccountPermScleartx },
-        {"submitucontractcalltx",       &genContractCalltx },
-        {"submitwasmcontractcalltx",    &genWasmContractCalltx}
+    { "submitsendtx",                &genSendTx                 },
+    { "submitaccountpermscleartx",   &genAccountPermsClearTx    },
+    { "submitucontractcalltx",       &genContractCalltx         },
+    { "submitwasmcontractcalltx",    &genWasmContractCalltx     }
 };
 
+/**
+ * Example Usage:
+ *
+ * coind genrawtx submitsendtx '{"from":"0-1","to":"wcnDdWdWTSe8qv6wyoQknT8xCf4R5ahiK2", "amount":"WICC:10000:SAWI", "fee":"WICC:10000:SAWI", "height":100, "memo":"tesst"}'
+ *
+ * {
+   "send": "",
+   "to": "",
+   "amount": "" ,
+   "fee": "",
+   "memo": "",
+   “height”: ""
+ * }
+ *
+*/
+Value genrawtx(const Array &params, bool fHelp) {
 
-Value genrawtx( const Array &params, bool fHelp ) {
-
-    //coind genrawtx submitsendtx  '{"from": "aaaa", "to":"bbb"}'
     if (fHelp || params.size() != 2) {
         throw runtime_error(gen_rawtx_rpc_help_message);
     }
