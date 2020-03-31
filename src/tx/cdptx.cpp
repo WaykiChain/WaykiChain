@@ -70,7 +70,7 @@ namespace cdp_util {
 
     bool CdpNeedSettleInterest(HeightType lastHeight, HeightType curHeight, uint64_t cycleDays) {
         uint64_t cycleBlocks = cycleDays * GetDayBlockCount(curHeight);
-        return (curHeight > lastHeight && ((curHeight - lastHeight) >= cycleBlocks);
+        return (curHeight > lastHeight) && ((curHeight - lastHeight) >= cycleBlocks);
     }
 
     bool SellInterestForFcoins(CBaseTx &tx, CTxExecuteContext &context, const CUserCDP &cdp,
@@ -1181,4 +1181,8 @@ bool GetSettledInterestCdps(CCacheWrapper &cw, HeightType height, const CCdpCoin
         cdpList.push_back(pIt->GetCdpId());
     }
     return true;
+}
+
+bool GetSettledInterestCdps(CCacheWrapper &cw, HeightType height, vector<uint256> &cdpList) {
+
 }
