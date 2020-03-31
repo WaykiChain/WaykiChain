@@ -230,4 +230,7 @@ public:
     virtual bool ExecuteTx(CTxExecuteContext &context);
 };
 
+bool GetSettledInterestCdps(CCacheWrapper &cw, HeightType height, const CCdpCoinPair &cdpCoinPair,
+                            vector<uint256> &cdpList, uint32_t maxCount);
+
 #endif //TX_CDP_H

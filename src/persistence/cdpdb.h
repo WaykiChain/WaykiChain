@@ -28,6 +28,19 @@ typedef CCompositeKVCache<dbk::CDP_RATIO_INDEX, tuple<CCdpCoinPair, CFixedUInt64
 // cdp sort by height, from low to high
 typedef CCompositeKVCache<dbk::CDP_HEIGHT_INDEX, tuple<CCdpCoinPair, CFixedUInt64, uint256>, CUserCDP> CCdpHeightIndexCache;
 
+class CDBCdpHeightIndexIt: public CDbIterator<CCdpHeightIndexCache> {
+public:
+    typedef CDbIterator<CCdpHeightIndexCache> Base;
+    using Base::Base;
+
+    uint64_t GetHeight() const {
+        return std::get<1>(GetKey()).value;
+    }
+    const uint256& GetCdpId() const {
+        return std::get<2>(GetKey());
+    }
+};
+
 class CCdpDBCache {
 public:
     CCdpDBCache() {}
@@ -44,6 +57,11 @@ public:
 
     bool GetCdpListByCollateralRatio(const CCdpCoinPair &cdpCoinPair, const uint64_t collateralRatio,
             const uint64_t bcoinMedianPrice, CCdpRatioIndexCache::Map &userCdps);
+
+
+    shared_ptr<CDBCdpHeightIndexIt> CreateCdpHeightIndexIt() {
+        return make_shared<CDBCdpHeightIndexIt>(cdp_height_index_cache);
+    }
 
     inline uint64_t GetGlobalStakedBcoins() const;
     inline uint64_t GetGlobalOwedScoins() const;

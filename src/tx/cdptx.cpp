@@ -68,6 +68,11 @@ namespace cdp_util {
         return ret;
     }
 
+    bool CdpNeedSettleInterest(HeightType lastHeight, HeightType curHeight, uint64_t cycleDays) {
+        uint64_t cycleBlocks = cycleDays * GetDayBlockCount(curHeight);
+        return (curHeight > lastHeight && ((curHeight - lastHeight) >= cycleBlocks);
+    }
+
     bool SellInterestForFcoins(CBaseTx &tx, CTxExecuteContext &context, const CUserCDP &cdp,
                                const uint64_t scoinsInterest, vector<CReceipt> &receipts) {
         if (scoinsInterest == 0)
@@ -1080,12 +1085,10 @@ bool CCDPSettleInterestTx::ExecuteTx(CTxExecuteContext &context) {
         if (!ReadCdpParam(*this, context, cdpCoinPair, CdpParamType::CDP_CONVERT_INTEREST_TO_DEBT_DAYS, cycleDays))
             return false;
 
-        // check cdp need to settle interest
-        uint64_t cycleBlocks = cycleDays * GetDayBlockCount(context.height);
-        if (context.height < cdp.block_height || (HeightType)(context.height - cdp.block_height) < cycleBlocks) {
+        if (!cdp_util::CdpNeedSettleInterest(cdp.block_height, context.height, cycleDays)) {
             return state.DoS(100, ERRORMSG("%s, CDP does not reach the settlement cycle!"
-                    " last_height=%u, cur_height=%u, cycle_blocks=%u", TX_ERR_TITLE,
-                    cdp.block_height, context.height, cycleBlocks),
+                    " last_height=%u, cur_height=%u, cycleDays=%u", TX_ERR_TITLE,
+                    cdp.block_height, context.height, cycleDays),
                     UPDATE_ACCOUNT_FAIL, "not-reach-sttlement-cycle");
         }
 
@@ -1156,4 +1159,26 @@ Object CCDPSettleInterestTx::ToJson(const CAccountDBCache &accountCache) const {
 
     result.push_back(Pair("cdp_list",       cdpArray));
     return result;
+}
+
+bool GetSettledInterestCdps(CCacheWrapper &cw, HeightType height, const CCdpCoinPair &cdpCoinPair,
+                            vector<uint256> &cdpList, uint32_t maxCount) {
+    auto pIt = cw.cdpCache.CreateCdpHeightIndexIt();
+    uint64_t cycleDays;
+    if (!cw.sysParamCache.GetCdpParam(cdpCoinPair, CDP_CONVERT_INTEREST_TO_DEBT_DAYS, cycleDays))
+        return ERRORMSG("%s, read cdp param CDP_CONVERT_INTEREST_TO_DEBT_DAYS error! cdpCoinPair=%s",
+            __func__, cdpCoinPair.ToString());
+
+
+    for (pIt->First(); pIt->IsValid(); pIt->Next()) {
+        if (!cdp_util::CdpNeedSettleInterest(pIt->GetHeight(), height, cycleDays)) {
+            break;
+        }
+        maxCount--;
+        if (maxCount == 0)
+            break;
+
+        cdpList.push_back(pIt->GetCdpId());
+    }
+    return true;
 }
