@@ -33,6 +33,7 @@
 #include "wasm/wasm_context.hpp"
 #include "wasm/types/name.hpp"
 #include "wasm/types/asset.hpp"
+#include "wasm/types/regid.hpp"
 #include "wasm/wasm_constants.hpp"
 #include "wasm/wasm_native_contract_abi.hpp"
 #include "wasm/wasm_native_contract.hpp"
@@ -134,19 +135,19 @@ void read_and_validate_abi(const string& abi_file, string& abi){
 
 void get_contract( CAccountDBCache*    database_account,
                    CContractDBCache*   database_contract,
-                   const wasm::name&   contract_name,
+                   const wasm::regid&  contract_regid,
                    CAccount&           contract,
                    CUniversalContract& contract_store ){
 
-    CHAIN_ASSERT( database_account->GetAccount(CRegID(contract_name.value), contract),
+    CHAIN_ASSERT( database_account->GetAccount(CRegID(contract_regid.value), contract),
                   wasm_chain::account_access_exception,
                   "contract '%s' does not exist",
-                  contract_name.to_string().c_str())
+                  contract_regid.to_string())
     //JSON_RPC_ASSERT(database_contract->HaveContract(contract.regid),                RPC_WALLET_ERROR,  strprintf("Cannot get contract %s", contract_name.to_string().c_str()))
     CHAIN_ASSERT( database_contract->GetContract(contract.regid, contract_store),
                   wasm_chain::account_access_exception,
                   "cannot get contract '%s'",
-                  contract_name.to_string())
+                  contract_regid.to_string())
     CHAIN_ASSERT( contract_store.vm_type == VMType::WASM_VM,
                   wasm_chain::vm_type_mismatch, "vm type must be wasm VM")
     CHAIN_ASSERT( contract_store.abi.size() > 0,
@@ -173,30 +174,30 @@ Value submitwasmcontractdeploytx( const Array &params, bool fHelp ) {
 
         CWasmContractTx tx;
         {
-            CAccount authorizer;
-            auto              contract        = wasm::name(params[1].get_str());
-            auto              authorizer_name = wasm::name(params[0].get_str());
-            const ComboMoney& fee             = RPC_PARAM::GetFee(params, 4, TxType::WASM_CONTRACT_TX);
+            CAccount payer;
+            auto              payer_regid = wasm::regid(params[0].get_str());
+            auto              contract    = wasm::regid(params[1].get_str());
+            const ComboMoney& fee         = RPC_PARAM::GetFee(params, 4, TxType::WASM_CONTRACT_TX);
 
-            CHAIN_ASSERT( database->GetAccount(CRegID(authorizer_name.value), authorizer),
+            CHAIN_ASSERT( database->GetAccount(CRegID(payer_regid.value), payer),
                           wasm_chain::account_access_exception,
-                          "authorizer '%s' does not exist ",
-                          authorizer_name.to_string().c_str())
-            RPC_PARAM::CheckAccountBalance(authorizer, fee.symbol, SUB_FREE, fee.GetAmountInSawi());
+                          "payer '%s' does not exist ",
+                          payer_regid.to_string().c_str())
+            RPC_PARAM::CheckAccountBalance(payer, fee.symbol, SUB_FREE, fee.GetAmountInSawi());
 
             tx.nTxType      = WASM_CONTRACT_TX;
-            tx.txUid        = authorizer.regid;
+            tx.txUid        = payer.regid;
             tx.fee_symbol   = fee.symbol;
             tx.llFees       = fee.GetAmountInSawi();
             tx.valid_height = chainActive.Tip()->height;
-            tx.inline_transactions.push_back({wasmio, wasm::N(setcode), std::vector<permission>{{authorizer_name.value, wasmio_owner}},
+            tx.inline_transactions.push_back({wasmio, wasm::N(setcode), std::vector<permission>{{payer_regid.value, wasmio_owner}},
                                              wasm::pack(std::tuple(contract.value, code, abi, ""))});
 
-            //tx.signatures.push_back({authorizer_name.value, vector<uint8_t>()});
-            CHAIN_ASSERT( wallet->Sign(authorizer.keyid, tx.GetHash(), tx.signature),
+            //tx.signatures.push_back({payer_regid.value, vector<uint8_t>()});
+            CHAIN_ASSERT( wallet->Sign(payer.keyid, tx.GetHash(), tx.signature),
                           wasm_chain::wallet_sign_exception, "wallet sign error")
 
-            //tx.set_signature({authorizer_name.value, tx.signature});
+            //tx.set_signature({payer_regid.value, tx.signature});
         }
 
         string retMsg;
@@ -242,11 +243,11 @@ Value submitwasmcontractcalltx( const Array &params, bool fHelp ) {
 
         //get abi
         std::vector<char> abi;
-        wasm::name        contract_name = wasm::name(params[1].get_str());
-        if(!get_native_contract_abi(contract_name.value, abi)){
+        wasm::regid       contract_regid = wasm::regid(params[1].get_str());
+        if(!get_native_contract_abi(contract_regid.value, abi)){
             CAccount           contract;
             CUniversalContract contract_store;
-            get_contract(database_account, database_contract, contract_name, contract, contract_store );
+            get_contract(database_account, database_contract, contract_regid, contract, contract_store );
             abi = std::vector<char>(contract_store.abi.begin(), contract_store.abi.end());
         }
 
@@ -254,11 +255,11 @@ Value submitwasmcontractcalltx( const Array &params, bool fHelp ) {
         EnsureWalletIsUnlocked();
         CWasmContractTx tx;
         {
-            CAccount authorizer;
-            auto     authorizer_name   = wasm::name(params[0].get_str());
-            auto     action            = wasm::name(params[2].get_str());
-            CHAIN_ASSERT(database_account->GetAccount(CRegID(authorizer_name.value), authorizer), wasm_chain::account_access_exception,
-                        "authorizer '%s' does not exist",authorizer_name.to_string())
+            CAccount payer;
+            auto     payer_regid = wasm::regid(params[0].get_str());
+            auto     action      = wasm::name(params[2].get_str());
+            CHAIN_ASSERT(database_account->GetAccount(CRegID(payer_regid.value), payer), wasm_chain::account_access_exception,
+                        "payer '%s' does not exist",payer_regid.to_string())
 
             std::string action_data_str = params[3].get_str();
 
@@ -272,18 +273,18 @@ Value submitwasmcontractcalltx( const Array &params, bool fHelp ) {
             ComboMoney fee  = RPC_PARAM::GetFee(params, 4, TxType::WASM_CONTRACT_TX);
 
             tx.nTxType      = WASM_CONTRACT_TX;
-            tx.txUid        = authorizer.regid;
+            tx.txUid        = payer.regid;
             tx.valid_height = chainActive.Height();
             tx.fee_symbol   = fee.symbol;
             tx.llFees       = fee.GetAmountInSawi();
 
             //for(int i = 0; i < 300 ; i++)
-            tx.inline_transactions.push_back({contract_name.value, action.value, std::vector<permission>{{authorizer_name.value, wasmio_owner}}, action_data});
+            tx.inline_transactions.push_back({contract_regid.value, action.value, std::vector<permission>{{payer_regid.value, wasmio_owner}}, action_data});
 
-            //tx.signatures.push_back({authorizer_name.value, vector<uint8_t>()});
-            CHAIN_ASSERT( wallet->Sign(authorizer.keyid, tx.GetHash(), tx.signature),
+            //tx.signatures.push_back({payer_regid.value, vector<uint8_t>()});
+            CHAIN_ASSERT( wallet->Sign(payer.keyid, tx.GetHash(), tx.signature),
                           wasm_chain::wallet_sign_exception, "wallet sign error")
-            //tx.set_signature({authorizer_name.value, tx.signature});
+            //tx.set_signature({payer_regid.value, tx.signature});
         }
 
         string retMsg;
@@ -308,32 +309,32 @@ Value gettablewasm( const Array &params, bool fHelp ) {
     try{
         auto database_account  = pCdMan->pAccountCache;
         auto database_contract = pCdMan->pContractCache;
-        auto contract_name     = wasm::name(params[0].get_str());
+        auto contract_regid    = wasm::regid(params[0].get_str());
         auto contract_table    = wasm::name(params[1].get_str());
 
-        // JSON_RPC_ASSERT(!is_native_contract(contract_name.value), RPC_INVALID_PARAMS,
-        //                 "cannot get table from native contract '%s'", contract_name.to_string())
+        // JSON_RPC_ASSERT(!is_native_contract(contract_regid.value), RPC_INVALID_PARAMS,
+        //                 "cannot get table from native contract '%s'", contract_regid.to_string())
 
-        CHAIN_ASSERT( !is_native_contract(contract_name.value), wasm_chain::native_contract_access_exception,
-                    "cannot get table from native contract '%s'", contract_name.to_string() )
+        CHAIN_ASSERT( !is_native_contract(contract_regid.value), wasm_chain::native_contract_access_exception,
+                    "cannot get table from native contract '%s'", contract_regid.to_string() )
 
         CAccount contract;
         CUniversalContract contract_store;
-        get_contract(database_account, database_contract, contract_name, contract, contract_store );
+        get_contract(database_account, database_contract, contract_regid, contract, contract_store );
         std::vector<char> abi = std::vector<char>(contract_store.abi.begin(), contract_store.abi.end());
 
         uint64_t numbers = default_query_rows;
         if (params.size() > 2) numbers = std::atoi(params[2].get_str().data());
 
-        std::vector<char> key_prefix = wasm::pack(std::tuple(contract_name.value, contract_table.value));
+        std::vector<char> key_prefix = wasm::pack(std::tuple(contract_regid.value, contract_table.value));
         string search_key(key_prefix.data(),key_prefix.size());
         string start_key = (params.size() > 3) ? from_hex(params[3].get_str()) : "";
 
         auto pContractDataIt = database_contract->CreateContractDataIterator(contract.regid, search_key);
         // JSON_RPC_ASSERT(pContractDataIt, RPC_INVALID_PARAMS,
-        //                 "cannot get table from contract '%s'", contract_name.to_string())
+        //                 "cannot get table from contract '%s'", contract_regid.to_string())
         CHAIN_ASSERT( pContractDataIt, wasm_chain::table_not_found,
-                      "cannot get table '%s' from contract '%s'", contract_table.to_string(), contract_name.to_string() )
+                      "cannot get table '%s' from contract '%s'", contract_table.to_string(), contract_regid.to_string() )
 
         bool                hasMore = false;
         json_spirit::Object object_return;
@@ -374,14 +375,14 @@ Value jsontobinwasm( const Array &params, bool fHelp ) {
     try{
         auto database_account  = pCdMan->pAccountCache;
         auto database_contract = pCdMan->pContractCache;
-        auto contract_name     = wasm::name(params[0].get_str());
+        auto contract_regid    = wasm::regid(params[0].get_str());
         auto contract_action   = wasm::name(params[1].get_str());
 
         std::vector<char>  abi;
         CAccount           contract;
         CUniversalContract contract_store;
-        if(!get_native_contract_abi(contract_name.value, abi)){
-            get_contract(database_account, database_contract, contract_name, contract, contract_store );
+        if(!get_native_contract_abi(contract_regid.value, abi)){
+            get_contract(database_account, database_contract, contract_regid, contract, contract_store );
             abi = std::vector<char>(contract_store.abi.begin(), contract_store.abi.end());
         }
 
@@ -409,14 +410,14 @@ Value bintojsonwasm( const Array &params, bool fHelp ) {
     try{
         auto database_account  = pCdMan->pAccountCache;
         auto database_contract = pCdMan->pContractCache;
-        auto contract_name     = wasm::name(params[0].get_str());
+        auto contract_regid    = wasm::regid(params[0].get_str());
         auto contract_action   = wasm::name(params[1].get_str());
 
         std::vector<char>  abi;
         CAccount           contract;
         CUniversalContract contract_store;
-        if(!get_native_contract_abi(contract_name.value, abi)){
-            get_contract(database_account, database_contract, contract_name, contract, contract_store );
+        if(!get_native_contract_abi(contract_regid.value, abi)){
+            get_contract(database_account, database_contract, contract_regid, contract, contract_store );
             abi = std::vector<char>(contract_store.abi.begin(), contract_store.abi.end());
         }
 
@@ -443,17 +444,17 @@ Value getcodewasm( const Array &params, bool fHelp ) {
     try{
         auto database_account  = pCdMan->pAccountCache;
         auto database_contract = pCdMan->pContractCache;
-        auto contract_name     = wasm::name(params[0].get_str());
-        // JSON_RPC_ASSERT(!is_native_contract(contract_name.value),
+        auto contract_regid    = wasm::regid(params[0].get_str());
+        // JSON_RPC_ASSERT(!is_native_contract(contract_regid.value),
         //                 RPC_INVALID_PARAMS,
-        //                 "cannot get code from native contract '%s'", contract_name.to_string())
-        CHAIN_ASSERT( !is_native_contract(contract_name.value), wasm_chain::native_contract_access_exception,
-                      "cannot get code from native contract '%s'", contract_name.to_string() )
+        //                 "cannot get code from native contract '%s'", contract_regid.to_string())
+        CHAIN_ASSERT( !is_native_contract(contract_regid.value), wasm_chain::native_contract_access_exception,
+                      "cannot get code from native contract '%s'", contract_regid.to_string() )
 
 
         CAccount           contract;
         CUniversalContract contract_store;
-        get_contract(database_account, database_contract, contract_name, contract, contract_store );
+        get_contract(database_account, database_contract, contract_regid, contract, contract_store );
 
         json_spirit::Object object_return;
         object_return.push_back(Pair("code", wasm::to_hex(contract_store.code,"")));
@@ -471,16 +472,16 @@ Value getabiwasm( const Array &params, bool fHelp ) {
     try{
         auto database_account  = pCdMan->pAccountCache;
         auto database_contract = pCdMan->pContractCache;
-        auto contract_name     = wasm::name(params[0].get_str());
+        auto contract_regid    = wasm::regid(params[0].get_str());
 
-        CHAIN_ASSERT( !is_native_contract(contract_name.value), wasm_chain::native_contract_access_exception,
-                      "cannot get abi from native contract '%s'", contract_name.to_string() )
+        CHAIN_ASSERT( !is_native_contract(contract_regid.value), wasm_chain::native_contract_access_exception,
+                      "cannot get abi from native contract '%s'", contract_regid.to_string() )
 
         vector<char>       abi;
         CAccount           contract;
         CUniversalContract contract_store;
-        if(!get_native_contract_abi(contract_name.value, abi)){
-            get_contract(database_account, database_contract, contract_name, contract, contract_store );
+        if(!get_native_contract_abi(contract_regid.value, abi)){
+            get_contract(database_account, database_contract, contract_regid, contract, contract_store );
             abi = std::vector<char>(contract_store.abi.begin(), contract_store.abi.end());
         }
 

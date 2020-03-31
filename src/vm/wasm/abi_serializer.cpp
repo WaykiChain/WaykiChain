@@ -7,6 +7,7 @@
 #include <wasm/types/symbol.hpp>
 #include <wasm/types/asset.hpp>
 #include <wasm/types/varint.hpp>
+#include <wasm/types/regid.hpp>
 #include <wasm/wasm_log.hpp>
 
 #include <boost/algorithm/string/predicate.hpp>
@@ -102,7 +103,8 @@ namespace wasm {
 
         built_in_types.emplace("table_name", pack_unpack<name>());
         built_in_types.emplace("action_name", pack_unpack<name>());
-        built_in_types.emplace("name", pack_unpack<name>());
+        built_in_types.emplace("name",  pack_unpack<name>());
+        built_in_types.emplace("regid", pack_unpack<regid>());
 
         built_in_types.emplace("bytes", pack_unpack<bytes>());
         built_in_types.emplace("string", pack_unpack<string>());

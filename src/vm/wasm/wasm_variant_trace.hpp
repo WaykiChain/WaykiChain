@@ -42,7 +42,7 @@ static inline void to_variant(const signature_pair &t, json_spirit::Value &v) {
     json_spirit::Object obj;
 
     json_spirit::Value val;
-    to_variant(wasm::name(t.account), val);
+    to_variant(wasm::regid(t.account), val);
     json_spirit::Config::add(obj, "account", val);
 
     to_variant(HexStr(t.signature), val);
@@ -56,7 +56,7 @@ static inline void to_variant(const wasm::permission &t, json_spirit::Value &v) 
     json_spirit::Object obj;
 
     json_spirit::Value val;
-    to_variant(wasm::name(t.account), val);
+    to_variant(wasm::regid(t.account), val);
     json_spirit::Config::add(obj, "account", val);
 
     to_variant(wasm::name(t.perm), val);
@@ -70,7 +70,7 @@ static inline void to_variant(const wasm::inline_transaction &t, json_spirit::Va
     json_spirit::Object obj;
 
     json_spirit::Value val;
-    to_variant(wasm::name(t.contract), val);
+    to_variant(wasm::regid(t.contract), val);
     json_spirit::Config::add(obj, "contract", val);
 
     to_variant(wasm::name(t.action), val);
@@ -96,7 +96,7 @@ static inline void to_variant(const wasm::inline_transaction &t, json_spirit::Va
     json_spirit::Object obj;
 
     json_spirit::Value val;
-    to_variant(wasm::name(t.contract), val);
+    to_variant(wasm::regid(t.contract), val);
     json_spirit::Config::add(obj, "contract", val);
 
     to_variant(wasm::name(t.action), val);
@@ -141,7 +141,7 @@ static inline void to_variant(const wasm::inline_transaction_trace &t, json_spir
     // to_variant(t.elapsed.count(), val);
     // json_spirit::Config::add(obj, "elapsed", val);
 
-    to_variant(wasm::name(t.receiver), val);
+    to_variant(wasm::regid(t.receiver), val);
     json_spirit::Config::add(obj, "receiver", val);
 
     to_variant(t.trx, val, resolver);
