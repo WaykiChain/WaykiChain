@@ -31,11 +31,11 @@ namespace wasm {
                       "The precision of system coin %s must be %d",
                       symbol, 8)
 
-        CHAIN_ASSERT( owner.OperateBalance(symbol, BalanceOpType::SUB_FREE, quantity.amount, 
+        CHAIN_ASSERT( owner.OperateBalance(symbol, BalanceOpType::SUB_FREE, quantity.amount,
                                            ReceiptCode::WASM_TRANSFER_ACTUAL_COINS, receipts),
                       account_access_exception,
                       "Account %s overdrawn balance",
-                      owner.nickid.ToString())
+                      owner.regid.ToString())
 
         CHAIN_ASSERT( database.SetAccount(owner.regid, owner), account_access_exception,
                       "Save account error")
@@ -50,11 +50,11 @@ namespace wasm {
                       "The precision of system coin %s must be %d",
                       symbol, 8)
 
-        CHAIN_ASSERT( owner.OperateBalance(symbol, BalanceOpType::ADD_FREE, quantity.amount, 
+        CHAIN_ASSERT( owner.OperateBalance(symbol, BalanceOpType::ADD_FREE, quantity.amount,
                                             ReceiptCode::WASM_TRANSFER_ACTUAL_COINS, receipts),
                       account_access_exception,
                       "Operate account %s failed",
-                      owner.nickid.ToString().c_str())
+                      owner.regid.ToString().c_str())
 
         CHAIN_ASSERT( database.SetAccount(owner.regid, owner), account_access_exception,
                       "Save account error")

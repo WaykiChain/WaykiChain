@@ -80,20 +80,21 @@ void CWasmContractTx::validate_contracts(CTxExecuteContext& context) {
         if (is_native_contract(contract_name.value)) continue;
 
         CAccount contract;
-        CHAIN_ASSERT( database.accountCache.GetAccount(CNickID(i.contract), contract),
+        CHAIN_ASSERT( database.accountCache.GetAccount(CRegID(i.contract), contract),
                       wasm_chain::account_access_exception,
                       "contract '%s' does not exist",
-                      contract_name.to_string())
+                      contract_name.to_string() )
 
         CUniversalContract contract_store;
         CHAIN_ASSERT( database.contractCache.GetContract(contract.regid, contract_store),
                       wasm_chain::account_access_exception,
-                      "cannot get contract with nickid '%s'",
-                      contract_name.to_string())
+                      "cannot get contract with regid '%s'",
+                      contract_name.to_string() )
+
         CHAIN_ASSERT( contract_store.code.size() > 0 && contract_store.abi.size() > 0,
                       wasm_chain::account_access_exception,
                       "contract '%s' abi or code  does not exist",
-                      contract_name.to_string())
+                      contract_name.to_string() )
 
     }
 
@@ -133,7 +134,7 @@ CWasmContractTx::get_accounts_from_signatures(CCacheWrapper& database, std::vect
     CHAIN_ASSERT( database.accountCache.GetAccount(txUid, payer), wasm_chain::account_access_exception,
                   "get payer failed, txUid '%s'", txUid.ToString())
 
-    for (auto s:signatures) {
+    for (auto s : signatures) {
         signatures_duplicate_check[s.signature] = s.account;
 
         uint64_t authorization_account;
@@ -142,14 +143,15 @@ CWasmContractTx::get_accounts_from_signatures(CCacheWrapper& database, std::vect
             continue;
         }
 
-        CHAIN_ASSERT( payer.nickid.value != s.account,
-                      wasm_chain::tx_duplicate_sig, 
-                      "duplicate signatures from payer '%s'", payer.nickid.ToString())  
+        CHAIN_ASSERT( payer.regid.value != s.account,
+                      wasm_chain::tx_duplicate_sig,
+                      "duplicate signatures from payer '%s'", payer.regid.ToString())
 
         CAccount account;
-        CHAIN_ASSERT( database.accountCache.GetAccount(CNickID(s.account), account),
+        CHAIN_ASSERT( database.accountCache.GetAccount(CRegID(s.account), account),
                       wasm_chain::account_access_exception, "%s",
-                      "can not get account from nickid '%s'", wasm::name(s.account).to_string())        
+                      "can not get account from regid '%s'", wasm::name(s.account).to_string() )
+
         CHAIN_ASSERT( account.owner_pubkey.Verify(signature_hash, s.signature),
                       wasm_chain::unsatisfied_authorization,
                       "can not verify signature '%s bye public key '%s' and hash '%s' ",
@@ -166,8 +168,7 @@ CWasmContractTx::get_accounts_from_signatures(CCacheWrapper& database, std::vect
                   "duplicate signature included")
 
     //append payer
-    authorization_accounts.push_back(payer.nickid.value );
-
+    authorization_accounts.push_back(payer.regid.value );
 
 }
 
@@ -177,11 +178,11 @@ bool CWasmContractTx::CheckTx(CTxExecuteContext& context) {
 
     try {
         CHAIN_ASSERT( signatures.size() <= max_signatures_size, //only one signature from payer , the signatures must be 0
-                      wasm_chain::sig_variable_size_limit_exception, 
+                      wasm_chain::sig_variable_size_limit_exception,
                       "signatures size must be <= %s", max_signatures_size)
 
-        CHAIN_ASSERT( inline_transactions.size() > 0 && inline_transactions.size() <= max_inline_transactions_size, 
-                      wasm_chain::inline_transaction_size_exceeds_exception, 
+        CHAIN_ASSERT( inline_transactions.size() > 0 && inline_transactions.size() <= max_inline_transactions_size,
+                      wasm_chain::inline_transaction_size_exceeds_exception,
                       "inline_transactions size must be <= %s", max_inline_transactions_size)
 
         //IMPLEMENT_CHECK_TX_REGID(txUid.type());
@@ -196,12 +197,12 @@ bool CWasmContractTx::CheckTx(CTxExecuteContext& context) {
         // CHAIN_ASSERT( database.accountCache.GetAccount(txUid, payer), wasm_chain::account_access_exception,
         //               "get payer failed, txUid '%s'", txUid.ToString())
         // CHAIN_ASSERT( payer.HaveOwnerPubKey(), wasm_chain::account_access_exception,
-        //               "payer '%s' unregistered", payer.nickid.ToString())
+        //               "payer '%s' unregistered", payer.regid.ToString())
         // CHAIN_ASSERT( find(authorization_accounts.begin(), authorization_accounts.end(),
-        //                    wasm::name(payer.nickid.ToString()).value) != authorization_accounts.end(),
+        //                    wasm::name(payer.regid.ToString()).value) != authorization_accounts.end(),
         //               wasm_chain::missing_auth_exception,
         //               "can not find the signature by payer %s",
-        //               payer.nickid.ToString())
+        //               payer.regid.ToString())
 
     } catch (wasm_chain::exception &e) {
         return check_tx_to_return.DoS(100, ERRORMSG(e.what()), e.code(), e.to_detail_string());
@@ -223,7 +224,7 @@ static uint64_t get_run_fee_in_wicc(const uint64_t& run_steps, CBaseTx& tx, CTxE
     uint64_t fuel_rate = context.fuel_rate;
     CHAIN_ASSERT(fuel_rate           >  0, wasm_chain::fee_exhausted_exception, "%s", "fuel_rate cannot be 0")
     CHAIN_ASSERT(MAX_BLOCK_RUN_STEP  >= run_steps, wasm_chain::fee_exhausted_exception, "run steps '%ld' > max block run steps '%ld'", run_steps, MAX_BLOCK_RUN_STEP)
-     
+
     return run_steps / 100 * fuel_rate;
 }
 
@@ -247,8 +248,8 @@ static void inline_trace_to_receipts(const wasm::inline_transaction_trace& trace
         if (itr == receipts_duplicate_check.end()){
             receipts_duplicate_check[std::tuple(from, to ,quantity, memo)] = wasmio_bank;
 
-            receipt.from_uid    = CUserID(CNickID(from));
-            receipt.to_uid      = CUserID(CNickID(to));
+            receipt.from_uid    = CUserID(CRegID(from));
+            receipt.to_uid      = CUserID(CRegID(to));
             receipt.coin_symbol = quantity.symbol.code().to_string();
             receipt.coin_amount = quantity.amount;
 
@@ -313,7 +314,7 @@ bool CWasmContractTx::ExecuteTx(CTxExecuteContext &context) {
         CHAIN_ASSERT( trx_trace.elapsed.count() < max_transaction_duration.count() * 1000,
                       wasm_chain::tx_cpu_usage_exceeded,
                       "Tx execution time must be in '%d' microseconds, but get '%d' microseconds",
-                      max_transaction_duration * 1000, trx_trace.elapsed.count())                
+                      max_transaction_duration * 1000, trx_trace.elapsed.count())
 
         //bytes add margin
         run_cost      = run_cost + recipients_size * notice_fuel_fee_per_recipient;
@@ -323,12 +324,12 @@ bool CWasmContractTx::ExecuteTx(CTxExecuteContext &context) {
 
         auto minimum_tx_execute_fee = std::max<uint64_t>( min_fee, run_fee);
 
-        CHAIN_ASSERT( minimum_tx_execute_fee <= llFees, wasm_chain::fee_exhausted_exception, 
-                      "tx.llFees '%ld' is not enough to charge minimum tx execute fee '%ld' , fuel_rate:%ld", 
+        CHAIN_ASSERT( minimum_tx_execute_fee <= llFees, wasm_chain::fee_exhausted_exception,
+                      "tx.llFees '%ld' is not enough to charge minimum tx execute fee '%ld' , fuel_rate:%ld",
                       llFees, minimum_tx_execute_fee, context.fuel_rate);
 
         trx_trace.fuel_rate               = context.fuel_rate;
-        trx_trace.minimum_tx_execute_fee  = minimum_tx_execute_fee;  
+        trx_trace.minimum_tx_execute_fee  = minimum_tx_execute_fee;
 
         //save trx trace
         std::vector<char> trace_bytes = wasm::pack<transaction_trace>(trx_trace);
@@ -357,7 +358,7 @@ bool CWasmContractTx::ExecuteTx(CTxExecuteContext &context) {
 
         //execute_tx_to_return.SetReturn(GetHash().ToString());
         execute_tx_to_return.SetReturn(string_return);
-    } catch (wasm_chain::exception &e) { 
+    } catch (wasm_chain::exception &e) {
 
         string trx_current_str("inline_tx:");
         if( trx_current_for_exception != nullptr ){
@@ -427,7 +428,7 @@ string CWasmContractTx::ToString(CAccountDBCache &accountCache) {
     return strprintf(
             "txType=%s, hash=%s, ver=%d, payer=%s, llFees=%llu, contract=%s, action=%s, arguments=%s, "
             "valid_height=%d",
-            GetTxType(nTxType), GetHash().ToString(), nVersion, payer.nickid.ToString(), llFees,
+            GetTxType(nTxType), GetHash().ToString(), nVersion, payer.regid.ToString(), llFees,
             wasm::name(trx.contract).to_string(), wasm::name(trx.action).to_string(),
             HexStr(trx.data), valid_height);
 }
@@ -443,7 +444,7 @@ Object CWasmContractTx::ToJson(const CAccountDBCache &accountCache) const {
     result.push_back(Pair("txid",             GetHash().GetHex()));
     result.push_back(Pair("tx_type",          GetTxType(nTxType)));
     result.push_back(Pair("ver",              nVersion));
-    result.push_back(Pair("payer",            payer.nickid.ToString()));
+    result.push_back(Pair("payer",            payer.regid.ToString()));
     result.push_back(Pair("payer_addr",       payer.keyid.ToAddress()));
     result.push_back(Pair("fee_symbol",       fee_symbol));
     result.push_back(Pair("fees",             llFees));
@@ -463,7 +464,7 @@ Object CWasmContractTx::ToJson(const CAccountDBCache &accountCache) const {
     result.push_back(Pair("inline_transactions", inline_transactions_arr));
 
     Value signature_payer;
-    to_variant(signature_pair{payer.nickid.value, signature}, signature_payer);
+    to_variant(signature_pair{payer.regid.value, signature}, signature_payer);
     result.push_back(Pair("signature_payer", signature_payer));
 
     if(signatures.size() > 0) {
@@ -488,4 +489,3 @@ void CWasmContractTx::set_signature(const uint64_t& account, const vector<uint8_
 void CWasmContractTx::set_signature(const wasm::signature_pair& signature) {
     set_signature(signature.account, signature.signature);
 }
-

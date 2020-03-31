@@ -220,8 +220,6 @@ static const int64_t MIN_DB_CACHE = 4;
 static const int32_t BLOCK_REWARD_MATURITY = 100;
 /** RegId's mature period measured by blocks */
 static const int32_t REG_ID_MATURITY = 100;
-/** NickId's mature period measured by blocks */
-static const int32_t NICK_ID_MATURITY = 100;
 
 static const uint16_t MAX_MINED_BLOCK_COUNT      = 100;        // maximun cache size for mined blocks
 static const int32_t MAX_RECENT_BLOCK_COUNT      = 10000;      // most recent block number limit

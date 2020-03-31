@@ -49,8 +49,7 @@ enum TxType: uint8_t {
     CDP_REDEEM_TX               = 22,   //!< CDP Redemption Tx (partial or full)
     CDP_LIQUIDATE_TX            = 23,   //!< CDP Liquidation Tx (partial or full)
 
-    NICKID_REGISTER_TX          = 50,    //!< nickid register Tx
-    ACCOUNT_PERMS_CLEAR_TX      = 51,
+    ACCOUNT_PERMS_CLEAR_TX      = 50,   //!< Self removal of one's perms
 
     WASM_CONTRACT_TX            = 60,   //!< wasm contract tx
 
@@ -148,8 +147,6 @@ static const unordered_map<TxType, std::tuple<string, uint64_t, uint64_t, uint64
 { DEX_OPERATOR_ORDER_TX,    std::make_tuple("DEX_OPERATOR_ORDER_TX",    0,          0.001*COIN, 0.001*COIN, 0.001*COIN  ,true) },
 { DEX_CANCEL_ORDER_TX,      std::make_tuple("DEX_CANCEL_ORDER_TX",      0,          0.001*COIN, 0.001*COIN, 0.001*COIN  ,true) },
 { DEX_TRADE_SETTLE_TX,      std::make_tuple("DEX_TRADE_SETTLE_TX",      0,          0.0001*COIN,0.0001*COIN,0.0001*COIN ,true) },
-
-{ NICKID_REGISTER_TX,       std::make_tuple("NICKID_REGISTER_TX",       0,          0.0001*COIN,0.0001*COIN,0.0001*COIN ,true) },
 
 { WASM_CONTRACT_TX,         std::make_tuple("WASM_CONTRACT_TX",         0,          0.01*COIN,  0.01*COIN,  0.01*COIN   ,true) },
 

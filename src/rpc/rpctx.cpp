@@ -18,7 +18,6 @@
 #include "miner/miner.h"
 #include "main.h"
 #include "tx/coinstaketx.h"
-#include "tx/nickidregtx.h"
 #include "tx/accountregtx.h"
 #include "tx/dextx.h"
 #include "tx/txserializer.h"
@@ -127,56 +126,6 @@ Value submitaccountpermscleartx(const Array& params, bool fHelp) {
     return SubmitTx(account.keyid,tx);
 
 }
-
-Value submitnickidregistertx(const Array& params, bool fHelp) {
-    if (fHelp || params.size() < 2)
-        throw runtime_error("submitnickidregistertx \"addr or regid\" \"nickid\" [\"fee\"]\n"
-                            "\nregister account to acquire its regid\n"
-                            "\nArguments:\n"
-                            "1.\"addr or regid\":    (string, required)\n"
-                            "2.\"nickid\":  (string, required) 12 chars in 12345abcdefghijklmnopqrstuvwxyz\n"
-                            "3.\"fee\":     (combomoney, optional)\n"
-                            "\nResult:\n"
-                            "\"txid\":      (string) The transaction id.\n"
-                            "\nExamples:\n"
-                            + HelpExampleCli("submitnickidregistertx", "\"wTtCsc5X9S5XAy1oDuFiEAfEwf8bZHur1W\" \"ccssddxx1122\" 1000000")
-                            + "\nAs json rpc call\n"
-                            + HelpExampleRpc("submitnickidregistertx", "\"wTtCsc5X9S5XAy1oDuFiEAfEwf8bZHur1W\", 1000000"));
-
-
-    EnsureWalletIsUnlocked();
-
-    const CUserID& txUid = RPC_PARAM::GetUserId(params[0], true);
-    string nickid        = params[1].get_str() ;
-    ComboMoney fee          = RPC_PARAM::GetFee(params, 2, NICKID_REGISTER_TX);
-    int32_t validHeight  = chainActive.Height();
-
-    CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, txUid);
-    RPC_PARAM::CheckAccountBalance(account, fee.symbol, SUB_FREE, fee.GetAmountInSawi());
-    if(!account.nickid.IsEmpty()){
-        throw JSONRPCError(RPC_WALLET_ERROR,"the account have nickid already!");
-    }
-
-    if(nickid.find(".") != nickid.npos){
-        throw JSONRPCError(RPC_WALLET_ERROR, "nickid can't contain char dot ");
-    }
-
-    try{
-        if(wasm::name(nickid).value == 0) {
-            throw JSONRPCError(RPC_WALLET_ERROR, "nickid's format is error");
-        }
-    }catch (const wasm_chain::exception& e ){
-        throw JSONRPCError(RPC_WALLET_ERROR, e.to_detail_string());
-    }catch(...){
-        throw;
-    }
-
-
-    std::shared_ptr<CNickIdRegisterTx> pBaseTx = std::make_shared<CNickIdRegisterTx>(txUid, nickid, fee.GetAmountInSawi(), fee.symbol, validHeight);
-
-    return SubmitTx(account.keyid, *pBaseTx);
-}
-
 
 Value submitcontractdeploytx(const Array& params, bool fHelp) {
     if (fHelp || params.size() < 3 || params.size() > 5) {
@@ -621,8 +570,7 @@ Value getaccountinfo(const Array& params, bool fHelp) {
             "{\n"
             "  \"address\": \"xxxxx\",       (string) the address\n"
             "  \"keyid\": \"xxxxx\",         (string) the keyid referred to the address\n"
-            "  \"nickid\": \"xxxxx\",        (string) the nickid referred to the address\n"
-            "  \"regid_mature\": true|false,   (bool) the nickid is mature or not\n"
+            "  \"regid_mature\": true|false,   (bool) whether regid is mature or not\n"
             "  \"regid\": \"xxxxx\",         (string) the regid referred to the address\n"
             "  \"regid_mature\": true|false,   (bool) the regid is mature or not\n"
             "  \"owner_pubkey\": \"xxxxx\",  (string) the public key referred to the address\n"

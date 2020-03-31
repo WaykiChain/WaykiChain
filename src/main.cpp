@@ -809,12 +809,11 @@ static bool ProcessGenesisBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *p
             CRegID regId(pIndex->height, i);
             CPubKey pubKey       = pRewardTx->txUid.get<CPubKey>();
             CKeyID keyId         = pubKey.GetKeyId();
-            account.nickid       = CNickID();
             account.keyid        = keyId;
             account.owner_pubkey = pubKey;
             account.regid        = regId;
 
-            account.OperateBalance(SYMB::WICC, BalanceOpType::ADD_FREE, pRewardTx->reward_fees, 
+            account.OperateBalance(SYMB::WICC, BalanceOpType::ADD_FREE, pRewardTx->reward_fees,
                                    ReceiptCode::BLOCK_REWARD_TO_MINER, pRewardTx->receipts);
 
 
@@ -871,7 +870,7 @@ static bool ProcessGenesisBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *p
 
             assert( voterAcct.GetToken(SYMB::WICC).free_amount >= maxVotes );
 
-            voterAcct.OperateBalance(SYMB::WICC, BalanceOpType::VOTE, maxVotes, 
+            voterAcct.OperateBalance(SYMB::WICC, BalanceOpType::VOTE, maxVotes,
                                     ReceiptCode::DELEGATE_ADD_VOTE, pDelegateTx->receipts);
 
             if (!cw.txReceiptCache.SetTxReceipts(pDelegateTx->GetHash(), pDelegateTx->receipts))

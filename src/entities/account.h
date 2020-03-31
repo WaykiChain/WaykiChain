@@ -153,7 +153,6 @@ typedef map<TokenSymbol, CAccountToken> AccountTokenMap;
 struct CAccount {
     CKeyID  keyid;                  //!< unique: keyId of the account (interchangeable to address) - 20 bytes
     CRegID  regid;                  //!< unique: regId - derived from 1st TxCord - 6 bytes
-    CNickID nickid;                 //!< unique: Nickname ID of the account (sting maxlen=32) - 8 bytes
 
     CPubKey owner_pubkey;           //!< account public key
     CPubKey miner_pubkey;           //!< miner saving account public key
@@ -172,7 +171,7 @@ struct CAccount {
 
     mutable uint256 sigHash;        //!< in-memory only
 
-    CAccount() : CAccount(CKeyID(), CNickID(), CPubKey()) {}
+    CAccount() : CAccount(CKeyID(), CPubKey()) {}
     CAccount(const CAccount& other) { *this = other; }
     CAccount& operator=(const CAccount& other) {
         if (this == &other)
@@ -180,7 +179,6 @@ struct CAccount {
 
         this->keyid             = other.keyid;
         this->regid             = other.regid;
-        this->nickid            = other.nickid;
         this->owner_pubkey      = other.owner_pubkey;
         this->miner_pubkey      = other.miner_pubkey;
         this->tokens            = other.tokens;
@@ -191,9 +189,9 @@ struct CAccount {
 
         return *this;
     }
-    CAccount(const CKeyID& keyIdIn): keyid(keyIdIn), regid(), nickid(), received_votes(0), last_vote_height(0), last_vote_epoch(0) {}
-    CAccount(const CKeyID& keyidIn, const CNickID& nickidIn, const CPubKey& ownerPubkeyIn)
-        : keyid(keyidIn), nickid(nickidIn), owner_pubkey(ownerPubkeyIn), received_votes(0), last_vote_height(0), last_vote_epoch(0) {
+    CAccount(const CKeyID& keyIdIn): keyid(keyIdIn), regid(), received_votes(0), last_vote_height(0), last_vote_epoch(0) {}
+    CAccount(const CKeyID& keyidIn, const CPubKey& ownerPubkeyIn)
+        : keyid(keyidIn), owner_pubkey(ownerPubkeyIn), received_votes(0), last_vote_height(0), last_vote_epoch(0) {
         miner_pubkey = CPubKey();
         tokens.clear();
         regid.Clear();
@@ -211,7 +209,6 @@ struct CAccount {
     IMPLEMENT_SERIALIZE(
         READWRITE(keyid);
         READWRITE(regid);
-        READWRITE(nickid);
         READWRITE(owner_pubkey);
         READWRITE(miner_pubkey);
         READWRITE(tokens);

@@ -323,8 +323,6 @@ Object CAccount::ToJsonObj() const {
 
     obj.push_back(Pair("address",           keyid.ToAddress()));
     obj.push_back(Pair("keyid",             keyid.ToString()));
-    obj.push_back(Pair("nickid",            nickid.ToString()));
-    obj.push_back(Pair("nickid_mature",     nickid.IsMature(chainActive.Height())));
     obj.push_back(Pair("regid",             regid.ToString()));
     obj.push_back(Pair("regid_mature",      regid.IsMature(chainActive.Height())));
     obj.push_back(Pair("owner_pubkey",      owner_pubkey.ToString()));
@@ -346,9 +344,9 @@ string CAccount::ToString() const {
                     pair.first, token.free_amount, token.staked_amount, token.frozen_amount);
     }
     str += strprintf(
-        "regid=%s, keyid=%s, nickId=%s, owner_pubkey=%s, miner_pubkey=%s, "
+        "regid=%s, keyid=%s, owner_pubkey=%s, miner_pubkey=%s, "
         "tokens=%s, received_votes=%llu, last_vote_height=%llu\n",
-        regid.ToString(), keyid.GetHex(), nickid.ToString(), owner_pubkey.ToString(), miner_pubkey.ToString(),
+        regid.ToString(), keyid.GetHex(), owner_pubkey.ToString(), miner_pubkey.ToString(),
         strTokens, received_votes, last_vote_height);
     str += "candidate vote list: \n";
 
@@ -496,7 +494,7 @@ bool CAccount::ProcessCandidateVotes(const vector<CCandidateVote> &candidateVote
         uint64_t fcoinAmountToInflate = ComputeVoteFcoinInterest(lastTotalVotes, currBlockTime);
 
         if (fcoinAmountToInflate > 0) {
-            if (!OperateBalance(SYMB::WGRT, BalanceOpType::ADD_FREE, fcoinAmountToInflate, 
+            if (!OperateBalance(SYMB::WGRT, BalanceOpType::ADD_FREE, fcoinAmountToInflate,
                                  ReceiptCode::DELEGATE_VOTE_INTEREST, receipts)) {
                 return ERRORMSG("ProcessCandidateVotes() : add fcoins to inflate failed");
             }
@@ -510,7 +508,7 @@ bool CAccount::ProcessCandidateVotes(const vector<CCandidateVote> &candidateVote
         if (!IsBcoinWithinRange(bcoinAmountToInflate))
             return false;
 
-        if (!OperateBalance(SYMB::WICC, BalanceOpType::ADD_FREE, bcoinAmountToInflate, 
+        if (!OperateBalance(SYMB::WICC, BalanceOpType::ADD_FREE, bcoinAmountToInflate,
                             ReceiptCode::DELEGATE_VOTE_INTEREST, receipts)) {
             return ERRORMSG("ProcessCandidateVotes() : add bcoins to inflate failed");
         }
@@ -560,9 +558,8 @@ bool CAccount::IsSelfUid(const CUserID &uid) {
         return !regid.IsEmpty() && regid == uid.get<CRegID>();
     } else if (uid.is<CPubKey>()) {
         return owner_pubkey.IsValid() && owner_pubkey == uid.get<CPubKey>();
-    } else if (uid.is<CNickID>()) {
-        return !nickid.IsEmpty() && nickid == uid.get<CNickID>();
     }
+
     return false;
 }
 

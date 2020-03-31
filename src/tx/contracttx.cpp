@@ -89,7 +89,6 @@ bool CLuaContractDeployTx::ExecuteTx(CTxExecuteContext &context) {
     CKeyID keyId           = Hash160(contractRegId.GetRegIdRaw());
     contractAccount.keyid  = keyId;
     contractAccount.regid  = contractRegId;
-    contractAccount.nickid = CNickID();
 
     // save new script content
     if (!cw.contractCache.SaveContract(contractRegId, CUniversalContract(contract.code, contract.memo))) {
@@ -287,7 +286,6 @@ bool CUniversalContractDeployTx::ExecuteTx(CTxExecuteContext &context) {
     CKeyID keyId           = Hash160(contractRegId.GetRegIdRaw());
     contractAccount.keyid  = keyId;
     contractAccount.regid  = contractRegId;
-    contractAccount.nickid = CNickID();
 
     // save new script content
     if (!cw.contractCache.SaveContract(contractRegId, contract)) {

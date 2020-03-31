@@ -85,7 +85,7 @@ struct CSingleAddressCondOut : CUtxoCond {
 struct CMultiSignAddressCondIn : CUtxoCond {
     uint8_t m = 0;
     uint8_t n = 0; // m <= n
-    std::vector<CUserID> uids; //a list of uids (CRegID or CNickID only) from users who enaged in a multisign process
+    std::vector<CUserID> uids; //a list of uids (CRegID only) from users who enaged in a multisign process
     std::vector<UnsignedCharArray> signatures; //m signatures, each of which corresponds to redeemscript signature
 
     CMultiSignAddressCondIn() {};

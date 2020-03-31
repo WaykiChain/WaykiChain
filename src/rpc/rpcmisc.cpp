@@ -208,7 +208,6 @@ Value verifymessage(const Array& params, bool fHelp) {
     DEFINE( TXID_DISKINDEX,       pBlockCache, txDiskPosCache) \
     /**** account db                                                                      */ \
     DEFINE( REGID_KEYID,          pAccountCache,  regId2KeyIdCache)\
-    DEFINE( NICKID_KEYID,         pAccountCache,  nickId2KeyIdCache) \
     DEFINE( KEYID_ACCOUNT,        pAccountCache,  accountCache) \
     /**** contract db                                                                      */ \
     DEFINE( CONTRACT_DEF,         pContractCache,  contractCache ) \

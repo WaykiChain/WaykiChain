@@ -182,9 +182,6 @@ bool CCoinTransferTx::ExecuteTx(CTxExecuteContext &context) {
                 return state.DoS(100, ERRORMSG("CCoinTransferTx::ExecuteTx, transfers[%d], failed to add coins in toUid %s account", i,
                                 transfer.to_uid.ToDebugString()), UPDATE_ACCOUNT_FAIL, "failed-add-coins");
 
-            if (desAccount.nickid.IsEmpty())
-                desAccount.nickid = CNickID(context.height, context.index);
-
             if (!cw.accountCache.SaveAccount(desAccount))
                 return state.DoS(100, ERRORMSG("CCoinTransferTx::ExecuteTx, write dest addr %s account info error",
                                 transfer.to_uid.ToDebugString()), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");

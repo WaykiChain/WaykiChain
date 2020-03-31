@@ -1111,7 +1111,6 @@ extern Value getdexorderfee(const Array& params, bool fHelp) {
     Object accountObj;
     accountObj.push_back(Pair("addr",  account.keyid.ToAddress()));
     accountObj.push_back(Pair("regid", account.regid.ToString()));
-    accountObj.push_back(Pair("nickid", account.nickid.ToString()));
 
     obj.push_back(Pair("block_height", height));
     obj.push_back(Pair("staked_wicc_amount", token.staked_amount));

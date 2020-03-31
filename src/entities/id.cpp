@@ -116,57 +116,14 @@ bool CRegID::IsMature(uint32_t curHeight) const {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-//class CNickID
-
-CNickID::CNickID() {}
-
-CNickID::CNickID(uint64_t nickIdIn): value(nickIdIn) {}
-
-CNickID::CNickID(string nickIdIn) {
-    try {
-        value = wasm::name(nickIdIn).value;
-    //} catch(wasm_chain::exception &e){
-    //     value = 0 ;
-    //     CHAIN_EXCEPTION_APPEND_LOG(e, log_level::warn,"'%s'", nickIdIn)
-    //
-    }catch (...){
-        value = 0 ;
-    }
-}
-
-CNickID::CNickID(int32_t blockHeight, int32_t blockIndex) {
-    value = ((uint64_t) blockHeight << 32) + (uint64_t) blockIndex;
-}
-
-
-bool CNickID::IsMature(const uint32_t currHeight) const {
-
-    uint32_t regHeight = 0 ;
-    if(pCdMan->pAccountCache->GetNickIdHeight(value, regHeight) ){
-        return currHeight > regHeight + NICK_ID_MATURITY ;
-    }
-    return false ;
-}
-
-
-bool CNickID::IsEmpty() const { return value == 0; }
-
-void CNickID::SetEmpty() { value = 0; }
-
-void CNickID::Clear() { value = 0; }
-
-string CNickID::ToString() const { return wasm::name(value).to_string(); }
-
-///////////////////////////////////////////////////////////////////////////////
 // class CUserID
 
 const CUserID CUserID::NULL_ID = {};
 const EnumTypeMap<CUserID::VarIndex, string> CUserID::ID_NAME_MAP = {
-    {IDX_NULL_ID, "Null"},
-    {IDX_REG_ID, "RegID"},
-    {IDX_KEY_ID, "KeyID"},
-    {IDX_PUB_KEY_ID, "PubKey"},
-    {IDX_NICK_ID, "NickID"}
+    {IDX_NULL_ID,       "Null"  },
+    {IDX_REG_ID,        "RegID" },
+    {IDX_KEY_ID,        "KeyID" },
+    {IDX_PUB_KEY_ID,    "PubKey"},
 };
 
 string CUserID::ToDebugString() const {
@@ -178,8 +135,6 @@ string CUserID::ToDebugString() const {
             return "K:" + idIn.ToString() + ", addr=" + idIn.ToAddress();
         } else if constexpr (std::is_same_v<ID, CPubKey>) {
             return "P:" + idIn.ToString() + ", addr=" + idIn.GetKeyId().ToAddress();
-        } else if constexpr (std::is_same_v<ID, CNickID>) {
-            return "N:" + idIn.ToString();
         } else {  // CNullID
             assert( (std::is_same_v<ID, CNullID>) );
             return "Null";
@@ -201,13 +156,6 @@ shared_ptr<CUserID> CUserID::ParseUserId(const string &idStr) {
     CPubKey pubKey(pubKeyBin);
     if (pubKey.IsFullyValid())
         return std::make_shared<CUserID>(pubKey);
-
-    CNickID nickId(idStr) ;
-
-    if( pCdMan->pAccountCache->GetKeyId(nickId, keyId)){
-        return std::make_shared<CUserID>(keyId);
-    }
-
 
     return nullptr;
 }

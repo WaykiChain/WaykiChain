@@ -97,7 +97,6 @@ bool CBaseTx::GenerateRegID(CTxExecuteContext &context) {
 
     // generate a new regid for the account
     txAccount.regid = CRegID(context.height, context.index);
-    txAccount.nickid = CNickID();
 
     return true;
 }

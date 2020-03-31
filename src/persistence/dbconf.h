@@ -95,7 +95,6 @@ namespace dbk {
         DEFINE( TXID_DISKINDEX,       "tidx",   BLOCK )         /* tidx{$txid} --> $DiskTxPos */ \
         /**** account db                                                                      */ \
         DEFINE( REGID_KEYID,          "rkey",   ACCOUNT )       /* rkey{$RegID} --> $KeyId */ \
-        DEFINE( NICKID_KEYID,         "nkey",   ACCOUNT )       /* nkey{$NickID} --> $KeyId */ \
         DEFINE( KEYID_ACCOUNT,        "idac",   ACCOUNT )       /* idac{$KeyID} --> $CAccount */ \
         /**** contract db                                                                      */ \
         DEFINE( CONTRACT_DEF,         "cdef",   CONTRACT )      /* cdef{$ContractRegId} --> $ContractContent */ \

@@ -83,47 +83,6 @@ bool pow10(string comboAmountStr, const unsigned int precision, int64_t& sawiAmo
     return true ;
 }
 
-// [N|R|A]:address
-// NickID (default) | RegID | Address
-bool ParseRpcInputAccountId(const string &comboAccountIdStr, tuple<AccountIDType, string> &comboAccountId) {
-    vector<string> comboAccountIdArr = split(comboAccountIdStr, ':');
-    switch (comboAccountIdArr.size()) {
-        case 0: {
-            get<0>(comboAccountId) = AccountIDType::NICK_ID;
-            get<1>(comboAccountId) = comboAccountIdArr[0];
-            break;
-        }
-        case 1: {
-            if (comboAccountIdArr[0].size() > 1)
-                return false;
-
-            char tag = toupper(comboAccountIdArr[0][0]);
-            if (tag == 'N') {
-                get<0>(comboAccountId) = AccountIDType::NICK_ID;
-
-            } else if (tag == 'R') {
-                get<0>(comboAccountId) = AccountIDType::REG_ID;
-
-            } else if (tag == 'A') {
-                get<0>(comboAccountId) = AccountIDType::ADDRESS;
-
-            } else
-                return false;
-
-            get<1>(comboAccountId) = comboAccountIdArr[1];
-
-            break;
-        }
-        default: break;
-    }
-
-    return true;
-}
-
-
-
-
-
 bool parseAmountAndUnit( vector<string>& comboMoneyArr, ComboMoney& comboMoney,const TokenSymbol &defaultSymbol = SYMB::WICC){
 
     int64_t iValue = 0 ;

@@ -25,14 +25,12 @@ public:
 
     CAccountDBCache(CDBAccess *pDbAccess):
         regId2KeyIdCache(pDbAccess),
-        nickId2KeyIdCache(pDbAccess),
         accountCache(pDbAccess) {
         assert(pDbAccess->GetDbNameType() == DBNameType::ACCOUNT);
     }
 
     CAccountDBCache(CAccountDBCache *pBase):
         regId2KeyIdCache(pBase->regId2KeyIdCache),
-        nickId2KeyIdCache(pBase->nickId2KeyIdCache),
         accountCache(pBase->accountCache) {}
 
     ~CAccountDBCache() {}
@@ -42,18 +40,15 @@ public:
 
     bool GetAccount(const CKeyID &keyId,    CAccount &account) const;
     bool GetAccount(const CRegID &regId,    CAccount &account) const;
-    bool GetAccount(const CNickID &nickId,  CAccount &account) const;
     bool GetAccount(const CUserID &uid,     CAccount &account) const;
 
     bool SetAccount(const CKeyID &keyId,    const CAccount &account);
     bool SetAccount(const CRegID &regId,    const CAccount &account);
-    bool SetAccount(const CNickID &nickId,     const CAccount &account);
     bool SetAccount(const CUserID &uid,     const CAccount &account);
     bool SaveAccount(const CAccount &account);
 
     bool HasAccount(const CKeyID &keyId) const;
     bool HasAccount(const CRegID &regId) const;
-    bool HasAccount(const CNickID &nickId) const;
     bool HasAccount(const CUserID &userId) const;
 
     bool EraseAccount(const CKeyID &keyId);
@@ -69,7 +64,6 @@ public:
     bool SetKeyId(const CUserID &uid,   const CKeyID &keyId);
     bool GetKeyId(const CRegID &regId,  CKeyID &keyId) const;
     bool GetKeyId(const CUserID &uid,   CKeyID &keyId) const;
-    bool GetKeyId(const CNickID &nickId, CKeyID &keyId) const;
 
     bool EraseKeyId(const CRegID &regId);
     bool EraseKeyId(const CUserID &userId);
@@ -81,15 +75,11 @@ public:
     bool GetRegId(const CKeyID &keyId, CRegID &regId) const;
     bool GetRegId(const CUserID &userId, CRegID &regId) const;
 
-    bool SetNickId(const CAccount account, const uint32_t height);
-    bool GetNickIdHeight(uint64_t nickIdValue,uint32_t& regHeight) ;
-
     uint32_t GetCacheSize() const;
 
     void SetBaseViewPtr(CAccountDBCache *pBaseIn) {
         accountCache.SetBase(&pBaseIn->accountCache);
         regId2KeyIdCache.SetBase(&pBaseIn->regId2KeyIdCache);
-        nickId2KeyIdCache.SetBase(&pBaseIn->nickId2KeyIdCache);
     };
 
     uint64_t GetAccountFreeAmount(const CKeyID &keyId, const TokenSymbol &tokenSymbol);
@@ -99,12 +89,10 @@ public:
     void SetDbOpLogMap(CDBOpLogMap *pDbOpLogMapIn) {
         accountCache.SetDbOpLogMap(pDbOpLogMapIn);
         regId2KeyIdCache.SetDbOpLogMap(pDbOpLogMapIn);
-        nickId2KeyIdCache.SetDbOpLogMap(pDbOpLogMapIn);
     }
 
     void RegisterUndoFunc(UndoDataFuncMap &undoDataFuncMap) {
         regId2KeyIdCache.RegisterUndoFunc(undoDataFuncMap);
-        nickId2KeyIdCache.RegisterUndoFunc(undoDataFuncMap);
         accountCache.RegisterUndoFunc(undoDataFuncMap);
     }
 public:
@@ -112,8 +100,6 @@ public:
 /*  -------------------- --------------------   --------------  -------------   --------------------- */
     // <prefix$RegID -> KeyID>
     CCompositeKVCache< dbk::REGID_KEYID,          CRegIDKey,       CKeyID >         regId2KeyIdCache;
-    // <prefix$NickID -> KeyID>
-    CCompositeKVCache< dbk::NICKID_KEYID,         CVarIntValue<uint64_t>,      std::pair<CVarIntValue<uint32_t>,CKeyID>>   nickId2KeyIdCache;
     // <prefix$KeyID -> Account>
     CCompositeKVCache< dbk::KEYID_ACCOUNT,        CKeyID,       CAccount>        accountCache;
 

@@ -25,7 +25,6 @@
 #include "tx/tx.h"
 #include "tx/assettx.h"
 #include "tx/wasmcontracttx.h"
-#include "tx/nickidregtx.h"
 #include "tx/dexoperatortx.h"
 #include "tx/proposaltx.h"
 #include "tx/accountpermscleartx.h"
@@ -90,9 +89,6 @@ void CBaseTx::SerializePtr(Stream& os, const std::shared_ptr<CBaseTx> &pBaseTx, 
             ::Serialize(os, (const CCDPRedeemTx&)tx, serType, version); break;
         case CDP_LIQUIDATE_TX:
             ::Serialize(os, (const CCDPLiquidateTx&)tx, serType, version); break;
-
-        case NICKID_REGISTER_TX:
-            ::Serialize(os, (const CNickIdRegisterTx&)tx, serType, version); break;
 
         case WASM_CONTRACT_TX:
             ::Serialize(os, (const CWasmContractTx&)tx, serType, version); break;
@@ -250,12 +246,6 @@ void CBaseTx::UnserializePtr(Stream& is, std::shared_ptr<CBaseTx> &pBaseTx, int 
         case CDP_LIQUIDATE_TX: {
             pBaseTx = std::make_shared<CCDPLiquidateTx>();
             ::Unserialize(is, *((CCDPLiquidateTx *)(pBaseTx.get())), serType, version);
-            break;
-        }
-
-        case NICKID_REGISTER_TX: {
-            pBaseTx = std::make_shared<CNickIdRegisterTx>();
-            ::Unserialize(is, *((CNickIdRegisterTx *)(pBaseTx.get())), serType, version);
             break;
         }
 
