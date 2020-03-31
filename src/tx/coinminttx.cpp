@@ -16,6 +16,9 @@ bool CCoinMintTx::CheckTx(CTxExecuteContext &context) {
 bool CCoinMintTx::ExecuteTx(CTxExecuteContext &context) {
     CValidationState &state = *context.pState;
 
+    if (txUid.is<CNullID>())
+        txAccount.keyid = Hash160(txAccount.regid.GetRegIdRaw());
+
     if (!txAccount.OperateBalance(coin_symbol, ADD_FREE, coin_amount, ReceiptCode::COIN_MINT_ONCHAIN, receipts))
         return state.DoS(100, ERRORMSG("CCoinMintTx::ExecuteTx, operate account failed"), UPDATE_ACCOUNT_FAIL,
                          "operate-account-failed");
