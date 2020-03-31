@@ -194,17 +194,17 @@ private:
 /**
  * settle interest of CDPs
  */
-class CCDPSettleInterstTx: public CBaseTx {
+class CCDPSettleInterestTx: public CBaseTx {
 public:
     vector<uint256> cdp_list; // cdp list
 public:
-    CCDPSettleInterstTx() : CBaseTx(CDP_SETTLE_INTEREST_TX) {}
+    CCDPSettleInterestTx() : CBaseTx(CDP_SETTLE_INTEREST_TX) {}
 
-    CCDPSettleInterstTx(const CUserID &txUidIn, const ComboMoney &cmFeeIn, int32_t validHeightIn)
+    CCDPSettleInterestTx(const CUserID &txUidIn, const ComboMoney &cmFeeIn, int32_t validHeightIn)
         : CBaseTx(CDP_SETTLE_INTEREST_TX, txUidIn, validHeightIn, cmFeeIn.symbol,
                   cmFeeIn.GetAmountInSawi()) {}
 
-    ~CCDPSettleInterstTx() {}
+    ~CCDPSettleInterestTx() {}
 
     IMPLEMENT_SERIALIZE(
         READWRITE(VARINT(this->nVersion));
@@ -221,7 +221,7 @@ public:
         hw << VARINT(nVersion) << uint8_t(nTxType) << VARINT(valid_height) << txUid << cdp_list;
     }
 
-    virtual std::shared_ptr<CBaseTx> GetNewInstance() const { return std::make_shared<CCDPSettleInterstTx>(*this); }
+    virtual std::shared_ptr<CBaseTx> GetNewInstance() const { return std::make_shared<CCDPSettleInterestTx>(*this); }
 
     virtual string ToString(CAccountDBCache &accountCache);
     virtual Object ToJson(const CAccountDBCache &accountCache) const;
