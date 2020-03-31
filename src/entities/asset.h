@@ -52,7 +52,7 @@ static const unordered_map<uint64_t, string> kAssetPermTitleMap = {
 
 
 inline bool AssetHasPerms(uint64_t assetPerms, uint64_t specificPerms) {
-    return (assetPerms && assetPerms) == assetPerms;
+    return (assetPerms & specificPerms) == specificPerms;
 }
 
 enum class AssetPermStatus: uint8_t {

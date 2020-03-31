@@ -44,8 +44,8 @@ enum ProposalType: uint8_t {
     GOV_FEED_COINPAIR   = 11, // BaseSymbol/QuoteSymbol
     GOV_AXC_IN          = 12, // atomic-cross-chain swap in
     GOV_AXC_OUT         = 13, // atomic-cross-chain swap out
-    GOV_AXC_COIN        = 14
-
+    GOV_AXC_COIN        = 14,
+    GOV_DIA_ISSUE       = 15
 };
 
 enum ProposalOperateType: uint8_t {
@@ -610,6 +610,50 @@ struct CGovAxcOutProposal: CProposal {
     }
 
     shared_ptr<CProposal> GetNewInstance() override { return make_shared<CGovAxcOutProposal>(*this); } ;
+
+    bool CheckProposal(CTxExecuteContext& context, CBaseTx& tx) override;
+    bool ExecuteProposal(CTxExecuteContext& context, CBaseTx& tx) override;
+
+};
+
+
+struct CGovDiaIssueProposal: CProposal {
+    TokenSymbol asset_symbol;
+    uint64_t    total_supply;
+    CUserID     owner_uid;
+
+    CGovDiaIssueProposal(): CProposal(ProposalType::GOV_DIA_ISSUE) {}
+    CGovDiaIssueProposal( TokenSymbol assetSymbol, uint64_t& totalSupply,
+                        CUserID &ownerUid): CProposal(ProposalType::GOV_DIA_ISSUE),
+                                            asset_symbol(assetSymbol),
+                                            total_supply(totalSupply),
+                                            owner_uid(ownerUid) {}
+
+    IMPLEMENT_SERIALIZE(
+            READWRITE(VARINT(expiry_block_height));
+            READWRITE(approval_min_count);
+            READWRITE(asset_symbol);
+            READWRITE(total_supply);
+            READWRITE(owner_uid);
+    );
+
+    Object ToJson() override {
+        Object obj = CProposal::ToJson();
+        obj.push_back(Pair("asset_symbol", asset_symbol));
+        if(!owner_uid.is<CNullID>())
+            obj.push_back(Pair("owner_uid", owner_uid.ToString()));
+        obj.push_back(Pair("total_supply", total_supply));
+        return obj;
+    }
+
+    std::string ToString() override {
+        std::string baseString = CProposal::ToString();
+        return baseString;
+      /*  return  strprintf("%s, self_chain_token_symbol=%s, peer_chain_addr=%, swap_amount=%llu",
+                          baseString, self_chain_token_symbol, peer_chain_addr, swap_amount);*/
+    }
+
+    shared_ptr<CProposal> GetNewInstance() override { return make_shared<CGovDiaIssueProposal>(*this); } ;
 
     bool CheckProposal(CTxExecuteContext& context, CBaseTx& tx) override;
     bool ExecuteProposal(CTxExecuteContext& context, CBaseTx& tx) override;
