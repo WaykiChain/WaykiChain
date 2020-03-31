@@ -412,7 +412,7 @@ CCacheWrapper* CLuaVMRunEnv::GetCw() {
 
 CContractDBCache* CLuaVMRunEnv::GetScriptDB() { return &p_context->p_cw->contractCache; }
 
-CAccountDBCache* CLuaVMRunEnv::GetCatchView() { return &p_context->p_cw->accountCache; }
+CAccountDBCache* CLuaVMRunEnv::GetCacheView() { return &p_context->p_cw->accountCache; }
 
 void CLuaVMRunEnv::InsertOutAPPOperte(const vector<uint8_t>& userId,
                                    const CAppFundOperate& source) {

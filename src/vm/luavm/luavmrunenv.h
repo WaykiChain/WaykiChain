@@ -126,7 +126,7 @@ public:
     const string& GetTxContract();
     CCacheWrapper* GetCw();
     CContractDBCache* GetScriptDB();
-    CAccountDBCache* GetCatchView();
+    CAccountDBCache* GetCacheView();
     int32_t GetConfirmHeight();
     // Get burn version for fuel burning
     int32_t GetBurnVersion();
