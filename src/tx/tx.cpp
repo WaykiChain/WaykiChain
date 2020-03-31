@@ -91,7 +91,7 @@ bool CBaseTx::RegisterAccountPubKey(CTxExecuteContext &context) {
 
     txAccount.keyid = keyid;
     txAccount.owner_pubkey = txUid.get<CPubKey>();
-    if (txAccount.regid.IsEmpty())
+    if (txAccount.regid.IsEmpty()) //for backward compatibility
         txAccount.regid = CRegID(context.height, context.index);
 
     return true;
