@@ -180,9 +180,8 @@ static const CRPCCommand vRPCCommands[] =
     { "genutxomultiinputcondhash",      &genutxomultiinputcondhash,         true,       true,       false   },
     { "genutxomultisignaddr",           &genutxomultisignaddr,              true,       true,       false   },
     { "genutxomultisignature",          &genutxomultisignature,             true,       true,       false   },
-    
     /* api */
-    { "genrawtx",                       &genrawtx,                    true,      false,       false   },
+    { "genrawtx",                       &genrawtx,                          true,      false,       false   },
 
 
 };

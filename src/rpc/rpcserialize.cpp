@@ -8,7 +8,6 @@
 #include "rpc/core/rpccommons.h"
 #include "tx/tx.h"
 #include "tx/accountpermscleartx.h"
-#include "tx/nickidregtx.h"
 #include "tx/proposaltx.h"
 #include "tx/wasmcontracttx.h"
 #include "init.h"
@@ -98,52 +97,12 @@ std::shared_ptr<CBaseTx> genAccountPermScleartx(json_spirit::Value param_json) {
     return pBaseTx;
 }
 
-/**  nickid register
-{
-   "addr": "",
-   "nickid": "",
-   "amount": "" ,
-   "fee": "",
-   “height”: ""
-}*/
-std::shared_ptr<CBaseTx> genNickidRegistertx(json_spirit::Value param_json) {
-   
-    const Value& str_from = JSON::GetObjectFieldValue(param_json, "sender");
-    const Value& str_nickid = JSON::GetObjectFieldValue(param_json, "nickid");
-    const Value& str_fee = JSON::GetObjectFieldValue(param_json, "fee");
-    const Value& str_height = JSON::GetObjectFieldValue(param_json, "height");
-
-    CUserID fromUserId = RPC_PARAM::GetUserId(str_from, true);
-    string nickid        = str_nickid.get_str() ;
-    ComboMoney fee   = RPC_PARAM::GetComboMoney(str_fee,  SYMB::WICC);
-    int32_t height = AmountToRawValue(str_height);
-
-    if(nickid.find(".") != nickid.npos){
-        throw JSONRPCError(RPC_WALLET_ERROR, "nickid can't contain char dot ");
-    }
-
-    try {
-        if(wasm::name(nickid).value == 0) {
-            throw JSONRPCError(RPC_WALLET_ERROR, "nickid's format is error");
-        }
-    }catch (const wasm_chain::exception& e ){
-        throw JSONRPCError(RPC_WALLET_ERROR, e.to_detail_string());
-    }catch(...){
-        throw;
-    }
-
-    std::shared_ptr<CBaseTx> pBaseTx = std::make_shared<CNickIdRegisterTx>(
-            fromUserId, nickid, fee.GetAmountInSawi(), fee.symbol, height);
-
-    return pBaseTx;
-}
-
 /****
- * 
- * 
+ *
+ *
  * *
  */
-std::shared_ptr<CBaseTx> genuContractCalltx(json_spirit::Value param_json) {
+std::shared_ptr<CBaseTx> genContractCalltx(json_spirit::Value param_json) {
 
     const Value& str_from = JSON::GetObjectFieldValue(param_json, "sender");
     const Value& str_contract_regid = JSON::GetObjectFieldValue(param_json, "contractRegid");
@@ -173,9 +132,9 @@ std::shared_ptr<CBaseTx> genuContractCalltx(json_spirit::Value param_json) {
 }
 
 /**
- * 
- * 
- * 
+ *
+ *
+ *
  * */
 std::shared_ptr<CBaseTx> genParamGovernProposal(json_spirit::Value param_json) {
 
@@ -222,7 +181,7 @@ std::shared_ptr<CBaseTx> genWasmContractCalltx(json_spirit::Value param_json) {
     auto database_contract = pCdMan->pContractCache;
 
     CAccount authorizer;
-    CHAIN_ASSERT(database_account->GetAccount(CNickID(authorizer_name.value), authorizer), wasm_chain::account_access_exception,
+    CHAIN_ASSERT(database_account->GetAccount(CRegID(authorizer_name.value), authorizer), wasm_chain::account_access_exception,
                         "authorizer '%s' does not exist",authorizer_name.to_string())
 
     std::shared_ptr<CWasmContractTx> pBaseTx = std::make_shared<CWasmContractTx>();
@@ -248,17 +207,17 @@ std::shared_ptr<CBaseTx> genWasmContractCalltx(json_spirit::Value param_json) {
             abi = std::vector<char>(contract_store.abi.begin(), contract_store.abi.end());
         }
         auto action = wasm::name(str_action.get_str());
-        
+
         std::vector<char> action_data = wasm::abi_serializer::pack(
                 abi,
                 action.to_string(),
                 str_data,
                 wasm::max_serialization_time);
-        
+
         pBaseTx->inline_transactions.push_back({
                 contract_name.value,
-                action.value, 
-                std::vector<wasm::permission>{{authorizer_name.value, wasm::wasmio_owner}}, 
+                action.value,
+                std::vector<wasm::permission>{{authorizer_name.value, wasm::wasmio_owner}},
                 action_data
             });
     }
@@ -280,22 +239,21 @@ const char *gen_rawtx_rpc_help_message = R"=====(
     get the serialization json format  parameters
     Arguments:
     1."func":           (string required) the func need serilize
-    2."params":         (string required), the json format param of func 
+    2."params":         (string required), the json format param of func
     Result:
     "raw":            (string)
     Examples:
     > ./coind gettxserilize func param
-    As json rpc call 
+    As json rpc call
     > curl --user myusername -d '{"jsonrpc": "1.0", "id":"curltest", "method":"gettxserilize", "params":["]}' -H 'Content-Type: application/json;' http://127.0.0.1:8332
 )=====";
 
 
 unordered_map <string, std::shared_ptr<CBaseTx> (*)(json_spirit::Value)> nameToFuncMap = {
-        {"submitsendtx", &genSendTx },
-        {"submitnickidregistertx", &genNickidRegistertx },
-        {"submitaccountpermscleartx", &genAccountPermScleartx },
-        {"submitucontractcalltx", &genuContractCalltx },
-        {"submitwasmcontractcalltx", &genWasmContractCalltx}
+        {"submitsendtx",                &genSendTx },
+        {"submitaccountpermscleartx",   &genAccountPermScleartx },
+        {"submitucontractcalltx",       &genContractCalltx },
+        {"submitwasmcontractcalltx",    &genWasmContractCalltx}
 };
 
 
@@ -313,7 +271,7 @@ Value genrawtx( const Array &params, bool fHelp ) {
     json_spirit::Value param_json;
     json_spirit::read_string(param, param_json);
     std::shared_ptr<CBaseTx> pBaseTx = nameToFuncMap[func](param_json);
-    
+
     Object obj;
     obj.push_back(Pair("txid", pBaseTx->GetHash().GetHex()));
     CDataStream ds(SER_DISK, CLIENT_VERSION);
@@ -322,5 +280,3 @@ Value genrawtx( const Array &params, bool fHelp ) {
     return obj;
 
 }
-
-

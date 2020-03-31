@@ -273,7 +273,7 @@ namespace wasm {
 
             CHAIN_ASSERT( producer.regid.GetIntValue() != 0,
                           wasm_chain::account_access_exception,
-                          "producer account does not register nick_id, regid = %s",
+                          "producer account does not have reg_id, regid = %s",
                           p.regid.ToString())
 
             active_producers.push_back(producer.regid.GetIntValue());

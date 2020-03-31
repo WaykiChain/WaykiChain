@@ -201,9 +201,10 @@ extern Value submitsendmultitx(const Array& params, bool fHelp);
 
 extern Value submitaxcinproposal(const Array& params, bool fHelp);
 extern Value submitaxcoutproposal(const Array& params, bool fHelp);
-// debug
-Value dumpdb(const Array& params, bool fHelp);
 
 extern Value genrawtx(const Array& params, bool fHelp);
+
+// debug only
+Value dumpdb(const Array& params, bool fHelp);
 
 #endif /* RPC_API_H_ */
