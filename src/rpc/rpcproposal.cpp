@@ -801,6 +801,56 @@ Value submitaxcoutproposal(const Array& params, bool fHelp) {
 
 }
 
+
+Value submitdiaissueproposal(const Array& params, bool fHelp) {
+
+    if(fHelp || params.size() < 4 || params.size() > 5){
+
+        throw runtime_error(
+                "submitdiaissueproposal \"addr\"  \"asset_symbol\" \"owner_uid\" \"total_supply\" [\"fee\"]\n"
+                "issue a dia asset\n"
+                "\nArguments:\n"
+                "1.\"addr\":                    (string,   required) the tx submitor's address\n"
+                "2.\"asset_symbol\":            (string,   required) the dia asset symbol \n"
+                "3.\"owner_uid\":               (string,   required) the asset's owner uid \n"
+                "4.\"total_supply\":            (numberic, required) the total supply amount of this asset, the unit is \"sawi\" \n"
+                "5.\"fee\":                     (combomoney, optional) the tx fee \n"
+                "\nExamples:\n"
+                + HelpExampleCli("submitdiaissueproposal", "0-1 0-1 BTCC 100000000000000000")
+                + "\nAs json rpc call\n"
+                + HelpExampleRpc("submitdiaissueproposal", R"("0-1", "0-1", "BTCC", 10000000000000000)")
+
+        );
+
+    }
+
+    EnsureWalletIsUnlocked();
+    const CUserID& txUid = RPC_PARAM::GetUserId(params[0], true);
+    TokenSymbol assetSymbol(params[1].get_str());
+    const CUserID& ownerUid = RPC_PARAM::GetUserId(params[2]);
+    uint64_t totalSupply = RPC_PARAM::GetUint64(params[3]);
+    ComboMoney fee          = RPC_PARAM::GetFee(params, 4, PROPOSAL_REQUEST_TX);
+
+    int32_t validHeight  = chainActive.Height();
+    CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, txUid);
+    RPC_PARAM::CheckAccountBalance(account, fee.symbol, SUB_FREE, fee.GetAmountInSawi());
+
+    CAccount ownerAccount = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, ownerUid);
+
+    CGovDiaIssueProposal proposal(assetSymbol, totalSupply, ownerUid);
+
+    CProposalRequestTx tx;
+    tx.txUid        = txUid;
+    tx.llFees       = fee.GetAmountInSawi();
+    tx.fee_symbol    = fee.symbol;
+    tx.valid_height = validHeight;
+    tx.proposal = CProposalStorageBean(std::make_shared<CGovDiaIssueProposal>(proposal));
+
+
+    return SubmitTx(account.keyid, tx);
+
+}
+
 Value submitcointransferproposal( const Array& params, bool fHelp) {
     if(fHelp || params.size() < 4 || params.size() > 5){
         throw runtime_error(

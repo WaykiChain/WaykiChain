@@ -111,6 +111,7 @@ static const CRPCCommand vRPCCommands[] =
     { "submitaxcinproposal",            &submitaxcinproposal,               false,      false,      true    },
     { "submitaxcoutproposal",           &submitaxcoutproposal,              false,      false,      true    },
     { "submitaxccoinproposal",          &submitaxccoinproposal,             false,      false,      true    },
+    { "submitdiaissueproposal",         &submitdiaissueproposal,            false,      false,      true    },
 
     { "submitaccountpermproposal",      &submitaccountpermproposal,         false,      false,      true    },
     { "submitassetpermproposal",        &submitassetpermproposal,           false,      false,      true    },

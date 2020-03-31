@@ -459,46 +459,108 @@ bool CGovAxcInProposal::CheckProposal(CTxExecuteContext& context, CBaseTx& tx) {
     return true;
 }
 
+bool ProcessAxcInFee(CTxExecuteContext& context, CBaseTx& tx, TokenSymbol& selfChainTokenSymbol, uint64_t& swapFees) {
+    IMPLEMENT_DEFINE_CW_STATE
+
+    vector<CRegID> govBpRegIds;
+    TxID proposalId = ((CProposalApprovalTx &) tx).proposal_id;
+    if (!cw.sysGovernCache.GetApprovalList(proposalId, govBpRegIds) || govBpRegIds.size() == 0)
+        return state.DoS(100, ERRORMSG("CGovAxcInProposal::ExecuteProposal, failed to get BP Governors"),
+                         REJECT_INVALID, "bad-get-bp-governors");
+
+    uint64_t swapFeesPerBp = swapFees / (govBpRegIds.size() + 3);
+    for (const auto &bpRegID : govBpRegIds) {
+
+        if(bpRegID == tx.txAccount.regid){
+            if (!tx.txAccount.OperateBalance(selfChainTokenSymbol, BalanceOpType::ADD_FREE, swapFeesPerBp,
+                                             ReceiptCode::AXC_REWARD_FEE_TO_GOVERNOR, tx.receipts))
+                return state.DoS(100,
+                                 ERRORMSG("CGovAxcInProposal::ExecuteProposal, opreate balance failed, swapFeesPerBp=%llu",
+                                          swapFeesPerBp), REJECT_INVALID, "bad-operate-balance");
+            continue;
+        }
+
+        CAccount bpAcct;
+        if (!cw.accountCache.GetAccount(bpRegID, bpAcct))
+            return state.DoS(100, ERRORMSG("CGovAxcInProposal::ExecuteProposal, failed to get BP account (%s)",
+                                           bpRegID.ToString()),
+                             REJECT_INVALID, "bad-get-bp-account");
+
+        if (!bpAcct.OperateBalance(selfChainTokenSymbol, BalanceOpType::ADD_FREE, swapFeesPerBp,
+                                   ReceiptCode::AXC_REWARD_FEE_TO_GOVERNOR, tx.receipts))
+            return state.DoS(100,
+                             ERRORMSG("CGovAxcInProposal::ExecuteProposal, opreate balance failed, swapFeesPerBp=%llu",
+                                      swapFeesPerBp), REJECT_INVALID, "bad-operate-balance");
+
+        if (!cw.accountCache.SetAccount(bpRegID, bpAcct)) {
+            return state.DoS(100, ERRORMSG(
+                    "CGovAxcInProposal::ExecuteProposal, save governor account error, swapFeesPerBp=%llu",
+                    swapFeesPerBp), REJECT_INVALID, "bad-writedb");
+        }
+    }
+
+    uint64_t swapFeeForGw = swapFees - swapFeesPerBp * govBpRegIds.size();
+
+    CRegID axcgwId;
+    CAccount axcgwAccount;
+    if(!cw.sysParamCache.GetAxcSwapGwRegId(axcgwId)) {
+        return state.DoS(100, ERRORMSG("CGovAxcInProposal::ExecuteProposal, failed to get GW regid (%s)",
+                                       axcgwId.ToString()),
+                         REJECT_INVALID, "bad-get-gw-account");
+    }
+
+
+    if(axcgwId == tx.txAccount.regid) {
+        if (!tx.txAccount.OperateBalance(selfChainTokenSymbol, BalanceOpType::ADD_FREE, swapFeeForGw,
+                                         ReceiptCode::AXC_REWARD_FEE_TO_GW, tx.receipts))
+            return state.DoS(100, ERRORMSG("CGovAxcInProposal::ExecuteProposal, opreate balance failed, swapFeesPerBp=%llu",
+                                           swapFeesPerBp), REJECT_INVALID, "bad-operate-balance");
+        return true;
+    }
+
+
+    if (!cw.accountCache.GetAccount(axcgwId, axcgwAccount))
+        return state.DoS(100, ERRORMSG("CGovAxcInProposal::ExecuteProposal, failed to get GW account (%s)",
+                                       axcgwId.ToString()),
+                         REJECT_INVALID, "bad-get-gw-account");
+
+    if (!axcgwAccount.OperateBalance(selfChainTokenSymbol, BalanceOpType::ADD_FREE, swapFeeForGw,
+                                     ReceiptCode::AXC_REWARD_FEE_TO_GW, tx.receipts))
+        return state.DoS(100, ERRORMSG("CGovAxcInProposal::ExecuteProposal, opreate balance failed, swapFeesPerBp=%llu",
+                                       swapFeesPerBp), REJECT_INVALID, "bad-operate-balance");
+
+    if (!cw.accountCache.SetAccount(axcgwId, axcgwAccount)) {
+        return state.DoS(100,
+                         ERRORMSG("CGovAxcInProposal::ExecuteProposal, save axcgw account error, swapFeesPerBp=%llu",
+                                  swapFeesPerBp), REJECT_INVALID, "bad-writedb");
+    }
+
+    return true;
+}
 bool CGovAxcInProposal::ExecuteProposal(CTxExecuteContext& context, CBaseTx& tx) {
     IMPLEMENT_DEFINE_CW_STATE;
 
     AxcSwapCoinPair coinPair;
-    if(!cw.assetCache.GetAxcCoinPairByPeerSymbol(peer_chain_token_symbol, coinPair)){
+    if (!cw.assetCache.GetAxcCoinPairByPeerSymbol(peer_chain_token_symbol, coinPair)) {
         return state.DoS(100, ERRORMSG("CGovAxcInProposal::CheckProposal: swap pair is not exist"),
                          REJECT_INVALID, "find-swapcoinpair-error");
     }
     TokenSymbol self_chain_token_symbol = coinPair.self_token_symbol;
-    ChainType  peer_chain_type = coinPair.peer_chain_type;
+    ChainType peer_chain_type = coinPair.peer_chain_type;
 
 
     uint64_t swap_fee_ratio;
     if (!cw.sysParamCache.GetParam(AXC_SWAP_FEE_RATIO, swap_fee_ratio) || swap_fee_ratio * 1.0 / RATIO_BOOST > 1)
         return state.DoS(100, ERRORMSG("CGovAxcInProposal::ExecuteProposal, get sysparam: axc_swap_fee_ratio failed"),
-                        REJECT_INVALID, "bad-get-swap_fee_ratio");
+                         REJECT_INVALID, "bad-get-swap_fee_ratio");
 
     uint64_t swap_fees = swap_fee_ratio * (swap_amount * 1.0 / RATIO_BOOST);
     uint64_t swap_amount_after_fees = swap_amount - swap_fees;
 
-    set<CRegID> govBpRegIds;
-    if (!cw.sysGovernCache.GetGovernors(govBpRegIds) || govBpRegIds.size() == 0)
-        return state.DoS(100, ERRORMSG("CGovAxcInProposal::ExecuteProposal, failed to get BP Governors"),
-                        REJECT_INVALID, "bad-get-bp-governors");
-
-    uint64_t swapFeesPerBp = swap_fees / govBpRegIds.size();
-    for (const auto &bpRegID : govBpRegIds) {
-        CAccount bpAcct;
-        if (!cw.accountCache.GetAccount(bpRegID, bpAcct))
-            return state.DoS(100, ERRORMSG("CGovAxcInProposal::ExecuteProposal, failed to get BP account (%s)", bpRegID.ToString()),
-                        REJECT_INVALID, "bad-get-bp-account");
-
-        if (!bpAcct.OperateBalance(self_chain_token_symbol, BalanceOpType::ADD_FREE, swapFeesPerBp, 
-                                    ReceiptCode::AXC_REWARD_FEE_TO_BP, tx.receipts))
-            return state.DoS(100, ERRORMSG("CGovAxcInProposal::ExecuteProposal, opreate balance failed, swapFeesPerBp=%llu",
-                        swapFeesPerBp), REJECT_INVALID, "bad-operate-balance");
+    if (!ProcessAxcInFee(context,tx, self_chain_token_symbol, swap_fees)) {
+        return state.DoS(100, ERRORMSG("CGovAxcInProposal::ExecuteProposal, process swap in fee error"), REJECT_INVALID,
+                         "bad-process-swapfee");
     }
-
-    //reward axc GW
-    //TODO
 
     CAccount acct;
     if (!cw.accountCache.GetAccount(self_chain_uid, acct))
@@ -517,12 +579,24 @@ bool CGovAxcInProposal::ExecuteProposal(CTxExecuteContext& context, CBaseTx& tx)
 
     uint64_t mintAmount = 0;
     if (cw.axcCache.GetSwapInMintRecord(peer_chain_type, peer_chain_txid, mintAmount))
-        return state.DoS(100, ERRORMSG("CGovAxcInProposal::CheckProposal: GetSwapInMintRecord existing err %s",
+        return state.DoS(100, ERRORMSG("CGovAxcInProposal::ExecuteProposal: GetSwapInMintRecord existing err %s",
                         REJECT_INVALID, "get_swapin_mint_record-err"));
 
     if (!cw.axcCache.SetSwapInMintRecord(peer_chain_type, peer_chain_txid, swap_amount_after_fees))
-        return state.DoS(100, ERRORMSG("CGovAxcInProposal::CheckProposal: SetSwapInMintRecord existing err %s",
+        return state.DoS(100, ERRORMSG("CGovAxcInProposal::ExecuteProposal: SetSwapInMintRecord existing err %s",
                         REJECT_INVALID, "get_swapin_mint_record-err"));
+
+    //add dia total supply
+    CAsset asset;
+    if(!cw.assetCache.GetAsset(coinPair.self_token_symbol, asset)) {
+        return state.DoS(100, ERRORMSG("CGovAxcInProposal::ExecuteProposal: don't find axc asset %s", coinPair.self_token_symbol),
+                                       REJECT_INVALID, "get-axc-dia-asset-err");
+    }
+    asset.OperateToTalSupply(swap_amount, TotalSupplyOpType::ADD);
+    if(!cw.assetCache.SetAsset( asset)) {
+        return state.DoS(100, ERRORMSG("CGovAxcInProposal::ExecuteProposal: save axc asset error %s", asset.asset_symbol ),
+                                       REJECT_INVALID, "save-axc-dia-asset-err");
+    }
 
     return true;
 }
@@ -581,8 +655,20 @@ bool CGovAxcOutProposal::ExecuteProposal(CTxExecuteContext& context, CBaseTx& tx
                         swap_amount), REJECT_INVALID, "bad-operate-balance");
 
     if (!cw.accountCache.SetAccount(self_chain_uid, acct))
-        return state.DoS(100, ERRORMSG("CGovAxcInProposal::ExecuteProposal, write account failed"), REJECT_INVALID,
+        return state.DoS(100, ERRORMSG("CGovAxcOutProposal::ExecuteProposal, write account failed"), REJECT_INVALID,
                          "bad-writeaccount");
+
+    //sub dia total supply
+    CAsset asset;
+    if(!cw.assetCache.GetAsset(self_chain_token_symbol, asset)) {
+        return state.DoS(100, ERRORMSG("CGovAxcOutProposal::ExecuteProposal: don't find axc asset %s", self_chain_token_symbol),
+                         REJECT_INVALID, "get-axc-dia-asset-err");
+    }
+    asset.OperateToTalSupply(swap_amount, TotalSupplyOpType::SUB);
+    if(!cw.assetCache.SetAsset( asset)) {
+        return state.DoS(100, ERRORMSG("CGovAxcOutProposal::ExecuteProposal: save axc asset error %s", asset.asset_symbol ),
+                         REJECT_INVALID, "save-axc-dia-asset-err");
+    }
 
     return true;
 }
@@ -658,7 +744,7 @@ bool CGovDiaIssueProposal::CheckProposal(CTxExecuteContext& context, CBaseTx& tx
 
     IMPLEMENT_DEFINE_CW_STATE
 
-    if (asset_symbol.size() < 3 || asset_symbol.size() > 5) {
+    if (asset_symbol.size() < MIN_DIA_SYMBOL_LEN || asset_symbol.size() > MAX_DIA_SYMBOL_LEN) {
         return state.DoS(100, ERRORMSG("CGovDiaIssueProposal::CheckProposal, the dia symbol size must be between 3 and 5"), REJECT_INVALID,
                          "bad-symbol-size");
     }

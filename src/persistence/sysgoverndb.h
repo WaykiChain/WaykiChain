@@ -86,7 +86,7 @@ public:
     }
 
     bool GetApprovalList(const uint256& proposalId, vector<CRegID>& v){
-        return  approvals_cache.GetData(proposalId, v) ;
+        return  approvals_cache.GetData(proposalId, v);
     }
 
     bool SetApproval(const uint256 &proposalId, const CRegID &governor){

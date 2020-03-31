@@ -623,8 +623,8 @@ struct CGovDiaIssueProposal: CProposal {
     CUserID     owner_uid;
 
     CGovDiaIssueProposal(): CProposal(ProposalType::GOV_DIA_ISSUE) {}
-    CGovDiaIssueProposal( TokenSymbol assetSymbol, uint64_t& totalSupply,
-                        CUserID &ownerUid): CProposal(ProposalType::GOV_DIA_ISSUE),
+    CGovDiaIssueProposal(TokenSymbol& assetSymbol, uint64_t& totalSupply,
+                        const CUserID &ownerUid): CProposal(ProposalType::GOV_DIA_ISSUE),
                                             asset_symbol(assetSymbol),
                                             total_supply(totalSupply),
                                             owner_uid(ownerUid) {}
@@ -736,6 +736,10 @@ struct CProposalStorageBean {
                 ::Serialize(os, *((CGovAssetPermProposal  *) (sp_proposal.get())), nType, nVersion);
                 break;
 
+            case GOV_DIA_ISSUE:
+                ::Serialize(os, *((CGovDiaIssueProposal  *) (sp_proposal.get())), nType, nVersion);
+                break;
+
             default:
                 throw ios_base::failure(strprintf("Serialize: proposalType(%d) error.",
                                                   sp_proposal->proposal_type));
@@ -828,6 +832,13 @@ struct CProposalStorageBean {
             case GOV_ASSET_PERM: {
                 sp_proposal = std:: make_shared<CGovAssetPermProposal>();
                 ::Unserialize(is,  *((CGovAssetPermProposal *)(sp_proposal.get())), nType, nVersion);
+                break;
+            }
+
+
+            case GOV_DIA_ISSUE: {
+                sp_proposal = std:: make_shared<CGovDiaIssueProposal>();
+                ::Unserialize(is,  *((CGovDiaIssueProposal *)(sp_proposal.get())), nType, nVersion);
                 break;
             }
 

@@ -172,6 +172,8 @@ static const uint64_t COIN = 100000000;  //10^8 = 1 WICC
 static const uint64_t CENT = 1000000;    //10^6 = 0.01 WICC
 
 static const uint32_t MAX_TOKEN_SYMBOL_LEN = 7;
+static const uint8_t  MAX_DIA_SYMBOL_LEN = 5;
+static const uint8_t  MIN_DIA_SYMBOL_LEN = 3;
 /** the max asset name len */
 static const uint32_t MAX_ASSET_NAME_LEN = 32;
 static const uint64_t MAX_ASSET_TOTAL_SUPPLY = 90000000000 * COIN; // 90 billion

@@ -80,7 +80,7 @@ static const unordered_map<SysParamType, std::tuple< uint64_t,string >, SysParam
     { DEX_OPERATOR_RISK_FEE_RATIO,              make_tuple( 4000,        "DEX_OPERATOR_RISK_FEE_RATIO")             },
     { AXC_SWAP_FEE_RATIO,                       make_tuple( 20,          "AXC_SWAP_FEE_RATIO")                      },  // 0.2%, boosted by 10000
     { BP_DELEGATE_VOTE_MIN,                     make_tuple( 21000,       "BP_DELEGATE_VOTE_MIN")                    },  // 21000 sawi, the min votes of delegate to be bp
-    { AXC_SWAP_GATEWAY_REGID,                   make_tuple( 21000,       "AXC_SWAP_GATEWAY_REGID")                    }  // 21000 sawi, the min votes of delegate to be bp
+    { AXC_SWAP_GATEWAY_REGID,                   make_tuple( 0,           "AXC_SWAP_GATEWAY_REGID")                  }
 
 
 };

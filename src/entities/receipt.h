@@ -84,7 +84,8 @@ static CUserID nullId;
     /*** cross-chain */ \
     DEFINE(AXC_MINT_COINS,                      801, "cross-chain asset minted onchain") \
     DEFINE(AXC_BURN_COINS,                      802, "cross-chain asset burned onchain") \
-    DEFINE(AXC_REWARD_FEE_TO_BP,                803, "cross-chain reward fees to BP")
+    DEFINE(AXC_REWARD_FEE_TO_GOVERNOR,          803, "cross-chain reward fees to GOVERNOR") \
+    DEFINE(AXC_REWARD_FEE_TO_GW,                804, "cross-chain reward fees to GW") \
 
 #define DEFINE_RECEIPT_CODE_TYPE(enumType, code, enumName) enumType = code,
 enum ReceiptCode: uint16_t {
