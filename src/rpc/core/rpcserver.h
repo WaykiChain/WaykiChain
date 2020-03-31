@@ -6,8 +6,8 @@
 #ifndef _COINRPC_SERVER_H_
 #define _COINRPC_SERVER_H_
 
-#include "rpcprotocol.h"
 #include "commons/uint256.h"
+#include "rpcprotocol.h"
 #include "rpc/rpcapi.h"
 
 #include <stdint.h>
