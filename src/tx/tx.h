@@ -278,6 +278,9 @@ public:
     Object ToJson() const;
 };
 
+#define TX_ERR_TITLE (string(__func__) + "(), " + GetTxTypeName())
+#define TX_OBJ_ERR_TITLE(tx) (string(__func__) + "(), " + tx.GetTxTypeName())
+
 #define IMPLEMENT_DEFINE_CW_STATE                                                                               \
     CCacheWrapper &cw       = *context.pCw;                                                                     \
     CValidationState &state = *context.pState;

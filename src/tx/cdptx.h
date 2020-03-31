@@ -191,4 +191,43 @@ private:
     uint64_t    scoins_to_liquidate;  // partial liquidation is allowed, must include penalty fees in
 };
 
+/**
+ * settle interest of CDPs
+ */
+class CCDPSettleInterstTx: public CBaseTx {
+public:
+    vector<uint256> cdp_list; // cdp list
+public:
+    CCDPSettleInterstTx() : CBaseTx(CDP_SETTLE_INTEREST_TX) {}
+
+    CCDPSettleInterstTx(const CUserID &txUidIn, const ComboMoney &cmFeeIn, int32_t validHeightIn)
+        : CBaseTx(CDP_SETTLE_INTEREST_TX, txUidIn, validHeightIn, cmFeeIn.symbol,
+                  cmFeeIn.GetAmountInSawi()) {}
+
+    ~CCDPSettleInterstTx() {}
+
+    IMPLEMENT_SERIALIZE(
+        READWRITE(VARINT(this->nVersion));
+        nVersion = this->nVersion;
+        READWRITE(VARINT(valid_height));
+        READWRITE(txUid); // reserve, should be empty
+
+        READWRITE(cdp_list);
+
+        READWRITE(signature); // reserve, should be empty
+    )
+
+    virtual void SerializeForHash(CHashWriter &hw) const {
+        hw << VARINT(nVersion) << uint8_t(nTxType) << VARINT(valid_height) << txUid << cdp_list;
+    }
+
+    virtual std::shared_ptr<CBaseTx> GetNewInstance() const { return std::make_shared<CCDPSettleInterstTx>(*this); }
+
+    virtual string ToString(CAccountDBCache &accountCache);
+    virtual Object ToJson(const CAccountDBCache &accountCache) const;
+
+    virtual bool CheckTx(CTxExecuteContext &context);
+    virtual bool ExecuteTx(CTxExecuteContext &context);
+};
+
 #endif //TX_CDP_H

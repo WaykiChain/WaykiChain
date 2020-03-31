@@ -48,6 +48,7 @@ enum TxType: uint8_t {
     CDP_STAKE_TX                = 21,   //!< CDP Staking/Restaking Tx
     CDP_REDEEM_TX               = 22,   //!< CDP Redemption Tx (partial or full)
     CDP_LIQUIDATE_TX            = 23,   //!< CDP Liquidation Tx (partial or full)
+    CDP_SETTLE_INTEREST_TX      = 24,   //!< CDP Settle Interst Tx
 
     ACCOUNT_PERMS_CLEAR_TX      = 50,   //!< Self removal of one's perms
 

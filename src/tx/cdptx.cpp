@@ -13,10 +13,6 @@
 
 using namespace std;
 
-
-#define ERROR_TITLE(msg) (std::string(__func__) + "(), " + msg)
-#define TX_OBJ_ERR_TITLE(tx) ERROR_TITLE(tx.GetTxTypeName())
-
 static bool ReadCdpParam(CBaseTx &tx, CTxExecuteContext &context, const CCdpCoinPair &cdpCoinPair,
     CdpParamType paramType, uint64_t &value) {
     if (!context.pCw->sysParamCache.GetCdpParam(cdpCoinPair, paramType, value)) {
@@ -70,6 +66,83 @@ namespace cdp_util {
             ret.push_back(Pair(item.first, item.second.get()));
         }
         return ret;
+    }
+
+    bool SellInterestForFcoins(CBaseTx &tx, CTxExecuteContext &context, const CUserCDP &cdp,
+                               const uint64_t scoinsInterest, vector<CReceipt> &receipts) {
+        if (scoinsInterest == 0)
+            return true;
+
+        CCacheWrapper &cw = *context.pCw;
+        CValidationState &state = *context.pState;
+        CAccount fcoinGenesisAccount;
+        cw.accountCache.GetFcoinGenesisAccount(fcoinGenesisAccount);
+        // send interest to fcoin genesis account
+        if (!fcoinGenesisAccount.OperateBalance(SYMB::WUSD, BalanceOpType::ADD_FREE, scoinsInterest,
+                                                ReceiptCode::CDP_INTEREST_BUY_DEFLATE_FCOINS, receipts)) {
+            return state.DoS(100, ERRORMSG("%s, operate fcoin genesis account failed", TX_OBJ_ERR_TITLE(tx)),
+                            UPDATE_ACCOUNT_FAIL, "operate-fcoin-genesis-account-failed");
+        }
+
+        // should freeze user's coin for buying the asset
+        if (!fcoinGenesisAccount.OperateBalance(SYMB::WUSD, BalanceOpType::FREEZE, scoinsInterest,
+                                                ReceiptCode::CDP_INTEREST_BUY_DEFLATE_FCOINS, receipts)) {
+            return state.DoS(100, ERRORMSG("%s, fcoin genesis account has insufficient funds", TX_OBJ_ERR_TITLE(tx)),
+                            UPDATE_ACCOUNT_FAIL, "fcoin-genesis-account-insufficient");
+        }
+
+        CTxCord txCord(context.height, context.index);
+        auto pSysBuyMarketOrder = dex::CSysOrder::CreateBuyMarketOrder(txCord, cdp.scoin_symbol,
+                                                                    SYMB::WGRT, scoinsInterest);
+
+        if (!cw.dexCache.CreateActiveOrder(tx.GetHash(), *pSysBuyMarketOrder)) {
+            return state.DoS(100, ERRORMSG("%s, create system buy order failed", TX_OBJ_ERR_TITLE(tx)),
+                            CREATE_SYS_ORDER_FAILED, "create-sys-order-failed");
+        }
+
+        if (!cw.accountCache.SetAccount(fcoinGenesisAccount.keyid, fcoinGenesisAccount))
+            return state.DoS(100, ERRORMSG("%s, set account info error", TX_OBJ_ERR_TITLE(tx)),
+                            WRITE_ACCOUNT_FAIL, "bad-write-accountdb");
+        return true;
+    }
+
+
+    bool SellInterestForFcoins(CBaseTx &tx, const CUserCDP &cdp, CTxExecuteContext &context,
+                               const uint64_t scoinsInterest, vector<CReceipt> &receipts) {
+        if (scoinsInterest == 0)
+            return true;
+
+        CCacheWrapper &cw = *context.pCw;
+        CValidationState &state = *context.pState;
+        CAccount fcoinGenesisAccount;
+        cw.accountCache.GetFcoinGenesisAccount(fcoinGenesisAccount);
+        // send interest to fcoin genesis account
+        if (!fcoinGenesisAccount.OperateBalance(SYMB::WUSD, BalanceOpType::ADD_FREE, scoinsInterest,
+                                                ReceiptCode::CDP_INTEREST_BUY_DEFLATE_FCOINS, receipts)) {
+            return state.DoS(100, ERRORMSG("%s, operate fcoin genesis account failed", TX_OBJ_ERR_TITLE(tx)),
+                            UPDATE_ACCOUNT_FAIL, "operate-fcoin-genesis-account-failed");
+        }
+
+        // should freeze user's coin for buying the asset
+        if (!fcoinGenesisAccount.OperateBalance(SYMB::WUSD, BalanceOpType::FREEZE, scoinsInterest,
+                                                ReceiptCode::CDP_INTEREST_BUY_DEFLATE_FCOINS, receipts)) {
+            return state.DoS(100, ERRORMSG("%s, fcoin genesis account has insufficient funds", TX_OBJ_ERR_TITLE(tx)),
+                            UPDATE_ACCOUNT_FAIL, "fcoin-genesis-account-insufficient");
+        }
+
+        CTxCord txCord(context.height, context.index);
+        auto pSysBuyMarketOrder = dex::CSysOrder::CreateBuyMarketOrder(txCord, cdp.scoin_symbol,
+                                                                    SYMB::WGRT, scoinsInterest);
+
+        if (!cw.dexCache.CreateActiveOrder(tx.GetHash(), *pSysBuyMarketOrder)) {
+            return state.DoS(100, ERRORMSG("%s, create system buy order failed", TX_OBJ_ERR_TITLE(tx)),
+                            CREATE_SYS_ORDER_FAILED, "create-sys-order-failed");
+        }
+
+        if (!cw.accountCache.SetAccount(fcoinGenesisAccount.keyid, fcoinGenesisAccount))
+            return state.DoS(100, ERRORMSG("%s, set account info error", TX_OBJ_ERR_TITLE(tx)),
+                            WRITE_ACCOUNT_FAIL, "bad-write-accountdb");
+        return true;
     }
 }
 
@@ -166,7 +239,7 @@ bool CCDPStakeTx::ExecuteTx(CTxExecuteContext &context) {
                         REJECT_INVALID, "get-price-quote-by-cdp-scoin-failed");
 
     uint64_t bcoinMedianPrice = 0;
-    if (!GetBcoinMedianPrice(*this, context, cdpCoinPair, bcoinMedianPrice)) 
+    if (!GetBcoinMedianPrice(*this, context, cdpCoinPair, bcoinMedianPrice))
         return false;
 
     uint64_t globalCollateralRatioMin;
@@ -973,4 +1046,114 @@ bool CCDPLiquidateTx::ProcessPenaltyFees(CTxExecuteContext &context, const CUser
                 UPDATE_ACCOUNT_FAIL, "bad-write-accountdb");
 
     return true;
+}
+
+
+ /************************************<< CCDPSettleInterstTx >>***********************************************/
+ bool CCDPSettleInterstTx::CheckTx(CTxExecuteContext &context) {
+     CValidationState &state = *context.pState;
+    static const uint32_t CDP_LIST_SIZE_MAX = 500;
+    auto sz = cdp_list.size();
+    if ( sz == 0 || sz > CDP_LIST_SIZE_MAX)
+        return state.DoS(100, ERRORMSG("%s, cdp_list size=%u is out of range[1, %u]", sz, CDP_LIST_SIZE_MAX
+                ), REJECT_INVALID, "invalid-cdp-list-size");
+    return true;
+}
+
+bool CCDPSettleInterstTx::ExecuteTx(CTxExecuteContext &context) {
+    CCacheWrapper &cw = *context.pCw; CValidationState &state = *context.pState;
+
+    set<uint256> cdpidSet; // for check duplication
+    for (auto cdpid : cdp_list) {
+        // check duplication
+        auto retIt = cdpidSet.emplace(cdpid);
+        if (!retIt.second)
+            return state.DoS(100, ERRORMSG("%s, duplicated cdp=%s in list!", TX_ERR_TITLE, cdpid.ToString()),
+                    REJECT_INVALID, "duplicated-cdp");
+        // get cdp info
+        CUserCDP cdp;
+        if (!cw.cdpCache.GetCDP(cdpid, cdp))
+            return state.DoS(100, ERRORMSG("%s, cdp=%s not exist!", TX_ERR_TITLE, cdpid.ToString()),
+                    REJECT_INVALID, "cdp-not-exist");
+        const auto &cdpCoinPair = cdp.GetCoinPair();
+        uint64_t cycleDays;
+        if (!ReadCdpParam(*this, context, cdpCoinPair, CdpParamType::CDP_CONVERT_INTEREST_TO_DEBT_DAYS, cycleDays))
+            return false;
+
+        // check cdp need to settle interest
+        uint64_t cycleBlocks = cycleDays * GetDayBlockCount(context.height);
+        if (context.height < cdp.block_height || (HeightType)(context.height - cdp.block_height) < cycleBlocks) {
+            return state.DoS(100, ERRORMSG("%s, CDP does not reach the settlement cycle!"
+                    " last_height=%u, cur_height=%u, cycle_blocks=%u", TX_ERR_TITLE,
+                    cdp.block_height, context.height, cycleBlocks),
+                    UPDATE_ACCOUNT_FAIL, "not-reach-sttlement-cycle");
+        }
+
+        // 2 get account
+        CAccount cdpOwnerAccount;
+        if (!cw.accountCache.GetAccount(CUserID(cdp.owner_regid), cdpOwnerAccount)) {
+            return state.DoS(100, ERRORMSG("%s, read CDP Owner account info error! owner_regid=%s",
+                        TX_ERR_TITLE, cdp.owner_regid.ToString()), READ_ACCOUNT_FAIL, "bad-read-accountdb");
+        }
+        // 3 compute interest
+        CUserCDP oldCDP = cdp; // copy before modify.
+
+        uint64_t mintScoinForInterest = 0;
+        if (!ComputeCDPInterest(context, cdpCoinPair, cdp.total_owed_scoins, cdp.block_height, context.height,
+                                mintScoinForInterest)) {
+            return false;
+        }
+
+        txAccount.OperateBalance(cdp.scoin_symbol, BalanceOpType::ADD_FREE, mintScoinForInterest,
+                                ReceiptCode::CDP_MINTED_SCOIN_TO_OWNER, receipts);
+
+        if (!cdp_util::SellInterestForFcoins(*this, context, cdp, mintScoinForInterest, receipts))
+            return false; // error msg has been processed
+
+        if (!txAccount.OperateBalance(cdp.scoin_symbol, BalanceOpType::SUB_FREE,
+                                      mintScoinForInterest, ReceiptCode::CDP_REPAY_INTEREST,
+                                      receipts))
+            return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, scoins balance < scoinsInterestToRepay: %llu",
+                            mintScoinForInterest), UPDATE_ACCOUNT_FAIL,
+                            strprintf("deduct-interest(%llu)-error", mintScoinForInterest));
+
+        // settle cdp state & persist
+        cdp.AddStake(context.height, 0, mintScoinForInterest);
+        if (!cw.cdpCache.UpdateCDP(oldCDP, cdp))
+            return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, save changed cdp to db failed"),
+                            READ_SYS_PARAM_FAIL, "save-changed-cdp-failed");
+
+        LogPrint(BCLog::CDP, "%s, settle interest for cdp! cdpid=%s, cdp={%s}, interest=%llu\n", TX_ERR_TITLE,
+            cdpid.ToString(), cdp.ToString(), mintScoinForInterest);
+    }
+
+    return true;
+}
+
+string CCDPSettleInterstTx::ToString(CAccountDBCache &accountCache) {
+    string cdpListStr;
+    for (const auto &cdpid : cdp_list) {
+        cdpListStr += cdpid.ToString() + ",";
+    }
+
+    return strprintf("txType=%s, hash=%s, ver=%d, txUid=%s, valid_height=%llu, cdp_list={%s}",
+        GetTxType(nTxType), GetHash().ToString(), nVersion, txUid.ToString(), valid_height,
+        cdpListStr);
+}
+
+Object CCDPSettleInterstTx::ToJson(const CAccountDBCache &accountCache) const {
+    Array cdpArray;
+    for (const auto &cdpid : cdp_list) {
+        cdpArray.push_back(cdpid.ToString());
+    }
+    Object result = CBaseTx::ToJson(accountCache);
+    result.push_back(Pair("txid",           GetHash().GetHex()));
+    result.push_back(Pair("tx_type",        GetTxType(nTxType)));
+    result.push_back(Pair("ver",            nVersion));
+    result.push_back(Pair("tx_uid",         txUid.ToString()));
+    result.push_back(Pair("valid_height",   valid_height));
+    result.push_back(Pair("signature",      HexStr(signature)));
+
+    result.push_back(Pair("cdp_list",       cdpArray));
+    return result;
 }

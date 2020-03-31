@@ -114,7 +114,6 @@ static const unordered_map<CdpParamType, std::pair<uint64_t,uint64_t>, CdpParamT
         { CDP_CONVERT_INTEREST_TO_DEBT_DAYS,        RANGE(0,3650)       },  // max 10 years
 };
 
-
 inline bool CheckCdpParamValue(const CdpParamType paramType, uint64_t value, string &errMsg) {
 
     if (kCdpParamRangeTable.count(paramType) == 0) {
@@ -161,7 +160,6 @@ inline CdpParamType  GetCdpParamType(const string  paramName){
         return itr->second;
 
 }
-
 
 class CCdpCoinPair {
 public:
