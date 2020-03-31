@@ -106,7 +106,7 @@ namespace wasm {
         vector <uint8_t>   code;
         CAccount           contract;
         CUniversalContract contract_store;
-        if (database.accountCache.GetAccount(CNickID(account), contract) &&
+        if (database.accountCache.GetAccount(CRegID(account), contract) &&
             database.contractCache.GetContract(contract.regid, contract_store)) {
             code = vector <uint8_t>(contract_store.code.begin(), contract_store.code.end());
         }
@@ -250,7 +250,7 @@ namespace wasm {
     bool wasm_context::is_account( const uint64_t& account ) const {
 
         //auto account_name = wasm::name(account);
-        return database.accountCache.HasAccount(CNickID(account));
+        return database.accountCache.HasAccount(CRegID(account));
     }
 
     std::vector<uint64_t> wasm_context::get_active_producers(){
@@ -271,12 +271,12 @@ namespace wasm {
                           "producer account get account error, regid = %s",
                           p.regid.ToString())
 
-            CHAIN_ASSERT( producer.nickid.value != 0,
+            CHAIN_ASSERT( producer.regid.IntValue() != 0,
                           wasm_chain::account_access_exception,
                           "producer account does not register nick_id, regid = %s",
                           p.regid.ToString())
 
-            active_producers.push_back(producer.nickid.value);
+            active_producers.push_back(producer.regid.IntValue());
         }
         return active_producers;
     }

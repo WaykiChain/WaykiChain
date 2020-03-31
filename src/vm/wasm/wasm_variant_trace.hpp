@@ -22,7 +22,7 @@ static auto make(Api& api) {
         if (!get_native_contract_abi(account, abi)) {
             CUniversalContract contract_store;
             CAccount           contract_account;
-            if (api->accountCache.GetAccount(CNickID(wasm::name(account).to_string()), contract_account)
+            if (api->accountCache.GetAccount(CRegID(account), contract_account)
                 && api->contractCache.GetContract(contract_account.regid, contract_store)){
                 abi.insert(abi.end(), contract_store.abi.begin(), contract_store.abi.end());
             }

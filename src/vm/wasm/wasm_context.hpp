@@ -72,7 +72,7 @@ namespace wasm {
         bool set_data( const uint64_t& contract, const string& k, const string& v ) {
             CAccount   contract_account;
             wasm::name contract_name = wasm::name(contract);
-            CHAIN_ASSERT( database.accountCache.GetAccount(CNickID(contract), contract_account),
+            CHAIN_ASSERT( database.accountCache.GetAccount(CRegID(contract), contract_account),
                           account_access_exception,
                           "contract '%s' does not exist",
                           contract_name.to_string().c_str())
@@ -83,7 +83,7 @@ namespace wasm {
         bool get_data( const uint64_t& contract, const string& k, string &v ) {
             CAccount   contract_account;
             wasm::name contract_name = wasm::name(contract);
-            CHAIN_ASSERT( database.accountCache.GetAccount(CNickID(contract), contract_account),
+            CHAIN_ASSERT( database.accountCache.GetAccount(CRegID(contract), contract_account),
                           account_access_exception,
                           "contract '%s' does not exist",
                           contract_name.to_string().c_str())
@@ -94,7 +94,7 @@ namespace wasm {
         bool erase_data( const uint64_t& contract, const string& k ) {
             CAccount   contract_account;
             wasm::name contract_name = wasm::name(contract);
-            CHAIN_ASSERT( database.accountCache.GetAccount(CNickID(contract), contract_account),
+            CHAIN_ASSERT( database.accountCache.GetAccount(CRegID(contract), contract_account),
                           account_access_exception,
                           "contract '%s' does not exist",
                           contract_name.to_string().c_str())

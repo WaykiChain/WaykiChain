@@ -37,7 +37,7 @@ namespace wasm {
         context.require_auth(contract_name); 
 
         CAccount contract;
-        CHAIN_ASSERT( database_account.GetAccount(CNickID(contract_name), contract),
+        CHAIN_ASSERT( database_account.GetAccount(CRegID(contract_name), contract),
                       wasm_chain::account_access_exception,
                       "contract '%s' does not exist",
                       wasm::name(contract_name).to_string()) 
@@ -84,14 +84,14 @@ namespace wasm {
         CHAIN_ASSERT(memo.size()  <= 256,    wasm_chain::native_contract_assert_exception, "memo has more than 256 bytes");
 
         CAccount from_account;
-        CHAIN_ASSERT( database.GetAccount(CNickID(from), from_account),
+        CHAIN_ASSERT( database.GetAccount(CRegID(from), from_account),
                       wasm_chain::native_contract_assert_exception,
                       "from account '%s' does not exist",
                       wasm::name(from).to_string())
         sub_balance( from_account, quantity, database, context.control_trx.receipts );
 
         CAccount to_account;
-        CHAIN_ASSERT( database.GetAccount(CNickID(to), to_account),
+        CHAIN_ASSERT( database.GetAccount(CRegID(to), to_account),
                       wasm_chain::native_contract_assert_exception,
                       "to account '%s' does not exist",
                       wasm::name(to).to_string())
