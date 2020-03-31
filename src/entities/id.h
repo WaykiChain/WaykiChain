@@ -58,8 +58,6 @@ public:
 
     bool SetRegID(const string &regidStr);
     bool SetRegID(const vector<uint8_t> &rawDataIn);
-
-
     vector<uint8_t> GetRegIdRaw() const;
 
     CKeyID GetKeyId(const CAccountDBCache &accountCache) const;

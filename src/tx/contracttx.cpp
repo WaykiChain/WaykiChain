@@ -86,8 +86,7 @@ bool CLuaContractDeployTx::ExecuteTx(CTxExecuteContext &context) {
     // create script account
     CAccount contractAccount;
     CRegID contractRegId(context.height, context.index);
-    CKeyID keyId           = Hash160(contractRegId.GetRegIdRaw());
-    contractAccount.keyid  = keyId;
+    contractAccount.keyid  = Hash160(contractRegId.GetRegIdRaw());
     contractAccount.regid  = contractRegId;
 
     // save new script content
@@ -283,8 +282,7 @@ bool CUniversalContractDeployTx::ExecuteTx(CTxExecuteContext &context) {
     // create script account
     CAccount contractAccount;
     CRegID contractRegId(context.height, context.index);
-    CKeyID keyId           = Hash160(contractRegId.GetRegIdRaw());
-    contractAccount.keyid  = keyId;
+    contractAccount.keyid  = Hash160(contractRegId.GetRegIdRaw());
     contractAccount.regid  = contractRegId;
 
     // save new script content
