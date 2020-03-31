@@ -168,7 +168,7 @@ CWasmContractTx::get_accounts_from_signatures(CCacheWrapper& database, std::vect
                   "duplicate signature included")
 
     //append payer
-    authorization_accounts.push_back(payer.regid.value );
+    authorization_accounts.push_back(payer.regid.GetIntValue());
 
 }
 

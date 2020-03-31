@@ -271,7 +271,7 @@ namespace wasm {
                           "producer account get account error, regid = %s",
                           p.regid.ToString())
 
-            CHAIN_ASSERT( producer.regid.IntValue() != 0,
+            CHAIN_ASSERT( producer.regid.GetIntValue() != 0,
                           wasm_chain::account_access_exception,
                           "producer account does not register nick_id, regid = %s",
                           p.regid.ToString())
