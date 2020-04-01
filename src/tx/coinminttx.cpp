@@ -17,8 +17,8 @@ bool CCoinMintTx::ExecuteTx(CTxExecuteContext &context) {
     CCacheWrapper &cw = *context.pCw; CValidationState &state = *context.pState;
 
     if (txUid.IsEmpty()) {
-        txAccount = CAccount(Hash160(txAccount.regid.GetRegIdRaw()));
         txAccount.regid = CRegID(context.height, context.index);
+        txAccount = CAccount(Hash160(txAccount.regid.GetRegIdRaw()));
         if (!context.pCw->accountCache.SetKeyId(txAccount.regid, txAccount.keyid)) {
             return context.pState->DoS(100, ERRORMSG("%s(), set regid=%s error! addr=%s",
                     TX_ERR_TITLE, txAccount.regid.ToString(), txAccount.keyid.ToString()),
