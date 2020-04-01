@@ -16,7 +16,6 @@ using namespace dex;
 namespace dex {
 
     #define ERROR_TITLE(msg) (std::string(__FUNCTION__) + "(), " + msg)
-    #define TX_ERR_TITLE ERROR_TITLE(GetTxTypeName())
 
     static bool CheckOperatorFeeRatioRange(CTxExecuteContext &context, const uint256 &orderId,
                                 uint64_t feeRatio, const string &title) {
@@ -107,11 +106,11 @@ namespace dex {
 
         if (has_operator_config) {
             DexOperatorDetail operatorDetail;
-            if (!GetOrderOperator(context, operatorDetail)) 
+            if (!GetOrderOperator(context, operatorDetail))
                 return false;
 
             CAccount operatorAccount;
-            if (!GetOperatorAccount(context, operatorDetail.fee_receiver_regid, operatorAccount)) 
+            if (!GetOperatorAccount(context, operatorDetail.fee_receiver_regid, operatorAccount))
                 return false;
 
             if (!operatorAccount.OperateBalance(fee_symbol, SUB_FREE, operator_tx_fee,
@@ -126,11 +125,11 @@ namespace dex {
             coinAmount = CDEXOrderBaseTx::CalcCoinAmount(asset_amount, price);
 
         if (order_side == ORDER_BUY) {
-            if (!FreezeBalance(context, txAccount, coin_symbol, coinAmount, ReceiptCode::DEX_ASSET_TO_BUYER)) 
+            if (!FreezeBalance(context, txAccount, coin_symbol, coinAmount, ReceiptCode::DEX_ASSET_TO_BUYER))
                 return false;
         } else {
             assert(order_side == ORDER_SELL);
-            if (!FreezeBalance(context, txAccount, asset_symbol, asset_amount, ReceiptCode::DEX_COIN_TO_SELLER)) 
+            if (!FreezeBalance(context, txAccount, asset_symbol, asset_amount, ReceiptCode::DEX_COIN_TO_SELLER))
                 return false;
         }
 
