@@ -2,6 +2,7 @@
 
 #include <chrono>
 #include "wasm/types/name.hpp"
+#include "wasm/types/regid.hpp"
 
 namespace wasm {
 
@@ -22,11 +23,14 @@ namespace wasm {
     const static uint16_t max_inline_transactions_size = 1024;
     const static uint16_t max_signatures_size          = 64;
 
-    const static uint64_t wasmio       = N(wasmio);
-    const static uint64_t wasmio_bank  = N(wasmio.bank);
+    // const static uint64_t wasmio       = N(wasmio);
+    // const static uint64_t wasmio_bank  = N(wasmio.bank);
+
+    static uint64_t wasmio       = REGID(800-1);
+    static uint64_t wasmio_bank  = REGID(800-2);
+
     const static uint64_t wasmio_code  = N(wasmio.code);
     const static uint64_t wasmio_owner = N(wasmio.owner);
-    const static uint64_t wayki        = N(wayki);
 
     const static uint64_t store_fuel_fee_per_byte       = 10;
     const static uint64_t notice_fuel_fee_per_recipient = 10000;

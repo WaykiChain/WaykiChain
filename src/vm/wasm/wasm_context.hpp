@@ -21,6 +21,9 @@ using namespace std;
 using namespace wasm;
 namespace wasm {
 
+    // bool get_native_contract_abi(uint64_t contract, std::vector<char>& abi);
+    // bool is_native_contract(uint64_t contract);
+
     class wasm_context : public wasm_context_interface {
 
     public:

@@ -1,37 +1,65 @@
 #include "wasm/wasm_context.hpp"
-#include "wasm/wasm_native_contract.hpp"
+//#include "wasm/wasm_native_contract.hpp"
 #include "wasm/types/name.hpp"
 #include "wasm/wasm_constants.hpp"
 #include "wasm/wasm_log.hpp"
 #include "entities/account.h"
 
 #include "wasm/exception/exceptions.hpp"
+#include "wasm/wasm_router.hpp"
+// #include "wasm/modules/wasm_handler.hpp"
+// #include "wasm/modules/wasm_native_bank_module.hpp"
+// #include "wasm/modules/wasm_native_module.hpp"
+// #include "wasm/modules/wasm_native_contract.hpp"
+
+#include "wasm/modules/wasm_native_dispatch.hpp"
 
 using namespace std;
 using namespace wasm;
 // using std::chrono::microseconds;
 // using std::chrono::system_clock;
 
+// extern void register_wasm_native_routes(auto& action_router, auto& abi_router);
+// extern void register_wasmio_bank_routes(abi_router& abi_r, action_router& act_r);
+
 namespace wasm {
-    using nativeHandler = std::function<void(wasm_context & )>;
-    map <pair<uint64_t, uint64_t>, nativeHandler>& get_wasm_native_handlers(){
-        static map <pair<uint64_t, uint64_t>, nativeHandler> wasm_native_handlers;
-        return wasm_native_handlers;
 
-    }
 
-    inline void register_native_handler(uint64_t receiver, uint64_t action, nativeHandler v) {
-        get_wasm_native_handlers()[std::pair(receiver, action)] = v;
-    }
+    // using nativeHandler = std::function<void(wasm_context & )>;
+    // map <pair<uint64_t, uint64_t>, nativeHandler>& get_wasm_native_handlers(){
+    //     static map <pair<uint64_t, uint64_t>, nativeHandler> wasm_native_handlers;
+    //     return wasm_native_handlers;
 
-    inline nativeHandler *find_native_handle(uint64_t receiver, uint64_t action) {
-        auto handler = get_wasm_native_handlers().find(std::pair(receiver, action));
-        if (handler != get_wasm_native_handlers().end()) {
-            return &handler->second;
-        }
+    // }
 
-        return nullptr;
-    }
+    // inline void register_native_handler(uint64_t receiver, uint64_t action, nativeHandler v) {
+    //     get_wasm_native_handlers()[std::pair(receiver, action)] = v;
+    // }
+
+    // inline nativeHandler *find_native_handle(uint64_t receiver, uint64_t action) {
+    //     auto handler = get_wasm_native_handlers().find(std::pair(receiver, action));
+    //     if (handler != get_wasm_native_handlers().end()) {
+    //         return &handler->second;
+    //     }
+
+    //     return nullptr;
+    // }
+
+    // extern void wasm_load_native_modules_and_register_routes() {
+    //     // auto& modules = get_wasm_native_modules();
+    //     // if(modules.size() == 0){
+    //     //     modules.push_back(std::make_shared<wasm_native_module>());
+    //     //     modules.push_back(std::make_shared<wasm_bank_native_module>());
+    //     // }
+
+    //     // auto& abi_router = get_wasm_abi_route();
+    //     // auto& act_router = get_wasm_act_route();
+
+    //     // for(auto module: modules){
+    //     //     module->register_routes(abi_router, act_router);
+    //     // }
+
+    // }
 
     static inline void print_debug(uint64_t receiver, const inline_transaction_trace &trace) {
         if (!trace.console.empty()) {
@@ -69,7 +97,6 @@ namespace wasm {
         for (const auto p: t.authorization) {
 
             //inline wasmio.bank
-            //if(t.contract == wasmio_bank && p.account != _receiver ){
             if (t.contract == wasmio_bank && (p.account != _receiver || p.perm != wasmio_code) ) {
                 CHAIN_ASSERT( false,
                               wasm_chain::missing_auth_exception,
@@ -91,7 +118,7 @@ namespace wasm {
             //call another contract
             if (t.contract != _receiver && (p.account != _receiver || p.perm != wasmio_code)){
                 CHAIN_ASSERT( false,
-                              missing_auth_exception,
+                              wasm_chain::missing_auth_exception,
                               "Inline to another contract can be only authorized by contract-self %s in wasmio.code, but get %s",
                               wasm::name(_receiver).to_string(), wasm::name(p.account).to_string());
             }
@@ -127,8 +154,8 @@ namespace wasm {
         if (!wasm_interface_inited) {
             wasm_interface_inited = true;
             wasmif.initialize(wasm::vm_type::eos_vm_jit);
-            register_native_handler(wasmio,      N(setcode),  wasmio_native_setcode      );
-            register_native_handler(wasmio_bank, N(transfer), wasmio_bank_native_transfer);
+            // register_native_handler(wasmio,      N(setcode),  wasmio_native_setcode      );
+            // register_native_handler(wasmio_bank, N(transfer), wasmio_bank_native_transfer);
         }
     }
 
@@ -167,12 +194,12 @@ namespace wasm {
         trace.trx      = trx;
         trace.receiver = _receiver;
 
-        auto native    = find_native_handle(_receiver, trx.action);
+        auto* native   = get_wasm_act_route().route(_receiver);
 
         //reset_console();
         try {
             if (native) {
-                (*native)(*this);
+                (*native)(*this, trx.action);
             } else {
                 vector <uint8_t> code = get_code(_receiver);
                 if (code.size() > 0) {
@@ -183,17 +210,17 @@ namespace wasm {
             string console_output = (_pending_console_output.str().size() == 0)?string(""):string(", console: ") + _pending_console_output.str();
             CHAIN_RETHROW_EXECPTION( e, log_level::warn,
                                      "[%s, %s]->%s%s",
-                                     name(contract()).to_string(),
+                                     regid(contract()).to_string(),
                                      name(action()).to_string(),
-                                     name(receiver()).to_string(),
+                                     regid(receiver()).to_string(),
                                      console_output );
         } catch (...) {
             string console_output = (_pending_console_output.str().size() == 0)?string(""):string(", console: ") + _pending_console_output.str();
             CHAIN_THROW( wasm_chain::chain_exception,
                          "[%s, %s]->%s%s",
-                         name(contract()).to_string(),
+                         regid(contract()).to_string(),
                          name(action()).to_string(),
-                         name(receiver()).to_string(),
+                         regid(receiver()).to_string(),
                          console_output );
         }
 
@@ -208,6 +235,58 @@ namespace wasm {
         }
 
     }
+
+    // void wasm_context::execute_one(inline_transaction_trace &trace) {
+
+    //     //auto start = system_clock::now();
+    //     control_trx.recipients_size ++;
+
+    //     trace.trx      = trx;
+    //     trace.receiver = _receiver;
+
+
+        
+    //     auto native    = find_native_handle(_receiver, trx.action);
+
+    //     //reset_console();
+    //     try {
+    //         if (native) {
+    //             (*native)(*this);
+    //         } else {
+    //             vector <uint8_t> code = get_code(_receiver);
+    //             if (code.size() > 0) {
+    //                 wasmif.execute(code, this);
+    //             }
+    //         }
+    //     }  catch (wasm_chain::exception &e) {
+    //         string console_output = (_pending_console_output.str().size() == 0)?string(""):string(", console: ") + _pending_console_output.str();
+    //         CHAIN_RETHROW_EXECPTION( e, log_level::warn,
+    //                                  "[%s, %s]->%s%s",
+    //                                  name(contract()).to_string(),
+    //                                  name(action()).to_string(),
+    //                                  name(receiver()).to_string(),
+    //                                  console_output );
+    //     } catch (...) {
+    //         string console_output = (_pending_console_output.str().size() == 0)?string(""):string(", console: ") + _pending_console_output.str();
+    //         CHAIN_THROW( wasm_chain::chain_exception,
+    //                      "[%s, %s]->%s%s",
+    //                      name(contract()).to_string(),
+    //                      name(action()).to_string(),
+    //                      name(receiver()).to_string(),
+    //                      console_output );
+    //     }
+
+    //     trace.trx_id  = control_trx.GetHash();
+    //     trace.console = _pending_console_output.str();
+    //     //trace.elapsed = std::chrono::duration_cast<std::chrono::microseconds>(system_clock::now() - start);
+
+    //     reset_console();
+
+    //     if (contracts_console()) {
+    //         print_debug(_receiver, trace);
+    //     }
+
+    // }
 
     bool wasm_context::has_recipient(const uint64_t& account) const {
         for (auto a : notified)

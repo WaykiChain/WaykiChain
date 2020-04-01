@@ -58,6 +58,8 @@
 #include <boost/interprocess/sync/file_lock.hpp>
 #include <boost/assign/list_of.hpp>
 
+#include "wasm/modules/wasm_native_dispatch.hpp"
+
 using namespace std;
 using namespace boost::assign;
 using namespace boost;
@@ -69,6 +71,7 @@ CWallet *pWalletMain;
 static std::unique_ptr<ECCVerifyHandle> globalVerifyHandle;
 
 extern void wasm_code_cache_free();
+//extern void wasm_load_native_modules_and_register_routes();
 
 #ifdef WIN32
 // Win32 LevelDB doesn't use filedescriptors, and the ones used for
@@ -386,6 +389,25 @@ void ThreadImport(vector<boost::filesystem::path> vImportFiles) {
     }
 }
 
+/** Initialize native_modules
+ *  
+ */
+void wasm_load_native_modules_and_register_routes() {
+    auto& modules = get_wasm_native_modules();
+    if(modules.size() == 0){
+        modules.push_back(std::make_shared<wasm_native_module>());
+        modules.push_back(std::make_shared<wasm_bank_native_module>());
+    }
+
+    auto& abi_router = get_wasm_abi_route();
+    auto& act_router = get_wasm_act_route();
+
+    for(auto module: modules){
+        module->register_routes(abi_router, act_router);
+    }
+
+}
+
 /** Initialize Coin.
  *  @pre Parameters should be parsed and config file should be read.
  */
@@ -440,6 +462,10 @@ bool AppInit(boost::thread_group &threadGroup) {
     // Initialize elliptic curve code
     ECC_Start();
     globalVerifyHandle.reset(new ECCVerifyHandle());
+
+    //register wasm native routes
+    wasm_load_native_modules_and_register_routes();
+
     // Sanity check
     if (!ECC_InitSanityCheck())
         return fprintf(stderr, "Elliptic curve cryptography sanity check failure. Aborting.");

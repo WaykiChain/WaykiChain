@@ -19,11 +19,13 @@
 #include "wasm/abi_def.hpp"
 // #include "wasm/wasm_constants.hpp"
 #include "wasm/abi_serializer.hpp"
-#include "wasm/wasm_native_contract_abi.hpp"
-#include "wasm/wasm_native_contract.hpp"
+// #include "wasm/wasm_native_contract_abi.hpp"
+// #include "wasm/wasm_native_contract.hpp"
 #include "wasm/wasm_variant_trace.hpp"
 
 #include "wasm/exception/exceptions.hpp"
+#include "wasm/modules/wasm_native_dispatch.hpp"
+#include "wasm/modules/wasm_native_lib.hpp"
 
 
 map <UnsignedCharArray, uint64_t> &get_signatures_cache() {
@@ -231,14 +233,14 @@ static uint64_t get_run_fee_in_wicc(const uint64_t& run_steps, CBaseTx& tx, CTxE
 
 static void inline_trace_to_receipts(const wasm::inline_transaction_trace& trace,
                                      vector<CReceipt>&                     receipts,
-                                     map<transfer_data_type,  uint64_t>&   receipts_duplicate_check) {
+                                     map<transfer_data_t,  uint64_t>&   receipts_duplicate_check) {
 
     if (trace.trx.contract == wasmio_bank && trace.trx.action == wasm::N(transfer)) {
 
         CReceipt receipt;
         receipt.code = TRANSFER_ACTUAL_COINS;
 
-        transfer_data_type transfer_data = wasm::unpack < std::tuple < uint64_t, uint64_t, wasm::asset, string>> (trace.trx.data);
+        transfer_data_t transfer_data = wasm::unpack < std::tuple < uint64_t, uint64_t, wasm::asset, string>> (trace.trx.data);
         auto from                        = std::get<0>(transfer_data);
         auto to                          = std::get<1>(transfer_data);
         auto quantity                    = std::get<2>(transfer_data);
@@ -264,7 +266,7 @@ static void inline_trace_to_receipts(const wasm::inline_transaction_trace& trace
 }
 
 static void trace_to_receipts(const wasm::transaction_trace& trace, vector<CReceipt>& receipts) {
-    map<transfer_data_type, uint64_t > receipts_duplicate_check;
+    map<transfer_data_t, uint64_t > receipts_duplicate_check;
     for (auto t: trace.traces) {
         inline_trace_to_receipts(t, receipts, receipts_duplicate_check);
     }

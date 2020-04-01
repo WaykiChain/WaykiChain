@@ -6,12 +6,15 @@
 #include "wasm/abi_def.hpp"
 #include "wasm/wasm_constants.hpp"
 #include "wasm/abi_serializer.hpp"
-#include "wasm/wasm_native_contract_abi.hpp"
-#include "wasm/wasm_native_contract.hpp"
+//#include "wasm/wasm_native_contract_abi.hpp"
+//#include "wasm/wasm_native_contract.hpp"
 #include "wasm_trace.hpp"
 #include "tx/wasmcontracttx.h"
+#include "wasm/modules/wasm_native_dispatch.hpp"
 
 namespace wasm {
+
+
 
 template<typename Api>
 struct resolver_factory {
