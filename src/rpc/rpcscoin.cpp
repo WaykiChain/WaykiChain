@@ -747,7 +747,7 @@ extern Value getassetinfo(const Array& params, bool fHelp) {
             + HelpExampleRpc("getassetinfo", "MINEUSD")
         );
     }
-    const TokenSymbol& assetSymbol = RPC_PARAM::GetAssetIssueSymbol(params[0]);
+    const TokenSymbol& assetSymbol = params[0].get_str();
 
     CAsset asset;
     if (!pCdMan->pAssetCache->GetAsset(assetSymbol, asset))

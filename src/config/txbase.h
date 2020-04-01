@@ -120,7 +120,7 @@ static const unordered_map<TxType, std::tuple<string, uint64_t, uint64_t, uint64
 { UCOIN_TRANSFER_TX,        std::make_tuple("UCOIN_TRANSFER_TX",        0,          0.001*COIN, 0.001*COIN, 0.001*COIN  ,true) },
 { UTXO_TRANSFER_TX,         std::make_tuple("UTXO_TRANSFER_TX",         0,          0.001*COIN, 0.001*COIN, 0.001*COIN  ,true) },
 { UTXO_PASSWORD_PROOF_TX,   std::make_tuple("UTXO_PASSWORD_PROOF_TX",   0,          0.001*COIN, 0.001*COIN, 0.001*COIN  ,true) },
-{ UCOIN_MINT_TX,          std::make_tuple("UCOIN_MINT_TX",          0,          0,          0,          0           ,false) },
+{ UCOIN_MINT_TX,          std::make_tuple("UCOIN_MINT_TX",              0,          0,          0,          0           ,false) },
 { UCOIN_BLOCK_REWARD_TX,    std::make_tuple("UCOIN_BLOCK_REWARD_TX",    0,          0,          0,          0           ,false) },
 { ACCOUNT_PERMS_CLEAR_TX,   std::make_tuple("ACCOUNT_PERMS_CLEAR_TX",   0,          0.001*COIN, 0.001*COIN, 0.001*COIN  ,true) },
 

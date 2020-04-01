@@ -1048,24 +1048,27 @@ Value listmintxfees(const Array& params, bool fHelp) {
     return arr;
 }
 
-Value getdexquotecoins(const Array& params, bool fHelp) {
+Value getdexbaseandquotecoins(const Array& params, bool fHelp) {
 
     if(fHelp || params.size() !=0){
         throw runtime_error(
-                "getdexquotecoins\n"
-                "\nget all dex quote coins.\n"
+                "getdexbaseandquotecoins\n"
+                "\nget all dex base coins and quote coins.\n"
                 "\nExamples:\n" +
-                HelpExampleCli("getdexquotecoins", "") + "\nAs json rpc\n" + HelpExampleRpc("getdexquotecoins", ""));
+                HelpExampleCli("getdexbaseandquotecoins", "") + "\nAs json rpc\n" + HelpExampleRpc("getdexbaseandquotecoins", ""));
+    }
+    vector<pair<AssetPermType, string>> vPerms = { pair(AssetPermType::PERM_DEX_BASE, "dex_base_coins"),
+                                                  pair(AssetPermType::PERM_DEX_QUOTE, "dex_quote_coins") };
+    Object obj;
+    for( auto perm: vPerms) {
+        set<TokenSymbol> quoteSymbolSet;
+        pCdMan->pAssetCache->GetAssetTokensByPerm(perm.first, quoteSymbolSet);
+        Array arr;
+        for(TokenSymbol token: quoteSymbolSet)
+            arr.push_back(token);
+        obj.push_back(Pair(perm.second, arr));
     }
 
-    set<TokenSymbol> symbolSet;
-    pCdMan->pAssetCache->GetDexQuoteSymbolSet(symbolSet);
-
-    Object obj;
-    Array arr;
-    for(TokenSymbol token: symbolSet)
-        arr.push_back(token);
-    obj.push_back(Pair("dex_quote_coins", arr));
     return obj;
 }
 

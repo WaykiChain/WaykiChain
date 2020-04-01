@@ -190,7 +190,7 @@ extern Value genutxomultiinputcondhash(const Array& params, bool fHelp);
 extern Value genutxomultisignaddr( const Array& params, bool fHelp);
 extern Value genutxomultisignature(const Array& params, bool fHelp);
 
-extern Value getdexquotecoins(const Array& params, bool fHelp);
+extern Value getdexbaseandquotecoins(const Array& params, bool fHelp);
 extern Value gettotalbpssize(const Array& params, bool fHelp);
 extern Value getfeedcoinpairs(const Array& params, bool fHelp);
 extern Value submitaccountpermproposal(const Array& params , bool fHelp);

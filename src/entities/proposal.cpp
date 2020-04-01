@@ -247,6 +247,10 @@ bool CGovAssetPermProposal::CheckProposal(CTxExecuteContext& context, CBaseTx& t
         return state.DoS(100, ERRORMSG("CGovAssetPermProposal::CheckTx, asset symbol not found"),
                          REJECT_INVALID, "asset-symbol-invalid");
 
+    if(asset.asset_type == AssetType::NIA)
+        return state.DoS(100, ERRORMSG("CGovAssetPermProposal::CheckTx, nia asset's perm can't be modified"),
+                         REJECT_INVALID, "asset-type-error");
+
     if (proposed_perms_sum == 0)
         return state.DoS(100, ERRORMSG("CGovAssetPermProposal::CheckTx, proposed perms is invalid: %llu",
                                        proposed_perms_sum), REJECT_INVALID, "asset-perms-invalid");

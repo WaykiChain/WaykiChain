@@ -129,7 +129,7 @@ public:
         return make_shared<CUserAssetsIterator>(asset_cache);
     }
 
-    void GetDexQuoteSymbolSet(set<TokenSymbol> &symbolSet);
+    bool GetAssetTokensByPerm( const AssetPermType& permType, set<TokenSymbol> &symbolSet);
 public:
     // check functions for price feed
     bool CheckPriceFeedBaseSymbol(const TokenSymbol &baseSymbol);
