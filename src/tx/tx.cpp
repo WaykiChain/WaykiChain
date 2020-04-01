@@ -92,7 +92,7 @@ bool CBaseTx::RegisterAccountPubKey(CTxExecuteContext &context) {
     assert(txAccount.keyid == pubKey.GetKeyId());
     txAccount.owner_pubkey = pubKey;
     txAccount.regid = CRegID(context.height, context.index);
-    if (!context.pCw->accountCache.SetKeyId(txAccount.regid, txAccount.keyid)) {
+    if (!context.pCw->accountCache.AddRegIdIndex(txAccount.regid, txAccount.keyid)) {
         return context.pState->DoS(100, ERRORMSG("%s(), set regid=%s error! addr=%s",
                 TX_ERR_TITLE, txAccount.regid.ToString(), txAccount.keyid.ToString()),
                 UPDATE_ACCOUNT_FAIL, "bad-save-accountdb");

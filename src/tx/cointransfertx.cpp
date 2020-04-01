@@ -173,7 +173,7 @@ bool CCoinTransferTx::ExecuteTx(CTxExecuteContext &context) {
 
             if ( transfer.to_uid.is<CPubKey>() && !toAccount.IsRegistered()) {
                 toAccount.regid = CRegID(context.height, context.index);     //1. initialize regid for the account
-                cw.accountCache.SetKeyId(toAccount.regid, toAccount.keyid);  //2. persist regid-keyid mapping into DB
+                cw.accountCache.AddRegIdIndex(toAccount.regid, toAccount.keyid);  //2. persist regid-keyid mapping into DB
             }
 
             if (!txAccount.OperateBalance(transfer.coin_symbol, SUB_FREE, actualCoinsToSend, ReceiptCode::TRANSFER_ACTUAL_COINS, receipts, &toAccount))
