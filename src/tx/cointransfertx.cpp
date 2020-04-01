@@ -82,8 +82,8 @@ bool CCoinTransferTx::CheckTx(CTxExecuteContext &context) {
 
     for (size_t i = 0; i < transfers.size(); i++) {
         if (!transfers[i].to_uid.IsEmpty()) {
-            return state.DoS(100, ERRORMSG("%s, toUid can not be empty", __FUNCTION__),
-                            REJECT_INVALID, "toUid-type-error");
+            return state.DoS(100, ERRORMSG("%s, to_uid can not be empty", __FUNCTION__),
+                            REJECT_INVALID, "invalid-toUid");
         }
         if (!cw.assetCache.CheckAsset(transfers[i].coin_symbol))
             return state.DoS(100, ERRORMSG("CCoinTransferTx::CheckTx, transfers[%d], invalid coin_symbol=%s", i,
@@ -121,10 +121,7 @@ bool CCoinTransferTx::ExecuteTx(CTxExecuteContext &context) {
 
     for (size_t i = 0; i < transfers.size(); i++) {
         const auto &transfer = transfers[i];
-
-        //0. check to uid validity
-        if (!transfer.to_uid.is<CKeyID>() && !transfer.to_uid.is<CRegID>())
-            return state.DoS(100, ERRORMSG("CCoinTransferTx::ExecuteTx, to_uid not keyid error"), READ_ACCOUNT_FAIL, "to_uid-not-keyid-or-regid-err");
+        const CUserID &toUid = transfer.to_uid;
 
         //1. deduct amount from self account
         if (!txAccount.OperateBalance(transfer.coin_symbol, SUB_FREE, transfer.coin_amount, ReceiptCode::TRANSFER_ACTUAL_COINS, receipts))
@@ -165,24 +162,32 @@ bool CCoinTransferTx::ExecuteTx(CTxExecuteContext &context) {
         }
 
         //3 process actual transfer
-        if (!txAccount.IsSelfUid(transfer.to_uid)) { //skip self-uid balance op
+        if (!txAccount.IsSelfUid(toUid)) { //skip self-uid balance op
             CAccount toAccount;
-            if (!cw.accountCache.GetAccount(transfer.to_uid, toAccount)) { // first-time involved in transacion
-                toAccount = CAccount(transfer.to_uid.get<CKeyID>());
+            if (!cw.accountCache.GetAccount(toUid, toAccount)) { // first-time involved in transacion
+                if (toUid.is<CKeyID>()) {
+                    toAccount = CAccount(toUid.get<CKeyID>());
+                } else if (toUid.is<CPubKey>()) {
+                    toAccount = CAccount(toUid.get<CPubKey>().GetKeyId());
+                } else {
+                    return context.pState->DoS(100, ERRORMSG("%s, the toUid=%s account does not exist",
+                            TX_ERR_TITLE, toUid.ToString()),
+                            REJECT_INVALID, "account-not-exist");
+                }
             }
 
-            if ( transfer.to_uid.is<CPubKey>() && !toAccount.IsRegistered()) {
+            if ( transfers.size() == 1 && toUid.is<CPubKey>() && !toAccount.IsRegistered()) {
                 toAccount.regid = CRegID(context.height, context.index);     //1. initialize regid for the account
                 cw.accountCache.AddRegIdIndex(toAccount.regid, toAccount.keyid);  //2. persist regid-keyid mapping into DB
             }
 
             if (!txAccount.OperateBalance(transfer.coin_symbol, SUB_FREE, actualCoinsToSend, ReceiptCode::TRANSFER_ACTUAL_COINS, receipts, &toAccount))
                 return state.DoS(100, ERRORMSG("CCoinTransferTx::ExecuteTx, transfers[%d], failed to add coins in toUid %s account", i,
-                            transfer.to_uid.ToDebugString()), UPDATE_ACCOUNT_FAIL, "failed-sub-coins");
+                            toUid.ToDebugString()), UPDATE_ACCOUNT_FAIL, "failed-sub-coins");
 
             if (!cw.accountCache.SaveAccount(toAccount))
                 return state.DoS(100, ERRORMSG("CCoinTransferTx::ExecuteTx, write dest addr %s account info error",
-                            transfer.to_uid.ToDebugString()), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
+                            toUid.ToDebugString()), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
 
         }
     }
