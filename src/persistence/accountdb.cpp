@@ -123,6 +123,8 @@ bool CAccountDBCache::EraseKeyId(const CRegID &regId) {
 }
 
 bool CAccountDBCache::SaveAccount(const CAccount &account) {
+    if (!account.regid.IsEmpty())
+        regId2KeyIdCache.SetData(CRegIDKey(account.regid), account.keyid);
     accountCache.SetData(account.keyid, account);
     return true ;
 }
