@@ -176,9 +176,9 @@ bool CCoinTransferTx::ExecuteTx(CTxExecuteContext &context) {
                 }
             }
 
+            // register account
             if ( transfers.size() == 1 && toUid.is<CPubKey>() && !toAccount.IsRegistered()) {
-                toAccount.regid = CRegID(context.height, context.index);     //1. initialize regid for the account
-                cw.accountCache.AddRegIdIndex(toAccount.regid, toAccount.keyid);  //2. persist regid-keyid mapping into DB
+                toAccount.regid = CRegID(context.height, context.index); // generate new regid for the account
             }
 
             if (!txAccount.OperateBalance(transfer.coin_symbol, SUB_FREE, actualCoinsToSend, ReceiptCode::TRANSFER_ACTUAL_COINS, receipts, &toAccount))

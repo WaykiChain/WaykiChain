@@ -60,7 +60,6 @@ public:
 
     bool BatchWrite(const vector<CAccount> &accounts);
 
-    bool AddRegIdIndex(const CRegID &regId,  const CKeyID &keyId);
     bool GetKeyId(const CRegID &regId,  CKeyID &keyId) const;
     bool GetKeyId(const CUserID &uid,   CKeyID &keyId) const;
 
