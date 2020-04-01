@@ -111,7 +111,6 @@ bool CBaseTx::CheckBaseTx(CTxExecuteContext &context) {
         return true;
     }
 
-    CAccount txAccount;
     if (!GetTxAccount(context, txAccount))
         return false; // error msg has been processed
 
