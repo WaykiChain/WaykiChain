@@ -111,7 +111,6 @@ bool CBaseTx::CheckBaseTx(CTxExecuteContext &context) {
         return true;
     }
 
-    CAccount txAccount;
     if (!GetTxAccount(context, txAccount))
         return false; // error msg has been processed
 
@@ -201,7 +200,7 @@ bool CBaseTx::CheckBaseTx(CTxExecuteContext &context) {
 bool CBaseTx::ExecuteFullTx(CTxExecuteContext &context) {
     IMPLEMENT_DEFINE_CW_STATE;
 
-    bool processingTxAccount = (nTxType != PRICE_MEDIAN_TX) && (nTxType != UCOIN_MINT_TX) && (nTxType != LCONTRACT_DEPLOY_TX);
+    bool processingTxAccount = (nTxType != PRICE_MEDIAN_TX) && (nTxType != UCOIN_MINT_TX);
 
     /////////////////////////
     // 1. Prior ExecuteTx

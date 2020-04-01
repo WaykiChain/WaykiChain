@@ -23,31 +23,33 @@ bool CAccountRegisterTx::CheckTx(CTxExecuteContext &context) {
         return state.DoS(100, ERRORMSG("CAccountRegisterTx::CheckTx, userId must be CPubKey"), REJECT_INVALID,
                          "uid-type-error");
 
-    if (!miner_uid.is<CPubKey>() && !miner_uid.is<CNullID>())
-        return state.DoS(100, ERRORMSG("CAccountRegisterTx::CheckTx, minerId must be CPubKey or CNullID"),
-                         REJECT_INVALID, "minerUid-type-error");
-
     if (!txUid.get<CPubKey>().IsFullyValid())
         return state.DoS(100, ERRORMSG("CAccountRegisterTx::CheckTx, register tx public key is invalid"),
                          REJECT_INVALID, "bad-tx-publickey");
-
-    return true;
-}
-
-
-bool CAccountRegisterTx::ExecuteTx(CTxExecuteContext &context) {
-    CValidationState &state = *context.pState;
 
     CKeyID keyId = txUid.get<CPubKey>().GetKeyId();
     if (txAccount.HaveOwnerPubKey())
         return state.DoS(100, ERRORMSG("CAccountRegisterTx::ExecuteTx, keyId %s duplicate register", keyId.ToString()),
                          UPDATE_ACCOUNT_FAIL, "duplicate-register-account");
 
+    if (!miner_uid.is<CPubKey>() && !miner_uid.is<CNullID>())
+        return state.DoS(100, ERRORMSG("CAccountRegisterTx::CheckTx, minerId must be CPubKey or CNullID"),
+                         REJECT_INVALID, "minerUid-type-error");
+
+    if (miner_uid.is<CPubKey>()) {
+        const auto &minerPubkey = miner_uid.get<CPubKey>();
+        if (!minerPubkey.IsFullyValid())
+            return state.DoS(100, ERRORMSG("CAccountRegisterTx::ExecuteTx, minerPubKey:%s Is Invalid",
+                            minerPubkey.ToString()), UPDATE_ACCOUNT_FAIL, "MinerPKey Is Invalid");
+    }
+    return true;
+}
+
+
+bool CAccountRegisterTx::ExecuteTx(CTxExecuteContext &context) {
+
     if (miner_uid.is<CPubKey>()) {
         txAccount.miner_pubkey = miner_uid.get<CPubKey>();
-        if (!txAccount.miner_pubkey.IsFullyValid())
-            return state.DoS(100, ERRORMSG("CAccountRegisterTx::ExecuteTx, minerPubKey:%s Is Invalid",
-                            txAccount.miner_pubkey.ToString()), UPDATE_ACCOUNT_FAIL, "MinerPKey Is Invalid");
     }
 
     return true;
