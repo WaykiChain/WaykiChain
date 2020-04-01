@@ -20,11 +20,8 @@ bool CAccountPermsClearTx::CheckTx(CTxExecuteContext &context) {
 
 bool CAccountPermsClearTx::ExecuteTx(CTxExecuteContext &context) {
     IMPLEMENT_DEFINE_CW_STATE
-    
+
     txAccount.perms_sum = 0;
-    if (!cw.accountCache.SetAccount(txUid, txAccount))
-        return state.DoS(100, ERRORMSG("%s(), save tx account info failed! txuid=%s",
-                __func__, txUid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-write-accountdb");
 
     return true;
 }
