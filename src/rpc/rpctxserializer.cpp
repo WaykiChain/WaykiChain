@@ -164,18 +164,13 @@ std::shared_ptr<CBaseTx> genWasmContractCalltx(json_spirit::Value param_json) {
     const Value& str_height = JSON::GetObjectFieldValue(param_json, "height");
     ComboMoney fee = RPC_PARAM::GetComboMoney(str_fee,  SYMB::WICC);
     int32_t height = AmountToRawValue(str_height);
-
-    auto database_account  = pCdMan->pAccountCache;
+    
     auto database_contract = pCdMan->pContractCache;
-
-    CAccount authorizer;
-    CHAIN_ASSERT(database_account->GetAccount(CRegID(authorizer_name.value), authorizer), wasm_chain::account_access_exception,
-                        "authorizer '%s' does not exist",authorizer_name.to_string())
 
     std::shared_ptr<CWasmContractTx> pBaseTx = std::make_shared<CWasmContractTx>();
 
     pBaseTx->nTxType      = WASM_CONTRACT_TX;
-    pBaseTx->txUid        = authorizer.regid;
+    pBaseTx->txUid        = CRegID(authorizer_name.value);
     pBaseTx->valid_height = height;
     pBaseTx->fee_symbol   = fee.symbol;
     pBaseTx->llFees       = fee.GetAmountInSawi();
@@ -210,15 +205,17 @@ std::shared_ptr<CBaseTx> genWasmContractCalltx(json_spirit::Value param_json) {
             });
     }
 
-    const Array json_signs = JSON::GetObjectFieldValue(param_json, "signs").get_array();
-    for (auto sign: json_signs) {
-        const Value& str_auth = JSON::GetObjectFieldValue(sign, "auth");
-        auto auth = wasm::name(str_auth.get_str());
-        const Value& str_sign = JSON::GetObjectFieldValue(sign, "sign");
-        std::vector<uint8_t> signature(str_sign.get_str().begin(), str_sign.get_str().end());
-        pBaseTx->signatures.push_back({auth.value, signature});
+    Value json_signs;
+    if(JSON::GetObjectFieldValue(param_json, "signs", json_signs)) {
+        Array sign_arr = json_signs.get_array();
+        for (auto sign: sign_arr) {
+            const Value& str_auth = JSON::GetObjectFieldValue(sign, "auth");
+            auto auth = wasm::name(str_auth.get_str());
+            const Value& str_sign = JSON::GetObjectFieldValue(sign, "sign");
+            std::vector<uint8_t> signature(str_sign.get_str().begin(), str_sign.get_str().end());
+            pBaseTx->signatures.push_back({auth.value, signature});
+        }
     }
-
     return pBaseTx;
 }
 
