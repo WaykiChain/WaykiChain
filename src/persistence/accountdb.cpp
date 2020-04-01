@@ -94,13 +94,6 @@ bool CAccountDBCache::EraseAccount(const CKeyID &keyId) {
     return accountCache.EraseData(keyId);
 }
 
-bool CAccountDBCache::AddRegIdIndex(const CUserID &userId, const CKeyID &keyId) {
-    if (userId.is<CRegID>())
-        return AddRegIdIndex(userId.get<CRegID>(), keyId);
-
-    return false;
-}
-
 bool CAccountDBCache::AddRegIdIndex(const CRegID &regId, const CKeyID &keyId) {
     return regId2KeyIdCache.SetData(regId, keyId);
 }
