@@ -47,7 +47,6 @@ bool CAccountRegisterTx::CheckTx(CTxExecuteContext &context) {
 
 
 bool CAccountRegisterTx::ExecuteTx(CTxExecuteContext &context) {
-    CValidationState &state = *context.pState;
 
     if (miner_uid.is<CPubKey>()) {
         txAccount.miner_pubkey = miner_uid.get<CPubKey>();
