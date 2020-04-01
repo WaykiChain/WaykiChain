@@ -14,15 +14,30 @@ bool CCoinMintTx::CheckTx(CTxExecuteContext &context) {
 }
 
 bool CCoinMintTx::ExecuteTx(CTxExecuteContext &context) {
-    CValidationState &state = *context.pState;
+    CCacheWrapper &cw = *context.pCw; CValidationState &state = *context.pState;
 
-    if (txUid.is<CNullID>())
-        txAccount.keyid = Hash160(txAccount.regid.GetRegIdRaw());
+    if (txUid.IsEmpty()) {
+        txAccount = CAccount(Hash160(txAccount.regid.GetRegIdRaw()));
+        txAccount.regid = CRegID(context.height, context.index);
+        if (!context.pCw->accountCache.SetKeyId(txAccount.regid, txAccount.keyid)) {
+            return context.pState->DoS(100, ERRORMSG("%s(), set regid=%s error! addr=%s",
+                    TX_ERR_TITLE, txAccount.regid.ToString(), txAccount.keyid.ToString()),
+                    UPDATE_ACCOUNT_FAIL, "bad-save-accountdb");
+        }
+    }
+    else
+        if (!cw.accountCache.GetAccount(txUid, txAccount))
+            return state.DoS(100, ERRORMSG("%s(), read txUid %s account info error",
+                    TX_ERR_TITLE, txUid.ToString()), READ_ACCOUNT_FAIL, "bad-read-accountdb");
+
 
     if (!txAccount.OperateBalance(coin_symbol, ADD_FREE, coin_amount, ReceiptCode::COIN_MINT_ONCHAIN, receipts))
         return state.DoS(100, ERRORMSG("CCoinMintTx::ExecuteTx, operate account failed"), UPDATE_ACCOUNT_FAIL,
                          "operate-account-failed");
 
+    if (!cw.accountCache.SaveAccount(txAccount))
+        return state.DoS(100, ERRORMSG("ExecuteFullTx, write source addr %s account info error",
+                        txUid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
     return true;
 }
 

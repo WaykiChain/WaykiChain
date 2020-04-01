@@ -86,6 +86,7 @@ bool CRegID::IsRegIdStr(const string & str) {
 }
 
 vector<uint8_t> CRegID::GetRegIdRaw() const {
+    // TODO: this is little-endian
     vector<uint8_t> ret;
     ret.insert(ret.end(), BEGIN(height), END(height));
     ret.insert(ret.end(), BEGIN(index), END(index));
