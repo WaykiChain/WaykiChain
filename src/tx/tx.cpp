@@ -84,15 +84,19 @@ bool CBaseTx::RegisterAccountPubKey(CTxExecuteContext &context) {
     if (!txUid.is<CPubKey>())
         return true;
 
-    auto keyid = txUid.get<CPubKey>().GetKeyId();
-    CRegID regId;
-    if (context.pCw->accountCache.GetRegId(keyid, regId)) // account already registered
+    if (txAccount.IsRegistered())
         return true;
 
-    txAccount.keyid = keyid;
-    txAccount.owner_pubkey = txUid.get<CPubKey>();
-    if (txAccount.regid.IsEmpty()) //for backward compatibility
-        txAccount.regid = CRegID(context.height, context.index);
+    const CPubKey &pubKey = txUid.get<CPubKey>();
+
+    assert(txAccount.keyid == pubKey.GetKeyId());
+    txAccount.owner_pubkey = pubKey;
+    txAccount.regid = CRegID(context.height, context.index);
+    if (!context.pCw->accountCache.SetKeyId(txAccount.regid, txAccount.keyid)) {
+        return context.pState->DoS(100, ERRORMSG("%s(), set regid=%s error! addr=%s",
+                TX_ERR_TITLE, txAccount.regid.ToString(), txAccount.keyid.ToString()),
+                UPDATE_ACCOUNT_FAIL, "bad-save-accountdb");
+    }
 
     return true;
 
@@ -205,11 +209,14 @@ bool CBaseTx::ExecuteFullTx(CTxExecuteContext &context) {
     /////////////////////////
     // 1. Prior ExecuteTx
     if (nTxType != PRICE_MEDIAN_TX) {
-        RegisterAccountPubKey(context);
-
         if (nTxType != UCOIN_MINT_TX && !cw.accountCache.GetAccount(txUid, txAccount))
             return state.DoS(100, ERRORMSG("ExecuteFullTx: read txUid %s account info error",
                             txUid.ToString()), READ_ACCOUNT_FAIL, "bad-read-accountdb");
+
+        if (!RegisterAccountPubKey(context)) {
+            return false; // error msg has been processed
+        }
+
 
         if (nTxType != UCOIN_MINT_TX && nTxType != UCOIN_BLOCK_REWARD_TX) {
             if (llFees > 0 && !txAccount.OperateBalance(fee_symbol, SUB_FREE, llFees, ReceiptCode::BLOCK_REWARD_TO_MINER, receipts))
