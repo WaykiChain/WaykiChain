@@ -17,13 +17,8 @@ bool CCoinMintTx::ExecuteTx(CTxExecuteContext &context) {
     CCacheWrapper &cw = *context.pCw; CValidationState &state = *context.pState;
 
     if (txUid.IsEmpty()) {
-        txAccount.regid = CRegID(context.height, context.index);
-        txAccount = CAccount(Hash160(txAccount.regid.GetRegIdRaw()));
-        if (!context.pCw->accountCache.AddRegIdIndex(txAccount.regid, txAccount.keyid)) {
-            return context.pState->DoS(100, ERRORMSG("%s(), set regid=%s error! addr=%s",
-                    TX_ERR_TITLE, txAccount.regid.ToString(), txAccount.keyid.ToString()),
-                    UPDATE_ACCOUNT_FAIL, "bad-save-accountdb");
-        }
+        txAccount.regid = CRegID(context.height, context.index); // generate new regid
+        txAccount.keyid = Hash160(txAccount.regid.GetRegIdRaw()); // genrate new keyid from regid
     }
     else
         if (!cw.accountCache.GetAccount(txUid, txAccount))
