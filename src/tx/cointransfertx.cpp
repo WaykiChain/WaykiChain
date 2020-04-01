@@ -81,7 +81,10 @@ bool CCoinTransferTx::CheckTx(CTxExecuteContext &context) {
     }
 
     for (size_t i = 0; i < transfers.size(); i++) {
-        IMPLEMENT_CHECK_TX_REGID_OR_KEYID(transfers[i].to_uid);
+        if (!transfers[i].to_uid.IsEmpty()) {
+            return state.DoS(100, ERRORMSG("%s, toUid can not be empty", __FUNCTION__),
+                            REJECT_INVALID, "toUid-type-error");
+        }
         if (!cw.assetCache.CheckAsset(transfers[i].coin_symbol))
             return state.DoS(100, ERRORMSG("CCoinTransferTx::CheckTx, transfers[%d], invalid coin_symbol=%s", i,
                             transfers[i].coin_symbol), REJECT_INVALID, "invalid-coin-symbol");
@@ -166,6 +169,9 @@ bool CCoinTransferTx::ExecuteTx(CTxExecuteContext &context) {
             CAccount toAccount;
             if (!cw.accountCache.GetAccount(transfer.to_uid, toAccount)) { // first-time involved in transacion
                 toAccount = CAccount(transfer.to_uid.get<CKeyID>());
+            }
+
+            if ( transfer.to_uid.is<CPubKey>() && !toAccount.IsRegistered()) {
                 toAccount.regid = CRegID(context.height, context.index);     //1. initialize regid for the account
                 cw.accountCache.SetKeyId(toAccount.regid, toAccount.keyid);  //2. persist regid-keyid mapping into DB
             }
