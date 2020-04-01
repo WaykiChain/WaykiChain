@@ -57,9 +57,6 @@ enum TxType: uint8_t {
     PROPOSAL_REQUEST_TX         = 70,
     PROPOSAL_APPROVAL_TX        = 71,
 
-    DEX_TRADEPAIR_PROPOSE_TX    = 81,   //!< Owner proposes a trade pair on DEX
-    DEX_TRADEPAIR_LIST_TX       = 82,   //!< Owner lists a trade pair on DEX
-    DEX_TRADEPAIR_DELIST_TX     = 83,   //!< Owner or validators delist a trade pair
     DEX_LIMIT_BUY_ORDER_TX      = 84,   //!< dex buy limit price order Tx
     DEX_LIMIT_SELL_ORDER_TX     = 85,   //!< dex sell limit price order Tx
     DEX_MARKET_BUY_ORDER_TX     = 86,   //!< dex buy market price order Tx
