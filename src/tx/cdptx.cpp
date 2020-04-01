@@ -1057,7 +1057,6 @@ bool CCDPLiquidateTx::ProcessPenaltyFees(CTxExecuteContext &context, const CUser
  /************************************<< CCDPSettleInterestTx >>***********************************************/
  bool CCDPSettleInterestTx::CheckTx(CTxExecuteContext &context) {
      CValidationState &state = *context.pState;
-    static const uint32_t CDP_LIST_SIZE_MAX = 500;
     auto sz = cdp_list.size();
     if ( sz == 0 || sz > CDP_LIST_SIZE_MAX)
         return state.DoS(100, ERRORMSG("%s, cdp_list size=%u is out of range[1, %u]", sz, CDP_LIST_SIZE_MAX
@@ -1162,7 +1161,7 @@ Object CCDPSettleInterestTx::ToJson(const CAccountDBCache &accountCache) const {
 }
 
 bool GetSettledInterestCdps(CCacheWrapper &cw, HeightType height, const CCdpCoinPair &cdpCoinPair,
-                            vector<uint256> &cdpList, uint32_t maxCount) {
+                            vector<uint256> &cdpList, uint32_t &count) {
     auto pIt = cw.cdpCache.CreateCdpHeightIndexIt();
     uint64_t cycleDays;
     if (!cw.sysParamCache.GetCdpParam(cdpCoinPair, CDP_CONVERT_INTEREST_TO_DEBT_DAYS, cycleDays))
@@ -1174,8 +1173,8 @@ bool GetSettledInterestCdps(CCacheWrapper &cw, HeightType height, const CCdpCoin
         if (!cdp_util::CdpNeedSettleInterest(pIt->GetHeight(), height, cycleDays)) {
             break;
         }
-        maxCount--;
-        if (maxCount == 0)
+        count--;
+        if (count == 0)
             break;
 
         cdpList.push_back(pIt->GetCdpId());
@@ -1185,4 +1184,53 @@ bool GetSettledInterestCdps(CCacheWrapper &cw, HeightType height, const CCdpCoin
 
 bool GetSettledInterestCdps(CCacheWrapper &cw, HeightType height, vector<uint256> &cdpList) {
 
+    PriceDetailMap medianPrices = cw.priceFeedCache.GetMedianPrices();
+
+    uint64_t priceTimeoutBlocks = 0;
+    if (!pCdMan->pSysParamCache->GetParam(SysParamType::PRICE_FEED_TIMEOUT_BLOCKS, priceTimeoutBlocks)) {
+        return ERRORMSG("%s, read sys param PRICE_FEED_TIMEOUT_BLOCKS error", __func__);
+    }
+
+    Array cdpInfoArray;
+    uint32_t count = CDP_LIST_SIZE_MAX;
+
+    for (const auto& item : medianPrices) {
+        if (item.first == kFcoinPriceCoinPair) continue;
+
+        CAsset asset;
+        const TokenSymbol &bcoinSymbol = item.first.first;
+        const TokenSymbol &quoteSymbol = item.first.second;
+
+        TokenSymbol scoinSymbol = GetCdpScoinByQuoteSymbol(quoteSymbol);
+        if (scoinSymbol.empty()) {
+            LogPrint(BCLog::CDP, "%s(), quote_symbol=%s not have a corresponding scoin , ignore",
+                     __func__, bcoinSymbol);
+            continue;
+        }
+
+        // TODO: remove me if need to support multi scoin and improve the force liquidate process
+        if (scoinSymbol != SYMB::WUSD)
+            throw runtime_error(strprintf("%s(), only support to force liquidate scoin=WUSD, actual_scoin=%s",
+                    __func__, scoinSymbol));
+
+        if (!pCdMan->pAssetCache->CheckAsset(bcoinSymbol, AssetPermType::PERM_CDP_BCOIN)) {
+            LogPrint(BCLog::CDP, "%s(), base_symbol=%s not have cdp bcoin permission, ignore", __func__, bcoinSymbol);
+            continue;
+        }
+
+        if (!pCdMan->pCdpCache->IsBcoinActivated(bcoinSymbol)) {
+            LogPrint(BCLog::CDP, "%s(), bcoin=%s does not be activated, ignore", __func__, bcoinSymbol);
+            continue;
+        }
+
+        if (item.second.price == 0) {
+            LogPrint(BCLog::CDP, "%s(), coin_pair(%s) price=0, ignore\n", __func__, CoinPairToString(item.first));
+            continue;
+        }
+        CCdpCoinPair cdpCoinPair(bcoinSymbol, scoinSymbol);
+        if (!GetSettledInterestCdps(cw, height, cdpCoinPair, cdpList, count)) {
+            return ERRORMSG("%s, get settled interest cdps error! coin_pair=%s", __func__, cdpCoinPair.ToString());
+        }
+    }
+    return true;
 }

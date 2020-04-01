@@ -200,9 +200,8 @@ public:
 public:
     CCDPSettleInterestTx() : CBaseTx(CDP_SETTLE_INTEREST_TX) {}
 
-    CCDPSettleInterestTx(const CUserID &txUidIn, const ComboMoney &cmFeeIn, int32_t validHeightIn)
-        : CBaseTx(CDP_SETTLE_INTEREST_TX, txUidIn, validHeightIn, cmFeeIn.symbol,
-                  cmFeeIn.GetAmountInSawi()) {}
+    CCDPSettleInterestTx(const CUserID &txUidIn, int32_t validHeightIn)
+        : CBaseTx(CDP_SETTLE_INTEREST_TX, txUidIn, validHeightIn, 0) {}
 
     ~CCDPSettleInterestTx() {}
 
@@ -230,7 +229,6 @@ public:
     virtual bool ExecuteTx(CTxExecuteContext &context);
 };
 
-bool GetSettledInterestCdps(CCacheWrapper &cw, HeightType height, const CCdpCoinPair &cdpCoinPair,
-                            vector<uint256> &cdpList, uint32_t maxCount);
+bool GetSettledInterestCdps(CCacheWrapper &cw, HeightType height, vector<uint256> &cdpList);
 
 #endif //TX_CDP_H
