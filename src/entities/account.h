@@ -236,7 +236,7 @@ struct CAccount {
     uint64_t ComputeBlockInflateInterest(const uint32_t currHeight, const VoteDelegate &curDelegate, const uint32_t totalDelegateNum) const;
 
     bool HaveOwnerPubKey() const { return owner_pubkey.IsFullyValid(); }
-    bool IsRegistered() const { return owner_pubkey.IsValid(); }
+    bool IsRegistered() const { return !regid.IsEmpty(); }
 
     bool IsEmptyValue() const { return (tokens.size() == 0); }
     bool IsEmpty() const { return keyid.IsEmpty(); }
