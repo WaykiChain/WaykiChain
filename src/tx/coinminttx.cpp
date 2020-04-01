@@ -15,16 +15,25 @@ bool CCoinMintTx::CheckTx(CTxExecuteContext &context) {
 
 bool CCoinMintTx::ExecuteTx(CTxExecuteContext &context) {
     CCacheWrapper &cw = *context.pCw; CValidationState &state = *context.pState;
+    CRegID newRegid = CRegID(context.height, context.index);
 
     if (txUid.IsEmpty()) {
-        txAccount.regid = CRegID(context.height, context.index); // generate new regid
-        txAccount.keyid = Hash160(txAccount.regid.GetRegIdRaw()); // genrate new keyid from regid
+        txAccount = CAccount(Hash160(newRegid.GetRegIdRaw())); // genrate new keyid from regid
+        txAccount.regid = newRegid; // generate new regid
+    } else if (txUid.is<CPubKey>()) {
+        const CPubKey &pubkey = txUid.get<CPubKey>();
+        const CKeyID &keyid = pubkey.GetKeyId();
+        if (!cw.accountCache.GetAccount(keyid, txAccount)) {
+            txAccount.keyid = keyid; // genrate new keyid from regid
+        }
+        if (!txAccount.IsRegistered()) {
+            txAccount.regid = newRegid; // generate new regid
+            txAccount.owner_pubkey = pubkey; // init owner pubkey
+        }
+    } else {
+        return state.DoS(100, ERRORMSG("%s(), unsupported txUid type=%s",
+                TX_ERR_TITLE, txUid.GetIDName()), READ_ACCOUNT_FAIL, "unsupported-txUid-type");
     }
-    else
-        if (!cw.accountCache.GetAccount(txUid, txAccount))
-            return state.DoS(100, ERRORMSG("%s(), read txUid %s account info error",
-                    TX_ERR_TITLE, txUid.ToString()), READ_ACCOUNT_FAIL, "bad-read-accountdb");
-
 
     if (!txAccount.OperateBalance(coin_symbol, ADD_FREE, coin_amount, ReceiptCode::COIN_MINT_ONCHAIN, receipts))
         return state.DoS(100, ERRORMSG("CCoinMintTx::ExecuteTx, operate account failed"), UPDATE_ACCOUNT_FAIL,
