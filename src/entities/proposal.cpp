@@ -296,7 +296,7 @@ bool CGovCdpParamProposal::CheckProposal(CTxExecuteContext& context, CBaseTx& tx
 
     for (auto pa: param_values) {
         if (kCdpParamTable.count(CdpParamType(pa.first)) == 0) {
-            return state.DoS(100, ERRORMSG("CProposalRequestTx::CheckTx, parameter name (%s) is not in sys params list ", 
+            return state.DoS(100, ERRORMSG("CProposalRequestTx::CheckTx, parameter name (%s) is not in sys params list ",
                             pa.first), REJECT_INVALID, "params-error");
         }
 
@@ -445,7 +445,7 @@ bool CGovAxcInProposal::CheckProposal(CTxExecuteContext& context, CBaseTx& tx) {
         return state.DoS(100, ERRORMSG("CGovAxcInProposal::CheckProposal: peer_chain_txid=%s invalid",
                                         peer_chain_txid), REJECT_INVALID, "peer_chain_txid-invalid");
     if (self_chain_uid.IsEmpty())
-        return state.DoS(100, ERRORMSG("CGovAxcInProposal::CheckProposal: self_chain_uid empty"), 
+        return state.DoS(100, ERRORMSG("CGovAxcInProposal::CheckProposal: self_chain_uid empty"),
                                         REJECT_INVALID, "self_chain_uid-empty");
     CAccount acct;
     if (!cw.accountCache.GetAccount(self_chain_uid, acct))
@@ -572,7 +572,7 @@ bool CGovAxcInProposal::ExecuteProposal(CTxExecuteContext& context, CBaseTx& tx)
                         "bad-getaccount");
 
     // mint the new mirro-coin (self_chain_token_symbol) out of thin air
-    if (!acct.OperateBalance(self_chain_token_symbol, BalanceOpType::ADD_FREE, swap_amount_after_fees, 
+    if (!acct.OperateBalance(self_chain_token_symbol, BalanceOpType::ADD_FREE, swap_amount_after_fees,
                             ReceiptCode::AXC_MINT_COINS, tx.receipts))
         return state.DoS(100, ERRORMSG("CGovAxcInProposal::ExecuteProposal, opreate balance failed, swap_amount_after_fees=%llu",
                         swap_amount_after_fees), REJECT_INVALID, "bad-operate-balance");
@@ -744,8 +744,8 @@ bool CGovDiaIssueProposal::CheckProposal(CTxExecuteContext& context, CBaseTx& tx
 
     IMPLEMENT_DEFINE_CW_STATE
 
-    if (asset_symbol.size() < MIN_DIA_SYMBOL_LEN || asset_symbol.size() > MAX_DIA_SYMBOL_LEN) {
-        return state.DoS(100, ERRORMSG("CGovDiaIssueProposal::CheckProposal, the dia symbol size must be between 3 and 5"), REJECT_INVALID,
+    if (asset_symbol.size() < MIN_DIA_SYMBOL_LEN || asset_symbol.size() > MAX_TOKEN_SYMBOL_LEN) {
+        return state.DoS(100, ERRORMSG("CGovDiaIssueProposal::CheckProposal, the dia symbol size must be between 3 and 7"), REJECT_INVALID,
                          "bad-symbol-size");
     }
 
