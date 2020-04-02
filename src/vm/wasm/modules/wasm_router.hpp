@@ -3,7 +3,7 @@
 
 namespace wasm {
 
-    template<typename Handler>
+  template<typename Handler>
 	class router {
 	    public:
 			map <uint64_t, Handler> routes;
@@ -35,46 +35,45 @@ namespace wasm {
 	    	virtual void register_routes(abi_router& abi_r, action_router& act_r) = 0;
 	};
 
+  using transfer_data_t = std::tuple <uint64_t, uint64_t, wasm::asset, string >;
+  using set_code_data_t = std::tuple<uint64_t, string, string, string>;
 
-    using transfer_data_t = std::tuple <uint64_t, uint64_t, wasm::asset, string >;
-    using set_code_data_t = std::tuple<uint64_t, string, string, string>;
+  inline void sub_balance(CAccount& owner, const wasm::asset& quantity, CAccountDBCache &database, ReceiptList &receipts) {
 
-    inline void sub_balance(CAccount& owner, const wasm::asset& quantity, CAccountDBCache &database, ReceiptList &receipts) {
+      string symbol     = quantity.symbol.code().to_string();
+      uint8_t precision = quantity.symbol.precision();
+      CHAIN_ASSERT( precision == 8,
+                    account_access_exception,
+                    "The precision of system coin %s must be %d",
+                    symbol, 8)
 
-        string symbol     = quantity.symbol.code().to_string();
-        uint8_t precision = quantity.symbol.precision();
-        CHAIN_ASSERT( precision == 8,
-                      account_access_exception,
-                      "The precision of system coin %s must be %d",
-                      symbol, 8)
+      CHAIN_ASSERT( owner.OperateBalance(symbol, BalanceOpType::SUB_FREE, quantity.amount,
+                                         ReceiptCode::WASM_TRANSFER_ACTUAL_COINS, receipts),
+                    account_access_exception,
+                    "Account %s overdrawn balance",
+                    owner.regid.ToString())
 
-        CHAIN_ASSERT( owner.OperateBalance(symbol, BalanceOpType::SUB_FREE, quantity.amount,
-                                           ReceiptCode::WASM_TRANSFER_ACTUAL_COINS, receipts),
-                      account_access_exception,
-                      "Account %s overdrawn balance",
-                      owner.regid.ToString())
+      CHAIN_ASSERT( database.SetAccount(owner.regid, owner), account_access_exception,
+                    "Save account error")
+  }
 
-        CHAIN_ASSERT( database.SetAccount(owner.regid, owner), account_access_exception,
-                      "Save account error")
-    }
+  inline void add_balance(CAccount& owner, const wasm::asset& quantity, CAccountDBCache &database, ReceiptList &receipts){
 
-    inline void add_balance(CAccount& owner, const wasm::asset& quantity, CAccountDBCache &database, ReceiptList &receipts){
+      string symbol     = quantity.symbol.code().to_string();
+      uint8_t precision = quantity.symbol.precision();
+      CHAIN_ASSERT( precision == 8,
+                    account_access_exception,
+                    "The precision of system coin %s must be %d",
+                    symbol, 8)
 
-        string symbol     = quantity.symbol.code().to_string();
-        uint8_t precision = quantity.symbol.precision();
-        CHAIN_ASSERT( precision == 8,
-                      account_access_exception,
-                      "The precision of system coin %s must be %d",
-                      symbol, 8)
+      CHAIN_ASSERT( owner.OperateBalance(symbol, BalanceOpType::ADD_FREE, quantity.amount,
+                                          ReceiptCode::WASM_TRANSFER_ACTUAL_COINS, receipts),
+                    account_access_exception,
+                    "Operate account %s failed",
+                    owner.regid.ToString().c_str())
 
-        CHAIN_ASSERT( owner.OperateBalance(symbol, BalanceOpType::ADD_FREE, quantity.amount,
-                                            ReceiptCode::WASM_TRANSFER_ACTUAL_COINS, receipts),
-                      account_access_exception,
-                      "Operate account %s failed",
-                      owner.regid.ToString().c_str())
-
-        CHAIN_ASSERT( database.SetAccount(owner.regid, owner), account_access_exception,
-                      "Save account error")
-    }	
+      CHAIN_ASSERT( database.SetAccount(owner.regid, owner), account_access_exception,
+                    "Save account error")
+  }	
 
 }

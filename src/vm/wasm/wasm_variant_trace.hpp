@@ -183,11 +183,11 @@ static inline void to_variant(const wasm::transaction_trace &t, json_spirit::Val
     to_variant(t.elapsed.count(), val);
     json_spirit::Config::add(obj, "elapsed", val);
 
-    to_variant(t.fuel_rate, val);
-    json_spirit::Config::add(obj, "fuel_rate", val);
+    // to_variant(t.fuel_rate, val);
+    // json_spirit::Config::add(obj, "fuel_rate", val);
 
     to_variant(t.minimum_tx_execute_fee, val);
-    json_spirit::Config::add(obj, "minimum_tx_execute_fee", val);
+    json_spirit::Config::add(obj, "minimum_fee", val);
 
     if (t.traces.size() > 0) {
         json_spirit::Array arr;
