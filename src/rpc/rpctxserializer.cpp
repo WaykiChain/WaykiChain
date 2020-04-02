@@ -165,7 +165,7 @@ std::shared_ptr<CBaseTx> genWasmContractCalltx(json_spirit::Value param_json) {
     const Value& str_height = JSON::GetObjectFieldValue(param_json, "height");
     ComboMoney fee = RPC_PARAM::GetComboMoney(str_fee,  SYMB::WICC);
     int32_t height = AmountToRawValue(str_height);
-    
+
     auto database_contract = pCdMan->pContractCache;
 
     std::shared_ptr<CWasmContractTx> pBaseTx = std::make_shared<CWasmContractTx>();
@@ -245,7 +245,7 @@ unordered_map <string, std::shared_ptr<CBaseTx> (*)(json_spirit::Value)> nameToF
 /**
  * Example Usage:
  *
- * coind genrawtx submitsendtx '{"from":"0-1","to":"wcnDdWdWTSe8qv6wyoQknT8xCf4R5ahiK2", "amount":"WICC:10000:SAWI", "fee":"WICC:10000:SAWI", "height":100, "memo":"tesst"}'
+ * coind genusignedrawtx submitsendtx '{"from":"0-1","to":"wcnDdWdWTSe8qv6wyoQknT8xCf4R5ahiK2", "amount":"WICC:10000:SAWI", "fee":"WICC:10000:SAWI", "height":100, "memo":"tesst"}'
  *
  * {
    "send": "",
@@ -257,7 +257,7 @@ unordered_map <string, std::shared_ptr<CBaseTx> (*)(json_spirit::Value)> nameToF
  * }
  *
 */
-Value genrawtx(const Array &params, bool fHelp) {
+Value genusignedrawtx(const Array &params, bool fHelp) {
 
     if (fHelp || params.size() != 2) {
         throw runtime_error(gen_rawtx_rpc_help_message);
@@ -275,7 +275,7 @@ Value genrawtx(const Array &params, bool fHelp) {
     obj.push_back(Pair("txid", pBaseTx->GetHash().GetHex()));
     CDataStream ds(SER_DISK, CLIENT_VERSION);
     ds << pBaseTx;
-    obj.push_back(Pair("rawtx", HexStr(ds.begin(), ds.end())));
+    obj.push_back(Pair("unsigned_rawtx", HexStr(ds.begin(), ds.end())));
     return obj;
 
 }
