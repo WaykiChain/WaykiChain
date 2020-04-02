@@ -84,7 +84,7 @@ static const CRPCCommand vRPCCommands[] =
     { "getsignature",                   &getsignature,                      true,      false,       true    },
     { "listdelegates",                  &listdelegates,                     true,      false,       true    },
     { "decodetxraw",                    &decodetxraw,                       true,       false,      false   },
-    /* submit raw tx */
+    { "signtxraw",                      &signtxraw,                         true,      false,       true    },
     { "submittxraw",                    &submittxraw,                       true,       false,      false   },
     /* basic tx */
     { "submitsendtx",                   &submitsendtx,                      false,      false,      true    },

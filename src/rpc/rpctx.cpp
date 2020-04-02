@@ -988,6 +988,112 @@ public:
     }
 };
 
+Value signtxraw(const Array& params, bool fHelp) {
+    if (fHelp || params.size() != 2) {
+        throw runtime_error(
+            "signtxraw \"str\" \"addr\"\n"
+            "\nsignature transaction\n"
+            "\nArguments:\n"
+            "1.\"str\": (string, required) Hex-format string, no longer than 65K in binary bytes\n"
+            "2.\"addr\": (string, required) A json array of WICC addresses\n"
+            "[\n"
+            "  \"address\"  (string) WICC address\n"
+            "  ...,\n"
+            "]\n"
+            "\nExamples:\n" +
+            HelpExampleCli("signtxraw",
+                           "\"0701ed7f0300030000010000020002000bcd10858c200200\" "
+                           "\"[\\\"wKwPHfCJfUYZyjJoa6uCVdgbVJkhEnguMw\\\", "
+                           "\\\"wQT2mY1onRGoERTk4bgAoAEaUjPLhLsrY4\\\", "
+                           "\\\"wNw1Rr8cHPerXXGt6yxEkAPHDXmzMiQBn4\\\"]\"") +
+            "\nAs json rpc call\n" +
+            HelpExampleRpc("signtxraw",
+                           "\"0701ed7f0300030000010000020002000bcd10858c200200\", "
+                           "\"[\\\"wKwPHfCJfUYZyjJoa6uCVdgbVJkhEnguMw\\\", "
+                           "\\\"wQT2mY1onRGoERTk4bgAoAEaUjPLhLsrY4\\\", "
+                           "\\\"wNw1Rr8cHPerXXGt6yxEkAPHDXmzMiQBn4\\\"]\""));
+    }
+
+    vector<uint8_t> vch(ParseHex(params[0].get_str()));
+    if (vch.size() > MAX_RPC_SIG_STR_LEN) {
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "The sig str is too long");
+    }
+
+    CDataStream stream(vch, SER_DISK, CLIENT_VERSION);
+    std::shared_ptr<CBaseTx> pBaseTx;
+    stream >> pBaseTx;
+    if (!pBaseTx.get()) {
+        return Value::null;
+    }
+
+    const Array& addresses = params[1].get_array();
+    if (pBaseTx.get()->nTxType != UCOIN_TRANSFER_MTX && pBaseTx.get()->nTxType != DEX_OPERATOR_ORDER_TX
+        &&addresses.size() != 1) {
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "To many addresses provided");
+    }
+
+    map<CKeyID, string> users;
+    for (const auto &addr : addresses) {
+        CUserID uid = RPC_PARAM::ParseUserIdByAddr(addr);
+        CKeyID keyid = RPC_PARAM::GetUserKeyId(uid);
+        users.emplace(keyid, addr.get_str());
+    }
+
+    if (users.empty()) {
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "No valid address provided");
+    }
+
+    CTxMultiSigner signer(*pBaseTx, users);
+    switch (pBaseTx.get()->nTxType) {
+        case BLOCK_REWARD_TX:
+        case UCOIN_REWARD_TX:
+        case UCOIN_BLOCK_REWARD_TX: {
+            throw JSONRPCError(RPC_INVALID_PARAMETER, "Reward transation is forbidden");
+        }
+        case UCOIN_TRANSFER_MTX: {
+            CMulsigTx *pTx = dynamic_cast<CMulsigTx*>(pBaseTx.get());
+            vector<CTxMultiSigner::SigningItem> signingList;
+            for (auto& item : pTx->signaturePairs) {
+                signingList.push_back({CUserID(item.regid), &item.signature});
+            }
+            signer.Sign(signingList);
+            break;
+        }
+
+        case DEX_OPERATOR_ORDER_TX: {
+            dex::CDEXOperatorOrderTx *pTx = dynamic_cast<dex::CDEXOperatorOrderTx*>(pBaseTx.get());
+            vector<CTxMultiSigner::SigningItem> signingList = {
+                {pTx->txUid, &pTx->signature},
+                {pTx->operator_uid, &pTx->operator_signature},
+            };
+            signer.Sign(signingList);
+            break;
+        }
+        default: {
+            vector<CTxMultiSigner::SigningItem> signingList = {
+                {pBaseTx->txUid, &pBaseTx->signature}
+            };
+            signer.Sign(signingList);
+        }
+    }
+
+    Array signatureArray;
+    for (auto item : signer.signed_list) {
+        Object itemObj;
+        itemObj.push_back(Pair("addr", item.addr_str));
+        itemObj.push_back(Pair("signature", HexStr(*item.pSignature)));
+        signatureArray.push_back(itemObj);
+    }
+
+    CDataStream ds(SER_DISK, CLIENT_VERSION);
+    ds << pBaseTx;
+
+    Object obj;
+    obj.push_back(Pair("rawtx", HexStr(ds.begin(), ds.end())));
+    obj.push_back(Pair("signed_list", signatureArray));
+    return obj;
+}
+
 Value decodetxraw(const Array& params, bool fHelp) {
     if (fHelp || params.size() != 1) {
         throw runtime_error(

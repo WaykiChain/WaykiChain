@@ -161,8 +161,8 @@ extern Value getnetworkinfo(const Array& params, bool fHelp);
 extern Value signmessage(const Array& params, bool fHelp);
 extern Value getcontractassets(const  Array& params, bool fHelp);
 extern Value submitsendtx(const Array& params, bool fHelp);
+extern Value signtxraw(const Array& params, bool fHelp);
 extern Value submittxraw(const Array& params, bool fHelp);
-
 extern Value decodetxraw(const Array& params, bool fHelp);
 
 extern Value getfcoingenesistxinfo(const Array& params, bool fHelp);
