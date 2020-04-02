@@ -144,6 +144,7 @@ Value getinfo(const Array& params, bool fHelp) {
     obj.push_back(Pair("connections",           (int32_t)vNodes.size()));
     obj.push_back(Pair("errors",                GetWarnings("statusbar")));
 
+
     return obj;
 }
 

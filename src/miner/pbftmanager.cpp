@@ -105,8 +105,10 @@ bool CPBFTMan::UpdateGlobalFinBlock(const uint32_t height) {
 bool CPBFTMan::UpdateLocalFinBlock(const CBlockIndex* pIndex){
 
 
-    if(pIndex == nullptr|| pIndex->height==0)
+    if(pIndex == nullptr|| pIndex->height==0){
+        LogPrint(BCLog::DEBUG, "pindex not found");
         return false;
+    }
     int32_t height = pIndex->height;
 
     uint32_t needConfirmCount = GetFinalBlockMinerCount();
@@ -143,20 +145,24 @@ bool CPBFTMan::UpdateLocalFinBlock(const CBlockIndex* pIndex){
 bool CPBFTMan::UpdateLocalFinBlock(const CBlockConfirmMessage& msg, const uint32_t messageCount){
 
     uint32_t needConfirmCount = GetFinalBlockMinerCount();
-    if( needConfirmCount > messageCount)
+    if( needConfirmCount > messageCount) {
+        LogPrint(BCLog::DEBUG,"UpdateLocalFinBlock1: == message is not enough");
         return false;
+    }
 
     CBlockIndex* fi = GetLocalFinIndex();
 
-    if(fi == nullptr ||(uint32_t)fi->height >= msg.height)
-        return false;
+    if(fi == nullptr ||(uint32_t)fi->height >= msg.height) {
+        LogPrint(BCLog::DEBUG,"old Lock Fin not fa");
+    }
+        return ERRORMSG("");
 
     CBlockIndex* pIndex = chainActive[msg.height];
     if(pIndex == nullptr || pIndex->pprev== nullptr)
-        return false;
+        return ERRORMSG("blockNotFind");
 
     if(pIndex->GetBlockHash() != msg.blockHash)
-        return false;
+        return ERRORMSG("block hash err");
 
     set<CBlockConfirmMessage> messageSet;
     set<CRegID> miners;

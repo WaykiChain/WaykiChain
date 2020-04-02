@@ -172,6 +172,7 @@ bool CAccount::OperateBalance(const TokenSymbol &tokenSymbol, const BalanceOpTyp
     }
 
     receipt.SetInfo(CUserID(keyid), otherUid, tokenSymbol, value);
+    receipts.push_back(receipt);
     return true;
 }
 
