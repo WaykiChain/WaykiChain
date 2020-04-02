@@ -22,19 +22,19 @@ static CUserID nullId;
     /**** reward */ \
     DEFINE(BLOCK_REWARD_TO_MINER,               101, "block reward to miner") \
     DEFINE(COIN_MINT_ONCHAIN,                   102, "coin minted onchain") \
-    DEFINE(COIN_BLOCK_INFLATE,                  103, "inflate coins to user of tx") \
+    DEFINE(COIN_BLOCK_INFLATE,                  103, "inflate bcoins to block miner") \
     DEFINE(COIN_STAKE,                          104, "stake user's coins") \
     /**** transfer */ \
-    DEFINE(TRANSFER_FEE_TO_RESERVE,             201, "transferred fee to risk reserve") \
-    DEFINE(TRANSFER_ACTUAL_COINS,               202, "common account to transfer coins") \
-    DEFINE(LUAVM_TRANSFER_ACTUAL_COINS,         203, "Lua contract to transfer coins") \
-    DEFINE(WASM_TRANSFER_ACTUAL_COINS,          204, "WASM contract to transfer coins") \
-    DEFINE(TRANSFER_UTXO_COINS,                 205, "transferred utxo coins") \
-    DEFINE(TRANSFER_PROPOSAL,                   206, "transfered coins in proposal") \
+    DEFINE(TRANSFER_FEE_TO_RESERVE,             201, "transfer fees to risk reserve") \
+    DEFINE(TRANSFER_ACTUAL_COINS,               202, "transfer coins with account") \
+    DEFINE(LUAVM_TRANSFER_ACTUAL_COINS,         203, "transfer coins in Lua contract") \
+    DEFINE(WASM_TRANSFER_ACTUAL_COINS,          204, "transfer coins in WASM contract") \
+    DEFINE(TRANSFER_UTXO_COINS,                 205, "transfer coins in a UTXO trx") \
+    DEFINE(TRANSFER_PROPOSAL,                   206, "transfer coins in a proposal") \
     /**** delegate */ \
-    DEFINE(DELEGATE_ADD_VOTE,                   301, "delegate add votes") \
-    DEFINE(DELEGATE_SUB_VOTE,                   302, "delegate sub votes") \
-    DEFINE(DELEGATE_VOTE_INTEREST,              303, "delegate vote interest") \
+    DEFINE(DELEGATE_ADD_VOTE,                   301, "add votes to delegate(s)") \
+    DEFINE(DELEGATE_SUB_VOTE,                   302, "sub votes to delegate(s)") \
+    DEFINE(DELEGATE_VOTE_INTEREST,              303, "receive interest thru delegate voting") \
     /**** CDP stake*/ \
     DEFINE(CDP_STAKED_ASSET_FROM_OWNER,         401, "staked assets from cdp owner") \
     DEFINE(CDP_MINTED_SCOIN_TO_OWNER,           402, "minted scoins to cdp owner") \
@@ -68,13 +68,13 @@ static CUserID nullId;
     DEFINE(DEX_OPERATOR_UPDATED_FEE_TO_MINER,   523, "dex operator updated fee to miner") \
     /**** contract */ \
     DEFINE(CONTRACT_FUEL_TO_RISK_RESERVE,       601, "contract fuel to risk reserve") \
-    DEFINE(CONTRACT_TOKEN_OPERATE_ADD,          602, "operate add token of contract user account") \
-    DEFINE(CONTRACT_TOKEN_OPERATE_SUB,          603, "operate sub token of contract user account") \
-    DEFINE(CONTRACT_TOKEN_OPERATE_TAG_ADD,      604, "operate add token tag of contract user account") \
-    DEFINE(CONTRACT_TOKEN_OPERATE_TAG_SUB,      605, "operate sub token tag of contract user account") \
-    DEFINE(CONTRACT_ACCOUNT_OPERATE_ADD,        606, "operate add bcoins of account by contract") \
-    DEFINE(CONTRACT_ACCOUNT_OPERATE_SUB,        607, "operate sub bcoins of account by contract") \
-    DEFINE(CONTRACT_ACCOUNT_TRANSFER_ASSET,     608, "transfer account asset by contract") \
+    DEFINE(CONTRACT_TOKEN_OPERATE_ADD,          602, "add operate on contract-managed tokens") \
+    DEFINE(CONTRACT_TOKEN_OPERATE_SUB,          603, "sub operate on contract-managed tokens") \
+    DEFINE(CONTRACT_TOKEN_OPERATE_TAG_ADD,      604, "add operate on contract-managed tag tokens") \
+    DEFINE(CONTRACT_TOKEN_OPERATE_TAG_SUB,      605, "sub operate on contract-managed tag tokens") \
+    DEFINE(CONTRACT_ACCOUNT_OPERATE_ADD,        606, "add operate on account in contract") \
+    DEFINE(CONTRACT_ACCOUNT_OPERATE_SUB,        607, "sub operate on account in contract") \
+    DEFINE(CONTRACT_ACCOUNT_TRANSFER_ASSET,     608, "transfer account asset in contract") \
     /**** asset */ \
     DEFINE(ASSET_ISSUED_FEE_TO_RESERVE,         701, "asset issued fee to risk reserve") \
     DEFINE(ASSET_UPDATED_FEE_TO_RESERVE,        702, "asset updated fee to risk reserve") \
