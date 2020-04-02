@@ -163,7 +163,7 @@ inline void ProcessGetData(CNode *pFrom) {
                 }
                 if (!pushed && inv.type == MSG_TX) {
                     std::shared_ptr<CBaseTx> pBaseTx = mempool.Lookup(inv.hash);
-                    if (pBaseTx.get() && !pBaseTx->IsBlockRewardTx() && !pBaseTx->IsPriceMedianTx()) {
+                    if (pBaseTx && !pBaseTx->IsForbidRelay()) {
                         CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
                         ss.reserve(1000);
                         ss << pBaseTx;
@@ -487,9 +487,9 @@ inline bool ProcessTxMessage(CNode *pFrom, string strCommand, CDataStream &vRecv
         return ERRORMSG("Unknown transaction type from peer %s, ignore! %s", pFrom->addr.ToString(), e.what());
     }
 
-    if (pBaseTx->IsBlockRewardTx() || pBaseTx->IsCoinMintTx() || pBaseTx->IsPriceMedianTx()) {
-        return ERRORMSG("Forbidden transaction from network from peer %s, raw: %s", pFrom->addr.ToString(),
-                        HexStr(vRecv.begin(), vRecv.end()));
+    if (pBaseTx->IsForbidRelay()) {
+        return ERRORMSG("Forbid transaction=%s from network from peer %s, txid=%s, raw: %s", pBaseTx->GetTxTypeName(),
+                pFrom->addr.ToString(), pBaseTx->GetHash().ToString(), HexStr(vRecv.begin(), vRecv.end()));
     }
 
     CInv inv(MSG_TX, pBaseTx->GetHash());
@@ -560,7 +560,7 @@ inline bool ProcessGetHeadersMessage(CNode *pFrom, CDataStream &vRecv) {
         CBlockHeader blockHeader;
         pIndex->GetBlockHeader(blockHeader);
         vHeaders.push_back(blockHeader);
-        
+
         if (--nLimit <= 0 || pIndex->GetBlockHash() == hashStop)
             break;
     }
@@ -602,7 +602,7 @@ inline void ProcessGetBlocksMessage(CNode *pFrom, CDataStream &vRecv) {
         // pFrom->PushInventory(CInv(MSG_BLOCK, pIndex->GetBlockHash()), forced);
         bool force_to_send_again = false;
         if (pIndex == pStartIndex || pIndex->pprev == pStartIndex)
-            force_to_send_again = true;        
+            force_to_send_again = true;
         pFrom->PushInventory(CInv(MSG_BLOCK, pIndex->GetBlockHash()), force_to_send_again);
         if (--nLimit <= 0) {
             // When this block is requested, we'll send an inv that'll make them

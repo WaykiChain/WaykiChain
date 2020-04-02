@@ -261,9 +261,9 @@ bool AcceptToMemoryPool(CTxMemPool &pool, CValidationState &state, CBaseTx *pBas
                             REJECT_INVALID, "tx-already-in-mempool");
 
     // is it a miner reward tx or price median tx?
-    if (pBaseTx->IsBlockRewardTx() || pBaseTx->IsPriceMedianTx())
-        return state.Invalid(ERRORMSG("AcceptToMemoryPool() : txid: %s is a block reward or price median tx,"
-                            "not allowed to put into mempool", hash.GetHex()), REJECT_INVALID, "tx-coinbase-to-mempool");
+    if (pBaseTx->IsForbidRelay())
+        return state.Invalid(ERRORMSG("AcceptToMemoryPool() : forbid tx=%s to accept to memory pool! txid=%s",
+            pBaseTx->GetTxTypeName(), hash.GetHex()), REJECT_INVALID, "tx-coinbase-to-mempool");
 
     // Rather not work on nonstandard transactions (unless -testnet/-regtest)
     string reason;
@@ -1406,7 +1406,7 @@ bool static DisconnectTip(CValidationState &state) {
     for (const auto &pTx : block.vptx) {
         list<std::shared_ptr<CBaseTx> > removed;
         CValidationState stateDummy;
-        if (!pTx->IsBlockRewardTx() && !pTx->IsPriceMedianTx()) {
+        if (!pTx->IsForbidRelay()) {
             if (!AcceptToMemoryPool(mempool, stateDummy, pTx.get(), false)) {
                 mempool.Remove(pTx.get(), removed, true);
             }

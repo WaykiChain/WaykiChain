@@ -206,6 +206,9 @@ public:
     bool IsPriceMedianTx()  { return nTxType == PRICE_MEDIAN_TX; }
     bool IsPriceFeedTx()    { return nTxType == PRICE_FEED_TX; }
     bool IsCoinMintTx()     { return nTxType == UCOIN_MINT_TX; }
+    bool IsForbidRelay() {
+        return kForbidRelayTxSet.count(nTxType) > 0;
+    }
 
     const string& GetTxTypeName() const { return ::GetTxTypeName(nTxType); }
 

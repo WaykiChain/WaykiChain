@@ -153,4 +153,12 @@ static const unordered_map<TxType, std::tuple<string, uint64_t, uint64_t, uint64
 
 };
 
+static const EnumUnorderedSet<TxType> kForbidRelayTxSet = {
+    BLOCK_REWARD_TX,
+    UCOIN_BLOCK_REWARD_TX,
+    PRICE_MEDIAN_TX,
+    UCOIN_MINT_TX,
+    CDP_SETTLE_INTEREST_TX
+};
+
 #endif

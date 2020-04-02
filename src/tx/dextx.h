@@ -14,7 +14,7 @@
 
 namespace dex {
 
-    static const UnorderdEnumMap<TxType> DEX_ORDER_TX_SET = {
+    static const EnumUnorderedSet<TxType> DEX_ORDER_TX_SET = {
         DEX_LIMIT_BUY_ORDER_TX,
         DEX_LIMIT_SELL_ORDER_TX,
         DEX_MARKET_BUY_ORDER_TX,
