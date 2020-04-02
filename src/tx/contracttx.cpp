@@ -206,7 +206,7 @@ bool CLuaContractInvokeTx::ExecuteTx(CTxExecuteContext &context) {
 
     LogPrint(BCLog::LUAVM, "execute contract elapse: %lld, txid=%s\n", GetTimeMillis() - llTime, GetHash().GetHex());
 
-    receipts = vmRunEnv.GetReceipts();
+    container::Append(receipts, vmRunEnv.GetReceipts());
 
     return true;
 }
