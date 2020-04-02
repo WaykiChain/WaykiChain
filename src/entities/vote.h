@@ -102,7 +102,7 @@ public:
     }
 
     string ToString() const {
-        retrun strprintf("voteType: %s, candidateUid: %s, votes: %f\n", GetVoteType(voteType),
+        return strprintf("voteType: %s, candidateUid: %s, votes: %f\n", GetVoteType(voteType),
                                candidateUid.ToString(), ValueFromAmount(votedBcoins));
     }
 
