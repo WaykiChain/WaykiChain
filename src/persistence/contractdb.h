@@ -84,7 +84,7 @@ public:
     bool GetContract(const CRegID &contractRegId, CUniversalContract &contract);
     bool GetContracts(map<CRegIDKey, CUniversalContract> &contracts);
     bool SaveContract(const CRegID &contractRegId, const CUniversalContract &contract);
-    bool HaveContract(const CRegID &contractRegId);
+    bool HasContract(const CRegID &contractRegId);
     bool EraseContract(const CRegID &contractRegId);
 
     bool GetContractData(const CRegID &contractRegId, const string &contractKey, string &contractData);

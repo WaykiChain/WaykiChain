@@ -208,7 +208,7 @@ Value vmexecutescript(const Array& params, bool fHelp) {
     CLuaContractInvokeTx contractInvokeTx;
 
     {
-        if (!spCW->contractCache.HaveContract(appId)) {
+        if (!spCW->contractCache.HasContract(appId)) {
             throw runtime_error(strprintf("AppId %s is not exist\n", appId.ToString()));
         }
         contractInvokeTx.nTxType      = LCONTRACT_INVOKE_TX;

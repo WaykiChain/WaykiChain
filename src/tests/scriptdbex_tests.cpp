@@ -65,7 +65,7 @@ void CContractDBTest::CheckReadData(CContractDBCache* pViewCache) {
 	vector<unsigned char> vScriptContent;
 	for (const auto& item : mapScript) {
 		CRegID regId(item.first);
-		BOOST_CHECK(pViewCache->HaveContract(regId));
+		BOOST_CHECK(pViewCache->HasContract(regId));
 		BOOST_CHECK(pViewCache->GetContractScript(regId, vScriptContent));
 		BOOST_CHECK(vScriptContent == item.second);
 	}

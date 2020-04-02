@@ -46,7 +46,7 @@ bool CContractDBCache::SaveContract(const CRegID &contractRegId, const CUniversa
     return contractCache.SetData(CRegIDKey(contractRegId), contract);
 }
 
-bool CContractDBCache::HaveContract(const CRegID &contractRegId) {
+bool CContractDBCache::HasContract(const CRegID &contractRegId) {
     return contractCache.HasData(CRegIDKey(contractRegId));
 }
 

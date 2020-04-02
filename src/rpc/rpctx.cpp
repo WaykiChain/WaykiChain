@@ -210,7 +210,7 @@ Value submitcontractcalltx(const Array& params, bool fHelp) {
         throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid contract regid");
     }
 
-    if (!pCdMan->pContractCache->HaveContract(appRegId)) {
+    if (!pCdMan->pContractCache->HasContract(appRegId)) {
         throw JSONRPCError(RPC_INVALID_PARAMETER, "Failed to acquire contract");
     }
 
@@ -407,7 +407,7 @@ Value submitucontractcalltx(const Array& params, bool fHelp) {
         throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid contract regid");
     }
 
-    if (!pCdMan->pContractCache->HaveContract(appRegId)) {
+    if (!pCdMan->pContractCache->HasContract(appRegId)) {
         throw JSONRPCError(RPC_INVALID_PARAMETER, "Failed to acquire contract");
     }
 
@@ -746,7 +746,7 @@ Value getcontractinfo(const Array& params, bool fHelp) {
             HelpExampleRpc("getcontractinfo", "1-1"));
 
     CRegID regid(params[0].get_str());
-    if (regid.IsEmpty() || !pCdMan->pContractCache->HaveContract(regid)) {
+    if (regid.IsEmpty() || !pCdMan->pContractCache->HasContract(regid)) {
         throw JSONRPCError(RPC_INVALID_PARAMS, "Invalid contract regid.");
     }
 

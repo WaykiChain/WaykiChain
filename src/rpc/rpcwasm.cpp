@@ -144,7 +144,7 @@ void get_contract( CAccountDBCache*    database_account,
                   wasm_chain::account_access_exception,
                   "contract '%s' does not exist",
                   contract_regid.to_string())
-    //JSON_RPC_ASSERT(database_contract->HaveContract(contract.regid),                RPC_WALLET_ERROR,  strprintf("Cannot get contract %s", contract_name.to_string().c_str()))
+    //JSON_RPC_ASSERT(database_contract->HasContract(contract.regid),                RPC_WALLET_ERROR,  strprintf("Cannot get contract %s", contract_name.to_string().c_str()))
     CHAIN_ASSERT( database_contract->GetContract(contract.regid, contract_store),
                   wasm_chain::account_access_exception,
                   "cannot get contract '%s'",

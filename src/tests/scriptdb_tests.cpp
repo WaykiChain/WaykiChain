@@ -56,7 +56,7 @@ void testscriptdb() {
 	//write all data in caches to db
 	BOOST_CHECK(pTestView->Flush());
 	//test if the script id is exist in db
-	BOOST_CHECK(pTestView->HaveContract(regScriptId));
+	BOOST_CHECK(pTestView->HasContract(regScriptId));
 	vector<unsigned char> vScript;
 	//read script content from db by scriptId
 	BOOST_CHECK(pTestView->GetContractScript(regScriptId, vScript));
