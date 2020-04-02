@@ -4,8 +4,7 @@
 #include "wasm/wasm_context.hpp"
 #include "wasm/types/asset.hpp"
 
-#include "wasm/wasm_router.hpp"
-#include "wasm/modules/wasm_handler.hpp"
+#include "wasm/modules/wasm_router.hpp"
 #include "wasm/modules/wasm_native_bank_module.hpp"
 #include "wasm/modules/wasm_native_module.hpp"
 

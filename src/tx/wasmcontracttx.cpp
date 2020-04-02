@@ -25,7 +25,7 @@
 
 #include "wasm/exception/exceptions.hpp"
 #include "wasm/modules/wasm_native_dispatch.hpp"
-#include "wasm/modules/wasm_native_lib.hpp"
+#include "wasm/modules/wasm_router.hpp"
 
 
 map <UnsignedCharArray, uint64_t> &get_signatures_cache() {

@@ -5,16 +5,16 @@
 
 #include "wasm/exception/exceptions.hpp"
 #include "wasm/wasm_log.hpp"
-#include "wasm/wasm_router.hpp"
+#include "wasm/modules/wasm_router.hpp"
 
 #include "wasm/types/asset.hpp"
 #include "wasm/types/regid.hpp"
 #include "entities/account.h"
 #include "entities/receipt.h"
 
-#include "wasm/modules/wasm_module.hpp"
-#include "wasm/modules/wasm_handler.hpp"
-#include "wasm/modules/wasm_native_lib.hpp"
+// #include "wasm/modules/wasm_module.hpp"
+// #include "wasm/modules/wasm_handler.hpp"
+// #include "wasm/modules/wasm_native_lib.hpp"
 
 namespace wasm {
 
@@ -23,7 +23,6 @@ namespace wasm {
 	class wasm_native_module: public native_module {
 
 		//uint64_t module_id = REGID(800-1); 
-
 		public:
 	        wasm_native_module()  {}
 	        ~wasm_native_module() {}	

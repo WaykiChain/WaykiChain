@@ -1,18 +1,40 @@
 #pragma once
-
-#include "entities/receipt.h"
-#include "wasm/wasm_context.hpp"
-#include "wasm/types/asset.hpp"
-
-#include "wasm/wasm_router.hpp"
-#include "wasm/modules/wasm_handler.hpp"
-#include "wasm/modules/wasm_native_bank_module.hpp"
-#include "wasm/modules/wasm_native_module.hpp"
-
-using namespace std;
-using namespace wasm;
+#include<map>
 
 namespace wasm {
+
+    template<typename Handler>
+	class router {
+	    public:
+			map <uint64_t, Handler> routes;
+		public:
+			router* add_router(uint64_t r, Handler h) {
+				routes[r] = h;
+				return this;
+			}
+			Handler* route(uint64_t r) {
+				auto iter = routes.find(r);
+				if(iter == routes.end()) return nullptr;
+				return &iter->second;
+			}
+	};
+
+    
+	using action_handler_t = std::function<void(wasm_context &,  uint64_t)>;
+    typedef router<action_handler_t> action_router; 
+
+    using abi_handler_t = std::function<std::vector<char>()>;
+    typedef router<abi_handler_t> abi_router;
+
+	class native_module {
+		public:
+	        native_module()  {}
+	        ~native_module() {}	
+	        
+	    public:	
+	    	virtual void register_routes(abi_router& abi_r, action_router& act_r) = 0;
+	};
+
 
     using transfer_data_t = std::tuple <uint64_t, uint64_t, wasm::asset, string >;
     using set_code_data_t = std::tuple<uint64_t, string, string, string>;
@@ -53,6 +75,6 @@ namespace wasm {
 
         CHAIN_ASSERT( database.SetAccount(owner.regid, owner), account_access_exception,
                       "Save account error")
-    }
+    }	
 
-};
+}
