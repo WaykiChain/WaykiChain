@@ -29,24 +29,31 @@ bool CBaseCoinTransferTx::CheckTx(CTxExecuteContext &context) {
 bool CBaseCoinTransferTx::ExecuteTx(CTxExecuteContext &context) {
     IMPLEMENT_DEFINE_CW_STATE;
 
-    CAccount desAccount;
-    if (!cw.accountCache.GetAccount(toUid, desAccount)) {
-        if (toUid.is<CKeyID>()) {  // first involved in transaction
-            desAccount.keyid = toUid.get<CKeyID>();
+    shared_ptr<CAccount> spDestAccount = nullptr;
+    {
+        CAccount *pDestAccount = nullptr;
+        if (txAccount.IsSelfUid(toUid)) {
+            pDestAccount = &txAccount; // transfer to self account
         } else {
-            return state.DoS(100, ERRORMSG("CBaseCoinTransferTx::ExecuteTx, get account info failed"),
-                             READ_ACCOUNT_FAIL, "bad-read-accountdb");
+            spDestAccount = make_shared<CAccount>();
+            if (!cw.accountCache.GetAccount(toUid, *spDestAccount)) {
+                if (toUid.is<CKeyID>()) // first involved in transaction
+                    spDestAccount->keyid = toUid.get<CKeyID>();
+            } else {
+                return state.DoS(100, ERRORMSG("CBaseCoinTransferTx::ExecuteTx, get account info failed"),
+                                READ_ACCOUNT_FAIL, "bad-read-accountdb");
+            }
+            pDestAccount = spDestAccount.get(); // transfer to other account
         }
+
+        if (!txAccount.OperateBalance(SYMB::WICC, BalanceOpType::SUB_FREE, coin_amount,
+                                    ReceiptCode::TRANSFER_ACTUAL_COINS, receipts, pDestAccount))
+            return state.DoS(100, ERRORMSG("CBaseCoinTransferTx::ExecuteTx, account has insufficient funds"),
+                            UPDATE_ACCOUNT_FAIL, "operate-minus-account-failed");
     }
-
-    if (!txAccount.OperateBalance(SYMB::WICC, BalanceOpType::SUB_FREE, coin_amount,
-                                ReceiptCode::TRANSFER_ACTUAL_COINS, receipts, &desAccount))
-        return state.DoS(100, ERRORMSG("CBaseCoinTransferTx::ExecuteTx, account has insufficient funds"),
-                         UPDATE_ACCOUNT_FAIL, "operate-minus-account-failed");
-
-    if (!cw.accountCache.SetAccount(toUid, desAccount))
-        return state.DoS(100, ERRORMSG("CBaseCoinTransferTx::ExecuteTx, save account error, kyeId=%s",
-                         desAccount.keyid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-save-account");
+    if (spDestAccount && !cw.accountCache.SetAccount(toUid, *spDestAccount))
+        return state.DoS(100, ERRORMSG("CBaseCoinTransferTx::ExecuteTx, save account error, addr=%s",
+                         spDestAccount->keyid.ToAddress()), UPDATE_ACCOUNT_FAIL, "bad-save-account");
 
     return true;
 }
