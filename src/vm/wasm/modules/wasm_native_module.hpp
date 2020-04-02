@@ -33,16 +33,12 @@ namespace wasm {
 		  	static void act_handler(wasm_context &context, uint64_t action){
 	    		switch (action){
 	    			case N(setcode):
-	    			     WASM_TRACE("%s", wasm::name(action).to_string())
 	    			     setcode(context);
 	    			     return;
 	    			     break;
 	    			default:
 	    			     break;
 	    		}
-
-
-	    		WASM_TRACE("%s", wasm::name(N(setcode)).to_string())
 
 	            CHAIN_ASSERT( false,
 	                      wasm_chain::action_not_found_exception,
