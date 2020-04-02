@@ -37,11 +37,12 @@ bool CBaseCoinTransferTx::ExecuteTx(CTxExecuteContext &context) {
         } else {
             spDestAccount = make_shared<CAccount>();
             if (!cw.accountCache.GetAccount(toUid, *spDestAccount)) {
-                if (toUid.is<CKeyID>()) // first involved in transaction
+                if (toUid.is<CKeyID>()) { // first involved in transaction
                     spDestAccount->keyid = toUid.get<CKeyID>();
-            } else {
-                return state.DoS(100, ERRORMSG("CBaseCoinTransferTx::ExecuteTx, get account info failed"),
-                                READ_ACCOUNT_FAIL, "bad-read-accountdb");
+                } else {
+                    return state.DoS(100, ERRORMSG("CBaseCoinTransferTx::ExecuteTx, get account info failed"),
+                                    READ_ACCOUNT_FAIL, "bad-read-accountdb");
+                }
             }
             pDestAccount = spDestAccount.get(); // transfer to other account
         }
