@@ -1090,10 +1090,14 @@ namespace dex {
         // save accounts, include tx account
         for (auto accountItem : accountMap) {
             auto pAccount = accountItem.second;
-            if (!cw.accountCache.SetAccount(pAccount->keyid, *pAccount))
-                return state.DoS(100, ERRORMSG("%s, set account info error! regid=%s, addr=%s",
-                    TX_ERR_TITLE, pAccount->regid.ToString(), pAccount->keyid.ToAddress()),
-                    WRITE_ACCOUNT_FAIL, "bad-write-accountdb");
+            if (txAccount.IsSelfUid(pAccount->regid)) {
+                txAccount = *pTxAccount;
+            } else {
+                if (!cw.accountCache.SetAccount(pAccount->keyid, *pAccount))
+                    return state.DoS(100, ERRORMSG("%s, set account info error! regid=%s, addr=%s",
+                        TX_ERR_TITLE, pAccount->regid.ToString(), pAccount->keyid.ToAddress()),
+                        WRITE_ACCOUNT_FAIL, "bad-write-accountdb");
+            }
         }
 
         return true;
