@@ -99,17 +99,21 @@ bool CAccountDBCache::GetKeyId(const CRegID &regId, CKeyID &keyId) const {
 }
 
 bool CAccountDBCache::GetKeyId(const CUserID &userId, CKeyID &keyId) const {
-    if (userId.is<CRegID>()) {
+    if (userId.is<CRegID>())
         return GetKeyId(userId.get<CRegID>(), keyId);
-    } else if (userId.is<CPubKey>()) {
+
+    if (userId.is<CPubKey>()) {
         keyId = userId.get<CPubKey>().GetKeyId();
         return true;
-    } else if (userId.is<CKeyID>()) {
+    }
+
+    if (userId.is<CKeyID>()) {
         keyId = userId.get<CKeyID>();
         return true;
-    } else if (userId.is<CNullID>()) {
-        return ERRORMSG("GetKeyId: userId can't be of CNullID type");
     }
+
+    if (userId.is<CNullID>())
+        return ERRORMSG("GetKeyId: userId can't be of CNullID type");
 
     return ERRORMSG("GetKeyId: userid type is unknown");
 }
