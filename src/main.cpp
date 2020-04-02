@@ -798,6 +798,23 @@ static bool FindUndoPos(CValidationState &state, int32_t nFile, CDiskBlockPos &p
     return true;
 }
 
+static bool GenNativeAsset(CCacheWrapper& cw) {
+    //save native asset
+    CAsset wicc(SYMB::WICC,SYMB::WICC,AssetType::NIA, 15, CNullID(), INITIAL_BASE_COIN_AMOUNT * COIN, true);
+    CAsset wusd(SYMB::WUSD,SYMB::WUSD,AssetType::MPA, 6,  CNullID(), 0, false);
+    CAsset wgrt(SYMB::WGRT,SYMB::WGRT,AssetType::NIA, 13, CNullID(), INITIAL_FCOIN_AMOUNT * COIN, false);
+    return cw.assetCache.SetAsset(wicc)
+            && cw.assetCache.SetAsset(wusd)
+            && cw.assetCache.SetAsset(wgrt);
+
+}
+
+static bool GenDefaultFeedCoinPairs(CCacheWrapper& cw) {
+
+    return cw.priceFeedCache.AddFeedCoinPair(PriceCoinPair(SYMB::WICC,SYMB::USD)) &&
+            cw.priceFeedCache.AddFeedCoinPair(PriceCoinPair(SYMB::WGRT,SYMB::USD));
+
+}
 static bool ProcessGenesisBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValidationState &state) {
 
     cw.blockCache.SetBestBlock(pIndex->GetBlockHash());
@@ -894,13 +911,16 @@ static bool ProcessGenesisBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *p
             REJECT_INVALID, "process-block-delegates-failed");
     }
 
-    //save native asset
-    CAsset wicc(SYMB::WICC,SYMB::WICC,AssetType::NIA, 15, CNullID(), INITIAL_BASE_COIN_AMOUNT * COIN, true);
-    CAsset wusd(SYMB::WUSD,SYMB::WUSD,AssetType::MPA, 6,  CNullID(), 0, false);
-    CAsset wgrt(SYMB::WGRT,SYMB::WGRT,AssetType::NIA, 13, CNullID(), INITIAL_FCOIN_AMOUNT * COIN, false);
-    cw.assetCache.SetAsset(wicc);
-    cw.assetCache.SetAsset(wusd);
-    cw.assetCache.SetAsset(wgrt);
+    if(!GenNativeAsset(cw)) {
+        return state.DoS(100, ERRORMSG("GenesisBlock::ConnectBlock() : gen WICC, WUSD, WGRT asset error"),
+                         REJECT_INVALID, "gen-native-asset-failed");
+    }
+
+    if(!GenDefaultFeedCoinPairs(cw)) {
+        return state.DoS(100, ERRORMSG("GenesisBlock::ConnectBlock() : gen WICC-WUSD, WGRT-WUSD price coin pair error"),
+                         REJECT_INVALID, "gen-default-pricecoinpair-failed");
+    }
+
 
     return true;
 }

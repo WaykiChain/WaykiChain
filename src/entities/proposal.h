@@ -512,7 +512,7 @@ struct CGovAxcCoinProposal: CProposal {
 
 //cross-chain swap must be initiated by the peer chain asset holder
 struct CGovAxcInProposal: CProposal {
-    TokenSymbol peer_chain_token_symbol; // from kXChainSwapInTokenMap to get the target token symbol
+    TokenSymbol peer_chain_token_symbol; // from  to get the target token symbol
     string      peer_chain_addr;  // initiator's address at peer chain
     string      peer_chain_txid; // a proof from the peer chain (non-HTLC version)
 

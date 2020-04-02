@@ -705,10 +705,6 @@ bool CGovAxcCoinProposal::CheckProposal(CTxExecuteContext& context, CBaseTx& tx)
                              "chain_type-error");
     }
 
-    if (kXChainSwapInTokenMap.find(peer_chain_coin_symbol) != kXChainSwapInTokenMap.end() && op_type == ProposalOperateType::DISABLE)
-        return state.DoS(100, ERRORMSG("CGovAxcCoinProposal::CheckProposal,default pair can't be removed"), REJECT_INVALID,
-                         "default-coin-error");
-
     if (peer_chain_coin_symbol.size() >= 6)
         return state.DoS(100, ERRORMSG("CGovAxcCoinProposal::CheckProposal, peer_chain_coin_symbol size is too long"), REJECT_INVALID,
                          "peer_coin_symbol-error");
