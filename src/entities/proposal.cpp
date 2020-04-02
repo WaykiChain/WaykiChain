@@ -740,12 +740,12 @@ bool  CGovAxcCoinProposal::ExecuteProposal(CTxExecuteContext& context, CBaseTx& 
     return true;
 }
 
-bool CGovDiaIssueProposal::CheckProposal(CTxExecuteContext& context, CBaseTx& tx) {
+bool CGovAssetIssueProposal::CheckProposal(CTxExecuteContext& context, CBaseTx& tx) {
 
     IMPLEMENT_DEFINE_CW_STATE
 
-    if (asset_symbol.size() < MIN_DIA_SYMBOL_LEN || asset_symbol.size() > MAX_TOKEN_SYMBOL_LEN) {
-        return state.DoS(100, ERRORMSG("CGovDiaIssueProposal::CheckProposal, the dia symbol size must be between 3 and 7"), REJECT_INVALID,
+    if (asset_symbol.size() < MIN_TOKEN_SYMBOL_LEN || asset_symbol.size() > MAX_TOKEN_SYMBOL_LEN) {
+        return state.DoS(100, ERRORMSG("CGovAssetIssueProposal::CheckProposal, the dia symbol size must be between 3 and 7"), REJECT_INVALID,
                          "bad-symbol-size");
     }
 
@@ -755,23 +755,23 @@ bool CGovDiaIssueProposal::CheckProposal(CTxExecuteContext& context, CBaseTx& tx
 
     CAccount acct;
     if (!cw.accountCache.GetAccount(owner_uid, acct))
-        return state.DoS(100, ERRORMSG("CGovDiaIssueProposal::CheckProposal, read account failed"), REJECT_INVALID,
+        return state.DoS(100, ERRORMSG("CGovAssetIssueProposal::CheckProposal, read account failed"), REJECT_INVALID,
                          "bad-getaccount");
 
     if (!cw.assetCache.HasAsset(asset_symbol))
-        return state.DoS(100, ERRORMSG("CGovDiaIssueProposal::CheckProposal, asset_symbol is exist"), REJECT_INVALID,
+        return state.DoS(100, ERRORMSG("CGovAssetIssueProposal::CheckProposal, asset_symbol is exist"), REJECT_INVALID,
                          "asset-exist");
 
     return true;
 }
-bool CGovDiaIssueProposal::ExecuteProposal(CTxExecuteContext& context, CBaseTx& tx) {
+bool CGovAssetIssueProposal::ExecuteProposal(CTxExecuteContext& context, CBaseTx& tx) {
 
     IMPLEMENT_DEFINE_CW_STATE
 
-    CAsset asset(asset_symbol, asset_symbol, AssetType::DIA, 0, owner_uid, total_supply, false);
+    CAsset asset(asset_symbol, asset_symbol, AssetType::UIA, AssetPermType::PERM_DEX_BASE, owner_uid, total_supply, false);
 
     if (!cw.assetCache.SetAsset(asset)) {
-        return state.DoS(100, ERRORMSG("CGovDiaIssueProposal::ExecuteProposal,save asset error"), REJECT_INVALID,
+        return state.DoS(100, ERRORMSG("CGovAssetIssueProposal::ExecuteProposal,save asset error"), REJECT_INVALID,
                          "asset-write-error");
     }
 

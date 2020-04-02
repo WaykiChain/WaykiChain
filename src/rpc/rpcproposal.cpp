@@ -837,14 +837,14 @@ Value submitdiaissueproposal(const Array& params, bool fHelp) {
 
     CAccount ownerAccount = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, ownerUid);
 
-    CGovDiaIssueProposal proposal(assetSymbol, totalSupply, ownerUid);
+    CGovAssetIssueProposal proposal(assetSymbol, totalSupply, ownerUid);
 
     CProposalRequestTx tx;
     tx.txUid        = txUid;
     tx.llFees       = fee.GetAmountInSawi();
     tx.fee_symbol    = fee.symbol;
     tx.valid_height = validHeight;
-    tx.proposal = CProposalStorageBean(std::make_shared<CGovDiaIssueProposal>(proposal));
+    tx.proposal = CProposalStorageBean(std::make_shared<CGovAssetIssueProposal>(proposal));
 
 
     return SubmitTx(account.keyid, tx);

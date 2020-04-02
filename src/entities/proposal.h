@@ -45,7 +45,7 @@ enum ProposalType: uint8_t {
     GOV_AXC_IN          = 12, // atomic-cross-chain swap in
     GOV_AXC_OUT         = 13, // atomic-cross-chain swap out
     GOV_AXC_COIN        = 14,
-    GOV_DIA_ISSUE       = 15
+    GOV_ASSET_ISSUE     = 15
 };
 
 enum ProposalOperateType: uint8_t {
@@ -617,14 +617,18 @@ struct CGovAxcOutProposal: CProposal {
 };
 
 
-struct CGovDiaIssueProposal: CProposal {
+/**
+ * special UIA asset create proposal:
+ *  support 3~5-char long symboled UIA. E.g. xBTC, xETH
+ */
+struct CGovAssetIssueProposal: CProposal {
     TokenSymbol asset_symbol;
     uint64_t    total_supply;
     CUserID     owner_uid;
 
-    CGovDiaIssueProposal(): CProposal(ProposalType::GOV_DIA_ISSUE) {}
-    CGovDiaIssueProposal(TokenSymbol& assetSymbol, uint64_t& totalSupply,
-                        const CUserID &ownerUid): CProposal(ProposalType::GOV_DIA_ISSUE),
+    CGovAssetIssueProposal(): CProposal(ProposalType::GOV_ASSET_ISSUE) {}
+    CGovAssetIssueProposal(TokenSymbol& assetSymbol, uint64_t& totalSupply,
+                        const CUserID &ownerUid): CProposal(ProposalType::GOV_ASSET_ISSUE),
                                             asset_symbol(assetSymbol),
                                             total_supply(totalSupply),
                                             owner_uid(ownerUid) {}
@@ -653,7 +657,7 @@ struct CGovDiaIssueProposal: CProposal {
                           baseString, self_chain_token_symbol, peer_chain_addr, swap_amount);*/
     }
 
-    shared_ptr<CProposal> GetNewInstance() override { return make_shared<CGovDiaIssueProposal>(*this); } ;
+    shared_ptr<CProposal> GetNewInstance() override { return make_shared<CGovAssetIssueProposal>(*this); } ;
 
     bool CheckProposal(CTxExecuteContext& context, CBaseTx& tx) override;
     bool ExecuteProposal(CTxExecuteContext& context, CBaseTx& tx) override;
@@ -736,8 +740,8 @@ struct CProposalStorageBean {
                 ::Serialize(os, *((CGovAssetPermProposal  *) (sp_proposal.get())), nType, nVersion);
                 break;
 
-            case GOV_DIA_ISSUE:
-                ::Serialize(os, *((CGovDiaIssueProposal  *) (sp_proposal.get())), nType, nVersion);
+            case GOV_ASSET_ISSUE:
+                ::Serialize(os, *((CGovAssetIssueProposal  *) (sp_proposal.get())), nType, nVersion);
                 break;
 
             default:
@@ -836,9 +840,9 @@ struct CProposalStorageBean {
             }
 
 
-            case GOV_DIA_ISSUE: {
-                sp_proposal = std:: make_shared<CGovDiaIssueProposal>();
-                ::Unserialize(is,  *((CGovDiaIssueProposal *)(sp_proposal.get())), nType, nVersion);
+            case GOV_ASSET_ISSUE: {
+                sp_proposal = std:: make_shared<CGovAssetIssueProposal>();
+                ::Unserialize(is,  *((CGovAssetIssueProposal *)(sp_proposal.get())), nType, nVersion);
                 break;
             }
 
