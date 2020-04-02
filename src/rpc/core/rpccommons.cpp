@@ -512,7 +512,7 @@ CKeyID RPC_PARAM::GetUserKeyId(const CUserID &uid) {
     CKeyID keyid;
     if (!pCdMan->pAccountCache->GetKeyId(uid, keyid))
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
-                           strprintf("Get keyid by userid=%s failed", uid.ToString()));
+                           strprintf("Get account keyid by (%s) failed", uid.ToString()));
     return keyid;
 }
 
