@@ -81,7 +81,7 @@ UnsignedCharArray CLuaVMRunEnv::GetAccountID(const CVmOperate& value) {
         CKeyID keyid = CKeyID(addr);
         CRegID regid;
         if (p_context->p_cw->accountCache.GetRegId(CUserID(keyid), regid)) {
-            accountId.assign(regid.GetRegIdRaw().begin(), regid.GetRegIdRaw().end());
+            accountId = regid.GetRegIdRaw();
         } else {
             accountId.assign(value.accountId, value.accountId + 34);
         }
