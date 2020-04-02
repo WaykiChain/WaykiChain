@@ -343,7 +343,7 @@ Object JSON::ToJson(const CAccountDBCache &accountCache, const CReceipt &receipt
     obj.push_back(Pair("from_addr",     fromKeyId.ToAddress()));
     obj.push_back(Pair("to_addr",       toKeyId.ToAddress()));
     obj.push_back(Pair("coin_symbol",   receipt.coin_symbol));
-    obj.push_back(Pair("coin_amount",   receipt.coin_amount));
+    obj.push_back(Pair("coin_amount",   ValueFromAmount(receipt.coin_amount)));
     obj.push_back(Pair("receipt_code",  (uint64_t)receipt.code));
     obj.push_back(Pair("memo",          GetReceiptCodeName(receipt.code)));
     return obj;
