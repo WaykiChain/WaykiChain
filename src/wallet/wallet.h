@@ -176,8 +176,8 @@ public:
     CWalletAccountTxDb(CWallet* pWalletIn = NULL, uint256 blockHash = uint256(), int32_t blockHeight = 0) {
         p_wallet = pWalletIn;
         block_hash = blockHash;
-        account_tx_map.clear();
         block_height = blockHeight;
+        account_tx_map.clear();
     }
 
     ~CWalletAccountTxDb() { }
