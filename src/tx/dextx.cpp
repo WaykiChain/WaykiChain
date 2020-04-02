@@ -67,7 +67,7 @@ namespace dex {
     // class CDEXOrderBaseTx
 
     bool CDEXOrderBaseTx::CheckTx(CTxExecuteContext &context) {
-        CCacheWrapper &cw = *context.pCw; CValidationState &state = *context.pState;
+        CValidationState &state = *context.pState;
 
         IMPLEMENT_CHECK_TX_MEMO;
 
@@ -431,7 +431,7 @@ namespace dex {
     }
 
     bool CDEXCancelOrderTx::CheckTx(CTxExecuteContext &context) {
-        IMPLEMENT_DEFINE_CW_STATE;
+        CValidationState &state = *context.pState;
 
         if (order_id.IsEmpty())
             return state.DoS(100, ERRORMSG("CDEXCancelOrderTx::CheckTx, order_id is empty"), REJECT_INVALID,
