@@ -19,7 +19,6 @@ bool CAccountPermsClearTx::CheckTx(CTxExecuteContext &context) {
 }
 
 bool CAccountPermsClearTx::ExecuteTx(CTxExecuteContext &context) {
-    IMPLEMENT_DEFINE_CW_STATE
 
     txAccount.perms_sum = 0;
 

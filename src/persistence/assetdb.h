@@ -49,8 +49,6 @@ struct AxcSwapCoinPair {
 /*  -------------------- --------------------   --------------  -------------   --------------------- */
     // <asset$tokenSymbol -> asset>
 typedef CCompositeKVCache< dbk::ASSET,         TokenSymbol,        CAsset>      DbAssetCache;
-    // [prefix]{$perm}{$asset_symbol} --> $assetStatus
-typedef CCompositeKVCache< dbk::PERM_ASSETS,  pair<CFixedUInt64, TokenSymbol>,  uint8_t>  PermAssetsCache;
 
 class CUserAssetsIterator: public CDbIterator<DbAssetCache> {
 public:
@@ -62,21 +60,18 @@ public:
     }
 };
 
-using CPermAssetsIterator = CDBPrefixIterator<PermAssetsCache, CFixedUInt64>;
 
 class CAssetDbCache {
 public:
     CAssetDbCache() {}
 
     CAssetDbCache(CDBAccess *pDbAccess) : asset_cache(pDbAccess),
-                                          perm_assets_cache(pDbAccess),
                                           axc_swap_coin_ps_cache(pDbAccess),
                                           axc_swap_coin_sp_cache(pDbAccess)  {
         assert(pDbAccess->GetDbNameType() == DBNameType::ASSET);
     };
 
     CAssetDbCache(CAssetDbCache *pBaseIn) : asset_cache(pBaseIn->asset_cache),
-                                            perm_assets_cache(pBaseIn->perm_assets_cache),
                                             axc_swap_coin_ps_cache(pBaseIn->axc_swap_coin_ps_cache),
                                             axc_swap_coin_sp_cache(pBaseIn->axc_swap_coin_sp_cache) {};
 
@@ -89,38 +84,31 @@ public:
 
     bool CheckAsset(const TokenSymbol &symbol, uint64_t permsSum = 0);
 
-    bool SetAssetPerms(const CAsset &oldAsset, const CAsset &newAsset);
-
     bool Flush() {
         asset_cache.Flush();
-        perm_assets_cache.Flush();
         axc_swap_coin_ps_cache.Flush();
         axc_swap_coin_sp_cache.Flush();
         return true;
     }
 
     uint32_t GetCacheSize() const { return asset_cache.GetCacheSize()
-                                         + perm_assets_cache.GetCacheSize()
                                          + axc_swap_coin_ps_cache.GetCacheSize()
                                          + axc_swap_coin_sp_cache.GetCacheSize(); }
 
     void SetBaseViewPtr(CAssetDbCache *pBaseIn) {
         asset_cache.SetBase(&pBaseIn->asset_cache);
-        perm_assets_cache.SetBase(&pBaseIn->perm_assets_cache);
         axc_swap_coin_ps_cache.SetBase(&pBaseIn->axc_swap_coin_ps_cache);
         axc_swap_coin_sp_cache.SetBase(&pBaseIn->axc_swap_coin_sp_cache);
     }
 
     void SetDbOpLogMap(CDBOpLogMap *pDbOpLogMapIn) {
         asset_cache.SetDbOpLogMap(pDbOpLogMapIn);
-        perm_assets_cache.SetDbOpLogMap(pDbOpLogMapIn);
         axc_swap_coin_ps_cache.SetDbOpLogMap(pDbOpLogMapIn);
         axc_swap_coin_sp_cache.SetDbOpLogMap(pDbOpLogMapIn);
     }
 
     void RegisterUndoFunc(UndoDataFuncMap &undoDataFuncMap) {
         asset_cache.RegisterUndoFunc(undoDataFuncMap);
-        perm_assets_cache.RegisterUndoFunc(undoDataFuncMap);
         axc_swap_coin_sp_cache.RegisterUndoFunc(undoDataFuncMap);
         axc_swap_coin_ps_cache.RegisterUndoFunc(undoDataFuncMap);
     }
@@ -148,8 +136,6 @@ public:
 /*  -------------------- --------------------   --------------  -------------   --------------------- */
     // <asset_tokenSymbol -> asset>
     DbAssetCache   asset_cache;
-    // [prefix]{$perm}{$asset_symbol} --> $assetStatus
-    PermAssetsCache      perm_assets_cache;
 
     //peer_symbol -> pair<self_symbol, chainType>
     CCompositeKVCache<dbk::AXC_COIN_PEERTOSELF,         string,            pair<string, uint8_t>>  axc_swap_coin_ps_cache;

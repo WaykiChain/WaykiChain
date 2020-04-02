@@ -81,7 +81,6 @@ namespace dbk {
         DEFINE( AXCOUT_PROPOSAL_TXUID, "aptu",  SYSGOVERN )     \
         /*** Asset Registry DB */ \
         DEFINE( ASSET,                "asst",   ASSET )          /* asst{$AssetName} --> $Asset */ \
-        DEFINE( PERM_ASSETS,          "pats",   ASSET )          /* [prefix]{$perm}{$asset_symbol} --> $assetStatus */ \
         DEFINE( AXC_COIN_PEERTOSELF,   "acps",  ASSET )        /* [prefix]swapin-txid -->  amount */      \
         DEFINE( AXC_COIN_SELFTOPEER,   "acsp",  ASSET )                             \
         /**** block db                                                                          */ \
