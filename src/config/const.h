@@ -217,7 +217,6 @@ static const string LUA_CONTRACT_HEADLINE        = "mylib = require";
 static const uint64_t INITIAL_BASE_COIN_AMOUNT               = 210000000;  // 210 million
 static const uint32_t BLOCK_INTERVAL_PRE_STABLE_COIN_RELEASE = 10;         // 10 seconds
 static const uint32_t BLOCK_INTERVAL_STABLE_COIN_RELEASE     = 3;          // 3 seconds
-static const uint64_t INITIAL_FCOIN_AMOUNT                   = 21000000000;  //21000 million
 
 static const uint32_t CONTINUOUS_BLOCK_COUNT_BEFORE_FORK = 1 ;   //coutinuous produce block count
 static const uint32_t CONTINUOUS_BLOCK_COUNT_AFTER_FORK  = 2 ;
