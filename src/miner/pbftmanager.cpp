@@ -154,19 +154,23 @@ bool CPBFTMan::UpdateLocalFinBlock(const CBlockConfirmMessage& msg, const uint32
 
     if(fi == nullptr ||(uint32_t)fi->height >= msg.height) {
         LogPrint(BCLog::DEBUG,"old Lock Fin not fa");
+        return false;
     }
-        return ERRORMSG("");
 
     CBlockIndex* pIndex = chainActive[msg.height];
-    if(pIndex == nullptr || pIndex->pprev== nullptr)
-        return ERRORMSG("blockNotFind");
+    if(pIndex == nullptr || pIndex->pprev== nullptr) {
+        LogPrint(BCLog::DEBUG,"blockNotFind");
+        return false;
+    }
 
-    if(pIndex->GetBlockHash() != msg.blockHash)
-        return ERRORMSG("block hash err");
+    if(pIndex->GetBlockHash() != msg.blockHash) {
+
+        LogPrint(BCLog::DEBUG,"block hash err");
+        return false;
+    }
 
     set<CBlockConfirmMessage> messageSet;
     set<CRegID> miners;
-
 
     if (pbftContext.confirmMessageMan.GetMessagesByBlockHash(pIndex->GetBlockHash(), messageSet)
        && pbftContext.GetMinerListByBlockHash(pIndex->pprev->GetBlockHash(),miners)) {
