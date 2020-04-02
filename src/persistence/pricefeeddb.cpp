@@ -377,8 +377,7 @@ bool CPricePointMemCache::CalcMedianPriceDetails(CCacheWrapper &cw, const Height
             it++;
         }
     }
-    // get hard code PriceFeedCoinPairs
-    coinPairSet.insert(kPriceFeedCoinPairSet.begin(), kPriceFeedCoinPairSet.end());
+
     medianPrices.clear();
     for (const auto& item : coinPairSet) {
         CMedianPriceDetail bcoinMedianPrice = GetMedianPrice(blockHeight, slideWindow, item);
@@ -433,11 +432,9 @@ bool CPriceFeedCache::SetMedianPrices(const PriceDetailMap &medianPrices) {
 }
 
 bool CPriceFeedCache::AddFeedCoinPair(const PriceCoinPair &coinPair) {
-    if (kPriceFeedCoinPairSet.count(coinPair))
-        return false;
 
     set<PriceCoinPair> coinPairs;
-    price_feed_coin_pairs_cache.GetData(coinPairs);
+    GetFeedCoinPairs(coinPairs);
     if (coinPairs.count(coinPair) > 0)
         return true;
 
@@ -448,7 +445,7 @@ bool CPriceFeedCache::AddFeedCoinPair(const PriceCoinPair &coinPair) {
 bool CPriceFeedCache::EraseFeedCoinPair(const PriceCoinPair &coinPair) {
 
     if (kPriceFeedCoinPairSet.count(coinPair))
-        return false;
+        return true;
 
     set<PriceCoinPair> coins;
     price_feed_coin_pairs_cache.GetData(coins);
@@ -460,20 +457,11 @@ bool CPriceFeedCache::EraseFeedCoinPair(const PriceCoinPair &coinPair) {
 }
 
 bool CPriceFeedCache::HasFeedCoinPair(const PriceCoinPair &coinPair) {
-    // WICC:USD is the default staked coin pair of cdp
-    // WGRT:USD is need by forced-liquidate cdp for inflating WGRT
-    if (kPriceFeedCoinPairSet.count(coinPair))
-        return true;
-
     set<PriceCoinPair> coins;
     price_feed_coin_pairs_cache.GetData(coins);
-    return (coins.count(coinPair) != 0 );
+    return coins.count(coinPair);
 }
 
 bool CPriceFeedCache::GetFeedCoinPairs(set<PriceCoinPair>& coinPairSet) {
-    price_feed_coin_pairs_cache.GetData(coinPairSet);
-    for(auto kv: kPriceFeedCoinPairSet) {
-        coinPairSet.insert(kv);
-    }
-    return true;
+    return price_feed_coin_pairs_cache.GetData(coinPairSet);
 }

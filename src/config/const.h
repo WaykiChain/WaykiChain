@@ -87,22 +87,6 @@ static const unordered_set<string> kCdpScoinSymbolSet = {
     //SYMB::WCNY
 };
 
-//can be expanded thru DeGov
-static const unordered_map<TokenSymbol, std::pair<TokenSymbol,ChainType>> kXChainSwapInTokenMap =  {
-  /*  { SYMB::BTC,        make_pair(SYMB::mBTC, ChainType ::BITCOIN)          },
-    { SYMB::ETH,        make_pair(SYMB::mETH, ChainType ::ETHEREUM)         },
-    { SYMB::USDT,       make_pair(SYMB::mUSDT, ChainType ::ETHEREUM)        },
-    { SYMB::DAI,        make_pair(SYMB::mDAI, ChainType::ETHEREUM)          },
-    { SYMB::EOS,        make_pair(SYMB::mEOS, ChainType::EOS)               }*/
-};
-static const unordered_map<TokenSymbol, std::pair<TokenSymbol,ChainType>> kXChainSwapOutTokenMap =  {
-  /*  { SYMB::mBTC,       make_pair(SYMB::BTC, ChainType ::BITCOIN)           },
-    { SYMB::mETH,       make_pair(SYMB::ETH, ChainType ::ETHEREUM)          },
-    { SYMB::mUSDT,      make_pair(SYMB::USDT, ChainType ::ETHEREUM)         },
-    { SYMB::mDAI,       make_pair(SYMB::DAI, ChainType::ETHEREUM)           },
-    { SYMB::mEOS,       make_pair(SYMB::EOS, ChainType::EOS)                }*/
-};
-
 struct CoinUnitTypeHash {
     size_t operator()(const string &unit) const noexcept {
         return std::hash<string>{}(unit);
