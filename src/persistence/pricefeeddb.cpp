@@ -472,5 +472,8 @@ bool CPriceFeedCache::HasFeedCoinPair(const PriceCoinPair &coinPair) {
 
 bool CPriceFeedCache::GetFeedCoinPairs(set<PriceCoinPair>& coinPairSet) {
     price_feed_coin_pairs_cache.GetData(coinPairSet);
+    for(auto kv: kPriceFeedCoinPairSet) {
+        coinPairSet.insert(kv);
+    }
     return true;
 }
