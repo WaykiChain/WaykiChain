@@ -1027,8 +1027,8 @@ Value signtxraw(const Array& params, bool fHelp) {
     }
 
     const Array& addresses = params[1].get_array();
-    if (pBaseTx.get()->nTxType != UCOIN_TRANSFER_MTX && pBaseTx.get()->nTxType != DEX_OPERATOR_ORDER_TX
-        &&addresses.size() != 1) {
+    if (pBaseTx.get()->nTxType != DEX_OPERATOR_ORDER_TX &&
+        addresses.size() != 1) {
         throw JSONRPCError(RPC_INVALID_PARAMETER, "To many addresses provided");
     }
 
@@ -1046,20 +1046,19 @@ Value signtxraw(const Array& params, bool fHelp) {
     CTxMultiSigner signer(*pBaseTx, users);
     switch (pBaseTx.get()->nTxType) {
         case BLOCK_REWARD_TX:
-        case UCOIN_REWARD_TX:
+        case UCOIN_MINT_TX:
         case UCOIN_BLOCK_REWARD_TX: {
             throw JSONRPCError(RPC_INVALID_PARAMETER, "Reward transation is forbidden");
         }
-        case UCOIN_TRANSFER_MTX: {
-            CMulsigTx *pTx = dynamic_cast<CMulsigTx*>(pBaseTx.get());
-            vector<CTxMultiSigner::SigningItem> signingList;
-            for (auto& item : pTx->signaturePairs) {
-                signingList.push_back({CUserID(item.regid), &item.signature});
-            }
-            signer.Sign(signingList);
-            break;
-        }
-
+        // case UCOIN_TRANSFER_MTX: {
+        //     CMulsigTx *pTx = dynamic_cast<CMulsigTx*>(pBaseTx.get());
+        //     vector<CTxMultiSigner::SigningItem> signingList;
+        //     for (auto& item : pTx->signaturePairs) {
+        //         signingList.push_back({CUserID(item.regid), &item.signature});
+        //     }
+        //     signer.Sign(signingList);
+        //     break;
+        // }
         case DEX_OPERATOR_ORDER_TX: {
             dex::CDEXOperatorOrderTx *pTx = dynamic_cast<dex::CDEXOperatorOrderTx*>(pBaseTx.get());
             vector<CTxMultiSigner::SigningItem> signingList = {
