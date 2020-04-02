@@ -35,7 +35,7 @@ bool CContractDBCache::SetContractAccount(const CRegID &contractRegId, const CAp
 
 /************************ contract in cache ******************************/
 bool CContractDBCache::GetContract(const CRegID &contractRegId, CUniversalContract &contract) {
-    return contractCache.GetData(contractRegId, contract);
+    return contractCache.GetData(CRegIDKey(contractRegId), contract);
 }
 
 bool CContractDBCache::GetContracts(map<CRegIDKey, CUniversalContract> &contracts) {
