@@ -1059,8 +1059,8 @@ bool CCDPLiquidateTx::ProcessPenaltyFees(CTxExecuteContext &context, const CUser
      CValidationState &state = *context.pState;
     auto sz = cdp_list.size();
     if ( sz == 0 || sz > CDP_LIST_SIZE_MAX)
-        return state.DoS(100, ERRORMSG("%s, cdp_list size=%u is out of range[1, %u]", sz, CDP_LIST_SIZE_MAX
-                ), REJECT_INVALID, "invalid-cdp-list-size");
+        return state.DoS(100, ERRORMSG("%s, cdp_list size=%u is out of range[1, %u]", sz, CDP_LIST_SIZE_MAX),
+            REJECT_INVALID, "invalid-cdp-list-size");
     return true;
 }
 

@@ -13,6 +13,7 @@
 #include "tx/tx.h"
 #include "tx/blockrewardtx.h"
 #include "tx/blockpricemediantx.h"
+#include "tx/cdptx.h"
 #include "persistence/txdb.h"
 #include "persistence/contractdb.h"
 #include "persistence/cachewrapper.h"
@@ -449,6 +450,19 @@ static bool CreateNewBlockForStableCoinRelease(int64_t startMiningMs, CCacheWrap
 
         // Push block price median transaction into queue.
         txPriorities.emplace(TxPriority(PRICE_MEDIAN_TRANSACTION_PRIORITY, 0, std::make_shared<CBlockPriceMedianTx>(height)));
+
+        if (GetFeatureForkVersion(height) >= MAJOR_VER_R3) {
+            auto spCdpSettleInterestTx = std::make_shared<CCDPSettleInterestTx>(height);
+            if (!GetSettledInterestCdps(cwIn, height, spCdpSettleInterestTx->cdp_list)) {
+                return ERRORMSG("%s(), GetSettledInterestCdps error", __func__);
+            }
+            if (!spCdpSettleInterestTx->cdp_list.empty()) {
+                txPriorities.emplace(TxPriority(TRANSACTION_PRIORITY_CEILING, 0, std::make_shared<CBlockPriceMedianTx>(height)));
+
+                LogPrint(BCLog::MINER, "%s() : create CCDPSettleInterestTx to block! tx=%s\n",
+                        __func__, spCdpSettleInterestTx->ToString(cwIn.accountCache));
+            }
+        }
 
         LogPrint(BCLog::MINER, "CreateNewBlockForStableCoinRelease() : got %lu trx(s), sorted by priority\n",
                  txPriorities.size());

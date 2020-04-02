@@ -200,8 +200,8 @@ public:
 public:
     CCDPSettleInterestTx() : CBaseTx(CDP_SETTLE_INTEREST_TX) {}
 
-    CCDPSettleInterestTx(const CUserID &txUidIn, int32_t validHeightIn)
-        : CBaseTx(CDP_SETTLE_INTEREST_TX, txUidIn, validHeightIn, 0) {}
+    CCDPSettleInterestTx(int32_t validHeightIn)
+        : CBaseTx(CDP_SETTLE_INTEREST_TX, CUserID(), validHeightIn, 0) {}
 
     ~CCDPSettleInterestTx() {}
 
