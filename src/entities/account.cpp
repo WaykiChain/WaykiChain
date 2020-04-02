@@ -151,7 +151,8 @@ bool CAccount::OperateBalance(const TokenSymbol &tokenSymbol, const BalanceOpTyp
 
             accountToken.free_amount -= value;
             accountToken.pledged_amount += value;
-            otherUid = CUserID(pOtherAccount->keyid);
+            if (pOtherAccount != nullptr)
+                otherUid = CUserID(pOtherAccount->keyid);
 
             break;
         }
