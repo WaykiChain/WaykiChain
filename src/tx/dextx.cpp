@@ -84,11 +84,7 @@ namespace dex {
         if (!CheckOrderAmounts(context)) return false;
 
         if (!CheckOrderPrice(context)) return false;
-        CAccount txAccount;
-        if (!cw.accountCache.GetAccount(txUid, txAccount)) {
-            return state.DoS(100, ERRORMSG("%s, txUid=%s account not exist", ERROR_TITLE(GetTxTypeName()),
-                    txUid.ToString()), READ_ACCOUNT_FAIL, "bad-read-accountdb");
-        }
+
         DexOperatorDetail operatorDetail;
         if (!GetOrderOperator(context, operatorDetail)) return false;
         CAccount operatorAccount;
@@ -440,10 +436,6 @@ namespace dex {
         if (order_id.IsEmpty())
             return state.DoS(100, ERRORMSG("CDEXCancelOrderTx::CheckTx, order_id is empty"), REJECT_INVALID,
                             "invalid-order-id");
-        CAccount txAccount;
-        if (!cw.accountCache.GetAccount(txUid, txAccount))
-            return state.DoS(100, ERRORMSG("CDEXCancelOrderTx::CheckTx, read account failed"), REJECT_INVALID,
-                            "bad-getaccount");
 
         if (!CheckOrderFee(*this, context, txAccount)) return false;
 
