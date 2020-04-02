@@ -203,7 +203,7 @@ extern Value submitsendmultitx(const Array& params, bool fHelp);
 extern Value submitaxcinproposal(const Array& params, bool fHelp);
 extern Value submitaxcoutproposal(const Array& params, bool fHelp);
 
-extern Value genusignedrawtx(const Array& params, bool fHelp);
+extern Value genunsignedtxraw(const Array& params, bool fHelp);
 
 // debug only
 Value dumpdb(const Array& params, bool fHelp);

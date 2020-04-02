@@ -221,7 +221,7 @@ std::shared_ptr<CBaseTx> genWasmContractCalltx(json_spirit::Value param_json) {
 }
 
 const char *gen_rawtx_rpc_help_message = R"=====(
-    gettxserilize "func" "params"
+    genunsignedtxraw "func" "params"
     get the serialization json format  parameters
     Arguments:
     1."func":           (string required) the func need serilize
@@ -229,7 +229,7 @@ const char *gen_rawtx_rpc_help_message = R"=====(
     Result:
     "raw":            (string)
     Examples:
-    > ./coind gettxserilize func param
+    > ./coind genunsignedtxraw func param
     As json rpc call
     > curl --user myusername -d '{"jsonrpc": "1.0", "id":"curltest", "method":"gettxserilize", "params":["]}' -H 'Content-Type: application/json;' http://127.0.0.1:8332
 )=====";
@@ -245,7 +245,7 @@ unordered_map <string, std::shared_ptr<CBaseTx> (*)(json_spirit::Value)> nameToF
 /**
  * Example Usage:
  *
- * coind genusignedrawtx submitsendtx '{"from":"0-1","to":"wcnDdWdWTSe8qv6wyoQknT8xCf4R5ahiK2", "amount":"WICC:10000:SAWI", "fee":"WICC:10000:SAWI", "height":100, "memo":"tesst"}'
+ * coind genunsignedtxraw submitsendtx '{"from":"0-1","to":"wcnDdWdWTSe8qv6wyoQknT8xCf4R5ahiK2", "amount":"WICC:10000:SAWI", "fee":"WICC:10000:SAWI", "height":100, "memo":"tesst"}'
  *
  * {
    "send": "",
@@ -257,7 +257,7 @@ unordered_map <string, std::shared_ptr<CBaseTx> (*)(json_spirit::Value)> nameToF
  * }
  *
 */
-Value genusignedrawtx(const Array &params, bool fHelp) {
+Value genunsignedtxraw(const Array &params, bool fHelp) {
 
     if (fHelp || params.size() != 2) {
         throw runtime_error(gen_rawtx_rpc_help_message);
@@ -275,7 +275,7 @@ Value genusignedrawtx(const Array &params, bool fHelp) {
     obj.push_back(Pair("txid", pBaseTx->GetHash().GetHex()));
     CDataStream ds(SER_DISK, CLIENT_VERSION);
     ds << pBaseTx;
-    obj.push_back(Pair("unsigned_rawtx", HexStr(ds.begin(), ds.end())));
+    obj.push_back(Pair("unsigned_txraw", HexStr(ds.begin(), ds.end())));
     return obj;
 
 }

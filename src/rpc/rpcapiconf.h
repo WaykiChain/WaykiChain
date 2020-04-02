@@ -183,7 +183,7 @@ static const CRPCCommand vRPCCommands[] =
     { "genutxomultisignaddr",           &genutxomultisignaddr,              true,       true,       false   },
     { "genutxomultisignature",          &genutxomultisignature,             true,       true,       false   },
     /* abi tx serializer*/
-    { "genusignedrawtx",                &genusignedrawtx,                   true,      false,       false   },
+    { "genunsignedtxraw",                &genunsignedtxraw,                   true,      false,       false   },
 
 
 };
