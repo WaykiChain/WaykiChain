@@ -329,7 +329,7 @@ Object CAccount::ToJsonObj() const {
     obj.push_back(Pair("regid_mature",      regid.IsMature(chainActive.Height())));
     obj.push_back(Pair("owner_pubkey",      owner_pubkey.ToString()));
     obj.push_back(Pair("miner_pubkey",      miner_pubkey.ToString()));
-    obj.push_back(Pair("perms_list",         permsString));
+    obj.push_back(Pair("perms_list",        permsString));
     obj.push_back(Pair("tokens",            tokenMapObj));
     obj.push_back(Pair("received_votes",    ValueFromAmount(received_votes)));
     obj.push_back(Pair("vote_list",         candidateVoteArray));
