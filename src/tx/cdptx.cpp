@@ -1059,8 +1059,14 @@ bool CCDPLiquidateTx::ProcessPenaltyFees(CTxExecuteContext &context, const CUser
      CValidationState &state = *context.pState;
     auto sz = cdp_list.size();
     if ( sz == 0 || sz > CDP_LIST_SIZE_MAX)
-        return state.DoS(100, ERRORMSG("%s, cdp_list size=%u is out of range[1, %u]", sz, CDP_LIST_SIZE_MAX),
+        return state.DoS(100, ERRORMSG("%s, cdp_list size=%u is out of range[1, %u]", TX_ERR_TITLE, sz, CDP_LIST_SIZE_MAX),
             REJECT_INVALID, "invalid-cdp-list-size");
+    if (!txUid.IsEmpty()) // txUid is reserved
+        return state.DoS(100, ERRORMSG("%s, txUid must be empty", TX_ERR_TITLE),
+            REJECT_INVALID, "invalid-txUid");
+    if (!signature.empty()) // signature is reserved
+        return state.DoS(100, ERRORMSG("%s, signature must be empty", TX_ERR_TITLE),
+            REJECT_INVALID, "invalid-signature");
     return true;
 }
 
@@ -1091,13 +1097,12 @@ bool CCDPSettleInterestTx::ExecuteTx(CTxExecuteContext &context) {
                     UPDATE_ACCOUNT_FAIL, "not-reach-sttlement-cycle");
         }
 
-        // 2 get account
         CAccount cdpOwnerAccount;
         if (!cw.accountCache.GetAccount(CUserID(cdp.owner_regid), cdpOwnerAccount)) {
             return state.DoS(100, ERRORMSG("%s, read CDP Owner account info error! owner_regid=%s",
                         TX_ERR_TITLE, cdp.owner_regid.ToString()), READ_ACCOUNT_FAIL, "bad-read-accountdb");
         }
-        // 3 compute interest
+
         CUserCDP oldCDP = cdp; // copy before modify.
 
         uint64_t mintScoinForInterest = 0;
