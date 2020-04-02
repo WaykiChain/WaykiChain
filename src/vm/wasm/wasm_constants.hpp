@@ -17,7 +17,7 @@ namespace wasm {
     //const static auto max_serialization_time = microseconds(60 * 1000 * 1000);
     const static uint16_t max_inline_transaction_depth = 4;
     const static uint16_t max_recipients_size          = 16;
-    const static uint16_t max_abi_array_size           = 1024;
+    const static uint16_t max_abi_array_size           = 8192;
     const static uint16_t max_inline_transaction_bytes = 4096;
     const static uint32_t max_wasm_api_data_bytes      = 64*1024;
     const static uint16_t max_inline_transactions_size = 1024;
