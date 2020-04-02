@@ -89,7 +89,7 @@ public:
 
     bool GetContractData(const CRegID &contractRegId, const string &contractKey, string &contractData);
     bool SetContractData(const CRegID &contractRegId, const string &contractKey, const string &contractData);
-    bool HaveContractData(const CRegID &contractRegId, const string &contractKey);
+    bool HasContractData(const CRegID &contractRegId, const string &contractKey);
     bool EraseContractData(const CRegID &contractRegId, const string &contractKey);
 
     bool GetContractTraces(const uint256 &txid, string &contractTraces);

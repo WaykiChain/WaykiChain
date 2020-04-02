@@ -43,15 +43,15 @@ bool CContractDBCache::GetContracts(map<CRegIDKey, CUniversalContract> &contract
 }
 
 bool CContractDBCache::SaveContract(const CRegID &contractRegId, const CUniversalContract &contract) {
-    return contractCache.SetData(contractRegId, contract);
+    return contractCache.SetData(CRegIDKey(contractRegId), contract);
 }
 
 bool CContractDBCache::HaveContract(const CRegID &contractRegId) {
-    return contractCache.HasData(contractRegId);
+    return contractCache.HasData(CRegIDKey(contractRegId));
 }
 
 bool CContractDBCache::EraseContract(const CRegID &contractRegId) {
-    return contractCache.EraseData(contractRegId);
+    return contractCache.EraseData(CRegIDKey(contractRegId));
 }
 
 /************************ contract data ******************************/
@@ -66,7 +66,7 @@ bool CContractDBCache::SetContractData(const CRegID &contractRegId, const string
     return contractDataCache.SetData(key, contractData);
 }
 
-bool CContractDBCache::HaveContractData(const CRegID &contractRegId, const string &contractKey) {
+bool CContractDBCache::HasContractData(const CRegID &contractRegId, const string &contractKey) {
     auto key = std::make_pair(CRegIDKey(contractRegId), contractKey);
     return contractDataCache.HasData(key);
 }

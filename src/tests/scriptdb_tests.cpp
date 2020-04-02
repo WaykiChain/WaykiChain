@@ -38,7 +38,7 @@ void closedb() {
 	pTestView = NULL;
 	delete pTestDB;
 	pTestDB = NULL;
-	
+
 	const boost::filesystem::path p=GetDataDir() / "blocks" / "testdb";
 	boost::filesystem::remove_all(p);
 
@@ -228,7 +228,7 @@ void testscriptdatadb() {
 	BOOST_CHECK(pTestView->Flush());
 	BOOST_CHECK(pTestView->SetContractData(regScriptId, vScriptKey1, vScriptData1, operlog));
 	//test if the script id is exist in db
-	BOOST_CHECK(pTestView->HaveContractData(regScriptId, vScriptKey));
+	BOOST_CHECK(pTestView->HasContractData(regScriptId, vScriptKey));
 	vScript.clear();
 
 
