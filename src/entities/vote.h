@@ -145,13 +145,13 @@ public:
         json_spirit::Object obj;
 
         obj.push_back(json_spirit::Pair("candidate_uid", candidate_uid.ToJson()));
-        obj.push_back(json_spirit::Pair("voted_bcoins", voted_bcoins));
+        obj.push_back(json_spirit::Pair("voted_bcoins", ValueFromAmount(voted_bcoins)));
 
         return obj;
     }
 
     string ToString() const {
-        string str = strprintf("candidate_uid: %s, voted_bcoins: %lld \n", candidate_uid.ToString(), voted_bcoins);
+        string str = strprintf("candidate_uid: %s, voted_bcoins: %f \n", candidate_uid.ToString(), ValueFromAmount(voted_bcoins));
         return str;
     }
 
