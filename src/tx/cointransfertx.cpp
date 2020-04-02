@@ -89,7 +89,7 @@ bool CCoinTransferTx::CheckTx(CTxExecuteContext &context) {
     }
 
     for (size_t i = 0; i < transfers.size(); i++) {
-        if (!transfers[i].to_uid.IsEmpty()) {
+        if (transfers[i].to_uid.IsEmpty()) {
             return state.DoS(100, ERRORMSG("%s, to_uid can not be empty", __FUNCTION__),
                             REJECT_INVALID, "invalid-toUid");
         }
