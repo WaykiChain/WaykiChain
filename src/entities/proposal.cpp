@@ -768,7 +768,7 @@ bool CGovAssetIssueProposal::ExecuteProposal(CTxExecuteContext& context, CBaseTx
 
     IMPLEMENT_DEFINE_CW_STATE
 
-    CAsset asset(asset_symbol, asset_symbol, AssetType::UIA, AssetPermType::PERM_DEX_BASE, owner_uid, total_supply, false);
+    CAsset asset(asset_symbol, asset_symbol, AssetType::UIA, AssetPermType::PERM_DEX_BASE, owner_uid, total_supply, true);
 
     if (!cw.assetCache.SetAsset(asset)) {
         return state.DoS(100, ERRORMSG("CGovAssetIssueProposal::ExecuteProposal,save asset error"), REJECT_INVALID,
