@@ -118,7 +118,7 @@ void CWallet::SyncTransaction(const uint256 &hash, CBaseTx *pTx, const CBlock *p
         auto GenesisBlockProgress = [&]() {};
 
         auto ConnectBlockProgress = [&]() {
-            CAccountTx netTx(this, blockhash, pBlock->GetHeight());
+            CWalletAccountTx netTx(this, blockhash, pBlock->GetHeight());
             for (const auto &sptx : pBlock->vptx) {
                 uint256 txid = sptx->GetHash();
                 // confirm the tx is mine
@@ -444,7 +444,7 @@ CWallet *CWallet::GetInstance() {
     return nullptr;
 }
 
-Object CAccountTx::ToJsonObj(CKeyID const &key) const {
+Object CWalletAccountTx::ToJsonObj(CKeyID const &key) const {
     Object obj;
 
     Array txsArr;
@@ -490,7 +490,7 @@ bool CWallet::CleanAll() {
     unconfirmedTx.clear();
 
     for_each(mapInBlockTx.begin(), mapInBlockTx.end(),
-             [&](std::map<uint256, CAccountTx>::reference a) { CWalletDB(strWalletFile).EraseUnconfirmedTx(a.first); });
+             [&](std::map<uint256, CWalletAccountTx>::reference a) { CWalletDB(strWalletFile).EraseUnconfirmedTx(a.first); });
     mapInBlockTx.clear();
 
     bestBlock.SetNull();

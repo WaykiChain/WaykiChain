@@ -55,7 +55,7 @@ public:
     bool fFileBacked;
     string strWalletFile;
 
-    map<uint256, CAccountTx> mapInBlockTx;
+    map<uint256, CWalletAccountTx> mapInBlockTx;
     map<uint256, std::shared_ptr<CBaseTx> > unconfirmedTx;
     mutable CCriticalSection cs_wallet;
 
@@ -163,7 +163,7 @@ public:
     )
 };
 
-class CAccountTx {
+class CWalletAccountTx {
 private:
     CWallet* pWallet;
 
@@ -171,15 +171,16 @@ public:
     uint256 blockHash;
     int32_t blockHeight;
     map<uint256, std::shared_ptr<CBaseTx> > mapAccountTx;
+
 public:
-    CAccountTx(CWallet* pWalletIn = NULL, uint256 hash = uint256(), int32_t height = 0) {
+    CWalletAccountTx(CWallet* pWalletIn = NULL, uint256 hash = uint256(), int32_t height = 0) {
         pWallet = pWalletIn;
         blockHash = hash;
         mapAccountTx.clear();
         blockHeight = height;
     }
 
-    ~CAccountTx() { }
+    ~CWalletAccountTx() { }
 
     void BindWallet(CWallet* pWalletIn) {
         if (pWallet == NULL) {
@@ -200,9 +201,9 @@ public:
         return false;
     }
 
-    bool DelTx(const uint256 &hash) {
-        return mapAccountTx.erase(hash);
-    }
+    // bool DelTx(const uint256 &hash) {
+    //     return mapAccountTx.erase(hash);
+    // }
 
     size_t GetTxSize() {
         return mapAccountTx.size();
