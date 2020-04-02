@@ -532,8 +532,8 @@ Value listtx(const Array& params, bool fHelp) {
     }
     bool bUpLimited = false;
     for (auto const &blockInfo : blockInfoMap) {
-        CWalletAccountTx accountTx = pWalletMain->mapInBlockTx[blockInfo.second];
-        for (auto const & item : accountTx.mapAccountTx) {
+        CWalletAccountTxDb acctTxDb = pWalletMain->mapInBlockTx[blockInfo.second];
+        for (auto const & item : acctTxDb.account_tx_map) {
             if (nFrom-- > 0)
                 continue;
             if (++nCount > nDefCount) {

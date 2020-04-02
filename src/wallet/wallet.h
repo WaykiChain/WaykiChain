@@ -55,7 +55,7 @@ public:
     bool fFileBacked;
     string strWalletFile;
 
-    map<uint256, CWalletAccountTx> mapInBlockTx;
+    map<uint256, CWalletAccountTxDb> mapInBlockTx;
     map<uint256, std::shared_ptr<CBaseTx> > unconfirmedTx;
     mutable CCriticalSection cs_wallet;
 
@@ -163,50 +163,50 @@ public:
     )
 };
 
-class CWalletAccountTx {
+class CWalletAccountTxDb {
 private:
-    CWallet* pWallet;
+    CWallet* p_wallet;
 
 public:
-    uint256 blockHash;
-    int32_t blockHeight;
-    map<uint256, std::shared_ptr<CBaseTx> > mapAccountTx;
+    uint256 block_hash;
+    int32_t block_height;
+    map<uint256, std::shared_ptr<CBaseTx> > account_tx_map;
 
 public:
-    CWalletAccountTx(CWallet* pWalletIn = NULL, uint256 hash = uint256(), int32_t height = 0) {
-        pWallet = pWalletIn;
-        blockHash = hash;
-        mapAccountTx.clear();
-        blockHeight = height;
+    CWalletAccountTxDb(CWallet* pWalletIn = NULL, uint256 blockHash = uint256(), int32_t blockHeight = 0) {
+        p_wallet = pWalletIn;
+        block_hash = blockHash;
+        account_tx_map.clear();
+        block_height = blockHeight;
     }
 
-    ~CWalletAccountTx() { }
+    ~CWalletAccountTxDb() { }
 
     void BindWallet(CWallet* pWalletIn) {
-        if (pWallet == NULL) {
+        if (p_wallet == NULL) {
             assert(pWalletIn != NULL);
-            pWallet = pWalletIn;
+            p_wallet = pWalletIn;
         }
     }
 
     bool AddTx(const uint256 &hash, const CBaseTx *pTx) {
-        mapAccountTx[hash] = pTx->GetNewInstance();
+        account_tx_map[hash] = pTx->GetNewInstance();
         return true;
     }
 
     bool HasTx(const uint256 &hash) {
-        if (mapAccountTx.end() != mapAccountTx.find(hash)) {
+        if (account_tx_map.end() != account_tx_map.find(hash)) {
             return true;
         }
         return false;
     }
 
     // bool DelTx(const uint256 &hash) {
-    //     return mapAccountTx.erase(hash);
+    //     return account_tx_map.erase(hash);
     // }
 
     size_t GetTxSize() {
-        return mapAccountTx.size();
+        return account_tx_map.size();
     }
 
     bool WriteToDisk() {
@@ -217,9 +217,9 @@ public:
 
     IMPLEMENT_SERIALIZE
     (
-        READWRITE(blockHash);
-        READWRITE(blockHeight);
-        READWRITE(mapAccountTx);
+        READWRITE(block_hash);
+        READWRITE(block_height);
+        READWRITE(account_tx_map);
     )
 };
 

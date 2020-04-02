@@ -85,11 +85,12 @@ bool ReadKeyValue(CWallet* pWallet, CDataStream& ssKey, CDataStream& ssValue, st
 
         } else if (strType == "blocktx") {
             uint256 hash;
-            CWalletAccountTx atx;
+            CWalletAccountTxDb acctTxDb;
             ssKey >> hash;
-            ssValue >> atx;
+            ssValue >> acctTxDb;
             if (pWallet != nullptr)
-                pWallet->mapInBlockTx[hash] = atx;
+                pWallet->mapInBlockTx[hash] = acctTxDb;
+
         } else if (strType == "defaultkey") {
             if (pWallet != nullptr)
                 ssValue >> pWallet->vchDefaultKey;
@@ -273,7 +274,7 @@ bool CWalletDB::Recover(CDBEnv& dbenv, string filename, bool fOnlyKeys) {
 
 bool CWalletDB::Recover(CDBEnv& dbenv, string filename) { return CWalletDB::Recover(dbenv, filename, false); }
 
-bool CWalletDB::WriteBlockTx(const uint256& hash, const CWalletAccountTx& atx) {
+bool CWalletDB::WriteBlockTx(const uint256& hash, const CWalletAccountTxDb& atx) {
     nWalletDBUpdated++;
     return Write(make_pair(string("blocktx"), hash), atx);
 }

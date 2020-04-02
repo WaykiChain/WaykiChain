@@ -24,7 +24,7 @@ class CWallet;
 class uint160;
 class uint256;
 class CRegID;
-class CWalletAccountTx;
+class CWalletAccountTxDb;
 class CKeyCombi;
 class CBaseTx;
 
@@ -52,7 +52,7 @@ public:
     bool WriteCryptedKey(const CPubKey& pubkey, const std::vector<unsigned char>& vchCryptedSecret);
     bool WriteKeyStoreValue(const CKeyID& keyId, const CKeyCombi& KeyStoreValue, int32_t nVersion);
     bool EraseKeyStoreValue(const CKeyID& keyId);
-    bool WriteBlockTx(const uint256& hash, const CWalletAccountTx& atx);
+    bool WriteBlockTx(const uint256& hash, const CWalletAccountTxDb& atx);
     bool EraseBlockTx(const uint256& hash);
     bool WriteUnconfirmedTx(const uint256& hash, const std::shared_ptr<CBaseTx>& tx);
     bool EraseUnconfirmedTx(const uint256& hash);

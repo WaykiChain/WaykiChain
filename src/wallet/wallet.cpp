@@ -118,21 +118,21 @@ void CWallet::SyncTransaction(const uint256 &hash, CBaseTx *pTx, const CBlock *p
         auto GenesisBlockProgress = [&]() {};
 
         auto ConnectBlockProgress = [&]() {
-            CWalletAccountTx netTx(this, blockhash, pBlock->GetHeight());
+            CWalletAccountTxDb acctTxDb(this, blockhash, pBlock->GetHeight());
             for (const auto &sptx : pBlock->vptx) {
                 uint256 txid = sptx->GetHash();
                 // confirm the tx is mine
                 if (IsMine(sptx.get())) {
-                    netTx.AddTx(txid, sptx.get());
+                    acctTxDb.AddTx(txid, sptx.get());
                 }
                 if (unconfirmedTx.count(txid) > 0) {
                     CWalletDB(strWalletFile).EraseUnconfirmedTx(txid);
                     unconfirmedTx.erase(txid);
                 }
             }
-            if (netTx.GetTxSize() > 0) {          // write to disk
-                mapInBlockTx[blockhash] = netTx;  // add to map
-                netTx.WriteToDisk();
+            if (acctTxDb.GetTxSize() > 0) {          // write to disk
+                mapInBlockTx[blockhash] = acctTxDb;  // add to map
+                acctTxDb.WriteToDisk();
             }
         };
 
@@ -444,17 +444,17 @@ CWallet *CWallet::GetInstance() {
     return nullptr;
 }
 
-Object CWalletAccountTx::ToJsonObj(CKeyID const &key) const {
+Object CWalletAccountTxDb::ToJsonObj(CKeyID const &key) const {
     Object obj;
 
-    Array txsArr;
-    for (auto const &item : mapAccountTx) {
-        txsArr.push_back(item.second.get()->ToString(*pCdMan->pAccountCache));
+    Array txArr;
+    for (auto const &item : account_tx_map) {
+        txArr.push_back(item.second.get()->ToString(*pCdMan->pAccountCache));
     }
 
-    obj.push_back(Pair("block_hash",    blockHash.ToString()));
-    obj.push_back(Pair("block_height",  blockHeight));
-    obj.push_back(Pair("tx",            txsArr));
+    obj.push_back(Pair("block_hash",    block_hash.ToString()));
+    obj.push_back(Pair("block_height",  block_height));
+    obj.push_back(Pair("tx",            txArr));
 
     return obj;
 }
@@ -489,8 +489,9 @@ bool CWallet::CleanAll() {
              });
     unconfirmedTx.clear();
 
-    for_each(mapInBlockTx.begin(), mapInBlockTx.end(),
-             [&](std::map<uint256, CWalletAccountTx>::reference a) { CWalletDB(strWalletFile).EraseUnconfirmedTx(a.first); });
+    for_each(mapInBlockTx.begin(), mapInBlockTx.end(), [&](std::map<uint256, CWalletAccountTxDb>::reference a) {
+        CWalletDB(strWalletFile).EraseUnconfirmedTx(a.first); } );
+
     mapInBlockTx.clear();
 
     bestBlock.SetNull();

@@ -84,7 +84,7 @@ public:
 		if (pWalletMain->mapInBlockTx.end() == itAccountTx)
 			return false;
 
-		for (const auto &item :itAccountTx->second.mapAccountTx) {
+		for (const auto &item :itAccountTx->second.account_tx_map) {
 			if (txid == item.first) {
 				return true;
 			}

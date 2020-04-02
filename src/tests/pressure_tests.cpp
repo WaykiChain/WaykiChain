@@ -354,7 +354,7 @@ BOOST_FIXTURE_TEST_CASE(tests, PressureTest)
 					//检测钱包未确认列表中没有block中交易
 					BOOST_CHECK(!pWalletMain->UnConfirmTx.count(item->GetHash()) > 0);
 					//检测block中交易是否都在钱包已确认列表中
-					BOOST_CHECK(pWalletMain->mapInBlockTx[block.GetHash()].mapAccountTx.count(item->GetHash())>0);
+					BOOST_CHECK(pWalletMain->mapInBlockTx[block.GetHash()].account_tx_map.count(item->GetHash())>0);
 					//检测mempool中没有了block已确认交易
 					BOOST_CHECK(!mempool.mapTx.count(item->GetHash()) > 0);
 				}
@@ -363,7 +363,7 @@ BOOST_FIXTURE_TEST_CASE(tests, PressureTest)
 			{
 				LOCK2(cs_main, pWalletMain->cs_wallet);
 				//检测block中交易总数和钱包已确认列表中总数相等
-				BOOST_CHECK(pWalletMain->mapInBlockTx[block.GetHash()].mapAccountTx.size() == block.vptx.size());
+				BOOST_CHECK(pWalletMain->mapInBlockTx[block.GetHash()].account_tx_map.size() == block.vptx.size());
 				nConfirmTxCount += block.vptx.size() - 1;
 				//检测剩余mempool中交易总数与已确认交易和等于总的产生的交易数
 				nSize = mempool.mapTx.size();
