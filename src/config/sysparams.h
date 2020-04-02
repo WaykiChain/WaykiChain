@@ -71,7 +71,7 @@ static const unordered_map<SysParamType, std::tuple< uint64_t,string >, SysParam
     { PRICE_FEED_CONTINUOUS_DEVIATE_TIMES_MAX,  make_tuple( 10,         "PRICE_FEED_CONTINUOUS_DEVIATE_TIMES_MAX") },  // after 10 times continuous deviate limit penetration all deposit be deducted
     // { PRICE_FEED_DEVIATE_RATIO_MAX,             make_tuple( 3000,         "PRICE_FEED_DEVIATE_RATIO_MAX")            },  // must be < 30% * 10000, otherwise penalized
     // { PRICE_FEED_DEVIATE_PENALTY,               make_tuple( 1000,         "PRICE_FEED_DEVIATE_PENALTY")              },  // deduct 1000 staked bcoins as penalty
-    { PRICE_FEED_TIMEOUT_BLOCKS,                make_tuple( 1200,        "PRICE_FEED_TIMEOUT_BLOCKS")               },  // if the specified number of blocks does not have price feed, the price will be inactive
+    { PRICE_FEED_TIMEOUT_BLOCKS,                make_tuple( 7200,        "PRICE_FEED_TIMEOUT_BLOCKS")               },  // if the specified number of blocks does not have price feed, the price will be inactive
     { ASSET_ISSUE_FEE,                          make_tuple( 550 * COIN,  "ASSET_ISSUE_FEE")                         },  // asset issuance fee = 550 WICC
     { ASSET_UPDATE_FEE,                         make_tuple( 110 * COIN,  "ASSET_UPDATE_FEE")                        },  // asset update fee = 110 WICC
     { DEX_OPERATOR_REGISTER_FEE,                make_tuple( 1100 * COIN, "DEX_OPERATOR_REGISTER_FEE")               }, // dex operator register fee = 1100 WICC
