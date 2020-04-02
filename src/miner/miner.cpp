@@ -452,15 +452,15 @@ static bool CreateNewBlockForStableCoinRelease(int64_t startMiningMs, CCacheWrap
         txPriorities.emplace(TxPriority(PRICE_MEDIAN_TRANSACTION_PRIORITY, 0, std::make_shared<CBlockPriceMedianTx>(height)));
 
         if (GetFeatureForkVersion(height) >= MAJOR_VER_R3) {
-            auto spCdpSettleInterestTx = std::make_shared<CCDPSettleInterestTx>(height);
-            if (!GetSettledInterestCdps(cwIn, height, spCdpSettleInterestTx->cdp_list)) {
+            auto spCdpForceSettleInterestTx = std::make_shared<CCDPInterestForceSettleTx>(height);
+            if (!GetSettledInterestCdps(cwIn, height, spCdpForceSettleInterestTx->cdp_list)) {
                 return ERRORMSG("%s(), GetSettledInterestCdps error", __func__);
             }
-            if (!spCdpSettleInterestTx->cdp_list.empty()) {
+            if (!spCdpForceSettleInterestTx->cdp_list.empty()) {
                 txPriorities.emplace(TxPriority(TRANSACTION_PRIORITY_CEILING, 0, std::make_shared<CBlockPriceMedianTx>(height)));
 
-                LogPrint(BCLog::MINER, "%s() : create CCDPSettleInterestTx to block! tx=%s\n",
-                        __func__, spCdpSettleInterestTx->ToString(cwIn.accountCache));
+                LogPrint(BCLog::MINER, "%s() : create CCDPInterestForceSettleTx to block! tx=%s\n",
+                        __func__, spCdpForceSettleInterestTx->ToString(cwIn.accountCache));
             }
         }
 

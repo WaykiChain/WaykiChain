@@ -1054,8 +1054,8 @@ bool CCDPLiquidateTx::ProcessPenaltyFees(CTxExecuteContext &context, const CUser
 }
 
 
- /************************************<< CCDPSettleInterestTx >>***********************************************/
- bool CCDPSettleInterestTx::CheckTx(CTxExecuteContext &context) {
+ /************************************<< CCDPInterestForceSettleTx >>***********************************************/
+ bool CCDPInterestForceSettleTx::CheckTx(CTxExecuteContext &context) {
      CValidationState &state = *context.pState;
     auto sz = cdp_list.size();
     if ( sz == 0 || sz > CDP_LIST_SIZE_MAX)
@@ -1070,7 +1070,7 @@ bool CCDPLiquidateTx::ProcessPenaltyFees(CTxExecuteContext &context, const CUser
     return true;
 }
 
-bool CCDPSettleInterestTx::ExecuteTx(CTxExecuteContext &context) {
+bool CCDPInterestForceSettleTx::ExecuteTx(CTxExecuteContext &context) {
     CCacheWrapper &cw = *context.pCw; CValidationState &state = *context.pState;
 
     set<uint256> cdpidSet; // for check duplication
@@ -1137,7 +1137,7 @@ bool CCDPSettleInterestTx::ExecuteTx(CTxExecuteContext &context) {
     return true;
 }
 
-string CCDPSettleInterestTx::ToString(CAccountDBCache &accountCache) {
+string CCDPInterestForceSettleTx::ToString(CAccountDBCache &accountCache) {
     string cdpListStr;
     for (const auto &cdpid : cdp_list) {
         cdpListStr += cdpid.ToString() + ",";
@@ -1148,7 +1148,7 @@ string CCDPSettleInterestTx::ToString(CAccountDBCache &accountCache) {
         cdpListStr);
 }
 
-Object CCDPSettleInterestTx::ToJson(const CAccountDBCache &accountCache) const {
+Object CCDPInterestForceSettleTx::ToJson(const CAccountDBCache &accountCache) const {
     Array cdpArray;
     for (const auto &cdpid : cdp_list) {
         cdpArray.push_back(cdpid.ToString());
