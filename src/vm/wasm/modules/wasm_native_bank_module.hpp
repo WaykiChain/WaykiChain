@@ -6,15 +6,12 @@
 #include "wasm/exception/exceptions.hpp"
 #include "wasm/wasm_log.hpp"
 #include "wasm/modules/wasm_router.hpp"
-
+#include "wasm/modules/wasm_native_commons.hpp"
 #include "wasm/types/asset.hpp"
 #include "wasm/types/regid.hpp"
 #include "entities/account.h"
 #include "entities/receipt.h"
 
-// #include "wasm/modules/wasm_module.hpp"
-// #include "wasm/modules/wasm_handler.hpp"
-// #include "wasm/modules/wasm_native_lib.hpp"
 
 namespace wasm {
 
@@ -98,19 +95,28 @@ namespace wasm {
 		        CHAIN_ASSERT(quantity.amount > 0,    wasm_chain::native_contract_assert_exception, "must transfer positive quantity");
 		        CHAIN_ASSERT(memo.size()  <= 256,    wasm_chain::native_contract_assert_exception, "memo has more than 256 bytes");
 
-		        CAccount from_account;
-		        CHAIN_ASSERT( database.GetAccount(CRegID(from), from_account),
-		                      wasm_chain::native_contract_assert_exception,
-		                      "from account '%s' does not exist",
-		                      wasm::regid(from).to_string())
-		        sub_balance( from_account, quantity, database, context.control_trx.receipts );
-
-		        CAccount to_account;
-		        CHAIN_ASSERT( database.GetAccount(CRegID(to), to_account),
-		                      wasm_chain::native_contract_assert_exception,
-		                      "to account '%s' does not exist",
-		                      wasm::regid(to).to_string())
-		        add_balance( to_account, quantity, database, context.control_trx.receipts   );
+                auto& payer = context.control_trx.txAccount;
+		        if(from == payer.regid.GetIntValue()){
+		        	sub_balance( payer, quantity, database, context.control_trx.receipts,  false);
+		        }else{
+			        CAccount from_account;
+			        CHAIN_ASSERT( database.GetAccount(CRegID(from), from_account),
+			                      wasm_chain::native_contract_assert_exception,
+			                      "from account '%s' does not exist",
+			                      wasm::regid(from).to_string())
+		        	sub_balance( from_account, quantity, database, context.control_trx.receipts);		        	
+		        }
+  
+                if(to == payer.regid.GetIntValue()){
+ 			        add_balance( payer, quantity, database, context.control_trx.receipts, false);               	
+                }else{ 
+			        CAccount to_account;
+			        CHAIN_ASSERT( database.GetAccount(CRegID(to), to_account),
+			                      wasm_chain::native_contract_assert_exception,
+			                      "to account '%s' does not exist",
+			                      wasm::regid(to).to_string())
+			        add_balance( to_account, quantity, database, context.control_trx.receipts);
+		        }
 
 		        context.require_recipient(from);
 		        context.require_recipient(to);

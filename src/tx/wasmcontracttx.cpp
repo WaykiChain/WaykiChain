@@ -231,46 +231,46 @@ static uint64_t get_run_fee_in_wicc(const uint64_t& run_steps, CBaseTx& tx, CTxE
 }
 
 
-static void inline_trace_to_receipts(const wasm::inline_transaction_trace& trace,
-                                     vector<CReceipt>&                     receipts,
-                                     map<transfer_data_t,  uint64_t>&   receipts_duplicate_check) {
+// static void inline_trace_to_receipts(const wasm::inline_transaction_trace& trace,
+//                                      vector<CReceipt>&                     receipts,
+//                                      map<transfer_data_t,  uint64_t>&   receipts_duplicate_check) {
 
-    if (trace.trx.contract == wasmio_bank && trace.trx.action == wasm::N(transfer)) {
+//     if (trace.trx.contract == wasmio_bank && trace.trx.action == wasm::N(transfer)) {
 
-        CReceipt receipt;
-        receipt.code = TRANSFER_ACTUAL_COINS;
+//         CReceipt receipt;
+//         receipt.code = TRANSFER_ACTUAL_COINS;
 
-        transfer_data_t transfer_data = wasm::unpack < std::tuple < uint64_t, uint64_t, wasm::asset, string>> (trace.trx.data);
-        auto from                        = std::get<0>(transfer_data);
-        auto to                          = std::get<1>(transfer_data);
-        auto quantity                    = std::get<2>(transfer_data);
-        auto memo                        = std::get<3>(transfer_data);
+//         transfer_data_t transfer_data = wasm::unpack < std::tuple < uint64_t, uint64_t, wasm::asset, string>> (trace.trx.data);
+//         auto from                        = std::get<0>(transfer_data);
+//         auto to                          = std::get<1>(transfer_data);
+//         auto quantity                    = std::get<2>(transfer_data);
+//         auto memo                        = std::get<3>(transfer_data);
 
-        auto itr = receipts_duplicate_check.find(std::tuple(from, to ,quantity, memo));
-        if (itr == receipts_duplicate_check.end()){
-            receipts_duplicate_check[std::tuple(from, to ,quantity, memo)] = wasmio_bank;
+//         auto itr = receipts_duplicate_check.find(std::tuple(from, to ,quantity, memo));
+//         if (itr == receipts_duplicate_check.end()){
+//             receipts_duplicate_check[std::tuple(from, to ,quantity, memo)] = wasmio_bank;
 
-            receipt.from_uid    = CUserID(CRegID(from));
-            receipt.to_uid      = CUserID(CRegID(to));
-            receipt.coin_symbol = quantity.symbol.code().to_string();
-            receipt.coin_amount = quantity.amount;
+//             receipt.from_uid    = CUserID(CRegID(from));
+//             receipt.to_uid      = CUserID(CRegID(to));
+//             receipt.coin_symbol = quantity.symbol.code().to_string();
+//             receipt.coin_amount = quantity.amount;
 
-            receipts.push_back(receipt);
-        }
-    }
+//             receipts.push_back(receipt);
+//         }
+//     }
 
-    for (auto t: trace.inline_traces) {
-        inline_trace_to_receipts(t, receipts, receipts_duplicate_check);
-    }
+//     for (auto t: trace.inline_traces) {
+//         inline_trace_to_receipts(t, receipts, receipts_duplicate_check);
+//     }
 
-}
+// }
 
-static void trace_to_receipts(const wasm::transaction_trace& trace, vector<CReceipt>& receipts) {
-    map<transfer_data_t, uint64_t > receipts_duplicate_check;
-    for (auto t: trace.traces) {
-        inline_trace_to_receipts(t, receipts, receipts_duplicate_check);
-    }
-}
+// static void trace_to_receipts(const wasm::transaction_trace& trace, vector<CReceipt>& receipts) {
+//     map<transfer_data_t, uint64_t > receipts_duplicate_check;
+//     for (auto t: trace.traces) {
+//         inline_trace_to_receipts(t, receipts, receipts_duplicate_check);
+//     }
+// }
 
 bool CWasmContractTx::ExecuteTx(CTxExecuteContext &context) {
 
@@ -288,12 +288,12 @@ bool CWasmContractTx::ExecuteTx(CTxExecuteContext &context) {
         }
 
         //charge fee
-        CAccount payer;
-        CHAIN_ASSERT( database.accountCache.GetAccount(txUid, payer),
-                      wasm_chain::account_access_exception,
-                      "payer does not exist, payer uid = '%s'",
-                      txUid.ToString())
-        sub_balance(payer, wasm::asset(llFees, wasm::symbol(SYMB::WICC, 8)), database.accountCache, receipts);
+        // CAccount payer;
+        // CHAIN_ASSERT( database.accountCache.GetAccount(txUid, payer),
+        //               wasm_chain::account_access_exception,
+        //               "payer does not exist, payer uid = '%s'",
+        //               txUid.ToString())
+        // sub_balance(payer, wasm::asset(llFees, wasm::symbol(SYMB::WICC, 8)), database.accountCache, receipts);
 
         recipients_size        = 0;
         pseudo_start           = system_clock::now();//pseudo start for reduce code loading duration
@@ -342,11 +342,11 @@ bool CWasmContractTx::ExecuteTx(CTxExecuteContext &context) {
                       GetHash().ToString())
 
         //save trx receipts
-        trace_to_receipts(trx_trace, receipts);
-        CHAIN_ASSERT( database.txReceiptCache.SetTxReceipts(GetHash(), receipts),
-                      wasm_chain::account_access_exception,
-                      "set tx '%s' receipts failed",
-                      GetHash().ToString())
+        // trace_to_receipts(trx_trace, receipts);
+        // CHAIN_ASSERT( database.txReceiptCache.SetTxReceipts(GetHash(), receipts),
+        //               wasm_chain::account_access_exception,
+        //               "set tx '%s' receipts failed",
+        //               GetHash().ToString())
 
         //set runstep for block fuel sum
         nRunStep = run_cost;
@@ -452,15 +452,6 @@ Object CWasmContractTx::ToJson(const CAccountDBCache &accountCache) const {
     result.push_back(Pair("fees",             llFees));
     result.push_back(Pair("valid_height",     valid_height));
 
-    // if(inline_transactions.size() == 1){
-    //     Value tmp;
-    //     to_variant(inline_transactions[0], tmp);
-    //     result.push_back(Pair("inline_transaction", tmp));
-    // } else if(inline_transactions.size() > 1) {
-    //     Value inline_transactions_arr;
-    //     to_variant(inline_transactions, inline_transactions_arr);
-    //     result.push_back(Pair("inline_transactions", inline_transactions_arr));
-    // }
     Value inline_transactions_arr;
     to_variant(inline_transactions, inline_transactions_arr);
     result.push_back(Pair("inline_transactions", inline_transactions_arr));

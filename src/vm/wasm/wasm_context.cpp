@@ -94,8 +94,9 @@ namespace wasm {
             if (t.contract == wasmio_bank && (p.account != _receiver || p.perm != wasmio_code) ) {
                 CHAIN_ASSERT( false,
                               wasm_chain::missing_auth_exception,
-                              "Inline to wasmio.bank can be only authorized by contract-self %s, but get %s",
-                              wasm::name(_receiver).to_string(), wasm::name(p.account).to_string());
+                              "Inline to wasmio.bank can be only authorized by contract-self '%s' in '%s' , but get '%s' in '%s'",
+                              wasm::regid(_receiver).to_string(), wasm::name(wasmio_code).to_string(),
+                              wasm::regid(p.account).to_string(), wasm::name(p.perm).to_string());
             }
 
             //call contract-self and authorized by contract
@@ -105,16 +106,17 @@ namespace wasm {
             if (t.contract == _receiver && !has_permission_from_inline_transaction(p) ) {
                 CHAIN_ASSERT( false,
                               wasm_chain::missing_auth_exception,
-                              "Missing authorization by account %s in a new inline transaction",
-                              wasm::name(p.account).to_string());
+                              "Missing authorization by account '%s' in a new inline transaction",
+                              wasm::regid(p.account).to_string());
             }
 
             //call another contract
             if (t.contract != _receiver && (p.account != _receiver || p.perm != wasmio_code)){
                 CHAIN_ASSERT( false,
                               wasm_chain::missing_auth_exception,
-                              "Inline to another contract can be only authorized by contract-self %s in wasmio.code, but get %s",
-                              wasm::name(_receiver).to_string(), wasm::name(p.account).to_string());
+                              "Inline to another contract can be only authorized by contract-self '%s' in wasmio.code, but get '%s' in ",
+                              wasm::regid(_receiver).to_string(), 
+                              wasm::regid(p.account).to_string(), wasm::name(p.perm).to_string());
             }
 
         }
