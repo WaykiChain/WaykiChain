@@ -210,7 +210,7 @@ public:
     }
 
     bool WriteToDisk() {
-        return CWalletDB(pWallet->strWalletFile).WriteBlockTx(blockHash, *this);
+        return CWalletDB(p_wallet->strWalletFile).WriteBlockTx(block_hash, *this);
     }
 
     Object ToJsonObj(CKeyID const &key = CKeyID()) const;
