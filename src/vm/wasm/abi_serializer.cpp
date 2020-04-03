@@ -78,47 +78,40 @@ namespace wasm {
 
     void abi_serializer::configure_built_in_types() {
 
-        built_in_types.emplace("bool", pack_unpack<uint8_t>());
-        built_in_types.emplace("int8", pack_unpack<int8_t>());
-        built_in_types.emplace("uint8", pack_unpack<uint8_t>());
-        built_in_types.emplace("int16", pack_unpack<int16_t>());
-        built_in_types.emplace("uint16", pack_unpack<uint16_t>());
-        built_in_types.emplace("int32", pack_unpack<int32_t>());
-        built_in_types.emplace("uint32", pack_unpack<uint32_t>());
-        built_in_types.emplace("int64", pack_unpack<int64_t>());
-        built_in_types.emplace("uint64", pack_unpack<uint64_t>());
-        built_in_types.emplace("int128", pack_unpack<int128_t>());
-        built_in_types.emplace("uint128", pack_unpack<uint128_t>());
-        built_in_types.emplace("varint32", pack_unpack<wasm::signed_int>());
-        built_in_types.emplace("varuint32", pack_unpack<wasm::unsigned_int>());
+        built_in_types.emplace("bool",                  pack_unpack<uint8_t>());
+        built_in_types.emplace("int8",                  pack_unpack<int8_t>());
+        built_in_types.emplace("uint8",                 pack_unpack<uint8_t>());
+        built_in_types.emplace("int16",                 pack_unpack<int16_t>());
+        built_in_types.emplace("uint16",                pack_unpack<uint16_t>());
+        built_in_types.emplace("int32",                 pack_unpack<int32_t>());
+        built_in_types.emplace("uint32",                pack_unpack<uint32_t>());
+        built_in_types.emplace("int64",                 pack_unpack<int64_t>());
+        built_in_types.emplace("uint64",                pack_unpack<uint64_t>());
+        built_in_types.emplace("int128",                pack_unpack<int128_t>());
+        built_in_types.emplace("uint128",               pack_unpack<uint128_t>());
+        built_in_types.emplace("varint32",              pack_unpack<wasm::signed_int>());
+        built_in_types.emplace("varuint32",             pack_unpack<wasm::unsigned_int>());
 
-        // TODO: Add proper support for floating point types. For now this is good enough.
-        built_in_types.emplace("float32", pack_unpack<float>());
-        built_in_types.emplace("float64", pack_unpack<double>());
-        // built_in_types.emplace("float128",                  pack_unpack<uint128_t>());
+        built_in_types.emplace("float32",               pack_unpack<float>());
+        built_in_types.emplace("float64",               pack_unpack<double>());
 
-        built_in_types.emplace("time_point", pack_unpack<system_clock::time_point>());
-        //built_in_types.emplace("time_point_sec",            pack_unpack<std::time_point_sec>());
-        //built_in_types.emplace("block_timestamp_type",      pack_unpack<block_timestamp_type>());
+        built_in_types.emplace("time_point",            pack_unpack<system_clock::time_point>());
 
-        built_in_types.emplace("table_name", pack_unpack<name>());
-        built_in_types.emplace("action_name", pack_unpack<name>());
-        built_in_types.emplace("name",  pack_unpack<name>());
-        built_in_types.emplace("regid", pack_unpack<regid>());
+        built_in_types.emplace("table_name",            pack_unpack<name>());
+        built_in_types.emplace("action_name",           pack_unpack<name>());
+        built_in_types.emplace("name",                  pack_unpack<name>());
+        built_in_types.emplace("regid",                 pack_unpack<regid>());
 
-        built_in_types.emplace("bytes", pack_unpack<bytes>());
-        built_in_types.emplace("string", pack_unpack<string>());
+        built_in_types.emplace("bytes",                 pack_unpack<bytes>());
+        built_in_types.emplace("string",                pack_unpack<string>());
 
-        built_in_types.emplace("checksum160", pack_unpack<checksum160_type>());
-        built_in_types.emplace("checksum256", pack_unpack<checksum256_type>());
-        built_in_types.emplace("checksum512", pack_unpack<checksum512_type>());
+        built_in_types.emplace("checksum160",           pack_unpack<checksum160_type>());
+        built_in_types.emplace("checksum256",           pack_unpack<checksum256_type>());
+        built_in_types.emplace("checksum512",           pack_unpack<checksum512_type>());
 
-        // built_in_types.emplace("public_key",                pack_unpack<public_key_type>());
-        // built_in_types.emplace("signature",                 pack_unpack<signature_type>());
-
-        built_in_types.emplace("symbol", pack_unpack<symbol>());
-        built_in_types.emplace("symbol_code", pack_unpack<symbol_code>());
-        built_in_types.emplace("asset", pack_unpack<asset>());
+        built_in_types.emplace("symbol",                pack_unpack<symbol>());
+        built_in_types.emplace("symbol_code",           pack_unpack<symbol_code>());
+        built_in_types.emplace("asset",                 pack_unpack<asset>());
     }
 
     void abi_serializer::set_abi( const abi_def &abi, const microseconds &max_serialization_time ) {
@@ -228,12 +221,6 @@ namespace wasm {
 
         ctx.check_deadline();
         auto type = fundamental_type(rtype);
-
-        // auto it = structs.find(type);
-        // if (it != structs.end())
-        //     fprintf(stdin, "my it not exist\n");
-        // else
-        //     fprintf(stdin, "ok! it name=%s", it->first.c_str());
         if (built_in_types.find(type) != built_in_types.end()) return true;
         if (typedefs.find(type)       != typedefs.end())       return _is_type(typedefs.find(type)->second, ctx);
         if (structs.find(type)        != structs.end())        return true;

@@ -35,7 +35,6 @@ namespace wasm {
 	    			case N(setcode):
 	    			     setcode(context);
 	    			     return;
-	    			     break;
 	    			default:
 	    			     break;
 	    		}
