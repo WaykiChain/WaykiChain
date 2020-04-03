@@ -1926,7 +1926,7 @@ int32_t ExGetBase58AddrFunc(lua_State *L) {
     auto pAddr = retdata.at(0).get();
     if (!GetKeyId(*pVmRunEnv->GetAccountCache(), *pAddr, addrKeyId)) {
         string addr(pAddr->begin(), pAddr->end());
-        return RetFalse(strprintf("ExGetBase58AddrFunc para (%s) err", addr));
+        return RetFalse(strprintf("ExGetBase58AddrFunc para (%s)", addr));
     }
 
     string addr = addrKeyId.ToAddress();
