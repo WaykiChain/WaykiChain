@@ -89,9 +89,9 @@ namespace wasm {
 
         context.require_auth(owner);
         CHAIN_ASSERT( assetOwnerAccount.OperateBalance(symbol, BalanceOpType::SUB_FREE, quantity.amount, ReceiptCode::WASM_BURN_COINS, context.control_trx.receipts),
-                    wasm_chain::account_access_exception,
-                    "Asset Owner (%s) balance overburnt",
-                    assetOwnerAccount.regid.ToString())
+                      wasm_chain::account_access_exception,
+                      "Asset Owner (%s) balance overburnt",
+                      assetOwnerAccount.regid.ToString())
 
         if (assetOwnerAccount.keyid != context.control_trx.txAccount.keyid)
           CHAIN_ASSERT( context.database.accountCache.SetAccount(assetOwnerAccount.keyid, assetOwnerAccount),
@@ -99,9 +99,9 @@ namespace wasm {
                         "Save assetOwnerAccount error")
 
         CHAIN_ASSERT( asset.total_supply >= quantity.amount,
-                    wasm_chain::native_contract_assert_exception,
-                    "Asset total supply (%lld) < burn amount (%lld)",
-                    asset.total_supply, quantity.amount)
+                      wasm_chain::native_contract_assert_exception,
+                      "Asset total supply (%lld) < burn amount (%lld)",
+                      asset.total_supply, quantity.amount)
 
         asset.total_supply -= quantity.amount;
 
