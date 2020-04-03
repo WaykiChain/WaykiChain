@@ -251,6 +251,7 @@ void TraceVmBurning(lua_State *L, const char* caption, const char* format, ...) 
     LogPrint(BCLog::LUAVM, "%s(), %s, %s", __func__, caption, pStr);
     delete[] pStr;
 }
+
 #endif//TRACE_LUA_VM_BURN
 
 tuple<uint64_t, string> CLuaVM::Run(uint64_t fuelLimit, CLuaVMRunEnv *pVmRunEnv) {
@@ -266,7 +267,6 @@ tuple<uint64_t, string> CLuaVM::Run(uint64_t fuelLimit, CLuaVMRunEnv *pVmRunEnv)
     }
     lua_State *lua_state = lua_state_ptr.get();
 
-    //TODO: should get burner version from the block height
     if (!lua_StartBurner(lua_state, pVmRunEnv, fuelLimit, pVmRunEnv->GetBurnVersion())) {
         LogPrint(BCLog::LUAVM, "CLuaVM::Run lua_StartBurner() failed\n");
         return std::make_tuple(-1, string("CLuaVM::Run lua_StartBurner() failed\n"));
@@ -307,7 +307,7 @@ tuple<uint64_t, string> CLuaVM::Run(uint64_t fuelLimit, CLuaVMRunEnv *pVmRunEnv)
     std::string strError;
     int luaStatus = luaL_loadbuffer(lua_state, code.c_str(), code.size(), "line");
     if (luaStatus == LUA_OK) {
-        luaStatus = lua_pcallk(lua_state, 0, 0, 0, 0, NULL, BURN_VER_STEP_V1);
+        luaStatus = lua_pcallk(lua_state, 0, 0, 0, 0, NULL, pVmRunEnv->GetBurnVersion());
         if (luaStatus != LUA_OK) {
             strError = GetLuaError(lua_state, luaStatus, "lua_pcallk failed");
         }
