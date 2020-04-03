@@ -28,7 +28,7 @@ bool CAccountRegisterTx::CheckTx(CTxExecuteContext &context) {
                          REJECT_INVALID, "bad-tx-publickey");
 
     CKeyID keyId = txUid.get<CPubKey>().GetKeyId();
-    if (txAccount.HaveOwnerPubKey())
+    if (txAccount.HasOwnerPubKey())
         return state.DoS(100, ERRORMSG("CAccountRegisterTx::ExecuteTx, keyId %s duplicate register", keyId.ToString()),
                          UPDATE_ACCOUNT_FAIL, "duplicate-register-account");
 

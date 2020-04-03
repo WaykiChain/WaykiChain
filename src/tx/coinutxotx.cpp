@@ -99,7 +99,7 @@ bool VerifyMultiSig(const CTxExecuteContext &context, const uint256 &utxoMultiSi
     for (const auto &signature : p2maIn.signatures) {
         for (const auto uid : p2maIn.uids) {
             if (!cw.accountCache.GetAccount(uid, acct) ||
-                !acct.HaveOwnerPubKey())
+                !acct.HasOwnerPubKey())
                 return false;
 
             if (VerifySignature(utxoMultiSignHash, signature, acct.owner_pubkey)) {

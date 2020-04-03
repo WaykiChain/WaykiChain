@@ -77,7 +77,7 @@ Value submitaccountregistertx(const Array& params, bool fHelp) {
     CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, txUid);
     RPC_PARAM::CheckAccountBalance(account, SYMB::WICC, SUB_FREE, fee.GetAmountInSawi());
 
-    if (account.HaveOwnerPubKey())
+    if (account.HasOwnerPubKey())
         throw JSONRPCError(RPC_WALLET_ERROR, "Account was already registered");
 
     CPubKey pubkey;
@@ -300,7 +300,7 @@ Value submitdelegatevotetx(const Array& params, bool fHelp) {
         if (!pCdMan->pAccountCache->GetAccount(delegateUid, delegateAcct)) {
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Delegate address does not exist");
         }
-        if (!delegateAcct.HaveOwnerPubKey()) {
+        if (!delegateAcct.HasOwnerPubKey()) {
             throw JSONRPCError(RPC_WALLET_ERROR, "Delegate address is unregistered");
         }
 

@@ -72,7 +72,7 @@ bool CLuaContractDeployTx::CheckTx(CTxExecuteContext &context) {
         return state.DoS(100, ERRORMSG("CLuaContractDeployTx::CheckTx, get account failed"),
                          REJECT_INVALID, "bad-getaccount");
 
-    if (!account.HaveOwnerPubKey())
+    if (!account.HasOwnerPubKey())
         return state.DoS(100, ERRORMSG("CLuaContractDeployTx::CheckTx, account unregistered"), REJECT_INVALID,
                          "bad-account-unregistered");
 
@@ -267,7 +267,7 @@ bool CUniversalContractDeployTx::CheckTx(CTxExecuteContext &context) {
                          REJECT_INVALID, "bad-getaccount");
     }
 
-    if (!account.HaveOwnerPubKey()) {
+    if (!account.HasOwnerPubKey()) {
         return state.DoS(100, ERRORMSG("CUniversalContractDeployTx::CheckTx, account unregistered"),
             REJECT_INVALID, "bad-account-unregistered");
     }
@@ -386,7 +386,7 @@ bool CUniversalContractInvokeTx::ExecuteTx(CTxExecuteContext &context) {
                         app_uid.get<CRegID>().ToString()), READ_ACCOUNT_FAIL, "bad-read-accountdb");
     }
 
-    if (!txAccount.HaveOwnerPubKey()) { // first-time involved in transacion
+    if (!txAccount.HasOwnerPubKey()) { // first-time involved in transacion
         if (!txUid.is<CPubKey>())
             return context.pState->DoS(100, ERRORMSG("1st-time invoke contract while txUid(%s) is not PubKey",
                     txUid.ToString()), REJECT_INVALID, "unregistered-acct-invoke-contract-err");

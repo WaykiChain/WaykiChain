@@ -688,7 +688,7 @@ bool SysTestBase::GegRegId(string &strAddr, CRegID &regId) {
     if (!accountDbCache.GetAccount(userId, account)) {
         return false;
     }
-    if ((!account.HaveOwnerPubKey()) || account.regid.IsEmpty()) {
+    if ((!account.HasOwnerPubKey()) || account.regid.IsEmpty()) {
         return false;
     }
 

@@ -198,7 +198,7 @@ bool CWasmContractTx::CheckTx(CTxExecuteContext& context) {
         // CAccount payer;
         // CHAIN_ASSERT( database.accountCache.GetAccount(txUid, payer), wasm_chain::account_access_exception,
         //               "get payer failed, txUid '%s'", txUid.ToString())
-        // CHAIN_ASSERT( payer.HaveOwnerPubKey(), wasm_chain::account_access_exception,
+        // CHAIN_ASSERT( payer.HasOwnerPubKey(), wasm_chain::account_access_exception,
         //               "payer '%s' unregistered", payer.regid.ToString())
         // CHAIN_ASSERT( find(authorization_accounts.begin(), authorization_accounts.end(),
         //                    wasm::name(payer.regid.ToString()).value) != authorization_accounts.end(),

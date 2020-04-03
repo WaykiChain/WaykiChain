@@ -158,7 +158,7 @@ Value vmexecutescript(const Array& params, bool fHelp) {
         balance = account.GetToken(SYMB::WICC).free_amount;
     }
 
-    if (!account.HaveOwnerPubKey()) {
+    if (!account.HasOwnerPubKey()) {
         throw JSONRPCError(RPC_WALLET_ERROR, "Account is unregistered");
     }
     if (!pWalletMain->HasKey(srcKeyId)) {
