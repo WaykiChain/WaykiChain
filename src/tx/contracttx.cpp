@@ -170,7 +170,7 @@ bool CLuaContractInvokeTx::ExecuteTx(CTxExecuteContext &context) {
 
     if (!txAccount.OperateBalance(SYMB::WICC, BalanceOpType::SUB_FREE, coin_amount,
                                 ReceiptCode::LUAVM_TRANSFER_ACTUAL_COINS, receipts, &desAccount))
-        return state.DoS(100, ERRORMSG("CLuaContractInvokeTx::ExecuteTx, accounts hash insufficient funds"),
+        return state.DoS(100, ERRORMSG("CLuaContractInvokeTx::ExecuteTx, txAccount has insufficient funds"),
                          UPDATE_ACCOUNT_FAIL, "operate-minus-account-failed");
 
     if (!cw.accountCache.SetAccount(app_uid, desAccount))
@@ -388,7 +388,7 @@ bool CUniversalContractInvokeTx::ExecuteTx(CTxExecuteContext &context) {
 
     if (!txAccount.OperateBalance(coin_symbol, BalanceOpType::SUB_FREE, coin_amount,
                                   ReceiptCode::LUAVM_TRANSFER_ACTUAL_COINS, receipts, &desAccount))
-        return state.DoS(100, ERRORMSG("CUniversalContractInvokeTx::ExecuteTx, accounts hash insufficient funds"),
+        return state.DoS(100, ERRORMSG("CUniversalContractInvokeTx::ExecuteTx, txAccount has insufficient funds"),
                          UPDATE_ACCOUNT_FAIL, "operate-minus-account-failed");
 
     if (!cw.accountCache.SetAccount(app_uid, desAccount))
