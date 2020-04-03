@@ -45,9 +45,9 @@ void test_action::read_action_to_64k() {
 void test_action::require_notice( uint64_t receiver, uint64_t code, uint64_t action ) {
    (void)code;(void)action;
    if( receiver == "testapi"_n.value ) {
-      wasm::notify_recipient( "acc1"_n );
-      wasm::notify_recipient( "acc2"_n );
-      wasm::notify_recipient( "acc1"_n, "acc2"_n );
+      wasm::require_recipient( "acc1"_n );
+      wasm::require_recipient( "acc2"_n );
+      wasm::require_recipient( "acc1"_n, "acc2"_n );
       check( false, "Should've failed" );
    } else if ( receiver == "acc1"_n.value || receiver == "acc2"_n.value ) {
       return;
@@ -58,11 +58,11 @@ void test_action::require_notice( uint64_t receiver, uint64_t code, uint64_t act
 void test_action::require_notice_tests( uint64_t receiver, uint64_t code, uint64_t action ) {
    wasm::print( "require_notice_tests" );
    if( receiver == "testapi"_n.value ) {
-      wasm::print("notify_recipient( \"acc5\"_n )");
-      wasm::notify_recipient("acc5"_n);
+      wasm::print("require_recipient( \"acc5\"_n )");
+      wasm::require_recipient("acc5"_n);
    } else if( receiver == "acc5"_n.value ) {
-      wasm::print("notify_recipient( \"testapi\"_n )");
-      wasm::notify_recipient("testapi"_n);
+      wasm::print("require_recipient( \"testapi\"_n )");
+      wasm::require_recipient("testapi"_n);
    }
 }
 

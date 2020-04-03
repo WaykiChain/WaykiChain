@@ -92,7 +92,7 @@ namespace wasm {
 
       }
 
-      context.notify_recipient(owner);
+      context.require_recipient(owner);
       CHAIN_ASSERT( context.database.assetCache.SetAsset(asset),
                       wasm_chain::asset_type_exception,
                       "Update Asset (%s) failure",

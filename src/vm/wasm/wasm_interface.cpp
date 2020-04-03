@@ -542,13 +542,13 @@ namespace wasm {
             return pWasmContext->has_authorization(account);
         }
 
-        void notify_recipient( uint64_t recipient ) {
+        void require_recipient( uint64_t recipient ) {
             CHAIN_ASSERT( is_account(recipient),
                           wasm_chain::account_access_exception,
                           "can not send a receipt to a non-exist account '%s'",
                           wasm::name(recipient).to_string());
 
-            pWasmContext->notify_recipient(recipient);
+            pWasmContext->require_recipient(recipient);
 
         }
 
@@ -964,7 +964,7 @@ namespace wasm {
     REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, is_account,   is_account)
     REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, send_inline,  send_inline)
     REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, require_auth, require_auth)
-    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, notify_recipient,    notify_recipient)
+    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, require_recipient,    require_recipient)
     REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, has_authorization,    has_auth)
     REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, get_active_producers,   get_active_producers)
     REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, get_txid,               get_txid)

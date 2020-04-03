@@ -164,7 +164,7 @@ namespace wasm {
         return false;
     }
 
-    void wasm_context::notify_recipient( const uint64_t& recipient ) {
+    void wasm_context::require_recipient( const uint64_t& recipient ) {
         if (!has_recipient(recipient)) {
             notified.push_back(recipient);
         }

@@ -53,7 +53,7 @@ namespace wasm {
     public:
 
         void        execute_inline   (const inline_transaction& t);
-        void        notify_recipient(const uint64_t& recipient  );
+        void        require_recipient(const uint64_t& recipient  );
         bool        has_recipient    (const uint64_t& account    ) const;
 
         uint64_t    receiver() { return _receiver;    }

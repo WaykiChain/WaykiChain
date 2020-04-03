@@ -24,7 +24,7 @@ namespace wasm {
 
     public:
         virtual void     execute_inline( const inline_transaction& trx ) = 0;//{}
-        virtual void     notify_recipient( const uint64_t& recipient )  = 0;//{}
+        virtual void     require_recipient( const uint64_t& recipient )  = 0;//{}
         virtual bool     has_recipient    ( const uint64_t& account   )  const = 0;//{ return true; }
         virtual uint64_t receiver() = 0;//  { return 0; }
         virtual uint64_t contract() = 0;//  { return 0; }
