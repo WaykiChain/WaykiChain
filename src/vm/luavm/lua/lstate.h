@@ -24,7 +24,7 @@
 **
 ** 'allgc': all objects not marked for finalization;
 ** 'finobj': all objects marked for finalization;
-** 'tobefnz': all objects ready to be finalized; 
+** 'tobefnz': all objects ready to be finalized;
 ** 'fixedgc': all objects that are not to be collected (currently
 ** only small strings, such as reserved words).
 
@@ -58,7 +58,7 @@ typedef struct stringtable {
 ** Information about a call.
 ** When a thread yields, 'func' is adjusted to pretend that the
 ** top function has only the yielded values in its stack; in that
-** case, the actual 'func' value is saved in field 'extra'. 
+** case, the actual 'func' value is saved in field 'extra'.
 ** When a function calls another with a continuation, 'extra' keeps
 ** the function index so that, in case of errors, the continuation
 ** function can be called with the correct top.
@@ -90,8 +90,7 @@ typedef struct CallInfo {
 #define CIST_OAH	(1<<0)	/* original value of 'allowhook' */
 #define CIST_LUA	(1<<1)	/* call is running a Lua function */
 #define CIST_HOOKED	(1<<2)	/* call is running a debug hook */
-#define CIST_REENTRY	(1<<3)	/* call is running on same invocation of
-                                   luaV_execute of previous call */
+#define CIST_REENTRY	(1<<3)	/* call is running on same invocation of luaV_execute of previous call */
 #define CIST_YPCALL	(1<<4)	/* call is a yieldable protected call */
 #define CIST_TAIL	(1<<5)	/* call was tail called */
 #define CIST_HOOKYIELD	(1<<6)	/* last hook called yielded */
@@ -224,4 +223,3 @@ LUAI_FUNC void luaE_shrinkCI (lua_State *L);
 
 
 #endif
-
