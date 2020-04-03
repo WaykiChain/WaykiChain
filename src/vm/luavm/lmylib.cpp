@@ -109,6 +109,8 @@ static CLuaVMRunEnv* GetVmRunEnvByContext(lua_State *L) {
 }
 
 static bool GetKeyId(const CAccountDBCache &accountCache, vector<uint8_t> &ret, CKeyID &keyId) {
+    LogPrint(BCLog::LUAVM, "ret.size=%d", ret.size());
+
     if (ret.size() == 6) {
         CRegID regid(ret);
         if (regid.IsEmpty()) return false;
@@ -1925,9 +1927,10 @@ int32_t ExGetBase58AddrFunc(lua_State *L) {
     LUA_BurnFuncCall(L, FUEL_CALL_GetBase58Addr, BURN_VER_R2);
     CKeyID addrKeyId;
     auto pAddr = retdata.at(0).get();
+    string sAddr(pAddr->begin(), pAddr->end());
+    LogPrint(BCLog::LUAVM, "DEBUG:: ExGetBase58AddrFunc Addr=%s\n", sAddr);
     if (!GetKeyId(*pVmRunEnv->GetAccountCache(), *pAddr, addrKeyId)) {
-        string addr(pAddr->begin(), pAddr->end());
-        return RetFalse(strprintf("ExGetBase58AddrFunc para (%s)", addr));
+        return RetFalse(strprintf("ExGetBase58AddrFunc para (%s)", sAddr));
     }
 
     string addr = addrKeyId.ToAddress();
