@@ -45,7 +45,7 @@ bool CAccountRegisterTx::CheckTx(CTxExecuteContext &context) {
     return true;
 }
 
-
+//useful for cold mining
 bool CAccountRegisterTx::ExecuteTx(CTxExecuteContext &context) {
 
     if (miner_uid.is<CPubKey>()) {
