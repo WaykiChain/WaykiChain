@@ -1058,13 +1058,24 @@ bool ParseInt32(const std::string& str, int32_t *out)
 
 bool  ConvertPermsToString(uint64_t perms, uint8_t total_perms_count, string& permsList) {
     ostringstream s;
-    for (int i = total_perms_count - 1; i >= 0; i--) {
-        int p = (perms & ( 1 << i )) > 0 ? 1 :0;
-        s << i << ":" << p;
-        if (i != 0)
-             s << ", ";
+    for (uint8_t i = total_perms_count - 1; i >= 0; i--) {
+        uint64_t p = (perms & ( 1 << i )) > 0 ? 1 :0;
+        s << p;
     }
 
     permsList = s.str();
     return true;
 }
+
+// bool  ConvertPermsToString(uint64_t perms, uint8_t total_perms_count, string& permsList) {
+//     ostringstream s;
+//     for (uint8_t i = total_perms_count - 1; i >= 0; i--) {
+//         uint64_t p = (perms & ( 1 << i )) > 0 ? 1 :0;
+//         s << i << ":" << p;
+//         if (i != 0)
+//              s << ", ";
+//     }
+
+//     permsList = s.str();
+//     return true;
+// }
