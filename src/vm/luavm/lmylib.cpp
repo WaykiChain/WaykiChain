@@ -1923,8 +1923,9 @@ int32_t ExGetBase58AddrFunc(lua_State *L) {
 
     LUA_BurnFuncCall(L, FUEL_CALL_GetBase58Addr, BURN_VER_R2);
     CKeyID addrKeyId;
-    if (!GetKeyId(*pVmRunEnv->GetAccountCache(), *retdata.at(0).get(), addrKeyId)) {
-        string addr(*retdata.at(0).get().begin(), *retdata.at(0).get().end());
+    auto vAddr = *retdata.at(0).get();
+    if (!GetKeyId(*pVmRunEnv->GetAccountCache(), vAddr, addrKeyId)) {
+        string addr(vAddr.begin(), vAddr.end());
         return RetFalse(strprintf("ExGetBase58AddrFunc para (%s) err", addr));
     }
 
