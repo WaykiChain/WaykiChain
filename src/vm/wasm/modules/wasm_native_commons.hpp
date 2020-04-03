@@ -73,8 +73,8 @@ namespace wasm {
 
         if (assetOwnerAccount.keyid != context.control_trx.txAccount.keyid)
           CHAIN_ASSERT( context.database.accountCache.SetAccount(assetOwnerAccount.keyid, assetOwnerAccount),
-                      wasm_chain::account_access_exception,
-                      "Save assetOwnerAccount error")
+                        wasm_chain::account_access_exception,
+                        "Save assetOwnerAccount error")
 
         transfer_balance( assetOwnerAccount, targetAccount, quantity, context );
 
@@ -94,7 +94,9 @@ namespace wasm {
                     assetOwnerAccount.regid.ToString())
 
         if (assetOwnerAccount.keyid != context.control_trx.txAccount.keyid)
-          CHAIN_ASSERT( context.database.accountCache.SetAccount(assetOwnerAccount.keyid, assetOwnerAccount), account_access_exception, "Save assetOwnerAccount error")
+          CHAIN_ASSERT( context.database.accountCache.SetAccount(assetOwnerAccount.keyid, assetOwnerAccount),
+                        wasm_chain::account_access_exception,
+                        "Save assetOwnerAccount error")
 
         CHAIN_ASSERT( asset.total_supply >= quantity.amount,
                     wasm_chain::native_contract_assert_exception,
