@@ -6,7 +6,6 @@ namespace wasm {
   //only asset owner can invoke this op
   inline void mint_burn_balance(wasm_context &context, bool isMintOperate, bool is_not_tx_payer = true) {
 
-      auto &database                = context.database.accountCache;
       context.control_trx.run_cost += context.trx.GetSerializeSize(SER_DISK, CLIENT_VERSION) * store_fuel_fee_per_byte;
 
       auto transfer_data = wasm::unpack<std::tuple<uint64_t, wasm::asset>>(context.trx.data);
@@ -18,21 +17,21 @@ namespace wasm {
 
       string symbol      = quantity.symbol.code().to_string();
       CAsset asset;
-      CHAIN_ASSERT( context.assetCache.GetAsset(symbol, asset),
+      CHAIN_ASSERT( context.database.assetCache.GetAsset(symbol, asset),
                       wasm_chain::native_contract_assert_exception,
                       "asset (%s) not found from d/b",
                       symbol );
 
       CAccount assetOwner;
-      CHAIN_ASSERT( database.GetAccount(asset.owner_uid, assetOwner),
+      CHAIN_ASSERT( context.database.accountCache.GetAccount(asset.owner_uid, assetOwner),
                       wasm_chain::native_contract_assert_exception,
                       "asset owner account '%s' does not exist",
-                      asset.regid.to_string())
+                      asset.owner_uid.to_string())
 
       context.require_auth(assetOwner.regid.GetIntValue());
 
       CAccount targetAccount;
-      CHAIN_ASSERT( database.GetAccount(CRegID(target), targetAccount),
+      CHAIN_ASSERT( context.database.accountCache.GetAccount(CRegID(target), targetAccount),
                       wasm_chain::native_contract_assert_exception,
                       "target account '%s' does not exist",
                       wasm::regid(target).to_string())
@@ -50,7 +49,7 @@ namespace wasm {
       }
 
       if (targetAccount.keyid != context.control_trx.txAccount.keyid) //skip saving for Tx payer account
-        CHAIN_ASSERT( database.SetAccount(targetAccount.keyid, targetAccount), account_access_exception, "Save targetAccount error")
+        CHAIN_ASSERT( context.database.accountCache.SetAccount(targetAccount.keyid, targetAccount), account_access_exception, "Save targetAccount error")
 
       context.require_recipient(target);
   }
