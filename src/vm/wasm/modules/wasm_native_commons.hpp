@@ -54,7 +54,7 @@ namespace wasm {
       context.require_recipient(target);
   }
 
-  inline void transfer_balance(CAccount& toAccount, const wasm::asset& quantity, wasm_context &context) {
+  inline void transfer_balance(CAccount& fromAccount, CAccount& toAccount, const wasm::asset& quantity, wasm_context &context) {
 
       string symbol     = quantity.symbol.code().to_string();
       uint8_t precision = quantity.symbol.precision();
@@ -65,15 +65,17 @@ namespace wasm {
 
       CAccount *pToAccount = toAccount.IsEmpty() ? nullptr : &toAccount;
 
-      CHAIN_ASSERT( context.control_trx.txAccount.OperateBalance(symbol, BalanceOpType::SUB_FREE, quantity.amount,
-                    ReceiptCode::WASM_TRANSFER_ACTUAL_COINS, context.control_trx.receipts, pToAccount),
-                    account_access_exception,
-                    "Account %s balance overdrawn",
-                    context.control_trx.txAccount.regid.ToString())
+      CHAIN_ASSERT( fromAccount.OperateBalance(symbol, BalanceOpType::SUB_FREE, quantity.amount,
+                                              ReceiptCode::WASM_TRANSFER_ACTUAL_COINS, context.control_trx.receipts, pToAccount),
+                                              account_access_exception,
+                                              "Account %s balance overdrawn",
+                                              fromAccount.regid.ToString())
 
-      //txAccount state will be saved from within CBaseTx::ExecuteFullTx, hence skipped
+      if ( fromAccount.keyid != context.control_trx.txAccount.keyid )
+        CHAIN_ASSERT( context.database.accountCache.SetAccount(fromAccount.keyid, fromAccount), account_access_exception, "Save fromAccount error")
 
-      CHAIN_ASSERT( context.database.accountCache.SetAccount(toAccount.keyid, toAccount), account_access_exception, "Save toAccount error")
+      if ( !toAccount.IsEmpty() && toAccount.keyid != context.control_trx.txAccount.keyid )
+        CHAIN_ASSERT( context.database.accountCache.SetAccount(toAccount.keyid, toAccount), account_access_exception, "Save toAccount error")
   }
 
 }

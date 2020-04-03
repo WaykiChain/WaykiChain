@@ -138,13 +138,19 @@ namespace wasm {
 		        CHAIN_ASSERT(quantity.amount > 0,    wasm_chain::native_contract_assert_exception, "must transfer positive quantity");
 		        CHAIN_ASSERT(memo.size()  <= 256,    wasm_chain::native_contract_assert_exception, "memo has more than 256 bytes");
 
+				CAccount fromAccount; //may not be txAccount since one trx can have multiple signed transfers (from-to)
+		        CHAIN_ASSERT( database.GetAccount(CRegID(from), fromAccount),
+								wasm_chain::native_contract_assert_exception,
+								"from account '%s' does not exist",
+								wasm::regid(from).to_string())
+
 				CAccount toAccount;
 		        CHAIN_ASSERT( database.GetAccount(CRegID(to), toAccount),
 								wasm_chain::native_contract_assert_exception,
 								"to account '%s' does not exist",
 								wasm::regid(to).to_string())
 
-				transfer_balance( toAccount, quantity, context );
+				transfer_balance( fromAccount, toAccount, quantity, context );
 
 		        context.require_recipient(from);
 		        context.require_recipient(to);
