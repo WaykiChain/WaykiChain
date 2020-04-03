@@ -87,8 +87,7 @@ bool CBaseTx::RegisterAccountPubKey(CTxExecuteContext &context) {
     if (txAccount.IsRegistered())
         return true;
 
-    const CPubKey &pubKey = txUid.get<CPubKey>();
-    txAccount.owner_pubkey = pubKey; // init owner pubkey
+    txAccount.owner_pubkey = txUid.get<CPubKey>(); // init owner pubkey
     txAccount.regid = CRegID(context.height, context.index); // generate new regid for account
 
     return true;
