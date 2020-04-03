@@ -244,7 +244,7 @@ Array RPCConvertValues(const string &strMethod, const vector<string> &strParams)
 
     if (strMethod == "submitutxotransfertx"   && n > 2) ConvertTo<Array>(params[2]);
     if (strMethod == "submitutxotransfertx"   && n > 3) ConvertTo<Array>(params[3]);
-
+    if (strMethod == "signtxraw"   && n > 1) ConvertTo<Array>(params[1]);
 
 
     if (strMethod == "genutxomultiinputcondhash"   && n > 0) ConvertTo<int64_t>(params[0]);
