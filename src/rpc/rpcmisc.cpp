@@ -116,14 +116,14 @@ Value getinfo(const Array& params, bool fHelp) {
     obj.push_back(Pair("time_offset",           GetTimeOffset()));
 
     if (pWalletMain) {
-        obj.push_back(Pair("WICC_balance",    ValueFromAmount(pWalletMain->GetFreeCoins(SYMB::WICC))));
-        obj.push_back(Pair("WUSD_balance",    ValueFromAmount(pWalletMain->GetFreeCoins(SYMB::WUSD))));
-        obj.push_back(Pair("WGRT_balance",    ValueFromAmount(pWalletMain->GetFreeCoins(SYMB::WGRT))));
+        obj.push_back(Pair("WICC_balance",      ValueFromAmount(pWalletMain->GetFreeCoins(SYMB::WICC))));
+        obj.push_back(Pair("WUSD_balance",      ValueFromAmount(pWalletMain->GetFreeCoins(SYMB::WUSD))));
+        obj.push_back(Pair("WGRT_balance",      ValueFromAmount(pWalletMain->GetFreeCoins(SYMB::WGRT))));
         if (pWalletMain->IsEncrypted())
             obj.push_back(Pair("wallet_unlock_time", nWalletUnlockTime));
     }
 
-    obj.push_back(Pair("relay_fee_perkb",       MIN_RELAY_TX_FEE));
+    obj.push_back(Pair("relay_fee_perkb",       ValueFromAmount(MIN_RELAY_TX_FEE)));
 
     obj.push_back(Pair("tipblock_fuel_rate",    (int32_t)chainActive.Tip()->nFuelRate));
     obj.push_back(Pair("tipblock_fuel",         chainActive.Tip()->nFuel));
@@ -138,8 +138,8 @@ Value getinfo(const Array& params, bool fHelp) {
     pCdMan->pBlockCache->ReadGlobalFinBlock(globalfinblock);
     obj.push_back(Pair("finblock_height",       globalfinblock.first)) ;
     obj.push_back(Pair("finblock_hash",         globalfinblock.second.GetHex())) ;
-    obj.push_back(Pair("local_finblock_height",  localFinIndex->height)) ;
-    obj.push_back(Pair("local_finblock_hash",    localFinIndex->GetBlockHash().GetHex())) ;
+    obj.push_back(Pair("local_finblock_height", localFinIndex->height)) ;
+    obj.push_back(Pair("local_finblock_hash",   localFinIndex->GetBlockHash().GetHex())) ;
 
     obj.push_back(Pair("connections",           (int32_t)vNodes.size()));
     obj.push_back(Pair("errors",                GetWarnings("statusbar")));
