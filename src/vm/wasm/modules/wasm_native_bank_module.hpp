@@ -61,13 +61,15 @@ namespace wasm {
 
 		        abi.structs.emplace_back(struct_def {
 					"mint", "", {
-						{"target", 	"regid"	  },
+						{"owner", 	"regid"	  }, //asset owner
+						{"target", 	"regid"	  }, //target account to add balance
 						{"quantity", "asset"  }
 					}
 				});
 				abi.structs.emplace_back(struct_def {
 					"burn", "", {
-						{"target", 	"regid"	  },
+						{"owner", 	"regid"	  }, //asset owner
+						{"target", 	"regid"	  }, //target account to sub balance
 						{"quantity", "asset"  }
 					}
 				});
@@ -138,7 +140,7 @@ namespace wasm {
 		        CHAIN_ASSERT(quantity.amount > 0,    wasm_chain::native_contract_assert_exception, "must transfer positive quantity");
 		        CHAIN_ASSERT(memo.size()  <= 256,    wasm_chain::native_contract_assert_exception, "memo has more than 256 bytes");
 
-				CAccount fromAccount; //may not be txAccount since one trx can have multiple signed transfers (from-to)
+				CAccount fromAccount; //may not be txAccount since one trx can have multiple signed/authorized transfers (from->to)
 		        CHAIN_ASSERT( database.GetAccount(CRegID(from), fromAccount),
 								wasm_chain::native_contract_assert_exception,
 								"from account '%s' does not exist",

@@ -4,13 +4,14 @@
 namespace wasm {
 
   //only asset owner can invoke this op
-  inline void mint_burn_balance(wasm_context &context, bool isMintOperate, bool is_not_tx_payer = true) {
+  inline void mint_burn_balance(wasm_context &context, bool isMintOperate) {
 
       context.control_trx.run_cost += context.trx.GetSerializeSize(SER_DISK, CLIENT_VERSION) * store_fuel_fee_per_byte;
 
-      auto transfer_data = wasm::unpack<std::tuple<uint64_t, wasm::asset>>(context.trx.data);
-      auto target        = std::get<0>(transfer_data);
-      auto quantity      = std::get<1>(transfer_data);
+      auto transfer_data = wasm::unpack<std::tuple<uint64_t, uint64_t, wasm::asset>>(context.trx.data);
+      auto owner         = std::get<0>(transfer_data);
+      auto target        = std::get<1>(transfer_data);
+      auto quantity      = std::get<2>(transfer_data);
 
       CHAIN_ASSERT(quantity.is_valid(),    wasm_chain::native_contract_assert_exception, "invalid quantity");
       CHAIN_ASSERT(quantity.amount > 0,    wasm_chain::native_contract_assert_exception, "must transfer positive quantity");
@@ -21,6 +22,11 @@ namespace wasm {
                       wasm_chain::native_contract_assert_exception,
                       "asset (%s) not found from d/b",
                       symbol );
+
+      CHAIN_ASSERT( owner == asset.owner.regid.GetIntValue(),
+                      wasm_chain::native_contract_assert_exception,
+                      "specified asset owner (%s) is diff from asset owner(%s) from d/b",
+                      CRegID(owner).ToString(), asset.owner.regid.ToString() );
 
       CAccount assetOwner;
       CHAIN_ASSERT( context.database.accountCache.GetAccount(asset.owner_uid, assetOwner),
