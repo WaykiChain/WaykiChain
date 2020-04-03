@@ -253,7 +253,9 @@ bool CCDPStakeTx::ExecuteTx(CTxExecuteContext &context) {
 
     CCdpGlobalData cdpGlobalData = cw.cdpCache.GetCdpGlobalData(cdpCoinPair);
     uint64_t globalCollateralRatio = cdpGlobalData.GetCollateralRatio(bcoinMedianPrice);
-    if (globalCollateralRatio < globalCollateralRatioMin) {
+
+    // FIXME :: remove test net compatible
+    if ( SysCfg().NetworkID() != NET_TYPE::TEST_NET  && globalCollateralRatio < globalCollateralRatioMin) {
         return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, GlobalCollateralFloorReached! ratio=%llu,"
                 " min=%llu", globalCollateralRatio, globalCollateralRatioMin),
                 REJECT_INVALID, "global-collateral-floor-reached");
