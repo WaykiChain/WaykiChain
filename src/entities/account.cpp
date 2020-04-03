@@ -34,7 +34,8 @@ bool CAccount::OperateBalance(const TokenSymbol &tokenSymbol, const BalanceOpTyp
                             ReceiptCode code, ReceiptList &receipts, CAccount *pOtherAccount) {
 
     CAccountToken &accountToken = tokens[tokenSymbol];
-    CUserID otherUid = CNullID();
+    CUserID fromUid = CUserID(keyid);
+    CUserID toUid = CNullID();
 
     CReceipt receipt(code);
 
@@ -49,7 +50,10 @@ bool CAccount::OperateBalance(const TokenSymbol &tokenSymbol, const BalanceOpTyp
 
                 token.free_amount -= value;
                 pOtherAccount->SetToken(tokenSymbol, token);
-                otherUid = CUserID(pOtherAccount->keyid);
+                toUid = CUserID(pOtherAccount->keyid);
+            } else {
+                toUid = fromUid;
+                fromUid = CNullID();
             }
 
             break;
@@ -61,13 +65,12 @@ bool CAccount::OperateBalance(const TokenSymbol &tokenSymbol, const BalanceOpTyp
 
             accountToken.free_amount -= value;
 
-
             if (pOtherAccount != nullptr) {
                 CAccountToken token = pOtherAccount->GetToken(tokenSymbol);
 
                 token.free_amount += value;
                 pOtherAccount->SetToken(tokenSymbol, token);
-                otherUid = CUserID(pOtherAccount->keyid);
+                toUid = CUserID(pOtherAccount->keyid);
             }
 
             break;
@@ -80,7 +83,7 @@ bool CAccount::OperateBalance(const TokenSymbol &tokenSymbol, const BalanceOpTyp
             accountToken.free_amount -= value;
             accountToken.staked_amount += value;
             if (pOtherAccount != nullptr)
-                otherUid = CUserID(pOtherAccount->keyid);
+                toUid = CUserID(pOtherAccount->keyid);
 
             break;
         }
@@ -91,8 +94,12 @@ bool CAccount::OperateBalance(const TokenSymbol &tokenSymbol, const BalanceOpTyp
 
             accountToken.free_amount += value;
             accountToken.staked_amount -= value;
-            if (pOtherAccount != nullptr)
-                otherUid = CUserID(pOtherAccount->keyid);
+            if (pOtherAccount != nullptr) {
+                toUid = CUserID(pOtherAccount->keyid);
+            } else {
+                toUid = fromUid;
+                fromUid = CNullID();
+            }
 
             break;
         }
@@ -104,7 +111,7 @@ bool CAccount::OperateBalance(const TokenSymbol &tokenSymbol, const BalanceOpTyp
             accountToken.free_amount -= value;
             accountToken.frozen_amount += value;
             if (pOtherAccount != nullptr)
-                otherUid = CUserID(pOtherAccount->keyid);
+                toUid = CUserID(pOtherAccount->keyid);
 
             break;
         }
@@ -115,8 +122,12 @@ bool CAccount::OperateBalance(const TokenSymbol &tokenSymbol, const BalanceOpTyp
 
             accountToken.free_amount += value;
             accountToken.frozen_amount -= value;
-            if (pOtherAccount != nullptr)
-                otherUid = CUserID(pOtherAccount->keyid);
+            if (pOtherAccount != nullptr) {
+                toUid = CUserID(pOtherAccount->keyid);
+            } else {
+                toUid = fromUid;
+                fromUid = CNullID();
+            }
 
             break;
         }
@@ -128,7 +139,7 @@ bool CAccount::OperateBalance(const TokenSymbol &tokenSymbol, const BalanceOpTyp
             accountToken.free_amount -= value;
             accountToken.voted_amount += value;
             if (pOtherAccount != nullptr)
-                otherUid = CUserID(pOtherAccount->keyid);
+                toUid = CUserID(pOtherAccount->keyid);
 
             break;
         }
@@ -139,8 +150,12 @@ bool CAccount::OperateBalance(const TokenSymbol &tokenSymbol, const BalanceOpTyp
 
             accountToken.free_amount += value;
             accountToken.voted_amount -= value;
-            if (pOtherAccount != nullptr)
-                otherUid = CUserID(pOtherAccount->keyid);
+            if (pOtherAccount != nullptr) {
+                toUid = CUserID(pOtherAccount->keyid);
+            } else {
+                toUid = fromUid;
+                fromUid = CNullID();
+            }
 
             break;
         }
@@ -152,7 +167,7 @@ bool CAccount::OperateBalance(const TokenSymbol &tokenSymbol, const BalanceOpTyp
             accountToken.free_amount -= value;
             accountToken.pledged_amount += value;
             if (pOtherAccount != nullptr)
-                otherUid = CUserID(pOtherAccount->keyid);
+                toUid = CUserID(pOtherAccount->keyid);
 
             break;
         }
@@ -163,15 +178,19 @@ bool CAccount::OperateBalance(const TokenSymbol &tokenSymbol, const BalanceOpTyp
 
             accountToken.free_amount += value;
             accountToken.pledged_amount -= value;
-            if (pOtherAccount != nullptr)
-                otherUid = CUserID(pOtherAccount->keyid);
+            if (pOtherAccount != nullptr) {
+                toUid = CUserID(pOtherAccount->keyid);
+            } else {
+                toUid = fromUid;
+                fromUid = CNullID();
+            }
 
             break;
         }
         default: return false;
     }
 
-    receipt.SetInfo(CUserID(keyid), otherUid, tokenSymbol, value);
+    receipt.SetInfo(fromUid, toUid, tokenSymbol, value);
     receipts.push_back(receipt);
     return true;
 }
