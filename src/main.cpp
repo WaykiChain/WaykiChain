@@ -833,7 +833,6 @@ static bool ProcessGenesisBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *p
             account.OperateBalance(SYMB::WICC, BalanceOpType::ADD_FREE, pRewardTx->reward_fees,
                                    ReceiptCode::BLOCK_REWARD_TO_MINER, pRewardTx->receipts);
 
-
             if (!cw.txReceiptCache.SetTxReceipts(pRewardTx->GetHash(), pRewardTx->receipts))
                 return state.DoS(100, ERRORMSG("ConnectBlock() ::ProcessGenesisBlock, set genesis block receipts failed!"),
                                  REJECT_INVALID, "set-tx-receipt-failed");

@@ -299,7 +299,6 @@ bool CWasmContractTx::ExecuteTx(CTxExecuteContext &context) {
         pseudo_start           = system_clock::now();//pseudo start for reduce code loading duration
         run_cost               = GetSerializeSize(SER_DISK, CLIENT_VERSION) * store_fuel_fee_per_byte;
 
-        std::vector<CReceipt>   receipts;
         wasm::transaction_trace trx_trace;
         trx_trace.trx_id = GetHash();
 
