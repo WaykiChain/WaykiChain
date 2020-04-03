@@ -82,7 +82,7 @@ private:
      * @param contractCache
      * @return true operate account success
      */
-    bool OperateAccount(const vector<CVmOperate>& operates);
+    bool OperateAccount(CAccount *pTxAccount, const vector<CVmOperate>& operates);
 
     /**
      * @brief get the account id

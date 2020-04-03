@@ -55,7 +55,7 @@ std::shared_ptr<string>  CLuaVMRunEnv::ExecuteContract(CLuaVMContext *pContextIn
         return make_shared<string>("VmScript CheckOperate Failed");
     }
 
-    if (!OperateAccount(vmOperateOutput)) {
+    if (!OperateAccount(p_context->p_tx_user_account ,vmOperateOutput)) {
         return make_shared<string>("VmScript OperateAccount Failed");
     }
 
@@ -250,7 +250,7 @@ bool CLuaVMRunEnv::CheckAppAcctOperate() {
     return true;
 }
 
-bool CLuaVMRunEnv::OperateAccount(const vector<CVmOperate>& operates) {
+bool CLuaVMRunEnv::OperateAccount(CAccount *pTxAccount, const vector<CVmOperate>& operates) {
 
     for (auto& operate : operates) {
         uint64_t value;
@@ -283,16 +283,24 @@ bool CLuaVMRunEnv::OperateAccount(const vector<CVmOperate>& operates) {
         ReceiptCode code = (operate.opType == BalanceOpType::ADD_FREE) ? ReceiptCode::CONTRACT_ACCOUNT_OPERATE_ADD :
                             ReceiptCode::CONTRACT_ACCOUNT_OPERATE_SUB;
 
-        if (!pAccount->OperateBalance(SYMB::WICC, operate.opType, value, code, receipts)) {
-            LogPrint(BCLog::LUAVM, "[ERR]CLuaVMRunEnv::OperateAccount(), operate account failed! uid=%s, operate=%s\n",
-                uid.ToString(), GetBalanceOpTypeName(operate.opType));
-            return false;
-        }
+        if (pAccount->keyid != pTxAccount->keyid) {
+            if (!pAccount->OperateBalance(SYMB::WICC, operate.opType, value, code, receipts)) {
+                LogPrint(BCLog::LUAVM, "[ERR]CLuaVMRunEnv::OperateAccount(), operate account failed! uid=%s, operate=%s\n",
+                    uid.ToString(), GetBalanceOpTypeName(operate.opType));
+                return false;
+            }
 
-        if (!p_context->p_cw->accountCache.SetAccount(pAccount->keyid, *pAccount)) {
-            LogPrint(BCLog::LUAVM,
-                     "[ERR]CLuaVMRunEnv::OperateAccount(), save account failed, uid=%s\n", uid.ToString());
-            return false;
+            if (!p_context->p_cw->accountCache.SetAccount(pAccount->keyid, *pAccount)) {
+                LogPrint(BCLog::LUAVM,
+                        "[ERR]CLuaVMRunEnv::OperateAccount(), save account failed, uid=%s\n", uid.ToString());
+                return false;
+            }
+        } else {
+             if (!pTxAccount->OperateBalance(SYMB::WICC, operate.opType, value, code, receipts)) {
+                LogPrint(BCLog::LUAVM, "[ERR]CLuaVMRunEnv::OperateAccount(), operate account failed! uid=%s, operate=%s\n",
+                    uid.ToString(), GetBalanceOpTypeName(operate.opType));
+                return false;
+            }
         }
 
         LogPrint(BCLog::LUAVM, "after account:%s\n", pAccount->ToString());
