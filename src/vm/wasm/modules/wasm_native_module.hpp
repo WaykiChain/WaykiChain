@@ -82,19 +82,19 @@ namespace wasm {
 		        //auto &control_trx              = context.control_trx;
 		        
 		        //set_code_data_type set_code_data = wasm::unpack<std::tuple<uint64_t, string, string, string>>(context.trx.data);
-		        auto set_code_data = wasm::unpack<std::tuple<uint64_t, string, string, string>>(context.trx.data);
-		        auto contract_name               = std::get<0>(set_code_data);
-		        auto code                        = std::get<1>(set_code_data);
-		        auto abi                         = std::get<2>(set_code_data);
-		        auto memo                        = std::get<3>(set_code_data);
+		        auto set_code_data  = wasm::unpack<std::tuple<uint64_t, string, string, string>>(context.trx.data);
+		        auto contract_regid = std::get<0>(set_code_data);
+		        auto code           = std::get<1>(set_code_data);
+		        auto abi            = std::get<2>(set_code_data);
+		        auto memo           = std::get<3>(set_code_data);
 
-		        context.require_auth(contract_name); 
+		        context.require_auth(contract_regid); 
 
 		        CAccount contract;
-		        CHAIN_ASSERT( database_account.GetAccount(CRegID(contract_name), contract),
+		        CHAIN_ASSERT( database_account.GetAccount(CRegID(contract_regid), contract),
 		                      wasm_chain::account_access_exception,
 		                      "contract '%s' does not exist",
-		                      wasm::regid(contract_name).to_string()) 
+		                      wasm::regid(contract_regid).to_string()) 
 
 		        CUniversalContract contract_store;
 		        contract_store.vm_type = VMType::WASM_VM;
@@ -104,8 +104,8 @@ namespace wasm {
 
 		        CHAIN_ASSERT( database_contract.SaveContract(contract.regid, contract_store), 
 		                      wasm_chain::account_access_exception,
-		                      "save account '%s' error",
-		                      wasm::regid(contract_name).to_string())
+		                      "save contract '%s' error",
+		                      wasm::regid(contract_regid).to_string())
 		    }
 
 	};
