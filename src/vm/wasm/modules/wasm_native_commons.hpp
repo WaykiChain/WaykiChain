@@ -26,7 +26,7 @@ namespace wasm {
       CHAIN_ASSERT( context.database.accountCache.GetAccount(asset.owner_uid, assetOwner),
                       wasm_chain::native_contract_assert_exception,
                       "asset owner account '%s' does not exist",
-                      asset.owner_uid.to_string())
+                      asset.owner_uid.ToString())
 
       context.require_auth(assetOwner.regid.GetIntValue());
 
