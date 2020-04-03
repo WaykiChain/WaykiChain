@@ -1199,7 +1199,7 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
             return state.DoS(100, ERRORMSG("ConnectBlock() : failed to execute reward transaction"));
         }
 
-        if (pIndex->height + 1 == (int32_t)SysCfg().GetFeatureForkHeight() &&
+        if (pIndex->height + 1 == (int32_t)SysCfg().GetVer2ForkHeight() &&
             !ComputeVoteStakingInterestAndRevokeVotes(pIndex->height, pIndex->nTime, cw, state)) {
             return state.Abort(_("ConnectBlock() : failed to compute vote staking interest"));
         }

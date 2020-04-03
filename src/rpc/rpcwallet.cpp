@@ -333,7 +333,7 @@ Value submitsendtx(const Array& params, bool fHelp) {
     } else { // MAJOR_VER_R1
         if (cmCoin.symbol != SYMB::WICC || cmFee.symbol != SYMB::WICC)
             throw JSONRPCError(REJECT_INVALID, strprintf("Only support WICC for coin symbol or fee symbol before "
-                                                         "height=%u! current height=%d", SysCfg().GetFeatureForkHeight(), height));
+                                                         "height=%u! current height=%d", SysCfg().GetVer2ForkHeight(), height));
 
         if (sendUserId.is<CKeyID>())
             throw JSONRPCError(REJECT_INVALID, strprintf("%s is unregistered, should register first",

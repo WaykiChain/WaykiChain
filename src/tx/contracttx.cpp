@@ -419,7 +419,7 @@ bool CUniversalContractInvokeTx::ExecuteTx(CTxExecuteContext &context) {
     int64_t llTime = GetTimeMillis();
     auto pExecErr  = vmRunEnv.ExecuteContract(&luaContext, nRunStep);
     if (pExecErr)
-        return state.DoS(100, ERRORMSG("CUniversalContractInvokeTx::ExecuteTx, txid=%s run script error:%s", GetHash().GetHex(), *pExecErr),
+        return state.DoS(100, ERRORMSG("CUniversalContractInvokeTx::ExecuteTx, txid=%s run script error: %s", GetHash().GetHex(), *pExecErr),
                         EXECUTE_SCRIPT_FAIL, "run-script-error: " + *pExecErr);
 
     receipts.insert(receipts.end(), vmRunEnv.GetReceipts().begin(), vmRunEnv.GetReceipts().end());

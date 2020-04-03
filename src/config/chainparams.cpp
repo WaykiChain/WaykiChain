@@ -45,7 +45,7 @@ public:
         nBlockIntervalStableCoinRelease    = BLOCK_INTERVAL_STABLE_COIN_RELEASE;
         nContinuousCountBeforeFork         = CONTINUOUS_BLOCK_COUNT_BEFORE_FORK;
         nContinuousCountAfterFork          = CONTINUOUS_BLOCK_COUNT_AFTER_FORK;
-        nFeatureForkHeight                 = IniCfg().GetFeatureForkHeight(MAIN_NET);
+        nFeatureForkHeight                 = IniCfg().GetVer2ForkHeight(MAIN_NET);
         nStableCoinGenesisHeight           = IniCfg().GetStableCoinGenesisHeight(MAIN_NET);
         nVer3ForkHeight                    = IniCfg().GetVer3ForkHeight(MAIN_NET);
         assert(CreateGenesisBlockRewardTx(genesis.vptx, MAIN_NET));
@@ -117,7 +117,7 @@ public:
         nDefaultPort             = IniCfg().GetDefaultPort(TEST_NET);
         nRPCPort                 = IniCfg().GetRPCPort(TEST_NET);
         strDataDir               = "testnet";
-        nFeatureForkHeight       = IniCfg().GetFeatureForkHeight(TEST_NET);
+        nFeatureForkHeight       = IniCfg().GetVer2ForkHeight(TEST_NET);
         nStableCoinGenesisHeight = IniCfg().GetStableCoinGenesisHeight(TEST_NET);
         nVer3ForkHeight          = IniCfg().GetVer3ForkHeight(TEST_NET);
         // Modify the testnet genesis block so the timestamp is valid for a later start.
@@ -152,7 +152,7 @@ public:
 
         nStableCoinGenesisHeight = GetArg("-stablecoingenesisheight", IniCfg().GetStableCoinGenesisHeight(TEST_NET));
         nFeatureForkHeight       = std::max<uint32_t>(nStableCoinGenesisHeight + 1,
-                                                GetArg("-featureforkheight", IniCfg().GetFeatureForkHeight(TEST_NET)));
+                                                GetArg("-featureforkheight", IniCfg().GetVer2ForkHeight(TEST_NET)));
 
         nVer3ForkHeight          = std::max<uint32_t>(nFeatureForkHeight + 1,
                                                 GetArg("-ver3forkheight", IniCfg().GetVer3ForkHeight(TEST_NET)));
@@ -174,7 +174,7 @@ public:
         memcpy(pchMessageStart, IniCfg().GetMagicNumber(REGTEST_NET), sizeof(pchMessageStart));
         nDefaultPort             = IniCfg().GetDefaultPort(REGTEST_NET);
         strDataDir               = "regtest";
-        nFeatureForkHeight       = IniCfg().GetFeatureForkHeight(REGTEST_NET);
+        nFeatureForkHeight       = IniCfg().GetVer2ForkHeight(REGTEST_NET);
         nStableCoinGenesisHeight = IniCfg().GetStableCoinGenesisHeight(REGTEST_NET);
         nVer3ForkHeight          = IniCfg().GetVer3ForkHeight(REGTEST_NET);
         genesis.SetTime(IniCfg().GetStartTimeInit(REGTEST_NET));
@@ -202,7 +202,7 @@ public:
         nBlockIntervalStableCoinRelease = GetArg("-blockintervalstablecoinrelease", BLOCK_INTERVAL_STABLE_COIN_RELEASE);
         nStableCoinGenesisHeight = GetArg("-stablecoingenesisheight", IniCfg().GetStableCoinGenesisHeight(REGTEST_NET));
         nFeatureForkHeight       = std::max<uint32_t>(
-            nStableCoinGenesisHeight + 1, GetArg("-featureforkheight", IniCfg().GetFeatureForkHeight(REGTEST_NET)));
+            nStableCoinGenesisHeight + 1, GetArg("-featureforkheight", IniCfg().GetVer2ForkHeight(REGTEST_NET)));
 
         nVer3ForkHeight          = std::max<uint32_t>(nFeatureForkHeight + 1,
                                                 GetArg("-ver3forkheight", IniCfg().GetVer3ForkHeight(REGTEST_NET)));

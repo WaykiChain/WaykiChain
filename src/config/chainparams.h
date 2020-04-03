@@ -171,7 +171,7 @@ public:
     int32_t GetDefaultPort() const { return nDefaultPort; }
     uint32_t GetBlockIntervalPreStableCoinRelease() const { return nBlockIntervalPreStableCoinRelease; }
     uint32_t GetBlockIntervalStableCoinRelease() const { return nBlockIntervalStableCoinRelease; }
-    uint32_t GetFeatureForkHeight() const { return nFeatureForkHeight; }
+    uint32_t GetVer2ForkHeight() const { return nFeatureForkHeight; }
     uint32_t GetStableCoinGenesisHeight() const { return nStableCoinGenesisHeight; }
     uint32_t GetVer3ForkHeight() const { return nVer3ForkHeight; }
     uint32_t GetContinuousCountBeforeFork() const { return nContinuousCountBeforeFork; }

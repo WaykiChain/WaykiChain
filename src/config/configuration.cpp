@@ -75,7 +75,7 @@ const vector<string> G_CONFIG_TABLE::GetStableCoinGenesisTxid(const NET_TYPE typ
     return stableCoinGenesisTxid[type];
 }
 
-uint32_t G_CONFIG_TABLE::GetFeatureForkHeight(const NET_TYPE type) const {
+uint32_t G_CONFIG_TABLE::GetVer2ForkHeight(const NET_TYPE type) const {
     assert(type >= 0 && type < 3);
     return nFeatureForkHeight[type];
 }

@@ -49,7 +49,7 @@ public:
     uint8_t GetTotalDelegateNum() const;
     uint32_t GetMaxVoteCandidateNum() const;
     uint64_t GetCoinInitValue() const { return InitialCoin; };
-	uint32_t GetFeatureForkHeight(const NET_TYPE type) const;
+	uint32_t GetVer2ForkHeight(const NET_TYPE type) const;
     uint32_t GetStableCoinGenesisHeight(const NET_TYPE type) const;
     uint32_t GetVer3ForkHeight(const NET_TYPE type) const;
     const vector<string> GetStableCoinGenesisTxid(const NET_TYPE type) const;
@@ -131,22 +131,22 @@ inline FeatureForkVersionEnum GetFeatureForkVersion(const int32_t currBlockHeigh
     if (currBlockHeight >= (int32_t) SysCfg().GetVer3ForkHeight())
         return MAJOR_VER_R3;
 
-    if (currBlockHeight >= (int32_t) SysCfg().GetFeatureForkHeight())
+    if (currBlockHeight >= (int32_t) SysCfg().GetVer2ForkHeight())
         return MAJOR_VER_R2;
 
     return MAJOR_VER_R1;
 }
 
 inline uint32_t GetBlockInterval(const int32_t currBlockHeight) {
-    return 
-        (currBlockHeight < (int32_t)SysCfg().GetFeatureForkHeight()) ?
-            SysCfg().GetBlockIntervalPreStableCoinRelease() : 
+    return
+        (currBlockHeight < (int32_t)SysCfg().GetVer2ForkHeight()) ?
+            SysCfg().GetBlockIntervalPreStableCoinRelease() :
             SysCfg().GetBlockIntervalStableCoinRelease();
 }
 
 
 inline uint32_t GetContinuousBlockCount(const int32_t currHeight){
-    return 
+    return
         (currHeight  < (int32_t)SysCfg().GetVer3ForkHeight()) ?
             SysCfg().GetContinuousCountBeforeFork() :
             SysCfg().GetContinuousCountAfterFork();
@@ -169,7 +169,7 @@ inline uint32_t GetJumpHeightBySubsidy(const uint8_t targetSubsidyRate) {
 
     if (!initialized) {
         uint32_t jumpHeight        = 0;
-        uint32_t featureForkHeight = SysCfg().GetFeatureForkHeight();
+        uint32_t featureForkHeight = SysCfg().GetVer2ForkHeight();
         uint32_t yearHeightV1      = SysCfg().NetworkID() == REGTEST_NET ? 500 : 3153600;    // pre-stable coin release
         uint32_t yearHeightV2      = SysCfg().NetworkID() == REGTEST_NET ? 1500 : 10512000;  // stable coin release
         uint32_t actualJumpHeight  = yearHeightV1;
