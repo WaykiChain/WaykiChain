@@ -162,20 +162,20 @@ bool CLuaContractInvokeTx::ExecuteTx(CTxExecuteContext &context) {
     if (!GetFuelLimit(*this, context, fuelLimit))
         return false;
 
-    CAccount desAccount;
-    if (!cw.accountCache.GetAccount(app_uid, desAccount)) {
+    CAccount appAccount;
+    if (!cw.accountCache.GetAccount(app_uid, appAccount)) {
         return state.DoS(100, ERRORMSG("CLuaContractInvokeTx::ExecuteTx, get account info failed by regid:%s",
                         app_uid.get<CRegID>().ToString()), READ_ACCOUNT_FAIL, "bad-read-accountdb");
     }
 
     if (!txAccount.OperateBalance(SYMB::WICC, BalanceOpType::SUB_FREE, coin_amount,
-                                ReceiptCode::LUAVM_TRANSFER_ACTUAL_COINS, receipts, &desAccount))
+                                ReceiptCode::LUAVM_TRANSFER_ACTUAL_COINS, receipts, &appAccount))
         return state.DoS(100, ERRORMSG("CLuaContractInvokeTx::ExecuteTx, txAccount has insufficient funds"),
                          UPDATE_ACCOUNT_FAIL, "operate-minus-account-failed");
 
-    if (!cw.accountCache.SetAccount(app_uid, desAccount))
+    if (!cw.accountCache.SetAccount(app_uid, appAccount))
         return state.DoS(100, ERRORMSG("CLuaContractInvokeTx::ExecuteTx, save account error, kyeId=%s",
-                        desAccount.keyid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-save-account");
+                        appAccount.keyid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-save-account");
 
     CUniversalContract contract;
     if (!cw.contractCache.GetContract(app_uid.get<CRegID>(), contract))
@@ -194,7 +194,7 @@ bool CLuaContractInvokeTx::ExecuteTx(CTxExecuteContext &context) {
     luaContext.transfer_symbol   = SYMB::WICC;
     luaContext.transfer_amount   = coin_amount;
     luaContext.p_tx_user_account = &txAccount;
-    luaContext.p_app_account     = &desAccount;
+    luaContext.p_app_account     = &appAccount;
     luaContext.p_contract        = &contract;
     luaContext.p_arguments       = &arguments;
 
@@ -380,20 +380,20 @@ bool CUniversalContractInvokeTx::ExecuteTx(CTxExecuteContext &context) {
     if (!GetFuelLimit(*this, context, fuelLimit))
         return false;
 
-    CAccount desAccount;
-    if (!cw.accountCache.GetAccount(app_uid, desAccount)) {
+    CAccount appAccount;
+    if (!cw.accountCache.GetAccount(app_uid, appAccount)) {
         return state.DoS(100, ERRORMSG("CUniversalContractInvokeTx::ExecuteTx, get account info failed by regid:%s",
                         app_uid.get<CRegID>().ToString()), READ_ACCOUNT_FAIL, "bad-read-accountdb");
     }
 
     if (!txAccount.OperateBalance(coin_symbol, BalanceOpType::SUB_FREE, coin_amount,
-                                  ReceiptCode::LUAVM_TRANSFER_ACTUAL_COINS, receipts, &desAccount))
+                                  ReceiptCode::LUAVM_TRANSFER_ACTUAL_COINS, receipts, &appAccount))
         return state.DoS(100, ERRORMSG("CUniversalContractInvokeTx::ExecuteTx, txAccount has insufficient funds"),
                          UPDATE_ACCOUNT_FAIL, "operate-minus-account-failed");
 
-    if (!cw.accountCache.SetAccount(app_uid, desAccount))
+    if (!cw.accountCache.SetAccount(app_uid, appAccount))
         return state.DoS(100, ERRORMSG("CUniversalContractInvokeTx::ExecuteTx, save account error, kyeId=%s",
-                        desAccount.keyid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-save-account");
+                        appAccount.keyid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-save-account");
 
     CUniversalContract contract;
     if (!cw.contractCache.GetContract(app_uid.get<CRegID>(), contract))
@@ -412,7 +412,7 @@ bool CUniversalContractInvokeTx::ExecuteTx(CTxExecuteContext &context) {
     luaContext.transfer_symbol   = coin_symbol;
     luaContext.transfer_amount   = coin_amount;
     luaContext.p_tx_user_account = &txAccount;
-    luaContext.p_app_account     = &desAccount;
+    luaContext.p_app_account     = &appAccount;
     luaContext.p_contract        = &contract;
     luaContext.p_arguments       = &arguments;
 
