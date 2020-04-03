@@ -324,7 +324,7 @@ bool CLuaVMRunEnv::TransferAccountAsset(lua_State *L, const vector<AssetTransfer
         if (transfer.isContractAccount) {
             fromUid = GetContractRegID();
         } else {
-            fromUid = GetTxUserRegid();
+            fromUid = GetTxAccountRegId();
         }
 
         // TODO: need to cache the from account?
@@ -393,7 +393,7 @@ const CRegID& CLuaVMRunEnv::GetContractRegID() {
     return p_context->p_app_account->regid;
 }
 
-const CRegID& CLuaVMRunEnv::GetTxUserRegid() {
+const CRegID& CLuaVMRunEnv::GetTxAccountRegId() {
     assert(!p_context->p_tx_user_account->regid.IsEmpty());
     return p_context->p_tx_user_account->regid;
 }

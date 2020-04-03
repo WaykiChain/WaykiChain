@@ -121,7 +121,7 @@ public:
      */
     //	shared_ptr<vector<CVmOperate> > GetOperate() const;
     const CRegID& GetContractRegID();
-    const CRegID& GetTxUserRegid();
+    const CRegID& GetTxAccountRegId();
     uint64_t GetValue() const;
     const string& GetTxContract();
     CCacheWrapper* GetCw();

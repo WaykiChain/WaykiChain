@@ -1625,8 +1625,8 @@ int32_t ExGetCurTxAccountFunc(lua_State *L) {
     LUA_BurnFuncCall(L, FUEL_CALL_GetCurTxAccount, BURN_VER_R2);
    //1.从lua取参数
    //2.调用C++库函数 执行运算
-    LogPrint(BCLog::LUAVM, "DEBUG:: pVmRunEnv->GetTxUserRegid() = %s \n\n", pVmRunEnv->GetTxUserRegid().ToString());
-    UnsignedCharArray vUserId = pVmRunEnv->GetTxUserRegid().GetRegIdRaw();
+    LogPrint(BCLog::LUAVM, "DEBUG:: pVmRunEnv->GetTxAccountRegId() = %s \n\n", pVmRunEnv->GetTxAccountRegId().ToString());
+    UnsignedCharArray vUserId = pVmRunEnv->GetTxAccountRegId().GetRegIdRaw();
 
    //3.往函数私有栈里存运算后的结果
     int32_t len = RetRstToLua(L,vUserId);
@@ -1951,7 +1951,7 @@ int32_t ExTransferContractAsset(lua_State *L) {
     vector<uint8_t> recvKey;
     CRegID script = pVmRunEnv->GetContractRegID();
 
-    CRegID sendRegID =pVmRunEnv->GetTxUserRegid();
+    CRegID sendRegID =pVmRunEnv->GetTxAccountRegId();
     CKeyID SendKeyID = sendRegID.GetKeyId(*pVmRunEnv->GetAccountCache());
     string addr = SendKeyID.ToAddress();
     sendKey.assign(addr.c_str(),addr.c_str()+addr.length());
@@ -2060,7 +2060,7 @@ int32_t ExTransferSomeAsset(lua_State *L) {
     vector<uint8_t> sendKey;
     vector<uint8_t> recvKey;
 
-    CRegID sendRegID = pVmRunEnv->GetTxUserRegid();
+    CRegID sendRegID = pVmRunEnv->GetTxAccountRegId();
     CKeyID SendKeyID = sendRegID.GetKeyId(*pVmRunEnv->GetAccountCache());
     string addr      = SendKeyID.ToAddress();
     sendKey.assign(addr.c_str(), addr.c_str() + addr.length());
