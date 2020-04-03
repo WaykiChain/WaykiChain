@@ -75,7 +75,7 @@ namespace wasm {
                 CHAIN_ASSERT( false,
                               wasm_chain::missing_auth_exception,
                               "Inline to another contract can be only authorized by contract-self '%s' in wasmio.code, but get '%s' in ",
-                              wasm::regid(_receiver).to_string(), 
+                              wasm::regid(_receiver).to_string(),
                               wasm::regid(p.account).to_string(), wasm::name(p.perm).to_string());
             }
 
@@ -201,7 +201,7 @@ namespace wasm {
     //     trace.receiver = _receiver;
 
 
-        
+
     //     auto native    = find_native_handle(_receiver, trx.action);
 
     //     //reset_console();
@@ -251,7 +251,7 @@ namespace wasm {
         return false;
     }
 
-    void wasm_context::require_recipient(const uint64_t& recipient)  {
+    void wasm_context::notify_recipient(const uint64_t& recipient)  {
 
         if (!has_recipient(recipient)) {
             notified.push_back(recipient);

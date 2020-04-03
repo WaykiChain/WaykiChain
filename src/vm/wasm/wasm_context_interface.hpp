@@ -24,9 +24,9 @@ namespace wasm {
 
     public:
         virtual void     execute_inline( const inline_transaction& trx ) = 0;//{}
-        virtual void     require_recipient( const uint64_t& recipient )  = 0;//{}
+        virtual void     notify_recipient( const uint64_t& recipient )  = 0;//{}
         virtual bool     has_recipient    ( const uint64_t& account   )  const = 0;//{ return true; }
-        virtual uint64_t receiver() = 0;//  { return 0; } 
+        virtual uint64_t receiver() = 0;//  { return 0; }
         virtual uint64_t contract() = 0;//  { return 0; }
         virtual uint64_t action  () = 0;//  { return 0; }
         virtual const char* get_action_data     () = 0 ;// { return nullptr; }
@@ -48,9 +48,9 @@ namespace wasm {
         virtual std::vector<uint64_t> get_active_producers() = 0;//{ return std::vector<uint64_t>(); }
         virtual vm::wasm_allocator*   get_wasm_allocator()   = 0;//{ return nullptr;                 }
         virtual bool                  is_memory_in_wasm_allocator ( const uint64_t& p ) = 0 ;
-        // { 
+        // {
         //     WASM_TRACE("%ld", p)
-        //     return true;    
+        //     return true;
         // }
         virtual std::chrono::milliseconds get_max_transaction_duration() = 0;//{ return std::chrono::milliseconds(max_wasm_execute_time_infinite); }
         virtual void update_storage_usage(const uint64_t& account, const int64_t& size_in_bytes) = 0;//{}

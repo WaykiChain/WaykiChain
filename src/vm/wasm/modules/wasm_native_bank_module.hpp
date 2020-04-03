@@ -154,8 +154,8 @@ namespace wasm {
 
 				transfer_balance( fromAccount, toAccount, quantity, context );
 
-		        context.require_recipient(from);
-		        context.require_recipient(to);
+		        context.notify_recipient(from);
+		        context.notify_recipient(to);
 
 		    }
 	};

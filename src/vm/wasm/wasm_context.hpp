@@ -53,7 +53,7 @@ namespace wasm {
     public:
 
         void        execute_inline   (const inline_transaction& t);
-        void        require_recipient(const uint64_t& recipient  );
+        void        notify_recipient(const uint64_t& recipient  );
         bool        has_recipient    (const uint64_t& account    ) const;
 
         uint64_t    receiver() { return _receiver;    }
@@ -108,7 +108,7 @@ namespace wasm {
         std::vector<uint64_t> get_active_producers();
 
         bool contracts_console() {
-            return SysCfg().GetBoolArg("-contracts_console", false) && 
+            return SysCfg().GetBoolArg("-contracts_console", false) &&
                    control_trx.context_type == TxExecuteContextType::VALIDATE_MEMPOOL;
         }
 
@@ -117,8 +117,8 @@ namespace wasm {
         }
 
         vm::wasm_allocator* get_wasm_allocator() { return &wasm_alloc; }
-        bool                is_memory_in_wasm_allocator ( const uint64_t& p ) { 
-            return wasm_alloc.is_in_range(reinterpret_cast<const char*>(p)); 
+        bool                is_memory_in_wasm_allocator ( const uint64_t& p ) {
+            return wasm_alloc.is_in_range(reinterpret_cast<const char*>(p));
         }
         std::chrono::milliseconds get_max_transaction_duration() { return control_trx.get_max_transaction_duration(); }
         void                      update_storage_usage( const uint64_t& account, const int64_t& size_in_bytes);

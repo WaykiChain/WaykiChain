@@ -80,8 +80,8 @@ namespace wasm {
 
         asset.total_supply += quantity.amount;
 
-        context.require_recipient(owner);
-        context.require_recipient(target);
+        context.notify_recipient(owner);
+        context.notify_recipient(target);
 
       } else {            //burn operation
         context.require_auth(target);
@@ -105,8 +105,8 @@ namespace wasm {
 
         asset.total_supply -= quantity.amount;
 
-        context.require_recipient(target);
-        context.require_recipient(owner);
+        context.notify_recipient(target);
+        context.notify_recipient(owner);
       }
 
       CHAIN_ASSERT( context.database.assetCache.SetAsset(asset),

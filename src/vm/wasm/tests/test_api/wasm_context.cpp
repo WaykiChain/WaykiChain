@@ -51,7 +51,7 @@ namespace wasm {
         return true;
 
     };
-    
+
     void CWasmContractTx::execute_inline_transaction( wasm::inline_transaction_trace& trace,
                                     wasm::inline_transaction& trx,
                                      uint64_t receiver,
@@ -122,7 +122,7 @@ namespace wasm {
         }
 
         CHAIN_ASSERT( recurse_depth < wasm::max_inline_transaction_depth,
-                      transaction_exception, 
+                      transaction_exception,
                       "max inline transaction depth per transaction reached");
 
         for (auto &inline_trx : inline_transactions) {
@@ -164,7 +164,7 @@ namespace wasm {
         return false;
     }
 
-    void wasm_context::require_recipient( const uint64_t& recipient ) {
+    void wasm_context::notify_recipient( const uint64_t& recipient ) {
         if (!has_recipient(recipient)) {
             notified.push_back(recipient);
         }

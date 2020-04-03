@@ -71,7 +71,7 @@ public:
         string k(buffer.data(), buffer.size());
 
         database[k] = value;
-        
+
         // if(value.size() < 4096)
         //   WASM_TRACE("key:%s value:%s", ToHex(k), ToHex(value))
 
@@ -171,7 +171,7 @@ class wasm_context : public wasm_context_interface {
     public:
         void execute_inline( const inline_transaction& t );
         bool has_recipient    ( const uint64_t& account   ) const;
-        void require_recipient( const uint64_t& recipient );
+        void notify_recipient( const uint64_t& recipient );
         uint64_t receiver() { return _receiver;    }
         uint64_t contract() { return trx.contract; }
         uint64_t action()   { return trx.action;   }
@@ -195,8 +195,8 @@ class wasm_context : public wasm_context_interface {
         std::vector<uint64_t>    get_active_producers() { return std::vector<uint64_t>(); }
         vm::wasm_allocator*      get_wasm_allocator()   { return &wasm_alloc; }
 
-        bool                     is_memory_in_wasm_allocator ( const uint64_t& p ) { 
-            return wasm_alloc.is_in_range(reinterpret_cast<const char*>(p)); 
+        bool                     is_memory_in_wasm_allocator ( const uint64_t& p ) {
+            return wasm_alloc.is_in_range(reinterpret_cast<const char*>(p));
         }
         std::chrono::milliseconds get_max_transaction_duration(){ return std::chrono::milliseconds(wasm::max_wasm_execute_time_infinite); }
 
