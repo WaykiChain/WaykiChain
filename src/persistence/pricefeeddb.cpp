@@ -328,7 +328,8 @@ CMedianPriceDetail CPricePointMemCache::GetMedianPrice(const HeightType blockHei
             LogPrint(BCLog::PRICEFEED,
                     "%s(), use previous block median price! blockHeight=%d, "
                     "coin_pair={%s}, new_price={%s}\n",
-                    blockHeight, CoinPairToString(coinPricePair), priceDetail.ToString());
+                    __func__, blockHeight, CoinPairToString(coinPricePair), priceDetail.ToString());
+
         } else if (priceDetail.last_feed_height != blockHeight) {
             priceDetail.last_feed_height = it->second.last_feed_height;
 
