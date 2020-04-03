@@ -59,12 +59,6 @@ namespace wasm {
                     "input asset owner (%s) diff from asset owner(%s) from d/b",
                     CRegID(owner).ToString(), assetOwnerAccount.regid.ToString() );
 
-      CAccount targetAccount;
-      CHAIN_ASSERT( context.database.accountCache.GetAccount(CRegID(target), targetAccount),
-                    wasm_chain::account_access_exception,
-                    "target account '%s' does not exist",
-                    wasm::regid(target).to_string())
-
       if (isMintOperate) { //mint operation
         CHAIN_ASSERT( assetOwnerAccount.OperateBalance(symbol, BalanceOpType::ADD_FREE, quantity.amount, ReceiptCode::WASM_MINT_COINS, context.control_trx.receipts),
                       wasm_chain::account_access_exception,
@@ -95,7 +89,7 @@ namespace wasm {
                       asset.total_supply, quantity.amount)
 
         asset.total_supply -= quantity.amount;
-        
+
       }
 
       context.notify_recipient(owner);
