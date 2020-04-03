@@ -60,10 +60,10 @@ static CUserID nullId;
     /**** DEX */ \
     DEFINE(DEX_ASSET_FEE_TO_SETTLER,            501, "dex deal asset fee from buyer to settler") \
     DEFINE(DEX_COIN_FEE_TO_SETTLER,             502, "dex deal coin fee from seller to settler") \
-    DEFINE(DEX_ASSET_TO_BUYER,                  503, "dex deal deal assets to buyer") \
-    DEFINE(DEX_COIN_TO_SELLER,                  504, "dex deal deal coins to seller") \
-    DEFINE(DEX_UNFREEZE_COIN_TO_BUYER,          505, "dex unfreeze coins to buyer for canceling order") \
-    DEFINE(DEX_UNFREEZE_ASSET_TO_SELLER,        506, "dex unfreeze asset to seller for canceling order") \
+    DEFINE(DEX_ASSET_TO_BUYER,                  503, "dex dealed: transfer assets to buyer") \
+    DEFINE(DEX_COIN_TO_SELLER,                  504, "dex dealed: transfer coins to seller") \
+    DEFINE(DEX_UNFREEZE_COIN_TO_BUYER,          505, "dex unfreeze buyer's coins") \
+    DEFINE(DEX_UNFREEZE_ASSET_TO_SELLER,        506, "dex unfreeze seller's assets") \
     DEFINE(DEX_OPERATOR_REG_FEE_TO_RESERVE,     520, "dex operator registered fee to risk reserve") \
     DEFINE(DEX_OPERATOR_UPDATED_FEE_TO_RESERVE, 521, "dex operator updated fee to risk reserve") \
     DEFINE(DEX_OPERATOR_REG_FEE_TO_MINER,       522, "dex operator registered fee to miner") \

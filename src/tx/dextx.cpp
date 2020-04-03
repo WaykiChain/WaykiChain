@@ -764,9 +764,9 @@ namespace dex {
         }
 
         // 8. subtract the buyer's coins and seller's assets
-        // - unfree and subtract the coins from buyer account
-        if (   !pBuyOrderAccount->OperateBalance(buyOrder.coin_symbol, UNFREEZE, dealItem.dealCoinAmount,
-                                                ReceiptCode::DEX_ASSET_TO_BUYER, receipts) ||
+        //  - unfreeze and subtract the coins from buyer account
+        if (    !pBuyOrderAccount->OperateBalance(buyOrder.coin_symbol, UNFREEZE, dealItem.dealCoinAmount,
+                                                ReceiptCode::DEX_UNFREEZE_COIN_TO_BUYER, receipts) ||
                 !pBuyOrderAccount->OperateBalance(buyOrder.coin_symbol, SUB_FREE, dealItem.dealCoinAmount,
                                                 ReceiptCode::DEX_COIN_TO_SELLER, receipts)) {// - subtract buyer's coins
             return state.DoS(100, ERRORMSG("%s, subtract coins from buyer account failed!"
@@ -774,9 +774,9 @@ namespace dex {
                 DEAL_ITEM_TITLE, dealItem.ToString(), buyOrder.coin_symbol),
                 REJECT_INVALID, "operate-account-failed");
         }
-        // - unfree and subtract the assets from seller account
-        if (   !pSellOrderAccount->OperateBalance(sellOrder.asset_symbol, UNFREEZE, dealItem.dealAssetAmount,
-                                                ReceiptCode::DEX_COIN_TO_SELLER, receipts) ||
+        //  - unfreeze and subtract the assets from seller account
+        if (    !pSellOrderAccount->OperateBalance(sellOrder.asset_symbol, UNFREEZE, dealItem.dealAssetAmount,
+                                                ReceiptCode::DEX_UNFREEZE_ASSET_TO_SELLER, receipts) ||
                 !pSellOrderAccount->OperateBalance(sellOrder.asset_symbol, SUB_FREE, dealItem.dealAssetAmount,
                                                 ReceiptCode::DEX_ASSET_TO_BUYER, receipts)) { // - subtract seller's assets
             return state.DoS(100, ERRORMSG("%s, subtract assets from seller account failed!"

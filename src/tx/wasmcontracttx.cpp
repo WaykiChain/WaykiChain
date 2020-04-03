@@ -303,11 +303,11 @@ bool CWasmContractTx::ExecuteTx(CTxExecuteContext &context) {
         wasm::transaction_trace trx_trace;
         trx_trace.trx_id = GetHash();
 
-        for (auto& i: inline_transactions) {
-            trx_current_for_exception = &i;
+        for (auto& inline_trx : inline_transactions) {
+            trx_current_for_exception = &inline_trx;
 
             trx_trace.traces.emplace_back();
-            execute_inline_transaction(trx_trace.traces.back(), i, i.contract, database, receipts, 0);
+            execute_inline_transaction(trx_trace.traces.back(), inline_trx, inline_trx.contract, database, receipts, 0);
 
             trx_current_for_exception = nullptr;
         }
