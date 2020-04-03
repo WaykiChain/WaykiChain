@@ -1060,12 +1060,12 @@ int32_t ExGetAccountPublickeyFunc(lua_State *L) {
 
     LUA_BurnFuncCall(L, FUEL_CALL_GetAccountPublickey, BURN_VER_R2);
     CKeyID addrKeyId;
-    if (!GetKeyId(*(pVmRunEnv->GetCacheView()), *retdata.at(0).get(), addrKeyId)) {
+    if (!GetKeyId(*(pVmRunEnv->GetAccountCache()), *retdata.at(0).get(), addrKeyId)) {
         return RetFalse("ExGetAccountPublickeyFunc para err2");
     }
     CUserID userid(addrKeyId);
     CAccount account;
-    if (!pVmRunEnv->GetCacheView()->GetAccount(userid, account)) {
+    if (!pVmRunEnv->GetAccountCache()->GetAccount(userid, account)) {
         return RetFalse("ExGetAccountPublickeyFunc para err3");
     }
     CDataStream tep(SER_DISK, CLIENT_VERSION);
@@ -1099,14 +1099,14 @@ int32_t ExQueryAccountBalanceFunc(lua_State *L) {
 
     LUA_BurnFuncCall(L, FUEL_ACCOUNT_GET_VALUE, BURN_VER_R2);
     CKeyID addrKeyId;
-    if (!GetKeyId(*(pVmRunEnv->GetCacheView()), *retdata.at(0).get(), addrKeyId)) {
+    if (!GetKeyId(*(pVmRunEnv->GetAccountCache()), *retdata.at(0).get(), addrKeyId)) {
         return RetFalse("ExQueryAccountBalanceFunc para err2");
     }
 
     CUserID userid(addrKeyId);
     CAccount account;
     int32_t len = 0;
-    if (!pVmRunEnv->GetCacheView()->GetAccount(userid, account))
+    if (!pVmRunEnv->GetAccountCache()->GetAccount(userid, account))
         return 0;
 
     uint64_t nbalance = account.GetToken(SYMB::WICC).free_amount;
@@ -1923,7 +1923,7 @@ int32_t ExGetBase58AddrFunc(lua_State *L) {
 
     LUA_BurnFuncCall(L, FUEL_CALL_GetBase58Addr, BURN_VER_R2);
     CKeyID addrKeyId;
-    if (!GetKeyId(*pVmRunEnv->GetCacheView(), *retdata.at(0).get(), addrKeyId))
+    if (!GetKeyId(*pVmRunEnv->GetAccountCache(), *retdata.at(0).get(), addrKeyId))
         return RetFalse("ExGetBase58AddrFunc para err1");
 
     string addr = addrKeyId.ToAddress();
@@ -1948,7 +1948,7 @@ int32_t ExTransferContractAsset(lua_State *L) {
     CRegID script = pVmRunEnv->GetContractRegID();
 
     CRegID sendRegID =pVmRunEnv->GetTxUserRegid();
-    CKeyID SendKeyID = sendRegID.GetKeyId(*pVmRunEnv->GetCacheView());
+    CKeyID SendKeyID = sendRegID.GetKeyId(*pVmRunEnv->GetAccountCache());
     string addr = SendKeyID.ToAddress();
     sendKey.assign(addr.c_str(),addr.c_str()+addr.length());
 
@@ -1961,7 +1961,7 @@ int32_t ExTransferContractAsset(lua_State *L) {
     }
 
     CKeyID RecvKeyID;
-    bool bValid = GetKeyId(*pVmRunEnv->GetCacheView(), recvKey, RecvKeyID);
+    bool bValid = GetKeyId(*pVmRunEnv->GetAccountCache(), recvKey, RecvKeyID);
     if (!bValid) {
         LUA_BurnAccount(L, FUEL_ACCOUNT_UNCHANGED, BURN_VER_R2);
         LogPrint(BCLog::LUAVM, "%s\n", "recv addr is not valid !");
@@ -2057,7 +2057,7 @@ int32_t ExTransferSomeAsset(lua_State *L) {
     vector<uint8_t> recvKey;
 
     CRegID sendRegID = pVmRunEnv->GetTxUserRegid();
-    CKeyID SendKeyID = sendRegID.GetKeyId(*pVmRunEnv->GetCacheView());
+    CKeyID SendKeyID = sendRegID.GetKeyId(*pVmRunEnv->GetAccountCache());
     string addr      = SendKeyID.ToAddress();
     sendKey.assign(addr.c_str(), addr.c_str() + addr.length());
 
@@ -2070,7 +2070,7 @@ int32_t ExTransferSomeAsset(lua_State *L) {
     }
 
     CKeyID RecvKeyID;
-    bool bValid = GetKeyId(*pVmRunEnv->GetCacheView(), recvKey, RecvKeyID);
+    bool bValid = GetKeyId(*pVmRunEnv->GetAccountCache(), recvKey, RecvKeyID);
     if (!bValid) {
         LogPrint(BCLog::LUAVM, "%s\n", "recv addr is not valid !");
         return RetFalse(string(__FUNCTION__)+"recv addr is not valid !");
