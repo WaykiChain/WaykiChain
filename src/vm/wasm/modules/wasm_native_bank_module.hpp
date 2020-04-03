@@ -62,14 +62,12 @@ namespace wasm {
 		        abi.structs.emplace_back(struct_def {
 					"mint", "", {
 						{"owner", 	"regid"	  }, //asset owner
-						{"target", 	"regid"	  }, //target account to add balance
 						{"quantity", "asset"  }
 					}
 				});
 				abi.structs.emplace_back(struct_def {
 					"burn", "", {
 						{"owner", 	"regid"	  }, //asset owner
-						{"target", 	"regid"	  }, //target account to sub balance
 						{"quantity", "asset"  }
 					}
 				});
