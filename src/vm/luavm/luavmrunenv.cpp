@@ -55,7 +55,7 @@ std::shared_ptr<string>  CLuaVMRunEnv::ExecuteContract(CLuaVMContext *pContextIn
         return make_shared<string>("VmScript CheckOperate Failed");
     }
 
-    if (!OperateAccount(p_context->p_tx_user_account ,vmOperateOutput)) {
+    if (!OperateAccount(p_context->p_tx_user_account, vmOperateOutput)) {
         return make_shared<string>("VmScript OperateAccount Failed");
     }
 
@@ -276,6 +276,8 @@ bool CLuaVMRunEnv::OperateAccount(CAccount *pTxAccount, const vector<CVmOperate>
             }
             uid = keyid;
         }
+
+
 
         LogPrint(BCLog::LUAVM, "uid=%s\nbefore account: %s\n", uid.ToString(),
                  pAccount->ToString());

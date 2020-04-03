@@ -235,7 +235,7 @@ CAppFundOperate::CAppFundOperate() {
 
 Object CAppCFund::ToJson() const {
     Object result;
-    result.push_back(Pair("value",          value));
+    result.push_back(Pair("value",          ValueFromAmount(value)));
     result.push_back(Pair("timeout_height", timeoutHeight));
     result.push_back(Pair("tag",            HexStr(vTag)));
 
@@ -247,7 +247,7 @@ string CAppCFund::ToString() const { return write_string(Value(ToJson()), true);
 Object CAppUserAccount::ToJson() const {
     Object result;
     result.push_back(Pair("account_uid",    HexStr(user_id)));
-    result.push_back(Pair("free_value",     bcoins));
+    result.push_back(Pair("free_value",     ValueFromAmount(bcoins)));
 
     Array array;
     for (auto const te : frozen_funds) {
@@ -275,7 +275,7 @@ Object CAppFundOperate::ToJson() const {
     result.push_back(Pair("vTag",       HexStr(GetFundTagV())));
     result.push_back(Pair("opType",     opTypes[opType]));
     result.push_back(Pair("outHeight",  (int32_t)timeoutHeight));
-    result.push_back(Pair("mMoney",     mMoney));
+    result.push_back(Pair("mMoney",     ValueFromAmount(mMoney)));
 
     return result;
 }

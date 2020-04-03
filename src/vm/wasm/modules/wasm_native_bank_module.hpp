@@ -34,7 +34,13 @@ namespace wasm {
 		        switch (action){
 		            case N(transfer):
 		                 tansfer(context);
-		                 break;
+		                 return;
+					case N(mint):
+					     mint(context);
+						 return;
+					case N(burn):
+					     burn(context);
+						 return;
 		            default:
 		                 break;
 		        }
@@ -55,12 +61,14 @@ namespace wasm {
 
 		        abi.structs.emplace_back(struct_def {
 					"mint", "", {
-						{"quantity", "asset" }
+						{"target", 	"regid"	  },
+						{"quantity", "asset"  }
 					}
 				});
 				abi.structs.emplace_back(struct_def {
 					"burn", "", {
-						{"quantity", "asset" }
+						{"target", 	"regid"	  },
+						{"quantity", "asset"  }
 					}
 				});
 				abi.structs.emplace_back(struct_def {
@@ -81,25 +89,11 @@ namespace wasm {
 		    }
 
 			static void mint(wasm_context &context) {
-
-				// CHAIN_ASSERT( context._receiver == bank_native_module_id,
-		  //                     wasm_chain::native_contract_assert_exception,
-		  //                     "expect contract '%s', but get '%s'",
-		  //                     wasm::regid(bank_native_module_id).to_string(),
-		  //                     wasm::name(context._receiver).to_string());
-
-				// auto &database                = context.database.accountCache;
-		  //       context.control_trx.run_cost += context.trx.GetSerializeSize(SER_DISK, CLIENT_VERSION) * store_fuel_fee_per_byte;
-
-		  //       //transfer_data_type transfer_data = wasm::unpack<std::tuple<uint64_t, uint64_t, wasm::asset, string>>(context.trx.data);
-		  //       auto transfer_data = wasm::unpack<std::tuple<wasm::asset>>(context.trx.data);
-		  //       auto quantity                    = std::get<0>(transfer_data);
-
-				// CHAIN_ASSERT(quantity.is_valid(),    wasm_chain::native_contract_assert_exception, "invalid quantity");
-		  //       CHAIN_ASSERT(quantity.amount > 0,    wasm_chain::native_contract_assert_exception, "must transfer positive quantity");
+				mint_burn_balance(context, true);
 			}
 
 			static void burn(wasm_context &context) {
+				mint_burn_balance(context, false);
 			}
 
 		    static void tansfer(wasm_context &context) {
@@ -121,35 +115,22 @@ namespace wasm {
 		        auto memo                        = std::get<3>(transfer_data);
 
 		        //WASM_TRACE("%s", quantity.to_string().c_str() )
-		        context.require_auth(from); //from auth
-		        CHAIN_ASSERT(from != to,             wasm_chain::native_contract_assert_exception, "cannot transfer to self");
-		        CHAIN_ASSERT(context.is_account(to), wasm_chain::native_contract_assert_exception, "to account '%s' does not exist", wasm::regid(to).to_string() );
+
+				context.require_auth(from); //from auth
+
+				CHAIN_ASSERT(from != to,             wasm_chain::native_contract_assert_exception, "cannot transfer to self");
+		        CHAIN_ASSERT(context.is_account(to), wasm_chain::native_contract_assert_exception, "to account '%s' does not exist", wasm::name(to).to_string() );
 		        CHAIN_ASSERT(quantity.is_valid(),    wasm_chain::native_contract_assert_exception, "invalid quantity");
 		        CHAIN_ASSERT(quantity.amount > 0,    wasm_chain::native_contract_assert_exception, "must transfer positive quantity");
 		        CHAIN_ASSERT(memo.size()  <= 256,    wasm_chain::native_contract_assert_exception, "memo has more than 256 bytes");
 
-                auto& payer = context.control_trx.txAccount;
-		        if (from == payer.regid.GetIntValue()) {
-		        	sub_balance( payer, quantity, database, context.control_trx.receipts,  false );
-		        } else {
-			        CAccount from_account;
-			        CHAIN_ASSERT( database.GetAccount(CRegID(from), from_account),
-			                      wasm_chain::native_contract_assert_exception,
-			                      "from account '%s' does not exist",
-			                      wasm::regid(from).to_string())
-		        	sub_balance( from_account, quantity, database, context.control_trx.receipts );
-		        }
+				CAccount toAccount;
+		        CHAIN_ASSERT( database.GetAccount(CRegID(to), toAccount),
+								wasm_chain::native_contract_assert_exception,
+								"to account '%s' does not exist",
+								wasm::regid(to).to_string())
 
-                if (to == payer.regid.GetIntValue()) {
- 			        add_balance( payer, quantity, database, context.control_trx.receipts, false );
-                } else {
-			        CAccount to_account;
-			        CHAIN_ASSERT( database.GetAccount(CRegID(to), to_account),
-			                      wasm_chain::native_contract_assert_exception,
-			                      "to account '%s' does not exist",
-			                      wasm::regid(to).to_string())
-			        add_balance( to_account, quantity, database, context.control_trx.receipts );
-		        }
+				transfer_balance( toAccount, quantity, context );
 
 		        context.require_recipient(from);
 		        context.require_recipient(to);

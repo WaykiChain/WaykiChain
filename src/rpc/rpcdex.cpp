@@ -500,6 +500,11 @@ Value gendexoperatorordertx(const Array& params, bool fHelp) {
         );
     }
 
+    if (version < MAJOR_VER_R3) {
+        throw JSONRPCError(RPC_INVALID_PARAMS, strprintf("unsupport to call %s() before R3 fork height=%d",
+            __func__, SysCfg().GetVer3ForkHeight()));
+    }
+
     EnsureWalletIsUnlocked();
     int32_t validHeight = chainActive.Height();
     FeatureForkVersionEnum version = GetFeatureForkVersion(validHeight);
@@ -565,7 +570,6 @@ Value gendexoperatorordertx(const Array& params, bool fHelp) {
     RPC_PARAM::CheckAccountBalance(txAccount, fee.symbol, SUB_FREE,
             fee.GetAmountInSawi() + operatorTxFee.GetAmountInSawi());
 
-
     if (orderSide == ORDER_BUY) {
         uint64_t coinAmount = coins.GetAmountInSawi();
         if (orderType == ORDER_LIMIT_PRICE && orderSide == ORDER_BUY)
@@ -574,11 +578,6 @@ Value gendexoperatorordertx(const Array& params, bool fHelp) {
     } else {
         assert(orderSide == ORDER_SELL);
         RPC_PARAM::CheckAccountBalance(txAccount, assets.symbol, FREEZE, assets.GetAmountInSawi());
-    }
-
-    if (version < MAJOR_VER_R3) {
-        throw JSONRPCError(RPC_INVALID_PARAMS, strprintf("unsupport to call %s() before height=%d",
-            __func__, SysCfg().GetVer3ForkHeight()));
     }
 
     shared_ptr<CDEXOrderBaseTx> pOrderBaseTx = make_shared<CDEXOperatorOrderTx>(

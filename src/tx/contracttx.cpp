@@ -168,7 +168,7 @@ bool CLuaContractInvokeTx::ExecuteTx(CTxExecuteContext &context) {
                         app_uid.get<CRegID>().ToString()), READ_ACCOUNT_FAIL, "bad-read-accountdb");
     }
 
-    if (!txAccount.OperateBalance(SYMB::WICC, BalanceOpType::SUB_FREE, coin_amount,
+    if (coin_amount > 0 && !txAccount.OperateBalance(SYMB::WICC, BalanceOpType::SUB_FREE, coin_amount,
                                 ReceiptCode::LUAVM_TRANSFER_ACTUAL_COINS, receipts, &appAccount))
         return state.DoS(100, ERRORMSG("CLuaContractInvokeTx::ExecuteTx, txAccount has insufficient funds"),
                          UPDATE_ACCOUNT_FAIL, "operate-minus-account-failed");

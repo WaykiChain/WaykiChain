@@ -29,8 +29,10 @@ static CUserID nullId;
     DEFINE(TRANSFER_ACTUAL_COINS,               202, "transfer coins with account") \
     DEFINE(LUAVM_TRANSFER_ACTUAL_COINS,         203, "transfer coins in Lua contract") \
     DEFINE(WASM_TRANSFER_ACTUAL_COINS,          204, "transfer coins in WASM contract") \
-    DEFINE(TRANSFER_UTXO_COINS,                 205, "transfer coins in a UTXO trx") \
-    DEFINE(TRANSFER_PROPOSAL,                   206, "transfer coins in a proposal") \
+    DEFINE(WASM_MINT_COINS,                     205, "mint coins in WASM contract") \
+    DEFINE(WASM_BURN_COINS,                     206, "burn coins in WASM contract") \
+    DEFINE(TRANSFER_UTXO_COINS,                 207, "transfer coins in a UTXO trx") \
+    DEFINE(TRANSFER_PROPOSAL,                   208, "transfer coins in a proposal") \
     /**** delegate */ \
     DEFINE(DELEGATE_ADD_VOTE,                   301, "add votes to delegate(s)") \
     DEFINE(DELEGATE_SUB_VOTE,                   302, "sub votes to delegate(s)") \
