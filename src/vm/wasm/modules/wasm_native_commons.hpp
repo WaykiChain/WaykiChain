@@ -43,7 +43,7 @@ namespace wasm {
       string symbol      = quantity.symbol.code().to_string();
       CAsset asset;
       CHAIN_ASSERT( context.database.assetCache.GetAsset(symbol, asset),
-                      wasm_chain::native_contract_assert_exception,
+                      wasm_chain::asset_type_exception,
                       "asset (%s) not found from d/b",
                       symbol );
 
@@ -67,12 +67,14 @@ namespace wasm {
       if (isMintOperate) { //mint operation
         context.require_auth(owner);
         CHAIN_ASSERT( assetOwnerAccount.OperateBalance(symbol, BalanceOpType::ADD_FREE, quantity.amount, ReceiptCode::WASM_MINT_COINS, context.control_trx.receipts),
-                      account_access_exception,
+                      wasm_chain::account_access_exception,
                       "Asset Owner (%s) balance overminted",
                       assetOwnerAccount.regid.ToString())
 
         if (assetOwnerAccount.keyid != context.control_trx.txAccount.keyid)
-          CHAIN_ASSERT( context.database.accountCache.SetAccount(assetOwnerAccount.keyid, assetOwnerAccount), account_access_exception, "Save assetOwnerAccount error")
+          CHAIN_ASSERT( context.database.accountCache.SetAccount(assetOwnerAccount.keyid, assetOwnerAccount),
+                      wasm_chain::account_access_exception,
+                      "Save assetOwnerAccount error")
 
         transfer_balance( assetOwnerAccount, targetAccount, quantity, context );
 
@@ -87,7 +89,7 @@ namespace wasm {
 
         context.require_auth(owner);
         CHAIN_ASSERT( assetOwnerAccount.OperateBalance(symbol, BalanceOpType::SUB_FREE, quantity.amount, ReceiptCode::WASM_BURN_COINS, context.control_trx.receipts),
-                    account_access_exception,
+                    wasm_chain::account_access_exception,
                     "Asset Owner (%s) balance overburnt",
                     assetOwnerAccount.regid.ToString())
 
@@ -95,20 +97,20 @@ namespace wasm {
           CHAIN_ASSERT( context.database.accountCache.SetAccount(assetOwnerAccount.keyid, assetOwnerAccount), account_access_exception, "Save assetOwnerAccount error")
 
         CHAIN_ASSERT( asset.total_supply >= quantity.amount,
-                    account_access_exception,
+                    wasm_chain::native_contract_assert_exception,
                     "Asset total supply (%lld) < burn amount (%lld)",
                     asset.total_supply, quantity.amount)
 
-        asset.total_supply -= quantity.amount; //TODO: check overflow
+        asset.total_supply -= quantity.amount;
 
         context.require_recipient(target);
         context.require_recipient(owner);
       }
 
       CHAIN_ASSERT( context.database.assetCache.SetAsset(asset),
-                      account_access_exception, //FIXME: def asset_access_exception
+                      wasm_chain::asset_type_exception,
                       "Update Asset (%s) failure",
-                      asset.asset_symbol)
+                      symbol)
 
   }
 
