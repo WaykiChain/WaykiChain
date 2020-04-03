@@ -23,18 +23,16 @@ namespace wasm {
                       "asset (%s) not found from d/b",
                       symbol );
 
-      CHAIN_ASSERT( owner == asset.owner.regid.GetIntValue(),
+      CAccount assetOwnerAccount;
+      CHAIN_ASSERT( context.database.accountCache.GetAccount(asset.owner_uid, assetOwnerAccount),
                       wasm_chain::native_contract_assert_exception,
-                      "specified asset owner (%s) is diff from asset owner(%s) from d/b",
-                      CRegID(owner).ToString(), asset.owner.regid.ToString() );
+                      "asset owner (%s) not found from d/b",
+                      asset.owner_uid.ToString() );
 
-      CAccount assetOwner;
-      CHAIN_ASSERT( context.database.accountCache.GetAccount(asset.owner_uid, assetOwner),
+      CHAIN_ASSERT( owner == assetOwnerAccount.regid.GetIntValue(),
                       wasm_chain::native_contract_assert_exception,
-                      "asset owner account '%s' does not exist",
-                      asset.owner_uid.ToString())
-
-      context.require_auth(assetOwner.regid.GetIntValue());
+                      "input asset owner (%s) diff from asset owner(%s) from d/b",
+                      CRegID(owner).ToString(), assetOwnerAccount.regid.ToString() );
 
       CAccount targetAccount;
       CHAIN_ASSERT( context.database.accountCache.GetAccount(CRegID(target), targetAccount),
@@ -42,22 +40,52 @@ namespace wasm {
                       "target account '%s' does not exist",
                       wasm::regid(target).to_string())
 
-      if (isMintOperate) { //mint operate
-        CHAIN_ASSERT( targetAccount.OperateBalance(symbol, BalanceOpType::ADD_FREE, quantity.amount, ReceiptCode::WASM_MINT_COINS, context.control_trx.receipts),
+      if (isMintOperate) { //mint operation
+        context.require_auth(owner);
+        CHAIN_ASSERT( assetOwnerAccount.OperateBalance(symbol, BalanceOpType::ADD_FREE, quantity.amount, ReceiptCode::WASM_MINT_COINS, context.control_trx.receipts),
                       account_access_exception,
-                      "Account %s balance overminted",
-                      targetAccount.regid.ToString())
-      } else {            //burn operate
-        CHAIN_ASSERT( targetAccount.OperateBalance(symbol, BalanceOpType::SUB_FREE, quantity.amount, ReceiptCode::WASM_BURN_COINS, context.control_trx.receipts),
+                      "Asset Owner (%s) balance overminted",
+                      assetOwnerAccount.regid.ToString())
+
+        if (assetOwnerAccount.keyid != context.control_trx.txAccount.keyid)
+          CHAIN_ASSERT( context.database.accountCache.SetAccount(assetOwnerAccount.keyid, assetOwnerAccount), account_access_exception, "Save assetOwnerAccount error")
+
+        transfer_balance( assetOwnerAccount, targetAccount, quantity, context );
+
+        asset.total_supply += quantity.amount;
+
+        context.require_recipient(owner);
+        context.require_recipient(target);
+
+      } else {            //burn operation
+        context.require_auth(target);
+        transfer_balance( targetAccount, assetOwnerAccount, quantity, context );
+
+        context.require_auth(owner);
+        CHAIN_ASSERT( assetOwnerAccount.OperateBalance(symbol, BalanceOpType::SUB_FREE, quantity.amount, ReceiptCode::WASM_BURN_COINS, context.control_trx.receipts),
                     account_access_exception,
-                    "Account %s balance overburn",
-                    targetAccount.regid.ToString())
+                    "Asset Owner (%s) balance overburnt",
+                    assetOwnerAccount.regid.ToString())
+
+        if (assetOwnerAccount.keyid != context.control_trx.txAccount.keyid)
+          CHAIN_ASSERT( context.database.accountCache.SetAccount(assetOwnerAccount.keyid, assetOwnerAccount), account_access_exception, "Save assetOwnerAccount error")
+
+        CHAIN_ASSERT( asset.total_supply >= quantity.amount,
+                    account_access_exception,
+                    "Asset total supply (%lld) < burn amount (%lld)",
+                    asset.total_supply, quantity.amount)
+
+        asset.total_supply -= quantity.amount; //TODO: check overflow
+
+        context.require_recipient(target);
+        context.require_recipient(owner);
       }
 
-      if (targetAccount.keyid != context.control_trx.txAccount.keyid) //skip saving for Tx payer account
-        CHAIN_ASSERT( context.database.accountCache.SetAccount(targetAccount.keyid, targetAccount), account_access_exception, "Save targetAccount error")
+      CHAIN_ASSERT( context.database.assetCache.SetAsset(asset),
+                      account_access_exception, //FIXME: def asset_access_exception
+                      "Update Asset (%s) failure",
+                      asset.symbol)
 
-      context.require_recipient(target);
   }
 
   inline void transfer_balance(CAccount& fromAccount, CAccount& toAccount, const wasm::asset& quantity, wasm_context &context) {
