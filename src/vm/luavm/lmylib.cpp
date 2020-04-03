@@ -1625,7 +1625,7 @@ int32_t ExGetCurTxAccountFunc(lua_State *L) {
     LUA_BurnFuncCall(L, FUEL_CALL_GetCurTxAccount, BURN_VER_R2);
    //1.从lua取参数
    //2.调用C++库函数 执行运算
-    LogPrint(BCLog::LUAVM, "DEBUG:: pVmRunEnv->GetTxUserRegid() = %s \n\n", pVmRunEnv->GetTxUserRegid());
+    LogPrint(BCLog::LUAVM, "DEBUG:: pVmRunEnv->GetTxUserRegid() = %s \n\n", pVmRunEnv->GetTxUserRegid().ToString());
     UnsignedCharArray vUserId = pVmRunEnv->GetTxUserRegid().GetRegIdRaw();
 
    //3.往函数私有栈里存运算后的结果
