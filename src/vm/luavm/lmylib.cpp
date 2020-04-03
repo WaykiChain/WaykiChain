@@ -82,8 +82,8 @@ static inline int32_t RetRstBooleanToLua(lua_State *L, bool flag) {
     }
 }
 
-static inline int32_t RetFalse(const string reason) {
-    LogPrint(BCLog::LUAVM, "%s\n", reason.c_str());
+static inline int32_t RetFalse(const string &reason) {
+    LogPrint(BCLog::LUAVM, "Error: %s\n", reason);
     return 0;
 }
 
