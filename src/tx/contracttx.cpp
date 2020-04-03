@@ -386,16 +386,13 @@ bool CUniversalContractInvokeTx::ExecuteTx(CTxExecuteContext &context) {
                         app_uid.get<CRegID>().ToString()), READ_ACCOUNT_FAIL, "bad-read-accountdb");
     }
 
-    if (!txAccount.HaveOwnerPubKey()) {
-        // first-time involved in transacion
-        if (toUid.is<CKeyID>()) {
-            spDestAccount->keyid = toUid.get<CKeyID>();
-        } else if (toUid.is<CPubKey>()) {
-            spDestAccount->keyid = toUid.get<CPubKey>().GetKeyId();
-        } else {
-            return context.pState->DoS(100, ERRORMSG("%s, the toUid=%s account does not exist",
-                    TX_ERR_TITLE, toUid.ToString()), REJECT_INVALID, "account-not-exist");
-        }
+    if (!txAccount.HaveOwnerPubKey()) { // first-time involved in transacion
+        if (!txUid.is<CPubKey>())
+            return context.pState->DoS(100, ERRORMSG("1st-time invoke contract while txUid(%s) is not PubKey",
+                    txUid.ToString()), REJECT_INVALID, "unregistered-acct-invoke-contract-err");
+
+        txAccount.owner_pubkey = txUid;
+
     }
 
     if (!txAccount.OperateBalance(coin_symbol, BalanceOpType::SUB_FREE, coin_amount,

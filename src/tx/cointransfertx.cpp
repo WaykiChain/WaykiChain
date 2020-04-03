@@ -180,10 +180,6 @@ bool CCoinTransferTx::ExecuteTx(CTxExecuteContext &context) {
                                 TX_ERR_TITLE, toUid.ToString()), REJECT_INVALID, "account-not-exist");
                     }
                 }
-                // register account, must be only one dest
-                if ( transfers.size() == 1 && toUid.is<CPubKey>() && !spDestAccount->IsRegistered()) {
-                    spDestAccount->regid = CRegID(context.height, context.index); // generate new regid for the account
-                }
                 pDestAccount = spDestAccount.get(); // transfer to other account
             }
 
