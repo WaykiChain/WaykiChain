@@ -3,6 +3,30 @@
 
 namespace wasm {
 
+  inline void transfer_balance(CAccount& fromAccount, CAccount& toAccount, const wasm::asset& quantity, wasm_context &context) {
+
+      string symbol     = quantity.symbol.code().to_string();
+      uint8_t precision = quantity.symbol.precision();
+      CHAIN_ASSERT( precision == 8,
+                    account_access_exception,
+                    "The precision of system coin %s must be %d",
+                    symbol, 8)
+
+      CAccount *pToAccount = toAccount.IsEmpty() ? nullptr : &toAccount;
+
+      CHAIN_ASSERT( fromAccount.OperateBalance(symbol, BalanceOpType::SUB_FREE, quantity.amount,
+                                              ReceiptCode::WASM_TRANSFER_ACTUAL_COINS, context.control_trx.receipts, pToAccount),
+                                              account_access_exception,
+                                              "Account %s balance overdrawn",
+                                              fromAccount.regid.ToString())
+
+      if ( fromAccount.keyid != context.control_trx.txAccount.keyid )
+        CHAIN_ASSERT( context.database.accountCache.SetAccount(fromAccount.keyid, fromAccount), account_access_exception, "Save fromAccount error")
+
+      if ( !toAccount.IsEmpty() && toAccount.keyid != context.control_trx.txAccount.keyid )
+        CHAIN_ASSERT( context.database.accountCache.SetAccount(toAccount.keyid, toAccount), account_access_exception, "Save toAccount error")
+  }
+
   //only asset owner can invoke this op
   inline void mint_burn_balance(wasm_context &context, bool isMintOperate) {
 
@@ -84,32 +108,8 @@ namespace wasm {
       CHAIN_ASSERT( context.database.assetCache.SetAsset(asset),
                       account_access_exception, //FIXME: def asset_access_exception
                       "Update Asset (%s) failure",
-                      asset.symbol)
+                      asset.asset_symbol)
 
-  }
-
-  inline void transfer_balance(CAccount& fromAccount, CAccount& toAccount, const wasm::asset& quantity, wasm_context &context) {
-
-      string symbol     = quantity.symbol.code().to_string();
-      uint8_t precision = quantity.symbol.precision();
-      CHAIN_ASSERT( precision == 8,
-                    account_access_exception,
-                    "The precision of system coin %s must be %d",
-                    symbol, 8)
-
-      CAccount *pToAccount = toAccount.IsEmpty() ? nullptr : &toAccount;
-
-      CHAIN_ASSERT( fromAccount.OperateBalance(symbol, BalanceOpType::SUB_FREE, quantity.amount,
-                                              ReceiptCode::WASM_TRANSFER_ACTUAL_COINS, context.control_trx.receipts, pToAccount),
-                                              account_access_exception,
-                                              "Account %s balance overdrawn",
-                                              fromAccount.regid.ToString())
-
-      if ( fromAccount.keyid != context.control_trx.txAccount.keyid )
-        CHAIN_ASSERT( context.database.accountCache.SetAccount(fromAccount.keyid, fromAccount), account_access_exception, "Save fromAccount error")
-
-      if ( !toAccount.IsEmpty() && toAccount.keyid != context.control_trx.txAccount.keyid )
-        CHAIN_ASSERT( context.database.accountCache.SetAccount(toAccount.keyid, toAccount), account_access_exception, "Save toAccount error")
   }
 
 }
