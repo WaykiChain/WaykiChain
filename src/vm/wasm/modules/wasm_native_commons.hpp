@@ -9,7 +9,7 @@ namespace wasm {
       auto &database                = context.database.accountCache;
       context.control_trx.run_cost += context.trx.GetSerializeSize(SER_DISK, CLIENT_VERSION) * store_fuel_fee_per_byte;
 
-      auto transfer_data = wasm::unpack<std::tuple<uint64_t, wasm::asset>(context.trx.data);
+      auto transfer_data = wasm::unpack<std::tuple<uint64_t, wasm::asset>>(context.trx.data);
       auto target        = std::get<0>(transfer_data);
       auto quantity      = std::get<1>(transfer_data);
 
