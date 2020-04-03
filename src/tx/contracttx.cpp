@@ -222,9 +222,9 @@ string CLuaContractInvokeTx::ToString(CAccountDBCache &accountCache) {
 Object CLuaContractInvokeTx::ToJson(const CAccountDBCache &accountCache) const {
     Object result = CBaseTx::ToJson(accountCache);
 
-    CKeyID desKeyId;
-    accountCache.GetKeyId(app_uid, desKeyId);
-    result.push_back(Pair("to_addr",        desKeyId.ToAddress()));
+    CKeyID appKeyId;
+    accountCache.GetKeyId(app_uid, appKeyId);
+    result.push_back(Pair("to_addr",        appKeyId.ToAddress()));
     result.push_back(Pair("to_uid",         app_uid.ToString()));
     result.push_back(Pair("coin_symbol",    SYMB::WICC));
     result.push_back(Pair("coin_amount",    coin_amount));
