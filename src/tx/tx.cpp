@@ -90,7 +90,8 @@ bool CBaseTx::RegisterAccountPubKey(CTxExecuteContext &context) {
     txAccount.owner_pubkey = txUid.get<CPubKey>(); // init owner pubkey
     txAccount.regid = CRegID(context.height, context.index); // generate new regid for account
 
-    return true;
+    return( context.cw.accountCache.SaveAccount(txAccount) );
+
 }
 
 uint64_t CBaseTx::GetFuel(int32_t height, uint32_t fuelRate) {
