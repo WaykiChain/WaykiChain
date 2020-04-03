@@ -142,13 +142,13 @@ namespace wasm {
 
 				CAccount fromAccount; //may not be txAccount since one trx can have multiple signed/authorized transfers (from->to)
 		        CHAIN_ASSERT( database.GetAccount(CRegID(from), fromAccount),
-								wasm_chain::native_contract_assert_exception,
+								wasm_chain::account_access_exception,
 								"from account '%s' does not exist",
 								wasm::regid(from).to_string())
 
 				CAccount toAccount;
 		        CHAIN_ASSERT( database.GetAccount(CRegID(to), toAccount),
-								wasm_chain::native_contract_assert_exception,
+								wasm_chain::account_access_exception,
 								"to account '%s' does not exist",
 								wasm::regid(to).to_string())
 

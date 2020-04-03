@@ -16,7 +16,7 @@ namespace wasm {
 
       CHAIN_ASSERT( fromAccount.OperateBalance(symbol, BalanceOpType::SUB_FREE, quantity.amount,
                                               ReceiptCode::WASM_TRANSFER_ACTUAL_COINS, context.control_trx.receipts, pToAccount),
-                                              account_access_exception,
+                                              wasm_chain::account_access_exception,
                                               "Account %s balance overdrawn",
                                               fromAccount.regid.ToString())
 
@@ -49,7 +49,7 @@ namespace wasm {
 
       CAccount assetOwnerAccount;
       CHAIN_ASSERT( context.database.accountCache.GetAccount(asset.owner_uid, assetOwnerAccount),
-                    wasm_chain::native_contract_assert_exception,
+                    wasm_chain::account_access_exception,
                     "asset owner (%s) not found from d/b",
                     asset.owner_uid.ToString() );
 
@@ -60,7 +60,7 @@ namespace wasm {
 
       CAccount targetAccount;
       CHAIN_ASSERT( context.database.accountCache.GetAccount(CRegID(target), targetAccount),
-                    wasm_chain::native_contract_assert_exception,
+                    wasm_chain::account_access_exception,
                     "target account '%s' does not exist",
                     wasm::regid(target).to_string())
 
