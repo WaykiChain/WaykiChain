@@ -500,15 +500,15 @@ Value gendexoperatorordertx(const Array& params, bool fHelp) {
         );
     }
 
-    if (version < MAJOR_VER_R3) {
-        throw JSONRPCError(RPC_INVALID_PARAMS, strprintf("unsupport to call %s() before R3 fork height=%d",
-            __func__, SysCfg().GetVer3ForkHeight()));
-    }
-
     EnsureWalletIsUnlocked();
     int32_t validHeight = chainActive.Height();
     FeatureForkVersionEnum version = GetFeatureForkVersion(validHeight);
     const TxType txType = DEX_OPERATOR_ORDER_TX;
+
+    if (version < MAJOR_VER_R3) {
+        throw JSONRPCError(RPC_INVALID_PARAMS, strprintf("unsupport to call %s() before R3 fork height=%d",
+            __func__, SysCfg().GetVer3ForkHeight()));
+    }
 
     const CUserID &userId               = RPC_PARAM::GetUserId(params[0], true);
     OrderType orderType                 = RPC_PARAM::GetOrderType(params[1]);
