@@ -90,7 +90,7 @@ bool CBaseTx::RegisterAccountPubKey(CTxExecuteContext &context) {
     txAccount.owner_pubkey = txUid.get<CPubKey>(); // init owner pubkey
     txAccount.regid = CRegID(context.height, context.index); // generate new regid for account
 
-    return( context.cw.accountCache.SaveAccount(txAccount) );
+    return( context.pCw->accountCache.SaveAccount(txAccount) );
 
 }
 
