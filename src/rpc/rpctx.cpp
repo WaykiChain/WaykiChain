@@ -593,6 +593,7 @@ Value getaccountinfo(const Array& params, bool fHelp) {
     Object obj;
     CAccount account;
     if (pCdMan->pAccountCache->GetAccount(userId, account)) {
+        obj = account.ToJsonObj();
         if (!account.owner_pubkey.IsValid()) {
             CPubKey pubKey;
             CPubKey minerPubKey;
@@ -604,9 +605,10 @@ Value getaccountinfo(const Array& params, bool fHelp) {
                     account.miner_pubkey = minerPubKey;
                 }
             }
-        }
-        obj = account.ToJsonObj();
-        obj.push_back(Pair("registered", true));
+
+            obj.push_back(Pair("pubkey_registered", false));
+        } else
+            obj.push_back(Pair("pubkey_registered", true));
 
         // TODO: multi stable coin
         uint64_t bcoinMedianPrice = pCdMan->pPriceFeedCache->GetMedianPrice(PriceCoinPair(SYMB::WICC, SYMB::USD));
@@ -617,10 +619,12 @@ Value getaccountinfo(const Array& params, bool fHelp) {
                 cdps.push_back(cdp.ToJson(bcoinMedianPrice));
             }
         }
+
         obj.push_back(Pair("cdp_list", cdps));
+        obj.push_back(Pair("onchain", true));
 
     }  else {
-         obj.push_back(Pair("registered", false));
+         obj.push_back(Pair("onchain", false));
     }
 
     CPubKey pubKey;
