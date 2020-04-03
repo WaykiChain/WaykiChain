@@ -144,7 +144,7 @@ namespace wasm {
         WASM_REFLECT( abi_def, (version)(types)(structs)(actions)(tables)(ricardian_clauses) )
     };
 
-    enum ABI_Enum {
+    enum abi_typeid_t {
         ID_Comment = 0,
         ID_Version,
         ID_Structs,
@@ -171,7 +171,7 @@ namespace wasm {
         ID_Amount,
     };
 
-    static std::map <std::string, ABI_Enum> mapStringValues = {
+    static std::map <std::string, abi_typeid_t> string2typeid = {
             {"____comment",        ID_Comment},
             {"version",            ID_Version},
             {"structs",            ID_Structs},

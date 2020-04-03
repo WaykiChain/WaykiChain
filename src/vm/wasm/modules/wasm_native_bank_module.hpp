@@ -82,21 +82,21 @@ namespace wasm {
 
 			static void mint(wasm_context &context) {
 
-				CHAIN_ASSERT( context._receiver == bank_native_module_id,
-		                      wasm_chain::native_contract_assert_exception,
-		                      "expect contract '%s', but get '%s'",
-		                      wasm::regid(bank_native_module_id).to_string(),
-		                      wasm::name(context._receiver).to_string());
+				// CHAIN_ASSERT( context._receiver == bank_native_module_id,
+		  //                     wasm_chain::native_contract_assert_exception,
+		  //                     "expect contract '%s', but get '%s'",
+		  //                     wasm::regid(bank_native_module_id).to_string(),
+		  //                     wasm::name(context._receiver).to_string());
 
-				auto &database                = context.database.accountCache;
-		        context.control_trx.run_cost += context.trx.GetSerializeSize(SER_DISK, CLIENT_VERSION) * store_fuel_fee_per_byte;
+				// auto &database                = context.database.accountCache;
+		  //       context.control_trx.run_cost += context.trx.GetSerializeSize(SER_DISK, CLIENT_VERSION) * store_fuel_fee_per_byte;
 
-		        //transfer_data_type transfer_data = wasm::unpack<std::tuple<uint64_t, uint64_t, wasm::asset, string>>(context.trx.data);
-		        auto transfer_data = wasm::unpack<std::tuple<wasm::asset>>(context.trx.data);
-		        auto quantity                    = std::get<0>(transfer_data);
+		  //       //transfer_data_type transfer_data = wasm::unpack<std::tuple<uint64_t, uint64_t, wasm::asset, string>>(context.trx.data);
+		  //       auto transfer_data = wasm::unpack<std::tuple<wasm::asset>>(context.trx.data);
+		  //       auto quantity                    = std::get<0>(transfer_data);
 
-				CHAIN_ASSERT(quantity.is_valid(),    wasm_chain::native_contract_assert_exception, "invalid quantity");
-		        CHAIN_ASSERT(quantity.amount > 0,    wasm_chain::native_contract_assert_exception, "must transfer positive quantity");
+				// CHAIN_ASSERT(quantity.is_valid(),    wasm_chain::native_contract_assert_exception, "invalid quantity");
+		  //       CHAIN_ASSERT(quantity.amount > 0,    wasm_chain::native_contract_assert_exception, "must transfer positive quantity");
 			}
 
 			static void burn(wasm_context &context) {

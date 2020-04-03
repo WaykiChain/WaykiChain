@@ -216,12 +216,6 @@ namespace wasm {
         v = wasm::variant();
     }
 
-    // static inline void to_variant( const std::time_point_sec &t, wasm::variant &v ) {
-    //     // string str(&t.hash[0], &t.hash[sizeof(t.hash)/sizeof(t.hash[0])]);
-    //     // v = wasm::variant(ToHex(str,""));
-
-    // }
-
     static inline void to_variant( const wasm::checksum160_type &t, wasm::variant &v ) {
         //to_variant(t.hash, v);
         string str(&t.hash[0], &t.hash[sizeof(t.hash) / sizeof(t.hash[0])]);
@@ -231,9 +225,7 @@ namespace wasm {
     }
 
     static inline void to_variant( const wasm::checksum256_type &t, wasm::variant &v ) {
-        //to_variant(t.hash, v);
         string str(&t.hash[0], &t.hash[sizeof(t.hash) / sizeof(t.hash[0])]);
-        //WASM_TRACE("%s", ToHex(str,"").c_str())
         v = wasm::variant(to_hex(str, ""));
 
     }
@@ -566,16 +558,14 @@ namespace wasm {
             auto o = v.get_obj();
             for (wasm::Object::const_iterator i = o.begin(); i != o.end(); ++i) {
                 string key = Config_type::get_name(*i);
-                ABI_Enum abi_key = mapStringValues[key];
-                switch (abi_key) {
+                abi_typeid_t type_id = string2typeid[key];
+                switch (type_id) {
                     case ID_Symbolcode : {
                         from_variant(Config_type::get_value(*i), symbol_code);
-                        //std::cout << symbol_code <<std::endl ;
                         break;
                     }
                     case ID_Precision : {
                         from_variant(Config_type::get_value(*i), precision);
-                        //std::cout << "precision line203" <<std::endl ;
                         break;
                     }
                     default :
@@ -598,16 +588,14 @@ namespace wasm {
             auto o = v.get_obj();
             for (wasm::Object::const_iterator i = o.begin(); i != o.end(); ++i) {
                 string key = Config_type::get_name(*i);
-                ABI_Enum abi_key = mapStringValues[key];
-                switch (abi_key) {
+                abi_typeid_t type_id = string2typeid[key];
+                switch (type_id) {
                     case ID_Amount : {
                         from_variant(Config_type::get_value(*i), t.amount);
-                        //std::cout << t.amount <<std::endl ;
                         break;
                     }
                     case ID_Symbol : {
                         from_variant(Config_type::get_value(*i), t.symbol);
-                        //std::cout << t.sym.to_string() <<std::endl ;
                         break;
                     }
                     default :
@@ -630,8 +618,8 @@ namespace wasm {
             auto o = v.get_obj();
             for (wasm::Object::const_iterator i = o.begin(); i != o.end(); ++i) {
                 string key = Config_type::get_name(*i);
-                ABI_Enum abi_key = mapStringValues[key];
-                switch (abi_key) {
+                abi_typeid_t type_id = string2typeid[key];
+                switch (type_id) {
                     case ID_Name : {
                         from_variant(Config_type::get_value(*i), field.name);
                         break;
@@ -655,8 +643,8 @@ namespace wasm {
             auto o = v.get_obj();
             for (wasm::Object::const_iterator i = o.begin(); i != o.end(); ++i) {
                 string key = Config_type::get_name(*i);
-                ABI_Enum abi_key = mapStringValues[key];
-                switch (abi_key) {
+                abi_typeid_t type_id = string2typeid[key];
+                switch (type_id) {
                     case ID_Name : {
                         from_variant(Config_type::get_value(*i), s.name);
                         break;
@@ -687,8 +675,8 @@ namespace wasm {
             auto o = v.get_obj();
             for (wasm::Object::const_iterator i = o.begin(); i != o.end(); ++i) {
                 string key = Config_type::get_name(*i);
-                ABI_Enum abi_key = mapStringValues[key];
-                switch (abi_key) {
+                abi_typeid_t type_id = string2typeid[key];
+                switch (type_id) {
                     case ID_Name : {
                         from_variant(Config_type::get_value(*i), a.name);
                         break;
@@ -721,8 +709,8 @@ namespace wasm {
             auto o = v.get_obj();
             for (wasm::Object::const_iterator i = o.begin(); i != o.end(); ++i) {
                 string key = Config_type::get_name(*i);
-                ABI_Enum abi_key = mapStringValues[key];
-                switch (abi_key) {
+                abi_typeid_t type_id = string2typeid[key];
+                switch (type_id) {
                     case ID_Name : {
                         from_variant(Config_type::get_value(*i), table.name);
                         break;
@@ -760,8 +748,8 @@ namespace wasm {
             auto o = v.get_obj();
             for (wasm::Object::const_iterator i = o.begin(); i != o.end(); ++i) {
                 string key = Config_type::get_name(*i);
-                ABI_Enum abi_key = mapStringValues[key];
-                switch (abi_key) {
+                abi_typeid_t type_id = string2typeid[key];
+                switch (type_id) {
                     case ID_ID : {
                         from_variant(Config_type::get_value(*i), c.id);
                         break;
@@ -788,8 +776,8 @@ namespace wasm {
             auto o = v.get_obj();
             for (wasm::Object::const_iterator i = o.begin(); i != o.end(); ++i) {
                 string key = Config_type::get_name(*i);
-                ABI_Enum abi_key = mapStringValues[key];
-                switch (abi_key) {
+                abi_typeid_t type_id = string2typeid[key];
+                switch (type_id) {
                     case ID_New_type_name : {
                         from_variant(Config_type::get_value(*i), type.new_type_name);
                         break;
@@ -818,11 +806,8 @@ namespace wasm {
 
                 for (wasm::Object::const_iterator i = o.begin(); i != o.end(); ++i) {
                     string key = Config_type::get_name(*i);
-                    ABI_Enum abi_key = mapStringValues[key];
-
-                    //WASM_TRACE("%s", key.c_str())
-
-                    switch (abi_key) {
+                    abi_typeid_t type_id = string2typeid[key];
+                    switch (type_id) {
                         case ID_Comment :
                             break;
                         case ID_Version : {
