@@ -5,11 +5,6 @@ namespace wasm {
 
   //only asset owner can invoke this op
   inline void mint_burn_balance(wasm_context &context, bool isMintOperate, bool is_not_tx_payer = true) {
-      CHAIN_ASSERT( context._receiver == bank_native_module_id,
-                      wasm_chain::native_contract_assert_exception,
-                      "expect contract '%s', but get '%s'",
-                      wasm::regid(bank_native_module_id).to_string(),
-                      wasm::name(context._receiver).to_string());
 
       auto &database                = context.database.accountCache;
       context.control_trx.run_cost += context.trx.GetSerializeSize(SER_DISK, CLIENT_VERSION) * store_fuel_fee_per_byte;
@@ -43,12 +38,12 @@ namespace wasm {
                       wasm::regid(target).to_string())
 
       if (isMintOperate) { //mint operate
-        CHAIN_ASSERT( targetAccount.OperateBalance(symbol, BalanceOpType::ADD_FREE, quantity.amount, ReceiptCode::WASM_MINT_COINS, receipts),
+        CHAIN_ASSERT( targetAccount.OperateBalance(symbol, BalanceOpType::ADD_FREE, quantity.amount, ReceiptCode::WASM_MINT_COINS, context.control_trx.receipts),
                       account_access_exception,
                       "Account %s balance overminted",
                       targetAccount.regid.ToString())
       } else {            //burn operate
-        CHAIN_ASSERT( targetAccount.OperateBalance(symbol, BalanceOpType::SUB_FREE, quantity.amount, ReceiptCode::WASM_BURN_COINS, receipts),
+        CHAIN_ASSERT( targetAccount.OperateBalance(symbol, BalanceOpType::SUB_FREE, quantity.amount, ReceiptCode::WASM_BURN_COINS, context.control_trx.receipts),
                     account_access_exception,
                     "Account %s balance overburn",
                     targetAccount.regid.ToString())

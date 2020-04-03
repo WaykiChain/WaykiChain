@@ -89,10 +89,24 @@ namespace wasm {
 		    }
 
 			static void mint(wasm_context &context) {
+
+				CHAIN_ASSERT( context._receiver == bank_native_module_id,
+					wasm_chain::native_contract_assert_exception,
+					"expect contract '%s', but get '%s'",
+					wasm::regid(bank_native_module_id).to_string(),
+					wasm::name(context._receiver).to_string());
+
 				mint_burn_balance(context, true);
 			}
 
 			static void burn(wasm_context &context) {
+
+				CHAIN_ASSERT( context._receiver == bank_native_module_id,
+					wasm_chain::native_contract_assert_exception,
+					"expect contract '%s', but get '%s'",
+					wasm::regid(bank_native_module_id).to_string(),
+					wasm::name(context._receiver).to_string());
+
 				mint_burn_balance(context, false);
 			}
 
