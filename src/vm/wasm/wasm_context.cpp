@@ -13,56 +13,16 @@ using namespace wasm;
 // using std::chrono::microseconds;
 // using std::chrono::system_clock;
 
-// extern void register_wasm_native_routes(auto& action_router, auto& abi_router);
-// extern void register_wasmio_bank_routes(abi_router& abi_r, action_router& act_r);
-
 namespace wasm {
-
-
-    // using nativeHandler = std::function<void(wasm_context & )>;
-    // map <pair<uint64_t, uint64_t>, nativeHandler>& get_wasm_native_handlers(){
-    //     static map <pair<uint64_t, uint64_t>, nativeHandler> wasm_native_handlers;
-    //     return wasm_native_handlers;
-
-    // }
-
-    // inline void register_native_handler(uint64_t receiver, uint64_t action, nativeHandler v) {
-    //     get_wasm_native_handlers()[std::pair(receiver, action)] = v;
-    // }
-
-    // inline nativeHandler *find_native_handle(uint64_t receiver, uint64_t action) {
-    //     auto handler = get_wasm_native_handlers().find(std::pair(receiver, action));
-    //     if (handler != get_wasm_native_handlers().end()) {
-    //         return &handler->second;
-    //     }
-
-    //     return nullptr;
-    // }
-
-    // extern void wasm_load_native_modules_and_register_routes() {
-    //     // auto& modules = get_wasm_native_modules();
-    //     // if(modules.size() == 0){
-    //     //     modules.push_back(std::make_shared<wasm_native_module>());
-    //     //     modules.push_back(std::make_shared<wasm_bank_native_module>());
-    //     // }
-
-    //     // auto& abi_router = get_wasm_abi_route();
-    //     // auto& act_router = get_wasm_act_route();
-
-    //     // for(auto module: modules){
-    //     //     module->register_routes(abi_router, act_router);
-    //     // }
-
-    // }
 
     static inline void print_debug(uint64_t receiver, const inline_transaction_trace &trace) {
         if (!trace.console.empty()) {
 
             ostringstream prefix;
 
-            auto contract_s = name(trace.trx.contract).to_string();
+            auto contract_s = regid(trace.trx.contract).to_string();
             auto action_s   = name(trace.trx.action).to_string();
-            auto receiver_s = name(receiver).to_string();
+            auto receiver_s = regid(receiver).to_string();
 
             prefix << "[" << contract_s << "," << action_s << "]->" << receiver_s << "";
             std::cout << prefix.str()  << ": CONSOLE OUTPUT BEGIN =====================\n"

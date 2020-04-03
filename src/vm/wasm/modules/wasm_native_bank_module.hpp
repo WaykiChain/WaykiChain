@@ -34,7 +34,6 @@ namespace wasm {
 		        switch (action){
 		            case N(transfer):
 		                 tansfer(context);
-		                 return;
 		                 break;
 		            default:
 		                 break;
@@ -124,7 +123,7 @@ namespace wasm {
 		        //WASM_TRACE("%s", quantity.to_string().c_str() )
 		        context.require_auth(from); //from auth
 		        CHAIN_ASSERT(from != to,             wasm_chain::native_contract_assert_exception, "cannot transfer to self");
-		        CHAIN_ASSERT(context.is_account(to), wasm_chain::native_contract_assert_exception, "to account '%s' does not exist", wasm::name(to).to_string() );
+		        CHAIN_ASSERT(context.is_account(to), wasm_chain::native_contract_assert_exception, "to account '%s' does not exist", wasm::regid(to).to_string() );
 		        CHAIN_ASSERT(quantity.is_valid(),    wasm_chain::native_contract_assert_exception, "invalid quantity");
 		        CHAIN_ASSERT(quantity.amount > 0,    wasm_chain::native_contract_assert_exception, "must transfer positive quantity");
 		        CHAIN_ASSERT(memo.size()  <= 256,    wasm_chain::native_contract_assert_exception, "memo has more than 256 bytes");

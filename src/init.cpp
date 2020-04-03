@@ -390,7 +390,7 @@ void ThreadImport(vector<boost::filesystem::path> vImportFiles) {
 }
 
 /** Initialize native_modules
- *  
+ *  register routes for native tx(inline_transaction) dispatch
  */
 void wasm_load_native_modules_and_register_routes() {
     auto& modules = get_wasm_native_modules();
@@ -402,7 +402,7 @@ void wasm_load_native_modules_and_register_routes() {
     auto& abi_router = get_wasm_abi_route();
     auto& act_router = get_wasm_act_route();
 
-    for(auto module: modules){
+    for(auto& module: modules){
         module->register_routes(abi_router, act_router);
     }
 
@@ -463,12 +463,12 @@ bool AppInit(boost::thread_group &threadGroup) {
     ECC_Start();
     globalVerifyHandle.reset(new ECCVerifyHandle());
 
-    //register wasm native routes
-    wasm_load_native_modules_and_register_routes();
-
     // Sanity check
     if (!ECC_InitSanityCheck())
         return fprintf(stderr, "Elliptic curve cryptography sanity check failure. Aborting.");
+
+    //register wasm routes for native inline_transaction dispatch
+    wasm_load_native_modules_and_register_routes();
 
 #if defined(__SVR4) && defined(__sun)
     // ignore SIGPIPE on Solaris

@@ -28,7 +28,6 @@ namespace wasm {
         return router;
     }
 
-
     inline bool get_native_contract_abi(uint64_t contract, std::vector<char>& abi){
         auto& router  = get_wasm_abi_route();
         auto* handler = router.route(contract);
