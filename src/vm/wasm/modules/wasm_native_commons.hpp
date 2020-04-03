@@ -43,26 +43,26 @@ namespace wasm {
       string symbol      = quantity.symbol.code().to_string();
       CAsset asset;
       CHAIN_ASSERT( context.database.assetCache.GetAsset(symbol, asset),
-                      wasm_chain::asset_type_exception,
-                      "asset (%s) not found from d/b",
-                      symbol );
+                    wasm_chain::asset_type_exception,
+                    "asset (%s) not found from d/b",
+                    symbol );
 
       CAccount assetOwnerAccount;
       CHAIN_ASSERT( context.database.accountCache.GetAccount(asset.owner_uid, assetOwnerAccount),
-                      wasm_chain::native_contract_assert_exception,
-                      "asset owner (%s) not found from d/b",
-                      asset.owner_uid.ToString() );
+                    wasm_chain::native_contract_assert_exception,
+                    "asset owner (%s) not found from d/b",
+                    asset.owner_uid.ToString() );
 
       CHAIN_ASSERT( owner == assetOwnerAccount.regid.GetIntValue(),
-                      wasm_chain::native_contract_assert_exception,
-                      "input asset owner (%s) diff from asset owner(%s) from d/b",
-                      CRegID(owner).ToString(), assetOwnerAccount.regid.ToString() );
+                    wasm_chain::native_contract_assert_exception,
+                    "input asset owner (%s) diff from asset owner(%s) from d/b",
+                    CRegID(owner).ToString(), assetOwnerAccount.regid.ToString() );
 
       CAccount targetAccount;
       CHAIN_ASSERT( context.database.accountCache.GetAccount(CRegID(target), targetAccount),
-                      wasm_chain::native_contract_assert_exception,
-                      "target account '%s' does not exist",
-                      wasm::regid(target).to_string())
+                    wasm_chain::native_contract_assert_exception,
+                    "target account '%s' does not exist",
+                    wasm::regid(target).to_string())
 
       if (isMintOperate) { //mint operation
         context.require_auth(owner);
@@ -71,10 +71,10 @@ namespace wasm {
                       "Asset Owner (%s) balance overminted",
                       assetOwnerAccount.regid.ToString())
 
-        if (assetOwnerAccount.keyid != context.control_trx.txAccount.keyid)
-          CHAIN_ASSERT( context.database.accountCache.SetAccount(assetOwnerAccount.keyid, assetOwnerAccount),
-                        wasm_chain::account_access_exception,
-                        "Save assetOwnerAccount error")
+        CHAIN_ASSERT( assetOwnerAccount.keyid != context.control_trx.txAccount.keyid &&
+                      context.database.accountCache.SetAccount(assetOwnerAccount.keyid, assetOwnerAccount),
+                      wasm_chain::account_access_exception,
+                      "Save assetOwnerAccount error")
 
         transfer_balance( assetOwnerAccount, targetAccount, quantity, context );
 
@@ -93,10 +93,10 @@ namespace wasm {
                       "Asset Owner (%s) balance overburnt",
                       assetOwnerAccount.regid.ToString())
 
-        if (assetOwnerAccount.keyid != context.control_trx.txAccount.keyid)
-          CHAIN_ASSERT( context.database.accountCache.SetAccount(assetOwnerAccount.keyid, assetOwnerAccount),
-                        wasm_chain::account_access_exception,
-                        "Save assetOwnerAccount error")
+        CHAIN_ASSERT( assetOwnerAccount.keyid != context.control_trx.txAccount.keyid &&
+                      context.database.accountCache.SetAccount(assetOwnerAccount.keyid, assetOwnerAccount),
+                      wasm_chain::account_access_exception,
+                      "Save assetOwnerAccount error")
 
         CHAIN_ASSERT( asset.total_supply >= quantity.amount,
                       wasm_chain::native_contract_assert_exception,
