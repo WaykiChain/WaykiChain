@@ -118,8 +118,8 @@ namespace wasm {
 		                      wasm::regid(bank_native_module_id).to_string(),
 		                      wasm::name(context._receiver).to_string());
 
-		        auto &database                = context.database.accountCache;
-		        context.control_trx.run_cost += context.trx.GetSerializeSize(SER_DISK, CLIENT_VERSION) * store_fuel_fee_per_byte;
+		        auto &db_account                = context.database.accountCache;
+		        context.control_trx.run_cost   += context.trx.GetSerializeSize(SER_DISK, CLIENT_VERSION) * store_fuel_fee_per_byte;
 
 		        //transfer_data_type transfer_data = wasm::unpack<std::tuple<uint64_t, uint64_t, wasm::asset, string>>(context.trx.data);
 		        auto transfer_data = wasm::unpack<std::tuple <uint64_t, uint64_t, wasm::asset, string >>(context.trx.data);
@@ -139,13 +139,13 @@ namespace wasm {
 		        CHAIN_ASSERT(memo.size()  <= 256,    wasm_chain::native_contract_assert_exception, "memo has more than 256 bytes");
 
 				CAccount fromAccount; //may not be txAccount since one trx can have multiple signed/authorized transfers (from->to)
-		        CHAIN_ASSERT( database.GetAccount(CRegID(from), fromAccount),
+		        CHAIN_ASSERT( db_account.GetAccount(CRegID(from), fromAccount),
 								wasm_chain::account_access_exception,
 								"from account '%s' does not exist",
 								wasm::regid(from).to_string())
 
 				CAccount toAccount;
-		        CHAIN_ASSERT( database.GetAccount(CRegID(to), toAccount),
+		        CHAIN_ASSERT( db_account.GetAccount(CRegID(to), toAccount),
 								wasm_chain::account_access_exception,
 								"to account '%s' does not exist",
 								wasm::regid(to).to_string())

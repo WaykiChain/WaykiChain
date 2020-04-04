@@ -290,7 +290,7 @@ namespace wasm {
 
     std::vector<uint64_t> wasm_context::get_active_producers(){
 
-        auto &database_account  = database.accountCache;
+        auto &db_account  = database.accountCache;
         auto &database_delegate = database.delegateCache;
 
         std::vector<uint64_t> active_producers;
@@ -301,7 +301,7 @@ namespace wasm {
 
         for ( auto p: producers){
             CAccount producer;
-            CHAIN_ASSERT( database_account.GetAccount(p.regid, producer),
+            CHAIN_ASSERT( db_account.GetAccount(p.regid, producer),
                           wasm_chain::account_access_exception,
                           "producer account get account error, regid = %s",
                           p.regid.ToString())

@@ -18,7 +18,7 @@ namespace wasm {
         vector<uint8_t>   signature;
 
         IMPLEMENT_SERIALIZE (
-            READWRITE(VARINT(account ));
+            READWRITE(VARINT(account));
             READWRITE(signature);
             )
 
@@ -48,11 +48,11 @@ namespace wasm {
         uint64_t                 contract;
         uint64_t                 action;
         std::vector <permission> authorization;
-        std::vector<char>        data;
+        std::vector <char>       data;
 
         IMPLEMENT_SERIALIZE (
-            READWRITE(VARINT(contract ));
-            READWRITE(VARINT(action ));
+            READWRITE(VARINT(contract));
+            READWRITE(VARINT(action));
             READWRITE(authorization);
             READWRITE(data);
             )

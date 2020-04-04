@@ -12,7 +12,6 @@
 #include "persistence/contractdb.h"
 #include "persistence/txdb.h"
 #include "config/version.h"
-#include <sstream>
 
 #include "wasm/wasm_context.hpp"
 #include "wasm/types/name.hpp"
@@ -26,6 +25,8 @@
 #include "wasm/exception/exceptions.hpp"
 #include "wasm/modules/wasm_native_dispatch.hpp"
 #include "wasm/modules/wasm_router.hpp"
+
+#include <sstream>
 
 
 map <UnsignedCharArray, uint64_t> &get_signatures_cache() {
@@ -459,7 +460,7 @@ Object CWasmContractTx::ToJson(const CAccountDBCache &accountCache) const {
     to_variant(signature_pair{payer.regid.GetIntValue(), signature}, signature_payer);
     result.push_back(Pair("signature_payer", signature_payer));
 
-    if(signatures.size() > 0) {
+    if (signatures.size() > 0) {
         Value signatures_arr;
         to_variant(signatures, signatures_arr);
         result.push_back(Pair("signature_pairs", signatures_arr));

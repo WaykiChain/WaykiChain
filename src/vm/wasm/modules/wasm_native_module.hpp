@@ -77,8 +77,8 @@ namespace wasm {
 		       		           wasm::regid(native_module_id).to_string(),
 		                       wasm::regid(context._receiver).to_string());
 
-		        auto &database_account         = context.database.accountCache;
-		        auto &database_contract        = context.database.contractCache;
+		        auto &db_account         = context.database.accountCache;
+		        auto &db_contract        = context.database.contractCache;
 		        //auto &control_trx              = context.control_trx;
 		        
 		        //set_code_data_type set_code_data = wasm::unpack<std::tuple<uint64_t, string, string, string>>(context.trx.data);
@@ -91,7 +91,7 @@ namespace wasm {
 		        context.require_auth(contract_regid); 
 
 		        CAccount contract;
-		        CHAIN_ASSERT( database_account.GetAccount(CRegID(contract_regid), contract),
+		        CHAIN_ASSERT( db_account.GetAccount(CRegID(contract_regid), contract),
 		                      wasm_chain::account_access_exception,
 		                      "contract '%s' does not exist",
 		                      wasm::regid(contract_regid).to_string()) 
@@ -102,7 +102,7 @@ namespace wasm {
 		        contract_store.abi     = abi;
 		        contract_store.memo    = memo;
 
-		        CHAIN_ASSERT( database_contract.SaveContract(contract.regid, contract_store), 
+		        CHAIN_ASSERT( db_contract.SaveContract(contract.regid, contract_store), 
 		                      wasm_chain::account_access_exception,
 		                      "save contract '%s' error",
 		                      wasm::regid(contract_regid).to_string())

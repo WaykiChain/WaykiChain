@@ -166,7 +166,7 @@ std::shared_ptr<CBaseTx> genWasmContractCalltx(json_spirit::Value param_json) {
     ComboMoney fee = RPC_PARAM::GetComboMoney(str_fee,  SYMB::WICC);
     int32_t height = AmountToRawValue(str_height);
 
-    auto database_contract = pCdMan->pContractCache;
+    auto db_contract = pCdMan->pContractCache;
 
     std::shared_ptr<CWasmContractTx> pBaseTx = std::make_shared<CWasmContractTx>();
 
@@ -187,7 +187,7 @@ std::shared_ptr<CBaseTx> genWasmContractCalltx(json_spirit::Value param_json) {
         if(!wasm::get_native_contract_abi(contract_name.value, abi)){
             CAccount           contract;
             CUniversalContract contract_store;
-            database_contract->GetContract(contract.regid, contract_store);
+            db_contract->GetContract(contract.regid, contract_store);
             abi = std::vector<char>(contract_store.abi.begin(), contract_store.abi.end());
         }
         auto action = wasm::name(str_action.get_str());
