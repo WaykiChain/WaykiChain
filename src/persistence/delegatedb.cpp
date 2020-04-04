@@ -29,14 +29,14 @@ const CRegID &CTopDelegatesIterator::GetRegid() const {
 }
 
 bool CDelegateDBCache::GetTopVoteDelegates(uint32_t delegateNum, uint64_t delegateVoteMin,
-                                           VoteDelegateVector &topVoteDelegates) {
+                                           VoteDelegateVector &topVoteDelegates, bool isR3Fork) {
 
     topVoteDelegates.clear();
     topVoteDelegates.reserve(delegateNum);
     auto spIt = CreateTopDelegateIterator();
     for (spIt->First(); spIt->IsValid() && topVoteDelegates.size() < delegateNum; spIt->Next()) {
         uint64_t vote = spIt->GetVote();
-        if (vote < BP_DELEGATE_VOTE_MIN) {
+        if (isR3Fork && vote < BP_DELEGATE_VOTE_MIN) {
             LogPrint(BCLog::ERROR, "[WARNING] %s, the %lluTH delegate vote=%llu less than %llu!"
                      " dest_delegate_num=%d\n",
                      __func__, topVoteDelegates.size(), BP_DELEGATE_VOTE_MIN, delegateNum);

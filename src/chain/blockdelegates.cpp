@@ -21,7 +21,7 @@ static std::string ToString(const VoteDelegateVector &activeDelegates) {
 
 static bool GenPendingDelegates(CBlock &block, uint32_t delegateNum, CCacheWrapper &cw,
                                 const VoteDelegateVector activeDelegates,
-                                PendingDelegates &pendingDelegates) {
+                                PendingDelegates &pendingDelegates, bool isR3Fork) {
 
     pendingDelegates.counted_vote_height = block.GetHeight();
     uint64_t bpDelegateVoteMin;
@@ -30,7 +30,7 @@ static bool GenPendingDelegates(CBlock &block, uint32_t delegateNum, CCacheWrapp
                 __func__, block.GetHeight(), block.GetHash().ToString());
 
     VoteDelegateVector topVoteDelegates;
-    if (!cw.delegateCache.GetTopVoteDelegates(delegateNum, BP_DELEGATE_VOTE_MIN, topVoteDelegates)) {
+    if (!cw.delegateCache.GetTopVoteDelegates(delegateNum, BP_DELEGATE_VOTE_MIN, topVoteDelegates, isR3Fork)) {
         LogPrint(BCLog::INFO, "[WARNING] %s, GetTopVoteDelegates() failed! no need to update pending delegates! "
                 "block=%d:%s, delegate_num=%d\n",
                 __func__, block.GetHeight(), block.GetHash().ToString(), delegateNum);
@@ -59,8 +59,9 @@ bool chain::ProcessBlockDelegates(CBlock &block, CCacheWrapper &cw, CValidationS
     int32_t countVoteInterval; // the interval to count the vote
     int32_t activateDelegateInterval; // the interval to count the vote
 
-    FeatureForkVersionEnum version = GetFeatureForkVersion(block.GetHeight());
-    if (version >= MAJOR_VER_R3) {
+    auto version = GetFeatureForkVersion(block.GetHeight());
+    bool isR3Fork = version >= MAJOR_VER_R3;
+    if (isR3Fork) {
         countVoteInterval = COUNT_VOTE_INTERVAL_AFTER_V3;
         activateDelegateInterval = ACTIVATE_DELEGATE_DELAY_AFTER_V3;
     } else {
@@ -83,10 +84,10 @@ bool chain::ProcessBlockDelegates(CBlock &block, CCacheWrapper &cw, CValidationS
         uint32_t delegateNum = cw.sysParamCache.GetTotalBpsSize(block.GetHeight()) ;
 
         if (pendingDelegates.counted_vote_height == 0 ||
-            lastVoteHeight > (int32_t)pendingDelegates.counted_vote_height
-            || activeDelegates.size() != delegateNum) {
+            lastVoteHeight > (int32_t)pendingDelegates.counted_vote_height || 
+            activeDelegates.size() != delegateNum) {
 
-            if (!GenPendingDelegates(block, delegateNum, cw, activeDelegates, pendingDelegates)) {
+            if (!GenPendingDelegates(block, delegateNum, cw, activeDelegates, pendingDelegates, isR3Fork)) {
                 return state.DoS(100, ERRORMSG("%s() : GenPendingDelegates failed! block=%d:%s",
                     __FUNCTION__, block.GetHeight(), block.GetHash().ToString()));
             }

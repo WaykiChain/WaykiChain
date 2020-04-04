@@ -54,7 +54,7 @@ public:
         active_delegates_cache(pBaseIn->active_delegates_cache) {}
 
     bool GetTopVoteDelegates(uint32_t delegateNum, uint64_t delegateVoteMin,
-                             VoteDelegateVector &topVoteDelegates);
+                             VoteDelegateVector &topVoteDelegates, bool isR3Fork);
 
     bool SetDelegateVotes(const CRegID &regid, const uint64_t votes);
     bool EraseDelegateVotes(const CRegID &regid, const uint64_t votes);
