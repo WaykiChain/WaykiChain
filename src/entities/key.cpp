@@ -100,8 +100,8 @@ bool CKey::Sign(const uint256 &hash, vector<uint8_t> &vchSig) const {
     WriteLE32(extra_entropy, test_case);
     secp256k1_ecdsa_signature sig;
     uint32_t counter = 0;
-    int32_t ret          = secp256k1_ecdsa_sign(secp256k1_context_sign, &sig, hash.begin(), begin(),
-                                   secp256k1_nonce_function_rfc6979, (!grind && test_case) ? extra_entropy : nullptr);
+    int32_t ret = secp256k1_ecdsa_sign(secp256k1_context_sign, &sig, hash.begin(), begin(),
+                                    secp256k1_nonce_function_rfc6979, (!grind && test_case) ? extra_entropy : nullptr);
 
     // Grind for low R
     while (ret && !SigHasLowR(&sig) && grind) {
