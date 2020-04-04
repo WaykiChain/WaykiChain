@@ -301,7 +301,6 @@ tuple<uint64_t, string> CLuaVM::Run(uint64_t fuelLimit, CLuaVMRunEnv *pVmRunEnv)
     // 传递pVmScriptRun指针，以便后面代码引用，去掉了使用全局变量保存该指针
     lua_pushlightuserdata(lua_state, pVmRunEnv);
     lua_setglobal(lua_state, "VmScriptRun");
-    LogPrint(BCLog::LUAVM, "pVmRunEnv=%p\n", pVmRunEnv);
 
     // 5. Load the contract script
     std::string strError;
