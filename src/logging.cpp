@@ -297,7 +297,7 @@ void BCLog::Logger::LogPrintStr(const BCLog::LogFlags& category, const char* fil
     std::lock_guard<std::mutex> scoped_lock(m_cs);
     std::string str_prefixed = LogEscapeMessage(str);
 
-    str_prefixed.insert(0, "[" + GetLogCategoryName(category) + "] ");
+    str_prefixed.insert(0, tfm::format("[%-8s] ", GetLogCategoryName(category)));
 
     if (m_print_file_line)
         str_prefixed.insert(0, tfm::format("[%-30s:%4d] ", file, line));
