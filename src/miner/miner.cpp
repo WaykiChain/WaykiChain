@@ -230,7 +230,7 @@ bool VerifyRewardTx(const CBlock *pBlock, CCacheWrapper &cwIn, VoteDelegate &cur
 
     CAccount account;
     if (!spCW->accountCache.GetAccount(pBlock->vptx[0]->txUid, account))
-        return ERRORMSG("failed to get account info, regId=%s", pBlock->vptx[0]->txUid.ToString());
+        return ERRORMSG("[%d] failed to get account info, regId=%s", pBlock->GetHeight(), pBlock->vptx[0]->txUid.ToString());
 
     if (delegateAccount.regid != account.regid)
         return ERRORMSG("[%d] delegate should be (%s) vs what we got (%s)",
