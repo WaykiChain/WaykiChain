@@ -266,13 +266,13 @@ extern Value getminerbyblocktime(const Array& params, bool fHelp) {
 
     uint16_t index = 0;
     for (auto &delegate : delegates)
-        LogPrint(BCLog::DEBUG, "before shuffle: height=%d, index=%d, regId=%s\n", blockHeight, index++, delegate.regid.ToString());
+        LogPrint(BCLog::DEBUG, "%-30s[%d] before shuffle: index=%d, regId=%s\n", __func__, blockHeight, index++, delegate.regid.ToString());
 
     ShuffleDelegates(blockHeight, blockTime, delegates);
 
     index = 0;
     for (auto &delegate : delegates)
-        LogPrint(BCLog::DEBUG, "after shuffle: height=%d, index=%d, regId=%s\n", blockHeight, index++, delegate.regid.ToString());
+        LogPrint(BCLog::DEBUG, "%-30s[%d] after shuffle: index=%d, regId=%s\n", __func__, blockHeight, index++, delegate.regid.ToString());
 
     CRegID regid;
     VoteDelegate curDelegate;

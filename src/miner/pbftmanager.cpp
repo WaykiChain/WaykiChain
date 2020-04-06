@@ -106,7 +106,7 @@ bool CPBFTMan::UpdateLocalFinBlock(const CBlockIndex* pIndex){
 
 
     if(pIndex == nullptr|| pIndex->height==0){
-        LogPrint(BCLog::DEBUG, "pindex not found");
+        LogPrint(BCLog::DEBUG, "%-30s pIndex not found", __func__);
         return false;
     }
     int32_t height = pIndex->height;

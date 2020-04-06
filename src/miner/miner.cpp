@@ -79,7 +79,7 @@ uint32_t GetElementForBurn(CBlockIndex *pIndex) {
         newFuelRate = MIN_FUEL_RATES;
     }
 
-    LogPrint(BCLog::DEBUG, "%-20s:preFuelRate=%d fuelRate=%d, height=%d\n", __func__,
+    LogPrint(BCLog::DEBUG, "%-30s preFuelRate=%d fuelRate=%d, height=%d\n", __func__,
             pIndex->nFuelRate, newFuelRate, pIndex->height);
             
     return newFuelRate;
@@ -114,7 +114,7 @@ bool GetCurrentDelegate(const int64_t currentTime, const int32_t currHeight, con
     uint32_t slot  = currentTime / GetBlockInterval(currHeight) / GetContinuousBlockCount(currHeight);
     uint32_t index = slot % delegates.size() ;
     delegate       = delegates[index];
-    LogPrint(BCLog::DEBUG, "%-20s:currTime=%lld, slot=%d, index=%d, regId=%s\n", __func__, 
+    LogPrint(BCLog::DEBUG, "%-30s currTime=%lld, slot=%d, index=%d, regId=%s\n", __func__, 
             currentTime, slot, index, delegate.regid.ToString());
 
     return true;
@@ -378,8 +378,8 @@ static bool CreateNewBlockForPreStableCoinRelease(CCacheWrapper &cwIn, std::uniq
 
             pBlock->vptx.push_back(itor->baseTx);
 
-            LogPrint(BCLog::DEBUG, "miner total fuel fee:%d, tx fuel fee:%d, fuel:%d, fuelRate:%d, txid:%s\n", totalFuel,
-                     pBaseTx->GetFuel(height, fuelRate), pBaseTx->nRunStep, fuelRate, pBaseTx->GetHash().GetHex());
+            LogPrint(BCLog::DEBUG, "%-30s miner total fuel fee:%d, tx fuel fee:%d, fuel:%d, fuelRate:%d, txid:%s\n", __func__,
+                    totalFuel, pBaseTx->GetFuel(height, fuelRate), pBaseTx->nRunStep, fuelRate, pBaseTx->GetHash().GetHex());
         }
 
         nLastBlockTx                   = index + 1;
@@ -548,7 +548,7 @@ static bool CreateNewBlockForStableCoinRelease(int64_t startMiningMs, CCacheWrap
 
             pBlock->vptx.push_back(itor->baseTx);
 
-            LogPrint(BCLog::DEBUG, "miner total fuel fee:%d, tx fuel fee:%d, fuel:%d, fuelRate:%d, txid:%s\n", totalFuel,
+            LogPrint(BCLog::DEBUG, "%-30s miner total fuel fee:%d, tx fuel fee:%d, fuel:%d, fuelRate:%d, txid:%s\n", totalFuel,
                      pBaseTx->GetFuel(height, fuelRate), pBaseTx->nRunStep, fuelRate, pBaseTx->GetHash().GetHex());
 
         }
@@ -621,13 +621,13 @@ static bool GetMiner(int64_t startMiningMs, const int32_t blockHeight, Miner &mi
         if (miner.account.miner_pubkey.IsValid() && pWalletMain->GetKey(miner.account.keyid, miner.key, true)) {
             isMinerKey = true;
         } else if (!pWalletMain->GetKey(miner.account.keyid, miner.key)) {
-            LogPrint(BCLog::DEBUG, "GetMiner() : [ignore] Not on-duty miner, height=%d, time_ms=%lld, "
+            LogPrint(BCLog::DEBUG, "%-30s [ignore] Not on-duty miner, height=%d, time_ms=%lld, "
                 "regid=%s, addr=%s\n",
                 blockHeight, startMiningMs, miner.delegate.regid.ToString(), miner.account.keyid.ToAddress());
             return false;
         }
     }
-    LogPrint(BCLog::DEBUG, "GetMiner(): on-duty miner, height=%d, time_ms=%lld, regid=%s, addr=%s, is_miner_key=%d\n",
+    LogPrint(BCLog::DEBUG, "%-30s on-duty miner, height=%d, time_ms=%lld, regid=%s, addr=%s, is_miner_key=%d\n",
         blockHeight, startMiningMs, miner.delegate.regid.ToString(), miner.account.keyid.ToAddress(), isMinerKey);
 
     return true;

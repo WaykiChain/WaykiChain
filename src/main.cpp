@@ -1364,7 +1364,7 @@ void static UpdateTip(CBlockIndex *pIndexNew, const CBlock &block) {
 
     // New best block
     SysCfg().SetBestRecvTime(GetTime());
-    LogPrint(BCLog::INFO, "%-20s:[%d]: %.7s** blkTxCnt=%d chainTxCnt=%lu fuelRate=%d ts=%s\n",
+    LogPrint(BCLog::INFO, "%-30s[%d]: %.7s** blkTxCnt=%d chainTxCnt=%lu fuelRate=%d ts=%s\n",
              __func__, chainActive.Height(), chainActive.Tip()->GetBlockHash().ToString(),
              block.vptx.size(), chainActive.Tip()->nChainTx, chainActive.Tip()->nFuelRate,
              DateTimeStrFormat("%Y-%m-%d %H:%M:%S", chainActive.Tip()->GetBlockTime()));
@@ -1946,8 +1946,8 @@ bool AcceptBlock(CBlock &block, CValidationState &state, CDiskBlockPos *dbp, boo
     AssertLockHeld(cs_main);
 
     uint256 blockHash = block.GetHash();
-    LogPrint(BCLog::INFO, "AcceptBlock[%d]: %s, miner: %s, ts: %u\n", block.GetHeight(), blockHash.GetHex(),
-             block.GetMinerUserID().ToString(), block.GetBlockTime());
+    LogPrint(BCLog::INFO, "%-30s[%d]: %s, miner: %s, ts: %u\n", __func__, 
+            block.GetHeight(), blockHash.GetHex(), block.GetMinerUserID().ToString(), block.GetBlockTime());
 
     // Check for duplicated block
     if (mapBlockIndex.count(blockHash))
@@ -2197,7 +2197,7 @@ bool ProcessBlock(CValidationState &state, CNode *pFrom, CBlock *pBlock, CDiskBl
     // If we don't already have its previous block, shunt it off to holding area until we get it
     if (!pBlock->GetPrevBlockHash().IsNull() && !mapBlockIndex.count(pBlock->GetPrevBlockHash())) {
         if (pBlock->GetHeight() > (uint32_t)nSyncTipHeight) {
-            LogPrint(BCLog::DEBUG, "blockHeight=%d syncTipHeight=%d\n", pBlock->GetHeight(), nSyncTipHeight );
+            LogPrint(BCLog::DEBUG, "%-30s[%d] syncTipHeight=%d\n", __func__, pBlock->GetHeight(), nSyncTipHeight );
             nSyncTipHeight = pBlock->GetHeight();
         }
 
@@ -2267,7 +2267,7 @@ bool ProcessBlock(CValidationState &state, CNode *pFrom, CBlock *pBlock, CDiskBl
         mapOrphanBlocksByPrev.erase(prevBlockHash);
     }
 
-    LogPrint(BCLog::INFO, "%-20s:[%d] elapse time:%lld ms\n", __func__, pBlock->GetHeight(), GetTimeMillis() - llBeginTime);
+    LogPrint(BCLog::INFO, "%-30s[%d] elapse time:%lld ms\n", __func__, pBlock->GetHeight(), GetTimeMillis() - llBeginTime);
     return true;
 }
 
