@@ -220,6 +220,49 @@ std::shared_ptr<CBaseTx> genWasmContractCalltx(json_spirit::Value param_json) {
     return pBaseTx;
 }
 
+std::shared_ptr<CBaseTx> genDelegateVotetx(json_spirit::Value param_json) {
+    const Value& str_from = JSON::GetObjectFieldValue(param_json, "sender");
+    const Value& str_fee = JSON::GetObjectFieldValue(param_json, "fee");
+    const Value& str_height = JSON::GetObjectFieldValue(param_json, "height");
+
+    CUserID sendUserId = RPC_PARAM::GetUserId(str_from, true);
+    ComboMoney fee   = RPC_PARAM::GetComboMoney(str_fee,  SYMB::WICC);
+    int32_t height = AmountToRawValue(str_height);
+    CGovSysParamProposal proposal;
+
+    std::shared_ptr<CDelegateVoteTx> delegateVoteTx = std::make_shared<CDelegateVoteTx>();
+    delegateVoteTx->txUid        = sendUserId;
+    delegateVoteTx->llFees       = fee.GetAmountInSawi();
+    delegateVoteTx->valid_height = height;
+    Array arr_votes = JSON::GetObjectFieldValue(param_json, "votelist").get_array();
+
+    for (auto objVote : arr_votes) {
+        const Value& delegateAddr  = JSON::GetObjectFieldValue(objVote, "delegate");
+        const Value& delegateVotes = JSON::GetObjectFieldValue(objVote, "votes");
+        if (delegateAddr.type() == null_type || delegateVotes == null_type) {
+            throw JSONRPCError(RPC_INVALID_PARAMETER, "Vote fund address error or fund value error");
+        }
+        auto delegateUid = RPC_PARAM::ParseUserIdByAddr(delegateAddr);
+        CAccount delegateAcct;
+        if (!pCdMan->pAccountCache->GetAccount(delegateUid, delegateAcct)) {
+            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Delegate address does not exist");
+        }
+        if (!delegateAcct.HasOwnerPubKey()) {
+            throw JSONRPCError(RPC_WALLET_ERROR, "Delegate address is unregistered");
+        }
+
+        VoteType voteType    = (delegateVotes.get_int64() > 0) ? VoteType::ADD_BCOIN : VoteType::MINUS_BCOIN;
+        CUserID candidateUid = CUserID(delegateAcct.regid);
+        uint64_t bcoins      = (uint64_t)abs(delegateVotes.get_int64());
+
+        CCandidateVote candidateVote(voteType, candidateUid, bcoins);
+        delegateVoteTx->candidateVotes.push_back(candidateVote);
+    }
+
+    return delegateVoteTx;
+
+}
+
 const char *gen_rawtx_rpc_help_message = R"=====(
     genunsignedtxraw "func" "params"
     get the serialization json format  parameters
@@ -239,7 +282,8 @@ unordered_map <string, std::shared_ptr<CBaseTx> (*)(json_spirit::Value)> nameToF
     { "submitsendtx",                &genSendTx                 },
     { "submitaccountpermscleartx",   &genAccountPermsClearTx    },
     { "submitucontractcalltx",       &genContractCalltx         },
-    { "submitwasmcontractcalltx",    &genWasmContractCalltx     }
+    { "submitwasmcontractcalltx",    &genWasmContractCalltx     },
+    { "submitdelegatevotetx",    &genDelegateVotetx     }
 };
 
 /**
