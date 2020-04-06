@@ -320,7 +320,7 @@ bool CDEXOperatorUpdateTx::CheckTx(CTxExecuteContext &context) {
     string errmsg ;
     string errcode ;
     if(!update_data.Check(errmsg ,errcode, context.height )){
-        return state.DoS(100, ERRORMSG(errmsg), REJECT_INVALID, errcode);
+        return state.DoS(100, ERRORMSG("%s", errmsg), REJECT_INVALID, errcode);
     }
 
     if(update_data.field == CDEXOperatorUpdateData::OWNER_UID){
