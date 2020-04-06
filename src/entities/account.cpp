@@ -585,7 +585,37 @@ bool CAccount::IsSelfUid(const CUserID &uid) {
     return false;
 }
 
+bool CAccount::CheckBalance(const TokenSymbol& symbol, const BalanceType& balanceType, const uint64_t& value) {
+    uint64_t balance;
+    auto iter = tokens.find(symbol);
+    if (iter == tokens.end())
+        balance = 0; // token not found
+    else {
+        switch (balanceType) {
+            case FREE_VALUE:
+                balance = iter->second.free_amount;
+                break;
+            case STAKED_VALUE:
+                balance = iter->second.staked_amount;
+                break;
+            case FROZEN_VALUE:
+                balance = iter->second.frozen_amount;
+                break;
+            case VOTED_VALUE:
+                balance = iter->second.voted_amount;
+                break;
+            case PLEDGED_VALUE:
+                balance = iter->second.pledged_amount;
+                break;
+            case NULL_TYPE:
+            default:
+                throw runtime_error("balance type error");
+        }
+    }
 
+    return balance >= value;
+
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 // class CVmOperate

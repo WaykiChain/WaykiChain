@@ -38,6 +38,7 @@ bool CGovSysParamProposal::CheckProposal(CTxExecuteContext& context, CBaseTx& tx
 
      return true;
 }
+
 bool CGovSysParamProposal::ExecuteProposal(CTxExecuteContext& context, CBaseTx& tx) {
     CCacheWrapper &cw = *context.pCw;
 
@@ -52,7 +53,6 @@ bool CGovSysParamProposal::ExecuteProposal(CTxExecuteContext& context, CBaseTx& 
 
     return true;
 }
-
 
 bool CGovBpMcListProposal::CheckProposal(CTxExecuteContext& context, CBaseTx& tx){
     IMPLEMENT_DEFINE_CW_STATE
@@ -88,7 +88,6 @@ bool CGovBpMcListProposal::ExecuteProposal(CTxExecuteContext& context, CBaseTx& 
 
     return false;
 }
-
 
 bool CGovBpSizeProposal:: CheckProposal(CTxExecuteContext& context, CBaseTx& tx) {
     CValidationState &state = *context.pState;;
@@ -215,11 +214,11 @@ bool CGovAccountPermProposal::CheckProposal(CTxExecuteContext& context, CBaseTx&
     CValidationState &state = *context.pState;
 
     if (account_uid.IsEmpty())
-        return state.DoS(100, ERRORMSG("CGovAccountPermProposal::CheckTx, target account_uid is empty"),
+        return state.DoS(100, ERRORMSG("CGovAccountPermProposal::CheckProposal, target account_uid is empty"),
                         REJECT_INVALID, "account-uid-empty");
 
     if (proposed_perms_sum == 0 || proposed_perms_sum > kAccountAllPerms)
-        return state.DoS(100, ERRORMSG("CGovAccountPermProposal::CheckTx, proposed perms is invalid: %llu",
+        return state.DoS(100, ERRORMSG("CGovAccountPermProposal::CheckProposal, proposed perms is invalid: %llu",
                         proposed_perms_sum), REJECT_INVALID, "account-uid-empty");
     return true;
 
@@ -229,21 +228,29 @@ bool CGovAccountPermProposal::ExecuteProposal(CTxExecuteContext& context, CBaseT
     CValidationState &state = *context.pState;
     CCacheWrapper &cw       = *context.pCw;
 
-    if (proposed_perms_sum == 0)
-        return state.DoS(100, ERRORMSG("CGovAccountPermProposal::CheckTx, proposed perms is invalid: %llu",
-                        proposed_perms_sum), REJECT_INVALID, "asset-perms-invalid");
+
+    if (tx.txAccount.IsSelfUid(account_uid)) {
+        tx.txAccount.perms_sum = proposed_perms_sum;
+        return true;
+    }
 
     CAccount acct;
-    if (!cw.accountCache.GetAccount(account_uid, acct))
-        return false;
+    if (!cw.accountCache.GetAccount(account_uid, acct)) {
+        return state.DoS(100, ERRORMSG("CGovAccountPermProposal::ExecuteProposal, target account_uid error"),
+                         REJECT_INVALID, "account-notfound");
+
+    }
 
     acct.perms_sum = proposed_perms_sum;
     if (!cw.accountCache.SetAccount(account_uid, acct))
-        return false;
+        return state.DoS(100, ERRORMSG("CGovAccountPermProposal::ExecuteProposal, target account_uid error"),
+                         REJECT_INVALID, "account-save-error");
+
 
     return true;
 
 }
+
 bool CGovAssetPermProposal::CheckProposal(CTxExecuteContext& context, CBaseTx& tx) {
     CValidationState &state = *context.pState;
     CCacheWrapper &cw       = *context.pCw;
@@ -430,6 +437,7 @@ bool CGovFeedCoinPairProposal::ExecuteProposal(CTxExecuteContext& context, CBase
         return cw.priceFeedCache.EraseFeedCoinPair(coinPair);
 
 }
+
 bool CGovAxcInProposal::CheckProposal(CTxExecuteContext& context, CBaseTx& tx) {
     IMPLEMENT_DEFINE_CW_STATE;
 
@@ -481,7 +489,7 @@ bool ProcessAxcInFee(CTxExecuteContext& context, CBaseTx& tx, TokenSymbol& selfC
     uint64_t swapFeesPerBp = swapFees / (govBpRegIds.size() + 3);
     for (const auto &bpRegID : govBpRegIds) {
 
-        if(bpRegID == tx.txAccount.regid){
+        if(tx.txAccount.IsSelfUid(bpRegID)){
             if (!tx.txAccount.OperateBalance(selfChainTokenSymbol, BalanceOpType::ADD_FREE, swapFeesPerBp,
                                              ReceiptCode::AXC_REWARD_FEE_TO_GOVERNOR, tx.receipts))
                 return state.DoS(100,
@@ -520,7 +528,7 @@ bool ProcessAxcInFee(CTxExecuteContext& context, CBaseTx& tx, TokenSymbol& selfC
     }
 
 
-    if(axcgwId == tx.txAccount.regid) {
+    if (tx.txAccount.IsSelfUid(axcgwId)) {
         if (!tx.txAccount.OperateBalance(selfChainTokenSymbol, BalanceOpType::ADD_FREE, swapFeeForGw,
                                          ReceiptCode::AXC_REWARD_FEE_TO_GW, tx.receipts))
             return state.DoS(100, ERRORMSG("CGovAxcInProposal::ExecuteProposal, opreate balance failed, swapFeesPerBp=%llu",
@@ -547,6 +555,7 @@ bool ProcessAxcInFee(CTxExecuteContext& context, CBaseTx& tx, TokenSymbol& selfC
 
     return true;
 }
+
 bool CGovAxcInProposal::ExecuteProposal(CTxExecuteContext& context, CBaseTx& tx) {
     IMPLEMENT_DEFINE_CW_STATE;
 
@@ -573,9 +582,15 @@ bool CGovAxcInProposal::ExecuteProposal(CTxExecuteContext& context, CBaseTx& tx)
     }
 
     CAccount acct;
-    if (!cw.accountCache.GetAccount(self_chain_uid, acct))
-        return state.DoS(100, ERRORMSG("CGovAxcInProposal::ExecuteProposal, read account failed"), REJECT_INVALID,
-                        "bad-getaccount");
+
+    if (tx.txAccount.IsSelfUid(self_chain_uid)) {
+       acct = tx.txAccount;
+    } else {
+        if (!cw.accountCache.GetAccount(self_chain_uid, acct))
+            return state.DoS(100, ERRORMSG("CGovAxcInProposal::ExecuteProposal, read account failed"), REJECT_INVALID,
+                             "bad-getaccount");
+    }
+
 
     // mint the new mirro-coin (self_chain_token_symbol) out of thin air
     if (!acct.OperateBalance(self_chain_token_symbol, BalanceOpType::ADD_FREE, swap_amount_after_fees,
@@ -632,13 +647,15 @@ bool CGovAxcOutProposal::CheckProposal(CTxExecuteContext& context, CBaseTx& tx) 
         uid = tx.txUid;
     else
         uid = self_chain_uid;
+
     if (!cw.accountCache.GetAccount(uid, acct))
         return state.DoS(100, ERRORMSG("CGovAxcInProposal::ExecuteProposal, read account failed"), REJECT_INVALID,
                          "bad-getaccount");
-    ReceiptList receipts;
-    if (!acct.OperateBalance(self_chain_token_symbol, SUB_FREE, swap_amount, ReceiptCode::NULL_CODE, receipts))
+
+    if (!acct.CheckBalance(self_chain_token_symbol, BalanceType::FREE_VALUE, swap_amount))
         return state.DoS(100, ERRORMSG("CGovAxcOutProposal::CheckProposal:Account does not have enough %s",
                                    self_chain_token_symbol), REJECT_INVALID, "balance-not-enough");
+
     if (swap_amount < DUST_AMOUNT_THRESHOLD)
         return state.DoS(100, ERRORMSG("CGovAxcOutProposal::CheckProposal: swap_amount=%llu too small",
                                         swap_amount), REJECT_INVALID, "swap_amount-dust");
@@ -655,9 +672,13 @@ bool CGovAxcOutProposal::ExecuteProposal(CTxExecuteContext& context, CBaseTx& tx
                         REJECT_INVALID, "bad-get-swap_fee_ratio");
 
     CAccount acct;
-    if (!cw.accountCache.GetAccount(self_chain_uid, acct))
-        return state.DoS(100, ERRORMSG("CGovAxcInProposal::ExecuteProposal, read account failed"), REJECT_INVALID,
-                        "bad-getaccount");
+    if (tx.txAccount.IsSelfUid(self_chain_uid)) {
+        acct = tx.txAccount;
+    } else {
+        if (!cw.accountCache.GetAccount(self_chain_uid, acct))
+            return state.DoS(100, ERRORMSG("CGovAxcOutProposal::ExecuteProposal, read account failed"), REJECT_INVALID,
+                             "bad-getaccount");
+    }
 
     // burn the mirroed tokens from self-chain
     if (!acct.OperateBalance(self_chain_token_symbol, BalanceOpType::SUB_FREE, swap_amount, ReceiptCode::AXC_BURN_COINS, tx.receipts))
@@ -682,7 +703,6 @@ bool CGovAxcOutProposal::ExecuteProposal(CTxExecuteContext& context, CBaseTx& tx
 
     return true;
 }
-
 
 bool CGovAxcCoinProposal::CheckProposal(CTxExecuteContext& context, CBaseTx& tx) {
     IMPLEMENT_DEFINE_CW_STATE;
@@ -770,6 +790,7 @@ bool CGovAssetIssueProposal::CheckProposal(CTxExecuteContext& context, CBaseTx& 
 
     return true;
 }
+
 bool CGovAssetIssueProposal::ExecuteProposal(CTxExecuteContext& context, CBaseTx& tx) {
 
     IMPLEMENT_DEFINE_CW_STATE

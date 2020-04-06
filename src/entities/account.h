@@ -250,6 +250,7 @@ struct CAccount {
 
     bool IsBcoinWithinRange(uint64_t nAddMoney);
     bool IsFcoinWithinRange(uint64_t nAddMoney);
+    bool CheckBalance(const TokenSymbol& symbol,  const BalanceType& balanceType, const uint64_t& value);
 };
 
 enum AccountType {
