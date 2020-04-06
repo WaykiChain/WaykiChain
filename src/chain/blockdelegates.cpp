@@ -14,7 +14,7 @@ static std::string ToString(const VoteDelegateVector &activeDelegates) {
     string s = "";
     for (const auto &item : activeDelegates) {
         if (s != "") s += ",";
-        s += strprintf("{regid=%s, votes=%llu}", item.regid.ToString(), item.votes);
+        s += strprintf("{regid=%s, votes=%llu}", item.regid.ToString(), ValueFromAmount(item.votes));
     }
     return strprintf("{count=%d, [%s]}", activeDelegates.size(), s);
 }
