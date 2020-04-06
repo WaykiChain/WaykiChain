@@ -1081,7 +1081,7 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
     VoteDelegate curDelegate;
     uint32_t totalDelegateNum;
     if (!VerifyRewardTx(&block, cw, curDelegate, totalDelegateNum))
-        return state.DoS(100, ERRORMSG("ConnectBlock() : verify reward tx error"), REJECT_INVALID, "bad-reward-tx");
+        return state.DoS(100, ERRORMSG("[%d] verify reward tx error", block.GetHeight()), REJECT_INVALID, "bad-reward-tx");
 
     CBlockUndo blockUndo;
     int64_t nStart = GetTimeMicros();
@@ -1845,7 +1845,7 @@ bool ProcessForkedChain(const CBlock &block, CBlockIndex *pPreBlockIndex, CValid
             LogPrint(BCLog::INFO, "[%d] ConnectBlock hash=%.7s**\n", rIter->GetHeight(), rIter->GetHash().GetHex());
 
             if (!ConnectBlock(*rIter, *spNewForkCW, mapBlockIndex[rIter->GetHash()], state, false)) {
-                return ERRORMSG("ConnectBlock %s failed", rIter->GetHash().ToString());
+                return ERRORMSG("[%d] ConnectBlock %s failed", rIter->GetHeight(), rIter->GetHash().ToString());
             }
 
             CBlockIndex *pConnBlockIndex = mapBlockIndex[rIter->GetHash()];
