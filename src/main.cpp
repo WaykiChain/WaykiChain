@@ -1364,8 +1364,8 @@ void static UpdateTip(CBlockIndex *pIndexNew, const CBlock &block) {
 
     // New best block
     SysCfg().SetBestRecvTime(GetTime());
-    LogPrint(BCLog::INFO, "UpdateTip[%d]: %s blkTxCnt=%d chainTxCnt=%lu fuelRate=%d ts=%s\n",
-             chainActive.Height(), chainActive.Tip()->GetBlockHash().ToString(),
+    LogPrint(BCLog::INFO, "%-20s:[%d]: %.7s** blkTxCnt=%d chainTxCnt=%lu fuelRate=%d ts=%s\n",
+             __func__, chainActive.Height(), chainActive.Tip()->GetBlockHash().ToString(),
              block.vptx.size(), chainActive.Tip()->nChainTx, chainActive.Tip()->nFuelRate,
              DateTimeStrFormat("%Y-%m-%d %H:%M:%S", chainActive.Tip()->GetBlockTime()));
 
@@ -2267,7 +2267,7 @@ bool ProcessBlock(CValidationState &state, CNode *pFrom, CBlock *pBlock, CDiskBl
         mapOrphanBlocksByPrev.erase(prevBlockHash);
     }
 
-    LogPrint(BCLog::INFO, "ProcessBlock[%d] elapse time:%lld ms\n", pBlock->GetHeight(), GetTimeMillis() - llBeginTime);
+    LogPrint(BCLog::INFO, "%-20s:[%d] elapse time:%lld ms\n", __func__, pBlock->GetHeight(), GetTimeMillis() - llBeginTime);
     return true;
 }
 
