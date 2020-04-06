@@ -397,7 +397,7 @@ Value submitassetpermproposal(const Array& params , bool fHelp) {
 
     CAsset asset;
 
-    if(pCdMan->pAssetCache->GetAsset(assetSymbol, asset)) {
+    if(!pCdMan->pAssetCache->GetAsset(assetSymbol, asset)) {
         throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("not find asset that named %s", assetSymbol));
     }
 
