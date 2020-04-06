@@ -31,7 +31,7 @@ static bool GenPendingDelegates(CBlock &block, uint32_t delegateNum, CCacheWrapp
 
     VoteDelegateVector topVoteDelegates;
     if (!cw.delegateCache.GetTopVoteDelegates(delegateNum, BP_DELEGATE_VOTE_MIN, topVoteDelegates, isR3Fork)) {
-        LogPrint(BCLog::INFO, "[WARNING] [%d] GetTopVoteDelegates() failed! no need to update pending delegates! "
+        LogPrint(BCLog::INFO, "[WARN] [%d] GetTopVoteDelegates() failed! no need to update pending delegates! "
                 "block=%.7s**, delegate_num=%d\n", block.GetHeight(), block.GetHash().ToString(), delegateNum);
 
         return true;
@@ -88,13 +88,13 @@ bool chain::ProcessBlockDelegates(CBlock &block, CCacheWrapper &cw, CValidationS
             activeDelegates.size() != delegateNum) {
 
             if (!GenPendingDelegates(block, delegateNum, cw, activeDelegates, pendingDelegates, isR3Fork)) {
-                return state.DoS(100, ERRORMSG("%s() : GenPendingDelegates failed! block=%d:%s",
-                    __FUNCTION__, block.GetHeight(), block.GetHash().ToString()));
+                return state.DoS(100, ERRORMSG("[%d] GenPendingDelegates failed! block=%s",
+                        block.GetHeight(), block.GetHash().ToString()));
             }
 
             if (!cw.delegateCache.SetPendingDelegates(pendingDelegates)) {
-                return state.DoS(100, ERRORMSG("%s() : save pending delegates failed! block=%d:%s",
-                    __FUNCTION__, block.GetHeight(), block.GetHash().ToString()));
+                return state.DoS(100, ERRORMSG("[%d] Save pending delegates failed! block=%s",
+                        block.GetHeight(), block.GetHash().ToString()));
             }
         }
     }
@@ -105,17 +105,17 @@ bool chain::ProcessBlockDelegates(CBlock &block, CCacheWrapper &cw, CValidationS
         if (block.GetHeight() - pendingDelegates.counted_vote_height >= (uint32_t)activateDelegateInterval) {
             VoteDelegateVector activeDelegates = pendingDelegates.top_vote_delegates;
             if (!cw.delegateCache.SetActiveDelegates(activeDelegates)) {
-                return state.DoS(100, ERRORMSG("%s() : SetActiveDelegates failed! block=%d:%s",
-                    __FUNCTION__, block.GetHeight(), block.GetHash().ToString()));
+                return state.DoS(100, ERRORMSG("[%d] SetActiveDelegates failed! block=%s",
+                        block.GetHeight(), block.GetHash().ToString()));
             }
             pendingDelegates.state = VoteDelegateState::ACTIVATED;
 
             if (!cw.delegateCache.SetPendingDelegates(pendingDelegates)) {
-                return state.DoS(100, ERRORMSG("%s() : save pending delegates failed! block=%d:%s",
-                    __FUNCTION__, block.GetHeight(), block.GetHash().ToString()));
+                return state.DoS(100, ERRORMSG("[%d] : save pending delegates failed! block=%s",
+                    block.GetHeight(), block.GetHash().ToString()));
             }
-            LogPrint(BCLog::INFO, "%s, activate new delegates! block=%d:%s, delegates=[%s]\n",
-                    __FUNCTION__, block.GetHeight(), block.GetHash().ToString(),
+            LogPrint(BCLog::INFO, "[%d] activate new delegates! block=%.7s**, delegates=[%s]\n",
+                    block.GetHeight(), block.GetHash().ToString(),
                     ToString(activeDelegates));
         }
     }
