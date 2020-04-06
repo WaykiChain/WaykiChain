@@ -146,26 +146,30 @@ bool CPBFTMan::UpdateLocalFinBlock(const CBlockConfirmMessage& msg, const uint32
 
     uint32_t needConfirmCount = GetFinalBlockMinerCount();
     if( needConfirmCount > messageCount) {
-        LogPrint(BCLog::DEBUG,"UpdateLocalFinBlock1: == message is not enough");
+        LogPrint(BCLog::PBFT_LOG,"UpdateLocalFinBlock1: == message is not enough");
         return false;
     }
 
     CBlockIndex* fi = GetLocalFinIndex();
 
     if(fi == nullptr ||(uint32_t)fi->height >= msg.height) {
-        LogPrint(BCLog::DEBUG,"old Lock Fin not fa");
+        LogPrint(BCLog::PBFT_LOG,"old Lock Fin not fa");
+        if(fi != nullptr) {
+            string msgLog = strprintf("fi->height=%d, msg.height=%d\n", fi->height, msg.height);
+            LogPrint(BCLog::PBFT_LOG, msgLog.c_str());
+
+        }
         return false;
     }
 
     CBlockIndex* pIndex = chainActive[msg.height];
     if(pIndex == nullptr || pIndex->pprev== nullptr) {
-        LogPrint(BCLog::DEBUG,"blockNotFind");
+        LogPrint(BCLog::PBFT_LOG,"blockNotFind");
         return false;
     }
 
     if(pIndex->GetBlockHash() != msg.blockHash) {
-
-        LogPrint(BCLog::DEBUG,"block hash err");
+        LogPrint(BCLog::PBFT_LOG,"block hash err");
         return false;
     }
 
@@ -360,17 +364,24 @@ bool BroadcastBlockConfirm(const CBlockIndex* block) {
 
     CPBFTMessageMan<CBlockConfirmMessage>& msgMan = pbftContext.confirmMessageMan;
 
-    if(msgMan.IsBroadcastedBlock(block->GetBlockHash()))
+    if(msgMan.IsBroadcastedBlock(block->GetBlockHash())){
         return true;
+    }
+
 
     //查找上一个区块执行过后的矿工列表
     set<CRegID> delegates;
 
-    if(block->pprev == nullptr)
+    if(block->pprev == nullptr) {
         return false;
-    pbftContext.GetMinerListByBlockHash(block->pprev->GetBlockHash(), delegates);
+    }
 
-    uint256 preHash = block->pprev == nullptr? uint256(): block->pprev->GetBlockHash();
+    uint256 preHash = block->pprev->GetBlockHash();
+    pbftContext.GetMinerListByBlockHash(preHash, delegates);
+
+    string debugMsg = strprintf("find delegates.size == %d,blockHeigh=%d preHash= %s\n", delegates.size(),block->height, preHash.ToString());
+    LogPrint(BCLog::PBFT_LOG, debugMsg.c_str());
+
     CBlockConfirmMessage msg(block->height, block->GetBlockHash(), preHash);
 
     {

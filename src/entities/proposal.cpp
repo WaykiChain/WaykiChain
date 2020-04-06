@@ -98,7 +98,7 @@ bool CGovBpSizeProposal:: CheckProposal(CTxExecuteContext& context, CBaseTx& tx)
                          REJECT_INVALID,"bad-bp-count");
 
 
-    if (effective_height < (uint32_t) context.height + BPSSIZE_EFFECTIVE_AFTER_BLOCK_COUNT)
+    if (tx.nTxType == TxType::PROPOSAL_REQUEST_TX && effective_height < (uint32_t) context.height + BPSSIZE_EFFECTIVE_AFTER_BLOCK_COUNT)
         return state.DoS(100, ERRORMSG("CGovBpSizeProposal::CheckProposal: effective_height must be >= current height + %d", BPSSIZE_EFFECTIVE_AFTER_BLOCK_COUNT),
                          REJECT_INVALID,"bad-effective-height");
 
@@ -161,6 +161,11 @@ bool CGovMinerFeeProposal::ExecuteProposal(CTxExecuteContext& context, CBaseTx& 
 bool CGovCoinTransferProposal::CheckProposal(CTxExecuteContext& context, CBaseTx& tx) {
     IMPLEMENT_DEFINE_CW_STATE
 
+    if(tx.nTxType == TxType::PROPOSAL_REQUEST_TX && tx.txAccount.IsSelfUid(from_uid)) {
+        return state.DoS(100, ERRORMSG("CGovCoinTransferProposal::CheckProposal, can't"
+                                       " create this proposal that from_uid is same as txUid"), REJECT_DUST, "invalid-coin-amount");
+    }
+
     if (amount < DUST_AMOUNT_THRESHOLD)
         return state.DoS(100, ERRORMSG("CGovCoinTransferProposal::CheckProposal, dust amount, %llu < %llu", amount,
                                        DUST_AMOUNT_THRESHOLD), REJECT_DUST, "invalid-coin-amount");
@@ -169,6 +174,7 @@ bool CGovCoinTransferProposal::CheckProposal(CTxExecuteContext& context, CBaseTx
     if (!cw.accountCache.GetAccount(from_uid, srcAccount))
         return state.DoS(100, ERRORMSG("CGovCoinTransferProposal::CheckProposal, read account failed"), REJECT_INVALID,
                          "bad-getaccount");
+
 
     return true;
 }

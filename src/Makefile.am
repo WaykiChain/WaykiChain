@@ -134,6 +134,7 @@ coin_CORE_H = \
   miner/miner.h \
   miner/pbftcontext.h \
   miner/pbftmanager.h \
+  miner/pbftlimitmap.h \
   mruset.h \
   netbase.h \
   net.h \

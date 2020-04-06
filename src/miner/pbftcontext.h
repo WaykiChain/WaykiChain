@@ -11,7 +11,7 @@
 #include <set>
 #include "sync.h"
 #include "commons/uint256.h"
-#include "commons/limitedmap.h"
+#include "miner/pbftlimitmap.h"
 #include "commons/mruset.h"
 #include "entities/vote.h"
 
@@ -24,7 +24,7 @@ class CPBFTMessageMan {
 
 private:
     CCriticalSection cs_pbftmessage;
-    limitedmap<uint256, set<MsgType>> blockMessagesMap;
+    CPbftLimitmap<uint256, set<MsgType>> blockMessagesMap;
     mruset<uint256> broadcastedBlockHashSet;
     mruset<MsgType> messageKnown;
 
@@ -91,7 +91,7 @@ class CPBFTContext {
 public:
     CPBFTMessageMan<CBlockConfirmMessage> confirmMessageMan;
     CPBFTMessageMan<CBlockFinalityMessage> finalityMessageMan;
-    limitedmap<uint256, set<CRegID>> blockMinerListMap;
+    CPbftLimitmap<uint256, set<CRegID>> blockMinerListMap;
 
     CPBFTContext(){
         blockMinerListMap.max_size(500);
