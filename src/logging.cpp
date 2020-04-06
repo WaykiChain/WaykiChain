@@ -296,8 +296,9 @@ void BCLog::Logger::LogPrintStr(const BCLog::LogFlags& category, const char* fil
     std::string str_prefixed = LogEscapeMessage(str);
 
     if (m_print_file_line) {
-        string file_line_cat = strprintf("[%s:%d][%s]", file, line, GetLogCategoryName(category));
-        str_prefixed.insert(0, tfm::format("%s %-20s", file_line_cat, func));
+        string file_line_cat_func = strprintf("[%s:%d][%s] %s",
+                file, line, GetLogCategoryName(category), func);
+        str_prefixed.insert(0, tfm::format("%-50s", file_line_cat_func));
     }
 
     if (m_log_threadnames && m_started_new_line) {

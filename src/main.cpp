@@ -834,7 +834,7 @@ static bool ProcessGenesisBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *p
                                    ReceiptCode::BLOCK_REWARD_TO_MINER, pRewardTx->receipts);
 
             if (!cw.txReceiptCache.SetTxReceipts(pRewardTx->GetHash(), pRewardTx->receipts))
-                return state.DoS(100, ERRORMSG("ConnectBlock() ::ProcessGenesisBlock, set genesis block receipts failed!"),
+                return state.DoS(100, ERRORMSG("Set genesis block receipts failed!"),
                                  REJECT_INVALID, "set-tx-receipt-failed");
 
             assert( cw.accountCache.SaveAccount(account) );
@@ -890,7 +890,7 @@ static bool ProcessGenesisBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *p
                                     ReceiptCode::DELEGATE_ADD_VOTE, pDelegateTx->receipts);
 
             if (!cw.txReceiptCache.SetTxReceipts(pDelegateTx->GetHash(), pDelegateTx->receipts))
-                return state.DoS(100, ERRORMSG("et genesis block receipts failed!"),
+                return state.DoS(100, ERRORMSG("Set genesis block receipts failed!"),
                                  REJECT_INVALID, "set-tx-receipt-failed");
 
             cw.accountCache.SaveAccount(voterAcct);
@@ -899,13 +899,13 @@ static bool ProcessGenesisBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *p
     }
 
     if (!cw.delegateCache.SetLastVoteHeight(block.GetHeight())) {
-        return state.DoS(100, ERRORMSG("%s(), save last vote height failed! block=%d:%s",
-            __FUNCTION__, block.GetHeight(), block.GetHash().ToString()),
+        return state.DoS(100, ERRORMSG("[%d] save last vote height failed! block=%s",
+            block.GetHeight(), block.GetHash().ToString()),
             REJECT_INVALID, "save-last-vote-height-failed");
     }
 
     if (!chain::ProcessBlockDelegates(block, cw, state)) {
-        return state.DoS(100, ERRORMSG("process block delegates failed! block=%d:%s",
+        return state.DoS(100, ERRORMSG("[%d] process block delegates failed! block=%s",
             block.GetHeight(), block.GetHash().ToString()),
             REJECT_INVALID, "process-block-delegates-failed");
     }
