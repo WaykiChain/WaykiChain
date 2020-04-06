@@ -646,34 +646,6 @@ Value getaccountinfo(const Array& params, bool fHelp) {
     return obj;
 }
 
-static Value TestDisconnectBlock(int32_t number) {
-    CBlock block;
-    Object obj;
-
-    CValidationState state;
-    if (number >= chainActive.Height()) {
-        throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid number");
-    }
-    if (number > 0) {
-        do {
-            CBlockIndex * pTipIndex = chainActive.Tip();
-            if (!DisconnectBlockFromTip(state))
-                return false;
-            chainMostWork.SetTip(pTipIndex->pprev);
-            if (!EraseBlockIndexFromSet(pTipIndex))
-                return false;
-            if (!pCdMan->pBlockIndexDb->EraseBlockIndex(pTipIndex->GetBlockHash()))
-                return false;
-            mapBlockIndex.erase(pTipIndex->GetBlockHash());
-        } while (--number);
-    }
-
-    obj.push_back(
-        Pair("tip", strprintf("hash:%s hight:%s", chainActive.Tip()->GetBlockHash().ToString(), chainActive.Height())));
-
-    return obj;
-}
-
 Value disconnectblock(const Array& params, bool fHelp) {
     if (fHelp || params.size() != 1) {
         throw runtime_error("disconnectblock \"numbers\"\n"
@@ -689,9 +661,33 @@ Value disconnectblock(const Array& params, bool fHelp) {
     }
     int32_t number = params[0].get_int();
 
-    Value te = TestDisconnectBlock(number);
 
-    return te;
+    if (number >= chainActive.Height()) {
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid number");
+    }
+    if (number > 0) {
+        CValidationState state;
+        do {
+            CBlockIndex * pTipIndex = chainActive.Tip();
+            if (!DisconnectBlockFromTip(state))
+                throw JSONRPCError(RPC_MISC_ERROR, "DisconnectBlockFromTip err");
+
+            chainMostWork.SetTip(pTipIndex->pprev);
+            if (!EraseBlockIndexFromSet(pTipIndex))
+                throw JSONRPCError(RPC_MISC_ERROR, "EraseBlockIndexFromSet err");
+
+            if (!pCdMan->pBlockIndexDb->EraseBlockIndex(pTipIndex->GetBlockHash()))
+                throw JSONRPCError(RPC_MISC_ERROR, "EraseBlockIndex err");
+
+            mapBlockIndex.erase(pTipIndex->GetBlockHash());
+        } while (--number);
+    }
+
+    Object obj;
+    obj.push_back(
+        Pair("tip", strprintf("hash:%s hight:%s", chainActive.Tip()->GetBlockHash().ToString(), chainActive.Height())));
+
+    return obj;
 }
 
 Value listcontracts(const Array& params, bool fHelp) {
