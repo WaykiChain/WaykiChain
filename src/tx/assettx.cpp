@@ -154,9 +154,9 @@ bool CUserIssueAssetTx::ExecuteTx(CTxExecuteContext &context) {
             asset.asset_symbol), REJECT_INVALID, "asset-existed-error");
 
     shared_ptr<CAccount> spAssetAccount = nullptr;
-
+    CAccount *pOwnerAccount = nullptr;
     {
-        CAccount *pOwnerAccount = nullptr;
+
         if (txAccount.IsSelfUid(asset.owner_uid)) {
             pOwnerAccount = &txAccount;
         } else {
@@ -189,7 +189,7 @@ bool CUserIssueAssetTx::ExecuteTx(CTxExecuteContext &context) {
 
     //Persist with Owner's RegID to save space than other User ID types
     CAsset savedAsset(asset.asset_symbol, asset.asset_name, AssetType::UIA, AssetPermType::PERM_DEX_BASE,
-                    CUserID(spAssetAccount->regid), asset.total_supply, asset.mintable);
+                    CUserID(pOwnerAccount->regid), asset.total_supply, asset.mintable);
 
     if (!cw.assetCache.SetAsset(savedAsset))
         return state.DoS(100, ERRORMSG("CUserIssueAssetTx::ExecuteTx, save asset failed! txUid=%s",
