@@ -1006,21 +1006,20 @@ static bool ComputeVoteStakingInterestAndRevokeVotes(const int32_t currHeight, c
                                 delegateUId.ToString()), UPDATE_ACCOUNT_FAIL, "operate-vote-error");
             }
 
-            // Votes: set the new value and erase the old value
-            if (!cw.delegateCache.SetDelegateVotes(delegate.regid, delegate.received_votes)) {
-                return state.DoS(100, ERRORMSG("ComputeVoteStakingInterestAndRevokeVotes() : save account id %s vote info error",
-                                delegate.regid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-save-delegatedb");
+            // Votes: set the new value and erase the old value when different
+            if (delegate.received_votes != oldVotes) {
+                if (!cw.delegateCache.SetDelegateVotes(delegate.regid, delegate.received_votes))
+                    return state.DoS(100, ERRORMSG("ComputeVoteStakingInterestAndRevokeVotes() : save account id %s vote info error",
+                                    delegate.regid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-save-delegatedb");
+
+                if (!cw.delegateCache.EraseDelegateVotes(delegate.regid, oldVotes))
+                    return state.DoS(100, ERRORMSG("ComputeVoteStakingInterestAndRevokeVotes() : erase account id %s vote info error",
+                                    delegate.regid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-save-delegatedb");
             }
 
-            if (!cw.delegateCache.EraseDelegateVotes(delegate.regid, oldVotes)) {
-                return state.DoS(100, ERRORMSG("ComputeVoteStakingInterestAndRevokeVotes() : erase account id %s vote info error",
-                                delegate.regid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-save-delegatedb");
-            }
-
-            if (!cw.accountCache.SaveAccount(delegate)) {
+            if (!cw.accountCache.SaveAccount(delegate))
                 return state.DoS(100, ERRORMSG("ComputeVoteStakingInterestAndRevokeVotes() : save account id %s info error",
                                 account.regid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-save-accountdb");
-            }
         }
     }
 
@@ -1946,7 +1945,7 @@ bool AcceptBlock(CBlock &block, CValidationState &state, CDiskBlockPos *dbp, boo
     AssertLockHeld(cs_main);
 
     uint256 blockHash = block.GetHash();
-    LogPrint(BCLog::INFO, "%-30s[%d]: %s, miner: %s, ts: %u\n", __func__, 
+    LogPrint(BCLog::INFO, "%-30s[%d]: %.7s**, miner: %s, ts: %u\n", __func__, 
             block.GetHeight(), blockHash.GetHex(), block.GetMinerUserID().ToString(), block.GetBlockTime());
 
     // Check for duplicated block
