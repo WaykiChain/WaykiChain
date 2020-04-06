@@ -160,7 +160,7 @@ std::shared_ptr<CBaseTx> genParamGovernProposal(json_spirit::Value param_json) {
 
 std::shared_ptr<CBaseTx> genWasmContractCalltx(json_spirit::Value param_json) {
     const Value& str_from = JSON::GetObjectFieldValue(param_json, "sender");
-    auto authorizer_name   = wasm::name(str_from.get_str());
+    auto authorizer_name   = wasm::regid(str_from.get_str());
     const Value& str_fee = JSON::GetObjectFieldValue(param_json, "fee");
     const Value& str_height = JSON::GetObjectFieldValue(param_json, "height");
     ComboMoney fee = RPC_PARAM::GetComboMoney(str_fee,  SYMB::WICC);
@@ -183,8 +183,8 @@ std::shared_ptr<CBaseTx> genWasmContractCalltx(json_spirit::Value param_json) {
         const Value& str_data= JSON::GetObjectFieldValue(json_transaction, "data");
 
         std::vector<char> abi;
-        wasm::name contract_name = wasm::name(str_contract.get_str());
-        if(!wasm::get_native_contract_abi(contract_name.value, abi)){
+        wasm::regid contract = wasm::regid(str_contract.get_str());
+        if(!wasm::get_native_contract_abi(contract.value, abi)){
             CAccount           contract;
             CUniversalContract contract_store;
             db_contract->GetContract(contract.regid, contract_store);
@@ -199,7 +199,7 @@ std::shared_ptr<CBaseTx> genWasmContractCalltx(json_spirit::Value param_json) {
                 wasm::max_serialization_time);
 
         pBaseTx->inline_transactions.push_back({
-                contract_name.value,
+                contract.value,
                 action.value,
                 std::vector<wasm::permission>{{authorizer_name.value, wasm::wasmio_owner}},
                 action_data
@@ -211,7 +211,7 @@ std::shared_ptr<CBaseTx> genWasmContractCalltx(json_spirit::Value param_json) {
         Array sign_arr = json_signs.get_array();
         for (auto sign: sign_arr) {
             const Value& str_auth = JSON::GetObjectFieldValue(sign, "auth");
-            auto auth = wasm::name(str_auth.get_str());
+            auto auth = wasm::regid(str_auth.get_str());
             const Value& str_sign = JSON::GetObjectFieldValue(sign, "sign");
             std::vector<uint8_t> signature(str_sign.get_str().begin(), str_sign.get_str().end());
             pBaseTx->signatures.push_back({auth.value, signature});
