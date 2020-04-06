@@ -77,7 +77,7 @@ public:
 
     virtual void SerializeForHash(CHashWriter &hw) const {
         hw << VARINT(nVersion) << uint8_t(nTxType) << VARINT(valid_height) << txUid << VARINT(llFees)
-           << fee_symbol << proposal_id <<axc_signature ;
+           << fee_symbol << proposal_id << axc_signature ;
     }
 
     std::shared_ptr<CBaseTx> GetNewInstance() const override { return std::make_shared<CProposalApprovalTx>(*this); }

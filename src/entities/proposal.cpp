@@ -581,26 +581,31 @@ bool CGovAxcInProposal::ExecuteProposal(CTxExecuteContext& context, CBaseTx& tx)
                          "bad-process-swapfee");
     }
 
-    CAccount acct;
+
 
     if (tx.txAccount.IsSelfUid(self_chain_uid)) {
-       acct = tx.txAccount;
+        // mint the new mirro-coin (self_chain_token_symbol) out of thin air
+        if (!tx.txAccount.OperateBalance(self_chain_token_symbol, BalanceOpType::ADD_FREE, swap_amount_after_fees,
+                                 ReceiptCode::AXC_MINT_COINS, tx.receipts))
+            return state.DoS(100, ERRORMSG("CGovAxcInProposal::ExecuteProposal, opreate balance failed, swap_amount_after_fees=%llu",
+                                           swap_amount_after_fees), REJECT_INVALID, "bad-operate-balance");
     } else {
+        CAccount acct;
         if (!cw.accountCache.GetAccount(self_chain_uid, acct))
             return state.DoS(100, ERRORMSG("CGovAxcInProposal::ExecuteProposal, read account failed"), REJECT_INVALID,
                              "bad-getaccount");
+        // mint the new mirro-coin (self_chain_token_symbol) out of thin air
+        if (!acct.OperateBalance(self_chain_token_symbol, BalanceOpType::ADD_FREE, swap_amount_after_fees,
+                                 ReceiptCode::AXC_MINT_COINS, tx.receipts))
+            return state.DoS(100, ERRORMSG("CGovAxcInProposal::ExecuteProposal, opreate balance failed, swap_amount_after_fees=%llu",
+                                           swap_amount_after_fees), REJECT_INVALID, "bad-operate-balance");
+
+        if (!cw.accountCache.SetAccount(self_chain_uid, acct))
+            return state.DoS(100, ERRORMSG("CGovAxcInProposal::ExecuteProposal, write account failed"), REJECT_INVALID,
+                             "bad-write-account");
     }
 
 
-    // mint the new mirro-coin (self_chain_token_symbol) out of thin air
-    if (!acct.OperateBalance(self_chain_token_symbol, BalanceOpType::ADD_FREE, swap_amount_after_fees,
-                            ReceiptCode::AXC_MINT_COINS, tx.receipts))
-        return state.DoS(100, ERRORMSG("CGovAxcInProposal::ExecuteProposal, opreate balance failed, swap_amount_after_fees=%llu",
-                        swap_amount_after_fees), REJECT_INVALID, "bad-operate-balance");
-
-    if (!cw.accountCache.SetAccount(self_chain_uid, acct))
-        return state.DoS(100, ERRORMSG("CGovAxcInProposal::ExecuteProposal, write account failed"), REJECT_INVALID,
-                         "bad-write-account");
 
     uint64_t mintAmount = 0;
     if (cw.axcCache.GetSwapInMintRecord(peer_chain_type, peer_chain_txid, mintAmount))
@@ -671,23 +676,26 @@ bool CGovAxcOutProposal::ExecuteProposal(CTxExecuteContext& context, CBaseTx& tx
         return state.DoS(100, ERRORMSG("CGovAxcOutProposal::ExecuteProposal, get sysparam: axc_swap_fee_ratio failed"),
                         REJECT_INVALID, "bad-get-swap_fee_ratio");
 
-    CAccount acct;
+
     if (tx.txAccount.IsSelfUid(self_chain_uid)) {
-        acct = tx.txAccount;
+        // burn the mirroed tokens from self-chain
+        if (!tx.txAccount.OperateBalance(self_chain_token_symbol, BalanceOpType::SUB_FREE, swap_amount, ReceiptCode::AXC_BURN_COINS, tx.receipts))
+            return state.DoS(100, ERRORMSG("CGovAxcOutProposal::ExecuteProposal, opreate balance failed, swap_amount=%llu",
+                                           swap_amount), REJECT_INVALID, "bad-operate-balance");
     } else {
+        CAccount acct;
         if (!cw.accountCache.GetAccount(self_chain_uid, acct))
             return state.DoS(100, ERRORMSG("CGovAxcOutProposal::ExecuteProposal, read account failed"), REJECT_INVALID,
                              "bad-getaccount");
+        // burn the mirroed tokens from self-chain
+        if (!acct.OperateBalance(self_chain_token_symbol, BalanceOpType::SUB_FREE, swap_amount, ReceiptCode::AXC_BURN_COINS, tx.receipts))
+            return state.DoS(100, ERRORMSG("CGovAxcOutProposal::ExecuteProposal, opreate balance failed, swap_amount=%llu",
+                                           swap_amount), REJECT_INVALID, "bad-operate-balance");
+
+        if (!cw.accountCache.SetAccount(self_chain_uid, acct))
+            return state.DoS(100, ERRORMSG("CGovAxcOutProposal::ExecuteProposal, write account failed"), REJECT_INVALID,
+                             "bad-writeaccount");
     }
-
-    // burn the mirroed tokens from self-chain
-    if (!acct.OperateBalance(self_chain_token_symbol, BalanceOpType::SUB_FREE, swap_amount, ReceiptCode::AXC_BURN_COINS, tx.receipts))
-        return state.DoS(100, ERRORMSG("CGovAxcOutProposal::ExecuteProposal, opreate balance failed, swap_amount=%llu",
-                        swap_amount), REJECT_INVALID, "bad-operate-balance");
-
-    if (!cw.accountCache.SetAccount(self_chain_uid, acct))
-        return state.DoS(100, ERRORMSG("CGovAxcOutProposal::ExecuteProposal, write account failed"), REJECT_INVALID,
-                         "bad-writeaccount");
 
     //sub dia total supply
     CAsset asset;
