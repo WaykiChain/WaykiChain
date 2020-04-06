@@ -299,8 +299,10 @@ void BCLog::Logger::LogPrintStr(const BCLog::LogFlags& category, const char* fil
 
     str_prefixed.insert(0, tfm::format("[%-8s] ", GetLogCategoryName(category)));
 
-    if (m_print_file_line)
-        str_prefixed.insert(0, tfm::format("[%-30s:%4d] ", file, line));
+    if (m_print_file_line) {
+        string file_line = strprintf("%s:%d", file, line);
+        str_prefixed.insert(0, tfm::format("[%-20s] ", file_line));
+    }
 
     if (m_log_threadnames && m_started_new_line) {
         str_prefixed.insert(0, "[" + util::ThreadGetInternalName() + "] ");
