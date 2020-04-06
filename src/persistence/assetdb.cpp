@@ -42,8 +42,6 @@ bool CAssetDbCache::CheckAsset(const TokenSymbol &symbol, uint64_t permsSum) {
 bool CAssetDbCache::GetAssetTokensByPerm(const AssetPermType& permType, set<TokenSymbol> &symbolSet) {
 
     CDbIterator<DbAssetCache> it(asset_cache);
-
-
    // CPermAssetsIterator it(perm_assets_cache, CFixedUInt64(permType));
     for (it.First(); it.IsValid(); it.Next()) {
         if (it.GetValue().HasPerms(permType))
@@ -102,7 +100,7 @@ bool CAssetDbCache::AddAxcSwapPair(TokenSymbol peerSymbol, TokenSymbol selfSymbo
 bool CAssetDbCache::EraseAxcSwapPair(TokenSymbol peerSymbol) {
     pair<string, uint8_t> data;
     if(!axc_swap_coin_ps_cache.GetData(peerSymbol, data)){
-
+        return true;
     }
 
     return axc_swap_coin_ps_cache.EraseData(peerSymbol) && axc_swap_coin_sp_cache.EraseData(data.first);
