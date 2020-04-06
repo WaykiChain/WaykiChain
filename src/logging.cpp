@@ -290,9 +290,8 @@ namespace BCLog {
 
 }
 
-void BCLog::Logger::LogPrintStr(const BCLog::LogFlags& category, const char* file, int line,
+void BCLog::Logger::LogPrintStr(const BCLog::LogFlags& category, const char* file, int line, const char* func,
     const std::string& str) {
-
 
     std::lock_guard<std::mutex> scoped_lock(m_cs);
     std::string str_prefixed = LogEscapeMessage(str);
@@ -301,7 +300,7 @@ void BCLog::Logger::LogPrintStr(const BCLog::LogFlags& category, const char* fil
 
     if (m_print_file_line) {
         string file_line = strprintf("%s:%d", file, line);
-        str_prefixed.insert(0, tfm::format("[%-20s] ", file_line));
+        str_prefixed.insert(0, tfm::format("[%-20s] %-20s", file_line, func));
     }
 
     if (m_log_threadnames && m_started_new_line) {

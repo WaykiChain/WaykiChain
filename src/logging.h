@@ -102,7 +102,7 @@ namespace BCLog { //blockchain log
         std::atomic<bool> m_reopen_file{false};
 
         /** Send a string to the log output */
-        void LogPrintStr(const BCLog::LogFlags& category, const char* file, int line,
+        void LogPrintStr(const BCLog::LogFlags& category, const char* file, int line, const char* func,
             const std::string& str);
 
         /** Returns whether logs will be written to any output */
@@ -174,7 +174,7 @@ bool GetLogCategory(BCLog::LogFlags& flag, const std::string& str);
 // peer can fill up a user's disk with debug.log entries.
 
 template <typename... Args>
-static inline void LogPrintf(const BCLog::LogFlags& category, const char* file, int line,
+static inline void LogPrintf(const BCLog::LogFlags& category, const char* file, int line, const char* func,
     bool lineFeed, const char* fmt, const Args&... args) {
 
     if (LogInstance().Enabled()) {
@@ -186,7 +186,7 @@ static inline void LogPrintf(const BCLog::LogFlags& category, const char* file, 
             /* Original format string will have newline so don't add one here */
             log_msg = "format ERROR \"" + std::string(fmterr.what()) + "\" while formatting log message: " + fmt + "\n";
         }
-        LogInstance().LogPrintStr(category, file, line, log_msg);
+        LogInstance().LogPrintStr(category, file, line, func, log_msg);
     }
 }
 
@@ -195,15 +195,15 @@ static inline void LogPrintf(const BCLog::LogFlags& category, const char* file, 
 #define LogPrint(category, ...)                                                                    \
     {                                                                                              \
         if (LogAcceptCategory((category))) {                                                       \
-            LogPrintf(category, __FILE__, __LINE__, false, __VA_ARGS__);                           \
+            LogPrintf(category, __FILE__, __LINE__, __FUNC__, false, __VA_ARGS__);                 \
         }                                                                                          \
     }
 
 /*   Log error and return false */
 template <typename... Args>
-static inline bool LogError(const char *file, int line, const char *fmt,
+static inline bool LogError(const char *file, int line, const char *func, const char *fmt,
                             const Args &... args) {
-    LogPrintf(BCLog::ERROR, file, line, true, fmt, args...);
+    LogPrintf(BCLog::ERROR, file, func, line, true, fmt, args...);
     return false;
 }
 
