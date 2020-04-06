@@ -36,6 +36,6 @@ namespace wasm {
 	};
 
   using transfer_data_t = std::tuple <uint64_t, uint64_t, wasm::asset, string >;
-  using set_code_data_t = std::tuple<uint64_t, string, string, string>;	
+  using setcode_data_t = std::tuple<uint64_t, string, string, string>;	
 
 }

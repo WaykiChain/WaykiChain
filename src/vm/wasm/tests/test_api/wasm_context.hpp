@@ -171,7 +171,7 @@ class wasm_context : public wasm_context_interface {
     public:
         void execute_inline( const inline_transaction& t );
         bool has_recipient    ( const uint64_t& account   ) const;
-        void require_recipient( const uint64_t& recipient );
+        void notify_recipient( const uint64_t& recipient );
         uint64_t receiver() { return _receiver;    }
         uint64_t contract() { return trx.contract; }
         uint64_t action()   { return trx.action;   }
