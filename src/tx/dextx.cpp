@@ -927,7 +927,7 @@ namespace dex {
     bool CDealItemExecuter::GetDealOrder(const uint256 &orderId, const OrderSide orderSide,
                                          CDEXOrderDetail &dealOrder) {
         if (!context.pCw->dexCache.GetActiveOrder(orderId, dealOrder))
-            return context.pState->DoS(100, ERRORMSG("%s, get active order failed! i=%d, orderId=%s", DEAL_ITEM_TITLE,
+            return context.pState->DoS(100, ERRORMSG("%s, get active order failed! i=%d, orderId=%s", DEAL_ITEM_TITLE, i,
                 orderId.ToString()), REJECT_INVALID,
                 strprintf("get-active-order-failed, i=%d, order_id=%s", i, orderId.ToString()));
 
