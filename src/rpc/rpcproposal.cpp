@@ -377,9 +377,9 @@ Value submitassetpermproposal(const Array& params , bool fHelp) {
                 "                          ]\n"
                 "4.\"fee\":                (combomoney, optional) the tx fee \n"
                 "\nExamples:\n"
-                + HelpExampleCli("submitassetpermproposal", "0-1 WICC 3  WICC:1:WI")
+                + HelpExampleCli("submitassetpermproposal", "0-1 mETH \"[{\"perm_code\":0, \"op_type\":1}]\"")
                 + "\nAs json rpc call\n"
-                + HelpExampleRpc("submitassetpermproposal", R"("0-1", "WICC", 1,  "WICC:1:WI")")
+                + HelpExampleRpc("submitassetpermproposal", R"("0-1", "mETH", "[{"perm_code":0, "op_type":1}]")")
 
         );
 
