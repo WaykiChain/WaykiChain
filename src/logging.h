@@ -195,7 +195,7 @@ static inline void LogPrintf(const BCLog::LogFlags& category, const char* file, 
 #define LogPrint(category, ...)                                                                    \
     {                                                                                              \
         if (LogAcceptCategory((category))) {                                                       \
-            LogPrintf(category, __FILE__, __LINE__, __FUNC__, false, __VA_ARGS__);                 \
+            LogPrintf(category, __FILE__, __LINE__, __func__, false, __VA_ARGS__);                 \
         }                                                                                          \
     }
 
