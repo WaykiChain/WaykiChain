@@ -203,10 +203,10 @@ static inline void LogPrintf(const BCLog::LogFlags& category, const char* file, 
 template <typename... Args>
 static inline bool LogError(const char *file, int line, const char *func, const char *fmt,
                             const Args &... args) {
-    LogPrintf(BCLog::ERROR, file, func, line, true, fmt, args...);
+    LogPrintf(BCLog::ERROR, file, line, func, true, fmt, args...);
     return false;
 }
 
-#define ERRORMSG(...) LogError(__FILE__, __LINE__, __VA_ARGS__)
+#define ERRORMSG(...) LogError(__FILE__, __LINE__, __func__, __VA_ARGS__)
 
 #endif // BITCOIN_LOGGING_H
