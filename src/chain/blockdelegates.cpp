@@ -24,13 +24,13 @@ static bool GenPendingDelegates(CBlock &block, uint32_t delegateNum, CCacheWrapp
                                 PendingDelegates &pendingDelegates, bool isR3Fork) {
 
     pendingDelegates.counted_vote_height = block.GetHeight();
-    uint64_t bpDelegateVoteMin;
-    if (!cw.sysParamCache.GetParam(SysParamType::BP_DELEGATE_VOTE_MIN, bpDelegateVoteMin))
+    uint64_t BpMinVote;
+    if (!cw.sysParamCache.GetParam(SysParamType::BP_DELEGATE_VOTE_MIN, BpMinVote))
         return ERRORMSG("get sys param BP_DELEGATE_VOTE_MIN failed! block=%d:%s\n",
                         block.GetHeight(), block.GetHash().ToString());
 
     VoteDelegateVector topVoteDelegates;
-    if (!cw.delegateCache.GetTopVoteDelegates(delegateNum, BP_DELEGATE_VOTE_MIN, topVoteDelegates, isR3Fork)) {
+    if (!cw.delegateCache.GetTopVoteDelegates(delegateNum, BpMinVote, topVoteDelegates, isR3Fork)) {
         LogPrint(BCLog::INFO, "[WARN] [%d] GetTopVoteDelegates() failed! no need to update pending delegates! "
                 "block=%.7s**, delegate_num=%d\n", block.GetHeight(), block.GetHash().ToString(), delegateNum);
 
@@ -56,18 +56,10 @@ static bool GenPendingDelegates(CBlock &block, uint32_t delegateNum, CCacheWrapp
 bool chain::ProcessBlockDelegates(CBlock &block, CCacheWrapper &cw, CValidationState &state) {
     // required preparing the undo for cw
 
-    int32_t countVoteInterval; // the interval to count the vote
-    int32_t activateDelegateInterval; // the interval to count the vote
-
     auto version = GetFeatureForkVersion(block.GetHeight());
     bool isR3Fork = version >= MAJOR_VER_R3;
-    if (isR3Fork) {
-        countVoteInterval = COUNT_VOTE_INTERVAL_AFTER_V3;
-        activateDelegateInterval = ACTIVATE_DELEGATE_DELAY_AFTER_V3;
-    } else {
-        countVoteInterval = COUNT_VOTE_INTERVAL_BEFORE_V3;
-        activateDelegateInterval = ACTIVATE_DELEGATE_DELAY_BEFORE_V3;
-    }
+    int32_t countVoteInterval = (isR3Fork) ? COUNT_VOTE_INTERVAL_AFTER_V3 : COUNT_VOTE_INTERVAL_BEFORE_V3; // the interval to count the vote
+    int32_t activateDelegateInterval = (isR3Fork) ? ACTIVATE_DELEGATE_DELAY_AFTER_V3 : ACTIVATE_DELEGATE_DELAY_BEFORE_V3;
 
     PendingDelegates pendingDelegates;
     cw.delegateCache.GetPendingDelegates(pendingDelegates);

@@ -28,7 +28,7 @@ const CRegID &CTopDelegatesIterator::GetRegid() const {
     return GetKey().second.regid;
 }
 
-bool CDelegateDBCache::GetTopVoteDelegates(uint32_t delegateNum, uint64_t delegateVoteMin,
+bool CDelegateDBCache::GetTopVoteDelegates(uint32_t delegateNum, uint64_t BpMinVote,
                                            VoteDelegateVector &topVoteDelegates, bool isR3Fork) {
 
     topVoteDelegates.clear();
@@ -36,22 +36,24 @@ bool CDelegateDBCache::GetTopVoteDelegates(uint32_t delegateNum, uint64_t delega
     auto spIt = CreateTopDelegateIterator();
     for (spIt->First(); spIt->IsValid() && topVoteDelegates.size() < delegateNum; spIt->Next()) {
         uint64_t vote = spIt->GetVote();
-        if (isR3Fork && vote < BP_DELEGATE_VOTE_MIN) {
-            LogPrint(BCLog::ERROR, "[WARN] the %lluTH delegate vote=%llu less than %llu!"
+        if (isR3Fork && vote < BpMinVote) {
+            LogPrint(BCLog::INFO, "[WARN] the %lluTH delegate vote=%llu less than %llu!"
                      " dest_delegate_num=%d\n",
-                     topVoteDelegates.size(), BP_DELEGATE_VOTE_MIN, delegateNum);
+                     topVoteDelegates.size(), BpMinVote, delegateNum);
             break;
         }
         topVoteDelegates.emplace_back(spIt->GetRegid(), spIt->GetVote());
     }
+
     if (topVoteDelegates.empty())
-        return ERRORMSG("[WARN] topVoteDelegates is empty! dest_delegate_num=%d\n", delegateNum);
+        return ERRORMSG("[WARN] topVoteDelegates is empty! expected size=%d\n", delegateNum);
 
     if (topVoteDelegates.size() != delegateNum) {
         LogPrint(BCLog::INFO, "[WARN] the top delegates size=%d is less than %d"
-                    " specified_delegate_num=%d\n",
-                    topVoteDelegates.size(), BP_DELEGATE_VOTE_MIN, delegateNum);
+                    " expected_delegates_size=%d\n",
+                    topVoteDelegates.size(), BpMinVote, delegateNum);
     }
+
     return true;
 }
 

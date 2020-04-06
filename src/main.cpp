@@ -487,7 +487,7 @@ void CheckForkWarningConditions() {
         if (!fLargeWorkForkFound && pIndexBestForkBase) {
             string strCmd = SysCfg().GetArg("-alertnotify", "");
             if (!strCmd.empty()) {
-                string warning = string("'Warning: Large-work fork detected, forking after block ") +
+                string warning = string("[WARN] Large-work fork detected, forking after block ") +
                                  pIndexBestForkBase->pBlockHash->ToString() + string("'");
                 boost::replace_all(strCmd, "%s", warning);
                 boost::thread t(runCommand, strCmd);  // thread runs free
@@ -495,7 +495,7 @@ void CheckForkWarningConditions() {
         }
         if (pIndexBestForkTip && pIndexBestForkBase) {
             LogPrint(BCLog::INFO,
-                     "CheckForkWarningConditions: Warning: Large valid fork found\n"
+                     "[WARN] Large valid fork found\n"
                      "  forking from height %d (%s)\n"
                      "  lasting to   height %d (%s)\n",
                      pIndexBestForkBase->height, pIndexBestForkBase->pBlockHash->ToString(),
@@ -504,8 +504,8 @@ void CheckForkWarningConditions() {
             fLargeWorkForkFound = true;
         } else {
             LogPrint(BCLog::INFO,
-                     "CheckForkWarningConditions: Warning: Found invalid chain at least ~6 blocks longer than our best "
-                     "chain.\nChain state database corruption likely.\n");
+                     "[WARN] Found invalid chain at least ~6 blocks longer than our best chain.\n"
+                     "Chain state database corruption likely.\n");
 
             fLargeWorkInvalidChainFound = true;
         }
@@ -688,16 +688,16 @@ bool DisconnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CVal
     CBlockUndo blockUndo;
     CDiskBlockPos pos = pIndex->GetUndoPos();
     if (pos.IsNull())
-        return ERRORMSG("DisconnectBlock() : no undo data available");
+        return ERRORMSG("no undo data available");
 
     if (!blockUndo.ReadFromDisk(pos, pIndex->pprev->GetBlockHash()))
-        return ERRORMSG("DisconnectBlock() : failure reading undo data");
+        return ERRORMSG("failure reading undo data");
 
     if ((blockUndo.vtxundo.size() != block.vptx.size()) && (blockUndo.vtxundo.size() != (block.vptx.size() + 1)))
-        return ERRORMSG("DisconnectBlock() : block and undo data inconsistent");
+        return ERRORMSG("block and undo data inconsistent");
     CBlockUndoExecutor undoExecutor(cw, blockUndo);
     if (!undoExecutor.Execute()) {
-        return ERRORMSG("DisconnectBlock() : Undo all data in block failed");
+        return ERRORMSG("Undo all data in block failed");
     }
 
     // Set previous block as the best block
