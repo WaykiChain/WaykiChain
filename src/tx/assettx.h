@@ -29,8 +29,9 @@ struct CUserIssuedAsset {
         READWRITE(asset_symbol);
         READWRITE(owner_uid);
         READWRITE(asset_name);
-        READWRITE(VARINT(total_supply));
         READWRITE(mintable);
+        READWRITE(VARINT(total_supply));
+
     )
 
     string ToString() const {
