@@ -24,19 +24,19 @@ static bool ProcessDexOperatorFee(CCacheWrapper &cw, CValidationState &state, co
     uint64_t exchangeFee = 0;
     if (action == OPERATOR_ACTION_REGISTER) {
         if (!cw.sysParamCache.GetParam(DEX_OPERATOR_REGISTER_FEE, exchangeFee))
-            return state.DoS(100, ERRORMSG("%s(), read param DEX_OPERATOR_REGISTER_FEE error", __func__),
+            return state.DoS(100, ERRORMSG("read param DEX_OPERATOR_REGISTER_FEE error"),
                             REJECT_INVALID, "read-sysparam-error");
     } else {
         assert(action == OPERATOR_ACTION_UPDATE);
         if (!cw.sysParamCache.GetParam(DEX_OPERATOR_UPDATE_FEE, exchangeFee))
-            return state.DoS(100, ERRORMSG("%s(), read param DEX_OPERATOR_UPDATE_FEE error", __func__),
+            return state.DoS(100, ERRORMSG("read param DEX_OPERATOR_UPDATE_FEE error"),
                             REJECT_INVALID, "read-sysparam-error");
     }
 
     if (!txAccount.OperateBalance(SYMB::WICC, BalanceOpType::SUB_FREE, exchangeFee,
                                 ReceiptCode::DEX_ASSET_FEE_TO_SETTLER, receipts))
-        return state.DoS(100, ERRORMSG("%s(), tx account insufficient funds for operator %s fee! fee=%llu, tx_addr=%s",
-                        __func__, action, exchangeFee, txAccount.keyid.ToAddress()),
+        return state.DoS(100, ERRORMSG("tx account insufficient funds for operator %s fee! fee=%llu, tx_addr=%s",
+                        action, exchangeFee, txAccount.keyid.ToAddress()),
                         UPDATE_ACCOUNT_FAIL, "insufficent-funds");
 
     uint64_t dexOperatorRiskFeeRatio;
@@ -49,25 +49,24 @@ static bool ProcessDexOperatorFee(CCacheWrapper &cw, CValidationState &state, co
 
     CAccount fcoinGenesisAccount;
     if (!cw.accountCache.GetFcoinGenesisAccount(fcoinGenesisAccount))
-        return state.DoS(100, ERRORMSG("%s(), get risk reserve account failed", __func__),
+        return state.DoS(100, ERRORMSG("get risk reserve account failed"),
                         READ_ACCOUNT_FAIL, "get-account-failed");
 
     ReceiptCode code = (action == OPERATOR_ACTION_REGISTER) ? ReceiptCode::DEX_OPERATOR_REG_FEE_TO_RESERVE :
                                                               ReceiptCode::DEX_OPERATOR_UPDATED_FEE_TO_RESERVE;
 
     if (!fcoinGenesisAccount.OperateBalance(SYMB::WICC, BalanceOpType::ADD_FREE, riskFee, code, receipts)) {
-        return state.DoS(100, ERRORMSG("%s(), operate balance failed! add %s asset fee=%llu to risk reserve account error",
-            __func__, action, riskFee), UPDATE_ACCOUNT_FAIL, "update-account-failed");
+        return state.DoS(100, ERRORMSG("operate balance failed! add %s asset fee=%llu to risk reserve account error",
+                        action, riskFee), UPDATE_ACCOUNT_FAIL, "update-account-failed");
     }
 
     if (!cw.accountCache.SetAccount(fcoinGenesisAccount.keyid, fcoinGenesisAccount))
-        return state.DoS(100, ERRORMSG("%s(), write risk reserve account error, regid=%s",
-            __func__, fcoinGenesisAccount.regid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
+        return state.DoS(100, ERRORMSG("write risk reserve account error, regid=%s",
+                        fcoinGenesisAccount.regid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
 
     VoteDelegateVector delegates;
     if (!cw.delegateCache.GetActiveDelegates(delegates)) {
-        return state.DoS(100, ERRORMSG("%s(), GetActiveDelegates failed", __func__),
-            REJECT_INVALID, "get-delegates-failed");
+        return state.DoS(100, ERRORMSG("GetActiveDelegates failed"), REJECT_INVALID, "get-delegates-failed");
     }
     assert(delegates.size() != 0 );
 
@@ -75,8 +74,8 @@ static bool ProcessDexOperatorFee(CCacheWrapper &cw, CValidationState &state, co
         const CRegID &delegateRegid = delegates[i].regid;
         CAccount delegateAccount;
         if (!cw.accountCache.GetAccount(CUserID(delegateRegid), delegateAccount)) {
-            return state.DoS(100, ERRORMSG("%s(), get delegate account info failed! delegate regid=%s",
-                __func__, delegateRegid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
+            return state.DoS(100, ERRORMSG("get delegate account info failed! delegate regid=%s",
+                            delegateRegid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
         }
         uint64_t minerFee = minerTotalFee / delegates.size();
         if (i == 0) minerFee += minerTotalFee % delegates.size(); // give the dust amount to topmost miner
@@ -85,13 +84,13 @@ static bool ProcessDexOperatorFee(CCacheWrapper &cw, CValidationState &state, co
                             ReceiptCode::DEX_OPERATOR_UPDATED_FEE_TO_MINER;
 
         if (!delegateAccount.OperateBalance(SYMB::WICC, BalanceOpType::ADD_FREE, minerFee, code, receipts)) {
-            return state.DoS(100, ERRORMSG("%s(), add %s asset fee to miner failed, miner regid=%s",
-                __func__, action, delegateRegid.ToString()), UPDATE_ACCOUNT_FAIL, "operate-account-failed");
+            return state.DoS(100, ERRORMSG("add %s asset fee to miner failed, miner regid=%s",
+                            action, delegateRegid.ToString()), UPDATE_ACCOUNT_FAIL, "operate-account-failed");
         }
 
         if (!cw.accountCache.SetAccount(delegateRegid, delegateAccount))
-            return state.DoS(100, ERRORMSG("%s(), write delegate account info error, delegate regid=%s",
-                __func__, delegateRegid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
+            return state.DoS(100, ERRORMSG("write delegate account info error, delegate regid=%s",
+                            delegateRegid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
 
     }
 
@@ -124,27 +123,27 @@ bool CDEXOperatorRegisterTx::CheckTx(CTxExecuteContext &context) {
     CValidationState &state = *context.pState;
 
     if (!data.owner_uid.is<CRegID>())
-        return state.DoS(100, ERRORMSG("%s, owner_uid must be regid", __func__), REJECT_INVALID,
+        return state.DoS(100, ERRORMSG("owner_uid must be regid"), REJECT_INVALID,
             "owner-uid-type-error");
 
     if (!data.fee_receiver_uid.is<CRegID>())
-        return state.DoS(100, ERRORMSG("%s, fee_receiver_uid must be regid", __func__), REJECT_INVALID,
+        return state.DoS(100, ERRORMSG("fee_receiver_uid must be regid"), REJECT_INVALID,
             "match-uid-type-error");
 
     if (data.name.size() > MAX_NAME_LEN)
-        return state.DoS(100, ERRORMSG("%s, name len=%d greater than %d", __func__,
+        return state.DoS(100, ERRORMSG("name len=%d greater than %d",
             data.name.size(), MAX_NAME_LEN), REJECT_INVALID, "invalid-name");
 
     if(data.memo.size() > MAX_COMMON_TX_MEMO_SIZE)
-        return state.DoS(100, ERRORMSG("%s, memo len=%d greater than %d", __func__,
+        return state.DoS(100, ERRORMSG("memo len=%d greater than %d",
                                        data.memo.size(), MAX_COMMON_TX_MEMO_SIZE), REJECT_INVALID, "invalid-memo");
 
     if (data.maker_fee_ratio > MAX_MATCH_FEE_RATIO_VALUE)
-        return state.DoS(100, ERRORMSG("%s, maker_fee_ratio=%d is greater than %d", __func__,
+        return state.DoS(100, ERRORMSG("maker_fee_ratio=%d is greater than %d",
             data.maker_fee_ratio, MAX_MATCH_FEE_RATIO_VALUE), REJECT_INVALID, "invalid-match-fee-ratio-type");
 
     if (data.taker_fee_ratio > MAX_MATCH_FEE_RATIO_VALUE)
-        return state.DoS(100, ERRORMSG("%s, taker_fee_ratio=%d is greater than %d", __func__,
+        return state.DoS(100, ERRORMSG("taker_fee_ratio=%d is greater than %d",
             data.taker_fee_ratio, MAX_MATCH_FEE_RATIO_VALUE), REJECT_INVALID, "invalid-match-fee-ratio-type");
 
     return true;
@@ -169,7 +168,7 @@ bool CDEXOperatorRegisterTx::ExecuteTx(CTxExecuteContext &context) {
     }
 
     if (cw.dexCache.HasDexOperatorByOwner(ownerAccount.regid))
-        return state.DoS(100, ERRORMSG("%s, the owner already has a dex operator! owner_regid=%s", __func__,
+        return state.DoS(100, ERRORMSG("the owner already has a dex operator! owner_regid=%s",
                         ownerAccount.regid.ToString()), REJECT_INVALID, "owner-had-dexoperator-already");
 
     if (!ProcessDexOperatorFee(cw, state, OPERATOR_ACTION_REGISTER, txAccount, receipts,context.height))
@@ -177,7 +176,7 @@ bool CDEXOperatorRegisterTx::ExecuteTx(CTxExecuteContext &context) {
 
     uint32_t new_id;
     if (!cw.dexCache.IncDexID(new_id))
-        return state.DoS(100, ERRORMSG("%s, increase dex id error! txUid=%s", __func__,GetHash().ToString() ),
+        return state.DoS(100, ERRORMSG("increase dex id error! txUid=%s", GetHash().ToString() ),
             UPDATE_ACCOUNT_FAIL, "inc_dex_id_error");
 
     DexOperatorDetail detail = {
@@ -192,7 +191,7 @@ bool CDEXOperatorRegisterTx::ExecuteTx(CTxExecuteContext &context) {
     };
 
     if (!cw.dexCache.CreateDexOperator(new_id, detail))
-        return state.DoS(100, ERRORMSG("%s, save new dex operator error! new_id=%u", __func__, new_id),
+        return state.DoS(100, ERRORMSG("save new dex operator error! new_id=%u", new_id),
                          UPDATE_ACCOUNT_FAIL, "save-operator-error");
 
     return true;
@@ -321,12 +320,12 @@ bool CDEXOperatorUpdateTx::CheckTx(CTxExecuteContext &context) {
     string errmsg ;
     string errcode ;
     if(!update_data.Check(errmsg ,errcode, context.height )){
-        return state.DoS(100, ERRORMSG("CDEXOperatorRegisterTx::CheckTx, %s",errmsg), REJECT_INVALID, errcode);
+        return state.DoS(100, ERRORMSG(errmsg), REJECT_INVALID, errcode);
     }
 
     if(update_data.field == CDEXOperatorUpdateData::OWNER_UID){
         if(cw.dexCache.HasDexOperatorByOwner(CRegID(update_data.ValueToString())))
-            return state.DoS(100, ERRORMSG("%s, the owner already has a dex operator! owner_regid=%s", __func__,
+            return state.DoS(100, ERRORMSG("the owner already has a dex operator! owner_regid=%s",
                                            update_data.ValueToString()), REJECT_INVALID, "owner-had-dexoperator");
     }
 
@@ -338,11 +337,11 @@ bool CDEXOperatorUpdateTx::ExecuteTx(CTxExecuteContext &context) {
 
     DexOperatorDetail oldDetail  ;
     if (!cw.dexCache.GetDexOperator((DexID)update_data.dexId, oldDetail))
-        return state.DoS(100, ERRORMSG("CDEXOperatorUpdateTx::ExecuteTx, the dexoperator( id= %u) is not exist!",
+        return state.DoS(100, ERRORMSG("the dexoperator( id= %u) is not exist!",
                                        update_data.dexId), UPDATE_ACCOUNT_FAIL, "dexoperator-not-exist");
 
     if (!txAccount.IsSelfUid(oldDetail.owner_regid))
-        return state.DoS(100, ERRORMSG("CDEXOperatorUpdateTx::ExecuteTx, only owner can update dexoperator! owner_regid=%s, txUid=%s, dexId=%u",
+        return state.DoS(100, ERRORMSG("only owner can update dexoperator! owner_regid=%s, txUid=%s, dexId=%u",
                                        oldDetail.owner_regid.ToString(),txUid.ToString(), update_data.dexId),
                                                UPDATE_ACCOUNT_FAIL, "dexoperator-update-permession-deny");
 
@@ -351,11 +350,11 @@ bool CDEXOperatorUpdateTx::ExecuteTx(CTxExecuteContext &context) {
 
     DexOperatorDetail detail = oldDetail;
     if (!update_data.UpdateToDexOperator(detail, cw))
-        return state.DoS(100, ERRORMSG("%s, copy updated dex operator error! dex_id=%u", __func__, update_data.dexId),
+        return state.DoS(100, ERRORMSG("copy updated dex operator error! dex_id=%u", update_data.dexId),
                          UPDATE_ACCOUNT_FAIL, "copy-updated-operator-error");
 
     if (!cw.dexCache.UpdateDexOperator(update_data.dexId, oldDetail, detail))
-        return state.DoS(100, ERRORMSG("%s, save updated dex operator error! dex_id=%u", __func__, update_data.dexId),
+        return state.DoS(100, ERRORMSG("save updated dex operator error! dex_id=%u", update_data.dexId),
                          UPDATE_ACCOUNT_FAIL, "save-updated-operator-error");
 
     return true;

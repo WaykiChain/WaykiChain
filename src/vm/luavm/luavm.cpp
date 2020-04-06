@@ -248,7 +248,7 @@ void TraceVmBurning(lua_State *L, const char* caption, const char* format, ...) 
     va_start(ap, format);
     vsprintf(pStr, format, ap);
     va_end(ap);
-    LogPrint(BCLog::LUAVM, "%s(), %s, %s", __func__, caption, pStr);
+    LogPrint(BCLog::LUAVM, "%s, %s", caption, pStr);
     delete[] pStr;
 }
 

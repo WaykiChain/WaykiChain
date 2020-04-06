@@ -48,12 +48,12 @@ bool CPricePointMemCache::ReleadBlocks(CSysParamDBCache &sysParamCache, CBlockIn
     while (pBlockIdx && count < slideWindow ) {
         CBlock block;
         if (!ReadBlockFromDisk(pBlockIdx, block))
-            return ERRORMSG("%s() : read block=[%d]%s failed", __func__, pBlockIdx->height,
+            return ERRORMSG("read block=[%d]%s failed",pBlockIdx->height,
                     pBlockIdx->GetBlockHash().ToString());
 
         if (!AddPriceByBlock(block))
-            return ERRORMSG("%d(), add block=[%d]%s to price point memory cache failed",
-                    __func__, pBlockIdx->height, pBlockIdx->GetBlockHash().ToString());
+            return ERRORMSG("add block=[%d]%s to price point memory cache failed",
+                    pBlockIdx->height, pBlockIdx->GetBlockHash().ToString());
 
         pBlockIdx = pBlockIdx->pprev;
         ++count;
@@ -76,13 +76,13 @@ bool CPricePointMemCache::PushBlock(CSysParamDBCache &sysParamCache, CBlockIndex
 
         CBlock deleteBlock;
         if (!ReadBlockFromDisk(pDeleteBlockIndex, deleteBlock)) {
-            return ERRORMSG("%s() : read block=[%d]%s failed", __func__, pDeleteBlockIndex->height,
+            return ERRORMSG("read block=[%d]%s failed", pDeleteBlockIndex->height,
                     pDeleteBlockIndex->GetBlockHash().ToString());
         }
 
         if (!DeleteBlockFromCache(deleteBlock)) {
-            return ERRORMSG("%s() : delete block==[%d]%s from price point memory cache failed",
-                    __func__, pDeleteBlockIndex->height, pDeleteBlockIndex->GetBlockHash().ToString());
+            return ERRORMSG("delete block==[%d]%s from price point memory cache failed",
+                    pDeleteBlockIndex->height, pDeleteBlockIndex->GetBlockHash().ToString());
         }
     }
     return true;
@@ -94,8 +94,8 @@ bool CPricePointMemCache::UndoBlock(CSysParamDBCache &sysParamCache, CBlockIndex
     if (!ReadSlideWindow(sysParamCache, slideWindow, __func__)) return false;
     // Delete the disconnected block's pricefeed items from price point memory cache.
     if (!DeleteBlockPricePoint(pTipBlockIdx->height)) {
-        return ERRORMSG("%s() : delete block=[%d]%s from price point memory cache failed",
-                __func__, pTipBlockIdx->height, pTipBlockIdx->GetBlockHash().ToString());
+        return ERRORMSG("delete block=[%d]%s from price point memory cache failed",
+                        pTipBlockIdx->height, pTipBlockIdx->GetBlockHash().ToString());
     }
     if ((HeightType)pTipBlockIdx->height > (HeightType)slideWindow) {
         CBlockIndex *pReLoadBlockIndex = pTipBlockIdx;
@@ -106,13 +106,13 @@ bool CPricePointMemCache::UndoBlock(CSysParamDBCache &sysParamCache, CBlockIndex
 
         CBlock reLoadblock;
         if (!ReadBlockFromDisk(pReLoadBlockIndex, reLoadblock)) {
-            return ERRORMSG("%s() : read block=[%d]%s failed", __func__, pReLoadBlockIndex->height,
-                    pReLoadBlockIndex->GetBlockHash().ToString());
+            return ERRORMSG("[%d] read block=%s failed", pReLoadBlockIndex->height,
+                            pReLoadBlockIndex->GetBlockHash().ToString());
         }
 
         if (!AddPriceByBlock(reLoadblock)) {
-            return ERRORMSG("%s() : add block=[%d]%s into price point memory cache failed",
-                    __func__, pReLoadBlockIndex->height, pReLoadBlockIndex->GetBlockHash().ToString());
+            return ERRORMSG("[%d] add block=%s into price point memory cache failed",
+                            pReLoadBlockIndex->height, pReLoadBlockIndex->GetBlockHash().ToString());
         }
     }
     return true;
@@ -123,17 +123,16 @@ bool CPricePointMemCache::AddPrice(const HeightType blockHeight, const CRegID &r
     for (CPricePoint pp : pps) {
         if (ExistBlockUserPrice(blockHeight, regId, pp.GetCoinPricePair())) {
             LogPrint(BCLog::PRICEFEED,
-                     "CPricePointMemCache::AddPrice, existed block user price, "
-                     "height: %d, redId: %s, pricePoint: %s\n",
+                     "[%d] existing block user price, redId: %s, pricePoint: %s\n",
                      blockHeight, regId.ToString(), pp.ToString());
+
             return false;
         }
 
         CConsecutiveBlockPrice &cbp = mapCoinPricePointCache[pp.GetCoinPricePair()];
         cbp.AddUserPrice(blockHeight, regId, pp.GetPrice());
         LogPrint(BCLog::PRICEFEED,
-                 "CPricePointMemCache::AddPrice, add block user price, "
-                 "height: %d, redId: %s, pricePoint: %s\n",
+                 "[%d] add block user price, redId: %s, pricePoint: %s\n",
                  blockHeight, regId.ToString(), pp.ToString());
     }
 
@@ -326,9 +325,9 @@ CMedianPriceDetail CPricePointMemCache::GetMedianPrice(const HeightType blockHei
         if (priceDetail.price == 0) {
             priceDetail = it->second;
             LogPrint(BCLog::PRICEFEED,
-                    "%s(), use previous block median price! blockHeight=%d, "
+                    "use previous block median price! blockHeight=%d, "
                     "coin_pair={%s}, new_price={%s}\n",
-                    __func__, blockHeight, CoinPairToString(coinPricePair), priceDetail.ToString());
+                    blockHeight, CoinPairToString(coinPricePair), priceDetail.ToString());
 
         } else if (priceDetail.last_feed_height != blockHeight) {
             priceDetail.last_feed_height = it->second.last_feed_height;
@@ -367,11 +366,10 @@ bool CPricePointMemCache::CalcMedianPriceDetails(CCacheWrapper &cw, const Height
         for (auto it = coinPairSet.begin(); it != coinPairSet.end(); ) {
             CAsset asset;
             if (!cw.assetCache.GetAsset(it->first, asset)) {
-                return ERRORMSG("%s(), the asset of base_symbol=%s not exist", __func__, it->first);
+                return ERRORMSG("the asset of base_symbol=%s not exist", it->first);
             }
             if (!asset.HasPerms(AssetPermType::PERM_PRICE_FEED)) {
-                LogPrint(BCLog::PRICEFEED, "%s(), the asset of base_symbol=%s not have PERM_PRICE_FEED",
-                        __func__, it->first);
+                LogPrint(BCLog::PRICEFEED, "the asset of base_symbol=%s not have PERM_PRICE_FEED", it->first);
                 it = coinPairSet.erase(it);
                 continue;
             }
@@ -383,13 +381,13 @@ bool CPricePointMemCache::CalcMedianPriceDetails(CCacheWrapper &cw, const Height
     for (const auto& item : coinPairSet) {
         CMedianPriceDetail bcoinMedianPrice = GetMedianPrice(blockHeight, slideWindow, item);
         if (bcoinMedianPrice.price == 0) {
-            LogPrint(BCLog::PRICEFEED, "%s(), calc median price=0 of coin_pair={%s}, ignore, height=%d\n",
-                    __func__, CoinPairToString(item), blockHeight);
+            LogPrint(BCLog::PRICEFEED, "[%d] calc median price=0 of coin_pair={%s}, ignore\n",
+                    blockHeight, CoinPairToString(item));
             continue;
         }
         medianPrices.emplace(item, bcoinMedianPrice);
-        LogPrint(BCLog::PRICEFEED, "%s(), calc median price=%llu of coin_pair={%s}, height=%d\n",
-                blockHeight, bcoinMedianPrice.price, CoinPairToString(item), blockHeight);
+        LogPrint(BCLog::PRICEFEED, "[%d] calc median price=%llu of coin_pair={%s}\n",
+                blockHeight, bcoinMedianPrice.price, CoinPairToString(item));
     }
 
     return true;

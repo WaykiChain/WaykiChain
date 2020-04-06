@@ -260,19 +260,19 @@ extern Value getminerbyblocktime(const Array& params, bool fHelp) {
 
     VoteDelegateVector delegates;
     if (!pCdMan->pDelegateCache->GetActiveDelegates(delegates)) {
-        LogPrint(BCLog::ERROR, "%s() : GetActiveDelegates failed\n", __FUNCTION__);
+        LogPrint(BCLog::ERROR, "GetActiveDelegates failed\n");
         return false;
     }
 
     uint16_t index = 0;
     for (auto &delegate : delegates)
-        LogPrint(BCLog::DEBUG, "%-30s[%d] before shuffle: index=%d, regId=%s\n", __func__, blockHeight, index++, delegate.regid.ToString());
+        LogPrint(BCLog::DEBUG, "[%d] before shuffle: index=%d, regId=%s\n", blockHeight, index++, delegate.regid.ToString());
 
     ShuffleDelegates(blockHeight, blockTime, delegates);
 
     index = 0;
     for (auto &delegate : delegates)
-        LogPrint(BCLog::DEBUG, "%-30s[%d] after shuffle: index=%d, regId=%s\n", __func__, blockHeight, index++, delegate.regid.ToString());
+        LogPrint(BCLog::DEBUG, "[%d] after shuffle: index=%d, regId=%s\n", blockHeight, index++, delegate.regid.ToString());
 
     CRegID regid;
     VoteDelegate curDelegate;

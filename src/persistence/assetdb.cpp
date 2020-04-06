@@ -56,25 +56,28 @@ bool CAssetDbCache::GetAssetTokensByPerm(const AssetPermType& permType, set<Toke
 bool CAssetDbCache::CheckPriceFeedBaseSymbol(const TokenSymbol &feedSymbol) {
     CAsset baseAsset;
     if (!GetAsset(feedSymbol, baseAsset))
-        return ERRORMSG("%s(), price base_symbol=%s not exist", __func__, feedSymbol);
+        return ERRORMSG("price base_symbol=%s not exist", feedSymbol);
+
     if (!baseAsset.HasPerms(AssetPermType::PERM_PRICE_FEED))
-        return ERRORMSG("%s(), price base_symbol=%s not have PERM_PRICE_FEED", __func__, feedSymbol);
+        return ERRORMSG("price base_symbol=%s not have PERM_PRICE_FEED", feedSymbol);
 
     return true;
 }
 
 bool CAssetDbCache::CheckPriceFeedQuoteSymbol(const TokenSymbol &quoteSymbol) {
     if (kPriceQuoteSymbolSet.count(quoteSymbol) == 0)
-        return ERRORMSG("%s(), unsupported price quote_symbol=%s", __func__, quoteSymbol);
+        return ERRORMSG("unsupported price quote_symbol=%s", quoteSymbol);
+
     return true;
 }
 
 bool CAssetDbCache::CheckDexBaseSymbol(const TokenSymbol &baseSymbol) {
     CAsset baseAsset;
     if (!GetAsset(baseSymbol, baseAsset))
-        return ERRORMSG("%s(), dex base_symbol=%s not exist", __func__, baseSymbol);
+        return ERRORMSG("dex base_symbol=%s not exist", baseSymbol);
+
     if (!baseAsset.HasPerms(AssetPermType::PERM_DEX_BASE))
-        return ERRORMSG("%s(), dex base_symbol=%s not have PERM_DEX_BASE", __func__, baseSymbol);
+        return ERRORMSG("dex base_symbol=%s not have PERM_DEX_BASE", baseSymbol);
 
     return true;
 }
@@ -83,9 +86,10 @@ bool CAssetDbCache::CheckDexQuoteSymbol(const TokenSymbol &quoteSymbol) {
 
     CAsset quoteAsset;
     if (!GetAsset(quoteSymbol, quoteAsset))
-        return ERRORMSG("%s(), dex quote_symbol=%s not exist", __func__, quoteSymbol);
+        return ERRORMSG("dex quote_symbol=%s not exist", quoteSymbol);
+
     if (!quoteAsset.HasPerms(AssetPermType::PERM_DEX_QUOTE))
-        return ERRORMSG("%s(), dex quote_symbol=%s not have PERM_DEX_BASE", __func__, quoteSymbol);
+        return ERRORMSG("dex quote_symbol=%s not have PERM_DEX_BASE", quoteSymbol);
 
     return true;
 }
@@ -100,6 +104,7 @@ bool CAssetDbCache::EraseAxcSwapPair(TokenSymbol peerSymbol) {
     if(!axc_swap_coin_ps_cache.GetData(peerSymbol, data)){
 
     }
+
     return axc_swap_coin_ps_cache.EraseData(peerSymbol) && axc_swap_coin_sp_cache.EraseData(data.first);
 }
 

@@ -277,23 +277,19 @@ bool CGovAssetPermProposal::ExecuteProposal(CTxExecuteContext& context, CBaseTx&
 
     CAsset asset;
     if (!cw.assetCache.GetAsset(asset_symbol, asset))
-        return state.DoS(100, ERRORMSG("%s(), asset not exist! symbol=%s",
-                    __func__, asset_symbol), REJECT_INVALID, "asset-not-exist");
+        return state.DoS(100, ERRORMSG("Asset not found! symbol=%s", asset_symbol), REJECT_INVALID, "asset-not-found");
     // process cdp bcoin perm
     bool oldCdpBcoinPerm = asset.HasPerms(AssetPermType::PERM_CDP_BCOIN);
 
     asset.perms_sum = proposed_perms_sum;
     if (!cw.assetCache.SetAsset(asset))
-        return state.DoS(100, ERRORMSG("%s(), save asset failed! symbol=%s",
-                    __func__, asset_symbol), REJECT_INVALID, "save-asset-failed");
+        return state.DoS(100, ERRORMSG("Save asset failed! symbol=%s", asset_symbol), REJECT_INVALID, "save-asset-failed");
 
     bool newCdpBcoinPerm = asset.HasPerms(AssetPermType::PERM_CDP_BCOIN);
     if (newCdpBcoinPerm != oldCdpBcoinPerm) {
-        CdpBcoinStatus status =
-            newCdpBcoinPerm ? CdpBcoinStatus::STAKE_ON : CdpBcoinStatus::STAKE_OFF;
+        CdpBcoinStatus status = newCdpBcoinPerm ? CdpBcoinStatus::STAKE_ON : CdpBcoinStatus::STAKE_OFF;
         if (cw.cdpCache.SetBcoinStatus(asset_symbol, status))
-            return state.DoS(100, ERRORMSG("%s(), save bcoin status failed! symbol=%s",
-                        __func__, asset_symbol), REJECT_INVALID, "save-bcoin-status-failed");
+            return state.DoS(100, ERRORMSG("Save bcoin status failed! symbol=%s", asset_symbol), REJECT_INVALID, "save-bcoin-status-failed");
 
     }
     return true;
@@ -382,7 +378,7 @@ bool CGovDexOpProposal::ExecuteProposal(CTxExecuteContext& context, CBaseTx& tx)
     newOperator.activated = (operate_type == ProposalOperateType::ENABLE);
 
     if (!cw.dexCache.UpdateDexOperator(dexid, dexOperator, newOperator))
-        return state.DoS(100, ERRORMSG("%s, save updated dex operator error! dex_id=%u", __func__, dexid),
+        return state.DoS(100, ERRORMSG("Save updated DEX operator error! dex_id=%u", dexid),
                          UPDATE_ACCOUNT_FAIL, "save-updated-operator-error");
 
     return true;
@@ -392,35 +388,32 @@ bool CGovFeedCoinPairProposal::CheckProposal(CTxExecuteContext& context, CBaseTx
     IMPLEMENT_DEFINE_CW_STATE;
 
     if (op_type == ProposalOperateType::NULL_PROPOSAL_OP)
-        return state.DoS(100, ERRORMSG("%s(), op_type is null", __func__),
-                         REJECT_INVALID, "bad-op-type");
+        return state.DoS(100, ERRORMSG("op_type is null"), REJECT_INVALID, "bad-op-type");
+
     if (base_symbol == quote_symbol)
-        return state.DoS(100, ERRORMSG("%s(): base_symbol==quote_symbol", __func__),
-                         REJECT_INVALID, "same-base-quote-symbol");
+        return state.DoS(100, ERRORMSG("base_symbol==quote_symbol"), REJECT_INVALID, "same-base-quote-symbol");
 
     if (!cw.assetCache.CheckPriceFeedQuoteSymbol(quote_symbol))
-        return state.DoS(100, ERRORMSG("%s(), unsupported quote_symbol=%s", __func__, quote_symbol),
-                         REJECT_INVALID, "unsupported-quote-symbol");
+        return state.DoS(100, ERRORMSG("Unsupported quote_symbol=%s", quote_symbol), REJECT_INVALID, "unsupported-quote-symbol");
 
     if (!cw.assetCache.CheckPriceFeedBaseSymbol(base_symbol))
-        return state.DoS(100, ERRORMSG("%s(), unsupported base_symbol=%s", __func__, base_symbol),
-                         REJECT_INVALID, "unsupported-base-symbol");
+        return state.DoS(100, ERRORMSG("Unsupported base_symbol=%s", base_symbol), REJECT_INVALID, "unsupported-base-symbol");
 
     PriceCoinPair coinPair(base_symbol, quote_symbol);
     if (kPriceFeedCoinPairSet.count(coinPair) > 0) {
-        return state.DoS(100, ERRORMSG("%s(), the hard code price_coin_pair={%s:%s} can not be governed",
-                __func__, quote_symbol), REJECT_INVALID, "hard-code-coin-pair");
+        return state.DoS(100, ERRORMSG("The hard code price_coin_pair={%s:%s} can not be governed", quote_symbol),
+                        REJECT_INVALID, "hard-code-coin-pair");
     }
 
     bool hasCoin = cw.priceFeedCache.HasFeedCoinPair(coinPair);
     if (hasCoin && op_type == ProposalOperateType ::ENABLE) {
-        return state.DoS(100, ERRORMSG("CGovFeedCoinPairProposal:: checkProposal:base_symbol(%s),quote_symbol(%s)"
-                                       "is dex quote coin symbol already",base_symbol, quote_symbol),
+        return state.DoS(100, ERRORMSG("checkProposal:base_symbol(%s),quote_symbol(%s)"
+                                       "is dex quote coin symbol already", base_symbol, quote_symbol),
                          REJECT_INVALID, "symbol-exist");
     }
 
     if (!hasCoin && op_type == ProposalOperateType ::DISABLE) {
-        return state.DoS(100, ERRORMSG("CGovFeedCoinPairProposal:: checkProposal:base_symbol(%s),quote_symbol(%s) "
+        return state.DoS(100, ERRORMSG("checkProposal:base_symbol(%s),quote_symbol(%s) "
                                        "is not a dex quote coin symbol ",base_symbol, quote_symbol),
                          REJECT_INVALID, "symbol-not-exist");
     }

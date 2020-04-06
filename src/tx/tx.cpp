@@ -291,9 +291,8 @@ bool CBaseTx::AddInvolvedKeyIds(vector<CUserID> uids, CCacheWrapper &cw, set<CKe
 bool CBaseTx::GetTxAccount(CTxExecuteContext &context, CAccount &account) {
 
     if (!context.pCw->accountCache.GetAccount(txUid, account)) {
-        return context.pState->DoS(100, ERRORMSG("%s(), tx %s account dos not exist, tx_uid=%s",
-            __func__, GetTxTypeName(), txUid.ToString()),
-            REJECT_INVALID, "tx-account-not-exist");
+        return context.pState->DoS(100, ERRORMSG("tx %s account dos not exist, tx_uid=%s", GetTxTypeName(), txUid.ToString()),
+                                    REJECT_INVALID, "tx-account-not-exist");
     }
     return true;
 }
@@ -301,13 +300,12 @@ bool CBaseTx::GetTxAccount(CTxExecuteContext &context, CAccount &account) {
 bool CBaseTx::CheckFee(CTxExecuteContext &context, function<bool(CTxExecuteContext&, uint64_t)> minFeeChecker) const {
     // check fee value range
     if (!CheckBaseCoinRange(llFees))
-        return context.pState->DoS(100, ERRORMSG("%s, tx fee out of range", __FUNCTION__), REJECT_INVALID,
+        return context.pState->DoS(100, ERRORMSG("tx fee out of range"), REJECT_INVALID,
                          "bad-tx-fee-toolarge");
     // check fee symbol valid
     if (!kFeeSymbolSet.count(fee_symbol))
         return context.pState->DoS(100,
-                         ERRORMSG("%s, not support fee symbol=%s, only supports:%s", __FUNCTION__, fee_symbol,
-                                  GetFeeSymbolSetStr()),
+                         ERRORMSG("not support fee symbol=%s, only supports:%s", fee_symbol, GetFeeSymbolSetStr()),
                          REJECT_INVALID, "bad-tx-fee-symbol");
 
     uint64_t minFee;
@@ -337,8 +335,8 @@ bool CBaseTx::CheckMinFee(CTxExecuteContext &context, uint64_t minFee) const {
 
 bool CBaseTx::CheckTxAvailableFromVer(CTxExecuteContext &context, FeatureForkVersionEnum ver) {
     if (GetFeatureForkVersion(context.height) < ver)
-        return context.pState->DoS(100, ERRORMSG("%s, tx type=%s is unavailable before height=%d",
-                __func__, GetTxTypeName(), context.height),
+        return context.pState->DoS(100, ERRORMSG("[%d]tx type=%s is unavailable before height=%d",
+                context.height, GetTxTypeName()),
                 REJECT_INVALID, "unavailable-tx");
     return true;
 }

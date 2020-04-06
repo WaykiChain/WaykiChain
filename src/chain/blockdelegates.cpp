@@ -26,29 +26,29 @@ static bool GenPendingDelegates(CBlock &block, uint32_t delegateNum, CCacheWrapp
     pendingDelegates.counted_vote_height = block.GetHeight();
     uint64_t bpDelegateVoteMin;
     if (!cw.sysParamCache.GetParam(SysParamType::BP_DELEGATE_VOTE_MIN, bpDelegateVoteMin))
-        return ERRORMSG("%s, get sys param BP_DELEGATE_VOTE_MIN failed! block=%d:%s\n",
-                __func__, block.GetHeight(), block.GetHash().ToString());
+        return ERRORMSG("get sys param BP_DELEGATE_VOTE_MIN failed! block=%d:%s\n",
+                        block.GetHeight(), block.GetHash().ToString());
 
     VoteDelegateVector topVoteDelegates;
     if (!cw.delegateCache.GetTopVoteDelegates(delegateNum, BP_DELEGATE_VOTE_MIN, topVoteDelegates, isR3Fork)) {
-        LogPrint(BCLog::INFO, "[WARNING] %s, GetTopVoteDelegates() failed! no need to update pending delegates! "
-                "block=%d:%s, delegate_num=%d\n",
-                __func__, block.GetHeight(), block.GetHash().ToString(), delegateNum);
+        LogPrint(BCLog::INFO, "[WARNING] [%d] GetTopVoteDelegates() failed! no need to update pending delegates! "
+                "block=%.7s**, delegate_num=%d\n", block.GetHeight(), block.GetHash().ToString(), delegateNum);
+
         return true;
     };
 
     pendingDelegates.top_vote_delegates = topVoteDelegates;
 
     if (!activeDelegates.empty() && pendingDelegates.top_vote_delegates == activeDelegates) {
-        LogPrint(BCLog::INFO, "%s, the top vote delegates are unchanged! block=%d:%s, num=%d, dest_num=%d\n",
-                __func__, block.GetHeight(), block.GetHash().ToString(),
-                pendingDelegates.top_vote_delegates.size(), delegateNum);
+        LogPrint(BCLog::INFO, "[%d] The top vote delegates are unchanged! block=%.7s**, num=%d, dest_num=%d\n",
+                block.GetHeight(), block.GetHash().ToString(), pendingDelegates.top_vote_delegates.size(), delegateNum);
         // update counted_vote_height and top_vote_delegates to skip unchanged delegates to next count vote slot height
         return true;
     }
 
-    LogPrint(BCLog::DELEGATE, "%s, gen new pending delegates={%s}\n", __func__, pendingDelegates.ToString());
+    LogPrint(BCLog::DELEGATE, "Gen new pending delegates={%s}\n", pendingDelegates.ToString());
     pendingDelegates.state = VoteDelegateState::PENDING;
+
     return true;
 }
 
@@ -77,14 +77,14 @@ bool chain::ProcessBlockDelegates(CBlock &block, CCacheWrapper &cw, CValidationS
         (countVoteInterval == 0 || (block.GetHeight() % countVoteInterval == 0))) {
         VoteDelegateVector activeDelegates;
         if (!cw.delegateCache.GetActiveDelegates(activeDelegates)) {
-            LogPrint(BCLog::INFO, "%s() : active delegates do not exist, will be initialized later! block=%d:%s\n",
-                __func__, block.GetHeight(), block.GetHash().ToString());
+            LogPrint(BCLog::INFO, "[%d] Active delegates do not exist, will be initialized later! block=%.7s**\n",
+                    block.GetHeight(), block.GetHash().ToString());
         }
         int32_t lastVoteHeight = cw.delegateCache.GetLastVoteHeight();
         uint32_t delegateNum = cw.sysParamCache.GetTotalBpsSize(block.GetHeight()) ;
 
         if (pendingDelegates.counted_vote_height == 0 ||
-            lastVoteHeight > (int32_t)pendingDelegates.counted_vote_height || 
+            lastVoteHeight > (int32_t)pendingDelegates.counted_vote_height ||
             activeDelegates.size() != delegateNum) {
 
             if (!GenPendingDelegates(block, delegateNum, cw, activeDelegates, pendingDelegates, isR3Fork)) {

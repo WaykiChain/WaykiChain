@@ -433,13 +433,13 @@ void static CommonTxGenerator(const int64_t period, const int64_t batchSize) {
         }
 
         int64_t elapseTime = GetTimeMillis() - nStart;
-        LogPrint(BCLog::DEBUG, "%-30s batch generate transaction(s): %ld, elapse time: %ld ms.\n", __func__,
+        LogPrint(BCLog::DEBUG, "batch generate transaction(s): %ld, elapse time: %ld ms.\n",
                 batchSize, elapseTime);
 
         if (elapseTime < period) {
             MilliSleep(period - elapseTime);
         } else {
-            LogPrint(BCLog::DEBUG, "%-30s need to slow down for overloading.\n", __func__);
+            LogPrint(BCLog::DEBUG, "need to slow down for overloading.\n");
         }
     }
 }
@@ -576,12 +576,12 @@ void static ContractTxGenerator(const string& regid, const int64_t period, const
         }
 
         int64_t elapseTime = GetTimeMillis() - nStart;
-        LogPrint(BCLog::DEBUG, "%-30s batch generate transaction(s): %ld, elapse time: %ld ms.\n", __func__,
-                 batchSize, elapseTime);
+        LogPrint(BCLog::DEBUG, "batch generate transaction(s): %ld, elapse time: %ld ms.\n", batchSize, elapseTime);
+
         if (elapseTime < period) {
             MilliSleep(period - elapseTime);
         } else {
-            LogPrint(BCLog::DEBUG, "%-30s need to slow down for overloading.\n", __func__);
+            LogPrint(BCLog::DEBUG, "need to slow down for overloading.\n");
         }
     }
 }

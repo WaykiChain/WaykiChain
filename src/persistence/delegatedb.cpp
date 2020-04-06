@@ -37,20 +37,20 @@ bool CDelegateDBCache::GetTopVoteDelegates(uint32_t delegateNum, uint64_t delega
     for (spIt->First(); spIt->IsValid() && topVoteDelegates.size() < delegateNum; spIt->Next()) {
         uint64_t vote = spIt->GetVote();
         if (isR3Fork && vote < BP_DELEGATE_VOTE_MIN) {
-            LogPrint(BCLog::ERROR, "[WARNING] %s, the %lluTH delegate vote=%llu less than %llu!"
+            LogPrint(BCLog::ERROR, "[WARN] the %lluTH delegate vote=%llu less than %llu!"
                      " dest_delegate_num=%d\n",
-                     __func__, topVoteDelegates.size(), BP_DELEGATE_VOTE_MIN, delegateNum);
+                     topVoteDelegates.size(), BP_DELEGATE_VOTE_MIN, delegateNum);
             break;
         }
         topVoteDelegates.emplace_back(spIt->GetRegid(), spIt->GetVote());
     }
     if (topVoteDelegates.empty())
-        return ERRORMSG("[WARNING] %s, topVoteDelegates is empty! dest_delegate_num=%d\n",
-                    __func__, delegateNum);
+        return ERRORMSG("[WARN] topVoteDelegates is empty! dest_delegate_num=%d\n", delegateNum);
+
     if (topVoteDelegates.size() != delegateNum) {
-        LogPrint(BCLog::INFO, "[WARNING] %s, the top delegates size=%d is less than %d"
+        LogPrint(BCLog::INFO, "[WARN] the top delegates size=%d is less than %d"
                     " specified_delegate_num=%d\n",
-                    __func__, topVoteDelegates.size(), BP_DELEGATE_VOTE_MIN, delegateNum);
+                    topVoteDelegates.size(), BP_DELEGATE_VOTE_MIN, delegateNum);
     }
     return true;
 }

@@ -524,7 +524,7 @@ HTTPRequest::HTTPRequest(struct evhttp_request* _req) : req(_req), replySent(fal
 HTTPRequest::~HTTPRequest() {
     if (!replySent) {
         // Keep track of whether reply was sent to avoid request leaks
-        LogPrint(BCLog::ERROR, "%s: Unhandled request\n", __func__);
+        LogPrint(BCLog::ERROR, "Unhandled request\n");
         WriteReply(HTTP_INTERNAL, "Unhandled request");
     }
     // evhttpd cleans up the request, as long as a reply was sent.

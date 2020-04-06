@@ -67,7 +67,7 @@ bool CBlockIndexDB::LoadBlockIndexes() {
                 break;  // if shutdown requested or finished loading block index
             }
         } catch (std::exception &e) {
-            return ERRORMSG("%s : Deserialize or I/O error - %s", __func__, e.what());
+            return ERRORMSG("Deserialize or I/O error - %s", e.what());
         }
     }
     delete pCursor;
@@ -94,7 +94,7 @@ CBlockIndex *InsertBlockIndex(uint256 hash) {
     // Create new
     CBlockIndex *pIndexNew = new CBlockIndex();
     if (!pIndexNew)
-        throw runtime_error(strprintf("%s() : new CBlockIndex failed", __func__));
+        throw runtime_error(strprintf("new CBlockIndex failed"));
     mi                    = mapBlockIndex.insert(make_pair(hash, pIndexNew)).first;
     pIndexNew->pBlockHash = &((*mi).first);
 

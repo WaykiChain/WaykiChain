@@ -1535,20 +1535,20 @@ bool CAddrDB::Write(const CAddrMan& addr) {
     FILE* file                      = fopen(pathTmp.string().c_str(), "wb");
     CAutoFile fileout               = CAutoFile(file, SER_DISK, CLIENT_VERSION);
     if (!fileout)
-        return ERRORMSG("%s : Failed to open file %s", __func__, pathTmp.string());
+        return ERRORMSG("Failed to open file %s", pathTmp.string());
 
     // Write and commit header, data
     try {
         fileout << ssPeers;
     } catch (std::exception& e) {
-        return ERRORMSG("%s : Serialize or I/O error - %s", __func__, e.what());
+        return ERRORMSG("Serialize or I/O error - %s", e.what());
     }
     FileCommit(fileout);
     fileout.fclose();
 
     // replace existing peers.dat, if any, with new peers.dat.XXXX
     if (!RenameOver(pathTmp, pathAddr))
-        return ERRORMSG("%s : Rename-into-place failed", __func__);
+        return ERRORMSG("Rename-into-path failed");
 
     return true;
 }
@@ -1558,7 +1558,7 @@ bool CAddrDB::Read(CAddrMan& addr) {
     FILE* file       = fopen(pathAddr.string().c_str(), "rb");
     CAutoFile filein = CAutoFile(file, SER_DISK, CLIENT_VERSION);
     if (!filein)
-        return ERRORMSG("%s : Failed to open file %s", __func__, pathAddr.string());
+        return ERRORMSG("Failed to open file %s", pathAddr.string());
 
     // use file size to size memory buffer
     int32_t fileSize = boost::filesystem::file_size(pathAddr);
@@ -1575,7 +1575,7 @@ bool CAddrDB::Read(CAddrMan& addr) {
         filein.read((char*)&vchData[0], dataSize);
         filein >> hashIn;
     } catch (std::exception& e) {
-        return ERRORMSG("%s : Deserialize or I/O error - %s", __func__, e.what());
+        return ERRORMSG("Deserialize or I/O error - %s", e.what());
     }
     filein.fclose();
 
@@ -1584,7 +1584,7 @@ bool CAddrDB::Read(CAddrMan& addr) {
     // verify stored checksum matches input data
     uint256 hashTmp = Hash(ssPeers.begin(), ssPeers.end());
     if (hashIn != hashTmp)
-        return ERRORMSG("%s : Checksum mismatch, data corrupted", __func__);
+        return ERRORMSG("Checksum mismatch, data corrupted");
 
     uint8_t pchMsgTmp[4];
     try {
@@ -1593,12 +1593,12 @@ bool CAddrDB::Read(CAddrMan& addr) {
 
         // ... verify the network matches ours
         if (memcmp(pchMsgTmp, SysCfg().MessageStart(), sizeof(pchMsgTmp)))
-            return ERRORMSG("%s : Invalid network magic number", __func__);
+            return ERRORMSG("Invalid network magic number");
 
         // de-serialize address data into one CAddrMan object
         ssPeers >> addr;
     } catch (std::exception& e) {
-        return ERRORMSG("%s : Deserialize or I/O error - %s", __func__, e.what());
+        return ERRORMSG("Deserialize or I/O error - %s", e.what());
     }
 
     return true;

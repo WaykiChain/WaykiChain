@@ -27,23 +27,23 @@ static bool GetBcoinMedianPrice(CBaseTx &tx, CTxExecuteContext &context, const C
         uint64_t &bcoinPrice) {
     const TokenSymbol &quoteSymbol = GetQuoteSymbolByCdpScoin(cdpCoinPair.scoin_symbol);
     if (quoteSymbol.empty()) {
-        return context.pState->DoS(100, ERRORMSG("%s(), get price quote by cdp scoin=%s failed!",
+        return context.pState->DoS(100, ERRORMSG("get price quote by cdp scoin=%s failed!",
                 TX_OBJ_ERR_TITLE(tx), cdpCoinPair.scoin_symbol),
                 REJECT_INVALID, "get-price-quote-by-cdp-scoin-failed");
     }
 
     uint64_t priceTimeoutBlocks = 0;
     if (!context.pCw->sysParamCache.GetParam(SysParamType::PRICE_FEED_TIMEOUT_BLOCKS, priceTimeoutBlocks)) {
-        return context.pState->DoS(100, ERRORMSG("%s, read sys param PRICE_FEED_TIMEOUT_BLOCKS error", __func__),
+        return context.pState->DoS(100, ERRORMSG("read sys param PRICE_FEED_TIMEOUT_BLOCKS error"),
                 REJECT_INVALID, "read-sysparam-error");
     }
     CMedianPriceDetail priceDetail;
     PriceCoinPair priceCoinPair(cdpCoinPair.bcoin_symbol, quoteSymbol);
     context.pCw->priceFeedCache.GetMedianPriceDetail(priceCoinPair, priceDetail);
     if (priceDetail.price == 0 || !priceDetail.IsActive(context.height, priceTimeoutBlocks)) {
-        return context.pState->DoS(100, ERRORMSG("%s, the price of %s is empty or inactive! "
-                "price={%s}, tip_height=%u", __func__, CoinPairToString(priceCoinPair),
-                priceDetail.ToString(), context.height), REJECT_INVALID, "invalid-bcoin-price");
+        return context.pState->DoS(100, ERRORMSG("[%d] the price of %s is empty or inactive! "
+                "price={%s}, tip_height=%u", context.height, CoinPairToString(priceCoinPair),
+                priceDetail.ToString()), REJECT_INVALID, "invalid-bcoin-price");
     }
     bcoinPrice = priceDetail.price;
     return true;
@@ -193,18 +193,19 @@ bool ComputeCDPInterest(CTxExecuteContext &context, const CCdpCoinPair& coinPair
 
     list<CCdpInterestParamChange> changes;
     if (!context.pCw->sysParamCache.GetCdpInterestParamChanges(coinPair, beginHeight, endHeight, changes)) {
-        return context.pState->DoS(100, ERRORMSG("%s(), get cdp interest param changes error! coinPiar=%s",
-                __func__, coinPair.ToString()), REJECT_INVALID, "get-cdp-interest-param-changes-error");
+        return context.pState->DoS(100, ERRORMSG("get cdp interest param changes error! coinPiar=%s",
+                                    coinPair.ToString()), REJECT_INVALID, "get-cdp-interest-param-changes-error");
     }
 
     interestOut = 0;
     for (auto &change : changes) {
         interestOut += ComputeCDPInterest(total_owed_scoins, change.begin_height, change.end_height,
-            change.param_a, change.param_b);
+                                        change.param_a, change.param_b);
     }
 
-    LogPrint(BCLog::CDP, "ComputeCDPInterest, beginHeight: %d, endHeight: %d, totalInterest: %llu\n",
+    LogPrint(BCLog::CDP, "beginHeight: %d, endHeight: %d, totalInterest: %llu\n",
              beginHeight, endHeight, interestOut);
+
     return true;
 }
 
@@ -213,17 +214,17 @@ bool CCDPStakeTx::CheckTx(CTxExecuteContext &context) {
     IMPLEMENT_DEFINE_CW_STATE;
 
     if (assets_to_stake.size() != 1)
-        return state.DoS(100, ERRORMSG("CCDPStakeTx::CheckTx, only support to stake one asset!"),
+        return state.DoS(100, ERRORMSG("only support to stake one asset!"),
                         REJECT_INVALID, "invalid-stake-asset");
 
     const TokenSymbol &assetSymbol = assets_to_stake.begin()->first;
     if (!kCdpScoinSymbolSet.count(scoin_symbol))
-        return state.DoS(100, ERRORMSG("CCDPStakeTx::CheckTx, invalid scoin=%s", scoin_symbol),
+        return state.DoS(100, ERRORMSG("invalid scoin=%s", scoin_symbol),
                         REJECT_INVALID, "invalid-CDP-SCoin-Symbol");
 
     if (assetSymbol == SYMB::WGRT || kCdpScoinSymbolSet.count(assetSymbol) > 0 ||
         !cw.assetCache.CheckAsset(assetSymbol, AssetPermType::PERM_CDP_BCOIN))
-        return state.DoS(100, ERRORMSG("CCDPStakeTx::CheckTx, asset=%s can not be a bcoin", assetSymbol),
+        return state.DoS(100, ERRORMSG("asset=%s can not be a bcoin", assetSymbol),
                         REJECT_INVALID, "invalid-CDP-BCoin-Symbol");
 
     return true;
@@ -240,7 +241,7 @@ bool CCDPStakeTx::ExecuteTx(CTxExecuteContext &context) {
 
     const TokenSymbol &quoteSymbol = GetQuoteSymbolByCdpScoin(scoin_symbol);
     if (quoteSymbol.empty())
-        return state.DoS(100, ERRORMSG("%s(), get price quote by cdp scoin=%s failed!", __func__, scoin_symbol),
+        return state.DoS(100, ERRORMSG("get price quote by cdp scoin=%s failed!", scoin_symbol),
                         REJECT_INVALID, "get-price-quote-by-cdp-scoin-failed");
 
     uint64_t bcoinMedianPrice = 0;
@@ -256,7 +257,7 @@ bool CCDPStakeTx::ExecuteTx(CTxExecuteContext &context) {
 
     // FIXME :: remove test net compatible
     if ( SysCfg().NetworkID() != NET_TYPE::TEST_NET  && globalCollateralRatio < globalCollateralRatioMin) {
-        return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, GlobalCollateralFloorReached! ratio=%llu,"
+        return state.DoS(100, ERRORMSG("GlobalCollateralFloorReached! ratio=%llu,"
                 " min=%llu", globalCollateralRatio, globalCollateralRatioMin),
                 REJECT_INVALID, "global-collateral-floor-reached");
     }
@@ -268,7 +269,7 @@ bool CCDPStakeTx::ExecuteTx(CTxExecuteContext &context) {
     }
 
     if (cdpGlobalData.CheckGlobalCollateralCeilingReached(assetAmount, globalCollateralCeiling)) {
-        return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, GlobalCollateralCeilingReached!"),
+        return state.DoS(100, ERRORMSG("GlobalCollateralCeilingReached!"),
                         REJECT_INVALID, "global-collateral-ceiling-reached");
     }
 
@@ -279,18 +280,18 @@ bool CCDPStakeTx::ExecuteTx(CTxExecuteContext &context) {
     //2. check collateral ratio: parital or total >= 200%
     uint64_t startingCdpCollateralRatio;
     if (!ReadCdpParam(*this, context, cdpCoinPair, CdpParamType::CDP_START_COLLATERAL_RATIO, startingCdpCollateralRatio))
-        return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, read CDP_START_COLLATERAL_RATIO error!!"),
+        return state.DoS(100, ERRORMSG("read CDP_START_COLLATERAL_RATIO error!!"),
                         READ_SYS_PARAM_FAIL, "read-sysparamdb-error");
 
     uint64_t newMintScoins = scoins_to_mint;
 
     if (cdp_txid.IsEmpty()) { // 1st-time CDP creation
         if (assetAmount == 0 || scoins_to_mint == 0)
-            return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, invalid amount"), REJECT_INVALID, "invalid-amount");
+            return state.DoS(100, ERRORMSG("invalid amount"), REJECT_INVALID, "invalid-amount");
 
         vector<CUserCDP> userCdps;
         if (cw.cdpCache.UserHaveCdp(txAccount.regid, assetSymbol, scoin_symbol)) {
-            return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, the user (regid=%s) has existing CDP (txid=%s)!"
+            return state.DoS(100, ERRORMSG("the user (regid=%s) has existing CDP (txid=%s)!"
                             "asset_symbol=%s, scoin_symbol=%s",
                              GetHash().GetHex(), txAccount.regid.ToString(), assetSymbol, scoin_symbol),
                              REJECT_INVALID, "user-cdp-created");
@@ -299,7 +300,7 @@ bool CCDPStakeTx::ExecuteTx(CTxExecuteContext &context) {
         uint64_t collateralRatio = CalcCollateralRatio(assetAmount, scoins_to_mint, bcoinMedianPrice);
         if (collateralRatio < startingCdpCollateralRatio)
             return state.DoS(100,
-                             ERRORMSG("CCDPStakeTx::ExecuteTx, 1st-time CDP creation, collateral ratio (%.2f%%) is "
+                             ERRORMSG("1st-time CDP creation, collateral ratio (%.2f%%) is "
                                       "smaller than the minimal (%.2f%%), price: %llu",
                                       100.0 * collateralRatio / RATIO_BOOST,
                                       100.0 * startingCdpCollateralRatio / RATIO_BOOST, bcoinMedianPrice),
@@ -308,7 +309,7 @@ bool CCDPStakeTx::ExecuteTx(CTxExecuteContext &context) {
         CUserCDP cdp(txAccount.regid, GetHash(), context.height, assetSymbol, scoin_symbol, assetAmount, scoins_to_mint);
 
         if (!cw.cdpCache.NewCDP(context.height, cdp)) {
-            return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, save new cdp to db failed"),
+            return state.DoS(100, ERRORMSG("save new cdp to db failed"),
                             READ_SYS_PARAM_FAIL, "save-new-cdp-failed");
         }
 
@@ -320,28 +321,28 @@ bool CCDPStakeTx::ExecuteTx(CTxExecuteContext &context) {
 
         uint64_t bcoinsToStakeAmountMin = bcoinsToStakeAmountMinInScoin / (double(bcoinMedianPrice) / PRICE_BOOST);
         if (cdp.total_staked_bcoins < bcoinsToStakeAmountMin) {
-            return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, total staked bcoins (%llu vs %llu) is too small, price: %llu",
+            return state.DoS(100, ERRORMSG("total staked bcoins (%llu vs %llu) is too small, price: %llu",
                             cdp.total_staked_bcoins, bcoinsToStakeAmountMin, bcoinMedianPrice), REJECT_INVALID,
                             "total-staked-bcoins-too-small");
         }
     } else { // further staking on one's existing CDP
         CUserCDP cdp;
         if (!cw.cdpCache.GetCDP(cdp_txid, cdp))
-            return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, the cdp not exist! cdp_txid=%s", cdp_txid.ToString()),
+            return state.DoS(100, ERRORMSG("the cdp not exist! cdp_txid=%s", cdp_txid.ToString()),
                              REJECT_INVALID, "cdp-not-exist");
 
         if (assetSymbol != cdp.bcoin_symbol)
-            return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, the asset symbol=%s does not match with the current CDP's=%s",
+            return state.DoS(100, ERRORMSG("the asset symbol=%s does not match with the current CDP's=%s",
                             assetSymbol, cdp.bcoin_symbol), REJECT_INVALID, "invalid-asset-symbol");
 
         if (txAccount.regid != cdp.owner_regid)
-            return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, permission denied! cdp_txid=%s, owner(%s) vs operator(%s)",
+            return state.DoS(100, ERRORMSG("permission denied! cdp_txid=%s, owner(%s) vs operator(%s)",
                             cdp_txid.ToString(), cdp.owner_regid.ToString(), txUid.ToString()), REJECT_INVALID, "permission-denied");
 
         CUserCDP oldCDP = cdp; // copy before modify.
 
         if (context.height < cdp.block_height) {
-            return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, height: %d < cdp.block_height: %d",
+            return state.DoS(100, ERRORMSG("height: %d < cdp.block_height: %d",
                             context.height, cdp.block_height), UPDATE_ACCOUNT_FAIL, "height-error");
         }
 
@@ -368,7 +369,7 @@ bool CCDPStakeTx::ExecuteTx(CTxExecuteContext &context) {
 
         if (partialCollateralRatio < startingCdpCollateralRatio && totalCollateralRatio < startingCdpCollateralRatio) {
             return state.DoS(100,
-                             ERRORMSG("CCDPStakeTx::ExecuteTx, further staking CDP, collateral ratio (partial=%.2f%%, "
+                             ERRORMSG("further staking CDP, collateral ratio (partial=%.2f%%, "
                                       "total=%.2f%%) is smaller than the minimal, price: %llu",
                                       100.0 * partialCollateralRatio / RATIO_BOOST,
                                       100.0 * totalCollateralRatio / RATIO_BOOST, bcoinMedianPrice),
@@ -379,24 +380,24 @@ bool CCDPStakeTx::ExecuteTx(CTxExecuteContext &context) {
             return false;
 
         if (!txAccount.OperateBalance(scoin_symbol, BalanceOpType::SUB_FREE, scoinsInterestToRepay, ReceiptCode::CDP_REPAY_INTEREST, receipts))
-            return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, scoins balance < scoinsInterestToRepay: %llu",
+            return state.DoS(100, ERRORMSG("scoins balance < scoinsInterestToRepay: %llu",
                             scoinsInterestToRepay), UPDATE_ACCOUNT_FAIL,
                             strprintf("deduct-interest(%llu)-error", scoinsInterestToRepay));
 
         // settle cdp state & persist
         cdp.AddStake(context.height, assetAmount, scoins_to_mint);
         if (!cw.cdpCache.UpdateCDP(oldCDP, cdp))
-            return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, save changed cdp to db failed"),
+            return state.DoS(100, ERRORMSG("save changed cdp to db failed"),
                             READ_SYS_PARAM_FAIL, "save-changed-cdp-failed");
     }
 
     // update account accordingly
     if (!txAccount.OperateBalance(assetSymbol, BalanceOpType::PLEDGE, assetAmount, ReceiptCode::CDP_STAKED_ASSET_FROM_OWNER, receipts))
-        return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, bcoins insufficient to pledge"), UPDATE_ACCOUNT_FAIL,
+        return state.DoS(100, ERRORMSG("bcoins insufficient to pledge"), UPDATE_ACCOUNT_FAIL,
                          "bcoins-insufficient-error");
 
     if (!txAccount.OperateBalance(scoin_symbol, BalanceOpType::ADD_FREE, scoins_to_mint, ReceiptCode::CDP_MINTED_SCOIN_TO_OWNER, receipts))
-        return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, add scoins failed"), UPDATE_ACCOUNT_FAIL,
+        return state.DoS(100, ERRORMSG("add scoins failed"), UPDATE_ACCOUNT_FAIL,
                          "add-scoins-error");
 
     return true;
@@ -489,13 +490,13 @@ bool CCDPRedeemTx::ExecuteTx(CTxExecuteContext &context) {
     }
 
     if (assets_to_redeem.size() != 1) {
-        return state.DoS(100, ERRORMSG("CCDPStakeTx::CheckTx, only support to redeem one asset!"),
+        return state.DoS(100, ERRORMSG("only support to redeem one asset!"),
                         REJECT_INVALID, "invalid-stake-asset");
     }
     const TokenSymbol &assetSymbol = assets_to_redeem.begin()->first;
     uint64_t assetAmount = assets_to_redeem.begin()->second.get();
     if (assetSymbol != cdp.bcoin_symbol)
-        return state.DoS(100, ERRORMSG("CCDPStakeTx::CheckTx, asset symbol to redeem is not match!"),
+        return state.DoS(100, ERRORMSG("asset symbol to redeem is not match!"),
                         REJECT_INVALID, "invalid-stake-asset");
 
     if (txAccount.regid != cdp.owner_regid) {
@@ -733,7 +734,7 @@ bool CCDPLiquidateTx::ExecuteTx(CTxExecuteContext &context) {
     }
 
     if (!liquidate_asset_symbol.empty() && liquidate_asset_symbol != cdp.bcoin_symbol)
-        return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, the liquidate_asset_symbol=%s must be empty of match with the asset symbols of CDP",
+        return state.DoS(100, ERRORMSG("the liquidate_asset_symbol=%s must be empty of match with the asset symbols of CDP",
             liquidate_asset_symbol), REJECT_INVALID, "invalid-asset-symbol");
 
     CCdpCoinPair cdpCoinPair(cdp.bcoin_symbol, cdp.scoin_symbol);
@@ -1122,14 +1123,14 @@ bool CCDPInterestForceSettleTx::ExecuteTx(CTxExecuteContext &context) {
         if (!txAccount.OperateBalance(cdp.scoin_symbol, BalanceOpType::SUB_FREE,
                                       mintScoinForInterest, ReceiptCode::CDP_REPAY_INTEREST,
                                       receipts))
-            return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, scoins balance < scoinsInterestToRepay: %llu",
+            return state.DoS(100, ERRORMSG("scoins balance < scoinsInterestToRepay: %llu",
                             mintScoinForInterest), UPDATE_ACCOUNT_FAIL,
                             strprintf("deduct-interest(%llu)-error", mintScoinForInterest));
 
         // settle cdp state & persist
         cdp.AddStake(context.height, 0, mintScoinForInterest);
         if (!cw.cdpCache.UpdateCDP(oldCDP, cdp))
-            return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, save changed cdp to db failed"),
+            return state.DoS(100, ERRORMSG("save changed cdp to db failed"),
                             READ_SYS_PARAM_FAIL, "save-changed-cdp-failed");
 
         LogPrint(BCLog::CDP, "%s, settle interest for cdp! cdpid=%s, cdp={%s}, interest=%llu\n", TX_ERR_TITLE,
@@ -1172,9 +1173,7 @@ bool GetSettledInterestCdps(CCacheWrapper &cw, HeightType height, const CCdpCoin
     auto pIt = cw.cdpCache.CreateCdpHeightIndexIt();
     uint64_t cycleDays;
     if (!cw.sysParamCache.GetCdpParam(cdpCoinPair, CDP_CONVERT_INTEREST_TO_DEBT_DAYS, cycleDays))
-        return ERRORMSG("%s, read cdp param CDP_CONVERT_INTEREST_TO_DEBT_DAYS error! cdpCoinPair=%s",
-            __func__, cdpCoinPair.ToString());
-
+        return ERRORMSG("read cdp param CDP_CONVERT_INTEREST_TO_DEBT_DAYS error! cdpCoinPair=%s", cdpCoinPair.ToString());
 
     for (pIt->First(); pIt->IsValid(); pIt->Next()) {
         if (!cdp_util::CdpNeedSettleInterest(pIt->GetHeight(), height, cycleDays)) {
@@ -1210,33 +1209,31 @@ bool GetSettledInterestCdps(CCacheWrapper &cw, HeightType height, vector<uint256
 
         TokenSymbol scoinSymbol = GetCdpScoinByQuoteSymbol(quoteSymbol);
         if (scoinSymbol.empty()) {
-            LogPrint(BCLog::CDP, "%s(), quote_symbol=%s not have a corresponding scoin , ignore",
-                     __func__, bcoinSymbol);
+            LogPrint(BCLog::CDP, "quote_symbol=%s not have a corresponding scoin , ignore", bcoinSymbol);
             continue;
         }
 
         // TODO: remove me if need to support multi scoin and improve the force liquidate process
         if (scoinSymbol != SYMB::WUSD)
-            throw runtime_error(strprintf("%s(), only support to force liquidate scoin=WUSD, actual_scoin=%s",
-                    __func__, scoinSymbol));
+            throw runtime_error(strprintf("only support to force liquidate scoin=WUSD, actual_scoin=%s", scoinSymbol));
 
         if (!pCdMan->pAssetCache->CheckAsset(bcoinSymbol, AssetPermType::PERM_CDP_BCOIN)) {
-            LogPrint(BCLog::CDP, "%s(), base_symbol=%s not have cdp bcoin permission, ignore", __func__, bcoinSymbol);
+            LogPrint(BCLog::CDP, "base_symbol=%s not have cdp bcoin permission, ignore", bcoinSymbol);
             continue;
         }
 
         if (!pCdMan->pCdpCache->IsBcoinActivated(bcoinSymbol)) {
-            LogPrint(BCLog::CDP, "%s(), bcoin=%s does not be activated, ignore", __func__, bcoinSymbol);
+            LogPrint(BCLog::CDP, "bcoin=%s does not be activated, ignore", bcoinSymbol);
             continue;
         }
 
         if (item.second.price == 0) {
-            LogPrint(BCLog::CDP, "%s(), coin_pair(%s) price=0, ignore\n", __func__, CoinPairToString(item.first));
+            LogPrint(BCLog::CDP, "coin_pair(%s) price=0, ignore\n", CoinPairToString(item.first));
             continue;
         }
         CCdpCoinPair cdpCoinPair(bcoinSymbol, scoinSymbol);
         if (!GetSettledInterestCdps(cw, height, cdpCoinPair, cdpList, count)) {
-            return ERRORMSG("%s, get settled interest cdps error! coin_pair=%s", __func__, cdpCoinPair.ToString());
+            return ERRORMSG("get settled interest cdps error! coin_pair=%s", cdpCoinPair.ToString());
         }
     }
     return true;

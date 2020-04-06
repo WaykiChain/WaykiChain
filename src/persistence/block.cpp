@@ -114,8 +114,8 @@ void CBlock::Print() const {
         medianPrices += strprintf("{%s/%s -> %llu}", std::get<0>(item.first), std::get<1>(item.first), item.second);
     }
 
-    LogPrint(BCLog::DEBUG, "%-30s[%d] hash=%.7s**, ver=%d, hashPrevBlock=%s, merkleRootHash=%s, nTime=%u, nNonce=%u, vtx=%u, nFuel=%d, "
-             "nFuelRate=%d, median prices: %s\n", __func__,
+    LogPrint(BCLog::DEBUG, "[%d] hash=%.7s**, ver=%d, hashPrevBlock=%s, merkleRootHash=%s, nTime=%u, nNonce=%u, vtx=%u, nFuel=%d, "
+             "nFuelRate=%d, median prices: %s\n",
              height, GetHash().ToString(), nVersion, prevBlockHash.ToString(), merkleRootHash.ToString(), nTime, nNonce,
              vptx.size(), nFuel, nFuelRate, medianPrices);
 }
@@ -170,7 +170,7 @@ bool ReadBlockFromDisk(const CDiskBlockPos &pos, CBlock &block) {
     try {
         filein >> block;
     } catch (std::exception &e) {
-        return ERRORMSG("%s : Deserialize or I/O error - %s", __func__, e.what());
+        return ERRORMSG("Deserialize or I/O error - %s", e.what());
     }
 
     return true;

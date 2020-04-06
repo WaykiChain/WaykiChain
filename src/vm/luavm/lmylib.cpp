@@ -2465,26 +2465,26 @@ int32_t ExGetAssetPriceFunc(lua_State *L) {
     CLuaVMRunEnv* pVmRunEnv = GetVmRunEnvByContext(L);
 
     if (!lua_istable(L, -1)) {
-        LogPrint(BCLog::LUAVM,"[ERROR]%s(), input param must be a table\n", __func__);
+        LogPrint(BCLog::LUAVM,"[ERROR] input param must be a table\n");
         return 0;
     }
 
     TokenSymbol baseSymbol;
     if (!(getStringInTable(L, "baseSymbol", baseSymbol))) {
-        LogPrint(BCLog::LUAVM, "[ERROR]%s(), get baseSymbol failed\n", __func__);
+        LogPrint(BCLog::LUAVM, "[ERROR] get baseSymbol failed\n");
         return 0;
     }
 
     TokenSymbol quoteSymbol;
     if (!(getStringInTable(L, "quoteSymbol", quoteSymbol))) {
-        LogPrint(BCLog::LUAVM, "[ERROR]%s(), get quoteSymbol failed\n", __func__);
+        LogPrint(BCLog::LUAVM, "[ERROR] get quoteSymbol failed\n");
         return 0;
     }
 
     PriceCoinPair pricePair(baseSymbol, quoteSymbol);
     auto pErr = CheckPricePair(pricePair);
     if (pErr) {
-        LogPrint(BCLog::LUAVM, "[ERROR]%s(), Invalid price pair! %s \n", __func__, *pErr);
+        LogPrint(BCLog::LUAVM, "[ERROR] Invalid price pair! %s \n", *pErr);
         return 0;
     }
     LUA_BurnAccount(L, FUEL_CALL_GetAssetPrice, BURN_VER_R2);

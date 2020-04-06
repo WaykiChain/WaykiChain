@@ -390,28 +390,26 @@ Value getscoininfo(const Array& params, bool fHelp){
 
         TokenSymbol scoinSymbol = GetCdpScoinByQuoteSymbol(quoteSymbol);
         if (scoinSymbol.empty()) {
-            LogPrint(BCLog::CDP, "%s(), quote_symbol=%s not have a corresponding scoin , ignore",
-                     __func__, bcoinSymbol);
+            LogPrint(BCLog::CDP, "quote_symbol=%s not have a corresponding scoin , ignore", bcoinSymbol);
             continue;
         }
 
         // TODO: remove me if need to support multi scoin and improve the force liquidate process
         if (scoinSymbol != SYMB::WUSD)
-            throw runtime_error(strprintf("%s(), only support to force liquidate scoin=WUSD, actual_scoin=%s",
-                    __func__, scoinSymbol));
+            throw runtime_error(strprintf("only support to force liquidate scoin=WUSD, actual_scoin=%s", scoinSymbol));
 
         if (!pCdMan->pAssetCache->CheckAsset(bcoinSymbol, AssetPermType::PERM_CDP_BCOIN)) {
-            LogPrint(BCLog::CDP, "%s(), base_symbol=%s not have cdp bcoin permission, ignore", __func__, bcoinSymbol);
+            LogPrint(BCLog::CDP, "base_symbol=%s not have cdp bcoin permission, ignore", bcoinSymbol);
             continue;
         }
 
         if (!pCdMan->pCdpCache->IsBcoinActivated(bcoinSymbol)) {
-            LogPrint(BCLog::CDP, "%s(), asset=%s does not be activated, ignore", __func__, bcoinSymbol);
+            LogPrint(BCLog::CDP, "asset=%s does not be activated, ignore", bcoinSymbol);
             continue;
         }
 
         if (item.second.price == 0) {
-            LogPrint(BCLog::CDP, "%s(), coin_pair(%s) price=0, ignore\n", __func__, CoinPairToString(item.first));
+            LogPrint(BCLog::CDP, "coin_pair(%s) price=0, ignore\n", CoinPairToString(item.first));
             continue;
         }
         cdpInfoArray.push_back(GetCdpInfoJson(CCdpCoinPair(bcoinSymbol, scoinSymbol), item.second.price));

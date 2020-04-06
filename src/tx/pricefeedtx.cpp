@@ -38,18 +38,17 @@ bool CPriceFeedTx::CheckTx(CTxExecuteContext &context) {
         const TokenSymbol &quoteSymbol = pricePoint.coin_price_pair.second;
         if (baseSymbol == quoteSymbol)
             return state.DoS(100,
-                             ERRORMSG("%s(), baseSymbol=%s is same to quoteSymbol=%s", __func__,
-                                      baseSymbol, quoteSymbol),
+                             ERRORMSG("baseSymbol=%s is same to quoteSymbol=%s", baseSymbol, quoteSymbol),
                              REJECT_INVALID, "same-base-quote-symbol");
 
         if (!cw.assetCache.CheckPriceFeedBaseSymbol(baseSymbol))
             return state.DoS(
-                100, ERRORMSG("%s(), unsupported baseSymbol=%s for price feed coin pair", __func__, baseSymbol),
+                100, ERRORMSG("unsupported baseSymbol=%s for price feed coin pair", baseSymbol),
                 REJECT_INVALID, "unsupported-base-symbol");
 
         if (!cw.assetCache.CheckPriceFeedQuoteSymbol(quoteSymbol))
             return state.DoS(100,
-                             ERRORMSG("%s(), unsupported quote_symbol=%s of price feed coin pair",
+                             ERRORMSG("unsupported quote_symbol=%s of price feed coin pair",
                                       pricePoint.coin_price_pair.second),
                              REJECT_INVALID, "unsupported-quote-symbol");
 
@@ -66,25 +65,25 @@ bool CPriceFeedTx::ExecuteTx(CTxExecuteContext &context) {
 
     CRegID sendRegId = txUid.get<CRegID>();
     if (!cw.delegateCache.IsActiveDelegate(sendRegId.ToString())) { // must be a delegate
-        return state.DoS(100, ERRORMSG("CPriceFeedTx::ExecuteTx, txUid %s account is not a delegate error",
+        return state.DoS(100, ERRORMSG("txUid %s account is not a delegate error",
                         txUid.ToString()), PRICE_FEED_FAIL, "account-isn't-delegate");
     }
 
     uint64_t stakedAmountMin;
     if (!cw.sysParamCache.GetParam(PRICE_FEED_BCOIN_STAKE_AMOUNT_MIN, stakedAmountMin)) {
-        return state.DoS(100, ERRORMSG("CPriceFeedTx::ExecuteTx, read PRICE_FEED_BCOIN_STAKE_AMOUNT_MIN error",
+        return state.DoS(100, ERRORMSG("read PRICE_FEED_BCOIN_STAKE_AMOUNT_MIN error",
                         txUid.ToString()), READ_SYS_PARAM_FAIL, "read-sysparamdb-error");
     }
 
     CAccountToken accountToken = txAccount.GetToken(SYMB::WICC);
     if (accountToken.staked_amount < stakedAmountMin * COIN) // must stake enough bcoins to be a price feeder
-        return state.DoS(100, ERRORMSG("CPriceFeedTx::ExecuteTx, Staked Bcoins insufficient(%llu vs %llu) by txUid %s account error",
+        return state.DoS(100, ERRORMSG("Staked Bcoins insufficient(%llu vs %llu) by txUid %s account error",
                         accountToken.voted_amount, stakedAmountMin, txUid.ToString()),
                         PRICE_FEED_FAIL, "account-staked-boins-insufficient");
 
     // update the price feed cache accordingly
     if (!cw.ppCache.AddPrice(context.height, txUid.get<CRegID>(), price_points)) {
-        return state.DoS(100, ERRORMSG("CPriceFeedTx::ExecuteTx, txUid %s account duplicated price feed exits",
+        return state.DoS(100, ERRORMSG("txUid %s account duplicated price feed exits",
                         txUid.ToString()), PRICE_FEED_FAIL, "duplicated-pricefeed");
     }
 

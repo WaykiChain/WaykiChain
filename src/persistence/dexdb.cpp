@@ -411,7 +411,7 @@ bool CDexDBCache::IncDexID(DexID &id) {
     operator_last_id_cache.GetData(idVariant);
     DexID &newId = idVariant.get();
     if (newId == ULONG_MAX)
-        return ERRORMSG("%s, dex operator id is inc to max! last_id=%ul\n", __func__, newId);
+        return ERRORMSG("dex operator id is inc to max! last_id=%ul\n", newId);
     newId++;
 
     if (operator_last_id_cache.SetData(idVariant)) {
@@ -490,11 +490,11 @@ bool CDexDBCache::HasDexOperatorByOwner(const CRegID &regid) {
 bool CDexDBCache::CreateDexOperator(const DexID &id, const DexOperatorDetail& detail) {
     decltype(operator_detail_cache)::KeyType idKey(id);
     if (operator_detail_cache.HasData(idKey)) {
-        return ERRORMSG("%s, the dex operator is existed! id=%s\n", __func__, id);
+        return ERRORMSG("the dex operator is existed! id=%s\n", id);
     }
 
     if (HasDexOperatorByOwner(detail.owner_regid)) {
-        return ERRORMSG("%s, the owner already has a dex operator! owner=%s\n", __func__, detail.owner_regid.ToString());
+        return ERRORMSG("the owner already has a dex operator! owner=%s\n", detail.owner_regid.ToString());
     }
 
     return  operator_detail_cache.SetData(idKey, detail) &&

@@ -368,7 +368,7 @@ int32_t GetTxConfirmHeight(const uint256 &hash, CBlockDBCache &blockCache) {
             try {
                 file >> header;
             } catch (std::exception &e) {
-                ERRORMSG("%s : Deserialize or I/O error - %s", __func__, e.what());
+                ERRORMSG("Deserialize or I/O error - %s", e.what());
                 return -1;
             }
             return header.GetHeight();
@@ -401,7 +401,7 @@ bool GetTransaction(std::shared_ptr<CBaseTx> &pBaseTx, const uint256 &hash, CBlo
                     fseek(file, diskTxPos.nTxOffset, SEEK_CUR);
                     file >> pBaseTx;
                 } catch (std::exception &e) {
-                    return ERRORMSG("%s : Deserialize or I/O error - %s", __func__, e.what());
+                    return ERRORMSG("Deserialize or I/O error - %s", e.what());
                 }
                 return true;
             }
@@ -1363,8 +1363,8 @@ void static UpdateTip(CBlockIndex *pIndexNew, const CBlock &block) {
 
     // New best block
     SysCfg().SetBestRecvTime(GetTime());
-    LogPrint(BCLog::INFO, "%-30s[%d]: %.7s** blkTxCnt=%d chainTxCnt=%lu fuelRate=%d ts=%s\n",
-             __func__, chainActive.Height(), chainActive.Tip()->GetBlockHash().ToString(),
+    LogPrint(BCLog::INFO, "[%d]: %.7s** blkTxCnt=%d chainTxCnt=%lu fuelRate=%d ts=%s\n",
+             chainActive.Height(), chainActive.Tip()->GetBlockHash().ToString(),
              block.vptx.size(), chainActive.Tip()->nChainTx, chainActive.Tip()->nFuelRate,
              DateTimeStrFormat("%Y-%m-%d %H:%M:%S", chainActive.Tip()->GetBlockTime()));
 
@@ -1945,7 +1945,7 @@ bool AcceptBlock(CBlock &block, CValidationState &state, CDiskBlockPos *dbp, boo
     AssertLockHeld(cs_main);
 
     uint256 blockHash = block.GetHash();
-    LogPrint(BCLog::INFO, "%-30s[%d]: %.7s**, miner: %s, ts: %u\n", __func__, 
+    LogPrint(BCLog::INFO, "[%d]: %.7s**, miner: %s, ts: %u\n",
             block.GetHeight(), blockHash.GetHex(), block.GetMinerUserID().ToString(), block.GetBlockTime());
 
     // Check for duplicated block
@@ -2196,7 +2196,7 @@ bool ProcessBlock(CValidationState &state, CNode *pFrom, CBlock *pBlock, CDiskBl
     // If we don't already have its previous block, shunt it off to holding area until we get it
     if (!pBlock->GetPrevBlockHash().IsNull() && !mapBlockIndex.count(pBlock->GetPrevBlockHash())) {
         if (pBlock->GetHeight() > (uint32_t)nSyncTipHeight) {
-            LogPrint(BCLog::DEBUG, "%-30s[%d] syncTipHeight=%d\n", __func__, pBlock->GetHeight(), nSyncTipHeight );
+            LogPrint(BCLog::DEBUG, "[%d] syncTipHeight=%d\n", pBlock->GetHeight(), nSyncTipHeight );
             nSyncTipHeight = pBlock->GetHeight();
         }
 
@@ -2266,7 +2266,7 @@ bool ProcessBlock(CValidationState &state, CNode *pFrom, CBlock *pBlock, CDiskBl
         mapOrphanBlocksByPrev.erase(prevBlockHash);
     }
 
-    LogPrint(BCLog::INFO, "%-30s[%d] elapse time:%lld ms\n", __func__, pBlock->GetHeight(), GetTimeMillis() - llBeginTime);
+    LogPrint(BCLog::INFO, "[%d] elapse time:%lld ms\n", pBlock->GetHeight(), GetTimeMillis() - llBeginTime);
     return true;
 }
 
@@ -2609,7 +2609,7 @@ bool LoadExternalBlockFile(FILE *fileIn, CDiskBlockPos *dbp) {
                         break;
                 }
             } catch (std::exception &e) {
-                LogPrint(BCLog::INFO, "%s : Deserialize or I/O error - %s\n", __func__, e.what());
+                LogPrint(BCLog::ERROR, "Deserialize or I/O error - %s\n", e.what());
             }
         }
         fclose(fileIn);
@@ -2618,6 +2618,7 @@ bool LoadExternalBlockFile(FILE *fileIn, CDiskBlockPos *dbp) {
     }
     if (nLoaded > 0)
         LogPrint(BCLog::INFO, "Loaded %i blocks from external file in %dms\n", nLoaded, GetTimeMillis() - nStart);
+
     return nLoaded > 0;
 }
 

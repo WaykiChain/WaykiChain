@@ -83,7 +83,7 @@ bool CBlockUndo::ReadFromDisk(const CDiskBlockPos &pos, const uint256 &blockHash
         filein >> *this;
         filein >> hashChecksum;
     } catch (std::exception &e) {
-        return ERRORMSG("%s : Deserialize or I/O error - %s", __func__, e.what());
+        return ERRORMSG("Deserialize or I/O error - %s", e.what());
     }
 
     // Verify checksum
