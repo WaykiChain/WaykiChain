@@ -1842,8 +1842,7 @@ bool ProcessForkedChain(const CBlock &block, CBlockIndex *pPreBlockIndex, CValid
         auto spNewForkCW = std::make_shared<CCacheWrapper>(spCW.get());
         // Connect all of the forked chain's blocks.
         for (auto rIter = vPreBlocks.rbegin(); rIter != vPreBlocks.rend(); ++rIter) {
-            LogPrint(BCLog::INFO, "ConnectBlock block height=%d hash=%s\n", rIter->GetHeight(),
-                    rIter->GetHash().GetHex());
+            LogPrint(BCLog::INFO, "[%d] ConnectBlock hash=%.7s**\n", rIter->GetHeight(), rIter->GetHash().GetHex());
 
             if (!ConnectBlock(*rIter, *spNewForkCW, mapBlockIndex[rIter->GetHash()], state, false)) {
                 return ERRORMSG("ConnectBlock %s failed", rIter->GetHash().ToString());
@@ -2193,7 +2192,7 @@ bool ProcessBlock(CValidationState &state, CNode *pFrom, CBlock *pBlock, CDiskBl
     // If we don't already have its previous block, shunt it off to holding area until we get it
     if (!pBlock->GetPrevBlockHash().IsNull() && !mapBlockIndex.count(pBlock->GetPrevBlockHash())) {
         if (pBlock->GetHeight() > (uint32_t)nSyncTipHeight) {
-            LogPrint(BCLog::DEBUG, "[%d] syncTipHeight=%d\n", pBlock->GetHeight(), nSyncTipHeight );
+            LogPrint(BCLog::DEBUG, "[%d] syncTipHeight=%d\n", pBlock->GetHeight(), nSyncTipHeight);
             nSyncTipHeight = pBlock->GetHeight();
         }
 
@@ -2314,9 +2313,9 @@ bool static LoadBlockIndexDB() {
 
     // Load block file info
     pCdMan->pBlockCache->ReadLastBlockFile(nLastBlockFile);
-    LogPrint(BCLog::INFO, "LoadBlockIndexDB(): last block file = %i\n", nLastBlockFile);
+    LogPrint(BCLog::INFO, "last block file = %i\n", nLastBlockFile);
     if (pCdMan->pBlockIndexDb->ReadBlockFileInfo(nLastBlockFile, infoLastBlockFile))
-    LogPrint(BCLog::INFO, "LoadBlockIndexDB(): last block file info: %s\n", infoLastBlockFile.ToString());
+    LogPrint(BCLog::INFO, "last block file info: %s\n", infoLastBlockFile.ToString());
 
     // Check whether we need to continue reindexing
     bool fReindexing = false;
@@ -2329,7 +2328,7 @@ bool static LoadBlockIndexDB() {
     bool bTxIndex = SysCfg().IsTxIndex();
     pCdMan->pBlockCache->ReadFlag("txindex", bTxIndex);
     SysCfg().SetTxIndex(bTxIndex);
-    LogPrint(BCLog::INFO, "LoadBlockIndexDB(): transaction index %s\n", bTxIndex ? "enabled" : "disabled");
+    LogPrint(BCLog::INFO, "transaction index %s\n", bTxIndex ? "enabled" : "disabled");
 
     // Load pointer to end of best chain
     uint256 bestBlockHash = pCdMan->pBlockCache->GetBestBlockHash();
@@ -2378,12 +2377,12 @@ bool VerifyDB(int32_t nCheckLevel, int32_t nCheckDepth) {
         CBlock block;
         // check level 0: read from disk
         if (!ReadBlockFromDisk(pIndex, block))
-            return ERRORMSG("VerifyDB() : *** ReadBlockFromDisk failed at %d, hash=%s",
+            return ERRORMSG("*** ReadBlockFromDisk failed at %d, hash=%s",
                             pIndex->height, pIndex->GetBlockHash().ToString());
 
         // check level 1: verify block validity
         if (nCheckLevel >= 1 && !CheckBlock(block, state, *spCW, false))
-            return ERRORMSG("VerifyDB() : *** found bad block at %d, hash=%s\n",
+            return ERRORMSG("*** found bad block at %d, hash=%s\n",
                             pIndex->height, pIndex->GetBlockHash().ToString());
 
         // check level 2: verify undo validity
@@ -2392,7 +2391,7 @@ bool VerifyDB(int32_t nCheckLevel, int32_t nCheckDepth) {
             CDiskBlockPos pos = pIndex->GetUndoPos();
             if (!pos.IsNull()) {
                 if (!undo.ReadFromDisk(pos, pIndex->pprev->GetBlockHash()))
-                    return ERRORMSG("VerifyDB() : *** found bad undo data at %d, hash=%s\n",
+                    return ERRORMSG("*** found bad undo data at %d, hash=%s\n",
                                     pIndex->height, pIndex->GetBlockHash().ToString());
             }
         }
@@ -2400,7 +2399,7 @@ bool VerifyDB(int32_t nCheckLevel, int32_t nCheckDepth) {
         if (nCheckLevel >= 3 && pIndex == pIndexState) {
             bool fClean = true;
             if (!DisconnectBlock(block, *spCW, pIndex, state, &fClean))
-                return ERRORMSG("VerifyDB() : *** irrecoverable inconsistency in block data at %d, hash=%s",
+                return ERRORMSG("*** irrecoverable inconsistency in block data at %d, hash=%s",
                                 pIndex->height, pIndex->GetBlockHash().ToString());
 
             pIndexState = pIndex->pprev;
@@ -2413,7 +2412,7 @@ bool VerifyDB(int32_t nCheckLevel, int32_t nCheckDepth) {
         }
     }
     if (pIndexFailure)
-        return ERRORMSG("VerifyDB() : *** coin database inconsistencies found (last %i blocks, %i good transactions before that)\n",
+        return ERRORMSG("*** coin database inconsistencies found (last %i blocks, %i good transactions before that)\n",
                         chainActive.Height() - pIndexFailure->height + 1, nGoodTransactions);
 
     // check level 4: try reconnecting blocks
@@ -2424,11 +2423,11 @@ bool VerifyDB(int32_t nCheckLevel, int32_t nCheckDepth) {
             pIndex = chainActive.Next(pIndex);
             CBlock block;
             if (!ReadBlockFromDisk(pIndex, block))
-                return ERRORMSG("VerifyDB() : *** ReadBlockFromDisk failed at %d, hash=%s",
+                return ERRORMSG("*** ReadBlockFromDisk failed at %d, hash=%s",
                                 pIndex->height, pIndex->GetBlockHash().ToString());
 
             if (!ConnectBlock(block, *spCW, pIndex, state, false))
-                return ERRORMSG("VerifyDB() : *** found un-connectable block at %d, hash=%s",
+                return ERRORMSG("*** found un-connectable block at %d, hash=%s",
                                 pIndex->height, pIndex->GetBlockHash().ToString());
         }
     }
@@ -2474,16 +2473,16 @@ bool InitBlockIndex() {
             CDiskBlockPos blockPos;
             CValidationState state;
             if (!FindBlockPos(state, blockPos, nBlockSize + 8, 0, block.GetTime()))
-                return ERRORMSG("InitBlockIndex() : FindBlockPos failed");
+                return ERRORMSG("FindBlockPos failed");
 
             if (!WriteBlockToDisk(block, blockPos))
-                return ERRORMSG("InitBlockIndex() : writing genesis block to disk failed");
+                return ERRORMSG("writing genesis block to disk failed");
 
             if (!AddToBlockIndex(block, state, blockPos))
-                return ERRORMSG("InitBlockIndex() : genesis block not accepted");
+                return ERRORMSG("genesis block not accepted");
 
         } catch (runtime_error &e) {
-            return ERRORMSG("InitBlockIndex() : failed to initialize block database: %s", e.what());
+            return ERRORMSG("failed to initialize block database: %s", e.what());
         }
     }
 

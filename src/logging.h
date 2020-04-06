@@ -102,8 +102,7 @@ namespace BCLog { //blockchain log
         std::atomic<bool> m_reopen_file{false};
 
         /** Send a string to the log output */
-        void LogPrintStr(const BCLog::LogFlags& category, const char* file, int line, const char* func,
-            const std::string& str);
+        void LogPrintStr(const BCLog::LogFlags& category, const char* file, int line, const char* func, const std::string& str);
 
         /** Returns whether logs will be written to any output */
         bool Enabled() const
