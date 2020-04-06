@@ -52,7 +52,7 @@ static bool GenPendingDelegates(CBlock &block, uint32_t delegateNum, CCacheWrapp
     return true;
 }
 
-// process block delegates, call in the tail of block executing
+// process block delegates, call at the tail of block executing
 bool chain::ProcessBlockDelegates(CBlock &block, CCacheWrapper &cw, CValidationState &state) {
     // required preparing the undo for cw
 

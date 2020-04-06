@@ -798,18 +798,18 @@ static bool FindUndoPos(CValidationState &state, int32_t nFile, CDiskBlockPos &p
     return true;
 }
 
-static bool GenNativeAsset(CCacheWrapper& cw) {
+static bool PersistNativeAsset(CCacheWrapper& cw) {
     //save native asset
-    CAsset wicc(SYMB::WICC,SYMB::WICC,AssetType::NIA, 15, CNullID(), INITIAL_BASE_COIN_AMOUNT * COIN, true);
-    CAsset wusd(SYMB::WUSD,SYMB::WUSD,AssetType::MPA, 6,  CNullID(), 0, false);
-    CAsset wgrt(SYMB::WGRT,SYMB::WGRT,AssetType::NIA, 13, CNullID(), FUND_COIN_GENESIS_TOTAL_RELEASE_AMOUNT * COIN, false);
+    CAsset wicc(SYMB::WICC, SYMB::WICC, AssetType::NIA, 15, CNullID(), INITIAL_BASE_COIN_AMOUNT * COIN, true);
+    CAsset wusd(SYMB::WUSD, SYMB::WUSD, AssetType::MPA, 6,  CNullID(), 0, false);
+    CAsset wgrt(SYMB::WGRT, SYMB::WGRT, AssetType::NIA, 13, CNullID(), FUND_COIN_GENESIS_TOTAL_RELEASE_AMOUNT * COIN, false);
     return cw.assetCache.SetAsset(wicc)
             && cw.assetCache.SetAsset(wusd)
             && cw.assetCache.SetAsset(wgrt);
 
 }
 
-static bool GenDefaultFeedCoinPairs(CCacheWrapper& cw) {
+static bool PersistDefaultFeedCoinPairs(CCacheWrapper& cw) {
 
     return cw.priceFeedCache.AddFeedCoinPair(PriceCoinPair(SYMB::WICC,SYMB::USD)) &&
             cw.priceFeedCache.AddFeedCoinPair(PriceCoinPair(SYMB::WGRT,SYMB::USD));
@@ -890,7 +890,7 @@ static bool ProcessGenesisBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *p
                                     ReceiptCode::DELEGATE_ADD_VOTE, pDelegateTx->receipts);
 
             if (!cw.txReceiptCache.SetTxReceipts(pDelegateTx->GetHash(), pDelegateTx->receipts))
-                return state.DoS(100, ERRORMSG("ConnectBlock() ::ProcessGenesisBlock, set genesis block receipts failed!"),
+                return state.DoS(100, ERRORMSG("et genesis block receipts failed!"),
                                  REJECT_INVALID, "set-tx-receipt-failed");
 
             cw.accountCache.SaveAccount(voterAcct);
@@ -905,19 +905,19 @@ static bool ProcessGenesisBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *p
     }
 
     if (!chain::ProcessBlockDelegates(block, cw, state)) {
-        return state.DoS(100, ERRORMSG("ConnectBlock() : process block delegates failed! block=%d:%s",
+        return state.DoS(100, ERRORMSG("process block delegates failed! block=%d:%s",
             block.GetHeight(), block.GetHash().ToString()),
             REJECT_INVALID, "process-block-delegates-failed");
     }
 
-    if(!GenNativeAsset(cw)) {
-        return state.DoS(100, ERRORMSG("GenesisBlock::ConnectBlock() : gen WICC, WUSD, WGRT asset error"),
-                         REJECT_INVALID, "gen-native-asset-failed");
+    if (!PersistNativeAsset(cw)) {
+        return state.DoS(100, ERRORMSG("persist WICC, WUSD, WGRT asset error"),
+                         REJECT_INVALID, "persist-native-asset-failed");
     }
 
-    if(!GenDefaultFeedCoinPairs(cw)) {
-        return state.DoS(100, ERRORMSG("GenesisBlock::ConnectBlock() : gen WICC-WUSD, WGRT-WUSD price coin pair error"),
-                         REJECT_INVALID, "gen-default-pricecoinpair-failed");
+    if (!PersistDefaultFeedCoinPairs(cw)) {
+        return state.DoS(100, ERRORMSG("persist WICC-WUSD, WGRT-WUSD price coin pair error"),
+                         REJECT_INVALID, "persist-default-pricecoinpair-failed");
     }
 
 
