@@ -300,11 +300,14 @@ void BCLog::Logger::LogPrintStr(const BCLog::LogFlags& category, const char* fil
 
     if (m_print_file_line) {
         string file_line = strprintf("%s:%d", s_file, line);
+
+        #ifndef VER_DEBUG
         if (file_line.size() > 38)
             file_line = strprintf("%s**%s", file_line.substr(0, 10), file_line.substr(file_line.size()-10, 10));
 
         if (s_func.size() > 20)
             s_func = s_func.substr(0, 20);
+        #endif
 
         string file_line_func = strprintf("[%s:%s]", file_line, s_func);
         string log_level = strprintf("[%s]", GetLogCategoryName(category));
