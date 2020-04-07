@@ -158,7 +158,7 @@ static const CRPCCommand vRPCCommands[] =
     /* for wasm */
     { "submitwasmcontractdeploytx",     &submitwasmcontractdeploytx,        true,       false,      true    },
     { "submitwasmcontractcalltx",       &submitwasmcontractcalltx,          true,       false,      true    },
-    { "gettablewasm",                   &gettablewasm,                      true,       false,      true    },
+    { "getwasmtable",                   &getwasmtable,                      true,       false,      true    },
     { "jsontobinwasm",                  &jsontobinwasm,                     true,       false,      true    },
     { "bintojsonwasm",                  &bintojsonwasm,                     true,       false,      true    },
     { "getcodewasm",                    &getcodewasm,                       true,       false,      true    },

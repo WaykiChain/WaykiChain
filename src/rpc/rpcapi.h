@@ -113,7 +113,7 @@ extern Value vmexecutescript(const Array& params, bool fHelp);
 
 extern Value submitwasmcontractdeploytx(const Array& params, bool fHelp);
 extern Value submitwasmcontractcalltx(const Array& params, bool fHelp);
-extern Value gettablewasm(const Array& params, bool fHelp);
+extern Value getwasmtable(const Array& params, bool fHelp);
 
 /******************************  Misc ************************************/
 

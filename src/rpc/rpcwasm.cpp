@@ -282,7 +282,7 @@ Value submitwasmcontractcalltx( const Array &params, bool fHelp ) {
 
 }
 
-Value gettablewasm( const Array &params, bool fHelp ) {
+Value getwasmtable( const Array &params, bool fHelp ) {
 
     RESPONSE_RPC_HELP( fHelp || params.size() < 2 || params.size() > 4 , wasm::rpc::get_table_wasm_rpc_help_message)
     RPCTypeCheck(params, list_of(str_type)(str_type));
