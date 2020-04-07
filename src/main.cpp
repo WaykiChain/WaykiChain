@@ -1365,7 +1365,7 @@ void static UpdateTip(CBlockIndex *pIndexNew, const CBlock &block) {
 
     // New best block
     SysCfg().SetBestRecvTime(GetTime());
-    LogPrint(BCLog::INFO, "[%d]: %.7s** blkTxCnt=%d chainTxCnt=%lu fuelRate=%d ts=%s\n",
+    LogPrint(BCLog::INFO, "[%d] %.7s** blkTxCnt=%d chainTxCnt=%lu fuelRate=%d ts=%s\n",
              chainActive.Height(), chainActive.Tip()->GetBlockHash().ToString(),
              block.vptx.size(), chainActive.Tip()->nChainTx, chainActive.Tip()->nFuelRate,
              DateTimeStrFormat("%Y-%m-%d %H:%M:%S", chainActive.Tip()->GetBlockTime()));
@@ -1943,7 +1943,7 @@ bool AcceptBlock(CBlock &block, CValidationState &state, CDiskBlockPos *dbp, boo
 
     uint256 blockHash = block.GetHash();
     uint32_t blockHeight = block.GetHeight();
-    LogPrint(BCLog::INFO, "[%d]: %.7s**, miner: %s, ts: %u\n",
+    LogPrint(BCLog::INFO, "[%d] %.7s**, miner: %s, ts: %u\n",
             block.GetHeight(), blockHash.GetHex(), block.GetMinerUserID().ToString(), block.GetBlockTime());
 
     // Check for duplicated block
