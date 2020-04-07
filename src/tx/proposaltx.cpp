@@ -84,6 +84,12 @@ bool CProposalRequestTx::ExecuteTx(CTxExecuteContext &context) {
         return state.DoS(100, ERRORMSG("CProposalRequestTx::ExecuteTx,get proposal expire block count error"),
                     WRITE_ACCOUNT_FAIL, "get-expire-block-count-error");
 
+    if(proposal.sp_proposal->proposal_type == ProposalType ::GOV_AXC_IN ||
+        proposal.sp_proposal->proposal_type == ProposalType::GOV_AXC_OUT) {
+        expiryBlockCount = 7*24*1200;
+    }
+
+
     auto proposalToSave = proposal.sp_proposal->GetNewInstance();
     proposalToSave->expiry_block_height = context.height + expiryBlockCount;
     proposalToSave->approval_min_count = GetGovernorApprovalMinCount(proposal.sp_proposal->proposal_type, cw);
