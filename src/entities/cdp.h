@@ -43,15 +43,15 @@ static const EnumHelper<CdpBcoinStatus, uint8_t> kCdpBcoinStatusHelper = {{
 struct CUserCDP {
     uint256 cdpid;                      // CDP TxID
     CRegID owner_regid;                 // CDP Owner RegId
-    int32_t block_height;               // persisted: Hj (Hj+1 refer to current height) - last op block height
+    int32_t block_height = 0;           // persisted: Hj (Hj+1 refer to current height) - last op block height
     TokenSymbol bcoin_symbol;           // persisted
     TokenSymbol scoin_symbol;           // persisted
-    uint64_t total_staked_bcoins;       // persisted: total staked bcoins
-    uint64_t total_owed_scoins;         // persisted: TNj = last + minted = total minted - total redempted
+    uint64_t total_staked_bcoins = 0;   // persisted: total staked bcoins
+    uint64_t total_owed_scoins = 0;     // persisted: TNj = last + minted = total minted - total redempted
 
-    mutable double collateral_ratio_base; // ratioBase = total_staked_bcoins / total_owed_scoins, mem-only
+    mutable double collateral_ratio_base = 0; // ratioBase = total_staked_bcoins / total_owed_scoins, mem-only
 
-    CUserCDP() : block_height(0), total_staked_bcoins(0), total_owed_scoins(0), collateral_ratio_base(0) {}
+    CUserCDP() {}
 
     CUserCDP(const CRegID &regId, const uint256 &cdpidIn, int32_t blockHeight,
              TokenSymbol bcoinSymbol, TokenSymbol scoinSymbol, uint64_t totalStakedBcoins,
@@ -62,7 +62,9 @@ struct CUserCDP {
           bcoin_symbol(bcoinSymbol),
           scoin_symbol(scoinSymbol),
           total_staked_bcoins(totalStakedBcoins),
-          total_owed_scoins(totalOwedScoins) {}
+          total_owed_scoins(totalOwedScoins) {
+              ComputeCollateralRatioBase(); // will init collateral_ratio_base
+          }
 
     // Attention: NEVER use block_height as a comparative factor, as block_height may not change, i.e. liquidating
     // partially.
