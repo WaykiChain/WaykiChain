@@ -105,47 +105,47 @@ CBlockIndex *InsertBlockIndex(uint256 hash) {
 /************************* CBlockDBCache ****************************/
 uint32_t CBlockDBCache::GetCacheSize() const {
     return
-        txDiskPosCache.GetCacheSize() +
-        flagCache.GetCacheSize() +
-        bestBlockHashCache.GetCacheSize() +
-        lastBlockFileCache.GetCacheSize() +
-        reindexCache.GetCacheSize() +
-        finalityBlockCache.GetCacheSize() ;
+        tx_diskpos_cache.GetCacheSize() +
+        flag_cache.GetCacheSize() +
+        best_block_hash_cache.GetCacheSize() +
+        last_block_file_cache.GetCacheSize() +
+        reindex_cache.GetCacheSize() +
+        finality_block_cache.GetCacheSize() ;
 }
 
 bool CBlockDBCache::Flush() {
-    txDiskPosCache.Flush();
-    flagCache.Flush();
-    bestBlockHashCache.Flush();
-    lastBlockFileCache.Flush();
-    reindexCache.Flush();
-    finalityBlockCache.Flush();
+    tx_diskpos_cache.Flush();
+    flag_cache.Flush();
+    best_block_hash_cache.Flush();
+    last_block_file_cache.Flush();
+    reindex_cache.Flush();
+    finality_block_cache.Flush();
     return true;
 }
 
 uint256 CBlockDBCache::GetBestBlockHash() const {
     uint256 blockHash;
-    bestBlockHashCache.GetData(blockHash);
+    best_block_hash_cache.GetData(blockHash);
     return blockHash;
 }
 
 bool CBlockDBCache::SetBestBlock(const uint256 &blockHashIn) {
-    return bestBlockHashCache.SetData(blockHashIn);
+    return best_block_hash_cache.SetData(blockHashIn);
 }
 
 bool CBlockDBCache::WriteLastBlockFile(int32_t nFile) {
-    return lastBlockFileCache.SetData(nFile);
+    return last_block_file_cache.SetData(nFile);
 }
 bool CBlockDBCache::ReadLastBlockFile(int32_t &nFile) {
-    return lastBlockFileCache.GetData(nFile);
+    return last_block_file_cache.GetData(nFile);
 }
 
 bool CBlockDBCache::ReadTxIndex(const uint256 &txid, CDiskTxPos &pos) {
-    return txDiskPosCache.GetData(txid, pos);
+    return tx_diskpos_cache.GetData(txid, pos);
 }
 
 bool CBlockDBCache::SetTxIndex(const uint256 &txid, const CDiskTxPos &pos) {
-    return txDiskPosCache.SetData(txid, pos);
+    return tx_diskpos_cache.SetData(txid, pos);
 }
 
 bool CBlockDBCache::WriteTxIndexes(const vector<pair<uint256, CDiskTxPos> > &list) {
@@ -153,7 +153,7 @@ bool CBlockDBCache::WriteTxIndexes(const vector<pair<uint256, CDiskTxPos> > &lis
         LogPrint(BCLog::DEBUG, "%-30s txid:%.7s** dispos: nFile=%d, nPos=%d nTxOffset=%d\n",
                 it.first.GetHex(), it.second.nFile, it.second.nPos, it.second.nTxOffset);
 
-        if (!txDiskPosCache.SetData(it.first, it.second))
+        if (!tx_diskpos_cache.SetData(it.first, it.second))
             return false;
     }
     return true;
@@ -161,24 +161,24 @@ bool CBlockDBCache::WriteTxIndexes(const vector<pair<uint256, CDiskTxPos> > &lis
 
 bool CBlockDBCache::WriteReindexing(bool fReindexing) {
     if (fReindexing)
-        return reindexCache.SetData(true);
+        return reindex_cache.SetData(true);
     else
-        return reindexCache.EraseData();
+        return reindex_cache.EraseData();
 }
 bool CBlockDBCache::ReadReindexing(bool &fReindexing) {
-    return reindexCache.GetData(fReindexing);
+    return reindex_cache.GetData(fReindexing);
 }
 
 bool CBlockDBCache::WriteFlag(const string &name, bool fValue) {
-    return flagCache.SetData(name, fValue);
+    return flag_cache.SetData(name, fValue);
 }
 bool CBlockDBCache::ReadFlag(const string &name, bool &fValue) {
-    return flagCache.GetData(name, fValue);
+    return flag_cache.GetData(name, fValue);
 }
 bool CBlockDBCache::WriteGlobalFinBlock(const int32_t height, const uint256 hash) {
-    finalityBlockCache.SetData(std::make_pair(height, hash)) ;
+    finality_block_cache.SetData(std::make_pair(height, hash)) ;
     return true ;
 }
 bool CBlockDBCache::ReadGlobalFinBlock(std::pair<int32_t,uint256>& block) {
-    return finalityBlockCache.GetData(block) ;
+    return finality_block_cache.GetData(block) ;
 }

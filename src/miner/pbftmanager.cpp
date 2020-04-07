@@ -146,14 +146,12 @@ bool CPBFTMan::UpdateLocalFinBlock(const CBlockConfirmMessage& msg, const uint32
 
     uint32_t needConfirmCount = GetFinalBlockMinerCount();
     if( needConfirmCount > messageCount) {
-        LogPrint(BCLog::PBFT_LOG,"UpdateLocalFinBlock1: == message is not enough");
         return false;
     }
 
     CBlockIndex* fi = GetLocalFinIndex();
 
     if(fi == nullptr ||(uint32_t)fi->height >= msg.height) {
-        LogPrint(BCLog::PBFT_LOG,"old Lock Fin not fa");
         if(fi != nullptr) {
             string msgLog = strprintf("fi->height=%d, msg.height=%d\n", fi->height, msg.height);
             LogPrint(BCLog::PBFT_LOG, msgLog.c_str());
@@ -164,12 +162,10 @@ bool CPBFTMan::UpdateLocalFinBlock(const CBlockConfirmMessage& msg, const uint32
 
     CBlockIndex* pIndex = chainActive[msg.height];
     if(pIndex == nullptr || pIndex->pprev== nullptr) {
-        LogPrint(BCLog::PBFT_LOG,"blockNotFind");
         return false;
     }
 
     if(pIndex->GetBlockHash() != msg.blockHash) {
-        LogPrint(BCLog::PBFT_LOG,"block hash err");
         return false;
     }
 

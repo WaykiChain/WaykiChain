@@ -200,13 +200,13 @@ Value verifymessage(const Array& params, bool fHelp) {
     DEFINE( ASSET,                pAssetCache, asset_cache )  \
     /**** block db                                                                          */ \
     /*DEFINE( BLOCK_INDEX,          cw.blockCache.txDiskPosCache)         */ \
-    DEFINE( BLOCKFILE_NUM_INFO,   pBlockCache, txDiskPosCache) \
-    DEFINE( LAST_BLOCKFILE,       pBlockCache, lastBlockFileCache) \
-    DEFINE( REINDEX,              pBlockCache, reindexCache) \
-    DEFINE( FINALITY_BLOCK,       pBlockCache, finalityBlockCache) \
-    DEFINE( FLAG,                 pBlockCache, flagCache) \
-    DEFINE( BEST_BLOCKHASH,       pBlockCache, bestBlockHashCache) \
-    DEFINE( TXID_DISKINDEX,       pBlockCache, txDiskPosCache) \
+    DEFINE( BLOCKFILE_NUM_INFO,   pBlockCache, tx_diskpos_cache) \
+    DEFINE( LAST_BLOCKFILE,       pBlockCache, last_block_file_cache) \
+    DEFINE( REINDEX,              pBlockCache, reindex_cache) \
+    DEFINE( FINALITY_BLOCK,       pBlockCache, finality_block_cache) \
+    DEFINE( FLAG,                 pBlockCache, flag_cache) \
+    DEFINE( BEST_BLOCKHASH,       pBlockCache, best_block_hash_cache) \
+    DEFINE( TXID_DISKINDEX,       pBlockCache, tx_diskpos_cache) \
     /**** account db                                                                      */ \
     DEFINE( REGID_KEYID,          pAccountCache,  regId2KeyIdCache)\
     DEFINE( KEYID_ACCOUNT,        pAccountCache,  accountCache) \
@@ -245,7 +245,7 @@ Value verifymessage(const Array& params, bool fHelp) {
     /**** tx receipt db                                                                    */ \
     DEFINE( TX_RECEIPT,           pReceiptCache,   txReceiptCache ) \
     /**** tx coinutxo db                                                                    */ \
-    DEFINE( TX_UTXO,              pUtxoCache,   txUtxoCache) \
+    DEFINE( TX_UTXO,              pUtxoCache,   tx_utxo_cache) \
     /**** sys param db                                                              */\
     DEFINE(SYS_PARAM,             pSysParamCache, sys_param_chache) \
     DEFINE(MINER_FEE,             pSysParamCache, miner_fee_cache) \
