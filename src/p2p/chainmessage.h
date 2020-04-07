@@ -163,7 +163,7 @@ inline void ProcessGetData(CNode *pFrom) {
                 }
                 if (!pushed && inv.type == MSG_TX) {
                     std::shared_ptr<CBaseTx> pBaseTx = mempool.Lookup(inv.hash);
-                    if (pBaseTx && !pBaseTx->IsForbidRelay()) {
+                    if (pBaseTx && !pBaseTx->IsRelayForbidden()) {
                         CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
                         ss.reserve(1000);
                         ss << pBaseTx;
@@ -487,7 +487,7 @@ inline bool ProcessTxMessage(CNode *pFrom, string strCommand, CDataStream &vRecv
         return ERRORMSG("Unknown transaction type from peer %s, ignore! %s", pFrom->addr.ToString(), e.what());
     }
 
-    if (pBaseTx->IsForbidRelay()) {
+    if (pBaseTx->IsRelayForbidden()) {
         return ERRORMSG("Forbid transaction=%s from network from peer %s, txid=%s, raw: %s", pBaseTx->GetTxTypeName(),
                 pFrom->addr.ToString(), pBaseTx->GetHash().ToString(), HexStr(vRecv.begin(), vRecv.end()));
     }
