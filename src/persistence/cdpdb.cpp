@@ -32,7 +32,7 @@ bool CCdpDBCache::NewCDP(const int32_t blockHeight, CUserCDP &cdp) {
 }
 
 bool CCdpDBCache::EraseCDP(const CUserCDP &oldCDP, const CUserCDP &cdp) {
-    return cdp_cache.SetData(cdp.cdpid, cdp) &&
+    return cdp_cache.EraseData(cdp.cdpid) &&
         user_cdp_cache.EraseData(make_pair(CRegIDKey(cdp.owner_regid), cdp.GetCoinPair())) &&
         EraseCdpIndexData(oldCDP);
 }
