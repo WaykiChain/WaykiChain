@@ -1829,7 +1829,7 @@ bool ProcessForkedChain(const CBlock &block, CBlockIndex *pPreBlockIndex, CValid
         mapForkCache[pPreBlockIndex->GetBlockHash()] = spCW;
         forkChainTipBlockHash = pPreBlockIndex->GetBlockHash();
         forkChainTipFound     = true;
-        LogPrint(BCLog::INFO, "add [%d]: %s to cache\n", pPreBlockIndex->height,
+        LogPrint(BCLog::INFO, "[%d] add block %.7s** to cache\n", pPreBlockIndex->height,
                  pPreBlockIndex->GetBlockHash().GetHex());
 
         LogPrint(BCLog::INFO, "disconnect blocks elapse: %lld ms\n", GetTimeMillis() - beginTime);
@@ -1943,18 +1943,18 @@ bool AcceptBlock(CBlock &block, CValidationState &state, CDiskBlockPos *dbp, boo
     AssertLockHeld(cs_main);
 
     uint256 blockHash = block.GetHash();
+    uint32_t blockHeight = block.GetHeight();
     LogPrint(BCLog::INFO, "[%d]: %.7s**, miner: %s, ts: %u\n",
             block.GetHeight(), blockHash.GetHex(), block.GetMinerUserID().ToString(), block.GetBlockTime());
 
     // Check for duplicated block
     if (mapBlockIndex.count(blockHash))
-        return state.Invalid(ERRORMSG("block already in mapBlockIndex"), 0, "duplicated");
+        return state.Invalid(ERRORMSG("[%d] block already in mapBlockIndex", blockHeight), 0, "duplicated");
 
     assert(block.GetHeight() == 0 || mapBlockIndex.count(block.GetPrevBlockHash()));
 
     if (block.GetHeight() != 0 && block.GetFuelRate() != GetElementForBurn(mapBlockIndex[block.GetPrevBlockHash()]))
-        return state.DoS(100, ERRORMSG("block fuel rate unmatched"), REJECT_INVALID,
-                         "fuel-rate-unmatched");
+        return state.DoS(100, ERRORMSG("[%d] block fuel rate unmatched", blockHeight), REJECT_INVALID, "fuel-rate-unmatched");
 
     // Get prev block index
     CBlockIndex *pPrevBlockIndex = nullptr;
@@ -1962,26 +1962,26 @@ bool AcceptBlock(CBlock &block, CValidationState &state, CDiskBlockPos *dbp, boo
     if (block.GetHeight() != 0 || blockHash != SysCfg().GetGenesisBlockHash()) {
         map<uint256, CBlockIndex *>::iterator mi = mapBlockIndex.find(block.GetPrevBlockHash());
         if (mi == mapBlockIndex.end())
-            return state.DoS(10, ERRORMSG("prev block not found"), 0, "bad-prevblk");
+            return state.DoS(10, ERRORMSG("[%d] prev block not found", blockHeight), 0, "bad-prevblk");
 
         pPrevBlockIndex = (*mi).second;
         height          = pPrevBlockIndex->height + 1;
 
-        if (block.GetHeight() != (uint32_t)height) {
-            return state.DoS(100, ERRORMSG("height given in block mismatches with its actual height"),
+        if (blockHeight != (uint32_t)height) {
+            return state.DoS(100, ERRORMSG("[%d] height given in block mismatches with its actual height", blockHeight),
                              REJECT_INVALID, "incorrect-height");
         }
 
         // Check timestamp against prev
         if (block.GetBlockTime() <= pPrevBlockIndex->GetBlockTime() ||
-            (block.GetBlockTime() - pPrevBlockIndex->GetBlockTime()) < GetBlockInterval(block.GetHeight())) {
-            return state.Invalid(ERRORMSG("the new block came in too early"),
+            (block.GetBlockTime() - pPrevBlockIndex->GetBlockTime()) < GetBlockInterval(blockHeight)) {
+            return state.Invalid(ERRORMSG("[%d] the new block came in too early", blockHeight),
                                 REJECT_INVALID, "time-too-early");
         }
 
         if (pPrevBlockIndex->GetBlockHash() != chainActive.Tip()->GetBlockHash()) {
             if (!ProcessForkedChain(block, pPrevBlockIndex, state)) {
-                return state.DoS(100, ERRORMSG("failed to process forked chain"), REJECT_INVALID,
+                return state.DoS(100, ERRORMSG("[%d] failed to process forked chain", blockHeight), REJECT_INVALID,
                                 "failed-to-process-forked-chain");
             }
         }
@@ -1990,7 +1990,7 @@ bool AcceptBlock(CBlock &block, CValidationState &state, CDiskBlockPos *dbp, boo
         if (block.GetVersion() < 2) {
             if ((!TestNet() && CBlockIndex::IsSuperMajority(2, pPrevBlockIndex, 950, 1000)) ||
                 (TestNet() && CBlockIndex::IsSuperMajority(2, pPrevBlockIndex, 75, 100))) {
-                return state.Invalid(ERRORMSG("rejected nVersion=1 block"), REJECT_OBSOLETE, "bad-version");
+                return state.Invalid(ERRORMSG("[%d] rejected nVersion=1 block", blockHeight), REJECT_OBSOLETE, "bad-version");
             }
         }
     }

@@ -79,7 +79,7 @@ uint32_t GetElementForBurn(CBlockIndex *pIndex) {
         newFuelRate = MIN_FUEL_RATES;
     }
 
-    LogPrint(BCLog::DEBUG, "preFuelRate=%d fuelRate=%d, height=%d\n", pIndex->nFuelRate, newFuelRate, pIndex->height);
+    LogPrint(BCLog::DEBUG, "[%d] preFuelRate=%d fuelRate=%d\n", pIndex->height, pIndex->nFuelRate, newFuelRate);
 
     return newFuelRate;
 }
@@ -113,7 +113,7 @@ bool GetCurrentDelegate(const int64_t currentTime, const int32_t currHeight, con
     uint32_t slot  = currentTime / GetBlockInterval(currHeight) / GetContinuousBlockCount(currHeight);
     uint32_t index = slot % delegates.size() ;
     delegate       = delegates[index];
-    LogPrint(BCLog::DEBUG, "currTime=%lld, slot=%d, index=%d, regId=%s\n", currentTime, slot, index, delegate.regid.ToString());
+    LogPrint(BCLog::DEBUG, "[%d] currTime=%lld, slot=%d, index=%d, regId=%s\n", currHeight, currentTime, slot, index, delegate.regid.ToString());
 
     return true;
 }
