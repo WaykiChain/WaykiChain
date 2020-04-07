@@ -754,8 +754,8 @@ bool  CGovAxcCoinProposal::ExecuteProposal(CTxExecuteContext& context, CBaseTx& 
 
 
         //Persist with Owner's RegID to save space than other User ID types
-        CAsset savedAsset(GenSelfChainCoinSymbol(), GenSelfChainCoinSymbol(), AssetType::DIA, 0,
-                          CNullID(), AssetPermType::PERM_DEX_BASE, false);
+        CAsset savedAsset(GenSelfChainCoinSymbol(), GenSelfChainCoinSymbol(), AssetType::DIA, AssetPermType::PERM_DEX_BASE,
+                          CNullID(), 0, false);
 
         if (!cw.assetCache.SetAsset(savedAsset))
             return state.DoS(100, ERRORMSG("CGovAxcCoinProposal::CGovAxcCoinProposal, save asset failed! peer_chain_coin_symbol=%s",
