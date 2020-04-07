@@ -187,6 +187,7 @@ void HandleSIGHUP(int32_t) {
 
 bool static InitError(const string &str) {
     LogPrint(BCLog::ERROR, "%s\n", str);
+    fprintf(stderr, "Initialize error: %s\n", str.c_str());
     return false;
 }
 
