@@ -150,11 +150,11 @@ public:
             return false;
         }
 
-        uint32_t symbolSizeMin = 4;
+        uint32_t symbolSizeMin = 3;
         uint32_t symbolSizeMax = 5;
         if (assetType == AssetType::UIA) {
             symbolSizeMin = 6;
-            symbolSizeMax = 8;
+            symbolSizeMax = 7;
         }
 
         size_t symbolSize = assetSymbol.size();

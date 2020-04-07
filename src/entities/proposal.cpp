@@ -771,9 +771,10 @@ bool CGovAssetIssueProposal::CheckProposal(CTxExecuteContext& context, CBaseTx& 
 
     IMPLEMENT_DEFINE_CW_STATE
 
-    if (asset_symbol.size() < MIN_TOKEN_SYMBOL_LEN || asset_symbol.size() > MAX_TOKEN_SYMBOL_LEN) {
-        return state.DoS(100, ERRORMSG("CGovAssetIssueProposal::CheckProposal, the dia symbol size must be between 3 and 7"), REJECT_INVALID,
-                         "bad-symbol-size");
+    string errMsg;
+    if (!CAsset::CheckSymbol(AssetType::DIA, asset_symbol, errMsg )) {
+        return state.DoS(100, ERRORMSG(errMsg.c_str()), REJECT_INVALID,
+                         "bad-symbol");
     }
 
     if (total_supply == 0 || total_supply > MAX_ASSET_TOTAL_SUPPLY)
@@ -789,6 +790,7 @@ bool CGovAssetIssueProposal::CheckProposal(CTxExecuteContext& context, CBaseTx& 
         return state.DoS(100, ERRORMSG("CGovAssetIssueProposal::CheckProposal, asset_symbol is exist"), REJECT_INVALID,
                          "asset-exist");
 
+
     return true;
 }
 
@@ -796,7 +798,7 @@ bool CGovAssetIssueProposal::ExecuteProposal(CTxExecuteContext& context, CBaseTx
 
     IMPLEMENT_DEFINE_CW_STATE
 
-    CAsset asset(asset_symbol, asset_symbol, AssetType::UIA, AssetPermType::PERM_DEX_BASE, owner_uid, total_supply, true);
+    CAsset asset(asset_symbol, asset_symbol, AssetType::DIA, AssetPermType::PERM_DEX_BASE, owner_uid, total_supply, true);
 
     if (!cw.assetCache.SetAsset(asset)) {
         return state.DoS(100, ERRORMSG("CGovAssetIssueProposal::ExecuteProposal,save asset error"), REJECT_INVALID,
