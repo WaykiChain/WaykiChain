@@ -51,16 +51,16 @@ namespace wasm { namespace rpc{
     )=====";
 
     const char *json_to_bin_wasm_rpc_help_message = R"=====(
-        jsontobinwasm "contract" "action" "data"
+        wasmjsontobin "contract" "action" "data"
         1."contract": (string, required) contract regid
         2."action"  : (string, required) action name
         3."data"    : (json string, required) action data in json
         Result:
         "data":       (string in hex)
         Examples:
-        > ./coind jsontobinwasm 800-2 transfer '["0-2", "0-3", "100.00000000 WICC","transfer to bob"]'
+        > ./coind wasmjsontobin 800-2 transfer '["0-2", "0-3", "100.00000000 WICC","transfer to bob"]'
         As json rpc call
-        > curl --user myusername -d '{"jsonrpc": "1.0", "id":"curltest", "method":"jsontobinwasm", "params":["800-2","transfer",'["0-2","0-3", "100.00000000 WICC", "transfer to bob"]']}' -H 'Content-Type: application/json;' http://127.0.0.1:8332
+        > curl --user myusername -d '{"jsonrpc": "1.0", "id":"curltest", "method":"wasmjsontobin", "params":["800-2","transfer",'["0-2","0-3", "100.00000000 WICC", "transfer to bob"]']}' -H 'Content-Type: application/json;' http://127.0.0.1:8332
     )=====";
 
     const char *bin_to_json_wasm_rpc_help_message = R"=====(
@@ -110,14 +110,14 @@ namespace wasm { namespace rpc{
     )=====";
 
     const char *abi_def_json_to_bin_wasm_rpc_help_message = R"=====(
-        abijsontobinwasm "abijson"
+        abiwasmjsontobin "abijson"
         1."abijson": (string, required) abi json file from cdt
         Result:
         "data":       (string in hex)
         Examples:
-        > ./coind abijsontobinwasm '{"____comment": "This file was generated with wasm-abigen. DO NOT EDIT ",...}'
+        > ./coind abiwasmjsontobin '{"____comment": "This file was generated with wasm-abigen. DO NOT EDIT ",...}'
         As json rpc call
-        > curl --user myusername -d '{"jsonrpc": "1.0", "id":"curltest", "method":"abijsontobinwasm", "params":{"____comment": "This file was generated with wasm-abigen. DO NOT EDIT ",...}}' -H 'Content-Type: application/json;' http://127.0.0.1:8332
+        > curl --user myusername -d '{"jsonrpc": "1.0", "id":"curltest", "method":"abiwasmjsontobin", "params":{"____comment": "This file was generated with wasm-abigen. DO NOT EDIT ",...}}' -H 'Content-Type: application/json;' http://127.0.0.1:8332
     )=====";
 
 } // rpc

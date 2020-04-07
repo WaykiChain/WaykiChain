@@ -348,7 +348,7 @@ Value getwasmtable( const Array &params, bool fHelp ) {
 
 }
 
-Value jsontobinwasm( const Array &params, bool fHelp ) {
+Value wasmjsontobin( const Array &params, bool fHelp ) {
 
     RESPONSE_RPC_HELP( fHelp || params.size() < 2 || params.size() > 4 , wasm::rpc::json_to_bin_wasm_rpc_help_message)
     RPCTypeCheck(params, list_of(str_type)(str_type)(str_type));
@@ -507,7 +507,7 @@ Value gettxtrace( const Array &params, bool fHelp ) {
 
 }
 
-Value abidefjsontobinwasm( const Array &params, bool fHelp ) {
+Value abidefwasmjsontobin( const Array &params, bool fHelp ) {
 
     RESPONSE_RPC_HELP( fHelp || params.size() != 1 , wasm::rpc::abi_def_json_to_bin_wasm_rpc_help_message)
     RPCTypeCheck(params, list_of(str_type)(str_type)(str_type));
