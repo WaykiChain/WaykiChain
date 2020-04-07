@@ -108,13 +108,6 @@ extern Value getproposal(const Array& params, bool fHelp);
 extern Value getgovernors(const Array& params, bool fHelp);
 extern Value listmintxfees(const Array& params, bool fHelp);
 
-/******************************  WASM VM *********************************/
-extern Value vmexecutescript(const Array& params, bool fHelp);
-
-extern Value submitwasmcontractdeploytx(const Array& params, bool fHelp);
-extern Value submitwasmcontractcalltx(const Array& params, bool fHelp);
-extern Value getwasmtable(const Array& params, bool fHelp);
-
 /******************************  Misc ************************************/
 
 extern void EnsureWalletIsUnlocked();
@@ -178,6 +171,12 @@ extern Value startcontracttpstest(const Array& params, bool fHelp);
 extern Value getblockfailures(const Array& params, bool fHelp);
 extern Value getblockundo(const Array& params, bool fHelp);
 
+/******************************  WASM VM *********************************/
+extern Value vmexecutescript(const Array& params, bool fHelp);
+
+extern Value wasm_submitcontractdeploytx(const Array& params, bool fHelp);
+extern Value wasm_submitcontractcalltx(const Array& params, bool fHelp);
+extern Value wasm_gettable(const Array& params, bool fHelp);
 extern Value wasm_json2bin(const Array& params, bool fHelp);
 extern Value wasm_bin2json(const Array& params, bool fHelp);
 extern Value wasm_getcode(const Array& params, bool fHelp);
