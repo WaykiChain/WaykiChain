@@ -137,7 +137,7 @@ void get_contract( CAccountDBCache*    db_account,
 }
 
 // set code and abi
-Value submitwasmcontractdeploytx( const Array &params, bool fHelp ) {
+Value wasm_submitcontractdeploytx( const Array &params, bool fHelp ) {
 
     RESPONSE_RPC_HELP( fHelp || params.size() < 4 || params.size() > 5, wasm::rpc::submit_wasm_contract_deploy_tx_rpc_help_message)
     RPCTypeCheck(params, list_of(str_type)(str_type)(str_type)(str_type)(str_type));
@@ -211,7 +211,7 @@ Value submitwasmcontractdeploytx( const Array &params, bool fHelp ) {
 }
 
 
-Value submitwasmcontractcalltx( const Array &params, bool fHelp ) {
+Value wasm_submitcontractcalltx( const Array &params, bool fHelp ) {
 
     //WASM_TRACE(params[1].get_str())
     RESPONSE_RPC_HELP( fHelp || params.size() < 4 || params.size() > 5 , wasm::rpc::submit_wasm_contract_call_tx_rpc_help_message)
@@ -282,7 +282,7 @@ Value submitwasmcontractcalltx( const Array &params, bool fHelp ) {
 
 }
 
-Value getwasmtable( const Array &params, bool fHelp ) {
+Value wasm_gettable( const Array &params, bool fHelp ) {
 
     RESPONSE_RPC_HELP( fHelp || params.size() < 2 || params.size() > 4 , wasm::rpc::get_table_wasm_rpc_help_message)
     RPCTypeCheck(params, list_of(str_type)(str_type));
@@ -348,7 +348,7 @@ Value getwasmtable( const Array &params, bool fHelp ) {
 
 }
 
-Value wasmjsontobin( const Array &params, bool fHelp ) {
+Value wasm_json2bin( const Array &params, bool fHelp ) {
 
     RESPONSE_RPC_HELP( fHelp || params.size() < 2 || params.size() > 4 , wasm::rpc::json_to_bin_wasm_rpc_help_message)
     RPCTypeCheck(params, list_of(str_type)(str_type)(str_type));
@@ -383,7 +383,7 @@ Value wasmjsontobin( const Array &params, bool fHelp ) {
 }
 
 
-Value wasmbintojson( const Array &params, bool fHelp ) {
+Value wasm_bin2json( const Array &params, bool fHelp ) {
 
     RESPONSE_RPC_HELP( fHelp || params.size() < 2 || params.size() > 4 , wasm::rpc::bin_to_json_wasm_rpc_help_message)
     RPCTypeCheck(params, list_of(str_type)(str_type)(str_type));
@@ -417,7 +417,7 @@ Value wasmbintojson( const Array &params, bool fHelp ) {
 
 }
 
-Value getcodewasm( const Array &params, bool fHelp ) {
+Value wasm_getcode( const Array &params, bool fHelp ) {
 
     RESPONSE_RPC_HELP( fHelp || params.size() != 1 , wasm::rpc::get_code_wasm_rpc_help_message)
     RPCTypeCheck(params, list_of(str_type));
@@ -445,7 +445,7 @@ Value getcodewasm( const Array &params, bool fHelp ) {
 
 }
 
-Value getabiwasm( const Array &params, bool fHelp ) {
+Value wasm_getabi( const Array &params, bool fHelp ) {
 
     RESPONSE_RPC_HELP( fHelp || params.size() != 1 , wasm::rpc::get_abi_wasm_rpc_help_message)
     RPCTypeCheck(params, list_of(str_type));
@@ -477,7 +477,7 @@ Value getabiwasm( const Array &params, bool fHelp ) {
 
 }
 
-Value gettxtrace( const Array &params, bool fHelp ) {
+Value wasm_gettxtrace( const Array &params, bool fHelp ) {
 
     RESPONSE_RPC_HELP( fHelp || params.size() != 1 , wasm::rpc::get_tx_trace_rpc_help_message)
     RPCTypeCheck(params, list_of(str_type));
@@ -507,7 +507,7 @@ Value gettxtrace( const Array &params, bool fHelp ) {
 
 }
 
-Value abidefwasmjsontobin( const Array &params, bool fHelp ) {
+Value wasm_abidefjson2bin( const Array &params, bool fHelp ) {
 
     RESPONSE_RPC_HELP( fHelp || params.size() != 1 , wasm::rpc::abi_def_json_to_bin_wasm_rpc_help_message)
     RPCTypeCheck(params, list_of(str_type)(str_type)(str_type));

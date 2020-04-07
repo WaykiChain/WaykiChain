@@ -178,12 +178,12 @@ extern Value startcontracttpstest(const Array& params, bool fHelp);
 extern Value getblockfailures(const Array& params, bool fHelp);
 extern Value getblockundo(const Array& params, bool fHelp);
 
-extern Value wasmjsontobin(const Array& params, bool fHelp);
-extern Value wasmbintojson(const Array& params, bool fHelp);
-extern Value getcodewasm(const Array& params, bool fHelp);
-extern Value getabiwasm(const Array& params, bool fHelp);
-extern Value gettxtrace(const Array& params, bool fHelp);
-extern Value abidefwasmjsontobin(const Array& params, bool fHelp);
+extern Value wasm_json2bin(const Array& params, bool fHelp);
+extern Value wasm_bin2json(const Array& params, bool fHelp);
+extern Value wasm_getcode(const Array& params, bool fHelp);
+extern Value wasm_getabi(const Array& params, bool fHelp);
+extern Value wasm_gettxtrace(const Array& params, bool fHelp);
+extern Value wasm_abidefjson2bin(const Array& params, bool fHelp);
 
 extern Value getsysparam(const Array& params, bool fHelp);
 extern Value genutxomultiinputcondhash(const Array& params, bool fHelp);
