@@ -116,12 +116,6 @@ public:
     bool UpdateDexOperator(const DexID &id, const DexOperatorDetail& old_detail,
         const DexOperatorDetail& detail);
 
-    bool AddDexQuoteCoin(TokenSymbol coin);
-    bool EraseDexQuoteCoin(TokenSymbol coin);
-    bool HasDexQuoteCoin(TokenSymbol coin);
-    bool GetDexQuoteCoins(set<TokenSymbol>& coinSet) ;
-
-
     bool Flush() {
         activeOrderCache.Flush();
         blockOrdersCache.Flush();

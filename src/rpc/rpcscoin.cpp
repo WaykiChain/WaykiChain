@@ -526,8 +526,8 @@ Value getclosedcdp(const Array& params, bool fHelp) {
                 ) ;
     }
 
-    uint256 id = uint256S(params[0].get_str()) ;
-    std::pair<uint256, uint8_t> cdp ;
+    uint256 id = uint256S(params[0].get_str());
+    std::pair<uint256, uint8_t> cdp;
     Object obj ;
     if( pCdMan->pClosedCdpCache->GetClosedCdpById(id,cdp)){
         obj.push_back(Pair("cdp_id", params[0].get_str())) ;
@@ -537,9 +537,9 @@ Value getclosedcdp(const Array& params, bool fHelp) {
     }
 
     if( pCdMan->pClosedCdpCache->GetClosedCdpByTxId(id,cdp)){
-        obj.push_back(Pair("cdp_id", std::get<0>(cdp).GetHex())) ;
-        obj.push_back(Pair("cdp_close_txid", params[0].get_str())) ;
-        obj.push_back(Pair("cdp_close_type", GetCdpCloseTypeName((CDPCloseType)std::get<1>(cdp)))) ;
+        obj.push_back(Pair("cdp_id", std::get<0>(cdp).GetHex()));
+        obj.push_back(Pair("cdp_close_txid", params[0].get_str()));
+        obj.push_back(Pair("cdp_close_type", GetCdpCloseTypeName((CDPCloseType)std::get<1>(cdp))));
         return obj ;
     }
 
@@ -562,7 +562,7 @@ Value submitassetissuetx(const Array& params, bool fHelp) {
             "2.\"asset_symbol\":    (string, required) asset symbol, must be composed of 6 or 7 capital letters [A-Z]\n"
             "3.\"asset_owner_addr\":(string, required) asset owner address, can be same as tx owner address\n"
             "4.\"asset_name\":      (string, required) asset long name, E.g WaykiChain coin\n"
-            "5.\"total_supply\":    (numeric, required) asset total supply\n"
+            "5.\"total_supply\":    (numeric, required) asset total supply, the unit is \"sa\" \n"
             "6.\"mintable\":        (boolean, required) whether this asset token can be minted in the future\n"
             "7.\"symbol:fee:unit\": (string:numeric:string, optional) fee paid for miner, default is WICC:10000:sawi\n"
             "\nResult:\n"

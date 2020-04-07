@@ -65,9 +65,6 @@ public:
     bool Flush();
     uint32_t GetCacheSize() const;
 
-    bool GetTxHashByAddress(const CKeyID &keyId, uint32_t height, map<string, string > &mapTxHash);
-    bool SetTxHashByAddress(const CKeyID &keyId, uint32_t height, uint32_t index, const uint256 &txid);
-
     void SetBaseViewPtr(CBlockDBCache *pBaseIn) {
         txDiskPosCache.SetBase(&pBaseIn->txDiskPosCache);
         flagCache.SetBase(&pBaseIn->flagCache);

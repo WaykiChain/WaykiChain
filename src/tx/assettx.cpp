@@ -365,9 +365,6 @@ bool CUserUpdateAssetTx::ExecuteTx(CTxExecuteContext &context) {
             " txUid=%s, old_asset_uid=%s",
             txUid.ToDebugString(), asset.owner_uid.ToString()), REJECT_INVALID, "asset-uid-dismatch");
 
-    if (!asset.mintable)
-        return state.DoS(100, ERRORMSG("CUserUpdateAssetTx::ExecuteTx, the asset is not mintable"),
-                    REJECT_INVALID, "asset-not-mintable");
 
     switch (update_data.GetType()) {
         case CUserUpdateAsset::OWNER_UID: {
@@ -395,6 +392,11 @@ bool CUserUpdateAssetTx::ExecuteTx(CTxExecuteContext &context) {
             break;
         }
         case CUserUpdateAsset::MINT_AMOUNT: {
+
+            if (!asset.mintable)
+                return state.DoS(100, ERRORMSG("CUserUpdateAssetTx::ExecuteTx, the asset is not mintable"),
+                                 REJECT_INVALID, "asset-not-mintable");
+
             uint64_t mintAmount = update_data.get<uint64_t>();
             uint64_t newTotalSupply = asset.total_supply + mintAmount;
             if (newTotalSupply > MAX_ASSET_TOTAL_SUPPLY || newTotalSupply < asset.total_supply) {
