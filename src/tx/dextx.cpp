@@ -966,7 +966,7 @@ namespace dex {
         uint64_t ratio = (order.order_side == takerSide) ? orderOperatorParams.taker_fee_ratio :
                         orderOperatorParams.maker_fee_ratio;
 
-        LogPrint(BCLog::DEX, "got operator_fee_ratio=%llu, is_taker=%d, order_side=%d", ratio,
+        LogPrint(BCLog::DEX, "got operator_fee_ratio=%llu, is_taker=%d, order_side=%d\n", ratio,
                 order.order_side == takerSide, kOrderSideHelper.GetName(order.order_side));
 
         return ratio;
