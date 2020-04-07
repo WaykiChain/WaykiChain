@@ -360,9 +360,14 @@ bool CUniversalContractInvokeTx::CheckTx(CTxExecuteContext &context) {
         return state.DoS(100, ERRORMSG("CUniversalContractInvokeTx::CheckTx, public key is invalid"), REJECT_INVALID,
                          "bad-publickey");
 
-    if (!cw.assetCache.CheckAsset(coin_symbol))
-        return state.DoS(100, ERRORMSG("CUniversalContractInvokeTx::CheckTx, invalid coin_symbol=%s", coin_symbol),
-                        REJECT_INVALID, "invalid-coin-symbol");
+
+    if (SysCfg().NetworkID() == TEST_NET && context.height < 260000) {
+        // TODO: remove me if reset testnet.
+    } else {
+            if (!cw.assetCache.CheckAsset(coin_symbol))
+                return state.DoS(100, ERRORMSG("CUniversalContractInvokeTx::CheckTx, invalid coin_symbol=%s", coin_symbol),
+                                 REJECT_INVALID, "invalid-coin-symbol");
+    }
 
     CUniversalContract contract;
     if (!cw.contractCache.GetContract(app_uid.get<CRegID>(), contract))
