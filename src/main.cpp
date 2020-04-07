@@ -1040,13 +1040,13 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
 
     // Check it again in case a previous version let a bad block in
     if (!isGensisBlock && !CheckBlock(block, state, cw, !fJustCheck, !fJustCheck))
-        return state.DoS(100, ERRORMSG("ConnectBlock() : check block error"), REJECT_INVALID, "check-block-error");
+        return state.DoS(100, ERRORMSG(" check block error"), REJECT_INVALID, "check-block-error");
 
     if (!fJustCheck) {
         // Verify that the cache's current state corresponds to the previous block
         uint256 hashPrevBlock = pIndex->pprev == nullptr ? uint256() : pIndex->pprev->GetBlockHash();
         if (hashPrevBlock != cw.blockCache.GetBestBlockHash()) {
-            LogPrint(BCLog::INFO, "hashPrevBlock=%s, bestblock=%s\n", hashPrevBlock.GetHex(),
+            LogPrint(BCLog::INFO, "[%d] hashPrevBlock=%.7s**, bestblock=%.7s**\n", hashPrevBlock.GetHeight(), hashPrevBlock.GetHex(),
                      cw.blockCache.GetBestBlockHash().GetHex());
 
             assert(hashPrevBlock == cw.blockCache.GetBestBlockHash());
@@ -1056,7 +1056,7 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
     // Special case for the genesis block, skipping connection of its transactions.
     if (isGensisBlock) {
         if (!ProcessGenesisBlock(block, cw, pIndex, state)) {
-            return state.DoS(100, ERRORMSG("ConnectBlock() : process genesis block error"),
+            return state.DoS(100, ERRORMSG("[0] process genesis block error"),
                             REJECT_INVALID, "process genesis-block-error");
         }
         return true;
@@ -1108,11 +1108,11 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
         for (int32_t index = 1; index < (int32_t)block.vptx.size(); ++index) {
             std::shared_ptr<CBaseTx> &pBaseTx = block.vptx[index];
             if (cw.txCache.HasTx((pBaseTx->GetHash())))
-                return state.DoS(100, ERRORMSG("ConnectBlock() : txid=%s duplicated", pBaseTx->GetHash().GetHex()),
+                return state.DoS(100, ERRORMSG("[%d] txid=%s duplicated", pBaseTx->GetHash().GetHex()), curHeight,
                                  REJECT_INVALID, "tx-duplicated");
 
             if (!pBaseTx->IsValidHeight(curHeight, validHeight))
-                return state.DoS(100, ERRORMSG("ConnectBlock() : txid=%s beyond the scope of valid height",
+                return state.DoS(100, ERRORMSG("[%d] txid=%s beyond the scope of valid height", curHeight,
                                  pBaseTx->GetHash().GetHex()), REJECT_INVALID, "tx-invalid-height");
 
             pBaseTx->nFuelRate = fuelRate;
@@ -1122,7 +1122,7 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
             CTxExecuteContext context(pIndex->height, index, fuelRate, pIndex->nTime, prevBlockTime, &cw, &state);
             if (!pBaseTx->CheckAndExecuteTx(context)) {
                 pCdMan->pLogCache->SetExecuteFail(pIndex->height, pBaseTx->GetHash(), state.GetRejectCode(), state.GetRejectReason());
-                return state.DoS(100, ERRORMSG("ConnectBlock() : txid=%s check/execute failed, in detail: %s",
+                return state.DoS(100, ERRORMSG("[%d] txid=%s check/execute failed, in detail: %s", pIndex->height,
                                  pBaseTx->GetHash().GetHex(), pBaseTx->ToString(cw.accountCache)), REJECT_INVALID, "tx-execute-failed");
             }
 
@@ -1130,7 +1130,7 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
 
             totalRunStep += pBaseTx->nRunStep;
             if (totalRunStep > MAX_BLOCK_RUN_STEP)
-                return state.DoS(100, ERRORMSG("ConnectBlock() : total steps(%llu) exceed max steps(%llu)", totalRunStep,
+                return state.DoS(100, ERRORMSG("total steps(%llu) exceed max steps(%llu)", totalRunStep,
                                  MAX_BLOCK_RUN_STEP), REJECT_INVALID, "exceed-max-fuel");
 
             auto fuel = pBaseTx->GetFuel(block.GetHeight(), block.GetFuelRate());
@@ -1151,7 +1151,7 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
 
     // Verify total fuel
     if (totalFuel != block.GetFuel())
-        return state.DoS(100, ERRORMSG("ConnectBlock() : fuel fee value at block header calculate error(actual fuel "
+        return state.DoS(100, ERRORMSG("fuel fee value at block header calculate error(actual fuel "
                                        "fee=%lld vs block fuel fee=%lld)", totalFuel, block.GetFuel()));
 
     // Verify miner account
@@ -1164,7 +1164,7 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
     if (block.vptx[0]->nTxType == BLOCK_REWARD_TX) {
         auto pRewardTx = (CBlockRewardTx *)block.vptx[0].get();
         if (pRewardTx->reward_fees != rewards.at(SYMB::WICC)) {
-            return state.DoS(100, ERRORMSG("ConnectBlock() : invalid coinbase reward amount"), REJECT_INVALID,
+            return state.DoS(100, ERRORMSG("invalid coinbase reward amount"), REJECT_INVALID,
                              "bad-reward-amount");
         }
     } else if (block.vptx[0]->nTxType == UCOIN_BLOCK_REWARD_TX) {
@@ -1174,7 +1174,7 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
             // TODO: remove me if reset testnet.
         } else {
             if (pRewardTx->reward_fees != rewards) {
-                return state.DoS(100, ERRORMSG("ConnectBlock() : invalid coinbase reward amount"), REJECT_INVALID,
+                return state.DoS(100, ERRORMSG("invalid coinbase reward amount"), REJECT_INVALID,
                                  "bad-reward-amount");
             }
         }
@@ -1182,7 +1182,7 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
         // Verify profits
         uint64_t profits = delegateAccount.ComputeBlockInflateInterest(block.GetHeight(), curDelegate, totalDelegateNum);
         if (pRewardTx->inflated_bcoins != profits) {
-            return state.DoS(100, ERRORMSG("ConnectBlock() : invalid coinbase profits amount(actual=%d vs valid=%d)",
+            return state.DoS(100, ERRORMSG("invalid coinbase profits amount(actual=%d vs valid=%d)",
                              pRewardTx->inflated_bcoins, profits), REJECT_INVALID, "bad-reward-amount");
         }
     }
@@ -1196,7 +1196,7 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
         if (!block.vptx[0]->ExecuteFullTx(context)) {
             pCdMan->pLogCache->SetExecuteFail(pIndex->height, block.vptx[0]->GetHash(), state.GetRejectCode(),
                                             state.GetRejectReason());
-            return state.DoS(100, ERRORMSG("ConnectBlock() : failed to execute reward transaction"));
+            return state.DoS(100, ERRORMSG("failed to execute reward transaction"));
         }
 
         if (pIndex->height + 1 == (int32_t)SysCfg().GetVer2ForkHeight() &&
@@ -1216,7 +1216,7 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
 
         // TODO: move the block delegates undo to block_undo
         if (!chain::ProcessBlockDelegates(block, cw, state)) {
-            return state.DoS(100, ERRORMSG("ConnectBlock() : failed to process block delegates! block=%d:%s",
+            return state.DoS(100, ERRORMSG("[%d] failed to process block delegates! block(%s)",
                 block.GetHeight(), block.GetHash().ToString()));
         }
     }
@@ -1240,7 +1240,7 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
             if (!matureBlock.vptx[0]->ExecuteFullTx(context)) {
                 pCdMan->pLogCache->SetExecuteFail(pIndex->height, matureBlock.vptx[0]->GetHash(), state.GetRejectCode(),
                                                   state.GetRejectReason());
-                return state.DoS(100, ERRORMSG("ConnectBlock() : execute mature block reward tx error"));
+                return state.DoS(100, ERRORMSG("execute mature block reward tx error"));
             }
         }
     }
@@ -1457,7 +1457,7 @@ bool static ConnectTip(CValidationState &state, CBlockIndex *pIndexNew) {
                 InvalidBlockFound(pIndexNew, state);
             }
 
-            return ERRORMSG("ConnectTip() : ConnectBlock [%d]:%s failed", pIndexNew->height, pIndexNew->GetBlockHash().ToString());
+            return ERRORMSG("[%d] ConnectBlock(%s) failed", pIndexNew->height, pIndexNew->GetBlockHash().ToString());
         }
         {
             LOCK(cs_mapNodeState);
