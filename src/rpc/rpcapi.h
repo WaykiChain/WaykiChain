@@ -179,7 +179,7 @@ extern Value getblockfailures(const Array& params, bool fHelp);
 extern Value getblockundo(const Array& params, bool fHelp);
 
 extern Value wasmjsontobin(const Array& params, bool fHelp);
-extern Value bintojsonwasm(const Array& params, bool fHelp);
+extern Value wasmbintojson(const Array& params, bool fHelp);
 extern Value getcodewasm(const Array& params, bool fHelp);
 extern Value getabiwasm(const Array& params, bool fHelp);
 extern Value gettxtrace(const Array& params, bool fHelp);

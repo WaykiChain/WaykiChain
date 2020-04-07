@@ -64,16 +64,16 @@ namespace wasm { namespace rpc{
     )=====";
 
     const char *bin_to_json_wasm_rpc_help_message = R"=====(
-        bintojsonwasm "contract" "action" "data"
+        wasmbintojson "contract" "action" "data"
         1."contract": (string, required) contract regid
         2."action"  : (string, required) action name
         3."data"    : (binary hex string, required) action data in hex
         Result:
         "data":       (string in json)
         Examples:
-        > ./coind bintojsonwasm 800-2 transfer 504a214304855c34504a29850c110e3d00e40b540200000008574943430000000f7472616e7366657220746f20626f62
+        > ./coind wasmbintojson 800-2 transfer 504a214304855c34504a29850c110e3d00e40b540200000008574943430000000f7472616e7366657220746f20626f62
         As json rpc call
-        > curl --user myusername -d '{"jsonrpc": "1.0", "id":"curltest", "method":"bintojsonwasm", "params":["800-2","transfer", "504a214304855c34504a29850c110e3d00e40b540200000008574943430000000f7472616e7366657220746f20626f62"]}' -H 'Content-Type: application/json;' http://127.0.0.1:8332
+        > curl --user myusername -d '{"jsonrpc": "1.0", "id":"curltest", "method":"wasmbintojson", "params":["800-2","transfer", "504a214304855c34504a29850c110e3d00e40b540200000008574943430000000f7472616e7366657220746f20626f62"]}' -H 'Content-Type: application/json;' http://127.0.0.1:8332
     )=====";
 
     const char *get_code_wasm_rpc_help_message = R"=====(

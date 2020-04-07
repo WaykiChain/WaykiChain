@@ -383,7 +383,7 @@ Value wasmjsontobin( const Array &params, bool fHelp ) {
 }
 
 
-Value bintojsonwasm( const Array &params, bool fHelp ) {
+Value wasmbintojson( const Array &params, bool fHelp ) {
 
     RESPONSE_RPC_HELP( fHelp || params.size() < 2 || params.size() > 4 , wasm::rpc::bin_to_json_wasm_rpc_help_message)
     RPCTypeCheck(params, list_of(str_type)(str_type)(str_type));
