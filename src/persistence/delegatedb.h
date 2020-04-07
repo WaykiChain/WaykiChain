@@ -22,9 +22,10 @@ using namespace std;
 
 /*  CCompositeKVCache  prefixType     key                              value                   variable       */
 /*  -------------------- -------------- --------------------------  ----------------------- -------------- */
-    // {vote(MAX - $votedBcoins)}{$RegId} -> 1
+    // {vote(MAX - $votedBcoins)}{$RegIdRawData} -> 1
     // vote(MAX - $votedBcoins) save as CFixedUInt64 to ensure that the keys are sorted by vote value from big to small
-typedef CCompositeKVCache<dbk::VOTE,  std::pair<CFixedUInt64, CRegIDKey>,  uint8_t>         CVoteRegIdCache;
+    // $RegIdRawData must use raw data format of regid to be compatible old data
+typedef CCompositeKVCache<dbk::VOTE,  std::pair<CFixedUInt64, UnsignedCharArray>,  uint8_t>         CVoteRegIdCache;
 
 class CTopDelegatesIterator: public CDbIterator<CVoteRegIdCache> {
 public:
@@ -33,7 +34,7 @@ public:
 
     uint64_t GetVote() const;
 
-    const CRegID &GetRegid() const;
+    CRegID GetRegid() const;
 };
 
 class CDelegateDBCache {

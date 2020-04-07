@@ -24,8 +24,8 @@ uint64_t CTopDelegatesIterator::GetVote() const {
     return DelegateVoteFromKey(GetKey().first);
 }
 
-const CRegID &CTopDelegatesIterator::GetRegid() const {
-    return GetKey().second.regid;
+CRegID CTopDelegatesIterator::GetRegid() const {
+    return CRegID(GetKey().second);
 }
 
 bool CDelegateDBCache::GetTopVoteDelegates(uint32_t delegateNum, uint64_t BpMinVote,
@@ -62,7 +62,7 @@ bool CDelegateDBCache::SetDelegateVotes(const CRegID &regId, const uint64_t vote
     if (regId.IsEmpty()) {
         return true;
     }
-    auto key = std::make_pair(DelegateVoteToKey(votes), CRegIDKey(regId));
+    auto key = std::make_pair(DelegateVoteToKey(votes), regId.GetRegIdRaw());
     return voteRegIdCache.SetData(key, 1);
 }
 
@@ -71,7 +71,7 @@ bool CDelegateDBCache::EraseDelegateVotes(const CRegID &regId, const uint64_t vo
     if (regId.IsEmpty()) {
         return true;
     }
-    auto key = std::make_pair(DelegateVoteToKey(votes), CRegIDKey(regId));
+    auto key = std::make_pair(DelegateVoteToKey(votes), regId.GetRegIdRaw());
 
     return voteRegIdCache.EraseData(key);
 }
