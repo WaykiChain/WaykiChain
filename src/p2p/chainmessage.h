@@ -225,7 +225,7 @@ inline bool AddBlockToQueue(const uint256 &hash, NodeId nodeId) {
          (now - std::get<2>(mapBlocksToDownload[hash]) < blocksToDownloadTimeout * 1000000)) ||
         (mapBlocksInFlight.count(hash) &&
          (now - std::get<2>(mapBlocksInFlight[hash]) < blockInFlightTimeout * 1000000))) {
-        LogPrint(BCLog::NET, "block is downloading from another peer, ignore! time_ms=%lld, hash=%s\n", GetTimeMillis(), hash.GetHex());
+        LogPrint(BCLog::NET, "block (%.7s**) being downloaded from another peer, ignore! ts=%lld\n", hash.GetHex(), GetTimeMillis());
 
         return false;
     }
@@ -233,8 +233,8 @@ inline bool AddBlockToQueue(const uint256 &hash, NodeId nodeId) {
     LOCK(cs_mapNodeState);
     CNodeState *state = State(nodeId);
     if (state == nullptr) {
-        LogPrint(BCLog::NET, "peer not found! time_ms=%lld, hash=%s peer_id=%d\n",
-            GetTimeMillis(), hash.ToString(), nodeId);
+        LogPrint(BCLog::NET, "peer (%d) not found! ts=%lld, block(%.7s**) \n",
+            nodeId, GetTimeMillis(), hash.ToString());
         return false;
     }
 
@@ -669,7 +669,7 @@ inline bool ProcessInvMessage(CNode *pFrom, CDataStream &vRecv) {
         }
 
         if (!fAlreadyHave) {
-            LogPrint(BCLog::NET, "recv inv new data! time_ms=%lld, i=%d, msg=%s, hash=%s, peer=%s\n",
+            LogPrint(BCLog::NET, "recv inv new data! ts=%lld, i=%d, msg=%s, hash=%s, peer=%s\n",
                 GetTimeMillis(), i, msgName, inv.ToString(), pFrom->addrName);
             if (!SysCfg().IsImporting() && !SysCfg().IsReindex()) {
                 if (inv.type == MSG_BLOCK)

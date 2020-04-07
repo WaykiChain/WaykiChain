@@ -35,7 +35,7 @@ std::shared_ptr<string>  CLuaVMRunEnv::ExecuteContract(CLuaVMContext *pContextIn
 
     pLua = std::make_shared<CLuaVM>(p_context->p_contract->code, *p_context->p_arguments);
 
-    LogPrint(BCLog::LUAVM, "CVmScriptRun::ExecuteContract(), prepare to execute tx. txid=%s, fuelLimit=%llu\n",
+    LogPrint(BCLog::LUAVM, "prepare to execute tx. txid=%s, fuelLimit=%llu\n",
              p_context->p_base_tx->GetHash().GetHex(), p_context->fuel_limit);
 
     tuple<uint64_t, string> ret = pLua.get()->Run(p_context->fuel_limit, this);
