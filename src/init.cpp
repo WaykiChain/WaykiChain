@@ -548,16 +548,6 @@ bool AppInit(boost::thread_group &threadGroup) {
         return InitError(strprintf(_("Cannot obtain a lock on data directory %s. coin Core is probably already running."), strDataDir));
     }
 
-    if (!LogInstance().StartLogging()) {
-        return InitError(strprintf("Could not open debug log file %s",
-                        LogInstance().m_file_path.string()));
-    }
-    // if (GetBoolArg("-shrinkdebugfile", !fDebug))
-    //     ShrinkDebugFile();
-
-     if (!LogInstance().m_log_timestamps)
-        LogPrint(BCLog::INFO, "Startup time: %s\n", FormatISO8601DateTime(GetTime()));
-
     LogPrint(BCLog::INFO, "Default data directory %s\n", GetDefaultDataDir().string());
     LogPrint(BCLog::INFO, "Using data directory %s\n", GetDataDir().string());
 
@@ -802,7 +792,7 @@ bool AppInit(boost::thread_group &threadGroup) {
                 block.BuildMerkleTree();
 
                 block.Print();
-                
+
                 nFound++;
             }
         }
@@ -902,7 +892,7 @@ fs::path AbsPathForConfigVal(const fs::path& path, bool net_specific = true)
  * Note that this is called very early in the process lifetime, so you should be
  * careful about what global state you rely on here.
  */
-void InitLogging()
+bool InitLogging()
 {
     LogInstance().m_print_to_file = !SysCfg().GetBoolArg("-debuglogfile", false);
     LogInstance().m_file_path = AbsPathForConfigVal(SysCfg().GetArg("-debuglogfile", DEFAULT_DEBUGLOGFILE));
@@ -935,6 +925,13 @@ void InitLogging()
         }
     }
 
+
+    if (!LogInstance().StartLogging()) {
+        fprintf(stdout, "Start logging error! log_file=%s",
+                        LogInstance().m_file_path.string().c_str());
+        return false;
+    }
+
     std::string version_string = FormatFullVersion();
 #ifdef DEBUG
     version_string += " (debug build)";
@@ -945,4 +942,11 @@ void InitLogging()
 
     // LogInstance().DisableCategory("INFO");
     // LogInstance().EnableCategory("NET");
+    // if (GetBoolArg("-shrinkdebugfile", !fDebug))
+    //     ShrinkDebugFile();
+
+     if (!LogInstance().m_log_timestamps)
+        LogPrint(BCLog::INFO, "Startup time: %s\n", FormatISO8601DateTime(GetTime()));
+
+    return true;
 }
