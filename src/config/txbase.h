@@ -22,7 +22,7 @@ enum TxType: uint8_t {
     NULL_TX                     = 0,    //!< NULL_TX
 
     /** R1 Tx types */
-    BLOCK_REWARD_TX             = 1,    //!< Miner Block Reward Tx
+    BLOCK_REWARD_TX             = 1,    //!< Miner Block Reward Tx or Genesis Mint Reward (backward compatbility)
     ACCOUNT_REGISTER_TX         = 2,    //!< Account Registration Tx
     BCOIN_TRANSFER_TX           = 3,    //!< BaseCoin Transfer Tx
     LCONTRACT_INVOKE_TX         = 4,    //!< LuaVM Contract Invocation Tx

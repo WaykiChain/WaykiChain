@@ -263,7 +263,7 @@ Array RPCConvertValues(const string &strMethod, const vector<string> &strParams)
 
 
     /* vm functions work in vm simulator */
-    if (strMethod == "vmexecutescript"          && n > 3) ConvertTo<int64_t>(params[3]);
+    if (strMethod == "luavm_executescript"          && n > 3) ConvertTo<int64_t>(params[3]);
 
 
     return params;

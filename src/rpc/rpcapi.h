@@ -89,29 +89,7 @@ extern Value getdexoperatorbyowner(const Array& params, bool fHelp);
 
 extern Value getdexorderfee(const Array& params, bool fHelp);
 
-/*************************** Proposal ***********************************/
-extern Value submitparamgovernproposal(const Array& params, bool fHelp);
-
-extern Value submitcdpparamgovernproposal(const Array& params, bool fHelp);
-extern Value submitdexswitchproposal(const Array& params, bool fHelp);
-extern Value submitfeedcoinpairproposal(const Array& params, bool fHelp);
-extern Value submitminerfeeproposal(const Array& params, bool fHelp);
-extern Value submittotalbpssizeupdateproposal(const Array& params, bool fHelp);
-extern Value submitcointransferproposal( const Array& params, bool fHelp);
-extern Value submitgovernorupdateproposal(const Array& params, bool fHelp);
-extern Value submitproposalapprovaltx(const Array& params, bool fHelp);
-extern Value submitaxccoinproposal(const Array& params, bool fHelp);
-extern Value submitdiaissueproposal(const Array& params, bool fHelp);
-
-extern Value getcdpparam(const Array& params, bool fHelp);
-extern Value getproposal(const Array& params, bool fHelp);
-extern Value getgovernors(const Array& params, bool fHelp);
-extern Value listmintxfees(const Array& params, bool fHelp);
-
 /******************************  Misc ************************************/
-
-extern void EnsureWalletIsUnlocked();
-
 extern Value getconnectioncount(const Array& params, bool fHelp); // in rpcnet.cpp
 extern Value getpeerinfo(const Array& params, bool fHelp);
 extern Value ping(const Array& params, bool fHelp);
@@ -120,6 +98,8 @@ extern Value getaddednodeinfo(const Array& params, bool fHelp);
 extern Value getnettotals(const Array& params, bool fHelp);
 extern Value getchaininfo(const Array& params, bool fHelp);
 
+/******************************  wallet ************************************/
+extern void EnsureWalletIsUnlocked();
 extern Value dumpprivkey(const Array& params, bool fHelp); // in rpcdump.cpp
 extern Value importprivkey(const Array& params, bool fHelp);
 extern Value dumpwallet(const Array& params, bool fHelp);
@@ -166,14 +146,14 @@ extern Value verifychain(const Array& params, bool fHelp);
 extern Value getcontractregid(const Array& params, bool fHelp);
 extern Value invalidateblock(const Array& params, bool fHelp);
 extern Value reconsiderblock(const Array& params, bool fHelp);
-extern Value startcommontpstest(const Array& params, bool fHelp);
-extern Value startcontracttpstest(const Array& params, bool fHelp);
+
 extern Value getblockfailures(const Array& params, bool fHelp);
 extern Value getblockundo(const Array& params, bool fHelp);
 
-/******************************  WASM VM *********************************/
-extern Value vmexecutescript(const Array& params, bool fHelp);
+/******************************  Lua VM *********************************/
+extern Value luavm_executescript(const Array& params, bool fHelp);
 
+/******************************  WASM VM *********************************/
 extern Value wasm_submitcontractdeploytx(const Array& params, bool fHelp);
 extern Value wasm_submitcontractcalltx(const Array& params, bool fHelp);
 extern Value wasm_gettable(const Array& params, bool fHelp);
@@ -184,27 +164,49 @@ extern Value wasm_getabi(const Array& params, bool fHelp);
 extern Value wasm_gettxtrace(const Array& params, bool fHelp);
 extern Value wasm_abidefjson2bin(const Array& params, bool fHelp);
 
-extern Value getsysparam(const Array& params, bool fHelp);
+/******************************  UTXO *********************************/
 extern Value genutxomultiinputcondhash(const Array& params, bool fHelp);
 extern Value genutxomultisignaddr( const Array& params, bool fHelp);
 extern Value genutxomultisignature(const Array& params, bool fHelp);
-
-extern Value getdexbaseandquotecoins(const Array& params, bool fHelp);
-extern Value gettotalbpssize(const Array& params, bool fHelp);
-extern Value getfeedcoinpairs(const Array& params, bool fHelp);
-extern Value submitaccountpermproposal(const Array& params , bool fHelp);
-extern Value submitassetpermproposal(const Array& params , bool fHelp);
-
 extern Value submitutxotransfertx(const Array& params, bool fHelp);
 extern Value submitpasswordprooftx(const Array& params, bool fHelp);
-extern Value submitsendmultitx(const Array& params, bool fHelp);
 
+
+/******************************  DeGov *********************************/
+extern Value submitaccountpermproposal(const Array& params , bool fHelp);
+extern Value submitassetpermproposal(const Array& params , bool fHelp);
 extern Value submitaxcinproposal(const Array& params, bool fHelp);
 extern Value submitaxcoutproposal(const Array& params, bool fHelp);
 
+extern Value getsysparam(const Array& params, bool fHelp);
+extern Value getdexbaseandquotecoins(const Array& params, bool fHelp);
+extern Value gettotalbpssize(const Array& params, bool fHelp);
+extern Value getfeedcoinpairs(const Array& params, bool fHelp);
+extern Value submitsendmultitx(const Array& params, bool fHelp);
 extern Value genunsignedtxraw(const Array& params, bool fHelp);
 
+/*************************** Proposal ***********************************/
+extern Value submitparamgovernproposal(const Array& params, bool fHelp);
+
+extern Value submitcdpparamgovernproposal(const Array& params, bool fHelp);
+extern Value submitdexswitchproposal(const Array& params, bool fHelp);
+extern Value submitfeedcoinpairproposal(const Array& params, bool fHelp);
+extern Value submitminerfeeproposal(const Array& params, bool fHelp);
+extern Value submittotalbpssizeupdateproposal(const Array& params, bool fHelp);
+extern Value submitcointransferproposal( const Array& params, bool fHelp);
+extern Value submitgovernorupdateproposal(const Array& params, bool fHelp);
+extern Value submitproposalapprovaltx(const Array& params, bool fHelp);
+extern Value submitaxccoinproposal(const Array& params, bool fHelp);
+extern Value submitdiaissueproposal(const Array& params, bool fHelp);
+
+extern Value getcdpparam(const Array& params, bool fHelp);
+extern Value getproposal(const Array& params, bool fHelp);
+extern Value getgovernors(const Array& params, bool fHelp);
+extern Value listmintxfees(const Array& params, bool fHelp);
+
 // debug only
-Value dumpdb(const Array& params, bool fHelp);
+extern Value dumpdb(const Array& params, bool fHelp);
+extern Value startcommontpstest(const Array& params, bool fHelp);
+extern Value startcontracttpstest(const Array& params, bool fHelp);
 
 #endif /* RPC_API_H_ */

@@ -45,11 +45,11 @@ static bool FindKeyId(CAccountDBCache *pAccountView, string const &addr, CKeyID 
     return !keyId.IsEmpty();
 }
 
-Value vmexecutescript(const Array& params, bool fHelp) {
+Value luavm_executescript(const Array& params, bool fHelp) {
     if (fHelp || params.size() < 2 || params.size() > 5) {
         throw runtime_error(
-            "vmexecutescript \"addr\" \"script_path\" [\"arguments\"] [amount] [symbol:fee:unit]\n"
-            "\nexecutes the script in vm simulator, and then returns the executing status.\n"
+            "luavm_executescript \"addr\" \"script_path\" [\"arguments\"] [amount] [symbol:fee:unit]\n"
+            "\nexecutes the script in vm simulator, and then returns the execution status.\n"
             "\nthe execution include submitcontractdeploytx and submitcontractcalltx.\n"
             "\nArguments:\n"
             "1.\"addr\":                (string required) contract owner address from this wallet\n"
@@ -60,9 +60,9 @@ Value vmexecutescript(const Array& params, bool fHelp) {
             "\nResult vm execute detail\n"
             "\nResult:\n"
             "\nExamples:\n"
-            + HelpExampleCli("vmexecutescript","\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" \"/tmp/lua/script.lua\"")
+            + HelpExampleCli("luavm_executescript","\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" \"/tmp/lua/script.lua\"")
             + "\nAs json rpc call\n"
-            + HelpExampleRpc("vmexecutescript", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\", \"/tmp/lua/script.lua\""));
+            + HelpExampleRpc("luavm_executescript", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\", \"/tmp/lua/script.lua\""));
     }
 
     string luaScriptFilePath = GetAbsolutePath(params[1].get_str()).string();

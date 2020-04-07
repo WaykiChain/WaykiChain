@@ -175,7 +175,7 @@ static const CRPCCommand vRPCCommands[] =
     { "startcontracttpstest",           &startcontracttpstest,              true,       true,       false   },
     { "getblockfailures",               &getblockfailures,                  true,       false,      false   },
     /* vm functions work in vm simulator */
-    { "vmexecutescript",                &vmexecutescript,                   true,       true,       true    },
+    { "luavm_executescript",                &luavm_executescript,                   true,       true,       true    },
     /* debug */
     { "dumpdb",                         &dumpdb,                            true,       true,       true    },
     /* UTXO */
