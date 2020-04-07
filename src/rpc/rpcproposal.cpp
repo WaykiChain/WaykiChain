@@ -721,7 +721,7 @@ Value submitaxcinproposal(const Array& params, bool fHelp) {
                 "6.\"swap_amount\":                 (numberic, required) the coin amount that swap in, the unit is sa(0.00000001), \n"
                 "7.\"fee\":                         (combomoney, optional) the tx fee \n"
                 "\nExamples:\n"
-                + HelpExampleCli("submitaxcinproposal", " 0-1 2 ETH  29okf0efodfredfedsedsfdscsfds ewsdcxesasdsadfsad 0-1  1000000")
+                + HelpExampleCli("submitaxcinproposal", " 0-1 ETH  29okf0efodfredfedsedsfdscsfds ewsdcxesasdsadfsad 0-1  1000000")
                 + "\nAs json rpc call\n"
                 + HelpExampleRpc("submitaxcinproposal", R"("0-1", "ETH", "29okf0efodfredfedsedsfdscsfds", "ewsdcxesasdsadfsad", "0-1", 1000000)")
 
@@ -813,7 +813,7 @@ Value submitdiaissueproposal(const Array& params, bool fHelp) {
                 "1.\"addr\":                    (string,   required) the tx submitor's address\n"
                 "2.\"asset_symbol\":            (string,   required) the dia asset symbol \n"
                 "3.\"owner_uid\":               (string,   required) the asset's owner uid \n"
-                "4.\"total_supply\":            (numberic, required) the total supply amount of this asset, the unit is \"sawi\" \n"
+                "4.\"total_supply\":            (numberic, required) the total supply amount of this asset, the unit is \"sa\" \n"
                 "5.\"fee\":                     (combomoney, optional) the tx fee \n"
                 "\nExamples:\n"
                 + HelpExampleCli("submitdiaissueproposal", "0-1 0-1 BTCC 100000000000000000")

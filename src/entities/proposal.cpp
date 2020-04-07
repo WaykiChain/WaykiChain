@@ -447,8 +447,8 @@ bool CGovAxcInProposal::CheckProposal(CTxExecuteContext& context, CBaseTx& tx) {
         return state.DoS(100, ERRORMSG("CGovAxcInProposal::CheckProposal: peer_chain_addr=%s invalid",
                                         peer_chain_addr), REJECT_INVALID, "peer_chain_addr-invalid");
 
-    if ( (peer_chain_type == ChainType::BITCOIN && (peer_chain_txid.size() != 65)) ||
-         (peer_chain_type == ChainType::ETHEREUM && (peer_chain_txid.size() != 65)) )
+    if ( (peer_chain_type == ChainType::BITCOIN && (peer_chain_txid.size() != 66)) ||
+         (peer_chain_type == ChainType::ETHEREUM && (peer_chain_txid.size() != 66)) )
         return state.DoS(100, ERRORMSG("CGovAxcInProposal::CheckProposal: peer_chain_txid=%s invalid",
                                         peer_chain_txid), REJECT_INVALID, "peer_chain_txid-invalid");
     if (self_chain_uid.IsEmpty())
