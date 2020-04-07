@@ -172,7 +172,7 @@ uint64_t ComputeCDPInterest(const uint64_t total_owed_scoins, const int32_t begi
     double annualInterestRate = 0.1 * A / log10(1.0 + B * N / (double)COIN);
     uint64_t interest         = (uint64_t)(((double)N / 365) * loanedDays * annualInterestRate);
 
-    LogPrint(BCLog::CDP, "ComputeCDPInterest, beginHeight=%d, endHeight=%d, loanedDays=%d, A=%llu, B=%llu, N="
+    LogPrint(BCLog::CDP, "beginHeight=%d, endHeight=%d, loanedDays=%d, A=%llu, B=%llu, N="
              "%llu, annualInterestRate=%f, interest=%llu\n",
              beginHeight, endHeight, loanedDays, A, B, N, annualInterestRate, interest);
 
