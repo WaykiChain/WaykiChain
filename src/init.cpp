@@ -934,7 +934,7 @@ bool InitLogging()
     }
 
     std::string version_string = FormatFullVersion();
-#ifdef DEBUG
+#ifdef VER_DEBUG
     version_string += " (debug build)";
 #else
     version_string += " (release build)";
