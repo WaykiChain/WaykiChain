@@ -79,7 +79,7 @@ uint32_t GetElementForBurn(CBlockIndex *pIndex) {
         newFuelRate = MIN_FUEL_RATES;
     }
 
-    LogPrint(BCLog::DEBUG, "[%d] preFuelRate=%d fuelRate=%d\n", pIndex->height, pIndex->nFuelRate, newFuelRate);
+    LogPrint(BCLog::DEBUG, "[%d] preFuelRate=%d, fuelRate=%d\n", pIndex->height, pIndex->nFuelRate, newFuelRate);
 
     return newFuelRate;
 }

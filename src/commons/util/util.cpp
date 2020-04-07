@@ -871,7 +871,7 @@ void AddTimeData(const CNetAddr& ip, int64_t nTime) {
     // Add data
     static CMedianFilter<int64_t> vTimeOffsets(200, 0);
     vTimeOffsets.input(nOffsetSample);
-    LogPrint(BCLog::INFO, "Added time data, samples %d, offset %+d (%+d minutes)\n", vTimeOffsets.size(),
+    LogPrint(BCLog::INFO, "samples size=%d, offset=%+d (%+d minutes)\n", vTimeOffsets.size(),
              nOffsetSample, nOffsetSample / 60);
 
     if (vTimeOffsets.size() >= 5 && vTimeOffsets.size() % 2 == 1) {

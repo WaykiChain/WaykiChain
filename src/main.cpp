@@ -1803,7 +1803,7 @@ bool ProcessForkedChain(const CBlock &block, CBlockIndex *pPreBlockIndex, CValid
         forkChainTipBlockHash = pPreBlockIndex->GetBlockHash();
         spCW                  = mapForkCache[forkChainTipBlockHash];
         forkChainTipFound     = true;
-        LogPrint(BCLog::INFO, "found [%d]: %s in cache\n", pPreBlockIndex->height, forkChainTipBlockHash.GetHex());
+        LogPrint(BCLog::INFO, "[%d] found block(%.7s**) in cache\n", pPreBlockIndex->height, forkChainTipBlockHash.GetHex());
     } else {
         spCW                     = CCacheWrapper::NewCopyFrom(pCdMan);
         int64_t beginTime        = GetTimeMillis();
@@ -1837,7 +1837,7 @@ bool ProcessForkedChain(const CBlock &block, CBlockIndex *pPreBlockIndex, CValid
 
     uint256 forkChainBestBlockHash   = spCW->blockCache.GetBestBlockHash();
     int32_t forkChainBestBlockHeight = mapBlockIndex[forkChainBestBlockHash]->height;
-    LogPrint(BCLog::INFO, "fork chain's best block [%d]: %s\n", forkChainBestBlockHeight,
+    LogPrint(BCLog::INFO, "[%d] fork chain's best block(%.7s**)\n", forkChainBestBlockHeight,
              forkChainBestBlockHash.GetHex());
 
     if (!vPreBlocks.empty()) {
@@ -2231,8 +2231,8 @@ bool ProcessBlock(CValidationState &state, CNode *pFrom, CBlock *pBlock, CDiskBl
     bool mining = (pFrom)?false:true;
     // Store to disk
     if (!AcceptBlock(*pBlock, state, dbp, mining)) {
-        LogPrint(BCLog::INFO, "AcceptBlock() elapse time: %lld ms\n", GetTimeMillis() - llAcceptBlockTime);
-        return ERRORMSG("AcceptBlock FAILED");
+        LogPrint(BCLog::DEBUG, "[%d] AcceptBlock() elapse time: %lld ms\n", blockHeight, GetTimeMillis() - llAcceptBlockTime);
+        return ERRORMSG("[%d] AcceptBlock FAILED", blockHeight);
     }
     // LogPrint(BCLog::INFO, "AcceptBlock() elapse time:%lld ms\n", GetTimeMillis() - llAcceptBlockTime);
 
