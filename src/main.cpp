@@ -575,14 +575,16 @@ void static InvalidChainFound(CBlockIndex *pIndexNew) {
         // TODO: need to remove the indexBestInvalid
         //pCdMan->pBlockCache->WriteBestInvalidWork(ArithToUint256(pIndexBestInvalid->nChainWork));
     }
-    LogPrint(BCLog::INFO, "InvalidChainFound: invalid block=%s  height=%d  log2_work=%.8g  date=%s\n",
-             pIndexNew->GetBlockHash().ToString(), pIndexNew->height,
+    LogPrint(BCLog::INFO, "[%d] invalid block=%s log2_work=%.8g  date=%s\n",
+             pIndexNew->height, pIndexNew->GetBlockHash().ToString(),
              log(pIndexNew->nChainWork.getdouble()) / log(2.0),
              DateTimeStrFormat("%Y-%m-%d %H:%M:%S", pIndexNew->GetBlockTime()));
-    LogPrint(BCLog::INFO, "InvalidChainFound:  current best=%s  height=%d  log2_work=%.8g  date=%s\n",
-             chainActive.Tip()->GetBlockHash().ToString(), chainActive.Height(),
+
+    LogPrint(BCLog::INFO, "[%d] current best=%s  log2_work=%.8g  date=%s\n",
+             chainActive.Height(), chainActive.Tip()->GetBlockHash().ToString(),
              log(chainActive.Tip()->nChainWork.getdouble()) / log(2.0),
              DateTimeStrFormat("%Y-%m-%d %H:%M:%S", chainActive.Tip()->GetBlockTime()));
+
     CheckForkWarningConditions();
 }
 

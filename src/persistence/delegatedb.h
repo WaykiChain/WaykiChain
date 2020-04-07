@@ -34,7 +34,7 @@ public:
 
     uint64_t GetVote() const;
 
-    CRegID GetRegid() const;
+    CRegID GetRegId() const;
 };
 
 class CDelegateDBCache {

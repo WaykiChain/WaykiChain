@@ -24,7 +24,7 @@ uint64_t CTopDelegatesIterator::GetVote() const {
     return DelegateVoteFromKey(GetKey().first);
 }
 
-CRegID CTopDelegatesIterator::GetRegid() const {
+CRegID CTopDelegatesIterator::GetRegId() const {
     return CRegID(GetKey().second);
 }
 
@@ -42,7 +42,7 @@ bool CDelegateDBCache::GetTopVoteDelegates(uint32_t delegateNum, uint64_t BpMinV
                      topVoteDelegates.size(), BpMinVote, delegateNum);
             break;
         }
-        topVoteDelegates.emplace_back(spIt->GetRegid(), spIt->GetVote());
+        topVoteDelegates.emplace_back(spIt->GetRegId(), spIt->GetVote());
     }
 
     if (topVoteDelegates.empty())
