@@ -1829,10 +1829,9 @@ bool ProcessForkedChain(const CBlock &block, CBlockIndex *pPreBlockIndex, CValid
         mapForkCache[pPreBlockIndex->GetBlockHash()] = spCW;
         forkChainTipBlockHash = pPreBlockIndex->GetBlockHash();
         forkChainTipFound     = true;
-        LogPrint(BCLog::INFO, "[%d] add block %.7s** to cache\n", pPreBlockIndex->height,
-                 pPreBlockIndex->GetBlockHash().GetHex());
-
-        LogPrint(BCLog::INFO, "disconnect blocks elapse: %lld ms\n", GetTimeMillis() - beginTime);
+        LogPrint(BCLog::INFO, "[%d] add block %.7s** to cache."
+                              "disconnect block elapse: %lld ms\n",
+                              pPreBlockIndex->height, pPreBlockIndex->GetBlockHash().GetHex(), GetTimeMillis() - beginTime);
     }
 
     uint256 forkChainBestBlockHash   = spCW->blockCache.GetBestBlockHash();
