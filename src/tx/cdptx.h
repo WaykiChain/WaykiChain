@@ -198,10 +198,10 @@ class CCDPInterestForceSettleTx: public CBaseTx {
 public:
     vector<uint256> cdp_list; // cdp list
 public:
-    CCDPInterestForceSettleTx() : CBaseTx(CDP_SETTLE_INTEREST_TX) {}
+    CCDPInterestForceSettleTx() : CBaseTx(CDP_FORCE_SETTLE_INTEREST_TX) {}
 
     CCDPInterestForceSettleTx(int32_t validHeightIn)
-        : CBaseTx(CDP_SETTLE_INTEREST_TX, CUserID(), validHeightIn, 0) {}
+        : CBaseTx(CDP_FORCE_SETTLE_INTEREST_TX, CUserID(), validHeightIn, 0) {}
 
     ~CCDPInterestForceSettleTx() {}
 

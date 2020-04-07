@@ -89,7 +89,7 @@ void CBaseTx::SerializePtr(Stream& os, const std::shared_ptr<CBaseTx> &pBaseTx, 
             ::Serialize(os, (const CCDPRedeemTx&)tx, serType, version); break;
         case CDP_LIQUIDATE_TX:
             ::Serialize(os, (const CCDPLiquidateTx&)tx, serType, version); break;
-        case CDP_SETTLE_INTEREST_TX:
+        case CDP_FORCE_SETTLE_INTEREST_TX:
             ::Serialize(os, (const CCDPInterestForceSettleTx&)tx, serType, version); break;
 
         case WASM_CONTRACT_TX:
@@ -250,7 +250,7 @@ void CBaseTx::UnserializePtr(Stream& is, std::shared_ptr<CBaseTx> &pBaseTx, int 
             ::Unserialize(is, *((CCDPLiquidateTx *)(pBaseTx.get())), serType, version);
             break;
         }
-        case CDP_SETTLE_INTEREST_TX: {
+        case CDP_FORCE_SETTLE_INTEREST_TX: {
             pBaseTx = std::make_shared<CCDPInterestForceSettleTx>();
             ::Unserialize(is, *((CCDPInterestForceSettleTx *)(pBaseTx.get())), serType, version);
             break;

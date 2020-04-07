@@ -105,7 +105,7 @@ bool CBaseTx::CheckBaseTx(CTxExecuteContext &context) {
     || nTxType == PRICE_MEDIAN_TX
     || nTxType == UCOIN_MINT_TX
     || nTxType == UCOIN_BLOCK_REWARD_TX
-    || nTxType == CDP_SETTLE_INTEREST_TX) {
+    || nTxType == CDP_FORCE_SETTLE_INTEREST_TX) {
         return true;
     }
 
@@ -198,7 +198,7 @@ bool CBaseTx::CheckBaseTx(CTxExecuteContext &context) {
 bool CBaseTx::ExecuteFullTx(CTxExecuteContext &context) {
     IMPLEMENT_DEFINE_CW_STATE;
 
-    bool processingTxAccount = (nTxType != PRICE_MEDIAN_TX) && (nTxType != UCOIN_MINT_TX) && (nTxType != CDP_SETTLE_INTEREST_TX);
+    bool processingTxAccount = (nTxType != PRICE_MEDIAN_TX) && (nTxType != UCOIN_MINT_TX) && (nTxType != CDP_FORCE_SETTLE_INTEREST_TX);
 
     /////////////////////////
     // 1. Prior ExecuteTx
