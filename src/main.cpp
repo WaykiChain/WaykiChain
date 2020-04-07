@@ -2263,7 +2263,7 @@ bool ProcessBlock(CValidationState &state, CNode *pFrom, CBlock *pBlock, CDiskBl
         mapOrphanBlocksByPrev.erase(prevBlockHash);
     }
 
-    LogPrint(BCLog::INFO, "[%d] elapse time:%lld ms\n", pBlock->GetHeight(), GetTimeMillis() - llBeginTime);
+    LogPrint(BCLog::DEBUG, "[%d] elapse time:%lld ms\n", pBlock->GetHeight(), GetTimeMillis() - llBeginTime);
     return true;
 }
 
