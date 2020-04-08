@@ -55,7 +55,7 @@ std::shared_ptr<string>  CLuaVMRunEnv::ExecuteContract(CLuaVMContext *pContextIn
         return make_shared<string>("VmScript CheckOperate Failed");
     }
 
-    if (!OperateAccount(p_context->p_tx_user_account, vmOperateOutput)) {
+    if (!OperateAccount(vmOperateOutput)) {
         return make_shared<string>("VmScript OperateAccount Failed");
     }
 
@@ -250,7 +250,7 @@ bool CLuaVMRunEnv::CheckAppAcctOperate() {
     return true;
 }
 
-bool CLuaVMRunEnv::OperateAccount(CAccount *pTxAccount, const vector<CVmOperate>& operates) {
+bool CLuaVMRunEnv::OperateAccount(const vector<CVmOperate>& operates) {
 
     for (auto& operate : operates) {
         uint64_t value;
