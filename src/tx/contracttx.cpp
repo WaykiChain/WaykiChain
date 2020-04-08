@@ -396,10 +396,6 @@ bool CUniversalContractInvokeTx::ExecuteTx(CTxExecuteContext &context) {
         return state.DoS(100, ERRORMSG("CUniversalContractInvokeTx::ExecuteTx, txAccount has insufficient funds"),
                          UPDATE_ACCOUNT_FAIL, "operate-minus-account-failed");
 
-    if (!cw.accountCache.SetAccount(app_uid, appAccount))
-        return state.DoS(100, ERRORMSG("CUniversalContractInvokeTx::ExecuteTx, save account error, kyeId=%s",
-                        appAccount.keyid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-save-account");
-
     CUniversalContract contract;
     if (!cw.contractCache.GetContract(app_uid.get<CRegID>(), contract))
         return state.DoS(100, ERRORMSG("CUniversalContractInvokeTx::ExecuteTx, read script failed, regId=%s",
@@ -447,6 +443,10 @@ bool CUniversalContractInvokeTx::ExecuteTx(CTxExecuteContext &context) {
             return state.DoS(100, ERRORMSG("CUniversalContractInvokeTx::ExecuteTx, write fcoin genesis account info error!"),
                              UPDATE_ACCOUNT_FAIL, "bad-write-accountdb");
     }
+
+    if (!cw.accountCache.SetAccount(app_uid, appAccount))
+        return state.DoS(100, ERRORMSG("CUniversalContractInvokeTx::ExecuteTx, save account error, kyeId=%s",
+                        appAccount.keyid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-save-account");
 
     return true;
 }
