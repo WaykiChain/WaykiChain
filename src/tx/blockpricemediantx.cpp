@@ -293,7 +293,7 @@ bool CCdpForceLiquidator::Execute() {
     uint64_t totalInflateFcoins  = 0;
     for (auto &cdpPair : cdpMap) {
         auto &cdp = cdpPair.second;
-        if (count + 1 > FORCE_SETTLE_CDP_MAX_COUNT_PER_BLOCK)
+        if (count + 1 > CDP_FORCE_LIQUIDATE_MAX_COUNT)
             break;
 
         // Suppose we have 120 (owed scoins' amount), 30, 50 three cdps, but current risk reserve scoins is 100,
@@ -452,7 +452,7 @@ bool CCdpForceLiquidator::ForceLiquidateCDPCompat(CCdpRatioIndexCache::Map &cdps
     uint64_t currRiskReserveScoins = fcoinGenesisAccount.GetToken(SYMB::WUSD).free_amount;
     uint32_t orderIndex            = 0;
     for (auto &cdp : cdpSet) {
-        if (++cdpIndex > FORCE_SETTLE_CDP_MAX_COUNT_PER_BLOCK)
+        if (++cdpIndex > CDP_FORCE_LIQUIDATE_MAX_COUNT)
             break;
 
         LogPrint(BCLog::CDP,
