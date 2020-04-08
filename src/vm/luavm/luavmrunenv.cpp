@@ -265,6 +265,12 @@ bool CLuaVMRunEnv::OperateAccount(CAccount *pTxAccount, const vector<CVmOperate>
             uid = CKeyID(string(accountId.begin(), accountId.end()));
         }
 
+        if (uid.IsEmpty()) {
+            LogPrint(BCLog::LUAVM, "[ERR] the uid is empty! accountId=%s\n", __func__,
+                    HexStr(accountId));
+            return false;
+        }
+
         shared_ptr<CAccount> spAccount = nullptr; //std::make_shared<CAccount>();
         {
             CAccount *pAccount = nullptr;
