@@ -252,6 +252,7 @@ bool CLuaVMRunEnv::CheckAppAcctOperate() {
 
 bool CLuaVMRunEnv::OperateAccount(const vector<CVmOperate>& operates) {
 
+    FeatureForkVersionEnum version = GetFeatureForkVersion(p_context->height);
     for (auto& operate : operates) {
         uint64_t value;
         memcpy(&value, operate.money, sizeof(operate.money));
@@ -265,11 +266,6 @@ bool CLuaVMRunEnv::OperateAccount(const vector<CVmOperate>& operates) {
             uid = CKeyID(string(accountId.begin(), accountId.end()));
         }
 
-        if (uid.IsEmpty()) {
-            LogPrint(BCLog::LUAVM, "[ERR] the uid is empty! accountId=%s\n", HexStr(accountId));
-            return false;
-        }
-
         shared_ptr<CAccount> spAccount = nullptr; //std::make_shared<CAccount>();
         {
             CAccount *pAccount = nullptr;
@@ -279,17 +275,31 @@ bool CLuaVMRunEnv::OperateAccount(const vector<CVmOperate>& operates) {
                 pAccount = p_context->p_tx_user_account;
             } else {
                 spAccount = make_shared<CAccount>();
-                if (!p_context->p_cw->accountCache.GetAccount(uid, *spAccount)) {
-                    if (!uid.is<CKeyID>()) {
-                        LogPrint(BCLog::LUAVM, "[ERR]%s(), get to_account failed! to_uid=%s\n", __func__,
+                if (!uid.IsEmpty()) {
+                    if (!p_context->p_cw->accountCache.GetAccount(uid, *spAccount)) {
+                        if (!uid.is<CKeyID>()) {
+                            LogPrint(BCLog::LUAVM, "[ERR]%s(), get to_account failed! to_uid=%s\n", __func__,
+                                    uid.ToDebugString());
+                            return false;
+                        }
+
+                        // create new user
+                        spAccount = make_shared<CAccount>(uid.get<CKeyID>());
+                        LogPrint(BCLog::LUAVM, "%s(), create new user! to_uid=%s\n", __func__,
                                 uid.ToDebugString());
+                    }
+                } else {
+                    if (version <= MAJOR_VER_R2 && accountId.size() != 6) {
+                        LogPrint(BCLog::LUAVM, "[WARNING] the keyid of vm_operate is empty! "
+                                "accountId=%s, height=%u, txid=%s\n", HexStr(accountId),
+                                p_context->height, p_context->p_base_tx->GetHash().ToString());
+                        // ignore the empty keyid and get an empty account to compatible for old data
+                        // the empty account will not be saved,
+                        // but the operate receipt will be saved
+                    } else {
+                        LogPrint(BCLog::LUAVM, "[ERR] the uid is empty! accountId=%s\n", HexStr(accountId));
                         return false;
                     }
-
-                    // create new user
-                    spAccount = make_shared<CAccount>(uid.get<CKeyID>());
-                    LogPrint(BCLog::LUAVM, "%s(), create new user! to_uid=%s\n", __func__,
-                            uid.ToDebugString());
                 }
                 pAccount = spAccount.get();
             }
