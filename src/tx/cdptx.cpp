@@ -1061,8 +1061,8 @@ bool CCDPLiquidateTx::ProcessPenaltyFees(CTxExecuteContext &context, const CUser
  bool CCDPInterestForceSettleTx::CheckTx(CTxExecuteContext &context) {
      CValidationState &state = *context.pState;
     auto sz = cdp_list.size();
-    if ( sz == 0 || sz > CDP_LIST_SIZE_MAX)
-        return state.DoS(100, ERRORMSG("%s, cdp_list size=%u is out of range[1, %u]", TX_ERR_TITLE, sz, CDP_LIST_SIZE_MAX),
+    if ( sz == 0 || sz > CDP_SETTLE_INTEREST_MAX_COUNT)
+        return state.DoS(100, ERRORMSG("%s, cdp_list size=%u is out of range[1, %u]", TX_ERR_TITLE, sz, CDP_SETTLE_INTEREST_MAX_COUNT),
             REJECT_INVALID, "invalid-cdp-list-size");
     if (!txUid.IsEmpty()) // txUid is reserved
         return state.DoS(100, ERRORMSG("%s, txUid must be empty", TX_ERR_TITLE),
@@ -1198,7 +1198,7 @@ bool GetSettledInterestCdps(CCacheWrapper &cw, HeightType height, vector<uint256
     }
 
     Array cdpInfoArray;
-    uint32_t count = CDP_LIST_SIZE_MAX;
+    uint32_t count = CDP_SETTLE_INTEREST_MAX_COUNT;
 
     for (const auto& item : medianPrices) {
         if (item.first == kFcoinPriceCoinPair) continue;

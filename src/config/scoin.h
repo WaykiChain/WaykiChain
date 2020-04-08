@@ -29,12 +29,12 @@ static const uint32_t FUND_COIN_GENESIS_INITIAL_RESERVE_AMOUNT = 1000000;      /
 static const uint64_t FCOIN_VOTEMINE_EPOCH_FROM = 1665886560;  // Sun Oct 16 2022 10:16:00 GMT+0800
 static const uint64_t FCOIN_VOTEMINE_EPOCH_TO   = 1792116960;  // Fri Oct 16 2026 10:16:00 GMT+0800
 
-static const uint16_t FORCE_SETTLE_CDP_MAX_COUNT_PER_BLOCK = 1000;  // depends on TPS
+static const uint16_t CDP_FORCE_LIQUIDATE_MAX_COUNT = 100;  // depends on TPS
+static const uint32_t CDP_SETTLE_INTEREST_MAX_COUNT = 100;
 
 static const double TRANSACTION_PRIORITY_CEILING      = 1000.0;  // Most trx priority is less than 1000.0
 static const double PRICE_MEDIAN_TRANSACTION_PRIORITY = 10000.0;
 static const double PRICE_FEED_TRANSACTION_PRIORITY   = 20000.0;
-
 
 static const uint64_t MIN_DEX_ORDER_AMOUNT  = 0.1 * COIN;  // min amount of dex order limit
 static const uint64_t MAX_SETTLE_ITEM_COUNT = 10000;       // max count of dex settle item limit.
@@ -42,8 +42,6 @@ static const uint64_t MAX_SETTLE_ITEM_COUNT = 10000;       // max count of dex s
 
 static const uint64_t DEX_OPERATOR_FEE_RATIO_MAX = 50 * PRICE_BOOST;
 static const uint64_t DEX_PRICE_MAX = 1000000 * PRICE_BOOST;
-
-static const uint32_t CDP_LIST_SIZE_MAX = 500;
 
 enum CdpParamType : uint8_t {
     NULL_CDP_PARAM_TYPE                     = 0,
