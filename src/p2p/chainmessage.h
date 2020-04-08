@@ -897,10 +897,12 @@ bool ProcessBlockFinalityMessage(CNode *pFrom, CDataStream &vRecv) {
 
     msgMan.AddMessageKnown(message);
     int messageCount = msgMan.SaveMessageByBlock(message.blockHash, message);
-    pbftMan.UpdateGlobalFinBlock(message, messageCount) ;
+    pbftMan.UpdateGlobalFinBlock(message, messageCount);
 
-    if(CheckPBFTMessageSignaturer(message))
-        RelayBlockFinalityMessage(message) ;
+    if(CheckPBFTMessageSignaturer(message)){
+        RelayBlockFinalityMessage(message);
+    }
+
 
     return true ;
 }

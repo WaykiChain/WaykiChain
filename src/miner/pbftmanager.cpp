@@ -16,7 +16,13 @@ extern CPBFTContext pbftContext;
 extern CWallet *pWalletMain;
 extern CCacheDBManager *pCdMan;
 
-uint32_t GetFinalBlockMinerCount() {
+uint32_t GetFinalBlockMinerCount(const uint256& preHash = uint256()) {
+    set<CRegID> bpSet;
+    if(preHash != uint256() && pbftContext.GetMinerListByBlockHash(preHash, bpSet)) {
+        uint32_t bpsize = bpSet.size();
+        return bpsize - bpsize/3;
+
+    }
     uint32_t totalBpsSize =  pCdMan->pDelegateCache->GetActivedDelegateNum();
     return totalBpsSize - totalBpsSize/3;
 
@@ -111,7 +117,7 @@ bool CPBFTMan::UpdateLocalFinBlock(const CBlockIndex* pIndex){
     }
     int32_t height = pIndex->height;
 
-    uint32_t needConfirmCount = GetFinalBlockMinerCount();
+    uint32_t needConfirmCount = GetFinalBlockMinerCount(*(pIndex->pprev->pBlockHash));
 
     while(height > GetLocalFinIndex()->height&& height>0 && height > pIndex->height-10){
 
@@ -144,7 +150,7 @@ bool CPBFTMan::UpdateLocalFinBlock(const CBlockIndex* pIndex){
 
 bool CPBFTMan::UpdateLocalFinBlock(const CBlockConfirmMessage& msg, const uint32_t messageCount){
 
-    uint32_t needConfirmCount = GetFinalBlockMinerCount();
+    uint32_t needConfirmCount = GetFinalBlockMinerCount(msg.preBlockHash);
     if( needConfirmCount > messageCount) {
         return false;
     }
@@ -195,7 +201,7 @@ bool CPBFTMan::UpdateGlobalFinBlock(const CBlockIndex* pIndex){
         return false;
 
     int32_t height = pIndex->height;
-    uint32_t needConfirmCount = GetFinalBlockMinerCount();
+    uint32_t needConfirmCount = GetFinalBlockMinerCount(*(pIndex->pprev->pBlockHash));
 
     while (height > GetGlobalFinIndex()->height&& height>0 &&height > pIndex->height-50) {
         CBlockIndex* pTemp = chainActive[height];
@@ -233,7 +239,7 @@ int64_t  CPBFTMan::GetLocalFinLastUpdate() const {
 
 bool CPBFTMan::UpdateGlobalFinBlock(const CBlockFinalityMessage& msg, const uint32_t messageCount ){
 
-    uint32_t needConfirmCount = GetFinalBlockMinerCount();
+    uint32_t needConfirmCount = GetFinalBlockMinerCount(msg.preBlockHash);
     if(needConfirmCount > messageCount)
         return false;
 
