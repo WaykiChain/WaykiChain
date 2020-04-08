@@ -269,9 +269,9 @@ bool CLuaVMRunEnv::OperateAccount(CAccount *pTxAccount, const vector<CVmOperate>
         {
             CAccount *pAccount = nullptr;
             if (p_context->p_app_account->IsSelfUid(uid)) {
-                CAccount *pAccount = p_context->p_app_account;
+                pAccount = p_context->p_app_account;
             } else if (p_context->p_tx_user_account->IsSelfUid(uid)) {
-                CAccount *pAccount = p_context->p_tx_user_account;
+                pAccount = p_context->p_tx_user_account;
             } else {
                 spAccount = make_shared<CAccount>();
                 if (!p_context->p_cw->accountCache.GetAccount(uid, *spAccount)) {
@@ -324,12 +324,11 @@ bool CLuaVMRunEnv::TransferAccountAsset(lua_State *L, const vector<AssetTransfer
     for (auto& transfer : transfers) {
         bool isNewAccount = false;
         CAccount *pFromAccount = nullptr;
-        CUserID fromUid;
 
         if (transfer.isContractAccount) {
-            fromUid = p_context->p_app_account;
+            pFromAccount = p_context->p_app_account;
         } else {
-            fromUid = p_context->p_tx_user_account;
+            pFromAccount = p_context->p_tx_user_account;
         }
 
         shared_ptr<CAccount> spToAccount = nullptr;
@@ -362,8 +361,8 @@ bool CLuaVMRunEnv::TransferAccountAsset(lua_State *L, const vector<AssetTransfer
             if (!pFromAccount->OperateBalance(transfer.tokenType, SUB_FREE, transfer.tokenAmount,
                                             ReceiptCode::CONTRACT_ACCOUNT_TRANSFER_ASSET, receipts, pToAccount)) {
                 LogPrint(BCLog::LUAVM, "[ERR]CLuaVMRunEnv::TransferAccountAsset(), operate SUB_FREE in from_account failed! "
-                    "from_uid=%s, isContractAccount=%d, symbol=%s, amount=%llu\n",
-                    fromUid.ToString(), (int)transfer.isContractAccount, transfer.tokenType,
+                    "from_regid=%s, isContractAccount=%d, symbol=%s, amount=%llu\n",
+                    pFromAccount->regid.ToString(), (int)transfer.isContractAccount, transfer.tokenType,
                     transfer.tokenAmount);
                 ret = false;
                 break;
