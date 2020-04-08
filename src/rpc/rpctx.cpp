@@ -662,15 +662,15 @@ Value disconnectblock(const Array& params, bool fHelp) {
     int32_t number = params[0].get_int();
 
 
-    if (number >= chainActive.Height()) {
+    if (number >= chainActive.Height())
         throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid number");
-    }
+
     if (number > 0) {
         CValidationState state;
         do {
             CBlockIndex * pTipIndex = chainActive.Tip();
-            if (!DisconnectBlockFromTip(state))
-                throw JSONRPCError(RPC_MISC_ERROR, "DisconnectBlockFromTip err");
+            if (!DisconnectTip(state))
+                throw JSONRPCError(RPC_MISC_ERROR, "DisconnectTip err");
 
             chainMostWork.SetTip(pTipIndex->pprev);
             if (!EraseBlockIndexFromSet(pTipIndex))

@@ -233,7 +233,7 @@ bool ProcessForkedChain(const CBlock &block, CValidationState &state);
 bool AcceptBlock(CBlock &block, CValidationState &state, CDiskBlockPos *dbp = nullptr, bool mining = false);
 
 //disconnect block for test
-bool DisconnectBlockFromTip(CValidationState &state);
+bool DisconnectTip(CValidationState &state);
 
 /** Mark a block as invalid. */
 bool InvalidateBlock(CValidationState &state, CBlockIndex *pIndex);

@@ -634,7 +634,7 @@ bool InvalidateBlock(CValidationState &state, CBlockIndex *pIndex) {
 
         // ActivateBestChain considers blocks already in chainActive
         // unconditionally valid already, so force disconnect away from it.
-        if (!DisconnectBlockFromTip(state)) {
+        if (!DisconnectTip(state)) {
             return false;
         }
     }
@@ -1388,7 +1388,7 @@ void static UpdateTip(CBlockIndex *pIndexNew, const CBlock &block) {
 }
 
 // Disconnect chainActive's tip.
-bool static DisconnectTip(CValidationState &state) {
+bool DisconnectTip(CValidationState &state) {
     CBlockIndex *pIndexDelete = chainActive.Tip();
     assert(pIndexDelete);
     // Read block from disk.
@@ -2686,10 +2686,6 @@ class CMainCleanup {
         setOrphanBlock.clear();
     }
 } instance_of_cmaincleanup;
-
-bool DisconnectBlockFromTip(CValidationState &state) {
-    return DisconnectTip(state);
-}
 
 bool EraseBlockIndexFromSet(CBlockIndex *pIndex) {
     AssertLockHeld(cs_main);
