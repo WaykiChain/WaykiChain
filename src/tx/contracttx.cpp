@@ -387,18 +387,18 @@ bool CUniversalContractInvokeTx::ExecuteTx(CTxExecuteContext &context) {
 
     CAccount appAccount;
     if (!cw.accountCache.GetAccount(app_uid, appAccount)) {
-        return state.DoS(100, ERRORMSG("CUniversalContractInvokeTx::ExecuteTx, get account info failed by regid:%s",
+        return state.DoS(100, ERRORMSG("get account info failed by regid:%s",
                         app_uid.get<CRegID>().ToString()), READ_ACCOUNT_FAIL, "bad-read-accountdb");
     }
 
     if (!txAccount.OperateBalance(coin_symbol, BalanceOpType::SUB_FREE, coin_amount,
                                   ReceiptCode::LUAVM_TRANSFER_ACTUAL_COINS, receipts, &appAccount))
-        return state.DoS(100, ERRORMSG("CUniversalContractInvokeTx::ExecuteTx, txAccount has insufficient funds"),
+        return state.DoS(100, ERRORMSG("txAccount has insufficient funds"),
                          UPDATE_ACCOUNT_FAIL, "operate-minus-account-failed");
 
     CUniversalContract contract;
     if (!cw.contractCache.GetContract(app_uid.get<CRegID>(), contract))
-        return state.DoS(100, ERRORMSG("CUniversalContractInvokeTx::ExecuteTx, read script failed, regId=%s",
+        return state.DoS(100, ERRORMSG("read script failed, regId=%s",
                         app_uid.get<CRegID>().ToString()), READ_ACCOUNT_FAIL, "bad-read-script");
 
     CLuaVMRunEnv vmRunEnv;
@@ -420,7 +420,7 @@ bool CUniversalContractInvokeTx::ExecuteTx(CTxExecuteContext &context) {
     int64_t llTime = GetTimeMillis();
     auto pExecErr  = vmRunEnv.ExecuteContract(&luaContext, nRunStep);
     if (pExecErr)
-        return state.DoS(100, ERRORMSG("CUniversalContractInvokeTx::ExecuteTx, txid=%s run script error: %s", GetHash().GetHex(), *pExecErr),
+        return state.DoS(100, ERRORMSG("txid=%s run script error: %s", GetHash().GetHex(), *pExecErr),
                         EXECUTE_SCRIPT_FAIL, "run-script-error: " + *pExecErr);
 
     receipts.insert(receipts.end(), vmRunEnv.GetReceipts().begin(), vmRunEnv.GetReceipts().end());
@@ -435,17 +435,17 @@ bool CUniversalContractInvokeTx::ExecuteTx(CTxExecuteContext &context) {
 
         if (!fcoinGenesisAccount.OperateBalance(SYMB::WUSD, BalanceOpType::ADD_FREE, fuel,
                                                 ReceiptCode::CONTRACT_FUEL_TO_RISK_RESERVE, receipts)) {
-            return state.DoS(100, ERRORMSG("CUniversalContractInvokeTx::ExecuteTx, operate balance failed"),
+            return state.DoS(100, ERRORMSG("operate balance failed"),
                              UPDATE_ACCOUNT_FAIL, "operate-scoins-genesis-account-failed");
         }
 
         if (!cw.accountCache.SetAccount(fcoinGenesisAccount.keyid, fcoinGenesisAccount))
-            return state.DoS(100, ERRORMSG("CUniversalContractInvokeTx::ExecuteTx, write fcoin genesis account info error!"),
+            return state.DoS(100, ERRORMSG("write fcoin genesis account info error!"),
                              UPDATE_ACCOUNT_FAIL, "bad-write-accountdb");
     }
 
     if (!cw.accountCache.SetAccount(app_uid, appAccount))
-        return state.DoS(100, ERRORMSG("CUniversalContractInvokeTx::ExecuteTx, save account error, kyeId=%s",
+        return state.DoS(100, ERRORMSG("save account error, kyeId=%s",
                         appAccount.keyid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-save-account");
 
     return true;
