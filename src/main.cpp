@@ -1783,7 +1783,7 @@ bool ProcessForkedChain(const CBlock &block, CBlockIndex *pPreBlockIndex, CValid
 
         pPreBlockIndex = pPreBlockIndex->pprev;
 
-        // FIXME: enable it to avoid forked chain attack.
+        // enable it to avoid forked chain attack.
         if (chainActive.Height() - pPreBlockIndex->height > SysCfg().GetMaxForkHeight(block.GetHeight()))
             return state.DoS(100, ERRORMSG("block at fork chain too earlier than tip block hash=%s block height=%d\n",
                     block.GetHash().GetHex(), block.GetHeight()));
@@ -1792,7 +1792,7 @@ bool ProcessForkedChain(const CBlock &block, CBlockIndex *pPreBlockIndex, CValid
             return state.DoS(10, ERRORMSG("prev block not found"), 0, "bad-prevblk");
     }
 
-    // FIXME: enable it to avoid forked chain attack.
+    // enable it to avoid forked chain attack.
     if (chainActive.Height() - pPreBlockIndex->height > SysCfg().GetMaxForkHeight(block.GetHeight()))
         return state.DoS(100, ERRORMSG("block at fork chain too earlier than tip block hash=%s block height=%d\n",
                 block.GetHash().GetHex(), block.GetHeight()));
@@ -2170,21 +2170,18 @@ bool ProcessBlock(CValidationState &state, CNode *pFrom, CBlock *pBlock, CDiskBl
     uint256 blockHash    = pBlock->GetHash();
     uint32_t blockHeight = pBlock->GetHeight();
     if (mapBlockIndex.count(blockHash))
-        return state.Invalid(ERRORMSG("block [%u]: %s exists", blockHeight, blockHash.ToString()), 0,
+        return state.Invalid(ERRORMSG("[%u] block(%s) exists", blockHeight, blockHash.ToString()), 0,
                              "duplicate");
 
-
     if (mapOrphanBlocks.count(blockHash))
-        return state.Invalid(
-            ERRORMSG("block (orphan) [%u]: %s exists", blockHeight, blockHash.ToString()), 0,
-            "duplicate");
+        return state.Invalid(ERRORMSG("[%u] (orphan) block(%s) exists", blockHeight, blockHash.ToString()), 0, "duplicate");
 
     int64_t llBeginCheckBlockTime = GetTimeMillis();
     auto spCW = std::make_shared<CCacheWrapper>(pCdMan);
 
     // Preliminary checks
     if (!CheckBlock(*pBlock, state, *spCW, false)) {
-        LogPrint(BCLog::INFO, "CheckBlock() height: %d elapse time:%lld ms\n", chainActive.Height(),
+        LogPrint(BCLog::INFO, "[%d] CheckBlock elapse time: %lld ms\n", chainActive.Height(),
                  GetTimeMillis() - llBeginCheckBlockTime);
 
         return ERRORMSG("block hash:%s CheckBlock FAILED", pBlock->GetHash().GetHex());
