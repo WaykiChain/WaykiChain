@@ -357,7 +357,7 @@ bool CUniversalContractInvokeTx::CheckTx(CTxExecuteContext &context) {
     IMPLEMENT_CHECK_TX_APPID(app_uid);
 
     if ((txUid.is<CPubKey>()) && !txUid.get<CPubKey>().IsFullyValid())
-        return state.DoS(100, ERRORMSG("CUniversalContractInvokeTx::CheckTx, public key is invalid"), REJECT_INVALID,
+        return state.DoS(100, ERRORMSG("public key is invalid"), REJECT_INVALID,
                          "bad-publickey");
 
 
@@ -365,13 +365,13 @@ bool CUniversalContractInvokeTx::CheckTx(CTxExecuteContext &context) {
         // TODO: remove me if reset testnet.
     } else {
             if (!cw.assetCache.CheckAsset(coin_symbol))
-                return state.DoS(100, ERRORMSG("CUniversalContractInvokeTx::CheckTx, invalid coin_symbol=%s", coin_symbol),
+                return state.DoS(100, ERRORMSG("invalid coin_symbol=%s", coin_symbol),
                                  REJECT_INVALID, "invalid-coin-symbol");
     }
 
     CUniversalContract contract;
     if (!cw.contractCache.GetContract(app_uid.get<CRegID>(), contract))
-        return state.DoS(100, ERRORMSG("CUniversalContractInvokeTx::CheckTx, read script failed, regId=%s",
+        return state.DoS(100, ERRORMSG("read script failed, regId=%s",
                         app_uid.get<CRegID>().ToString()), REJECT_INVALID, "bad-read-script");
 
     return true;
