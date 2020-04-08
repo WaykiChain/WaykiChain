@@ -10,14 +10,14 @@ bool CTxReceiptDBCache::SetTxReceipts(const TxID &txid, const vector<CReceipt> &
     if (!SysCfg().IsGenReceipt())
         return true;
 
-    return txReceiptCache.SetData(txid, receipts);
+    return tx_receipt_cache.SetData(txid, receipts);
 }
 
 bool CTxReceiptDBCache::GetTxReceipts(const TxID &txid, vector<CReceipt> &receipts) {
     if (!SysCfg().IsGenReceipt())
         return false;
 
-    return txReceiptCache.GetData(txid, receipts);
+    return tx_receipt_cache.GetData(txid, receipts);
 }
 
-void CTxReceiptDBCache::Flush() { txReceiptCache.Flush(); }
+void CTxReceiptDBCache::Flush() { tx_receipt_cache.Flush(); }

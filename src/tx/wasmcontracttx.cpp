@@ -343,7 +343,7 @@ bool CWasmContractTx::ExecuteTx(CTxExecuteContext &context) {
 
         //save trx receipts
         // trace_to_receipts(trx_trace, receipts);
-        // CHAIN_ASSERT( database.txReceiptCache.SetTxReceipts(GetHash(), receipts),
+        // CHAIN_ASSERT( database.tx_receipt_cache.SetTxReceipts(GetHash(), receipts),
         //               wasm_chain::account_access_exception,
         //               "set tx '%s' receipts failed",
         //               GetHash().ToString())

@@ -243,7 +243,7 @@ Value verifymessage(const Array& params, bool fHelp) {
     /**** log db                                                                    */ \
     DEFINE( TX_EXECUTE_FAIL,      pLogCache,  executeFailCache ) \
     /**** tx receipt db                                                                    */ \
-    DEFINE( TX_RECEIPT,           pReceiptCache,   txReceiptCache ) \
+    DEFINE( TX_RECEIPT,           pReceiptCache,   tx_receipt_cache ) \
     /**** tx coinutxo db                                                                    */ \
     DEFINE( TX_UTXO,              pUtxoCache,   tx_utxo_cache) \
     /**** sys param db                                                              */\
