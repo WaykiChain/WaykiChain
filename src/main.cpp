@@ -1046,7 +1046,7 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
         // Verify that the cache's current state corresponds to the previous block
         uint256 hashPrevBlock = pIndex->pprev == nullptr ? uint256() : pIndex->pprev->GetBlockHash();
         if (hashPrevBlock != cw.blockCache.GetBestBlockHash()) {
-            LogPrint(BCLog::INFO, "[%d] hashPrevBlock=%.7s**, bestblock=%.7s**\n", hashPrevBlock.GetHeight(), hashPrevBlock.GetHex(),
+            LogPrint(BCLog::INFO, "[%d] hashPrevBlock=%.7s**, bestblock=%.7s**\n", pIndex->height, hashPrevBlock.GetHex(),
                      cw.blockCache.GetBestBlockHash().GetHex());
 
             assert(hashPrevBlock == cw.blockCache.GetBestBlockHash());
@@ -1108,7 +1108,7 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
         for (int32_t index = 1; index < (int32_t)block.vptx.size(); ++index) {
             std::shared_ptr<CBaseTx> &pBaseTx = block.vptx[index];
             if (cw.txCache.HasTx((pBaseTx->GetHash())))
-                return state.DoS(100, ERRORMSG("[%d] txid=%s duplicated", pBaseTx->GetHash().GetHex()), curHeight,
+                return state.DoS(100, ERRORMSG("[%d] txid=%s duplicated", curHeight, pBaseTx->GetHash().GetHex()),
                                  REJECT_INVALID, "tx-duplicated");
 
             if (!pBaseTx->IsValidHeight(curHeight, validHeight))
