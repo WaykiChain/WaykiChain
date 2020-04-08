@@ -266,8 +266,7 @@ bool CLuaVMRunEnv::OperateAccount(const vector<CVmOperate>& operates) {
         }
 
         if (uid.IsEmpty()) {
-            LogPrint(BCLog::LUAVM, "[ERR] the uid is empty! accountId=%s\n", __func__,
-                    HexStr(accountId));
+            LogPrint(BCLog::LUAVM, "[ERR] the uid is empty! accountId=%s\n", HexStr(accountId));
             return false;
         }
 
