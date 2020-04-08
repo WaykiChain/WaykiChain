@@ -1065,18 +1065,27 @@ int32_t ExGetAccountPublickeyFunc(lua_State *L) {
     if (!GetKeyId(*(pVmRunEnv->GetAccountCache()), *retdata.at(0).get(), addrKeyId)) {
         return RetFalse("ExGetAccountPublickeyFunc para err2");
     }
-    CUserID userid(addrKeyId);
-    CAccount account;
-    if (!pVmRunEnv->GetAccountCache()->GetAccount(userid, account)) {
-        return RetFalse("ExGetAccountPublickeyFunc para err3");
+    CUserID uid(addrKeyId);
+    shared_ptr<CAccount> spAccount = nullptr;
+    CAccount *pAccount = nullptr;
+    if (pVmRunEnv->GetContext().p_app_account->IsSelfUid(uid)) {
+        pAccount = pVmRunEnv->GetContext().p_app_account;
+    } else if (pVmRunEnv->GetContext().p_tx_user_account->IsSelfUid(uid)) {
+        pAccount = pVmRunEnv->GetContext().p_tx_user_account;
+    } else {
+        spAccount = make_shared<CAccount>();
+        if (!pVmRunEnv->GetCw()->accountCache.GetAccount(uid, *spAccount)) {
+            LogPrint(BCLog::LUAVM, "[ERROR] The account not exist! address=%s\n", uid.ToDebugString());
+            return 0;
+        }
+        pAccount = spAccount.get();
+    }
+    if (pAccount->owner_pubkey.IsFullyValid()) {
+        return RetFalse("ExGetAccountPublickeyFunc pubKey invalid");
     }
     CDataStream tep(SER_DISK, CLIENT_VERSION);
     vector<char> te;
-    tep << account.owner_pubkey;
-    // assert(account.owner_pubkey.IsFullyValid());
-    if (false == account.owner_pubkey.IsFullyValid()) {
-        return RetFalse("ExGetAccountPublickeyFunc pubKey invalid");
-    }
+    tep << pAccount->owner_pubkey;
     tep >> te;
     vector<uint8_t> tep1(te.begin(), te.end());
     return RetRstToLua(L, tep1);
@@ -1105,13 +1114,24 @@ int32_t ExQueryAccountBalanceFunc(lua_State *L) {
         return RetFalse("ExQueryAccountBalanceFunc para err2");
     }
 
-    CUserID userid(addrKeyId);
-    CAccount account;
+    CUserID uid(addrKeyId);
     int32_t len = 0;
-    if (!pVmRunEnv->GetAccountCache()->GetAccount(userid, account))
-        return 0;
+    shared_ptr<CAccount> spAccount = nullptr;
+    CAccount *pAccount = nullptr;
+    if (pVmRunEnv->GetContext().p_app_account->IsSelfUid(uid)) {
+        pAccount = pVmRunEnv->GetContext().p_app_account;
+    } else if (pVmRunEnv->GetContext().p_tx_user_account->IsSelfUid(uid)) {
+        pAccount = pVmRunEnv->GetContext().p_tx_user_account;
+    } else {
+        spAccount = make_shared<CAccount>();
+        if (!pVmRunEnv->GetCw()->accountCache.GetAccount(uid, *spAccount)) {
+            LogPrint(BCLog::LUAVM, "[ERROR] The account not exist! address=%s\n", uid.ToDebugString());
+            return 0;
+        }
+        pAccount = spAccount.get();
+    }
 
-    uint64_t nbalance = account.GetToken(SYMB::WICC).free_amount;
+    uint64_t nbalance = pAccount->GetToken(SYMB::WICC).free_amount;
     CDataStream tep(SER_DISK, CLIENT_VERSION);
     tep << nbalance;
     vector<uint8_t> TMP(tep.begin(), tep.end());
@@ -2418,10 +2438,19 @@ int32_t ExGetAccountAssetFunc(lua_State *L) {
     }
     LUA_BurnAccount(L, FUEL_ACCOUNT_GET_VALUE, BURN_VER_R2);
 
-    auto pAccount = make_shared<CAccount>();
-    if (!pVmRunEnv->GetCw()->accountCache.GetAccount(uid, *pAccount)) {
-        LogPrint(BCLog::LUAVM, "[ERROR]%s(), The account not exist! address=%s\n", __FUNCTION__, uid.ToDebugString());
-        return 0;
+    shared_ptr<CAccount> spAccount = nullptr;
+    CAccount *pAccount = nullptr;
+    if (pVmRunEnv->GetContext().p_app_account->IsSelfUid(uid)) {
+        pAccount = pVmRunEnv->GetContext().p_app_account;
+    } else if (pVmRunEnv->GetContext().p_tx_user_account->IsSelfUid(uid)) {
+        pAccount = pVmRunEnv->GetContext().p_tx_user_account;
+    } else {
+        spAccount = make_shared<CAccount>();
+        if (!pVmRunEnv->GetCw()->accountCache.GetAccount(uid, *spAccount)) {
+            LogPrint(BCLog::LUAVM, "[ERROR] The account not exist! address=%s\n", uid.ToDebugString());
+            return 0;
+        }
+        pAccount = spAccount.get();
     }
 
     uint64_t value;
