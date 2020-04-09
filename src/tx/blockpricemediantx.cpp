@@ -10,19 +10,17 @@ using namespace dex;
 
 class CCdpForceLiquidator {
 public:
+    uint32_t liquidated_count = 0;
+public:
     CCdpForceLiquidator(CBlockPriceMedianTx &txIn, CTxExecuteContext &contextIn,
-        vector<CReceipt> &receiptsIn, CAccount &fcoinGenesisAccountIn, uint32_t &liquidatedLimitCountIn,
-        const TokenSymbol &assetSymbolIn, const TokenSymbol &scoinSymbolIn, uint64_t bcoinPriceIn,
-        uint64_t fcoindUsdPriceIn)
-    : tx(txIn),
-      context(contextIn),
-      receipts(receiptsIn),
-      fcoinGenesisAccount(fcoinGenesisAccountIn),
-      liquidated_limit_count(liquidatedLimitCountIn),
-      assetSymbol(assetSymbolIn),
-      scoinSymbol(scoinSymbolIn),
-      bcoin_price(bcoinPriceIn),
-      fcoin_usd_price(fcoindUsdPriceIn) {}
+                        vector<CReceipt> &receiptsIn, CAccount &fcoinGenesisAccountIn,
+                        const TokenSymbol &assetSymbolIn, const TokenSymbol &scoinSymbolIn,
+                        uint64_t bcoinPriceIn, uint64_t fcoindUsdPriceIn,
+                        uint32_t &liquidatedLimitCountIn)
+        : tx(txIn), context(contextIn), receipts(receiptsIn),
+          fcoinGenesisAccount(fcoinGenesisAccountIn), assetSymbol(assetSymbolIn),
+          scoinSymbol(scoinSymbolIn), bcoin_price(bcoinPriceIn), fcoin_usd_price(fcoindUsdPriceIn),
+          liquidated_limit_count(liquidatedLimitCountIn) {}
 
     bool Execute();
 
@@ -34,9 +32,9 @@ private:
     CAccount &fcoinGenesisAccount;
     const TokenSymbol &assetSymbol;
     const TokenSymbol &scoinSymbol;
-    uint64_t bcoin_price;
-    uint64_t fcoin_usd_price;
-    uint32_t liquidated_limit_count = CDP_FORCE_LIQUIDATE_MAX_COUNT;
+    uint64_t bcoin_price = 0;
+    uint64_t fcoin_usd_price = 0;
+    uint32_t liquidated_limit_count = 0;
 
     bool SellAssetToRiskRevervePool(const CUserCDP &cdp, const TokenSymbol &assetSymbol,
         uint64_t amount, const TokenSymbol &coinSymbol, uint256 &orderId, shared_ptr<CDEXOrderDetail> &pOrderOut,
@@ -160,13 +158,15 @@ bool CBlockPriceMedianTx::ForceLiquidateCdps(CTxExecuteContext &context, PriceDe
             continue;
         }
 
-        CCdpForceLiquidator forceLiquidator(*this, context, receipts, fcoinGenesisAccount, liquidatedLimitCount,
+        CCdpForceLiquidator forceLiquidator(*this, context, receipts, fcoinGenesisAccount,
                                             bcoinSymbol, scoinSymbol, item.second.price,
-                                            fcoinUsdPrice);
+                                            fcoinUsdPrice, liquidatedLimitCount);
         if (!forceLiquidator.Execute())
             return false; // the forceLiquidator.Execute() has processed the error
-        if (liquidatedLimitCount == 0)
+        if (forceLiquidator.liquidated_count >= liquidatedLimitCount) {
             break;
+        }
+        liquidatedLimitCount -= forceLiquidator.liquidated_count;
     }
 
     if (!cw.accountCache.SetAccount(fcoinGenesisAccount.keyid, fcoinGenesisAccount))
@@ -287,8 +287,6 @@ bool CCdpForceLiquidator::Execute() {
         return ForceLiquidateCDPCompat(cdpMap, receipts);
     }
 
-    int32_t count             = 0;
-
     // TODO: remove me??
     // uint64_t totalCloseoutScoins = 0;
     // uint64_t totalSelloutBcoins  = 0;
@@ -296,9 +294,10 @@ bool CCdpForceLiquidator::Execute() {
     for (auto &cdpPair : cdpMap) {
         auto &cdp = cdpPair.second;
         const auto &cdpCoinPair = cdp.GetCoinPair();
-        if (count + 1 > liquidated_limit_count) {
+        liquidated_count++;
+        if (liquidated_count > liquidated_limit_count) {
             LogPrint(BCLog::CDP, "force liquidate cdp count=%u reach the max liquidated limit count=%u! cdp_coin_pair={%s}\n",
-                    count, liquidated_limit_count, cdpCoinPair.ToString());
+                    liquidated_count, liquidated_limit_count, cdpCoinPair.ToString());
             break;
         }
 
@@ -317,10 +316,9 @@ bool CCdpForceLiquidator::Execute() {
                             cdp.owner_regid.ToString()), READ_ACCOUNT_FAIL, "bad-read-accountdb");
         }
 
-        count++;
         LogPrint(BCLog::CDP,
                     "begin to force settle CDP {%s}, currRiskReserveScoins: %llu, "
-                    "index: %u\n", cdp.ToString(), currRiskReserveScoins, count - 1);
+                    "index: %u\n", cdp.ToString(), currRiskReserveScoins, liquidated_count - 1);
 
         // a) get scoins from risk reserve pool for closeout
         ReceiptCode code = ReceiptCode::CDP_TOTAL_CLOSEOUT_SCOIN_FROM_RESERVE;
@@ -445,8 +443,6 @@ uint256 CCdpForceLiquidator::GenOrderId(const CUserCDP &cdp, TokenSymbol assetSy
 
 bool CCdpForceLiquidator::ForceLiquidateCDPCompat(CCdpRatioIndexCache::Map &cdps, ReceiptList &receipts) {
 
-    int32_t cdpIndex             = 0;
-
     // TODO: remove me??
     // uint64_t totalCloseoutScoins = 0;
     // uint64_t totalSelloutBcoins  = 0;
@@ -463,12 +459,16 @@ bool CCdpForceLiquidator::ForceLiquidateCDPCompat(CCdpRatioIndexCache::Map &cdps
     uint64_t currRiskReserveScoins = fcoinGenesisAccount.GetToken(SYMB::WUSD).free_amount;
     uint32_t orderIndex            = 0;
     for (auto &cdp : cdpSet) {
-        if (++cdpIndex > CDP_FORCE_LIQUIDATE_MAX_COUNT)
+        const auto &cdpCoinPair = cdp.GetCoinPair();
+        liquidated_count++;
+        if (liquidated_count > liquidated_limit_count) {
+            LogPrint(BCLog::CDP, "force liquidate cdp count=%u reach the max liquidated limit count=%u! cdp_coin_pair={%s}\n",
+                    liquidated_count, liquidated_limit_count, cdpCoinPair.ToString());
             break;
-
+        }
         LogPrint(BCLog::CDP,
                     "begin to force settle CDP (%s), currRiskReserveScoins: %llu, "
-                    "index: %u\n", cdp.ToString(), currRiskReserveScoins, cdpIndex);
+                    "index: %u\n", cdp.ToString(), currRiskReserveScoins, liquidated_count - 1);
 
         // Suppose we have 120 (owed scoins' amount), 30, 50 three cdps, but current risk reserve scoins is 100,
         // then skip the 120 cdp and settle the 30 and 50 cdp.
