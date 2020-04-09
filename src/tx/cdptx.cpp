@@ -461,10 +461,10 @@ bool CCDPStakeTx::SellInterestForFcoins(const CTxCord &txCord, const CUserCDP &c
         return state.DoS(100, ERRORMSG("CCDPStakeTx::SellInterestForFcoins, create system buy order failed"),
                         CREATE_SYS_ORDER_FAILED, "create-sys-order-failed");
     }
-
     assert(!fcoinGenesisAccount.regid.IsEmpty());
-    receipts.emplace_back(txUid, fcoinGenesisAccount.regid, cdp.scoin_symbol, scoinsInterestToRepay,
-                          ReceiptType::CDP_INTEREST_BUY_DEFLATE_FCOINS);
+    receipts.emplace_back(ReceiptType::CDP_INTEREST_BUY_DEFLATE_FCOINS, BalanceOpType::FREEZE,
+                        txUid, fcoinGenesisAccount.regid, cdp.scoin_symbol, scoinsInterestToRepay);
+
     return true;
 }
 
@@ -1036,10 +1036,8 @@ bool CCDPLiquidateTx::ProcessPenaltyFees(CTxExecuteContext &context, const CUser
         }
 
         CUserID fcoinGenesisUid(fcoinGenesisAccount.regid);
-        receipts.emplace_back(nullId, fcoinGenesisUid, cdp.scoin_symbol, halfScoinsPenalty,
-                              ReceiptType::CDP_PENALTY_TO_RESERVE);
-        receipts.emplace_back(nullId, fcoinGenesisUid, cdp.scoin_symbol, leftScoinPenalty,
-                              ReceiptType::CDP_PENALTY_BUY_DEFLATE_FCOINS);
+        receipts.emplace_back(ReceiptType::CDP_PENALTY_TO_RESERVE, BalanceOpType::FREEZE, nullId, fcoinGenesisUid, cdp.scoin_symbol, halfScoinsPenalty);
+        receipts.emplace_back(ReceiptType::CDP_PENALTY_BUY_DEFLATE_FCOINS, BalanceOpType::FREEZE, nullId, fcoinGenesisUid, cdp.scoin_symbol, leftScoinPenalty);
     } else {
         // send penalty fees into risk reserve
         if (!fcoinGenesisAccount.OperateBalance(cdp.scoin_symbol, BalanceOpType::ADD_FREE, scoinPenaltyFees,
