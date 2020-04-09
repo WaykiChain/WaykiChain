@@ -58,7 +58,6 @@ bool CDelegateVoteTx::ExecuteTx(CTxExecuteContext &context) {
     CRegID &regId = txAccount.regid;
     cw.delegateCache.GetCandidateVotes(regId, candidateVotesInOut);
 
-    vector<CReceipt> receipts;
     if (!txAccount.ProcessCandidateVotes(candidateVotes, candidateVotesInOut, context.height, context.block_time,
                                           cw.accountCache, receipts)) {
         return state.DoS(

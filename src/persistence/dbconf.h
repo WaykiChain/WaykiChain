@@ -128,6 +128,7 @@ namespace dbk {
         DEFINE( TX_EXECUTE_FAIL,      "txef",       LOG )        /* [prefix]{height}{txid} --> {error code, error message} */ \
         /**** tx receipt db                                                                 */ \
         DEFINE( TX_RECEIPT,           "txrc",       RECEIPT )    /* [prefix]{txid} --> {receipts} */ \
+        DEFINE( BLOCK_RECEIPT,        "bkrc",       RECEIPT )    /* [prefix]{txid} --> {receipts} */ \
         /**** tx coinutxo db                                                                 */ \
         DEFINE( TX_UTXO,              "utxo",       UTXO )       /* [prefix]{txid-voutindex} --> 1 */ \
         /**** tx coinutxo db                                                                 */ \

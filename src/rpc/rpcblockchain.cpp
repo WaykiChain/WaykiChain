@@ -14,6 +14,7 @@
 #include "init.h"
 #include "main.h"
 #include "rpc/core/rpcserver.h"
+#include "rpc/core/rpccommons.h"
 #include "sync.h"
 #include "tx/merkletx.h"
 #include "tx/tx.h"
@@ -243,7 +244,14 @@ Value getblock(const Array& params, bool fHelp) {
         return strHex;
     }
 
-    return BlockToJSON(block, pBlockIndex);
+    vector<CReceipt> blockReceipts;
+
+    Object o = BlockToJSON(block, pBlockIndex);
+    pCdMan->pReceiptCache->GetBlockReceipts(block.GetHash(), blockReceipts);
+
+    o.push_back(Pair("receipts",  JSON::ToJson(*pCdMan->pAccountCache, blockReceipts)));
+
+    return o;
 }
 
 Value verifychain(const Array& params, bool fHelp) {

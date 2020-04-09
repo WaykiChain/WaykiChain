@@ -935,7 +935,7 @@ bool SaveTxIndex(const uint256 &txid, CCacheWrapper &cw, CValidationState &state
 }
 
 // compute vote staking interest && revoke votes
-static bool ComputeVoteStakingInterestAndRevokeVotes(const int32_t currHeight, const uint32_t currBlockTime,
+static bool ComputeVoteStakingInterestAndRevokeVotes(const uint256& blockHash, const int32_t currHeight, const uint32_t currBlockTime,
                                                     CCacheWrapper &cw, CValidationState &state) {
     // acquire votes list
     map<CRegIDKey, vector<CCandidateReceivedVote>> regId2ReceivedVotes;
@@ -970,6 +970,7 @@ static bool ComputeVoteStakingInterestAndRevokeVotes(const int32_t currHeight, c
         regId2CandidateVotes.emplace(regId, candidateVotes);
     }
 
+    vector<CReceipt> receipts;
     // compute vote staking interest
     for (const auto &item : regId2CandidateVotes) {
         const auto &regId          = item.first;
@@ -979,7 +980,7 @@ static bool ComputeVoteStakingInterestAndRevokeVotes(const int32_t currHeight, c
         cw.delegateCache.GetCandidateVotes(regId, candidateVotesInOut);
         CAccount account;
         cw.accountCache.GetAccount(regId, account);
-        vector<CReceipt> receipts;
+
         if (!account.ProcessCandidateVotes(candidateVotes, candidateVotesInOut, currHeight, currBlockTime,
                                            cw.accountCache, receipts)) {
             return state.DoS(100, ERRORMSG("ComputeVoteStakingInterestAndRevokeVotes() : operate candidate votes failed, regId=%s",
@@ -1028,6 +1029,11 @@ static bool ComputeVoteStakingInterestAndRevokeVotes(const int32_t currHeight, c
     if (!cw.delegateCache.SetLastVoteHeight(currHeight)) {
         return state.DoS(100, ERRORMSG("%s(), save last vote height error", __FUNCTION__),
             UPDATE_ACCOUNT_FAIL, "bad-save-last-vote-height");
+    }
+
+    if(!receipts.empty() && !cw.txReceiptCache.SetBlockReceipts(blockHash, receipts)) {
+        return state.DoS(100, ERRORMSG("%s(), save block receipts error", __FUNCTION__),
+                         UPDATE_ACCOUNT_FAIL, "bad-save-block-receits");
     }
 
     return true;
@@ -1200,7 +1206,7 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
         }
 
         if (pIndex->height + 1 == (int32_t)SysCfg().GetVer2ForkHeight() &&
-            !ComputeVoteStakingInterestAndRevokeVotes(pIndex->height, pIndex->nTime, cw, state)) {
+            !ComputeVoteStakingInterestAndRevokeVotes(pIndex->GetBlockHash(),pIndex->height, pIndex->nTime, cw, state)) {
             return state.Abort(_("ConnectBlock() : failed to compute vote staking interest"));
         }
 

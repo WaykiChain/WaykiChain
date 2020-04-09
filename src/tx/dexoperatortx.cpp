@@ -73,7 +73,7 @@ static bool ProcessDexOperatorFee(CCacheWrapper &cw, CValidationState &state, co
     for (size_t i = 0; i < delegates.size(); i++) {
         const CRegID &delegateRegid = delegates[i].regid;
         CAccount delegateAccount;
-        if (!cw.accountCache.GetAccount(CUserID(delegateRegid), delegateAccount)) {
+        if (!cw.accountCache.GetAccount(delegateRegid, delegateAccount)) {
             return state.DoS(100, ERRORMSG("get delegate account info failed! delegate regid=%s",
                             delegateRegid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
         }
