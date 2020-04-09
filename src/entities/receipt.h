@@ -38,7 +38,7 @@ static CUserID nullId;
     DEFINE(DELEGATE_SUB_VOTE,                   302, "sub votes to delegate(s)") \
     DEFINE(DELEGATE_VOTE_INTEREST,              303, "receive interest thru delegate voting") \
     /**** CDP stake*/ \
-    DEFINE(CDP_STAKED_ASSET_FROM_OWNER,         401, "staked assets from cdp owner") \
+    DEFINE(CDP_PLEDGED_ASSET_FROM_OWNER,         401, "staked assets from cdp owner") \
     DEFINE(CDP_MINTED_SCOIN_TO_OWNER,           402, "minted scoins to cdp owner") \
     DEFINE(CDP_INTEREST_BUY_DEFLATE_FCOINS,     403, "cdp interest scoins to buy fcoins for deflating") \
     DEFINE(CDP_REPAY_INTEREST,                  404, "repay cdp interest scoins to owner") \

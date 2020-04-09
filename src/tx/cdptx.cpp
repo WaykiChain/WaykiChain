@@ -392,7 +392,7 @@ bool CCDPStakeTx::ExecuteTx(CTxExecuteContext &context) {
     }
 
     // update account accordingly
-    if (!txAccount.OperateBalance(assetSymbol, BalanceOpType::PLEDGE, assetAmount, ReceiptType::CDP_STAKED_ASSET_FROM_OWNER, receipts))
+    if (!txAccount.OperateBalance(assetSymbol, BalanceOpType::PLEDGE, assetAmount, ReceiptType::CDP_PLEDGED_ASSET_FROM_OWNER, receipts))
         return state.DoS(100, ERRORMSG("bcoins insufficient to pledge"), UPDATE_ACCOUNT_FAIL,
                          "bcoins-insufficient-error");
 
