@@ -59,4 +59,41 @@ namespace container {
 typedef uint32_t HeightType;
 typedef uint32_t TxIndex;
 
+
+enum BalanceOpType : uint8_t {
+    NULL_OP  = 0,  //!< invalid op
+    ADD_FREE = 1,  //!< external send coins to this account
+    SUB_FREE = 2,  //!< send coins to external account
+    STAKE    = 3,  //!< free   -> staked
+    UNSTAKE  = 4,  //!< staked -> free
+    FREEZE   = 5,  //!< free   -> frozen
+    UNFREEZE = 6,  //!< frozen -> free, and then SUB_FREE for further ops
+    VOTE     = 7,  //!< free -> voted
+    UNVOTE   = 8,  //!< voted -> free
+    PLEDGE   = 9,  //!< free -> pledged
+    UNPLEDGE = 10  //!< pledged -> free, and then SUB_FREE for further ops
+};
+
+struct BalanceOpTypeHash {
+    size_t operator()(const BalanceOpType& type) const noexcept { return std::hash<uint8_t>{}(type); }
+};
+
+static const unordered_map<BalanceOpType, string, BalanceOpTypeHash> kBalanceOpTypeTable = {
+    { NULL_OP,  "NULL_OP"   },
+    { ADD_FREE, "ADD_FREE"  },
+    { SUB_FREE, "SUB_FREE"  },
+    { STAKE,    "STAKE"     },
+    { UNSTAKE,  "UNSTAKE"   },
+    { FREEZE,   "FREEZE"    },
+    { UNFREEZE, "UNFREEZE"  },
+    { VOTE,     "VOTE"      },
+    { UNVOTE,   "UNVOTE"    },
+    { PLEDGE,   "PLEDGE"    },
+    { UNPLEDGE, "UNPLEDGE"  }
+};
+
+inline string GetBalanceOpTypeName(const BalanceOpType opType) {
+    return kBalanceOpTypeTable.at(opType);
+}
+
 #endif //COMMONS_TYPES_H

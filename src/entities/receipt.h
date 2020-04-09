@@ -9,7 +9,6 @@
 
 #include "config/txbase.h"
 #include "crypto/hash.h"
-#include "entities/account.h"
 #include "entities/asset.h"
 #include "entities/id.h"
 #include "commons/json/json_spirit_utils.h"
