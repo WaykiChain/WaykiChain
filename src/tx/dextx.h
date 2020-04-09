@@ -69,7 +69,7 @@ namespace dex {
                               CAccount &operatorAccount);
 
         bool FreezeBalance(CTxExecuteContext &context, CAccount &account,
-                        const TokenSymbol &tokenSymbol, const uint64_t &amount, ReceiptCode code);
+                        const TokenSymbol &tokenSymbol, const uint64_t &amount, ReceiptType code);
 
     public:
         static uint64_t CalcCoinAmount(uint64_t assetAmount, const uint64_t price);

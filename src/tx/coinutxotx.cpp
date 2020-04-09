@@ -467,13 +467,13 @@ bool CCoinUtxoTransferTx::ExecuteTx(CTxExecuteContext &context) {
 
     if (totalInAmount <  totalOutAmount) {
         if (!txAccount.OperateBalance(coin_symbol, SUB_FREE,  totalOutAmount - totalInAmount,
-                                    ReceiptCode::TRANSFER_UTXO_COINS, receipts)) {
+                                    ReceiptType::TRANSFER_UTXO_COINS, receipts)) {
             return state.DoS(100, ERRORMSG("CCoinUtxoTransferTx::ExecuteTx, failed to deduct coin_amount in txUid %s account",
                             txUid.ToString()), UPDATE_ACCOUNT_FAIL, "insufficient-fund-utxo");
         }
     } else if (totalInAmount > totalOutAmount) {
         if (!txAccount.OperateBalance(coin_symbol, ADD_FREE, totalInAmount - totalOutAmount,
-                                    ReceiptCode::TRANSFER_UTXO_COINS, receipts)) {
+                                    ReceiptType::TRANSFER_UTXO_COINS, receipts)) {
             return state.DoS(100, ERRORMSG("CCoinUtxoTransferTx::ExecuteTx, failed to add coin_amount in txUid %s account",
                             txUid.ToString()), UPDATE_ACCOUNT_FAIL, "insufficient-fund-utxo");
         }

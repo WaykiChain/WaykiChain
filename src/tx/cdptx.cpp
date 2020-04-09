@@ -84,14 +84,14 @@ namespace cdp_util {
         cw.accountCache.GetFcoinGenesisAccount(fcoinGenesisAccount);
         // send interest to fcoin genesis account
         if (!fcoinGenesisAccount.OperateBalance(SYMB::WUSD, BalanceOpType::ADD_FREE, scoinsInterest,
-                                                ReceiptCode::CDP_INTEREST_BUY_DEFLATE_FCOINS, receipts)) {
+                                                ReceiptType::CDP_INTEREST_BUY_DEFLATE_FCOINS, receipts)) {
             return state.DoS(100, ERRORMSG("%s, operate fcoin genesis account failed", TX_OBJ_ERR_TITLE(tx)),
                             UPDATE_ACCOUNT_FAIL, "operate-fcoin-genesis-account-failed");
         }
 
         // should freeze user's coin for buying the asset
         if (!fcoinGenesisAccount.OperateBalance(SYMB::WUSD, BalanceOpType::FREEZE, scoinsInterest,
-                                                ReceiptCode::CDP_INTEREST_BUY_DEFLATE_FCOINS, receipts)) {
+                                                ReceiptType::CDP_INTEREST_BUY_DEFLATE_FCOINS, receipts)) {
             return state.DoS(100, ERRORMSG("%s, fcoin genesis account has insufficient funds", TX_OBJ_ERR_TITLE(tx)),
                             UPDATE_ACCOUNT_FAIL, "fcoin-genesis-account-insufficient");
         }
@@ -123,14 +123,14 @@ namespace cdp_util {
         cw.accountCache.GetFcoinGenesisAccount(fcoinGenesisAccount);
         // send interest to fcoin genesis account
         if (!fcoinGenesisAccount.OperateBalance(SYMB::WUSD, BalanceOpType::ADD_FREE, scoinsInterest,
-                                                ReceiptCode::CDP_INTEREST_BUY_DEFLATE_FCOINS, receipts)) {
+                                                ReceiptType::CDP_INTEREST_BUY_DEFLATE_FCOINS, receipts)) {
             return state.DoS(100, ERRORMSG("%s, operate fcoin genesis account failed", TX_OBJ_ERR_TITLE(tx)),
                             UPDATE_ACCOUNT_FAIL, "operate-fcoin-genesis-account-failed");
         }
 
         // should freeze user's coin for buying the asset
         if (!fcoinGenesisAccount.OperateBalance(SYMB::WUSD, BalanceOpType::FREEZE, scoinsInterest,
-                                                ReceiptCode::CDP_INTEREST_BUY_DEFLATE_FCOINS, receipts)) {
+                                                ReceiptType::CDP_INTEREST_BUY_DEFLATE_FCOINS, receipts)) {
             return state.DoS(100, ERRORMSG("%s, fcoin genesis account has insufficient funds", TX_OBJ_ERR_TITLE(tx)),
                             UPDATE_ACCOUNT_FAIL, "fcoin-genesis-account-insufficient");
         }
@@ -357,7 +357,7 @@ bool CCDPStakeTx::ExecuteTx(CTxExecuteContext &context) {
         if (scoinsInterestToRepay > ownerScoins) {
             mintScoinForInterest = scoinsInterestToRepay - ownerScoins;
             txAccount.OperateBalance(scoin_symbol, BalanceOpType::ADD_FREE, mintScoinForInterest,
-                                   ReceiptCode::CDP_MINTED_SCOIN_TO_OWNER, receipts);
+                                   ReceiptType::CDP_MINTED_SCOIN_TO_OWNER, receipts);
             LogPrint(BCLog::CDP, "Mint scoins=%llu for interest!\n", mintScoinForInterest);
         }
 
@@ -379,7 +379,7 @@ bool CCDPStakeTx::ExecuteTx(CTxExecuteContext &context) {
         if (!SellInterestForFcoins(CTxCord(context.height, context.index), cdp, scoinsInterestToRepay, cw, state, receipts))
             return false;
 
-        if (!txAccount.OperateBalance(scoin_symbol, BalanceOpType::SUB_FREE, scoinsInterestToRepay, ReceiptCode::CDP_REPAY_INTEREST, receipts))
+        if (!txAccount.OperateBalance(scoin_symbol, BalanceOpType::SUB_FREE, scoinsInterestToRepay, ReceiptType::CDP_REPAY_INTEREST, receipts))
             return state.DoS(100, ERRORMSG("scoins balance < scoinsInterestToRepay: %llu",
                             scoinsInterestToRepay), UPDATE_ACCOUNT_FAIL,
                             strprintf("deduct-interest(%llu)-error", scoinsInterestToRepay));
@@ -392,11 +392,11 @@ bool CCDPStakeTx::ExecuteTx(CTxExecuteContext &context) {
     }
 
     // update account accordingly
-    if (!txAccount.OperateBalance(assetSymbol, BalanceOpType::PLEDGE, assetAmount, ReceiptCode::CDP_STAKED_ASSET_FROM_OWNER, receipts))
+    if (!txAccount.OperateBalance(assetSymbol, BalanceOpType::PLEDGE, assetAmount, ReceiptType::CDP_STAKED_ASSET_FROM_OWNER, receipts))
         return state.DoS(100, ERRORMSG("bcoins insufficient to pledge"), UPDATE_ACCOUNT_FAIL,
                          "bcoins-insufficient-error");
 
-    if (!txAccount.OperateBalance(scoin_symbol, BalanceOpType::ADD_FREE, scoins_to_mint, ReceiptCode::CDP_MINTED_SCOIN_TO_OWNER, receipts))
+    if (!txAccount.OperateBalance(scoin_symbol, BalanceOpType::ADD_FREE, scoins_to_mint, ReceiptType::CDP_MINTED_SCOIN_TO_OWNER, receipts))
         return state.DoS(100, ERRORMSG("add scoins failed"), UPDATE_ACCOUNT_FAIL,
                          "add-scoins-error");
 
@@ -439,14 +439,14 @@ bool CCDPStakeTx::SellInterestForFcoins(const CTxCord &txCord, const CUserCDP &c
     cw.accountCache.GetFcoinGenesisAccount(fcoinGenesisAccount);
     // send interest to fcoin genesis account
     if (!fcoinGenesisAccount.OperateBalance(SYMB::WUSD, BalanceOpType::ADD_FREE, scoinsInterestToRepay,
-                                            ReceiptCode::CDP_REPAY_INTEREST_TO_FUND, receipts)) {
+                                            ReceiptType::CDP_REPAY_INTEREST_TO_FUND, receipts)) {
         return state.DoS(100, ERRORMSG("CCDPStakeTx::SellInterestForFcoins, operate balance failed"),
                         UPDATE_ACCOUNT_FAIL, "operate-fcoin-genesis-account-failed");
     }
 
     // should freeze user's coin for buying the asset
     if (!fcoinGenesisAccount.OperateBalance(SYMB::WUSD, BalanceOpType::FREEZE, scoinsInterestToRepay,
-                                            ReceiptCode::CDP_REPAY_INTEREST_TO_FUND, receipts)) {
+                                            ReceiptType::CDP_REPAY_INTEREST_TO_FUND, receipts)) {
         return state.DoS(100, ERRORMSG("CCDPStakeTx::SellInterestForFcoins, account has insufficient funds"),
                         UPDATE_ACCOUNT_FAIL, "operate-fcoin-genesis-account-failed");
     }
@@ -464,7 +464,7 @@ bool CCDPStakeTx::SellInterestForFcoins(const CTxCord &txCord, const CUserCDP &c
 
     assert(!fcoinGenesisAccount.regid.IsEmpty());
     receipts.emplace_back(txUid, fcoinGenesisAccount.regid, cdp.scoin_symbol, scoinsInterestToRepay,
-                          ReceiptCode::CDP_INTEREST_BUY_DEFLATE_FCOINS);
+                          ReceiptType::CDP_INTEREST_BUY_DEFLATE_FCOINS);
     return true;
 }
 
@@ -535,7 +535,7 @@ bool CCDPRedeemTx::ExecuteTx(CTxExecuteContext &context) {
     }
 
     if (!txAccount.OperateBalance(cdp.scoin_symbol, BalanceOpType::SUB_FREE, scoinsInterestToRepay,
-                                ReceiptCode::CDP_REPAY_INTEREST, receipts)) {
+                                ReceiptType::CDP_REPAY_INTEREST, receipts)) {
         return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, Deduct interest error!"),
                         REJECT_INVALID, "deduct-interest-error");
     }
@@ -621,12 +621,12 @@ bool CCDPRedeemTx::ExecuteTx(CTxExecuteContext &context) {
     }
 
     if (!txAccount.OperateBalance(cdp.scoin_symbol, BalanceOpType::SUB_FREE, actualScoinsToRepay,
-                                ReceiptCode::CDP_REPAID_SCOIN_FROM_OWNER, receipts)) {
+                                ReceiptType::CDP_REPAID_SCOIN_FROM_OWNER, receipts)) {
         return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, update account(%s) SUB WUSD(%lu) failed",
                         txAccount.regid.ToString(), actualScoinsToRepay), UPDATE_ACCOUNT_FAIL, "bad-operate-account");
     }
     if (!txAccount.OperateBalance(cdp.bcoin_symbol, BalanceOpType::UNPLEDGE, assetAmount,
-                                ReceiptCode::CDP_REDEEMED_ASSET_TO_OWNER, receipts)) {
+                                ReceiptType::CDP_REDEEMED_ASSET_TO_OWNER, receipts)) {
         return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, update account(%s) ADD WICC(%lu) failed",
                         txAccount.regid.ToString(), assetAmount), UPDATE_ACCOUNT_FAIL, "bad-operate-account");
     }
@@ -664,14 +664,14 @@ bool CCDPRedeemTx::SellInterestForFcoins(const CTxCord &txCord, const CUserCDP &
     cw.accountCache.GetFcoinGenesisAccount(fcoinGenesisAccount);
     // send interest to fcoin genesis account
     if (!fcoinGenesisAccount.OperateBalance(SYMB::WUSD, BalanceOpType::ADD_FREE, scoinsInterestToRepay,
-                                            ReceiptCode::CDP_INTEREST_BUY_DEFLATE_FCOINS, receipts)) {
+                                            ReceiptType::CDP_INTEREST_BUY_DEFLATE_FCOINS, receipts)) {
         return state.DoS(100, ERRORMSG("CCDPRedeemTx::SellInterestForFcoins, operate balance failed"),
                         UPDATE_ACCOUNT_FAIL, "operate-fcoin-genesis-account-failed");
     }
 
     // should freeze user's coin for buying the asset
     if (!fcoinGenesisAccount.OperateBalance(SYMB::WUSD, BalanceOpType::FREEZE, scoinsInterestToRepay,
-                                            ReceiptCode::CDP_INTEREST_BUY_DEFLATE_FCOINS, receipts)) {
+                                            ReceiptType::CDP_INTEREST_BUY_DEFLATE_FCOINS, receipts)) {
         return state.DoS(100, ERRORMSG("CCDPRedeemTx::SellInterestForFcoins, account has insufficient funds"),
                         UPDATE_ACCOUNT_FAIL, "operate-fcoin-genesis-account-failed");
     }
@@ -825,31 +825,31 @@ bool CCDPLiquidateTx::ExecuteTx(CTxExecuteContext &context) {
 
     if (scoins_to_liquidate >= totalScoinsToLiquidate) {
         if (!txAccount.OperateBalance(cdp.scoin_symbol, SUB_FREE, totalScoinsToLiquidate,
-                                    ReceiptCode::CDP_SCOIN_FROM_LIQUIDATOR, receipts)) {
+                                    ReceiptType::CDP_SCOIN_FROM_LIQUIDATOR, receipts)) {
             return state.DoS(100, ERRORMSG("CCDPLiquidateTx::ExecuteTx, deduct scoins from regId=%s failed",
                             txUid.ToString()), UPDATE_ACCOUNT_FAIL, "deduct-account-scoins-failed");
         }
         if (!txAccount.OperateBalance(cdp.bcoin_symbol, ADD_FREE, totalBcoinsToReturnLiquidator,
-                                    ReceiptCode::CDP_ASSET_TO_LIQUIDATOR, receipts)) {
+                                    ReceiptType::CDP_ASSET_TO_LIQUIDATOR, receipts)) {
             return state.DoS(100, ERRORMSG("CCDPLiquidateTx::ExecuteTx, add bcoins failed"), UPDATE_ACCOUNT_FAIL,
                              "add-bcoins-failed");
         }
 
         // clean up cdp owner's pledged_amount
         if (!cdpOwnerAccount.OperateBalance(cdp.bcoin_symbol, UNPLEDGE, totalBcoinsToReturnLiquidator,
-                                            ReceiptCode::CDP_ASSET_TO_LIQUIDATOR, receipts)) {
+                                            ReceiptType::CDP_ASSET_TO_LIQUIDATOR, receipts)) {
             return state.DoS(100, ERRORMSG("CCDPLiquidateTx::ExecuteTx, unpledge bcoins failed"), UPDATE_ACCOUNT_FAIL,
                              "unpledge-bcoins-failed");
         }
         if (!cdpOwnerAccount.OperateBalance(cdp.bcoin_symbol, SUB_FREE, totalBcoinsToReturnLiquidator,
-                                            ReceiptCode::CDP_ASSET_TO_LIQUIDATOR, receipts)) {
+                                            ReceiptType::CDP_ASSET_TO_LIQUIDATOR, receipts)) {
             return state.DoS(100, ERRORMSG("CCDPLiquidateTx::ExecuteTx, sub unpledged bcoins failed"), UPDATE_ACCOUNT_FAIL,
                              "deduct-bcoins-failed");
         }
 
         if (txAccount.regid != cdpOwnerAccount.regid) { //liquidate by others
             if (!cdpOwnerAccount.OperateBalance(cdp.bcoin_symbol, UNPLEDGE, totalBcoinsToCdpOwner,
-                                                ReceiptCode::CDP_LIQUIDATED_ASSET_TO_OWNER, receipts)) {
+                                                ReceiptType::CDP_LIQUIDATED_ASSET_TO_OWNER, receipts)) {
                 return state.DoS(100, ERRORMSG("CCDPLiquidateTx::ExecuteTx, unpledge bcoins failed"), UPDATE_ACCOUNT_FAIL,
                                  "unpledge-bcoins-failed");
             }
@@ -858,7 +858,7 @@ bool CCDPLiquidateTx::ExecuteTx(CTxExecuteContext &context) {
                                 cdp.owner_regid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-write-accountdb");
         } else {  // liquidate by oneself
             if (!txAccount.OperateBalance(cdp.bcoin_symbol, UNPLEDGE, totalBcoinsToCdpOwner,
-                                        ReceiptCode::CDP_LIQUIDATED_ASSET_TO_OWNER, receipts)) {
+                                        ReceiptType::CDP_LIQUIDATED_ASSET_TO_OWNER, receipts)) {
                 return state.DoS(100, ERRORMSG("CCDPLiquidateTx::ExecuteTx, unpledge bcoins failed"), UPDATE_ACCOUNT_FAIL,
                                  "unpledge-bcoins-failed");
             }
@@ -888,24 +888,24 @@ bool CCDPLiquidateTx::ExecuteTx(CTxExecuteContext &context) {
         totalBcoinsToReturnLiquidator *= liquidateRate;
 
         if (!txAccount.OperateBalance(cdp.scoin_symbol, SUB_FREE, scoins_to_liquidate,
-                                    ReceiptCode::CDP_SCOIN_FROM_LIQUIDATOR, receipts)) {
+                                    ReceiptType::CDP_SCOIN_FROM_LIQUIDATOR, receipts)) {
             return state.DoS(100, ERRORMSG("CCDPLiquidateTx::ExecuteTx, sub scoins to liquidator failed"),
                              UPDATE_ACCOUNT_FAIL, "sub-scoins-to-liquidator-failed");
         }
         if (!txAccount.OperateBalance(cdp.bcoin_symbol, ADD_FREE, totalBcoinsToReturnLiquidator,
-                                    ReceiptCode::CDP_ASSET_TO_LIQUIDATOR, receipts)) {
+                                    ReceiptType::CDP_ASSET_TO_LIQUIDATOR, receipts)) {
             return state.DoS(100, ERRORMSG("CCDPLiquidateTx::ExecuteTx, add bcoins to liquidator failed"),
                              UPDATE_ACCOUNT_FAIL, "add-bcoins-to-liquidator-failed");
         }
 
         // clean up cdp owner's pledged_amount
         if (!cdpOwnerAccount.OperateBalance(cdp.bcoin_symbol, UNPLEDGE, totalBcoinsToReturnLiquidator,
-                                            ReceiptCode::CDP_ASSET_TO_LIQUIDATOR, receipts)) {
+                                            ReceiptType::CDP_ASSET_TO_LIQUIDATOR, receipts)) {
             return state.DoS(100, ERRORMSG("CCDPLiquidateTx::ExecuteTx, unpledge bcoins failed"), UPDATE_ACCOUNT_FAIL,
                              "unpledge-bcoins-failed");
         }
         if (!cdpOwnerAccount.OperateBalance(cdp.bcoin_symbol, SUB_FREE, totalBcoinsToReturnLiquidator,
-                                            ReceiptCode::CDP_ASSET_TO_LIQUIDATOR, receipts)) {
+                                            ReceiptType::CDP_ASSET_TO_LIQUIDATOR, receipts)) {
             return state.DoS(100, ERRORMSG("CCDPLiquidateTx::ExecuteTx, sub unpledged bcoins failed"), UPDATE_ACCOUNT_FAIL,
                              "deduct-bcoins-failed");
         }
@@ -913,7 +913,7 @@ bool CCDPLiquidateTx::ExecuteTx(CTxExecuteContext &context) {
         uint64_t bcoinsToCDPOwner = totalBcoinsToCdpOwner * liquidateRate;
         if (txAccount.regid != cdpOwnerAccount.regid) {
             if (!cdpOwnerAccount.OperateBalance(cdp.bcoin_symbol, UNPLEDGE, bcoinsToCDPOwner,
-                                                ReceiptCode::CDP_LIQUIDATED_ASSET_TO_OWNER, receipts)) {
+                                                ReceiptType::CDP_LIQUIDATED_ASSET_TO_OWNER, receipts)) {
                 return state.DoS(100, ERRORMSG("CCDPLiquidateTx::ExecuteTx, unpledge bcoins to cdp owner failed"),
                                  UPDATE_ACCOUNT_FAIL, "unpledge-bcoins-to-cdp-owner-failed");
             }
@@ -922,7 +922,7 @@ bool CCDPLiquidateTx::ExecuteTx(CTxExecuteContext &context) {
                                 cdp.owner_regid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-write-accountdb");
         } else {  // liquidate by oneself
             if (!txAccount.OperateBalance(cdp.bcoin_symbol, UNPLEDGE, bcoinsToCDPOwner,
-                                        ReceiptCode::CDP_LIQUIDATED_ASSET_TO_OWNER, receipts)) {
+                                        ReceiptType::CDP_LIQUIDATED_ASSET_TO_OWNER, receipts)) {
                 return state.DoS(100, ERRORMSG("CCDPLiquidateTx::ExecuteTx, unpledge bcoins to cdp owner failed"),
                                  UPDATE_ACCOUNT_FAIL, "unpledge-bcoins-to-cdp-owner-failed");
             }
@@ -1009,7 +1009,7 @@ bool CCDPLiquidateTx::ProcessPenaltyFees(CTxExecuteContext &context, const CUser
 
         // 1) save 50% penalty fees into risk reserve
         if (!fcoinGenesisAccount.OperateBalance(cdp.scoin_symbol, BalanceOpType::ADD_FREE, halfScoinsPenalty,
-                                                ReceiptCode::CDP_PENALTY_TO_RESERVE, receipts)) {
+                                                ReceiptType::CDP_PENALTY_TO_RESERVE, receipts)) {
             return state.DoS(100, ERRORMSG("CCDPLiquidateTx::ExecuteTx, add scoins to fcoin genesis account failed"),
                              UPDATE_ACCOUNT_FAIL, "add-scoins-to-fcoin-genesis-account-failed");
         }
@@ -1017,14 +1017,14 @@ bool CCDPLiquidateTx::ProcessPenaltyFees(CTxExecuteContext &context, const CUser
         // 2) sell 50% penalty fees for Fcoins and burn
         // send half scoin penalty to fcoin genesis account
         if (!fcoinGenesisAccount.OperateBalance(cdp.scoin_symbol, BalanceOpType::ADD_FREE, leftScoinPenalty,
-                                                ReceiptCode::CDP_PENALTY_TO_RESERVE, receipts)) {
+                                                ReceiptType::CDP_PENALTY_TO_RESERVE, receipts)) {
             return state.DoS(100, ERRORMSG("CCDPLiquidateTx::ExecuteTx, add scoins to fcoin genesis account failed"),
                              UPDATE_ACCOUNT_FAIL, "add-scoins-to-fcoin-genesis-account-failed");
         }
 
         // should freeze user's coin for buying the asset
         if (!fcoinGenesisAccount.OperateBalance(cdp.scoin_symbol, BalanceOpType::FREEZE, leftScoinPenalty,
-                                                ReceiptCode::CDP_PENALTY_TO_RESERVE, receipts)) {
+                                                ReceiptType::CDP_PENALTY_TO_RESERVE, receipts)) {
             return state.DoS(100, ERRORMSG("CdpLiquidateTx::ProcessPenaltyFees, account has insufficient funds"),
                             UPDATE_ACCOUNT_FAIL, "operate-fcoin-genesis-account-failed");
         }
@@ -1037,13 +1037,13 @@ bool CCDPLiquidateTx::ProcessPenaltyFees(CTxExecuteContext &context, const CUser
 
         CUserID fcoinGenesisUid(fcoinGenesisAccount.regid);
         receipts.emplace_back(nullId, fcoinGenesisUid, cdp.scoin_symbol, halfScoinsPenalty,
-                              ReceiptCode::CDP_PENALTY_TO_RESERVE);
+                              ReceiptType::CDP_PENALTY_TO_RESERVE);
         receipts.emplace_back(nullId, fcoinGenesisUid, cdp.scoin_symbol, leftScoinPenalty,
-                              ReceiptCode::CDP_PENALTY_BUY_DEFLATE_FCOINS);
+                              ReceiptType::CDP_PENALTY_BUY_DEFLATE_FCOINS);
     } else {
         // send penalty fees into risk reserve
         if (!fcoinGenesisAccount.OperateBalance(cdp.scoin_symbol, BalanceOpType::ADD_FREE, scoinPenaltyFees,
-                                                ReceiptCode::CDP_PENALTY_TO_RESERVE, receipts)) {
+                                                ReceiptType::CDP_PENALTY_TO_RESERVE, receipts)) {
             return state.DoS(100, ERRORMSG("CCDPLiquidateTx::ExecuteTx, add scoins to fcoin genesis account failed"),
                              UPDATE_ACCOUNT_FAIL, "add-scoins-to-fcoin-genesis-account-failed");
         }
@@ -1115,13 +1115,13 @@ bool CCDPInterestForceSettleTx::ExecuteTx(CTxExecuteContext &context) {
         }
 
         txAccount.OperateBalance(cdp.scoin_symbol, BalanceOpType::ADD_FREE, mintScoinForInterest,
-                                ReceiptCode::CDP_MINTED_SCOIN_TO_OWNER, receipts);
+                                ReceiptType::CDP_MINTED_SCOIN_TO_OWNER, receipts);
 
         if (!cdp_util::SellInterestForFcoins(*this, context, cdp, mintScoinForInterest, receipts))
             return false; // error msg has been processed
 
         if (!txAccount.OperateBalance(cdp.scoin_symbol, BalanceOpType::SUB_FREE,
-                                      mintScoinForInterest, ReceiptCode::CDP_REPAY_INTEREST,
+                                      mintScoinForInterest, ReceiptType::CDP_REPAY_INTEREST,
                                       receipts))
             return state.DoS(100, ERRORMSG("scoins balance < scoinsInterestToRepay: %llu",
                             mintScoinForInterest), UPDATE_ACCOUNT_FAIL,

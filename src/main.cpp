@@ -629,7 +629,7 @@ bool InvalidateBlock(CValidationState &state, CBlockIndex *pIndex) {
         pCdMan->pBlockIndexDb->WriteBlockIndex(CDiskBlockIndex(pindexWalk));
         setBlockIndexValid.erase(pindexWalk);
 
-        LogPrint(BCLog::INFO, "Invalidate block[%d]: %s BLOCK_FAILED_CHILD\n", pindexWalk->height,
+        LogPrint(BCLog::INFO, "[%d] Invalidate block(%.7s**) BLOCK_FAILED_CHILD\n", pindexWalk->height,
                  pindexWalk->GetBlockHash().ToString());
 
         // ActivateBestChain considers blocks already in chainActive
@@ -833,7 +833,7 @@ static bool ProcessGenesisBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *p
             account.regid        = regId;
 
             account.OperateBalance(SYMB::WICC, BalanceOpType::ADD_FREE, pRewardTx->reward_fees,
-                                   ReceiptCode::BLOCK_REWARD_TO_MINER, pRewardTx->receipts);
+                                   ReceiptType::BLOCK_REWARD_TO_MINER, pRewardTx->receipts);
 
             if (!cw.txReceiptCache.SetTxReceipts(pRewardTx->GetHash(), pRewardTx->receipts))
                 return state.DoS(100, ERRORMSG("Set genesis block receipts failed!"),
@@ -889,7 +889,7 @@ static bool ProcessGenesisBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *p
             assert( voterAcct.GetToken(SYMB::WICC).free_amount >= maxVotes );
 
             voterAcct.OperateBalance(SYMB::WICC, BalanceOpType::VOTE, maxVotes,
-                                    ReceiptCode::DELEGATE_ADD_VOTE, pDelegateTx->receipts);
+                                    ReceiptType::DELEGATE_ADD_VOTE, pDelegateTx->receipts);
 
             if (!cw.txReceiptCache.SetTxReceipts(pDelegateTx->GetHash(), pDelegateTx->receipts))
                 return state.DoS(100, ERRORMSG("Set genesis block receipts failed!"),
@@ -1389,39 +1389,39 @@ void static UpdateTip(CBlockIndex *pIndexNew, const CBlock &block) {
 
 // Disconnect chainActive's tip.
 bool DisconnectTip(CValidationState &state) {
-    CBlockIndex *pIndexDelete = chainActive.Tip();
-    assert(pIndexDelete);
+    CBlockIndex *pBlockIndexToDelete = chainActive.Tip();
+    assert(pBlockIndexToDelete);
     // Read block from disk.
     CBlock block;
-    if (!ReadBlockFromDisk(pIndexDelete, block))
+    if (!ReadBlockFromDisk(pBlockIndexToDelete, block))
         return state.Abort(_("Failed to read blocks from disk."));
     // Apply the block atomically to the chain state.
     int64_t nStart = GetTimeMicros();
     {
         auto spCW = std::make_shared<CCacheWrapper>(pCdMan);
 
-        if (!DisconnectBlock(block, *spCW, pIndexDelete, state))
-            return ERRORMSG("DisconnectTip() : DisconnectBlock %s failed", pIndexDelete->GetBlockHash().ToString());
+        if (!DisconnectBlock(block, *spCW, pBlockIndexToDelete, state))
+            return ERRORMSG("DisconnectBlock %s failed", pBlockIndexToDelete->GetBlockHash().ToString());
 
         // Need to re-sync all to global cache layer.
         spCW->Flush();
 
         // Attention: need to reset the lastest block price median
-        CBlockIndex *pPreBlockIndex = pIndexDelete->pprev;
+        CBlockIndex *pPreBlockIndex = pBlockIndexToDelete->pprev;
         CBlock preBlock;
         if (pPreBlockIndex) {
             if (!ReadBlockFromDisk(pPreBlockIndex, preBlock))
-                return ERRORMSG("DisconnectTip() : failed to read block [%d]: %s", pPreBlockIndex->height,
+                return ERRORMSG("failed to read block [%d]: %s", pPreBlockIndex->height,
                                 pPreBlockIndex->GetBlockHash().ToString());
         }
     }
     if (SysCfg().IsBenchmark())
-        LogPrint(BCLog::INFO, "- Disconnect: %.2fms\n", (GetTimeMicros() - nStart) * 0.001);
+        LogPrint(BCLog::INFO, "Time elapsed: %.2fms\n", (GetTimeMicros() - nStart) * 0.001);
     // Write the chain state to disk, if necessary.
     if (!WriteChainState(state))
         return false;
     // Update chainActive and related variables.
-    UpdateTip(pIndexDelete->pprev, block);
+    UpdateTip(pBlockIndexToDelete->pprev, block);
     // Resurrect mempool transactions from the disconnected block.
     for (const auto &pTx : block.vptx) {
         list<std::shared_ptr<CBaseTx> > removed;

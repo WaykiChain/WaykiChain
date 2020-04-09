@@ -19,7 +19,7 @@ bool CBlockRewardTx::ExecuteTx(CTxExecuteContext &context) {
     } else if (-1 == context.index) {
         // When the reward transaction is mature, update account's balances, i.e, assign the reward value to
         // the target account.
-        if (!txAccount.OperateBalance(SYMB::WICC, ADD_FREE, reward_fees, ReceiptCode::BLOCK_REWARD_TO_MINER, receipts))
+        if (!txAccount.OperateBalance(SYMB::WICC, ADD_FREE, reward_fees, ReceiptType::BLOCK_REWARD_TO_MINER, receipts))
             return state.DoS(100, ERRORMSG("CBlockRewardTx::ExecuteTx, opeate account failed"), UPDATE_ACCOUNT_FAIL,
                              "operate-account-failed");
     } else {
@@ -73,7 +73,7 @@ bool CUCoinBlockRewardTx::ExecuteTx(CTxExecuteContext &context) {
             TokenSymbol coinSymbol = item.first;
             // FIXME: support WICC/WUSD only.
             if (coinSymbol == SYMB::WICC || coinSymbol == SYMB::WUSD) {
-                if (!txAccount.OperateBalance(coinSymbol, ADD_FREE, rewardAmount, ReceiptCode::BLOCK_REWARD_TO_MINER, receipts)) {
+                if (!txAccount.OperateBalance(coinSymbol, ADD_FREE, rewardAmount, ReceiptType::BLOCK_REWARD_TO_MINER, receipts)) {
                     return state.DoS(100, ERRORMSG("CUCoinBlockRewardTx::ExecuteTx, opeate account failed"),
                                      UPDATE_ACCOUNT_FAIL, "operate-account-failed");
                 }
@@ -83,7 +83,7 @@ bool CUCoinBlockRewardTx::ExecuteTx(CTxExecuteContext &context) {
         }
 
         // Assign profits to the delegate's account.
-        if (!txAccount.OperateBalance(SYMB::WICC, ADD_FREE, inflated_bcoins, ReceiptCode::COIN_BLOCK_INFLATE, receipts))
+        if (!txAccount.OperateBalance(SYMB::WICC, ADD_FREE, inflated_bcoins, ReceiptType::COIN_BLOCK_INFLATE, receipts))
             return state.DoS(100, ERRORMSG("CUCoinBlockRewardTx::ExecuteTx, opeate account failed"),
                              UPDATE_ACCOUNT_FAIL, "operate-account-failed");
     } else {

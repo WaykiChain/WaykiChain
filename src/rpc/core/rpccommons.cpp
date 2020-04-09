@@ -345,7 +345,7 @@ Object JSON::ToJson(const CAccountDBCache &accountCache, const CReceipt &receipt
     obj.push_back(Pair("coin_symbol",   receipt.coin_symbol));
     obj.push_back(Pair("coin_amount",   ValueFromAmount(receipt.coin_amount)));
     obj.push_back(Pair("receipt_code",  (uint64_t)receipt.code));
-    obj.push_back(Pair("memo",          GetReceiptCodeName(receipt.code)));
+    obj.push_back(Pair("memo",          GetReceiptTypeName(receipt.code)));
     return obj;
 }
 
@@ -639,7 +639,7 @@ void RPC_PARAM::CheckAccountBalance(CAccount &account, const TokenSymbol &tokenS
         throw JSONRPCError(RPC_WALLET_ERROR, strprintf("Unsupported coin symbol: %s", tokenSymbol));
 
     ReceiptList receipts;
-    if (!account.OperateBalance(tokenSymbol, opType, value, ReceiptCode::NULL_CODE, receipts))
+    if (!account.OperateBalance(tokenSymbol, opType, value, ReceiptType::NULL_RECEIPT_TYPE, receipts))
         throw JSONRPCError(RPC_WALLET_INSUFFICIENT_FUNDS, strprintf("Account does not have enough %s", tokenSymbol));
 }
 

@@ -44,7 +44,7 @@ static bool ProcessAssetFee(CCacheWrapper &cw, CValidationState &state, const st
                             REJECT_INVALID, "read-sysparam-error");
     }
 
-    if (!txAccount.OperateBalance(SYMB::WICC, BalanceOpType::SUB_FREE, assetFee, ReceiptCode::TRANSFER_ACTUAL_COINS, receipts))
+    if (!txAccount.OperateBalance(SYMB::WICC, BalanceOpType::SUB_FREE, assetFee, ReceiptType::TRANSFER_ACTUAL_COINS, receipts))
         return state.DoS(100, ERRORMSG("ProcessAssetFee, insufficient funds in account for %s asset fee=%llu, tx_regid=%s",
                         action, assetFee, txAccount.regid.ToString()), UPDATE_ACCOUNT_FAIL, "insufficent-funds");
 
@@ -62,8 +62,8 @@ static bool ProcessAssetFee(CCacheWrapper &cw, CValidationState &state, const st
         return state.DoS(100, ERRORMSG("ProcessAssetFee, get risk reserve account failed"),
                         READ_ACCOUNT_FAIL, "get-account-failed");
 
-    ReceiptCode code = (action == ASSET_ACTION_ISSUE) ? ReceiptCode::ASSET_ISSUED_FEE_TO_RESERVE :
-                                                        ReceiptCode::ASSET_UPDATED_FEE_TO_RESERVE;
+    ReceiptType code = (action == ASSET_ACTION_ISSUE) ? ReceiptType::ASSET_ISSUED_FEE_TO_RESERVE :
+                                                        ReceiptType::ASSET_UPDATED_FEE_TO_RESERVE;
 
     if (!fcoinGenesisAccount.OperateBalance(SYMB::WICC, BalanceOpType::ADD_FREE, riskFee, code, receipts)) {
         return state.DoS(100, ERRORMSG("ProcessAssetFee, operate balance failed! add %s asset fee=%llu to risk reserve account error",
@@ -91,8 +91,8 @@ static bool ProcessAssetFee(CCacheWrapper &cw, CValidationState &state, const st
         uint64_t minerUpdatedFee = minerTotalFee / delegates.size();
         if (i == 0) minerUpdatedFee += minerTotalFee % delegates.size(); // give the dust amount to topmost miner
 
-        ReceiptCode code = (action == ASSET_ACTION_ISSUE) ? ReceiptCode::ASSET_ISSUED_FEE_TO_MINER :
-                                                            ReceiptCode::ASSET_UPDATED_FEE_TO_MINER;
+        ReceiptType code = (action == ASSET_ACTION_ISSUE) ? ReceiptType::ASSET_ISSUED_FEE_TO_MINER :
+                                                            ReceiptType::ASSET_UPDATED_FEE_TO_MINER;
         if (!delegateAccount.OperateBalance(SYMB::WICC, BalanceOpType::ADD_FREE, minerUpdatedFee, code, receipts)) {
             return state.DoS(100, ERRORMSG("ProcessAssetFee, add %s asset fee to miner failed, miner regid=%s",
                 action, delegateRegid.ToString()), UPDATE_ACCOUNT_FAIL, "operate-account-failed");
@@ -177,7 +177,7 @@ bool CUserIssueAssetTx::ExecuteTx(CTxExecuteContext &context) {
             return false;
 
         if (!pOwnerAccount->OperateBalance(asset.asset_symbol, BalanceOpType::ADD_FREE, asset.total_supply,
-                                            ReceiptCode::ASSET_MINT_NEW_AMOUNT, receipts)) {
+                                            ReceiptType::ASSET_MINT_NEW_AMOUNT, receipts)) {
             return state.DoS(100, ERRORMSG("CUserIssueAssetTx::ExecuteTx, fail to add total_supply to issued account! total_supply=%llu, txUid=%s",
                             asset.total_supply, txUid.ToDebugString()), UPDATE_ACCOUNT_FAIL, "insufficent-funds");
         }
@@ -405,7 +405,7 @@ bool CUserUpdateAssetTx::ExecuteTx(CTxExecuteContext &context) {
             }
 
             if (!txAccount.OperateBalance(asset_symbol, BalanceOpType::ADD_FREE, mintAmount,
-                                        ReceiptCode::ASSET_MINT_NEW_AMOUNT, receipts)) {
+                                        ReceiptType::ASSET_MINT_NEW_AMOUNT, receipts)) {
                 return state.DoS(100, ERRORMSG("CUserUpdateAssetTx::ExecuteTx, add mintAmount to asset owner account failed, txUid=%s, mintAmount=%llu",
                                 txUid.ToDebugString(), mintAmount), UPDATE_ACCOUNT_FAIL, "account-add-free-failed");
             }

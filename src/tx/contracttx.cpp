@@ -169,7 +169,7 @@ bool CLuaContractInvokeTx::ExecuteTx(CTxExecuteContext &context) {
     }
 
     if (coin_amount > 0 && !txAccount.OperateBalance(SYMB::WICC, BalanceOpType::SUB_FREE, coin_amount,
-                                ReceiptCode::LUAVM_TRANSFER_ACTUAL_COINS, receipts, &appAccount))
+                                ReceiptType::LUAVM_TRANSFER_ACTUAL_COINS, receipts, &appAccount))
         return state.DoS(100, ERRORMSG("CLuaContractInvokeTx::ExecuteTx, txAccount has insufficient funds"),
                          UPDATE_ACCOUNT_FAIL, "operate-minus-account-failed");
 
@@ -303,7 +303,7 @@ bool CUniversalContractDeployTx::ExecuteTx(CTxExecuteContext &context) {
         CAccount fcoinGenesisAccount;
         cw.accountCache.GetFcoinGenesisAccount(fcoinGenesisAccount);
         if (!fcoinGenesisAccount.OperateBalance(SYMB::WUSD, BalanceOpType::ADD_FREE, fuel,
-                                                ReceiptCode::CONTRACT_FUEL_TO_RISK_RESERVE, receipts)) {
+                                                ReceiptType::CONTRACT_FUEL_TO_RISK_RESERVE, receipts)) {
             return state.DoS(100, ERRORMSG("CUniversalContractDeployTx::ExecuteTx, operate balance failed"),
                              UPDATE_ACCOUNT_FAIL, "operate-scoins-genesis-account-failed");
         }
@@ -392,7 +392,7 @@ bool CUniversalContractInvokeTx::ExecuteTx(CTxExecuteContext &context) {
     }
 
     if (!txAccount.OperateBalance(coin_symbol, BalanceOpType::SUB_FREE, coin_amount,
-                                  ReceiptCode::LUAVM_TRANSFER_ACTUAL_COINS, receipts, &appAccount))
+                                  ReceiptType::LUAVM_TRANSFER_ACTUAL_COINS, receipts, &appAccount))
         return state.DoS(100, ERRORMSG("txAccount has insufficient funds"),
                          UPDATE_ACCOUNT_FAIL, "operate-minus-account-failed");
 
@@ -434,7 +434,7 @@ bool CUniversalContractInvokeTx::ExecuteTx(CTxExecuteContext &context) {
         cw.accountCache.GetFcoinGenesisAccount(fcoinGenesisAccount);
 
         if (!fcoinGenesisAccount.OperateBalance(SYMB::WUSD, BalanceOpType::ADD_FREE, fuel,
-                                                ReceiptCode::CONTRACT_FUEL_TO_RISK_RESERVE, receipts)) {
+                                                ReceiptType::CONTRACT_FUEL_TO_RISK_RESERVE, receipts)) {
             return state.DoS(100, ERRORMSG("operate balance failed"),
                              UPDATE_ACCOUNT_FAIL, "operate-scoins-genesis-account-failed");
         }

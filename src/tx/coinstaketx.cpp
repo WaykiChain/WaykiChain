@@ -30,7 +30,7 @@ bool CCoinStakeTx::CheckTx(CTxExecuteContext &context) {
 bool CCoinStakeTx::ExecuteTx(CTxExecuteContext &context) {
     CValidationState &state = *context.pState;
 
-    if (!txAccount.OperateBalance(coin_symbol, stake_type, coin_amount, ReceiptCode::COIN_STAKE, receipts))
+    if (!txAccount.OperateBalance(coin_symbol, stake_type, coin_amount, ReceiptType::COIN_STAKE, receipts))
         return state.DoS(100, ERRORMSG("CCoinStakeTx::ExecuteTx, insufficient coins to stake in txUid(%s)",
                         txUid.ToString()), UPDATE_ACCOUNT_FAIL, "insufficient-coin-amount");
 

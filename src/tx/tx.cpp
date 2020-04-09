@@ -212,7 +212,7 @@ bool CBaseTx::ExecuteFullTx(CTxExecuteContext &context) {
         }
 
         if (nTxType != UCOIN_BLOCK_REWARD_TX && nTxType != BLOCK_REWARD_TX) {
-            if (llFees > 0 && !txAccount.OperateBalance(fee_symbol, SUB_FREE, llFees, ReceiptCode::BLOCK_REWARD_TO_MINER, receipts))
+            if (llFees > 0 && !txAccount.OperateBalance(fee_symbol, SUB_FREE, llFees, ReceiptType::BLOCK_REWARD_TO_MINER, receipts))
                     return state.DoS(100, ERRORMSG("ExecuteFullTx: account has insufficient funds"),
                                     UPDATE_ACCOUNT_FAIL, "sub-account-fees-failed");
         }

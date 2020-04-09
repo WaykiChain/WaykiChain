@@ -9,16 +9,17 @@
 
 #include "config/txbase.h"
 #include "crypto/hash.h"
+#include "entities/account.h"
 #include "entities/asset.h"
 #include "entities/id.h"
 #include "commons/json/json_spirit_utils.h"
 
 static CUserID nullId;
 
-//         ReceiptCode                   CodeValue         memo
+//         ReceiptType                   CodeValue         memo
 //       -----------------              ----------  ----------------------------
-#define RECEIPT_CODE_LIST(DEFINE) \
-    DEFINE(NULL_CODE,                            0,  "null type") \
+#define RECEIPT_TYPE_LIST(DEFINE) \
+    DEFINE(NULL_RECEIPT_TYPE,                     0,  "null type") \
     /**** reward */ \
     DEFINE(BLOCK_REWARD_TO_MINER,               101, "block reward to miner") \
     DEFINE(COIN_MINT_ONCHAIN,                   102, "coin minted onchain") \
@@ -90,16 +91,16 @@ static CUserID nullId;
     DEFINE(AXC_REWARD_FEE_TO_GW,                804, "cross-chain reward fees to GW") \
 
 #define DEFINE_RECEIPT_CODE_TYPE(enumType, code, enumName) enumType = code,
-enum ReceiptCode: uint16_t {
-    RECEIPT_CODE_LIST(DEFINE_RECEIPT_CODE_TYPE)
+enum ReceiptType: uint16_t {
+    RECEIPT_TYPE_LIST(DEFINE_RECEIPT_CODE_TYPE)
 };
 
-#define DEFINE_RECEIPT_CODE_NAMES(enumType, code, enumName) { ReceiptCode::enumType, enumName },
-static const EnumTypeMap<ReceiptCode, string> RECEIPT_CODE_NAMES = {
-    RECEIPT_CODE_LIST(DEFINE_RECEIPT_CODE_NAMES)
+#define DEFINE_RECEIPT_CODE_NAMES(enumType, code, enumName) { ReceiptType::enumType, enumName },
+static const EnumTypeMap<ReceiptType, string> RECEIPT_CODE_NAMES = {
+    RECEIPT_TYPE_LIST(DEFINE_RECEIPT_CODE_NAMES)
 };
 
-inline const string& GetReceiptCodeName(ReceiptCode code) {
+inline const string& GetReceiptTypeName(ReceiptType code) {
     const auto it = RECEIPT_CODE_NAMES.find(code);
     if (it != RECEIPT_CODE_NAMES.end())
         return it->second;
@@ -108,25 +109,31 @@ inline const string& GetReceiptCodeName(ReceiptCode code) {
 
 class CReceipt {
 public:
-    CUserID     from_uid;
-    CUserID     to_uid;
-    TokenSymbol coin_symbol;
-    uint64_t    coin_amount;
-    ReceiptCode code;
+    ReceiptType     receipt_type;
+    BalanceOpType   op_type;
+    CUserID         from_uid;
+    CUserID         to_uid;
+    TokenSymbol     coin_symbol;
+    uint64_t        coin_amount;
 
 public:
     CReceipt() {}
 
-    CReceipt(ReceiptCode codeIn) : code(codeIn) {}
-    CReceipt(const CUserID &fromUid, const CUserID &toUid, const TokenSymbol &coinSymbol, const uint64_t coinAmount, ReceiptCode codeIn) :
-            from_uid(fromUid), to_uid(toUid), coin_symbol(coinSymbol), coin_amount(coinAmount), code(codeIn) {}
+    CReceipt(const ReceiptType receiptType, const BalanceOpType opType) : receipt_type(receiptType), op_type(opType) {}
+    CReceipt(const ReceiptType receiptType, const BalanceOpType opType,
+            const CUserID &fromUid, const CUserID &toUid,
+            const TokenSymbol &coinSymbol, const uint64_t coinAmount) :
+            receipt_type(receiptType), op_type(opType), from_uid(fromUid), to_uid(toUid),
+            coin_symbol(coinSymbol), coin_amount(coinAmount) {}
 
     IMPLEMENT_SERIALIZE(
+        READWRITE_CONVERT(uint16_t, receipt_type);
+        READWRITE_CONVERT(uint8_t, op_type);
         READWRITE(from_uid);
         READWRITE(to_uid);
         READWRITE(coin_symbol);
         READWRITE(VARINT(coin_amount));
-        READWRITE_CONVERT(uint16_t, code);
+
     )
 
     void SetInfo(const CUserID &fromUid, const CUserID &toUid, const TokenSymbol &coinSymbol, const uint64_t coinAmount) {
@@ -141,7 +148,7 @@ public:
         strprintf("to_uid=%s", to_uid.ToString()) + ", " +
         strprintf("coin_symbol=%s", coin_symbol) + ", " +
         strprintf("coin_amount=%f", ValueFromAmount(coin_amount)) + ", " +
-        strprintf("code=%s", GetReceiptCodeName(code));
+        strprintf("receipt_type=%s", GetReceiptTypeName(receipt_type));
     }
 };
 

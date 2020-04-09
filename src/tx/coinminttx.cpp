@@ -35,7 +35,7 @@ bool CCoinMintTx::ExecuteTx(CTxExecuteContext &context) {
                 TX_ERR_TITLE, txUid.GetIDName()), READ_ACCOUNT_FAIL, "unsupported-txUid-type");
     }
 
-    if (!txAccount.OperateBalance(coin_symbol, ADD_FREE, coin_amount, ReceiptCode::COIN_MINT_ONCHAIN, receipts))
+    if (!txAccount.OperateBalance(coin_symbol, ADD_FREE, coin_amount, ReceiptType::COIN_MINT_ONCHAIN, receipts))
         return state.DoS(100, ERRORMSG("CCoinMintTx::ExecuteTx, operate account failed"), UPDATE_ACCOUNT_FAIL,
                          "operate-account-failed");
 

@@ -15,7 +15,7 @@ namespace wasm {
       CAccount *pToAccount = toAccount.IsEmpty() ? nullptr : &toAccount;
 
       CHAIN_ASSERT( fromAccount.OperateBalance(symbol, BalanceOpType::SUB_FREE, quantity.amount,
-                                              ReceiptCode::WASM_TRANSFER_ACTUAL_COINS, context.control_trx.receipts, pToAccount),
+                                              ReceiptType::WASM_TRANSFER_ACTUAL_COINS, context.control_trx.receipts, pToAccount),
                                               wasm_chain::account_access_exception,
                                               "Account %s balance overdrawn",
                                               fromAccount.regid.ToString())
@@ -60,7 +60,7 @@ namespace wasm {
                     CRegID(owner).ToString(), assetOwnerAccount.regid.ToString() );
 
       if (isMintOperate) { //mint operation
-        CHAIN_ASSERT( assetOwnerAccount.OperateBalance(symbol, BalanceOpType::ADD_FREE, quantity.amount, ReceiptCode::WASM_MINT_COINS, context.control_trx.receipts),
+        CHAIN_ASSERT( assetOwnerAccount.OperateBalance(symbol, BalanceOpType::ADD_FREE, quantity.amount, ReceiptType::WASM_MINT_COINS, context.control_trx.receipts),
                       wasm_chain::account_access_exception,
                       "Asset Owner (%s) balance overminted",
                       assetOwnerAccount.regid.ToString())
@@ -73,7 +73,7 @@ namespace wasm {
         asset.total_supply += quantity.amount;
 
       } else {            //burn operation
-        CHAIN_ASSERT( assetOwnerAccount.OperateBalance(symbol, BalanceOpType::SUB_FREE, quantity.amount, ReceiptCode::WASM_BURN_COINS, context.control_trx.receipts),
+        CHAIN_ASSERT( assetOwnerAccount.OperateBalance(symbol, BalanceOpType::SUB_FREE, quantity.amount, ReceiptType::WASM_BURN_COINS, context.control_trx.receipts),
                       wasm_chain::account_access_exception,
                       "Asset Owner (%s) balance overburnt",
                       assetOwnerAccount.regid.ToString())

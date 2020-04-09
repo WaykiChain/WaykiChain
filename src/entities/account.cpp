@@ -31,13 +31,13 @@ bool CAccount::GetBalance(const TokenSymbol &tokenSymbol, const BalanceType bala
 }
 
 bool CAccount::OperateBalance(const TokenSymbol &tokenSymbol, const BalanceOpType opType, const uint64_t &value,
-                            ReceiptCode code, ReceiptList &receipts, CAccount *pOtherAccount) {
+                            ReceiptType code, ReceiptList &receipts, CAccount *pOtherAccount) {
 
     CAccountToken &accountToken = tokens[tokenSymbol];
     CUserID fromUid = CUserID(keyid);
     CUserID toUid = CNullID();
 
-    CReceipt receipt(code);
+    CReceipt receipt(code, opType);
 
     switch (opType) {
         case ADD_FREE: {
@@ -493,7 +493,7 @@ bool CAccount::ProcessCandidateVotes(const vector<CCandidateVote> &candidateVote
 
     if (newTotalVotes > lastTotalVotes) {
         uint64_t addedVotes = newTotalVotes - lastTotalVotes;
-        if (!OperateBalance(SYMB::WICC, BalanceOpType::VOTE, addedVotes, ReceiptCode::DELEGATE_ADD_VOTE, receipts)) {
+        if (!OperateBalance(SYMB::WICC, BalanceOpType::VOTE, addedVotes, ReceiptType::DELEGATE_ADD_VOTE, receipts)) {
             return ERRORMSG(
                         "ProcessCandidateVotes() : delegate votes exceeds account bcoins when voting! "
                         "newTotalVotes=%llu, lastTotalVotes=%llu, freeAmount=%llu",
@@ -502,7 +502,7 @@ bool CAccount::ProcessCandidateVotes(const vector<CCandidateVote> &candidateVote
 
     } else if (newTotalVotes < lastTotalVotes) {
         uint64_t subVotes = lastTotalVotes - newTotalVotes;
-        if (!OperateBalance(SYMB::WICC, BalanceOpType::UNVOTE, subVotes, ReceiptCode::DELEGATE_SUB_VOTE, receipts)) {
+        if (!OperateBalance(SYMB::WICC, BalanceOpType::UNVOTE, subVotes, ReceiptType::DELEGATE_SUB_VOTE, receipts)) {
             return ERRORMSG(
                 "ProcessCandidateVotes() : delegate votes insufficient to unvote! "
                 "newTotalVotes=%llu, lastTotalVotes=%llu, freeAmount=%llu",
@@ -517,7 +517,7 @@ bool CAccount::ProcessCandidateVotes(const vector<CCandidateVote> &candidateVote
 
         if (fcoinAmountToInflate > 0) {
             if (!OperateBalance(SYMB::WGRT, BalanceOpType::ADD_FREE, fcoinAmountToInflate,
-                                 ReceiptCode::DELEGATE_VOTE_INTEREST, receipts)) {
+                                 ReceiptType::DELEGATE_VOTE_INTEREST, receipts)) {
                 return ERRORMSG("ProcessCandidateVotes() : add fcoins to inflate failed");
             }
         }
@@ -531,7 +531,7 @@ bool CAccount::ProcessCandidateVotes(const vector<CCandidateVote> &candidateVote
             return false;
 
         if (!OperateBalance(SYMB::WICC, BalanceOpType::ADD_FREE, bcoinAmountToInflate,
-                            ReceiptCode::DELEGATE_VOTE_INTEREST, receipts)) {
+                            ReceiptType::DELEGATE_VOTE_INTEREST, receipts)) {
             return ERRORMSG("ProcessCandidateVotes() : add bcoins to inflate failed");
         }
 

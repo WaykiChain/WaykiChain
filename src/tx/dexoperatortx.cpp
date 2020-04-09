@@ -34,7 +34,7 @@ static bool ProcessDexOperatorFee(CCacheWrapper &cw, CValidationState &state, co
     }
 
     if (!txAccount.OperateBalance(SYMB::WICC, BalanceOpType::SUB_FREE, exchangeFee,
-                                ReceiptCode::DEX_ASSET_FEE_TO_SETTLER, receipts))
+                                ReceiptType::DEX_ASSET_FEE_TO_SETTLER, receipts))
         return state.DoS(100, ERRORMSG("tx account insufficient funds for operator %s fee! fee=%llu, tx_addr=%s",
                         action, exchangeFee, txAccount.keyid.ToAddress()),
                         UPDATE_ACCOUNT_FAIL, "insufficent-funds");
@@ -52,8 +52,8 @@ static bool ProcessDexOperatorFee(CCacheWrapper &cw, CValidationState &state, co
         return state.DoS(100, ERRORMSG("get risk reserve account failed"),
                         READ_ACCOUNT_FAIL, "get-account-failed");
 
-    ReceiptCode code = (action == OPERATOR_ACTION_REGISTER) ? ReceiptCode::DEX_OPERATOR_REG_FEE_TO_RESERVE :
-                                                              ReceiptCode::DEX_OPERATOR_UPDATED_FEE_TO_RESERVE;
+    ReceiptType code = (action == OPERATOR_ACTION_REGISTER) ? ReceiptType::DEX_OPERATOR_REG_FEE_TO_RESERVE :
+                                                              ReceiptType::DEX_OPERATOR_UPDATED_FEE_TO_RESERVE;
 
     if (!fcoinGenesisAccount.OperateBalance(SYMB::WICC, BalanceOpType::ADD_FREE, riskFee, code, receipts)) {
         return state.DoS(100, ERRORMSG("operate balance failed! add %s asset fee=%llu to risk reserve account error",
@@ -80,8 +80,8 @@ static bool ProcessDexOperatorFee(CCacheWrapper &cw, CValidationState &state, co
         uint64_t minerFee = minerTotalFee / delegates.size();
         if (i == 0) minerFee += minerTotalFee % delegates.size(); // give the dust amount to topmost miner
 
-        ReceiptCode code = (action == OPERATOR_ACTION_REGISTER) ? ReceiptCode::DEX_OPERATOR_REG_FEE_TO_MINER :
-                            ReceiptCode::DEX_OPERATOR_UPDATED_FEE_TO_MINER;
+        ReceiptType code = (action == OPERATOR_ACTION_REGISTER) ? ReceiptType::DEX_OPERATOR_REG_FEE_TO_MINER :
+                            ReceiptType::DEX_OPERATOR_UPDATED_FEE_TO_MINER;
 
         if (!delegateAccount.OperateBalance(SYMB::WICC, BalanceOpType::ADD_FREE, minerFee, code, receipts)) {
             return state.DoS(100, ERRORMSG("add %s asset fee to miner failed, miner regid=%s",

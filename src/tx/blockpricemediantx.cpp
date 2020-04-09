@@ -321,18 +321,18 @@ bool CCdpForceLiquidator::Execute() {
                     "index: %u\n", cdp.ToString(), currRiskReserveScoins, liquidated_count - 1);
 
         // a) get scoins from risk reserve pool for closeout
-        ReceiptCode code = ReceiptCode::CDP_TOTAL_CLOSEOUT_SCOIN_FROM_RESERVE;
+        ReceiptType code = ReceiptType::CDP_TOTAL_CLOSEOUT_SCOIN_FROM_RESERVE;
         fcoinGenesisAccount.OperateBalance(SYMB::WUSD, BalanceOpType::SUB_FREE, cdp.total_owed_scoins, code, receipts);
 
         // b) sell bcoins for risk reserve pool
         // b.1) clean up cdp owner's pledged_amount
-        code = ReceiptCode::CDP_TOTAL_ASSET_TO_RESERVE;
+        code = ReceiptType::CDP_TOTAL_ASSET_TO_RESERVE;
         if (!cdpOwnerAccount.OperateBalance(cdp.bcoin_symbol, UNPLEDGE, cdp.total_staked_bcoins, code, receipts)) {
             return state.DoS(100, ERRORMSG("unpledge bcoins failed! cdp={%s}", cdp.ToString()),
                     UPDATE_ACCOUNT_FAIL, "unpledge-bcoins-failed");
         }
 
-        code = ReceiptCode::CDP_LIQUIDATED_ASSET_TO_OWNER;
+        code = ReceiptType::CDP_LIQUIDATED_ASSET_TO_OWNER;
         if (!cdpOwnerAccount.OperateBalance(cdp.bcoin_symbol, SUB_FREE, cdp.total_staked_bcoins, code, receipts)) {
             return state.DoS(100, ERRORMSG("sub unpledged bcoins failed! cdp={%s}", cdp.ToString()),
                     UPDATE_ACCOUNT_FAIL, "deduct-bcoins-failed");
@@ -403,14 +403,14 @@ bool CCdpForceLiquidator::SellAssetToRiskRevervePool(const CUserCDP &cdp, const 
     uint64_t amount, const TokenSymbol &coinSymbol, uint256 &orderId, shared_ptr<CDEXOrderDetail> &pOrderOut,
     ReceiptList &receipts) {
 
-    ReceiptCode code = ReceiptCode::CDP_TOTAL_ASSET_TO_RESERVE;
+    ReceiptType code = ReceiptType::CDP_TOTAL_ASSET_TO_RESERVE;
     if (!fcoinGenesisAccount.OperateBalance(assetSymbol, BalanceOpType::ADD_FREE, amount, code, receipts)) {
         return context.pState->DoS(100, ERRORMSG("add account balance failed"),
                             UPDATE_ACCOUNT_FAIL, "operate-fcoin-genesis-account-failed");
     }
 
     // freeze account asset for selling
-    code = ReceiptCode::CDP_TOTAL_ASSET_TO_RESERVE;
+    code = ReceiptType::CDP_TOTAL_ASSET_TO_RESERVE;
     if (!fcoinGenesisAccount.OperateBalance(assetSymbol, BalanceOpType::FREEZE, amount, code, receipts)) {
         return context.pState->DoS(100, ERRORMSG("account has insufficient funds"),
                             UPDATE_ACCOUNT_FAIL, "account-insufficient");
@@ -481,14 +481,14 @@ bool CCdpForceLiquidator::ForceLiquidateCDPCompat(CCdpRatioIndexCache::Map &cdps
         // a) sell WICC for WUSD to return to risk reserve pool
         // send bcoin from cdp to fcoin genesis account
         if (!fcoinGenesisAccount.OperateBalance(SYMB::WICC, BalanceOpType::ADD_FREE, cdp.total_staked_bcoins,
-                                                ReceiptCode::CDP_TOTAL_ASSET_TO_RESERVE, receipts)) {
+                                                ReceiptType::CDP_TOTAL_ASSET_TO_RESERVE, receipts)) {
             return state.DoS(100, ERRORMSG("operate balance failed"),
                                 UPDATE_ACCOUNT_FAIL, "operate-fcoin-genesis-account-failed");
         }
 
         // should freeze user's asset for selling
         if (!fcoinGenesisAccount.OperateBalance(SYMB::WICC, BalanceOpType::FREEZE, cdp.total_staked_bcoins,
-                                                ReceiptCode::CDP_TOTAL_ASSET_TO_RESERVE, receipts)) {
+                                                ReceiptType::CDP_TOTAL_ASSET_TO_RESERVE, receipts)) {
             return state.DoS(100, ERRORMSG("account has insufficient funds"),
                                 UPDATE_ACCOUNT_FAIL, "operate-fcoin-genesis-account-failed");
         }
@@ -520,14 +520,14 @@ bool CCdpForceLiquidator::ForceLiquidateCDPCompat(CCdpRatioIndexCache::Map &cdps
             uint64_t fcoinsToInflate = uint64_t(double(fcoinsValueToInflate) * PRICE_BOOST / fcoin_usd_price);
             // inflate fcoin to fcoin genesis account
             if (!fcoinGenesisAccount.OperateBalance(SYMB::WGRT, BalanceOpType::ADD_FREE, fcoinsToInflate,
-                                                    ReceiptCode::CDP_TOTAL_INFLATE_FCOIN_TO_RESERVE, receipts)) {
+                                                    ReceiptType::CDP_TOTAL_INFLATE_FCOIN_TO_RESERVE, receipts)) {
                 return state.DoS(100, ERRORMSG("operate balance failed"),
                                     UPDATE_ACCOUNT_FAIL, "operate-fcoin-genesis-account-failed");
             }
 
             // should freeze user's asset for selling
             if (!fcoinGenesisAccount.OperateBalance(SYMB::WGRT, BalanceOpType::FREEZE, fcoinsToInflate,
-                                                    ReceiptCode::CDP_TOTAL_INFLATE_FCOIN_TO_RESERVE, receipts)) {
+                                                    ReceiptType::CDP_TOTAL_INFLATE_FCOIN_TO_RESERVE, receipts)) {
                 return state.DoS(100, ERRORMSG("account has insufficient funds"),
                                     UPDATE_ACCOUNT_FAIL, "operate-fcoin-genesis-account-failed");
             }
@@ -571,17 +571,17 @@ bool CCdpForceLiquidator::ForceLiquidateCDPCompat(CCdpRatioIndexCache::Map &cdps
     assert(prevScoins >= currRiskReserveScoins);
 
     if (!fcoinGenesisAccount.OperateBalance(SYMB::WUSD, SUB_FREE, prevScoins - currRiskReserveScoins,
-                                            ReceiptCode::CDP_TOTAL_INFLATE_FCOIN_TO_RESERVE, receipts)) {
+                                            ReceiptType::CDP_TOTAL_INFLATE_FCOIN_TO_RESERVE, receipts)) {
         return state.DoS(100, ERRORMSG("opeate fcoin genesis account failed"),
                             UPDATE_ACCOUNT_FAIL, "operate-fcoin-genesis-account-failed");
     }
 
     // receipts.emplace_back(fcoinGenesisAccount.regid, nullId, SYMB::WUSD, totalCloseoutScoins,
-    //                         ReceiptCode::CDP_TOTAL_CLOSEOUT_SCOIN_FROM_RESERVE);
+    //                         ReceiptType::CDP_TOTAL_CLOSEOUT_SCOIN_FROM_RESERVE);
     // receipts.emplace_back(nullId, fcoinGenesisAccount.regid, SYMB::WICC, totalSelloutBcoins,
-    //                         ReceiptCode::CDP_TOTAL_ASSET_TO_RESERVE);
+    //                         ReceiptType::CDP_TOTAL_ASSET_TO_RESERVE);
     // receipts.emplace_back(nullId, fcoinGenesisAccount.regid, SYMB::WGRT, totalInflateFcoins,
-    //                         ReceiptCode::CDP_TOTAL_INFLATE_FCOIN_TO_RESERVE);
+    //                         ReceiptType::CDP_TOTAL_INFLATE_FCOIN_TO_RESERVE);
 
     return true;
 }

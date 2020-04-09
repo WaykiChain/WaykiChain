@@ -71,7 +71,7 @@ Object CProposalRequestTx::ToJson(const CAccountDBCache &accountCache) const {
 bool CProposalRequestTx::ExecuteTx(CTxExecuteContext &context) {
     IMPLEMENT_DEFINE_CW_STATE;
 
-    if (!txAccount.OperateBalance(fee_symbol, SUB_FREE, llFees, ReceiptCode::BLOCK_REWARD_TO_MINER, receipts))
+    if (!txAccount.OperateBalance(fee_symbol, SUB_FREE, llFees, ReceiptType::BLOCK_REWARD_TO_MINER, receipts))
         return state.DoS(100, ERRORMSG("CProposalRequestTx::ExecuteTx, account has insufficient funds"),
                     UPDATE_ACCOUNT_FAIL, "operate-minus-account-failed");
 

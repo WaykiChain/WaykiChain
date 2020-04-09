@@ -48,7 +48,7 @@ bool CBaseCoinTransferTx::ExecuteTx(CTxExecuteContext &context) {
         }
 
         if (!txAccount.OperateBalance(SYMB::WICC, BalanceOpType::SUB_FREE, coin_amount,
-                                    ReceiptCode::TRANSFER_ACTUAL_COINS, receipts, pDestAccount))
+                                    ReceiptType::TRANSFER_ACTUAL_COINS, receipts, pDestAccount))
             return state.DoS(100, ERRORMSG("CBaseCoinTransferTx::ExecuteTx, account has insufficient funds"),
                             UPDATE_ACCOUNT_FAIL, "operate-minus-account-failed");
     }
@@ -150,7 +150,7 @@ bool CCoinTransferTx::ExecuteTx(CTxExecuteContext &context) {
                                                 i, SysCfg().GetFcoinGenesisRegId().ToString()), READ_ACCOUNT_FAIL, "bad-read-accountdb");
                 }
 
-                if (!txAccount.OperateBalance(SYMB::WUSD, SUB_FREE, reserveFeeScoins, ReceiptCode::TRANSFER_FEE_TO_RESERVE, receipts, &fcoinGenesisAccount)) {
+                if (!txAccount.OperateBalance(SYMB::WUSD, SUB_FREE, reserveFeeScoins, ReceiptType::TRANSFER_FEE_TO_RESERVE, receipts, &fcoinGenesisAccount)) {
                     return state.DoS(100, ERRORMSG("CCoinTransferTx::ExecuteTx, add scoins to fcoin genesis account failed"),
                                      UPDATE_ACCOUNT_FAIL, "failed-add-scoins");
                 }
@@ -183,7 +183,7 @@ bool CCoinTransferTx::ExecuteTx(CTxExecuteContext &context) {
                 pDestAccount = spDestAccount.get(); // transfer to other account
             }
 
-            if (!txAccount.OperateBalance(transfer.coin_symbol, SUB_FREE, actualCoinsToSend, ReceiptCode::TRANSFER_ACTUAL_COINS, receipts, pDestAccount))
+            if (!txAccount.OperateBalance(transfer.coin_symbol, SUB_FREE, actualCoinsToSend, ReceiptType::TRANSFER_ACTUAL_COINS, receipts, pDestAccount))
                 return state.DoS(100, ERRORMSG("CCoinTransferTx::ExecuteTx, transfers[%d], failed to add coins in toUid %s account", i,
                             toUid.ToDebugString()), UPDATE_ACCOUNT_FAIL, "failed-sub-coins");
         }
