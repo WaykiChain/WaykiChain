@@ -78,7 +78,7 @@ extern Value gendexoperatorordertx(const Array& params, bool fHelp);
 
 extern Value submitdexcancelordertx(const Array& params, bool fHelp);
 extern Value submitdexoperatorregtx(const Array& params, bool fHelp);
-extern Value submitdexoperatorupdatetx(const Array& params, bool fHelp);
+extern Value submitdexopupdatetx(const Array& params, bool fHelp);
 extern Value submitdexsettletx(const Array& params, bool fHelp);
 
 extern Value getdexorder(const Array& params, bool fHelp);

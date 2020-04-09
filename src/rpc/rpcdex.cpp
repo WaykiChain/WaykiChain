@@ -917,11 +917,11 @@ Value submitdexoperatorregtx(const Array& params, bool fHelp){
     return SubmitTx(account.keyid, tx);
 }
 
-Value submitdexoperatorupdatetx(const Array& params, bool fHelp){
+Value submitdexopupdatetx(const Array& params, bool fHelp){
 
     if(fHelp ||params.size()< 4 || params.size() > 5 ){
         throw runtime_error(
-                "submitdexoperatorupdatetx  \"tx_uid\" \"dex_id\" \"update_field\" \"value\" \"fee\" \n"
+                "submitdexopupdatetx  \"tx_uid\" \"dex_id\" \"update_field\" \"value\" \"fee\" \n"
                 "\n register a dex operator\n"
                 "\nArguments:\n"
                 "1.\"tx_uid\":          (string, required) the tx sender, must be the dexoperaor's owner regid\n"
@@ -939,9 +939,9 @@ Value submitdexoperatorupdatetx(const Array& params, bool fHelp){
                 "\nResult:\n"
                 "\"txHash\"             (string) The transaction id.\n"
                 "\nExamples:\n"
-                + HelpExampleCli("submitdexoperatorupdatetx", "0-1 1 1 0-3")
+                + HelpExampleCli("submitdexopupdatetx", "0-1 1 1 0-3")
                 + "\nAs json rpc call\n"
-                + HelpExampleRpc("submitdexoperatorupdatetx", "0-1 1 1 0-3")
+                + HelpExampleRpc("submitdexopupdatetx", "0-1 1 1 0-3")
 
                 ) ;
     }
