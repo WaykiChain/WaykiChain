@@ -31,13 +31,13 @@ bool CAccount::GetBalance(const TokenSymbol &tokenSymbol, const BalanceType bala
 }
 
 bool CAccount::OperateBalance(const TokenSymbol &tokenSymbol, const BalanceOpType opType, const uint64_t &value,
-                            ReceiptType code, ReceiptList &receipts, CAccount *pOtherAccount) {
+                            ReceiptType receiptType, ReceiptList &receipts, CAccount *pOtherAccount) {
 
     CAccountToken &accountToken = tokens[tokenSymbol];
     CUserID fromUid = CUserID(keyid);
     CUserID toUid = CNullID();
 
-    CReceipt receipt(code, opType);
+    CReceipt receipt(receiptType, opType);
 
     switch (opType) {
         case ADD_FREE: {
