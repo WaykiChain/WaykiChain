@@ -439,9 +439,9 @@ bool Dex0(DexOperatorDetail& detail){
 bool CDexDBCache::GetDexOperator(const DexID &id, DexOperatorDetail& detail) {
     decltype(operator_detail_cache)::KeyType idKey(id);
     bool result =  operator_detail_cache.GetData(idKey, detail);
-    if(result)
+    if (result)
         return result;
-    if(id == MAIN_DEX_ID )
+    if (id == MAIN_DEX_ID )
         return Dex0(detail);
     return result;
 
@@ -454,10 +454,10 @@ bool CDexDBCache::GetDexOperatorByOwner(const CRegID &regid, DexID &idOut, DexOp
         return GetDexOperator(dexID.value().get(), detail);
     }else {
         CRegID sysRegId = SysCfg().GetDex0OwnerRegId();
-        if(sysRegId == regid) {
+        if (sysRegId == regid) {
             idOut = MAIN_DEX_ID;
             bool result = GetDexOperator(idOut ,detail);
-            if(result && detail.owner_regid == regid)
+            if (result && detail.owner_regid == regid)
                 return result;
         }
     }
@@ -465,7 +465,7 @@ bool CDexDBCache::GetDexOperatorByOwner(const CRegID &regid, DexID &idOut, DexOp
 }
 
 bool CDexDBCache::HaveDexOperator(const DexID &id) {
-    if(id == MAIN_DEX_ID )
+    if (id == MAIN_DEX_ID )
         return true;
     decltype(operator_detail_cache)::KeyType idKey(id);
     return operator_detail_cache.HasData(idKey);
@@ -474,12 +474,12 @@ bool CDexDBCache::HaveDexOperator(const DexID &id) {
 bool CDexDBCache::HasDexOperatorByOwner(const CRegID &regid) {
      bool dbHave = operator_owner_map_cache.HasData(regid);
 
-     if(!dbHave){
+     if (!dbHave){
          CRegID sysRegId = SysCfg().GetDex0OwnerRegId();
-         if(sysRegId == regid){
+         if (sysRegId == regid){
              DexOperatorDetail detail;
              bool b = GetDexOperator(MAIN_DEX_ID , detail);
-             if(b && detail.owner_regid == regid)
+             if (b && detail.owner_regid == regid)
                  return true;
          }
      }
