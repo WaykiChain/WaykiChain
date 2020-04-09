@@ -2638,9 +2638,9 @@ lua_CFunction GetLuaMylib(HeightType height) {
     auto featureForkVersion = GetFeatureForkVersion(height);
     switch(featureForkVersion) {
         case MAJOR_VER_R1:  return luaopen_mylib_v1;
-        case MAJOR_VER_R2:  return luaopen_mylib_v1;
+        case MAJOR_VER_R2:  return luaopen_mylib_v2;
         case MAJOR_VER_R3:
-        default:            return luaopen_mylib_v1;
+        default:            return luaopen_mylib_v3;
     }
 }
 
