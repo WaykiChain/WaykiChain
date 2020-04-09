@@ -196,7 +196,7 @@ bool CAppUserAccount::Operate(const CAppFundOperate& operate, vector<CReceipt> &
 
         bcoins = tempValue;
 
-        receipts.emplace_back(ReceiptType::CONTRACT_TOKEN_OPERATE_ADD, ADD_FREE_OP, nullId, operate.GetUserID(), "", operate.GetUint64Value());
+        receipts.emplace_back(ReceiptType::CONTRACT_TOKEN_OPERATE_ADD, BalanceOpType::ADD_FREE, nullId, operate.GetUserID(), "", operate.GetUint64Value());
 
         return true;
     } else if (operate.opType == SUB_FREE_OP) {
@@ -204,17 +204,17 @@ bool CAppUserAccount::Operate(const CAppFundOperate& operate, vector<CReceipt> &
         if (bcoins >= tem) {
             bcoins -= tem;
 
-            receipts.emplace_back(ReceiptType::CONTRACT_TOKEN_OPERATE_SUB, SUB_FREE_OP, operate.GetUserID(), nullId, "", operate.GetUint64Value());
+            receipts.emplace_back(ReceiptType::CONTRACT_TOKEN_OPERATE_SUB, BalanceOpType::SUB_FREE, operate.GetUserID(), nullId, "", operate.GetUint64Value());
 
             return true;
         }
     } else if (operate.opType == ADD_TAG_OP) {
-        receipts.emplace_back(ReceiptType::CONTRACT_TOKEN_OPERATE_TAG_ADD, ADD_TAG_OP, nullId, operate.GetUserID(), operate.GetFundTag(), operate.GetUint64Value());
+        receipts.emplace_back(ReceiptType::CONTRACT_TOKEN_OPERATE_TAG_ADD, BalanceOpType::ADD_FREE, nullId, operate.GetUserID(), operate.GetFundTag(), operate.GetUint64Value());
 
         CAppCFund tep(operate);
         return AddAppCFund(tep);
     } else if (operate.opType == SUB_TAG_OP) {
-        receipts.emplace_back(ReceiptType::CONTRACT_TOKEN_OPERATE_TAG_SUB, SUB_TAG_OP, operate.GetUserID(), nullId, operate.GetFundTag(), operate.GetUint64Value());
+        receipts.emplace_back(ReceiptType::CONTRACT_TOKEN_OPERATE_TAG_SUB, BalanceOpType::SUB_FREE, operate.GetUserID(), nullId, operate.GetFundTag(), operate.GetUint64Value());
 
         CAppCFund tep(operate);
         return MinusAppCFund(tep);
