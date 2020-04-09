@@ -340,12 +340,15 @@ Object JSON::ToJson(const CAccountDBCache &accountCache, const CReceipt &receipt
         accountCache.GetKeyId(receipt.to_uid, toKeyId);
 
     Object obj;
+    obj.push_back(Pair("receipt_type",  (uint64_t)receipt.receipt_type));
+    obj.push_back(Pair("receipt_type_name", GetReceiptTypeName(receipt.receipt_type)));
+    obj.push_back(Pair("op_type",       (uint64_t) receipt.op_type));
+    obj.push_back(Pair("op_type_name",  GetBalanceOpTypeName(receipt.op_type)));
     obj.push_back(Pair("from_addr",     fromKeyId.ToAddress()));
     obj.push_back(Pair("to_addr",       toKeyId.ToAddress()));
     obj.push_back(Pair("coin_symbol",   receipt.coin_symbol));
     obj.push_back(Pair("coin_amount",   ValueFromAmount(receipt.coin_amount)));
-    obj.push_back(Pair("receipt_code",  (uint64_t)receipt.code));
-    obj.push_back(Pair("memo",          GetReceiptTypeName(receipt.code)));
+
     return obj;
 }
 
