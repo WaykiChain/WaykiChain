@@ -890,13 +890,13 @@ namespace dex {
 
     COrderOperatorParams CDealItemExecuter::GetOrderOperatorParams(CDEXOrderDetail &order,
             DexOperatorDetail &operatorDetail) {
-        if (buyOrder.opt_operator_params) {
-            return buyOrder.opt_operator_params.value();
+        if (order.opt_operator_params) {
+            return order.opt_operator_params.value();
         } else {
             return {
-                buyOperatorDetail.public_mode,
-                buyOperatorDetail.maker_fee_ratio,
-                buyOperatorDetail.taker_fee_ratio
+                operatorDetail.public_mode,
+                operatorDetail.maker_fee_ratio,
+                operatorDetail.taker_fee_ratio
             };
         }
     }
