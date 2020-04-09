@@ -2619,25 +2619,29 @@ static const luaL_Reg baseLibsEx[] = {
     {nullptr, nullptr}
 };
 
-/*
- * register mylib to lua module*/
-#ifdef WIN_DLL
-    extern "C" __declspec(dllexport)int32_t luaopen_mylib(lua_State *L)
-#else
-    LUAMOD_API int32_t luaopen_mylib(lua_State *L)
-#endif
-
-{
-    CLuaVMRunEnv* pVmRunEnv = GetVmRunEnvByContext(L);
-    auto featureForkVersion = GetFeatureForkVersion(pVmRunEnv->GetContext().height);
-    switch(featureForkVersion) {
-        case MAJOR_VER_R1:  luaL_newlib(L, MYLIB_FUNC_V1); break;
-        case MAJOR_VER_R2:  luaL_newlib(L, MYLIB_FUNC_V2); break;
-        case MAJOR_VER_R3:
-        default:            luaL_newlib(L, MYLIB_FUNC_V3); break;
-    }
-
+int32_t luaopen_mylib_v1(lua_State *L) {
+    luaL_newlib(L, MYLIB_FUNC_V1);
     return 1;
+}
+
+int32_t luaopen_mylib_v2(lua_State *L) {
+    luaL_newlib(L, MYLIB_FUNC_V2);
+    return 1;
+}
+
+int32_t luaopen_mylib_v3(lua_State *L) {
+    luaL_newlib(L, MYLIB_FUNC_V3);
+    return 1;
+}
+
+lua_CFunction GetLuaMylib(HeightType height) {
+    auto featureForkVersion = GetFeatureForkVersion(height);
+    switch(featureForkVersion) {
+        case MAJOR_VER_R1:  return luaopen_mylib_v1;
+        case MAJOR_VER_R2:  return luaopen_mylib_v1;
+        case MAJOR_VER_R3:
+        default:            return luaopen_mylib_v1;
+    }
 }
 
 bool InitLuaLibsEx(lua_State *L) {

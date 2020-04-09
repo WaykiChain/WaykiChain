@@ -136,11 +136,7 @@ CLuaVM::CLuaVM(const std::string &codeIn, const std::string &argumentsIn):
 
 CLuaVM::~CLuaVM() {}
 
-#ifdef WIN_DLL
-extern "C" __declspec(dllexport) int luaopen_mylib(lua_State *L);
-#else
-LUAMOD_API int luaopen_mylib(lua_State *L);
-#endif
+extern lua_CFunction GetLuaMylib(HeightType height);
 
 bool InitLuaLibsEx(lua_State *L);
 
@@ -169,7 +165,7 @@ void vm_openlibs(lua_State *L) {
     }
 }
 
-tuple<bool, string> CLuaVM::CheckScriptSyntax(const char *filePath) {
+tuple<bool, string> CLuaVM::CheckScriptSyntax(const char *filePath, HeightType height) {
 
     std::unique_ptr<lua_State, decltype(&lua_close)> lua_state_ptr(luaL_newstate(), &lua_close);
     if (!lua_state_ptr) {
@@ -184,7 +180,7 @@ tuple<bool, string> CLuaVM::CheckScriptSyntax(const char *filePath) {
         return std::make_tuple(-1, string("CLuaVM::CheckScriptSyntax InitLuaLibsEx error\n"));
     }
 
-    luaL_requiref(lua_state, "mylib", luaopen_mylib, 1);
+    luaL_requiref(lua_state, "mylib", GetLuaMylib(height), 1);
 
     int nRet = luaL_loadfile(lua_state, filePath);
     if (nRet) {
@@ -285,7 +281,7 @@ tuple<uint64_t, string> CLuaVM::Run(uint64_t fuelLimit, CLuaVMRunEnv *pVmRunEnv)
     }
 
     // 3.注册自定义模块
-    luaL_requiref(lua_state, "mylib", luaopen_mylib, 1);
+    luaL_requiref(lua_state, "mylib", GetLuaMylib(pVmRunEnv->GetContext().height), 1);
 
     // 4.往lua脚本传递合约内容
     lua_newtable(lua_state);  //新建一个表,压入栈顶

@@ -23,7 +23,7 @@ public:
     ~CLuaVM();
 
     std::tuple<uint64_t, string> Run(uint64_t fuelLimit, CLuaVMRunEnv *pVmRunEnv);
-    static std::tuple<bool, string> CheckScriptSyntax(const char *filePath);
+    static std::tuple<bool, string> CheckScriptSyntax(const char *filePath, HeightType height);
 
 private:
     // to hold contract call arguments

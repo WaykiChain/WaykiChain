@@ -528,7 +528,7 @@ string RPC_PARAM::GetLuaContractScript(const Value &jsonValue) {
     if (filePath.compare(0, LUA_CONTRACT_LOCATION_PREFIX.size(), LUA_CONTRACT_LOCATION_PREFIX.c_str()) != 0)
         throw JSONRPCError(RPC_SCRIPT_FILEPATH_INVALID, "Lua Script file not inside /tmp/lua dir or its subdir");
 
-    std::tuple<bool, string> result = CLuaVM::CheckScriptSyntax(filePath.c_str());
+    std::tuple<bool, string> result = CLuaVM::CheckScriptSyntax(filePath.c_str(), chainActive.Height());
     if (!std::get<0>(result))
         throw JSONRPCError(RPC_INVALID_PARAMETER, std::get<1>(result));
 

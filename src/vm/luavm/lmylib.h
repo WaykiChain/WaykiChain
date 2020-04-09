@@ -298,4 +298,6 @@ int32_t ExGetAccountAssetFunc(lua_State *L);
  */
 int32_t ExGetAssetPriceFunc(lua_State *L);
 
+lua_CFunction GetLuaMylib(HeightType height);
+
 #endif //VM_LUA_LMYLIB_H
