@@ -15,7 +15,7 @@ using namespace dex;
 ///////////////////////////////////////////////////////////////////////////////
 // class DEX_DB
 
-static uint32_t MAIN_DEX_ID = 0 ;
+static uint32_t MAIN_DEX_ID = 0;
 
 void DEX_DB::OrderToJson(const uint256 &orderId, const CDEXOrderDetail &order, Object &obj) {
         obj.push_back(Pair("order_id", orderId.ToString()));
@@ -423,39 +423,39 @@ bool CDexDBCache::IncDexID(DexID &id) {
 
 bool Dex0(DexOperatorDetail& detail){
 
-    CRegID regid = SysCfg().GetDex0OwnerRegId() ;
+    CRegID regid = SysCfg().GetDex0OwnerRegId();
     detail.owner_regid =  regid;
     detail.fee_receiver_regid = regid;
-    detail.name = "wayki-dex" ;
-    detail.portal_url = "https://dex.waykichain.com" ;
-    detail.taker_fee_ratio = 40000 ;
-    detail.maker_fee_ratio = 40000 ;
-    detail.activated = true ;
+    detail.name = "wayki-dex";
+    detail.portal_url = "https://dex.waykichain.com";
+    detail.taker_fee_ratio = 40000;
+    detail.maker_fee_ratio = 40000;
+    detail.activated = true;
 
-    return true ;
+    return true;
 }
 
 bool CDexDBCache::GetDexOperator(const DexID &id, DexOperatorDetail& detail) {
     decltype(operator_detail_cache)::KeyType idKey(id);
     bool result =  operator_detail_cache.GetData(idKey, detail);
     if(result)
-        return result ;
+        return result;
     if(id == MAIN_DEX_ID )
-        return Dex0(detail) ;
-    return result ;
+        return Dex0(detail);
+    return result;
 
 }
 
 bool CDexDBCache::GetDexOperatorByOwner(const CRegID &regid, DexID &idOut, DexOperatorDetail& detail) {
-    decltype(operator_owner_map_cache)::ValueType dexID ;
+    decltype(operator_owner_map_cache)::ValueType dexID;
     if (operator_owner_map_cache.GetData(regid, dexID)) {
         idOut = dexID.value().get();
         return GetDexOperator(dexID.value().get(), detail);
     }else {
-        CRegID sysRegId = SysCfg().GetDex0OwnerRegId() ;
+        CRegID sysRegId = SysCfg().GetDex0OwnerRegId();
         if(sysRegId == regid) {
-            idOut = MAIN_DEX_ID ;
-            bool result = GetDexOperator(idOut ,detail) ;
+            idOut = MAIN_DEX_ID;
+            bool result = GetDexOperator(idOut ,detail);
             if(result && detail.owner_regid == regid)
                 return result;
         }
@@ -465,7 +465,7 @@ bool CDexDBCache::GetDexOperatorByOwner(const CRegID &regid, DexID &idOut, DexOp
 
 bool CDexDBCache::HaveDexOperator(const DexID &id) {
     if(id == MAIN_DEX_ID )
-        return true ;
+        return true;
     decltype(operator_detail_cache)::KeyType idKey(id);
     return operator_detail_cache.HasData(idKey);
 }
@@ -474,16 +474,16 @@ bool CDexDBCache::HasDexOperatorByOwner(const CRegID &regid) {
      bool dbHave = operator_owner_map_cache.HasData(regid);
 
      if(!dbHave){
-         CRegID sysRegId = SysCfg().GetDex0OwnerRegId() ;
+         CRegID sysRegId = SysCfg().GetDex0OwnerRegId();
          if(sysRegId == regid){
-             DexOperatorDetail detail ;
-             bool b = GetDexOperator(MAIN_DEX_ID , detail) ;
+             DexOperatorDetail detail;
+             bool b = GetDexOperator(MAIN_DEX_ID , detail);
              if(b && detail.owner_regid == regid)
-                 return true ;
+                 return true;
          }
      }
 
-     return dbHave ;
+     return dbHave;
 
 }
 
