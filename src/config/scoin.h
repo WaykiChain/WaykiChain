@@ -29,7 +29,7 @@ static const uint32_t FUND_COIN_GENESIS_INITIAL_RESERVE_AMOUNT = 1000000;      /
 static const uint64_t FCOIN_VOTEMINE_EPOCH_FROM = 1665886560;  // Sun Oct 16 2022 10:16:00 GMT+0800
 static const uint64_t FCOIN_VOTEMINE_EPOCH_TO   = 1792116960;  // Fri Oct 16 2026 10:16:00 GMT+0800
 
-static const uint32_t CDP_FORCE_LIQUIDATE_MAX_COUNT = 100;  // depends on TPS
+static const uint32_t CDP_FORCE_LIQUIDATE_MAX_COUNT = 1000;  // depends on TPS
 static const uint32_t CDP_SETTLE_INTEREST_MAX_COUNT = 100;
 
 static const double TRANSACTION_PRIORITY_CEILING      = 1000.0;  // Most trx priority is less than 1000.0
