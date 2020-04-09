@@ -97,9 +97,17 @@ bool CGovBpSizeProposal:: CheckProposal(CTxExecuteContext& context, CBaseTx& tx)
                          REJECT_INVALID,"bad-bp-count");
 
 
-    if (tx.nTxType == TxType::PROPOSAL_REQUEST_TX && effective_height < (uint32_t) context.height + BPSSIZE_EFFECTIVE_AFTER_BLOCK_COUNT)
-        return state.DoS(100, ERRORMSG("CGovBpSizeProposal::CheckProposal: effective_height must be >= current height + %d", BPSSIZE_EFFECTIVE_AFTER_BLOCK_COUNT),
-                         REJECT_INVALID,"bad-effective-height");
+    if (tx.nTxType == TxType::PROPOSAL_REQUEST_TX) {
+
+        uint32_t effectiveBlockCount = BPSSIZE_EFFECTIVE_AFTER_BLOCK_COUNT;
+        if(SysCfg().NetworkID() == NET_TYPE::REGTEST_NET)
+            effectiveBlockCount = 50;
+
+        if (effective_height < (uint32_t) context.height + effectiveBlockCount)
+            return state.DoS(100, ERRORMSG("CGovBpSizeProposal::CheckProposal: effective_height must be >= current height + %d", effectiveBlockCount),
+                             REJECT_INVALID,"bad-effective-height");
+    }
+
 
     return true;
 }
