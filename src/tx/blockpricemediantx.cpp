@@ -17,13 +17,14 @@ public:
     uint64_t totalInflateFcoins  = 0;
 public:
     CCdpForceLiquidator(CBlockPriceMedianTx &txIn, CTxExecuteContext &contextIn,
-        vector<CReceipt> &receiptsIn, CAccount &fcoinGenesisAccountIn,
+        vector<CReceipt> &receiptsIn, CAccount &fcoinGenesisAccountIn, uint32_t &liquidatedLimitCountIn,
         const TokenSymbol &assetSymbolIn, const TokenSymbol &scoinSymbolIn, uint64_t bcoinPriceIn,
         uint64_t fcoindUsdPriceIn)
     : tx(txIn),
       context(contextIn),
       receipts(receiptsIn),
       fcoinGenesisAccount(fcoinGenesisAccountIn),
+      liquidated_limit_count(liquidatedLimitCountIn),
       assetSymbol(assetSymbolIn),
       scoinSymbol(scoinSymbolIn),
       bcoin_price(bcoinPriceIn),
@@ -41,6 +42,7 @@ private:
     const TokenSymbol &scoinSymbol;
     uint64_t bcoin_price;
     uint64_t fcoin_usd_price;
+    uint32_t liquidated_limit_count = CDP_FORCE_LIQUIDATE_MAX_COUNT;
 
     bool SellAssetToRiskRevervePool(const CUserCDP &cdp, const TokenSymbol &assetSymbol,
         uint64_t amount, const TokenSymbol &coinSymbol, uint256 &orderId, shared_ptr<CDEXOrderDetail> &pOrderOut,
@@ -131,6 +133,8 @@ bool CBlockPriceMedianTx::ForceLiquidateCdps(CTxExecuteContext &context, PriceDe
                          "save-median-prices-failed");
     }
 
+    uint32_t liquidatedLimitCount = CDP_FORCE_LIQUIDATE_MAX_COUNT;
+
     for (const auto& item : priceDetails) {
         if (item.first == kFcoinPriceCoinPair) continue;
 
@@ -162,11 +166,13 @@ bool CBlockPriceMedianTx::ForceLiquidateCdps(CTxExecuteContext &context, PriceDe
             continue;
         }
 
-        CCdpForceLiquidator forceLiquidator(*this, context, receipts, fcoinGenesisAccount,
-                                            SYMB::WICC, SYMB::WUSD, item.second.price,
+        CCdpForceLiquidator forceLiquidator(*this, context, receipts, fcoinGenesisAccount, liquidatedLimitCount,
+                                            bcoinSymbol, scoinSymbol, item.second.price,
                                             fcoinUsdPrice);
         if (!forceLiquidator.Execute())
             return false; // the forceLiquidator.Execute() has processed the error
+        if (liquidatedLimitCount == 0)
+            break;
     }
 
     if (!cw.accountCache.SetAccount(fcoinGenesisAccount.keyid, fcoinGenesisAccount))
@@ -293,8 +299,12 @@ bool CCdpForceLiquidator::Execute() {
     uint64_t totalInflateFcoins  = 0;
     for (auto &cdpPair : cdpMap) {
         auto &cdp = cdpPair.second;
-        if (count + 1 > CDP_FORCE_LIQUIDATE_MAX_COUNT)
+        const auto &cdpCoinPair = cdp.GetCoinPair();
+        if (count + 1 > liquidated_limit_count) {
+            LogPrint(BCLog::CDP, "force liquidate cdp count=%u reach the max liquidated limit count=%u! cdp_coin_pair={%s}\n",
+                    count, liquidated_limit_count, cdpCoinPair.ToString());
             break;
+        }
 
         // Suppose we have 120 (owed scoins' amount), 30, 50 three cdps, but current risk reserve scoins is 100,
         // then skip the 120 cdp and settle the 30 and 50 cdp.
