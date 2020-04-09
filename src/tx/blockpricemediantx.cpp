@@ -10,12 +10,6 @@ using namespace dex;
 
 class CCdpForceLiquidator {
 public:
-    // result:
-
-    uint64_t totalCloseoutScoins = 0;
-    uint64_t totalSelloutBcoins  = 0;
-    uint64_t totalInflateFcoins  = 0;
-public:
     CCdpForceLiquidator(CBlockPriceMedianTx &txIn, CTxExecuteContext &contextIn,
         vector<CReceipt> &receiptsIn, CAccount &fcoinGenesisAccountIn, uint32_t &liquidatedLimitCountIn,
         const TokenSymbol &assetSymbolIn, const TokenSymbol &scoinSymbolIn, uint64_t bcoinPriceIn,
@@ -294,9 +288,11 @@ bool CCdpForceLiquidator::Execute() {
     }
 
     int32_t count             = 0;
-    uint64_t totalCloseoutScoins = 0;
-    uint64_t totalSelloutBcoins  = 0;
-    uint64_t totalInflateFcoins  = 0;
+
+    // TODO: remove me??
+    // uint64_t totalCloseoutScoins = 0;
+    // uint64_t totalSelloutBcoins  = 0;
+    // uint64_t totalInflateFcoins  = 0;
     for (auto &cdpPair : cdpMap) {
         auto &cdp = cdpPair.second;
         const auto &cdpCoinPair = cdp.GetCoinPair();
@@ -351,7 +347,8 @@ bool CCdpForceLiquidator::Execute() {
                                         pAssetSellOrder, receipts))
             return false;
 
-        totalSelloutBcoins += cdp.total_staked_bcoins;
+        // TODO: remove me??
+        //totalSelloutBcoins += cdp.total_staked_bcoins;
 
         // c) inflate WGRT coins to risk reserve pool and sell them to get WUSD  if necessary
         uint64_t bcoinsValueInScoin = uint64_t(double(cdp.total_staked_bcoins) * bcoin_price / PRICE_BOOST);
@@ -366,7 +363,8 @@ bool CCdpForceLiquidator::Execute() {
                                             pFcoinSellOrder, receipts))
                 return false;
 
-            totalInflateFcoins += fcoinsToInflate;
+            // TODO: remove me??
+            // totalInflateFcoins += fcoinsToInflate;
 
             LogPrint(BCLog::CDP, "Force settled CDP: "
                 "Placed BcoinSellMarketOrder:  %s, orderId: %s\n"
@@ -395,7 +393,8 @@ bool CCdpForceLiquidator::Execute() {
             }
         }
 
-        totalCloseoutScoins += cdp.total_owed_scoins;
+        // TODO: remove me??
+        // totalCloseoutScoins += cdp.total_owed_scoins;
     }
 
     return true;
@@ -447,9 +446,11 @@ uint256 CCdpForceLiquidator::GenOrderId(const CUserCDP &cdp, TokenSymbol assetSy
 bool CCdpForceLiquidator::ForceLiquidateCDPCompat(CCdpRatioIndexCache::Map &cdps, ReceiptList &receipts) {
 
     int32_t cdpIndex             = 0;
-    uint64_t totalCloseoutScoins = 0;
-    uint64_t totalSelloutBcoins  = 0;
-    uint64_t totalInflateFcoins  = 0;
+
+    // TODO: remove me??
+    // uint64_t totalCloseoutScoins = 0;
+    // uint64_t totalSelloutBcoins  = 0;
+    // uint64_t totalInflateFcoins  = 0;
     CCacheWrapper &cw = *context.pCw; CValidationState &state = *context.pState;
     const uint256 &txid = tx.GetHash();
 
@@ -500,7 +501,8 @@ bool CCdpForceLiquidator::ForceLiquidateCDPCompat(CCdpRatioIndexCache::Map &cdps
                             pBcoinSellMarketOrder->ToString()), CREATE_SYS_ORDER_FAILED, "create-sys-order-failed");
         }
 
-        totalSelloutBcoins += cdp.total_staked_bcoins;
+        // TODO: remove me??
+        // totalSelloutBcoins += cdp.total_staked_bcoins;
 
         // b) inflate WGRT coins and sell them for WUSD to return to risk reserve pool if necessary
         uint64_t bcoinsValueInScoin = uint64_t(double(cdp.total_staked_bcoins) * bcoin_price / PRICE_BOOST);
@@ -538,7 +540,8 @@ bool CCdpForceLiquidator::ForceLiquidateCDPCompat(CCdpRatioIndexCache::Map &cdps
                                 pFcoinSellMarketOrder->ToString()), CREATE_SYS_ORDER_FAILED, "create-sys-order-failed");
             }
 
-            totalInflateFcoins += fcoinsToInflate;
+            // TODO: remove me??
+            // totalInflateFcoins += fcoinsToInflate;
 
             LogPrint(BCLog::CDP, "Force settled CDP: "
                 "Placed BcoinSellMarketOrder:  %s, orderId: %s\n"
@@ -560,7 +563,7 @@ bool CCdpForceLiquidator::ForceLiquidateCDPCompat(CCdpRatioIndexCache::Map &cdps
 
         // d) minus scoins from the risk reserve pool to repay CDP scoins
         currRiskReserveScoins -= cdp.total_owed_scoins;
-        totalCloseoutScoins += cdp.total_owed_scoins;
+        // totalCloseoutScoins += cdp.total_owed_scoins;
     }
 
     // 4. operate fcoin genesis account
