@@ -25,7 +25,7 @@ namespace wasm {
         return stoi_impl(str);
     }
 
-    constexpr inline uint64_t string_to_regid( const string &s ) {
+    constexpr inline uint64_t string_to_regid( const char * s ) {
 
         std::string_view str = std::string_view(s);
         int pos = str.find('-');
