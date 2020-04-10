@@ -18,7 +18,7 @@
 #include "tx/tx.h"
 #include "tx/accountpermscleartx.h"
 #include "tx/proposaltx.h"
-#include "tx/wasmcontracttx.h"
+#include "tx/contracttx.h"
 #include "init.h"
 #include "wallet/wallet.h"
 #include "wallet/walletdb.h"

@@ -24,7 +24,6 @@
 #include "tx/pricefeedtx.h"
 #include "tx/tx.h"
 #include "tx/assettx.h"
-#include "tx/wasmcontracttx.h"
 #include "tx/dexoperatortx.h"
 #include "tx/proposaltx.h"
 #include "tx/accountpermscleartx.h"
