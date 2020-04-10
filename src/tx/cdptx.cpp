@@ -1191,7 +1191,7 @@ bool GetSettledInterestCdps(CCacheWrapper &cw, HeightType height, vector<uint256
     PriceDetailMap medianPrices = cw.priceFeedCache.GetMedianPrices();
 
     uint64_t priceTimeoutBlocks = 0;
-    if (!pCdMan->pSysParamCache->GetParam(SysParamType::PRICE_FEED_TIMEOUT_BLOCKS, priceTimeoutBlocks)) {
+    if (!cw.sysParamCache.GetParam(SysParamType::PRICE_FEED_TIMEOUT_BLOCKS, priceTimeoutBlocks)) {
         return ERRORMSG("%s, read sys param PRICE_FEED_TIMEOUT_BLOCKS error", __func__);
     }
 
@@ -1215,12 +1215,12 @@ bool GetSettledInterestCdps(CCacheWrapper &cw, HeightType height, vector<uint256
         if (scoinSymbol != SYMB::WUSD)
             throw runtime_error(strprintf("only support to force liquidate scoin=WUSD, actual_scoin=%s", scoinSymbol));
 
-        if (!pCdMan->pAssetCache->CheckAsset(bcoinSymbol, AssetPermType::PERM_CDP_BCOIN)) {
+        if (!cw.assetCache.CheckAsset(bcoinSymbol, AssetPermType::PERM_CDP_BCOIN)) {
             LogPrint(BCLog::CDP, "base_symbol=%s not have cdp bcoin permission, ignore", bcoinSymbol);
             continue;
         }
 
-        if (!pCdMan->pCdpCache->IsBcoinActivated(bcoinSymbol)) {
+        if (!cw.cdpCache.IsBcoinActivated(bcoinSymbol)) {
             LogPrint(BCLog::CDP, "bcoin=%s does not be activated, ignore", bcoinSymbol);
             continue;
         }
