@@ -38,7 +38,8 @@ namespace wasm {
     }
 
 
-    #define REGID( X ) string_to_regid(#X)
+    //#define REGID( X ) string_to_regid(#X)
+    #define REGID(h, i) ((uint64_t(h) << 20) + i)
 
     //for account identity in wasm
     struct regid {
