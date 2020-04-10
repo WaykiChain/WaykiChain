@@ -23,9 +23,6 @@ namespace wasm {
     const static uint16_t max_inline_transactions_size = 1024;
     const static uint16_t max_signatures_size          = 64;
 
-    // const static uint64_t wasmio       = N(wasmio);
-    // const static uint64_t wasmio_bank  = N(wasmio.bank);
-
     static uint64_t wasmio       = REGID(800-1);
     static uint64_t wasmio_bank  = REGID(800-2);
 
@@ -43,7 +40,7 @@ namespace wasm {
         constexpr unsigned maximum_linear_memory_init = 64*1024;     //bytes
         constexpr unsigned maximum_func_local_bytes   = 8192;        //bytes
         constexpr unsigned maximum_call_depth         = 250;         //nested calls
-        constexpr unsigned maximum_code_size          = 20*1024*1024; 
+        constexpr unsigned maximum_code_size          = 20*1024*1024;
 
         static constexpr unsigned wasm_page_size      = 64*1024;
 
@@ -56,4 +53,3 @@ namespace wasm {
     } // namespace  wasm_constraints
 
 }  // wasm
-

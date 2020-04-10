@@ -91,9 +91,6 @@ void CBaseTx::SerializePtr(Stream& os, const std::shared_ptr<CBaseTx> &pBaseTx, 
         case CDP_FORCE_SETTLE_INTEREST_TX:
             ::Serialize(os, (const CCDPInterestForceSettleTx&)tx, serType, version); break;
 
-        case UNIVERSAL_CONTRACT_TX:
-            ::Serialize(os, (const CUniversalContractTx&)tx, serType, version); break;
-
         case DEX_TRADE_SETTLE_TX:
             ::Serialize(os, (const dex::CDEXSettleTx&)tx, serType, version); break;
         case DEX_CANCEL_ORDER_TX:
@@ -123,6 +120,8 @@ void CBaseTx::SerializePtr(Stream& os, const std::shared_ptr<CBaseTx> &pBaseTx, 
         case ACCOUNT_PERMS_CLEAR_TX:
             ::Serialize(os, (const CAccountPermsClearTx&)tx,serType, version); break;
 
+        case UNIVERSAL_CONTRACT_TX:
+            ::Serialize(os, (const CUniversalContractTx&)tx, serType, version); break;
 
         default:
             throw runtime_error(strprintf("%s(), unsupport nTxType(%d:%s) to serialize",
@@ -254,13 +253,6 @@ void CBaseTx::UnserializePtr(Stream& is, std::shared_ptr<CBaseTx> &pBaseTx, int 
             ::Unserialize(is, *((CCDPInterestForceSettleTx *)(pBaseTx.get())), serType, version);
             break;
         }
-
-        case UNIVERSAL_CONTRACT_TX: {
-            pBaseTx = std::make_shared<CUniversalContractTx>();
-            ::Unserialize(is, *((CUniversalContractTx *)(pBaseTx.get())), serType, version);
-            break;
-        }
-
         case DEX_TRADE_SETTLE_TX: {
             pBaseTx = std::make_shared<dex::CDEXSettleTx>();
             ::Unserialize(is, *((dex::CDEXSettleTx *)(pBaseTx.get())), serType, version);
@@ -314,7 +306,6 @@ void CBaseTx::UnserializePtr(Stream& is, std::shared_ptr<CBaseTx> &pBaseTx, int 
             break;
         }
 
-
         case PROPOSAL_REQUEST_TX: {
             pBaseTx = std::make_shared<CProposalRequestTx>();
             ::Unserialize(is, *((CProposalRequestTx *)(pBaseTx.get())), serType, version);
@@ -329,6 +320,12 @@ void CBaseTx::UnserializePtr(Stream& is, std::shared_ptr<CBaseTx> &pBaseTx, int 
         case ACCOUNT_PERMS_CLEAR_TX: {
             pBaseTx = std::make_shared<CAccountPermsClearTx>();
             ::Unserialize(is, *((CAccountPermsClearTx *)(pBaseTx.get())), serType, version);
+            break;
+        }
+
+        case UNIVERSAL_CONTRACT_TX: {
+            pBaseTx = std::make_shared<CUniversalContractTx>();
+            ::Unserialize(is, *((CUniversalContractTx *)(pBaseTx.get())), serType, version);
             break;
         }
 

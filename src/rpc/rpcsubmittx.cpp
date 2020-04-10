@@ -225,7 +225,7 @@ Value submittx( const Array &params, bool fHelp ) {
         //get abi
         std::vector<char> abi;
         wasm::regid       contract_regid = wasm::regid(params[1].get_str());
-        if(!get_native_contract_abi(contract_regid.value, abi)){
+        if (!get_native_contract_abi(contract_regid.value, abi)) {
             CAccount           contract;
             CUniversalContract contract_store;
             get_contract(db_account, db_contract, contract_regid, contract, contract_store );

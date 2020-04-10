@@ -1,8 +1,8 @@
 #pragma GCC diagnostic ignored "-Wunused-variable"
 
-#include"wasm/wasm_runtime.hpp"
-#include"eosio/vm/watchdog.hpp"
-#include"wasm/wasm_log.hpp"
+#include "wasm/wasm_runtime.hpp"
+#include "eosio/vm/watchdog.hpp"
+#include "wasm/wasm_log.hpp"
 #include "wasm/exception/exceptions.hpp"
 
 
