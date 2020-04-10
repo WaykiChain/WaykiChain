@@ -87,8 +87,8 @@ namespace wasm {
                auto pos = str.find('-');
                check( pos > 0, "'-' must be between two numbers, ex. '999-80'");
 
-               uint64_t height   = atoi(str.substr(0, pos).c_str());
-               uint64_t index    = atoi(str.substr(pos + 1).c_str());
+               uint64_t height   = stoi(str.substr(0, pos).data());
+               uint64_t index    = stoi(str.substr(pos + 1).data());
 
                value = (height << 20) + index;
         }

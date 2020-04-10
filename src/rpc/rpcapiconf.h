@@ -157,7 +157,9 @@ static const CRPCCommand vRPCCommands[] =
     { "listassets",                     &listassets,                        true,       false,      false   },
     /* for wasm */
     { "wasm_submitcontractdeploytx",    &wasm_submitcontractdeploytx,        true,       false,      true    },
+
     { "submittx",                       &submittx,                           true,       false,      true    },
+
     { "wasm_gettable",                  &wasm_gettable,                      true,       false,      true    },
     { "wasm_json2bin",                  &wasm_json2bin,                      true,       false,      true    },
     { "wasm_bin2json",                  &wasm_bin2json,                      true,       false,      true    },
@@ -175,7 +177,7 @@ static const CRPCCommand vRPCCommands[] =
     { "startcontracttpstest",           &startcontracttpstest,              true,       true,       false   },
     { "getblockfailures",               &getblockfailures,                  true,       false,      false   },
     /* vm functions work in vm simulator */
-    { "luavm_executescript",                &luavm_executescript,                   true,       true,       true    },
+    { "luavm_executescript",            &luavm_executescript,                   true,       true,       true    },
     /* debug */
     { "dumpdb",                         &dumpdb,                            true,       true,       true    },
     /* UTXO */
