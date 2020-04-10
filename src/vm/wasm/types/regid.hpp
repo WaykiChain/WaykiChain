@@ -25,11 +25,13 @@ namespace wasm {
         return stoi_impl(str);
     }
 
-    constexpr inline uint64_t string_to_regid( const string &sRegId ) {
-        int pos = sRegId.find('-');
+    constexpr inline uint64_t string_to_regid( const string &s ) {
 
-        uint64_t height   = stoi(sRegId.substr(0, pos).c_str());
-        uint64_t index    = stoi(sRegId.substr(pos + 1).c_str());
+        std::string_view str = std::string_view(s);
+        int pos = str.find('-');
+
+        uint64_t height   = stoi(str.substr(0, pos).data());
+        uint64_t index    = stoi(str.substr(pos + 1).data());
 
         return (height << 20) + index;
     }
