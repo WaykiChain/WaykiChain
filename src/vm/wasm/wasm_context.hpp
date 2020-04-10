@@ -7,7 +7,7 @@
 #include <map>
 #include <chrono>
 
-#include "tx/wasmcontracttx.h"
+#include "tx/contracttx.h"
 #include "wasm/types/inline_transaction.hpp"
 #include "wasm/wasm_interface.hpp"
 #include "wasm/datastream.hpp"

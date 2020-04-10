@@ -80,6 +80,7 @@ public:
         bcoin_status_cache.RegisterUndoFunc(undoDataFuncMap);
         user_cdp_cache.RegisterUndoFunc(undoDataFuncMap);
         cdp_ratio_index_cache.RegisterUndoFunc(undoDataFuncMap);
+        cdp_height_index_cache.RegisterUndoFunc(undoDataFuncMap);
     }
 
     uint32_t GetCacheSize() const;

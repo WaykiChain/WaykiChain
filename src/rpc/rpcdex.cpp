@@ -984,7 +984,8 @@ Value submitdexopupdatetx(const Array& params, bool fHelp){
 
     string errmsg ;
     string errcode ;
-    if(!updateData.Check(errmsg,errcode,chainActive.Height())){
+    shared_ptr<CCacheWrapper> spCw = make_shared<CCacheWrapper>(pCdMan);
+    if(!updateData.Check(*spCw, errmsg,errcode,chainActive.Height())){
         throw JSONRPCError(RPC_INVALID_PARAMS, errmsg);
     }
     ComboMoney fee = RPC_PARAM::GetFee(params,4, DEX_OPERATOR_UPDATE_TX) ;
@@ -1082,10 +1083,11 @@ extern Value getdexorderfee(const Array& params, bool fHelp) {
     Object obj;
     Array symbolArray;
     Array txArray;
+    auto spCw = make_shared<CCacheWrapper>(pCdMan);
 
     for (auto txType : DEX_ORDER_TX_SET) {
         for (auto symbol : kFeeSymbolSet) {
-            if (!GetTxMinFee(txType, height, symbol, minFee))
+            if (!GetTxMinFee(*spCw, txType, height, symbol, minFee))
                 throw JSONRPCError(RPC_INTERNAL_ERROR, strprintf("get default min fee of tx failed! "
                     "tx=%s, height=%d, symbol=%s", GetTxTypeName(txType), height, symbol));
             if (!isInit) {

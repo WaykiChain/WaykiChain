@@ -9,7 +9,7 @@
 //#include "wasm/wasm_native_contract_abi.hpp"
 //#include "wasm/wasm_native_contract.hpp"
 #include "wasm_trace.hpp"
-#include "tx/wasmcontracttx.h"
+#include "tx/contracttx.h"
 #include "wasm/modules/wasm_native_dispatch.hpp"
 
 namespace wasm {
@@ -32,7 +32,7 @@ static auto make(Api& api) {
         }
         return abi;
     };
-  } 
+  }
 };
 
 template<typename Api>

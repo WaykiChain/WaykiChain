@@ -39,8 +39,8 @@ string GetTxType(const TxType txType) {
         return "";
 }
 
-bool GetTxMinFee(const TxType nTxType, int height, const TokenSymbol &symbol, uint64_t &feeOut) {
-    if (pCdMan->pSysParamCache->GetMinerFee(nTxType, symbol, feeOut))
+bool GetTxMinFee(CCacheWrapper &cw, const TxType nTxType, int height, const TokenSymbol &symbol, uint64_t &feeOut) {
+    if (cw.sysParamCache.GetMinerFee(nTxType, symbol, feeOut))
         return true ;
 
     const auto &iter = kTxFeeTable.find(nTxType);
@@ -237,9 +237,9 @@ bool CBaseTx::ExecuteFullTx(CTxExecuteContext &context) {
 }
 
 
-bool CBaseTx::CheckTxFeeSufficient(const TokenSymbol &feeSymbol, const uint64_t llFees, const int32_t height) const {
+bool CBaseTx::CheckTxFeeSufficient(CCacheWrapper &cw, const TokenSymbol &feeSymbol, const uint64_t llFees, const int32_t height) const {
     uint64_t minFee;
-    if (!GetTxMinFee(nTxType, height, feeSymbol, minFee)) {
+    if (!GetTxMinFee(cw, nTxType, height, feeSymbol, minFee)) {
         assert(false && "Get tx min fee for WICC or WUSD");
         return false;
     }
@@ -309,7 +309,7 @@ bool CBaseTx::CheckFee(CTxExecuteContext &context, function<bool(CTxExecuteConte
                          REJECT_INVALID, "bad-tx-fee-symbol");
 
     uint64_t minFee;
-    if (!GetTxMinFee(nTxType, context.height, fee_symbol, minFee))
+    if (!GetTxMinFee(*context.pCw, nTxType, context.height, fee_symbol, minFee))
         return context.pState->DoS(100, ERRORMSG("GetTxMinFee failed, tx=%s", GetTxTypeName()),
             REJECT_INVALID, "get-tx-min-fee-failed");
 

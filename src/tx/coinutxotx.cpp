@@ -9,13 +9,13 @@
 #include <string>
 #include <cstdarg>
 
-bool GetUtxoTxFromChain(TxID &txid, std::shared_ptr<CCoinUtxoTransferTx>& pPrevUtxoTx ) {
+static bool GetUtxoTxFromChain(CCacheWrapper &cw, TxID &txid, std::shared_ptr<CCoinUtxoTransferTx>& pPrevUtxoTx ) {
     if (!SysCfg().IsTxIndex())
         return false;
 
     std::shared_ptr<CBaseTx> pBaseTx;
     CDiskTxPos txPos;
-    if (pCdMan->pBlockCache->ReadTxIndex(txid, txPos)) {
+    if (cw.blockCache.ReadTxIndex(txid, txPos)) {
         LOCK(cs_main);
         CAutoFile file(OpenBlockFile(txPos, true), SER_DISK, CLIENT_VERSION);
         CBlockHeader header;
@@ -350,7 +350,7 @@ bool CCoinUtxoTransferTx::CheckTx(CTxExecuteContext &context) {
                         "utxo-empty-err");
 
     uint64_t minFee;
-    if (!GetTxMinFee(nTxType, context.height, fee_symbol, minFee)) { assert(false); }
+    if (!GetTxMinFee(cw, nTxType, context.height, fee_symbol, minFee)) { assert(false); }
     uint64_t minerMinFees = (2 * vins.size() + vouts.size()) * minFee;
     if (llFees < minerMinFees)
         return state.DoS(100, ERRORMSG("CCoinUtxoTransferTx::CheckTx, tx fee too small!"), REJECT_INVALID,
@@ -366,7 +366,7 @@ bool CCoinUtxoTransferTx::CheckTx(CTxExecuteContext &context) {
     for (auto input : vins) {
         //load prevUtxoTx from blockchain
         std::shared_ptr<CCoinUtxoTransferTx> pPrevUtxoTx;
-        if (!GetUtxoTxFromChain(input.prev_utxo_txid, pPrevUtxoTx))
+        if (!GetUtxoTxFromChain(cw, input.prev_utxo_txid, pPrevUtxoTx))
             return state.DoS(100, ERRORMSG("CCoinUtxoTransferTx::CheckTx, failed to load prev utxo from chain!"), REJECT_INVALID,
                             "failed-to-load-prev-utxo-err");
 
@@ -419,32 +419,32 @@ bool CCoinUtxoTransferTx::CheckTx(CTxExecuteContext &context) {
  * only deal with account balance states change...nothing on UTXO
  */
 bool CCoinUtxoTransferTx::ExecuteTx(CTxExecuteContext &context) {
-    CValidationState &state = *context.pState;
+    CCacheWrapper &cw = *context.pCw; CValidationState &state = *context.pState;
 
     uint64_t totalInAmount = 0;
     for (auto &input : vins) {
         auto utxoKey = std::make_pair(input.prev_utxo_txid, CFixedUInt16(input.prev_utxo_vout_index));
-        if (!context.pCw->txUtxoCache.GetUtxoTx(utxoKey))
+        if (!cw.txUtxoCache.GetUtxoTx(utxoKey))
             return state.DoS(100, ERRORMSG("CCoinUtxoTransferTx::CheckTx, prev utxo already spent error!"), REJECT_INVALID,
                             "double-spend-prev-utxo-err");
 
         //load prevUtxoTx from blockchain
         std::shared_ptr<CCoinUtxoTransferTx> pPrevUtxoTx;
-        if (!GetUtxoTxFromChain(input.prev_utxo_txid, pPrevUtxoTx))
+        if (!GetUtxoTxFromChain(cw, input.prev_utxo_txid, pPrevUtxoTx))
             return state.DoS(100, ERRORMSG("CCoinUtxoTransferTx::CheckTx, failed to load prev utxo from chain!"), REJECT_INVALID,
                              "failed-to-load-prev-utxo-err");
 
         totalInAmount += pPrevUtxoTx->vouts[input.prev_utxo_vout_index].coin_amount;
 
-        if (!context.pCw->txUtxoCache.DelUtoxTx(std::make_pair(input.prev_utxo_txid, CFixedUInt16(input.prev_utxo_vout_index))))
+        if (!cw.txUtxoCache.DelUtoxTx(std::make_pair(input.prev_utxo_txid, CFixedUInt16(input.prev_utxo_vout_index))))
             return state.DoS(100, ERRORMSG("CCoinUtxoTransferTx::CheckTx, del prev utxo error!"), REJECT_INVALID,
                             "del-prev-utxo-err");
 
         uint256 proof = uint256();
         CRegIDKey regIdKey(txAccount.regid);
         auto proofKey = std::make_tuple(input.prev_utxo_txid, CFixedUInt16(input.prev_utxo_vout_index), regIdKey);
-        if (context.pCw->txUtxoCache.GetUtxoPasswordProof(proofKey, proof)) {
-            context.pCw->txUtxoCache.DelUtoxPasswordProof(proofKey);
+        if (cw.txUtxoCache.GetUtxoPasswordProof(proofKey, proof)) {
+            cw.txUtxoCache.DelUtoxPasswordProof(proofKey);
         }
     }
 
@@ -453,7 +453,7 @@ bool CCoinUtxoTransferTx::ExecuteTx(CTxExecuteContext &context) {
     for (auto &output : vouts) {
         totalOutAmount += output.coin_amount;
         auto utoxKey = std::make_pair(GetHash(), CFixedUInt16(index));
-        if (!context.pCw->txUtxoCache.SetUtxoTx(utoxKey))
+        if (!cw.txUtxoCache.SetUtxoTx(utoxKey))
             return state.DoS(100, ERRORMSG("CCoinUtxoTransferTx::CheckTx, set utxo error!"), REJECT_INVALID, "set-utxo-err");
 
         index++;
@@ -487,14 +487,14 @@ bool CCoinUtxoTransferTx::ExecuteTx(CTxExecuteContext &context) {
 /// class CCoinUtxoPasswordProofTx
 ////////////////////////////////////////
 bool CCoinUtxoPasswordProofTx::CheckTx(CTxExecuteContext &context) {
-    CValidationState &state = *context.pState;
+    CCacheWrapper &cw = *context.pCw; CValidationState &state = *context.pState;
 
     if ((txUid.is<CPubKey>()) && !txUid.get<CPubKey>().IsFullyValid())
         return state.DoS(100, ERRORMSG("CCoinUtxoTransferTx::CheckTx, public key is invalid"), REJECT_INVALID,
                         "bad-publickey");
 
     uint64_t minFee;
-    if (!GetTxMinFee(nTxType, context.height, fee_symbol, minFee)) { assert(false); }
+    if (!GetTxMinFee(cw, nTxType, context.height, fee_symbol, minFee)) { assert(false); }
     if (llFees < minFee)
         return state.DoS(100, ERRORMSG("CCoinUtxoTransferTx::CheckTx, tx fee too small!"), REJECT_INVALID,
                         "bad-tx-fee-toosmall");

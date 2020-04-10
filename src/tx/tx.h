@@ -79,7 +79,7 @@ static const std::unordered_map<TxType, AccountPermType> kTxTypePermMap = {
 };
 
 string GetTxType(const TxType txType);
-bool GetTxMinFee(const TxType nTxType, int height, const TokenSymbol &symbol, uint64_t &feeOut);
+bool GetTxMinFee(CCacheWrapper &cw, const TxType nTxType, int height, const TokenSymbol &symbol, uint64_t &feeOut);
 
 inline const string& GetTxTypeName(TxType txType) {
     auto it = kTxFeeTable.find(txType);
@@ -229,7 +229,8 @@ public:
 
     bool VerifySignature(CTxExecuteContext &context, const CPubKey &pubkey);
 protected:
-    bool CheckTxFeeSufficient(const TokenSymbol &feeSymbol, const uint64_t llFees, const int32_t height) const;
+    bool CheckTxFeeSufficient(CCacheWrapper &cw, const TokenSymbol &feeSymbol,
+                              const uint64_t llFees, const int32_t height) const;
     bool CheckSignatureSize(const vector<unsigned char> &signature) const;
 
 
