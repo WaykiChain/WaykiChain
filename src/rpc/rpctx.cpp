@@ -903,7 +903,7 @@ Value submittxraw(const Array& params, bool fHelp) {
             "submittxraw \"rawtx\" \n"
             "\nsubmit raw transaction (hex format)\n"
             "\nArguments:\n"
-            "1.\"rawtx\":   (string, required) The raw transaction\n"
+            "1.\"rawtx\":   (string, required) The raw signed transaction\n"
             "\nExamples:\n" +
             HelpExampleCli("submittxraw",
                            "\"0b01848908020001145e3550cfae2422dce90a778b0954409b1c6ccc3a045749434382dbea93000457494343c"

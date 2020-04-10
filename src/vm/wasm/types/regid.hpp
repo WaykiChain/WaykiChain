@@ -9,13 +9,29 @@
 
 namespace wasm {
 
-    static inline uint64_t string_to_regid( const char *s ) {
+    constexpr bool is_digit(char c) {
+        return c >= '0' && c <= '9';
+    }
+
+    constexpr int stoi_impl(const char* str, int value = 0) {
+        return *str ?
+                is_digit(*str) ?
+                    stoi_impl(str + 1, (*str - '0') + value * 10)
+                    : throw "compile-time-error: not a digit"
+                : value;
+    }
+
+    constexpr int stoi(const char* str) {
+        return stoi_impl(str);
+    }
+
+    constexpr inline uint64_t string_to_regid( const char *s ) {
 
         std::string_view str = std::string_view(s);
         int pos = str.find('-');
 
-        uint64_t height   = atoi(str.substr(0, pos).data());
-        uint64_t index    = atoi(str.substr(pos + 1).data()); 
+        uint64_t height   = stoi(str.substr(0, pos).c_str());
+        uint64_t index    = stoi(str.substr(pos + 1).c_str());
 
         return (height << 20) + index;
     }
@@ -64,15 +80,15 @@ namespace wasm {
          * @param str - The string value which validated then converted to unit64_t
          *
          */
-        //constexpr explicit regid( std::string_view str )
-        explicit regid( std::string str )
+        constexpr explicit regid( std::string_view str )
+        // explicit regid( std::string str )
                 : value(0) {
 
                auto pos = str.find('-');
                check( pos > 0, "'-' must be between two numbers, ex. '999-80'");
 
                uint64_t height   = atoi(str.substr(0, pos).c_str());
-               uint64_t index    = atoi(str.substr(pos + 1).c_str());   
+               uint64_t index    = atoi(str.substr(pos + 1).c_str());
 
                value = (height << 20) + index;
         }
@@ -103,7 +119,7 @@ namespace wasm {
 
             char buffer[64];
             sprintf(buffer, "%ld-%ld", height, index);
-            return std::string(buffer); 
+            return std::string(buffer);
         }
 
         /**
@@ -172,4 +188,3 @@ namespace wasm {
 
 
 } /// regidspace wayki
-

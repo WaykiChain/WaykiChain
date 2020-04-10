@@ -131,12 +131,14 @@ extern Value getinfo(const Array& params, bool fHelp);
 extern Value getwalletinfo(const Array& params, bool fHelp);
 extern Value getnetworkinfo(const Array& params, bool fHelp);
 
-extern Value signmessage(const Array& params, bool fHelp);
-extern Value getcontractassets(const  Array& params, bool fHelp);
-extern Value submitsendtx(const Array& params, bool fHelp);
+extern Value submittx(const Array& params, bool fHelp);
+
 extern Value signtxraw(const Array& params, bool fHelp);
 extern Value submittxraw(const Array& params, bool fHelp);
 extern Value decodetxraw(const Array& params, bool fHelp);
+extern Value submitsendtx(const Array& params, bool fHelp);
+extern Value signmessage(const Array& params, bool fHelp);
+extern Value getcontractassets(const  Array& params, bool fHelp);
 
 extern Value getfcoingenesistxinfo(const Array& params, bool fHelp);
 extern Value getblockcount(const Array& params, bool fHelp);
@@ -155,7 +157,6 @@ extern Value luavm_executescript(const Array& params, bool fHelp);
 
 /******************************  WASM VM *********************************/
 extern Value wasm_submitcontractdeploytx(const Array& params, bool fHelp);
-extern Value wasm_submitcontractcalltx(const Array& params, bool fHelp);
 extern Value wasm_gettable(const Array& params, bool fHelp);
 extern Value wasm_json2bin(const Array& params, bool fHelp);
 extern Value wasm_bin2json(const Array& params, bool fHelp);

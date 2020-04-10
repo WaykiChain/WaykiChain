@@ -157,7 +157,7 @@ static const CRPCCommand vRPCCommands[] =
     { "listassets",                     &listassets,                        true,       false,      false   },
     /* for wasm */
     { "wasm_submitcontractdeploytx",    &wasm_submitcontractdeploytx,        true,       false,      true    },
-    { "wasm_submitcontractcalltx",      &wasm_submitcontractcalltx,          true,       false,      true    },
+    { "submittx",                       &submittx,                           true,       false,      true    },
     { "wasm_gettable",                  &wasm_gettable,                      true,       false,      true    },
     { "wasm_json2bin",                  &wasm_json2bin,                      true,       false,      true    },
     { "wasm_bin2json",                  &wasm_bin2json,                      true,       false,      true    },
