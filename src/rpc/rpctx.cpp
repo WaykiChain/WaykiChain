@@ -359,7 +359,7 @@ Value submitucontractdeploytx(const Array& params, bool fHelp) {
     CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, txUid);
     RPC_PARAM::CheckAccountBalance(account, cmFee.symbol, SUB_FREE, cmFee.GetAmountInSawi());
 
-    CUniversalContractDeployTx tx;
+    CUniversalContractDeployR2Tx tx;
     tx.txUid        = txUid;
     tx.contract     = CUniversalContract(contractScript, memo);
     tx.fee_symbol   = cmFee.symbol;

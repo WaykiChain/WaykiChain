@@ -108,8 +108,8 @@ bool CLuaContractDeployTx::ExecuteTx(CTxExecuteContext &context) {
 uint64_t CLuaContractDeployTx::GetFuel(int32_t height, uint32_t nFuelRate) {
     uint64_t minFee = 0;
     if (!GetTxMinFee(nTxType, height, fee_symbol, minFee)) {
-        LogPrint(BCLog::ERROR, "CUniversalContractDeployTx::GetFuel(), get min_fee failed! fee_symbol=%s\n", fee_symbol);
-        throw runtime_error("CUniversalContractDeployTx::GetFuel(), get min_fee failed");
+        LogPrint(BCLog::ERROR, "CUniversalContractDeployR2Tx::GetFuel(), get min_fee failed! fee_symbol=%s\n", fee_symbol);
+        throw runtime_error("CUniversalContractDeployR2Tx::GetFuel(), get min_fee failed");
     }
 
     return std::max<uint64_t>(((nRunStep / 100.0f) * nFuelRate), minFee);
@@ -234,48 +234,48 @@ Object CLuaContractInvokeTx::ToJson(const CAccountDBCache &accountCache) const {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// class CUniversalContractDeployTx
+// class CUniversalContractDeployR2Tx
 
-bool CUniversalContractDeployTx::CheckTx(CTxExecuteContext &context) {
+bool CUniversalContractDeployR2Tx::CheckTx(CTxExecuteContext &context) {
     IMPLEMENT_DEFINE_CW_STATE;
 
     if (contract.vm_type != VMType::LUA_VM)
-        return state.DoS(100, ERRORMSG("CUniversalContractDeployTx::CheckTx, support LuaVM only"), REJECT_INVALID,
+        return state.DoS(100, ERRORMSG("CUniversalContractDeployR2Tx::CheckTx, support LuaVM only"), REJECT_INVALID,
                          "vm-type-error");
 
     if (!contract.IsValid())
-        return state.DoS(100, ERRORMSG("CUniversalContractDeployTx::CheckTx, contract is invalid"),
+        return state.DoS(100, ERRORMSG("CUniversalContractDeployR2Tx::CheckTx, contract is invalid"),
                          REJECT_INVALID, "vmscript-invalid");
 
     uint64_t llFuel = GetFuel(context.height, context.fuel_rate);
     if (llFees < llFuel)
-        return state.DoS(100, ERRORMSG("CUniversalContractDeployTx::CheckTx, fee too small to cover fuel: %llu < %llu",
+        return state.DoS(100, ERRORMSG("CUniversalContractDeployR2Tx::CheckTx, fee too small to cover fuel: %llu < %llu",
                         llFees, llFuel), REJECT_INVALID, "fee-too-small-to-cover-fuel");
 
     int32_t txSize  = ::GetSerializeSize(GetNewInstance(), SER_NETWORK, PROTOCOL_VERSION);
     double feePerKb = double(llFees - llFuel) / txSize * 1000.0;
     if (feePerKb < MIN_RELAY_TX_FEE) {
         uint64_t minFee = ceil(double(MIN_RELAY_TX_FEE) * txSize / 1000.0 + llFuel);
-        return state.DoS(100, ERRORMSG("CUniversalContractDeployTx::CheckTx, fee too small in fee/kb: %llu < %llu",
+        return state.DoS(100, ERRORMSG("CUniversalContractDeployR2Tx::CheckTx, fee too small in fee/kb: %llu < %llu",
                         llFees, minFee), REJECT_INVALID,
                         strprintf("fee-too-small-in-fee/kb: %llu < %llu", llFees, minFee));
     }
 
     CAccount account;
     if (!cw.accountCache.GetAccount(txUid, account)) {
-        return state.DoS(100, ERRORMSG("CUniversalContractDeployTx::CheckTx, get account failed"),
+        return state.DoS(100, ERRORMSG("CUniversalContractDeployR2Tx::CheckTx, get account failed"),
                          REJECT_INVALID, "bad-getaccount");
     }
 
     if (!account.HasOwnerPubKey()) {
-        return state.DoS(100, ERRORMSG("CUniversalContractDeployTx::CheckTx, account unregistered"),
+        return state.DoS(100, ERRORMSG("CUniversalContractDeployR2Tx::CheckTx, account unregistered"),
             REJECT_INVALID, "bad-account-unregistered");
     }
 
     return true;
 }
 
-bool CUniversalContractDeployTx::ExecuteTx(CTxExecuteContext &context) {
+bool CUniversalContractDeployR2Tx::ExecuteTx(CTxExecuteContext &context) {
     CCacheWrapper &cw       = *context.pCw;
     CValidationState &state = *context.pState;
 
@@ -287,11 +287,11 @@ bool CUniversalContractDeployTx::ExecuteTx(CTxExecuteContext &context) {
 
     // save new script content
     if (!cw.contractCache.SaveContract(contractRegId, contract)) {
-        return state.DoS(100, ERRORMSG("CUniversalContractDeployTx::ExecuteTx, save code for contract id %s error",
+        return state.DoS(100, ERRORMSG("CUniversalContractDeployR2Tx::ExecuteTx, save code for contract id %s error",
                         contractRegId.ToString()), UPDATE_ACCOUNT_FAIL, "bad-save-scriptdb");
     }
     if (!cw.accountCache.SaveAccount(contractAccount)) {
-        return state.DoS(100, ERRORMSG("CUniversalContractDeployTx::ExecuteTx, create new account script id %s script info error",
+        return state.DoS(100, ERRORMSG("CUniversalContractDeployR2Tx::ExecuteTx, create new account script id %s script info error",
                         contractRegId.ToString()), UPDATE_ACCOUNT_FAIL, "bad-save-scriptdb");
     }
 
@@ -304,29 +304,29 @@ bool CUniversalContractDeployTx::ExecuteTx(CTxExecuteContext &context) {
         cw.accountCache.GetFcoinGenesisAccount(fcoinGenesisAccount);
         if (!fcoinGenesisAccount.OperateBalance(SYMB::WUSD, BalanceOpType::ADD_FREE, fuel,
                                                 ReceiptType::CONTRACT_FUEL_TO_RISK_RESERVE, receipts)) {
-            return state.DoS(100, ERRORMSG("CUniversalContractDeployTx::ExecuteTx, operate balance failed"),
+            return state.DoS(100, ERRORMSG("CUniversalContractDeployR2Tx::ExecuteTx, operate balance failed"),
                              UPDATE_ACCOUNT_FAIL, "operate-scoins-genesis-account-failed");
         }
 
         if (!cw.accountCache.SetAccount(fcoinGenesisAccount.keyid, fcoinGenesisAccount))
-            return state.DoS(100, ERRORMSG("CUniversalContractDeployTx::ExecuteTx, write fcoin genesis account info error!"),
+            return state.DoS(100, ERRORMSG("CUniversalContractDeployR2Tx::ExecuteTx, write fcoin genesis account info error!"),
                              UPDATE_ACCOUNT_FAIL, "bad-write-accountdb");
     }
 
     return true;
 }
 
-uint64_t CUniversalContractDeployTx::GetFuel(int32_t height, uint32_t nFuelRate) {
+uint64_t CUniversalContractDeployR2Tx::GetFuel(int32_t height, uint32_t nFuelRate) {
     uint64_t minFee = 0;
     if (!GetTxMinFee(nTxType, height, fee_symbol, minFee)) {
-        LogPrint(BCLog::ERROR, "CUniversalContractDeployTx::GetFuel(), get min_fee failed! fee_symbol=%s\n", fee_symbol);
-        throw runtime_error("CUniversalContractDeployTx::GetFuel(), get min_fee failed");
+        LogPrint(BCLog::ERROR, "CUniversalContractDeployR2Tx::GetFuel(), get min_fee failed! fee_symbol=%s\n", fee_symbol);
+        throw runtime_error("CUniversalContractDeployR2Tx::GetFuel(), get min_fee failed");
     }
 
     return std::max<uint64_t>(((nRunStep / 100.0f) * nFuelRate), minFee);
 }
 
-string CUniversalContractDeployTx::ToString(CAccountDBCache &accountCache) {
+string CUniversalContractDeployR2Tx::ToString(CAccountDBCache &accountCache) {
     CKeyID keyId;
     accountCache.GetKeyId(txUid, keyId);
 
@@ -335,7 +335,7 @@ string CUniversalContractDeployTx::ToString(CAccountDBCache &accountCache) {
                      fee_symbol, llFees, valid_height);
 }
 
-Object CUniversalContractDeployTx::ToJson(const CAccountDBCache &accountCache) const {
+Object CUniversalContractDeployR2Tx::ToJson(const CAccountDBCache &accountCache) const {
     Object result = CBaseTx::ToJson(accountCache);
 
     result.push_back(Pair("vm_type",    contract.vm_type));

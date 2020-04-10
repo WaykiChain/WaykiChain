@@ -6,6 +6,11 @@
 #ifndef TX_CONTRACT_H
 #define TX_CONTRACT_H
 
+
+#include "wasm/types/inline_transaction.hpp"
+#include "wasm/wasm_trace.hpp"
+#include "wasm/wasm_constants.hpp"
+#include "chrono"
 #include "tx.h"
 #include "entities/contract.h"
 
@@ -80,14 +85,14 @@ public:
     virtual bool ExecuteTx(CTxExecuteContext &context);
 };
 
-/**#################### Universal Contract Deploy & Invoke Class Definitions ##############################**/
-class CUniversalContractDeployTx : public CBaseTx {
+/**#################### **Deprecated** R2 Contract Deploy & Invoke Class Definitions ##############################**/
+class CUniversalContractDeployR2Tx : public CBaseTx {
 public:
     CUniversalContract contract;  // contract script content
 
 public:
-    CUniversalContractDeployTx(): CBaseTx(UCONTRACT_DEPLOY_R2_TX) {}
-    ~CUniversalContractDeployTx() {}
+    CUniversalContractDeployR2Tx(): CBaseTx(UCONTRACT_DEPLOY_R2_TX) {}
+    ~CUniversalContractDeployR2Tx() {}
 
     IMPLEMENT_SERIALIZE(
         READWRITE(VARINT(this->nVersion));
@@ -107,7 +112,7 @@ public:
            << VARINT(llFees) << fee_symbol << contract;
     }
 
-    virtual std::shared_ptr<CBaseTx> GetNewInstance() const { return std::make_shared<CUniversalContractDeployTx>(*this); }
+    virtual std::shared_ptr<CBaseTx> GetNewInstance() const { return std::make_shared<CUniversalContractDeployR2Tx>(*this); }
     virtual uint64_t GetFuel(int32_t height, uint32_t fuelRate);
     virtual string ToString(CAccountDBCache &accountView);
     virtual Object ToJson(const CAccountDBCache &accountView) const;
@@ -155,5 +160,7 @@ public:
     virtual bool CheckTx(CTxExecuteContext &context);
     virtual bool ExecuteTx(CTxExecuteContext &context);
 };
+
+
 
 #endif  // TX_CONTRACT_H
