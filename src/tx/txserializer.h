@@ -93,7 +93,7 @@ void CBaseTx::SerializePtr(Stream& os, const std::shared_ptr<CBaseTx> &pBaseTx, 
             ::Serialize(os, (const CCDPInterestForceSettleTx&)tx, serType, version); break;
 
         case UNIVERSAL_CONTRACT_TX:
-            ::Serialize(os, (const CWasmContractTx&)tx, serType, version); break;
+            ::Serialize(os, (const CUniversalContractTx&)tx, serType, version); break;
 
         case DEX_TRADE_SETTLE_TX:
             ::Serialize(os, (const dex::CDEXSettleTx&)tx, serType, version); break;
@@ -257,8 +257,8 @@ void CBaseTx::UnserializePtr(Stream& is, std::shared_ptr<CBaseTx> &pBaseTx, int 
         }
 
         case UNIVERSAL_CONTRACT_TX: {
-            pBaseTx = std::make_shared<CWasmContractTx>();
-            ::Unserialize(is, *((CWasmContractTx *)(pBaseTx.get())), serType, version);
+            pBaseTx = std::make_shared<CUniversalContractTx>();
+            ::Unserialize(is, *((CUniversalContractTx *)(pBaseTx.get())), serType, version);
             break;
         }
 

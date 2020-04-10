@@ -71,6 +71,8 @@ enum VMType : uint8_t {
 };
 
 /**
+ * @@Deprecated
+ *
  * Used for both blockchain tx (new tx only) and levelDB Persistence (both old & new tx)
  *   serialization/deserialization purposes
  */

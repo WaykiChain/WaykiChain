@@ -390,7 +390,6 @@ libcoin_server_a_SOURCES = \
   tx/pricefeedtx.cpp \
   tx/tx.cpp \
   tx/txmempool.cpp \
-  tx/wasmcontracttx.cpp \
   logging.cpp \
   $(VMLUA_H) \
   $(VM_CPP) \

@@ -121,9 +121,9 @@ public:
 };
 
 
-class CWasmContractTx{
+class CUniversalContractTx{
 public:
-    CWasmContractTx(){}
+    CUniversalContractTx(){}
 
     public:
     bool ExecuteTx(wasm::transaction_trace &trx_trace, wasm::inline_transaction& trx);
@@ -143,7 +143,7 @@ public:
 class wasm_context : public wasm_context_interface {
 
     public:
-        wasm_context(CWasmContractTx &ctrl, inline_transaction &t, CCacheWrapper &cw,
+        wasm_context(CUniversalContractTx &ctrl, inline_transaction &t, CCacheWrapper &cw,
                      CValidationState &s, bool mining = false,
                      uint32_t depth = 0)
             : trx(t), control_trx(ctrl), cache(cw), state(s), recurse_depth(depth) {
@@ -212,7 +212,7 @@ class wasm_context : public wasm_context_interface {
     public:
 
         inline_transaction& trx;
-        CWasmContractTx&    control_trx;
+        CUniversalContractTx&    control_trx;
         CCacheWrapper&      cache;
         CValidationState&   state;
 

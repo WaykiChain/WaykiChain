@@ -27,7 +27,7 @@ namespace wasm {
     class wasm_context : public wasm_context_interface {
 
     public:
-        wasm_context(CWasmContractTx &ctrl, inline_transaction &t, CCacheWrapper &cw,
+        wasm_context(CUniversalContractTx &ctrl, inline_transaction &t, CCacheWrapper &cw,
                      vector <CReceipt> &receipts_in, bool mining, uint32_t depth = 0)
                 : trx(t), control_trx(ctrl), database(cw), receipts(receipts_in), recurse_depth(depth) {
             reset_console();
@@ -127,7 +127,7 @@ namespace wasm {
 
     public:
         inline_transaction&        trx;
-        CWasmContractTx&           control_trx;
+        CUniversalContractTx&           control_trx;
         CCacheWrapper&             database;
         vector<CReceipt>&          receipts;
         uint32_t                   recurse_depth;

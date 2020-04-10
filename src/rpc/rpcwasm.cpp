@@ -153,7 +153,7 @@ Value wasm_submitcontractdeploytx( const Array &params, bool fHelp ) {
         CHAIN_ASSERT( wallet != NULL, wasm_chain::wallet_not_available_exception, "wallet error" )
         EnsureWalletIsUnlocked();
 
-        CWasmContractTx tx;
+        CUniversalContractTx tx;
         {
             CAccount payer;
             auto              payer_regid = wasm::regid(params[0].get_str());
@@ -234,7 +234,7 @@ Value submittx( const Array &params, bool fHelp ) {
 
         CHAIN_ASSERT( wallet != NULL, wasm_chain::wallet_not_available_exception, "wallet error" )
         EnsureWalletIsUnlocked();
-        CWasmContractTx tx;
+        CUniversalContractTx tx;
         {
             CAccount payer;
             auto     payer_regid = wasm::regid(params[0].get_str());

@@ -90,7 +90,7 @@ public:
 
 class validating_tester : public base_tester {
 public:
-    CWasmContractTx ctrl;
+    CUniversalContractTx ctrl;
     transaction_trace trace;
 };
 
@@ -202,4 +202,3 @@ inline datastream<Stream> &operator>>( datastream<Stream> &ds, dummy_action &t )
 
 #define CALL_TEST_FUNCTION( _TESTER, CLS, MTH, DATA ) CallFunction(_TESTER, test_api_action<TEST_METHOD(CLS, MTH)>{}, DATA)
 #define CALL_TEST_FUNCTION_ACTION( _TESTER, MTH, DATA ) CallFunction(_TESTER, test_api_action<MTH>{}, DATA)
-
