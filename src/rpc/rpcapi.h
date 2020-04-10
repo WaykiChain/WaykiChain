@@ -16,7 +16,7 @@ using namespace json_spirit;
 // class CBaseTx;
 
 /***************************** Universal *******************************************/
-extern Value submitcontracttx(const Array& params, bool fHelp);
+extern Value submittx(const Array& params, bool fHelp);
 extern Value submitcontractdeploytx(const Array& params, bool fHelp);
 
 /***************************** Basic *******************************************/

@@ -159,7 +159,7 @@ static const CRPCCommand vRPCCommands[] =
 
     /* for wasm-based universal contract deploy & invocation tx submission */
     { "submitcontractdeploytx",         &submitcontractdeploytx,            true,       false,      true    },
-    { "submitcontracttx",               &submitcontracttx,                  true,       false,      true    },
+    { "submittx",               &submittx,                  true,       false,      true    },
 
     { "wasm_gettable",                  &wasm_gettable,                      true,       false,      true    },
     { "wasm_json2bin",                  &wasm_json2bin,                      true,       false,      true    },

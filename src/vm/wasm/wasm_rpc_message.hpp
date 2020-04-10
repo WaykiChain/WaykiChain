@@ -21,7 +21,7 @@ namespace wasm { namespace rpc{
     )=====";
 
     const char *submit_wasm_contract_call_tx_rpc_help_message = R"=====(
-        submitcontracttx "sender" "contract" "action" "data" "fee"
+        submittx "sender" "contract" "action" "data" "fee"
         1."sender ":         (string, required) sender regid
         2."contract":        (string, required) contract regid
         3."action":          (string, required) action name
@@ -30,9 +30,9 @@ namespace wasm { namespace rpc{
         Result:
         "txid":       (string)
         Examples:
-        > ./coind submitcontracttx 0-2 800-2 transfer '["0-2", "0-3", "100.00000000 WICC","transfer to bob"]'
+        > ./coind submittx 0-2 800-2 transfer '["0-2", "0-3", "100.00000000 WICC","transfer to bob"]'
         As json rpc call
-        > curl --user myusername -d '{"jsonrpc": "1.0", "id":"curltest", "method":"submitcontracttx", "params":["0-2", "800-2", "transfer", '["0-2", "0-3", "100.00000000 WICC","transfer to bob"]']}' -H 'Content-Type: application/json;' http://127.0.0.1:8332
+        > curl --user myusername -d '{"jsonrpc": "1.0", "id":"curltest", "method":"submittx", "params":["0-2", "800-2", "transfer", '["0-2", "0-3", "100.00000000 WICC","transfer to bob"]']}' -H 'Content-Type: application/json;' http://127.0.0.1:8332
     )=====";
 
     const char *get_table_wasm_rpc_help_message = R"=====(
