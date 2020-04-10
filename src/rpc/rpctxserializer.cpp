@@ -107,7 +107,7 @@ std::shared_ptr<CBaseTx> genContractCalltx(json_spirit::Value param_json) {
     int32_t height = AmountToRawValue(str_height);
 
 
-    std::shared_ptr<CUniversalContractInvokeTx> pBaseTx = std::make_shared<CUniversalContractInvokeTx>();
+    std::shared_ptr<CUniversalContractInvokeR2Tx> pBaseTx = std::make_shared<CUniversalContractInvokeR2Tx>();
     pBaseTx->nTxType      = UCONTRACT_INVOKE_R2_TX;
     pBaseTx->txUid        = sendUserId;
     pBaseTx->app_uid      = contractRegId;

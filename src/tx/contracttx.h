@@ -121,7 +121,7 @@ public:
     virtual bool ExecuteTx(CTxExecuteContext &context);
 };
 
-class CUniversalContractInvokeTx : public CBaseTx {
+class CUniversalContractInvokeR2Tx : public CBaseTx {
 public:
     mutable CUserID app_uid;  // app regid
     string arguments;         // arguments to invoke a contract method
@@ -129,8 +129,8 @@ public:
     uint64_t coin_amount;  // transfer amount to contract account
 
 public:
-    CUniversalContractInvokeTx() : CBaseTx(UCONTRACT_INVOKE_R2_TX) {}
-    ~CUniversalContractInvokeTx() {}
+    CUniversalContractInvokeR2Tx() : CBaseTx(UCONTRACT_INVOKE_R2_TX) {}
+    ~CUniversalContractInvokeR2Tx() {}
 
     IMPLEMENT_SERIALIZE(
         READWRITE(VARINT(this->nVersion));
@@ -153,7 +153,7 @@ public:
            << arguments << VARINT(llFees) << fee_symbol << coin_symbol << VARINT(coin_amount);
     }
 
-    virtual std::shared_ptr<CBaseTx> GetNewInstance() const { return std::make_shared<CUniversalContractInvokeTx>(*this); }
+    virtual std::shared_ptr<CBaseTx> GetNewInstance() const { return std::make_shared<CUniversalContractInvokeR2Tx>(*this); }
     virtual string ToString(CAccountDBCache &accountView);
     virtual Object ToJson(const CAccountDBCache &accountView) const;
 

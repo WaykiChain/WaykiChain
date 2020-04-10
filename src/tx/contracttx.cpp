@@ -348,9 +348,9 @@ Object CUniversalContractDeployR2Tx::ToJson(const CAccountDBCache &accountCache)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// class CUniversalContractInvokeTx
+// class CUniversalContractInvokeR2Tx
 
-bool CUniversalContractInvokeTx::CheckTx(CTxExecuteContext &context) {
+bool CUniversalContractInvokeR2Tx::CheckTx(CTxExecuteContext &context) {
     IMPLEMENT_DEFINE_CW_STATE;
 
     IMPLEMENT_CHECK_TX_ARGUMENTS;
@@ -377,7 +377,7 @@ bool CUniversalContractInvokeTx::CheckTx(CTxExecuteContext &context) {
     return true;
 }
 
-bool CUniversalContractInvokeTx::ExecuteTx(CTxExecuteContext &context) {
+bool CUniversalContractInvokeR2Tx::ExecuteTx(CTxExecuteContext &context) {
     CCacheWrapper &cw       = *context.pCw;
     CValidationState &state = *context.pState;
 
@@ -451,7 +451,7 @@ bool CUniversalContractInvokeTx::ExecuteTx(CTxExecuteContext &context) {
     return true;
 }
 
-string CUniversalContractInvokeTx::ToString(CAccountDBCache &accountCache) {
+string CUniversalContractInvokeR2Tx::ToString(CAccountDBCache &accountCache) {
     return strprintf(
         "txType=%s, hash=%s, ver=%d, txUid=%s, app_uid=%s, coin_symbol=%s, coin_amount=%llu, fee_symbol=%s, "
         "llFees=%llu, arguments=%s, valid_height=%d",
@@ -459,7 +459,7 @@ string CUniversalContractInvokeTx::ToString(CAccountDBCache &accountCache) {
         coin_amount, fee_symbol, llFees, HexStr(arguments), valid_height);
 }
 
-Object CUniversalContractInvokeTx::ToJson(const CAccountDBCache &accountCache) const {
+Object CUniversalContractInvokeR2Tx::ToJson(const CAccountDBCache &accountCache) const {
     Object result = CBaseTx::ToJson(accountCache);
 
     CKeyID desKeyId;

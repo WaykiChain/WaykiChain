@@ -424,7 +424,7 @@ Value submitucontractcalltx(const Array& params, bool fHelp) {
     RPC_PARAM::CheckAccountBalance(account, cmCoin.symbol, SUB_FREE, cmCoin.GetAmountInSawi());
     RPC_PARAM::CheckAccountBalance(account, cmFee.symbol, SUB_FREE, cmFee.GetAmountInSawi());
 
-    CUniversalContractInvokeTx tx;
+    CUniversalContractInvokeR2Tx tx;
     tx.nTxType      = UCONTRACT_INVOKE_R2_TX;
     tx.txUid        = txUid;
     tx.app_uid      = appUid;
