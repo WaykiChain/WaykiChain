@@ -108,7 +108,7 @@ std::shared_ptr<CBaseTx> genContractCalltx(json_spirit::Value param_json) {
 
 
     std::shared_ptr<CUniversalContractInvokeTx> pBaseTx = std::make_shared<CUniversalContractInvokeTx>();
-    pBaseTx->nTxType      = UCONTRACT_INVOKE_TX;
+    pBaseTx->nTxType      = UCONTRACT_INVOKE_R2_TX;
     pBaseTx->txUid        = sendUserId;
     pBaseTx->app_uid      = contractRegId;
     pBaseTx->coin_symbol  = amount.symbol;

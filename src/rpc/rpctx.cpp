@@ -417,7 +417,7 @@ Value submitucontractcalltx(const Array& params, bool fHelp) {
     }
 
     ComboMoney cmCoin   = RPC_PARAM::GetComboMoney(params[3], SYMB::WICC);
-    ComboMoney cmFee    = RPC_PARAM::GetFee(params, 4, UCONTRACT_INVOKE_TX);
+    ComboMoney cmFee    = RPC_PARAM::GetFee(params, 4, UCONTRACT_INVOKE_R2_TX);
     int32_t validHegiht = (params.size() > 5) ? params[5].get_int() : chainActive.Height();
 
     CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, txUid);
@@ -425,7 +425,7 @@ Value submitucontractcalltx(const Array& params, bool fHelp) {
     RPC_PARAM::CheckAccountBalance(account, cmFee.symbol, SUB_FREE, cmFee.GetAmountInSawi());
 
     CUniversalContractInvokeTx tx;
-    tx.nTxType      = UCONTRACT_INVOKE_TX;
+    tx.nTxType      = UCONTRACT_INVOKE_R2_TX;
     tx.txUid        = txUid;
     tx.app_uid      = appUid;
     tx.coin_symbol  = cmCoin.symbol;

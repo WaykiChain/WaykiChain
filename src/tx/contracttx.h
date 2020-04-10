@@ -124,7 +124,7 @@ public:
     uint64_t coin_amount;  // transfer amount to contract account
 
 public:
-    CUniversalContractInvokeTx() : CBaseTx(UCONTRACT_INVOKE_TX) {}
+    CUniversalContractInvokeTx() : CBaseTx(UCONTRACT_INVOKE_R2_TX) {}
     ~CUniversalContractInvokeTx() {}
 
     IMPLEMENT_SERIALIZE(
