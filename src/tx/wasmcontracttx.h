@@ -31,11 +31,11 @@ public:
     void                      set_signature(const wasm::signature_pair& signature);
 
 public:
-    CWasmContractTx(const CBaseTx *pBaseTx): CBaseTx(WASM_CONTRACT_TX) {
-        assert(WASM_CONTRACT_TX == pBaseTx->nTxType);
+    CWasmContractTx(const CBaseTx *pBaseTx): CBaseTx(UNIVERSAL_CONTRACT_TX) {
+        assert(UNIVERSAL_CONTRACT_TX == pBaseTx->nTxType);
         *this = *(CWasmContractTx *)pBaseTx;
     }
-    CWasmContractTx(): CBaseTx(WASM_CONTRACT_TX) {}
+    CWasmContractTx(): CBaseTx(UNIVERSAL_CONTRACT_TX) {}
     ~CWasmContractTx() {}
 
     IMPLEMENT_SERIALIZE(

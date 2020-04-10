@@ -39,7 +39,7 @@ enum TxType: uint8_t {
     UCOIN_MINT_TX               = 12,   //!< Universal Coin Mint Tx
     UCOIN_BLOCK_REWARD_TX       = 13,   //!< Universal Coin Miner Block Reward Tx
     UCONTRACT_DEPLOY_R2_TX      = 14,   //!< universal VM contract deployment
-    UCONTRACT_INVOKE_R2_TX         = 15,   //!< universal VM contract invocation
+    UCONTRACT_INVOKE_R2_TX      = 15,   //!< universal VM contract invocation
     PRICE_FEED_TX               = 16,   //!< Price Feed Tx: WICC/USD | WGRT/USD | WUSD/USD
     PRICE_MEDIAN_TX             = 17,   //!< Price Median Value on each block Tx
     UTXO_TRANSFER_TX            = 18,   //!< UTXO & HTLC Coin
@@ -48,27 +48,31 @@ enum TxType: uint8_t {
     CDP_STAKE_TX                = 21,   //!< CDP Staking/Restaking Tx
     CDP_REDEEM_TX               = 22,   //!< CDP Redemption Tx (partial or full)
     CDP_LIQUIDATE_TX            = 23,   //!< CDP Liquidation Tx (partial or full)
-    CDP_FORCE_SETTLE_INTEREST_TX      = 24,   //!< CDP Settle Interst Tx
+    CDP_FORCE_SETTLE_INTEREST_TX= 24,   //!< CDP Settle Interst Tx
 
     ACCOUNT_PERMS_CLEAR_TX      = 50,   //!< Self removal of one's perms
-
-    WASM_CONTRACT_TX            = 60,   //!< wasm contract tx
 
     PROPOSAL_REQUEST_TX         = 70,
     PROPOSAL_APPROVAL_TX        = 71,
 
+    /** deprecated below for backward compatibility **/
     DEX_LIMIT_BUY_ORDER_TX      = 84,   //!< dex buy limit price order Tx
     DEX_LIMIT_SELL_ORDER_TX     = 85,   //!< dex sell limit price order Tx
     DEX_MARKET_BUY_ORDER_TX     = 86,   //!< dex buy market price order Tx
     DEX_MARKET_SELL_ORDER_TX    = 87,   //!< dex sell market price order Tx
+
+    /** active order tx types **/
     DEX_CANCEL_ORDER_TX         = 88,   //!< dex cancel order Tx
     DEX_TRADE_SETTLE_TX         = 89,   //!< dex settle Tx
-
     DEX_ORDER_TX                = 90,   //!< dex common order tx, support BUY|SELL LIMIR|MARKET order
     DEX_OPERATOR_ORDER_TX       = 91,   //!< dex operator order tx, need dex operator signing
+    DEX_OPERATOR_REGISTER_TX    = 92,   //!< dex operator register tx
+    DEX_OPERATOR_UPDATE_TX      = 93,   //!< dex operator update tx
 
-    DEX_OPERATOR_REGISTER_TX    = 100,  //!< dex operator register tx
-    DEX_OPERATOR_UPDATE_TX      = 101, //!< dex operator update tx
+    /** unified tx for all future on-chain interactions **/
+    UNIVERSAL_CONTRACT_TX       = 100,  //!< universal system or user contract deployment
+
+    /////////////////////<< NO MORE TX TYPES AFTER THIS LINE >>/////////////////////////////
 };
 
 
@@ -146,7 +150,7 @@ static const unordered_map<TxType, std::tuple<string, uint64_t, uint64_t, uint64
 { DEX_CANCEL_ORDER_TX,      std::make_tuple("DEX_CANCEL_ORDER_TX",      0,          0.001*COIN, 0.001*COIN, 0.001*COIN  ,true) },
 { DEX_TRADE_SETTLE_TX,      std::make_tuple("DEX_TRADE_SETTLE_TX",      0,          0.0001*COIN,0.0001*COIN,0.0001*COIN ,true) },
 
-{ WASM_CONTRACT_TX,         std::make_tuple("WASM_CONTRACT_TX",         0,          0.01*COIN,  0.01*COIN,  0.01*COIN   ,true) },
+{ UNIVERSAL_CONTRACT_TX,         std::make_tuple("UNIVERSAL_CONTRACT_TX",         0,          0.01*COIN,  0.01*COIN,  0.01*COIN   ,true) },
 
 { PROPOSAL_REQUEST_TX,      std::make_tuple("PROPOSAL_REQUEST_TX",      0,          0.01*COIN,  0.01*COIN,  0.01*COIN  ,true) },
 { PROPOSAL_APPROVAL_TX,     std::make_tuple("PROPOSAL_APPROVAL_TX",     0,          0.01*COIN,  0.01*COIN,  0.01*COIN  ,true) },

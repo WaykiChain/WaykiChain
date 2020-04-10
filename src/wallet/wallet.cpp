@@ -238,7 +238,7 @@ bool CWallet::CommitTx(CBaseTx *pTx, string &retMsg) {
         ::RelayTransaction(pTx, txid);
     }
 
-   if(pTx->nTxType == WASM_CONTRACT_TX){
+   if(pTx->nTxType == UNIVERSAL_CONTRACT_TX){
         retMsg = wasm_execute_success_return;
     }
 

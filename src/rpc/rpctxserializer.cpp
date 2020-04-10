@@ -170,7 +170,7 @@ std::shared_ptr<CBaseTx> genWasmContractCalltx(json_spirit::Value param_json) {
 
     std::shared_ptr<CWasmContractTx> pBaseTx = std::make_shared<CWasmContractTx>();
 
-    pBaseTx->nTxType      = WASM_CONTRACT_TX;
+    pBaseTx->nTxType      = UNIVERSAL_CONTRACT_TX;
     pBaseTx->txUid        = CRegID(authorizer_name.value);
     pBaseTx->valid_height = height;
     pBaseTx->fee_symbol   = fee.symbol;
