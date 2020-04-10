@@ -42,11 +42,6 @@ namespace wasm {
 
     void wasm_context::execute_inline(const inline_transaction& t) {
 
-        //contract-self or wasmio_bank
-        // CHAIN_ASSERT( t.contract == _receiver || t.contract == wasmio_bank ,
-        //               wasm_chain::missing_auth_exception,
-        //              "Inline transaction can be sent to/by contract self or wasmio.bank ");
-
         //check authorization
         for (const auto p: t.authorization) {
 
@@ -96,22 +91,12 @@ namespace wasm {
         return code;
     }
 
-    // std::string wasm_context::get_abi(uint64_t account) {
-    //     CUniversalContract contract;
-    //     CAccount contract_account ;
-    //     database.accountCache.GetAccount(CRegID(wasm::name(account).to_string()),contract_account);
-    //     database.contractCache.GetContract(contract_account.regid, contract);
-    //     return contract.abi;
-    // }
-
     void wasm_context::initialize() {
 
         static bool wasm_interface_inited = false;
         if (!wasm_interface_inited) {
             wasm_interface_inited = true;
             wasmif.initialize(wasm::vm_type::eos_vm_jit);
-            // register_native_handler(wasmio,      N(setcode),  wasmio_native_setcode      );
-            // register_native_handler(wasmio_bank, N(transfer), wasmio_bank_native_transfer);
         }
     }
 
@@ -192,58 +177,6 @@ namespace wasm {
 
     }
 
-    // void wasm_context::execute_one(inline_transaction_trace &trace) {
-
-    //     //auto start = system_clock::now();
-    //     control_trx.recipients_size ++;
-
-    //     trace.trx      = trx;
-    //     trace.receiver = _receiver;
-
-
-
-    //     auto native    = find_native_handle(_receiver, trx.action);
-
-    //     //reset_console();
-    //     try {
-    //         if (native) {
-    //             (*native)(*this);
-    //         } else {
-    //             vector <uint8_t> code = get_code(_receiver);
-    //             if (code.size() > 0) {
-    //                 wasmif.execute(code, this);
-    //             }
-    //         }
-    //     }  catch (wasm_chain::exception &e) {
-    //         string console_output = (_pending_console_output.str().size() == 0)?string(""):string(", console: ") + _pending_console_output.str();
-    //         CHAIN_RETHROW_EXECPTION( e, log_level::warn,
-    //                                  "[%s, %s]->%s%s",
-    //                                  name(contract()).to_string(),
-    //                                  name(action()).to_string(),
-    //                                  name(receiver()).to_string(),
-    //                                  console_output );
-    //     } catch (...) {
-    //         string console_output = (_pending_console_output.str().size() == 0)?string(""):string(", console: ") + _pending_console_output.str();
-    //         CHAIN_THROW( wasm_chain::chain_exception,
-    //                      "[%s, %s]->%s%s",
-    //                      name(contract()).to_string(),
-    //                      name(action()).to_string(),
-    //                      name(receiver()).to_string(),
-    //                      console_output );
-    //     }
-
-    //     trace.trx_id  = control_trx.GetHash();
-    //     trace.console = _pending_console_output.str();
-    //     //trace.elapsed = std::chrono::duration_cast<std::chrono::microseconds>(system_clock::now() - start);
-
-    //     reset_console();
-
-    //     if (contracts_console()) {
-    //         print_debug(_receiver, trace);
-    //     }
-
-    // }
-
     bool wasm_context::has_recipient(const uint64_t& account) const {
         for (auto a : notified)
             if (a == account)
@@ -284,7 +217,6 @@ namespace wasm {
 
     bool wasm_context::is_account( const uint64_t& account ) const {
 
-        //auto account_name = wasm::name(account);
         return database.accountCache.HasAccount(CRegID(account));
     }
 

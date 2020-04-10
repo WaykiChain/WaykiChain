@@ -35,7 +35,7 @@ namespace wasm {
 	    	virtual void register_routes(abi_router& abi_r, action_router& act_r) = 0;
 	};
 
-  using transfer_data_t = std::tuple <uint64_t, uint64_t, wasm::asset, string >;
-  using setcode_data_t = std::tuple<uint64_t, string, string, string>;	
+  using transfer_data_t = std::tuple<uint64_t, uint64_t, wasm::asset, string >;
+  using setcode_data_t  = std::tuple<uint64_t, string, string, string>;	
 
 }

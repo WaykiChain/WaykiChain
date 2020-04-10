@@ -16,10 +16,7 @@
 #include "wasm/wasm_context.hpp"
 #include "wasm/types/name.hpp"
 #include "wasm/abi_def.hpp"
-// #include "wasm/wasm_constants.hpp"
 #include "wasm/abi_serializer.hpp"
-// #include "wasm/wasm_native_contract_abi.hpp"
-// #include "wasm/wasm_native_contract.hpp"
 #include "wasm/wasm_variant_trace.hpp"
 
 #include "wasm/exception/exceptions.hpp"
@@ -288,14 +285,6 @@ bool CWasmContractTx::ExecuteTx(CTxExecuteContext &context) {
             max_transaction_duration = std::chrono::milliseconds(wasm::max_wasm_execute_time_mining);
         }
 
-        //charge fee
-        // CAccount payer;
-        // CHAIN_ASSERT( database.accountCache.GetAccount(txUid, payer),
-        //               wasm_chain::account_access_exception,
-        //               "payer does not exist, payer uid = '%s'",
-        //               txUid.ToString())
-        // sub_balance(payer, wasm::asset(llFees, wasm::symbol(SYMB::WICC, 8)), database.accountCache, receipts);
-
         recipients_size        = 0;
         pseudo_start           = system_clock::now();//pseudo start for reduce code loading duration
         run_cost               = GetSerializeSize(SER_DISK, CLIENT_VERSION) * store_fuel_fee_per_byte;
@@ -340,13 +329,6 @@ bool CWasmContractTx::ExecuteTx(CTxExecuteContext &context) {
                       wasm_chain::account_access_exception,
                       "set tx '%s' trace failed",
                       GetHash().ToString())
-
-        //save trx receipts
-        // trace_to_receipts(trx_trace, receipts);
-        // CHAIN_ASSERT( database.tx_receipt_cache.SetTxReceipts(GetHash(), receipts),
-        //               wasm_chain::account_access_exception,
-        //               "set tx '%s' receipts failed",
-        //               GetHash().ToString())
 
         //set runstep for block fuel sum
         nRunStep = run_cost;
