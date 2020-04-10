@@ -74,7 +74,7 @@ void CBaseTx::SerializePtr(Stream& os, const std::shared_ptr<CBaseTx> &pBaseTx, 
             ::Serialize(os, (const CCoinMintTx&)tx, serType, version); break;
         case UCOIN_BLOCK_REWARD_TX:
             ::Serialize(os, (const CUCoinBlockRewardTx&)tx, serType, version); break;
-        case UCONTRACT_DEPLOY_TX:
+        case UCONTRACT_DEPLOY_R2_TX:
             ::Serialize(os, (const CUniversalContractDeployTx&)tx, serType, version); break;
         case UCONTRACT_INVOKE_TX:
             ::Serialize(os, (const CUniversalContractInvokeTx&)tx, serType, version); break;
@@ -214,7 +214,7 @@ void CBaseTx::UnserializePtr(Stream& is, std::shared_ptr<CBaseTx> &pBaseTx, int 
             ::Unserialize(is, *((CUCoinBlockRewardTx *)(pBaseTx.get())), serType, version);
             break;
         }
-        case UCONTRACT_DEPLOY_TX: {
+        case UCONTRACT_DEPLOY_R2_TX: {
             pBaseTx = std::make_shared<CUniversalContractDeployTx>();
             ::Unserialize(is, *((CUniversalContractDeployTx *)(pBaseTx.get())), serType, version);
             break;

@@ -86,7 +86,7 @@ public:
     CUniversalContract contract;  // contract script content
 
 public:
-    CUniversalContractDeployTx(): CBaseTx(UCONTRACT_DEPLOY_TX) {}
+    CUniversalContractDeployTx(): CBaseTx(UCONTRACT_DEPLOY_R2_TX) {}
     ~CUniversalContractDeployTx() {}
 
     IMPLEMENT_SERIALIZE(

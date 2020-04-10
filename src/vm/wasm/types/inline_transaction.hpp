@@ -29,14 +29,14 @@ namespace wasm {
     struct permission {
         uint64_t account;
         uint64_t perm;
-        
+
         IMPLEMENT_SERIALIZE (
-            READWRITE(VARINT(account) );
+            READWRITE(VARINT(account));
             READWRITE(VARINT(perm));
-            )
+        )
 
         bool operator == ( const permission& p )
-        { 
+        {
             return account == p.account && perm == p.perm;
         }
 
@@ -55,7 +55,7 @@ namespace wasm {
             READWRITE(VARINT(action));
             READWRITE(authorization);
             READWRITE(data);
-            )
+        )
 
         WASM_REFLECT( inline_transaction, (contract)(action)(authorization)(data) )
 

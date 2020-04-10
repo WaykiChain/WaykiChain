@@ -38,7 +38,7 @@ enum TxType: uint8_t {
     UCOIN_TRANSFER_TX           = 11,   //!< Universal Coin Transfer Tx
     UCOIN_MINT_TX               = 12,   //!< Universal Coin Mint Tx
     UCOIN_BLOCK_REWARD_TX       = 13,   //!< Universal Coin Miner Block Reward Tx
-    UCONTRACT_DEPLOY_TX         = 14,   //!< universal VM contract deployment
+    UCONTRACT_DEPLOY_R2_TX         = 14,   //!< universal VM contract deployment
     UCONTRACT_INVOKE_TX         = 15,   //!< universal VM contract invocation
     PRICE_FEED_TX               = 16,   //!< Price Feed Tx: WICC/USD | WGRT/USD | WUSD/USD
     PRICE_MEDIAN_TX             = 17,   //!< Price Median Value on each block Tx
@@ -124,7 +124,7 @@ static const unordered_map<TxType, std::tuple<string, uint64_t, uint64_t, uint64
 { UCOIN_BLOCK_REWARD_TX,    std::make_tuple("UCOIN_BLOCK_REWARD_TX",    0,          0,          0,          0           ,false) },
 { ACCOUNT_PERMS_CLEAR_TX,   std::make_tuple("ACCOUNT_PERMS_CLEAR_TX",   0,          0.001*COIN, 0.001*COIN, 0.001*COIN  ,true) },
 
-{ UCONTRACT_DEPLOY_TX,      std::make_tuple("UCONTRACT_DEPLOY_TX",      0,          1*COIN,     1*COIN,     1*COIN      ,true) },
+{ UCONTRACT_DEPLOY_R2_TX,      std::make_tuple("UCONTRACT_DEPLOY_R2_TX",      0,          1*COIN,     1*COIN,     1*COIN      ,true) },
 { UCONTRACT_INVOKE_TX,      std::make_tuple("UCONTRACT_INVOKE_TX",      0,          0.01*COIN,  0.01*COIN,  0.01*COIN   ,true) }, //min fee
 { PRICE_FEED_TX,            std::make_tuple("PRICE_FEED_TX",            0,          0.001*COIN, 0.001*COIN, 0.001*COIN  ,true) },
 

@@ -162,7 +162,7 @@ bool CBaseTx::CheckBaseTx(CTxExecuteContext &context) {
             case ACCOUNT_REGISTER_TX: break; // will check txUid in CheckTx()
             case LCONTRACT_DEPLOY_TX:
             case ASSET_ISSUE_TX:
-            case UCONTRACT_DEPLOY_TX:
+            case UCONTRACT_DEPLOY_R2_TX:
             case PRICE_FEED_TX:
             case DEX_TRADE_SETTLE_TX:
             case PROPOSAL_APPROVAL_TX: IMPLEMENT_CHECK_TX_REGID(txUid); break;

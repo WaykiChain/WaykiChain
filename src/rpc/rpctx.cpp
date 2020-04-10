@@ -346,7 +346,7 @@ Value submitucontractdeploytx(const Array& params, bool fHelp) {
 
     const CUserID& txUid  = RPC_PARAM::GetUserId(params[0]);
     string contractScript = RPC_PARAM::GetLuaContractScript(params[1]); // TODO: support universal contract script
-    ComboMoney cmFee      = RPC_PARAM::GetFee(params, 2, UCONTRACT_DEPLOY_TX);
+    ComboMoney cmFee      = RPC_PARAM::GetFee(params, 2, UCONTRACT_DEPLOY_R2_TX);
     int32_t validHegiht   = params.size() > 3 ? params[3].get_int() : chainActive.Height();
     string memo           = params.size() > 4 ? params[4].get_str() : "";
 
