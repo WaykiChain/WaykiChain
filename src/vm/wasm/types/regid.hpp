@@ -17,7 +17,7 @@ namespace wasm {
         return *str ?
                 is_digit(*str) ?
                     stoi_impl(str + 1, (*str - '0') + value * 10)
-                    : throw "compile-time-error: not a digit"
+                    : throw runtime_error(string("stoi_impl() error:") + *str + " not a digit")
                 : value;
     }
 
@@ -29,6 +29,7 @@ namespace wasm {
 
         std::string_view str = std::string_view(s);
         int pos = str.find('-');
+        if (pos < 0) throw runtime_error(string("invalid regid=") + s);
 
         uint64_t height   = stoi(str.substr(0, pos).data());
         uint64_t index    = stoi(str.substr(pos + 1).data());
