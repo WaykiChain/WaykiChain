@@ -70,7 +70,7 @@ enum TxType: uint8_t {
     DEX_OPERATOR_UPDATE_TX      = 93,   //!< dex operator update tx
 
     /** unified tx for all future on-chain interactions **/
-    UNIVERSAL_CONTRACT_TX       = 100,  //!< universal system or user contract deployment
+    UNIVERSAL_CONTRACT_TX       = 100,  //!< universal system or user contract deployment/invocation
 
     /////////////////////<< NO MORE TX TYPES AFTER THIS LINE >>/////////////////////////////
 };
