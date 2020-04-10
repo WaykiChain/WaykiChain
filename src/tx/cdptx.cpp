@@ -186,7 +186,7 @@ uint64_t ComputeCDPInterest(const uint64_t total_owed_scoins, const int32_t begi
  */
 bool ComputeCDPInterest(CTxExecuteContext &context, const CCdpCoinPair& coinPair, uint64_t total_owed_scoins,
         int32_t beginHeight, int32_t endHeight, uint64_t &interestOut) {
-    if (total_owed_scoins == 0 || beginHeight >= endHeight) {
+    if (total_owed_scoins == 0) {
         interestOut = 0;
         return true;
     }
