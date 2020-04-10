@@ -1029,16 +1029,17 @@ Value listmintxfees(const Array& params, bool fHelp) {
                 HelpExampleCli("listmintxfees", "") + "\nAs json rpc\n" + HelpExampleRpc("listmintxfees", ""));
     }
 
+    auto spCw = make_shared<CCacheWrapper>(pCdMan);
     Array arr;
     for(auto kv: kTxFeeTable){
         Object o;
         o.push_back(Pair("txtype_name", std::get<0>(kv.second)));
         o.push_back(Pair("txtype_code", kv.first));
         uint64_t feeOut;
-        if(GetTxMinFee(kv.first,chainActive.Height(), SYMB::WICC,feeOut))
+        if(GetTxMinFee(*spCw, kv.first,chainActive.Height(), SYMB::WICC,feeOut))
             o.push_back(Pair("minfee_in_wicc", feeOut));
 
-        if(GetTxMinFee(kv.first,chainActive.Height(), SYMB::WUSD,feeOut))
+        if(GetTxMinFee(*spCw, kv.first,chainActive.Height(), SYMB::WUSD,feeOut))
             o.push_back(Pair("minfee_in_wusd", feeOut));
 
         o.push_back(Pair("modifiable", std::get<5>(kv.second)));

@@ -109,7 +109,7 @@ bool CCoinTransferTx::CheckTx(CTxExecuteContext &context) {
     }
 
     uint64_t minFee;
-    if (!GetTxMinFee(nTxType, context.height, fee_symbol, minFee)) { assert(false); /* has been check before */ }
+    if (!GetTxMinFee(cw, nTxType, context.height, fee_symbol, minFee)) { assert(false); /* has been check before */ }
 
     if (llFees < transfers.size() * minFee) {
         return state.DoS(100, ERRORMSG("CCoinTransferTx::CheckTx, tx fee too small (height: %d, fee symbol: %s, fee: %llu)",

@@ -350,7 +350,7 @@ bool CCoinUtxoTransferTx::CheckTx(CTxExecuteContext &context) {
                         "utxo-empty-err");
 
     uint64_t minFee;
-    if (!GetTxMinFee(nTxType, context.height, fee_symbol, minFee)) { assert(false); }
+    if (!GetTxMinFee(cw, nTxType, context.height, fee_symbol, minFee)) { assert(false); }
     uint64_t minerMinFees = (2 * vins.size() + vouts.size()) * minFee;
     if (llFees < minerMinFees)
         return state.DoS(100, ERRORMSG("CCoinUtxoTransferTx::CheckTx, tx fee too small!"), REJECT_INVALID,
@@ -487,14 +487,14 @@ bool CCoinUtxoTransferTx::ExecuteTx(CTxExecuteContext &context) {
 /// class CCoinUtxoPasswordProofTx
 ////////////////////////////////////////
 bool CCoinUtxoPasswordProofTx::CheckTx(CTxExecuteContext &context) {
-    CValidationState &state = *context.pState;
+    CCacheWrapper &cw = *context.pCw; CValidationState &state = *context.pState;
 
     if ((txUid.is<CPubKey>()) && !txUid.get<CPubKey>().IsFullyValid())
         return state.DoS(100, ERRORMSG("CCoinUtxoTransferTx::CheckTx, public key is invalid"), REJECT_INVALID,
                         "bad-publickey");
 
     uint64_t minFee;
-    if (!GetTxMinFee(nTxType, context.height, fee_symbol, minFee)) { assert(false); }
+    if (!GetTxMinFee(cw, nTxType, context.height, fee_symbol, minFee)) { assert(false); }
     if (llFees < minFee)
         return state.DoS(100, ERRORMSG("CCoinUtxoTransferTx::CheckTx, tx fee too small!"), REJECT_INVALID,
                         "bad-tx-fee-toosmall");

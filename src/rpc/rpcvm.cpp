@@ -120,10 +120,11 @@ Value luavm_executescript(const Array& params, bool fHelp) {
     if (params.size() > 3)
         amount = AmountToRawValue(params[3]);
 
+    auto spCw = std::make_shared<CCacheWrapper>(pCdMan);
     uint64_t regMinFee;
     uint64_t invokeMinFee;
-    if (!GetTxMinFee(LCONTRACT_DEPLOY_TX, chainActive.Height(), SYMB::WICC, regMinFee) ||
-        !GetTxMinFee(LCONTRACT_INVOKE_TX, chainActive.Height(), SYMB::WICC, invokeMinFee))
+    if (!GetTxMinFee(*spCw, LCONTRACT_DEPLOY_TX, chainActive.Height(), SYMB::WICC, regMinFee) ||
+        !GetTxMinFee(*spCw, LCONTRACT_INVOKE_TX, chainActive.Height(), SYMB::WICC, invokeMinFee))
         throw JSONRPCError(RPC_INTERNAL_ERROR, "Get tx min fee failed");
 
     uint64_t minFee   = regMinFee + invokeMinFee;
@@ -144,9 +145,8 @@ Value luavm_executescript(const Array& params, bool fHelp) {
     uint32_t blockTime     = pTip->GetBlockTime();
     uint32_t prevBlockTime = pTip->pprev != nullptr ? pTip->pprev->GetBlockTime() : pTip->GetBlockTime();
 
-    auto spCW = std::make_shared<CCacheWrapper>(pCdMan);
     CKeyID srcKeyId;
-    if (!FindKeyId(&spCW->accountCache, params[0].get_str(), srcKeyId)) {
+    if (!FindKeyId(&spCw->accountCache, params[0].get_str(), srcKeyId)) {
         throw runtime_error("parse addr failed\n");
     }
 
@@ -154,7 +154,7 @@ Value luavm_executescript(const Array& params, bool fHelp) {
     CAccount account;
 
     uint64_t balance = 0;
-    if (spCW->accountCache.GetAccount(srcUserId, account)) {
+    if (spCw->accountCache.GetAccount(srcUserId, account)) {
         balance = account.GetToken(SYMB::WICC).free_amount;
     }
 
@@ -169,7 +169,7 @@ Value luavm_executescript(const Array& params, bool fHelp) {
     }
 
     CRegID srcRegId;
-    spCW->accountCache.GetRegId(srcKeyId, srcRegId);
+    spCw->accountCache.GetRegId(srcKeyId, srcRegId);
 
     Object DeployContractTxObj;
     EnsureWalletIsUnlocked();
@@ -189,7 +189,7 @@ Value luavm_executescript(const Array& params, bool fHelp) {
         }
 
         CValidationState state;
-        CTxExecuteContext context(newHeight, 1, fuelRate, blockTime, prevBlockTime, spCW.get(), &state);
+        CTxExecuteContext context(newHeight, 1, fuelRate, blockTime, prevBlockTime, spCw.get(), &state);
         if (!tx.ExecuteTx(context)) {
             throw JSONRPCError(RPC_TRANSACTION_ERROR, "Executetx register contract failed");
         }
@@ -208,7 +208,7 @@ Value luavm_executescript(const Array& params, bool fHelp) {
     CLuaContractInvokeTx contractInvokeTx;
 
     {
-        if (!spCW->contractCache.HasContract(appId)) {
+        if (!spCw->contractCache.HasContract(appId)) {
             throw runtime_error(strprintf("AppId %s is not exist\n", appId.ToString()));
         }
         contractInvokeTx.nTxType      = LCONTRACT_INVOKE_TX;
@@ -225,7 +225,7 @@ Value luavm_executescript(const Array& params, bool fHelp) {
         }
 
         CValidationState state;
-        CTxExecuteContext context(chainActive.Height() + 1, 2, fuelRate, blockTime, prevBlockTime, spCW.get(), &state);
+        CTxExecuteContext context(chainActive.Height() + 1, 2, fuelRate, blockTime, prevBlockTime, spCw.get(), &state);
         if (!contractInvokeTx.ExecuteTx(context)) {
             throw JSONRPCError(RPC_TRANSACTION_ERROR, "Executetx contract failed");
         }

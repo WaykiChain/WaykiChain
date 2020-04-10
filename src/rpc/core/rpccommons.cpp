@@ -410,7 +410,8 @@ ComboMoney RPC_PARAM::GetComboMoney(const Value &jsonValue,
 
 uint64_t RPC_PARAM::GetTxMinFeeBy(const TxType txType, const TokenSymbol &symbol) {
     uint64_t minFee = 0;
-    if (!::GetTxMinFee(txType, chainActive.Height(), symbol, minFee))
+    auto spCw = std::make_shared<CCacheWrapper>(pCdMan);
+    if (!::GetTxMinFee(*spCw, txType, chainActive.Height(), symbol, minFee))
         throw JSONRPCError(RPC_INVALID_PARAMS,
             strprintf("Can not find the min tx fee! symbol=%s", symbol));
     return minFee;
@@ -444,7 +445,8 @@ ComboMoney RPC_PARAM::GetFee(const Array& params, const size_t index, const TxTy
 
 uint64_t RPC_PARAM::GetWiccFee(const Array& params, const size_t index, const TxType txType) {
     uint64_t fee, minFee;
-    if (!GetTxMinFee(txType, chainActive.Height(), SYMB::WICC, minFee))
+    auto spCw = std::make_shared<CCacheWrapper>(pCdMan);
+    if (!GetTxMinFee(*spCw, txType, chainActive.Height(), SYMB::WICC, minFee))
         throw JSONRPCError(RPC_INVALID_PARAMS,
             strprintf("Can not find the min tx fee! symbol=%s", SYMB::WICC));
     if (params.size() > index) {

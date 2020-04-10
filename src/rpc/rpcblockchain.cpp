@@ -412,12 +412,13 @@ void static CommonTxGenerator(const int64_t period, const int64_t batchSize) {
         if (!pWalletMain->RemoveKey(key))
             throw boost::thread_interrupted();
     }
+    auto spCw = make_shared<CCacheWrapper>(pCdMan);
 
     CRegID srcRegId("0-1");
     CRegID desRegId("0-1");
     static uint64_t llValue = 10000;  // use static variable to keep autoincrement
     uint64_t llFees         = 0;
-    GetTxMinFee(BCOIN_TRANSFER_TX, chainActive.Height(), SYMB::WICC, llFees);
+    GetTxMinFee(*spCw, BCOIN_TRANSFER_TX, chainActive.Height(), SYMB::WICC, llFees);
 
     while (true) {
         // add interruption point
@@ -551,11 +552,12 @@ void static ContractTxGenerator(const string& regid, const int64_t period, const
             throw boost::thread_interrupted();
     }
 
+    auto spCw = make_shared<CCacheWrapper>(pCdMan);
     CRegID txUid("0-1");
     CRegID appUid(regid);
     static uint64_t llValue = 10000;  // use static variable to keep autoincrement
     uint64_t llFees         = 0;
-    GetTxMinFee(LCONTRACT_INVOKE_TX, chainActive.Height(), SYMB::WICC, llFees);
+    GetTxMinFee(*spCw, LCONTRACT_INVOKE_TX, chainActive.Height(), SYMB::WICC, llFees);
 
     // hex(whmD4M8Q8qbEx6R5gULbcb5ZkedbcRDGY1) =
     // 77686d44344d3851387162457836523567554c626362355a6b656462635244475931

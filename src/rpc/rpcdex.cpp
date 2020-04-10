@@ -1083,10 +1083,11 @@ extern Value getdexorderfee(const Array& params, bool fHelp) {
     Object obj;
     Array symbolArray;
     Array txArray;
+    auto spCw = make_shared<CCacheWrapper>(pCdMan);
 
     for (auto txType : DEX_ORDER_TX_SET) {
         for (auto symbol : kFeeSymbolSet) {
-            if (!GetTxMinFee(txType, height, symbol, minFee))
+            if (!GetTxMinFee(*spCw, txType, height, symbol, minFee))
                 throw JSONRPCError(RPC_INTERNAL_ERROR, strprintf("get default min fee of tx failed! "
                     "tx=%s, height=%d, symbol=%s", GetTxTypeName(txType), height, symbol));
             if (!isInit) {
