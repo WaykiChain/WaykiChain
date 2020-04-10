@@ -139,10 +139,10 @@ Array RPCConvertValues(const string &strMethod, const vector<string> &strParams)
     if (strMethod == "submitdelegatevotetx"         && n > 1) ConvertTo<Array>(params[1]);
     if (strMethod == "submitdelegatevotetx"         && n > 3) ConvertTo<int32_t>(params[3]);
 
-    if (strMethod == "submitcontractdeploytx"       && n > 3) ConvertTo<int32_t>(params[3]);
+    if (strMethod == "submitcontractdeploytx_r2"       && n > 3) ConvertTo<int32_t>(params[3]);
 
-    if (strMethod == "submitcontractcalltx"         && n > 3) ConvertTo<int64_t>(params[3]);
-    if (strMethod == "submitcontractcalltx"         && n > 5) ConvertTo<int32_t>(params[5]);
+    if (strMethod == "submitcontractcalltx_r2"         && n > 3) ConvertTo<int64_t>(params[3]);
+    if (strMethod == "submitcontractcalltx_r2"         && n > 5) ConvertTo<int32_t>(params[5]);
 
     if (strMethod == "submitucontractdeploytx"  && n > 3) ConvertTo<int32_t>(params[3]);
 

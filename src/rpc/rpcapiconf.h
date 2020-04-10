@@ -94,8 +94,8 @@ static const CRPCCommand vRPCCommands[] =
     { "submitaccountregistertx",        &submitaccountregistertx,           false,      false,      true    },
     { "submitaccountpermscleartx",      &submitaccountpermscleartx,         false,      false,      true    },
 
-    { "submitcontractdeploytx",         &submitcontractdeploytx,            false,      false,      true    },
-    { "submitcontractcalltx",           &submitcontractcalltx,              false,      false,      true    },
+    { "submitcontractdeploytx_r2",      &submitcontractdeploytx_r2,         false,      false,      true    }, //deprecated
+    { "submitcontractcalltx_r2",        &submitcontractcalltx_r2,           false,      false,      true    },
     { "submitdelegatevotetx",           &submitdelegatevotetx,              false,      false,      true    },
     { "submitucontractdeploytx",        &submitucontractdeploytx,           false,      false,      true    },
     { "submitucontractcalltx",          &submitucontractcalltx,             false,      false,      true    },
@@ -136,11 +136,12 @@ static const CRPCCommand vRPCCommands[] =
     { "submitdexselllimitordertx",      &submitdexselllimitordertx,         false,      false,      false   },
     { "submitdexbuymarketordertx",      &submitdexbuymarketordertx,         false,      false,      false   },
     { "submitdexsellmarketordertx",     &submitdexsellmarketordertx,        false,      false,      false   },
+
     { "gendexoperatorordertx",          &gendexoperatorordertx,             false,      false,      false   },
     { "submitdexsettletx",              &submitdexsettletx,                 false,      false,      false   },
     { "submitdexcancelordertx",         &submitdexcancelordertx,            false,      false,      false   },
     { "submitdexoperatorregtx",         &submitdexoperatorregtx,            false,      false,      false   },
-    { "submitdexopupdatetx",      &submitdexopupdatetx,         false,      false,      false   },
+    { "submitdexopupdatetx",            &submitdexopupdatetx,               false,      false,      false   },
     { "getdexorder",                    &getdexorder,                       true,       false,      false   },
     { "listdexsysorders",               &listdexsysorders,                  true,       false,      false   },
     { "listdexorders",                  &listdexorders,                     true,       false,      false   },
@@ -155,10 +156,10 @@ static const CRPCCommand vRPCCommands[] =
     { "submitassetupdatetx",            &submitassetupdatetx,               false,      false,      false   },
     { "getassetinfo",                   &getassetinfo,                      true,       false,      false   },
     { "listassets",                     &listassets,                        true,       false,      false   },
-    /* for wasm */
-    { "wasm_submitcontractdeploytx",    &wasm_submitcontractdeploytx,        true,       false,      true    },
 
-    { "submittx",                       &submittx,                           true,       false,      true    },
+    /* for wasm-based universal contract deploy & invocation tx submission */
+    { "submitcontractdeploytx",         &submitcontractdeploytx,            true,       false,      true    },
+    { "submitcontracttx",               &submitcontracttx,                  true,       false,      true    },
 
     { "wasm_gettable",                  &wasm_gettable,                      true,       false,      true    },
     { "wasm_json2bin",                  &wasm_json2bin,                      true,       false,      true    },

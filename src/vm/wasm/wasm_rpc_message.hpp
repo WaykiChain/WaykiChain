@@ -4,7 +4,7 @@
 namespace wasm { namespace rpc{
 
     const char *submit_wasm_contract_deploy_tx_rpc_help_message = R"=====(
-        wasm_submitcontractdeploytx "sender" "contract" "wasm_file" "abi_file" [symbol:fee:unit]
+        submitcontractdeploytx "sender" "contract" "wasm_file" "abi_file" [symbol:fee:unit]
         deploy code and abi to an account as contract
         Arguments:
         1."sender":          (string required) contract regid address from this wallet
@@ -15,9 +15,9 @@ namespace wasm { namespace rpc{
         Result:
         "txhash":            (string)
         Examples:
-        > ./coind wasm_submitcontractdeploytx 0-2 0-2 /tmp/token.wasm /tmp/token.abi
+        > ./coind submitcontractdeploytx 0-2 0-2 /tmp/token.wasm /tmp/token.abi
         As json rpc call
-        > curl --user myusername -d '{"jsonrpc": "1.0", "id":"curltest", "method":"wasm_submitcontractdeploytx", "params":["0-2", "0-2", "/tmp/token.wasm", "/tmp/token.abi"]}' -H 'Content-Type: application/json;' http://127.0.0.1:8332
+        > curl --user myusername -d '{"jsonrpc": "1.0", "id":"curltest", "method":"submitcontractdeploytx", "params":["0-2", "0-2", "/tmp/token.wasm", "/tmp/token.abi"]}' -H 'Content-Type: application/json;' http://127.0.0.1:8332
     )=====";
 
     const char *submit_wasm_contract_call_tx_rpc_help_message = R"=====(

@@ -13,14 +13,18 @@
 using namespace std;
 using namespace json_spirit;
 
-class CBaseTx;
+// class CBaseTx;
+
+/***************************** Universal *******************************************/
+extern Value submitcontracttx(const Array& params, bool fHelp);
+extern Value submitcontractdeploytx(const Array& params, bool fHelp);
 
 /***************************** Basic *******************************************/
 
 extern Value submitaccountregistertx(const Array& params, bool fHelp);
 extern Value submitaccountpermscleartx(const Array& params, bool fHelp);
-extern Value submitcontractdeploytx(const Array& params, bool fHelp);
-extern Value submitcontractcalltx(const Array& params, bool fHelp);
+extern Value submitcontractdeploytx_r2(const Array& params, bool fHelp);
+extern Value submitcontractcalltx_r2(const Array& params, bool fHelp);
 extern Value submitdelegatevotetx(const Array& params, bool fHelp);
 extern Value submitucontractdeploytx(const Array& params, bool fHelp);
 extern Value submitucontractcalltx(const Array& params, bool fHelp);
@@ -131,8 +135,6 @@ extern Value getinfo(const Array& params, bool fHelp);
 extern Value getwalletinfo(const Array& params, bool fHelp);
 extern Value getnetworkinfo(const Array& params, bool fHelp);
 
-extern Value submittx(const Array& params, bool fHelp);
-
 extern Value signtxraw(const Array& params, bool fHelp);
 extern Value submittxraw(const Array& params, bool fHelp);
 extern Value decodetxraw(const Array& params, bool fHelp);
@@ -155,8 +157,7 @@ extern Value getblockundo(const Array& params, bool fHelp);
 /******************************  Lua VM *********************************/
 extern Value luavm_executescript(const Array& params, bool fHelp);
 
-/******************************  WASM VM *********************************/
-extern Value wasm_submitcontractdeploytx(const Array& params, bool fHelp);
+/******************************  WASM & General Module Access *********************************/
 extern Value wasm_gettable(const Array& params, bool fHelp);
 extern Value wasm_json2bin(const Array& params, bool fHelp);
 extern Value wasm_bin2json(const Array& params, bool fHelp);

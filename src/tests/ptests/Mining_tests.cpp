@@ -233,7 +233,7 @@ void CallContractTx(vector<string> &param) {
 void CreateRegScriptTx(vector<string> &param) {
 	if(5 > param.size())
 		return;
-	param.insert(param.begin(), "submitcontractdeploytx");
+	param.insert(param.begin(), "submitcontractdeploytx_r2");
 	param.insert(param.begin(), "rpctest");
 
 	char *argv[param.size()];

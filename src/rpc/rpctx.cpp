@@ -127,9 +127,9 @@ Value submitaccountpermscleartx(const Array& params, bool fHelp) {
 
 }
 
-Value submitcontractdeploytx(const Array& params, bool fHelp) {
+Value submitcontractdeploytx_r2(const Array& params, bool fHelp) {
     if (fHelp || params.size() < 3 || params.size() > 5) {
-        throw runtime_error("submitcontractdeploytx \"addr\" \"filepath\" \"fee\" [\"height\"] [\"contract_memo\"]\n"
+        throw runtime_error("submitcontractdeploytx_r2 \"addr\" \"filepath\" \"fee\" [\"height\"] [\"contract_memo\"]\n"
             "\ncreate a transaction of registering a contract\n"
             "\nArguments:\n"
             "1.\"addr\":            (string, required) contract owner address from this wallet\n"
@@ -140,10 +140,10 @@ Value submitcontractdeploytx(const Array& params, bool fHelp) {
             "\nResult:\n"
             "\"txid\":              (string)\n"
             "\nExamples:\n"
-            + HelpExampleCli("submitcontractdeploytx",
+            + HelpExampleCli("submitcontractdeploytx_r2",
                 "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" \"/tmp/lua/myapp.lua\" 100000000 10000 \"Hello, WaykiChain!\"") +
                 "\nAs json rpc call\n"
-            + HelpExampleRpc("submitcontractdeploytx",
+            + HelpExampleRpc("submitcontractdeploytx_r2",
                 "WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH, \"/tmp/lua/myapp.lua\", 100000000, 10000, \"Hello, WaykiChain!\""));
     }
 
@@ -158,10 +158,10 @@ Value submitcontractdeploytx(const Array& params, bool fHelp) {
     string memo           = params.size() > 4 ? params[4].get_str() : "";
 
     if (memo.size() > MAX_CONTRACT_MEMO_SIZE)
-        throw JSONRPCError(RPC_INVALID_PARAMETER, "Contract memo is too large");
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "Contract memo too large");
 
     if (!txUid.is<CRegID>())
-        throw JSONRPCError(RPC_INVALID_PARAMETER, "Regid does not exist or immature");
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "RegId not exist or immature");
 
     CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, txUid);
     RPC_PARAM::CheckAccountBalance(account, SYMB::WICC, SUB_FREE, fee.GetAmountInSawi());
@@ -176,10 +176,10 @@ Value submitcontractdeploytx(const Array& params, bool fHelp) {
     return SubmitTx(account.keyid, tx);
 }
 
-Value submitcontractcalltx(const Array& params, bool fHelp) {
+Value submitcontractcalltx_r2(const Array& params, bool fHelp) {
     if (fHelp || params.size() < 5 || params.size() > 6) {
         throw runtime_error(
-            "submitcontractcalltx \"sender_addr\" \"contract_regid\" \"arguments\" \"amount\" \"fee\" [\"height\"]\n"
+            "submitcontractcalltx_r2 \"sender_addr\" \"contract_regid\" \"arguments\" \"amount\" \"fee\" [\"height\"]\n"
             "\ncreate contract invocation transaction\n"
             "\nArguments:\n"
             "1.\"sender_addr\":     (string, required) tx sender's base58 addr\n"
@@ -191,12 +191,14 @@ Value submitcontractcalltx(const Array& params, bool fHelp) {
             "\nResult:\n"
             "\"txid\":              (string)\n"
             "\nExamples:\n" +
-            HelpExampleCli("submitcontractcalltx",
+            HelpExampleCli("submitcontractcalltx_r2",
                            "\"wQWKaN4n7cr1HLqXY3eX65rdQMAL5R34k6\" \"100-1\" \"01020304\" 10000 10000 100") +
             "\nAs json rpc call\n" +
-            HelpExampleRpc("submitcontractcalltx",
+            HelpExampleRpc("submitcontractcalltx_r2",
                            "\"wQWKaN4n7cr1HLqXY3eX65rdQMAL5R34k6\", \"100-1\", \"01020304\", 10000, 10000, 100"));
     }
+
+    throw JSONRPCError(RPC_INVALID_PARAMETER, "Deprecated since R3");
 
     RPCTypeCheck(params, list_of(str_type)(str_type)(str_type)(int_type)(str_type)(int_type));
 

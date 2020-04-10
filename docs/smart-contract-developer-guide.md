@@ -1,6 +1,6 @@
 ## 1. Publish a smart contract
 ```
-root@APP-NODE-MASTER:~/Deploy# ./coind -datadir=cur submitcontractdeploytx WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH  lotteryV3.lua 110000000
+root@APP-NODE-MASTER:~/Deploy# ./coind -datadir=cur submitcontractdeploytx_r2 WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH  lotteryV3.lua 110000000
 {
     "txid" : "c2cb6f9ef2d72e77e1cdeb12dff74ece62c576f88e26e8bbd82a671656a77bb9"
 }
@@ -49,7 +49,7 @@ root@APP-NODE-MASTER:~/Deploy# ./coind -datadir=cur getaccountinfo 182808-1
 ### 4. publish assert:
 
 * 使用callcontracttx 命令发行资产， 具体字符串字段需要根据每个智能合约的定义来组装。
-```root@APP-NODE-MASTER:~/Deploy# ./coind -datadir=cur submitcontractcalltx 18247-1 182808-1 0 f00657695a7836727273426e3973486a7770766477744d4e4e58326f3331733344454848000052acdfb2241d000052acdfb2241d0100000001000000 100000 0
+```root@APP-NODE-MASTER:~/Deploy# ./coind -datadir=cur submitcontractcalltx_r2 18247-1 182808-1 0 f00657695a7836727273426e3973486a7770766477744d4e4e58326f3331733344454848000052acdfb2241d000052acdfb2241d0100000001000000 100000 0
 {
     "txid" : "6f0033b27c0c531d33f61fdae125f6c265b0d7daacd1990f56b25b8a453ef869"
 }
@@ -57,7 +57,7 @@ root@APP-NODE-MASTER:~/Deploy# ./coind -datadir=cur getaccountinfo 182808-1
 ### 5. transfer assert:
 
 * 使用callcontracttx 命令发行资产，具体字符串字段需要根据每个智能合约的定义来组装。
-```root@APP-NODE-MASTER:~/Deploy# ./coind -datadir=cur submitcontractcalltx 18247-1 182808-1 0 f0075755774a6e314346574b4d64626d6638394472436e5032776b4336414b72454268480080c6a47e8d0300 100000 0
+```root@APP-NODE-MASTER:~/Deploy# ./coind -datadir=cur submitcontractcalltx_r2 18247-1 182808-1 0 f0075755774a6e314346574b4d64626d6638394472436e5032776b4336414b72454268480080c6a47e8d0300 100000 0
 {
     "txid" : "93a89951ef71645f9910f2cb5c562389468416cb3921d69f931f904c6e653034"
 }

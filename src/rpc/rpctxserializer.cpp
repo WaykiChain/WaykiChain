@@ -65,7 +65,7 @@ std::shared_ptr<CBaseTx> genSendTx(json_spirit::Value param_json) {
     return pBaseTx;
 }
 
-//submitcontractcalltx
+//submitcontractcalltx_r2
 /**
 {
    "addr": "",
