@@ -197,7 +197,7 @@ bool CDEXOperatorRegisterTx::ExecuteTx(CTxExecuteContext &context) {
     return true;
 }
 
-bool CDEXOperatorUpdateData::Check(string& errmsg, string& errcode,const uint32_t currentHeight ){
+bool CDEXOperatorUpdateData::Check(CCacheWrapper &cw, string& errmsg, string& errcode,const uint32_t currentHeight ){
 
     if(field == UPDATE_NONE || field > MEMO ){
         errmsg = "CDEXOperatorUpdateData::check(): update field is error";
@@ -215,7 +215,7 @@ bool CDEXOperatorUpdateData::Check(string& errmsg, string& errcode,const uint32_
             return false;
         }
         CAccount account;
-        if (!pCdMan->pAccountCache->GetAccount(*uid,account)){
+        if (!cw.accountCache.GetAccount(*uid, account)) {
             errmsg = strprintf("CDEXOperatorUpdateData::check(): %s_uid (%s) is not exist! ",placeholder, ValueToString());
             errcode = strprintf("%s-uid-invalid", placeholder);
             return false;
@@ -319,7 +319,7 @@ bool CDEXOperatorUpdateTx::CheckTx(CTxExecuteContext &context) {
 
     string errmsg ;
     string errcode ;
-    if(!update_data.Check(errmsg ,errcode, context.height )){
+    if(!update_data.Check(*context.pCw, errmsg ,errcode, context.height )){
         return state.DoS(100, ERRORMSG("%s", errmsg), REJECT_INVALID, errcode);
     }
 
