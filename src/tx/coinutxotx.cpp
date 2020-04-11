@@ -368,11 +368,20 @@ bool CCoinUtxoTransferTx::CheckTx(CTxExecuteContext &context) {
 
         //enumerate the prev tx out conditions to check if current input meets
         //the output conditions of the previous Tx
+        auto inCondTypes = unordered_set<UtxoCondType>();
         for (auto cond : pPrevUtxoTx->vouts[input.prev_utxo_vout_index].conds) {
             string errMsg;
             if (!CheckUtxoOutCondition(context, true, pPrevUtxoTx->txUid, srcAccount, input, cond, errMsg))
                 return state.DoS(100, ERRORMSG("CheckUtxoOutCondition error: %s!", errMsg), REJECT_INVALID, "check-utox-cond-err");
+
+            if (inCondTypes.count(cond.sp_utxo_cond->cond_type) > 0)
+                return state.DoS(100, ERRORMSG("cond_type (%d) exists error!", cond.sp_utxo_cond->cond_type), REJECT_INVALID, "check-utox-cond-err");
+            else
+                inCondTypes.emplace(cond.sp_utxo_cond->cond_type);
         }
+
+        if (inCondTypes.count(UtxoCondType::OP2SA) == 1 && inCondTypes.count(UtxoCondType::OP2MA) == 1)
+            return state.DoS(100, ERRORMSG("can't have both OP2SA & OP2MA error!"), REJECT_INVALID, "check-utox-cond-err");
 
         totalInAmount += pPrevUtxoTx->vouts[input.prev_utxo_vout_index].coin_amount;
     }
