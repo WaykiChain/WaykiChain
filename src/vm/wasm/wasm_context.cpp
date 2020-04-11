@@ -202,7 +202,7 @@ namespace wasm {
                 return;
             }
         }
-        CHAIN_ASSERT(false, wasm_chain::missing_auth_exception, "missing authority of %s", wasm::name(account).to_string());
+        CHAIN_ASSERT(false, wasm_chain::missing_auth_exception, "missing authority of %s", wasm::regid(account).to_string());
     }
 
     bool wasm_context::has_authorization( const uint64_t& account ) const {
