@@ -235,7 +235,7 @@ Value luavm_executescript(const Array& params, bool fHelp) {
     Object callContractTxObj;
 
     callContractTxObj.push_back(Pair("run_steps", contractInvokeTx.nRunStep));
-    callContractTxObj.push_back(Pair("used_fuel", contractInvokeTx.GetFuel(newHeight, contractInvokeTx.nFuelRate)));
+    callContractTxObj.push_back(Pair("used_fuel", contractInvokeTx.GetFuel(newHeight, fuelRate)));
 
     Object retObj;
     retObj.push_back(Pair("fuel_rate",              (int32_t)fuelRate));
@@ -272,7 +272,7 @@ Value luavm_executecontract(const Array& params, bool fHelp) {
             + HelpExampleRpc("luavm_executecontract", "\"100-3\", \"20-3"));
     }
 
-    const CUserID &txUid = RPC_PARAM::GetUserId(params[0]);
+    const CUserID &txUid = RPC_PARAM::ParseUserIdByAddr(params[0]);
     const CUserID &appUid = RPC_PARAM::GetUserId(params[1]);
     vector<uint8_t> arguments;
     if (params.size() > 2) {
@@ -283,6 +283,7 @@ Value luavm_executecontract(const Array& params, bool fHelp) {
     auto spCw = std::make_shared<CCacheWrapper>(pCdMan);
     CBlockIndex *pTip      = chainActive.Tip();
     HeightType height = pTip->height + 1;
+    uint32_t txIndex = 1;
     uint32_t fuelRate      = GetElementForBurn(pTip);
     uint32_t blockTime     = pTip->GetBlockTime();
     uint32_t prevBlockTime = pTip->pprev != nullptr ? pTip->pprev->GetBlockTime() : pTip->GetBlockTime();
@@ -295,8 +296,31 @@ Value luavm_executecontract(const Array& params, bool fHelp) {
 
     uint64_t fees = minFee + 100000 * COIN; // give the enough fee to execute contract
 
-    CAccount txAccount = RPC_PARAM::GetUserAccount(spCw->accountCache, txUid);
+    CAccount txAccount;
+    if (!spCw->accountCache.GetAccount(txUid, txAccount)) {
+        if (txUid.is<CKeyID>()) {
+            txAccount.keyid = txUid.get<CKeyID>();
+        } else if (txUid.is<CPubKey>()) {
+            txAccount.owner_pubkey = txUid.get<CPubKey>();
+            txAccount.keyid = txAccount.owner_pubkey.GetKeyId();
+        } else {
+            throw JSONRPCError(RPC_INTERNAL_ERROR, strprintf("txUid=%s does not have account", txUid.ToString()));
+        }
+    }
+
+    if (txAccount.regid.IsEmpty()) {
+        txAccount.regid = CRegID(height, txIndex);
+    }
+    if (txAccount.owner_pubkey.IsEmpty()) {
+            if (!pWalletMain->GetPubKey(txAccount.keyid, txAccount.owner_pubkey) || !txAccount.owner_pubkey.IsFullyValid())
+                throw JSONRPCError(RPC_WALLET_ERROR, strprintf("Key not found in the local wallet! addr=%s",
+                    txAccount.keyid.ToAddress()));
+    }
     txAccount.OperateBalance(feeSymbol, ADD_FREE, fees, ReceiptType::COIN_MINT_ONCHAIN, receipts); // add coin to account for fees
+
+    if (!spCw->accountCache.SaveAccount(txAccount))
+        throw JSONRPCError(RPC_INTERNAL_ERROR, strprintf("save account error! txUid=%s", txUid.ToString()));
+
     CAccount appAccount = RPC_PARAM::GetUserAccount(spCw->accountCache, appUid);
 
     EnsureWalletIsUnlocked();
@@ -309,7 +333,7 @@ Value luavm_executecontract(const Array& params, bool fHelp) {
             throw runtime_error(strprintf("the contract app does not exist! app_id=%s\n", appUid.ToString()));
         }
         contractInvokeTx.nTxType      = LCONTRACT_INVOKE_TX;
-        contractInvokeTx.txUid        = txUid;
+        contractInvokeTx.txUid        = txAccount.regid;
         contractInvokeTx.app_uid      = appRegid;
         contractInvokeTx.coin_amount  = cbAmount.GetAmountInSawi();
         contractInvokeTx.llFees       = fees;
@@ -322,7 +346,7 @@ Value luavm_executecontract(const Array& params, bool fHelp) {
         }
 
         CValidationState state;
-        CTxExecuteContext context(height, 1, fuelRate, blockTime, prevBlockTime, spCw.get(), &state);
+        CTxExecuteContext context(height, txIndex, fuelRate, blockTime, prevBlockTime, spCw.get(), &state);
         if (!contractInvokeTx.CheckAndExecuteTx(context)) {
             throw JSONRPCError(RPC_TRANSACTION_ERROR, "CheckAndExecuteTx contract failed");
         }
