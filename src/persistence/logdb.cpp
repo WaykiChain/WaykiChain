@@ -25,9 +25,9 @@ bool CLogDBCache::GetExecuteFail(const int32_t blockHeight, vector<std::tuple<ui
 
     size_t prefixLen = string(std::to_string(blockHeight) + "_").size();
     for (const auto &item : elements) {
-        result.push_back(std::make_tuple(uint256S(item.first.substr(prefixLen)) /* txid */,
-                                         std::get<0>(item.second) /* error code */,
-                                         std::get<1>(item.second) /* error message */));
+        result.emplace_back(uint256S(item.first.substr(prefixLen)) /* txid */,
+                            std::get<0>(item.second) /* error code */,
+                            std::get<1>(item.second) /* error message */);
     }
 
     return true;

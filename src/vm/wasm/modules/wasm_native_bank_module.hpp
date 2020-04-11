@@ -59,30 +59,24 @@ namespace wasm {
 		            abi.version = "wasm::abi/1.0";
 		        }
 
-		        abi.structs.emplace_back(struct_def {
-					"mint", "", {
+		        abi.structs.emplace_back( "mint", "", {
 						{"owner", 	"regid"	  }, //asset owner
 						{"quantity", "asset"  }
-					}
 				});
-				abi.structs.emplace_back(struct_def {
-					"burn", "", {
+				abi.structs.emplace_back( "burn", "", {
 						{"owner", 	"regid"	  }, //asset owner
 						{"quantity", "asset"  }
-					}
 				});
-				abi.structs.emplace_back(struct_def {
-		            "transfer", "", {
+				abi.structs.emplace_back("transfer", "", {
 						{"from",     "regid"  },
 						{"to",       "regid"  },
 						{"quantity", "asset"  },
 						{"memo",     "string" }
-		            }
 		        });
 
-				abi.actions.push_back( action_def{"mint", "mint", ""} );
-				abi.actions.push_back( action_def{"burn", "burn", ""} );
-		        abi.actions.push_back( action_def{"transfer", "transfer", ""} );
+				abi.actions.emplace_back( "mint", "mint", "" );
+				abi.actions.emplace_back( "burn", "burn", "" );
+		        abi.actions.emplace_back( "transfer", "transfer", "" );
 
 		        auto abi_bytes = wasm::pack<wasm::abi_def>(abi);
 		        return abi_bytes;

@@ -198,12 +198,11 @@ std::shared_ptr<CBaseTx> genWasmContractCalltx(json_spirit::Value param_json) {
                 str_data,
                 wasm::max_serialization_time);
 
-        pBaseTx->inline_transactions.push_back({
+        pBaseTx->inline_transactions.emplace_back(
                 contract.value,
                 action.value,
                 std::vector<wasm::permission>{{authorizer_name.value, wasm::wasmio_owner}},
-                action_data
-            });
+                action_data);
     }
 
     Value json_signs;
@@ -214,7 +213,7 @@ std::shared_ptr<CBaseTx> genWasmContractCalltx(json_spirit::Value param_json) {
             auto auth = wasm::regid(str_auth.get_str());
             const Value& str_sign = JSON::GetObjectFieldValue(sign, "sign");
             std::vector<uint8_t> signature(str_sign.get_str().begin(), str_sign.get_str().end());
-            pBaseTx->signatures.push_back({auth.value, signature});
+            pBaseTx->signatures.emplace_back(auth.value, signature);
         }
     }
     return pBaseTx;

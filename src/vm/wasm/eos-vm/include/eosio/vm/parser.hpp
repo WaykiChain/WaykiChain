@@ -707,7 +707,7 @@ namespace eosio { namespace vm {
                LOAD_OP(i64_load32_u, 2, i64)
 
 #undef LOAD_OP
-                     
+
 #define STORE_OP(op_name, max_align, type)                           \
                case opcodes::op_name: {                              \
                   EOS_VM_ASSERT(_mod->memories.size() > 0, wasm_parse_exception, "store requires memory"); \
@@ -765,7 +765,7 @@ namespace eosio { namespace vm {
                case opcodes::dst ## _ ## opname ## _ ## src: code_writer.emit_ ## dst ## _ ## opname ## _ ## src(); op_stack.pop(types::src); op_stack.push(types::dst); break;
 
 #define R i32
-#define A i32  
+#define A i32
                UNOP(i32_eqz)
                BINOP(i32_eq)
                BINOP(i32_ne)
@@ -778,7 +778,7 @@ namespace eosio { namespace vm {
                BINOP(i32_ge_s)
                BINOP(i32_ge_u)
 #undef A
-#define A i64                 
+#define A i64
                UNOP(i64_eqz)
                BINOP(i64_eq)
                BINOP(i64_ne)

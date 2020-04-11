@@ -119,8 +119,8 @@ shared_ptr<transaction_trace> CallFunction( validating_tester &test, T ac, const
 
         //std::cout << "CallFunction:" << wasm::name(trx.action).to_string() << std::endl;
 
-        for (auto a:scope) {
-            trx.authorization.push_back(permission{a, wasmio_owner});
+        for (auto a : scope) {
+            trx.authorization.emplace_back(a, wasmio_owner);
         }
 
         try {

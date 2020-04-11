@@ -223,11 +223,11 @@ namespace wasm {
     std::vector<uint64_t> wasm_context::get_active_producers(){
 
         auto &db_account  = database.accountCache;
-        auto &database_delegate = database.delegateCache;
+        auto &db_delegate = database.delegateCache;
 
         std::vector<uint64_t> active_producers;
         VoteDelegateVector    producers;
-        CHAIN_ASSERT( database_delegate.GetActiveDelegates(producers),
+        CHAIN_ASSERT( db_delegate.GetActiveDelegates(producers),
                       wasm_chain::account_access_exception,
                       "fail to get top delegates for active producer");
 
@@ -259,8 +259,8 @@ namespace wasm {
         PriceCoinPair price_pair(base_symbol.code().to_string(), quote_symbol.code().to_string());
 
         //if(CheckPricePair(pricePair) != nullptr) return 0;
-        auto &database_pricefeed  = database.priceFeedCache;
-        uint64_t price_amount = database_pricefeed.GetMedianPrice(price_pair);
+        auto &db_pricefeed  = database.priceFeedCache;
+        uint64_t price_amount = db_pricefeed.GetMedianPrice(price_pair);
         if (price_amount == 0) return false;
 
         asset asset_price(price_amount, base_symbol);

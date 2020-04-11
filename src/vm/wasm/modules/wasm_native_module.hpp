@@ -14,16 +14,16 @@
 
 namespace wasm {
 
-	static uint64_t native_module_id = wasmio;//REGID(800-1); 
+	static uint64_t native_module_id = wasmio;//REGID(800-1);
 
 	class wasm_native_module: public native_module {
 
-		//uint64_t module_id = REGID(800-1); 
+		//uint64_t module_id = REGID(800-1);
 		public:
 	        wasm_native_module()  {}
-	        ~wasm_native_module() {}	
-	        
-	    public:	
+	        ~wasm_native_module() {}
+
+	    public:
 	    	virtual void register_routes(abi_router& abi_r, action_router& act_r){
 	    		abi_r.add_router(native_module_id, abi_handler);
                 act_r.add_router(native_module_id, act_handler);
@@ -62,7 +62,7 @@ namespace wasm {
 		                }
 		        });
 
-		        abi.actions.push_back(action_def{"setcode", "setcode", ""});
+		        abi.actions.emplace_back("setcode", "setcode", "");
 
 		        auto abi_bytes = wasm::pack<wasm::abi_def>(abi);
 		        return abi_bytes;
@@ -71,16 +71,16 @@ namespace wasm {
 
 		    static void setcode(wasm_context &context) {
 
-		         CHAIN_ASSERT( context._receiver == native_module_id, 
-		                       wasm_chain::native_contract_assert_exception, 
-		                       "expect contract '%s', but get '%s'", 
+		         CHAIN_ASSERT( context._receiver == native_module_id,
+		                       wasm_chain::native_contract_assert_exception,
+		                       "expect contract '%s', but get '%s'",
 		       		           wasm::regid(native_module_id).to_string(),
 		                       wasm::regid(context._receiver).to_string());
 
 		        auto &db_account         = context.database.accountCache;
 		        auto &db_contract        = context.database.contractCache;
 		        //auto &control_trx              = context.control_trx;
-		        
+
 		        //set_code_data_type set_code_data = wasm::unpack<std::tuple<uint64_t, string, string, string>>(context.trx.data);
 		        auto set_code_data  = wasm::unpack<std::tuple<uint64_t, string, string, string>>(context.trx.data);
 		        auto contract_regid = std::get<0>(set_code_data);
@@ -88,13 +88,13 @@ namespace wasm {
 		        auto abi            = std::get<2>(set_code_data);
 		        auto memo           = std::get<3>(set_code_data);
 
-		        context.require_auth(contract_regid); 
+		        context.require_auth(contract_regid);
 
 		        CAccount contract;
 		        CHAIN_ASSERT( db_account.GetAccount(CRegID(contract_regid), contract),
 		                      wasm_chain::account_access_exception,
 		                      "contract '%s' does not exist",
-		                      wasm::regid(contract_regid).to_string()) 
+		                      wasm::regid(contract_regid).to_string())
 
 		        CUniversalContract contract_store;
 		        contract_store.vm_type = VMType::WASM_VM;
@@ -102,7 +102,7 @@ namespace wasm {
 		        contract_store.abi     = abi;
 		        contract_store.memo    = memo;
 
-		        CHAIN_ASSERT( db_contract.SaveContract(contract.regid, contract_store), 
+		        CHAIN_ASSERT( db_contract.SaveContract(contract.regid, contract_store),
 		                      wasm_chain::account_access_exception,
 		                      "save contract '%s' error",
 		                      wasm::regid(contract_regid).to_string())
