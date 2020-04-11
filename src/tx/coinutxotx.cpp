@@ -334,32 +334,26 @@ bool CCoinUtxoTransferTx::CheckTx(CTxExecuteContext &context) {
     IMPLEMENT_CHECK_TX_MEMO;
 
     if ((txUid.is<CPubKey>()) && !txUid.get<CPubKey>().IsFullyValid())
-        return state.DoS(100, ERRORMSG("public key is invalid"), REJECT_INVALID,
-                        "bad-publickey");
+        return state.DoS(100, ERRORMSG("public key is invalid"), REJECT_INVALID, "bad-publickey");
 
     if (vins.size() > 100) //FIXME: need to use sysparam to replace 100
-        return state.DoS(100, ERRORMSG("vins size > 100 error"), REJECT_INVALID,
-                        "vins-size-too-large");
+        return state.DoS(100, ERRORMSG("vins size > 100 error"), REJECT_INVALID, "vins-size-too-large");
 
     if (vouts.size() > 100) //FIXME: need to use sysparam to replace 100
-        return state.DoS(100, ERRORMSG("vouts size > 100 error"), REJECT_INVALID,
-                        "vouts-size-too-large");
+        return state.DoS(100, ERRORMSG("vouts size > 100 error"), REJECT_INVALID, "vouts-size-too-large");
 
     if (vins.size() == 0 && vouts.size() == 0)
-        return state.DoS(100, ERRORMSG("empty utxo error"), REJECT_INVALID,
-                        "utxo-empty-err");
+        return state.DoS(100, ERRORMSG("empty utxo error"), REJECT_INVALID, "utxo-empty-err");
 
     uint64_t minFee;
     if (!GetTxMinFee(cw, nTxType, context.height, fee_symbol, minFee)) { assert(false); }
     uint64_t minerMinFees = (2 * vins.size() + vouts.size()) * minFee;
     if (llFees < minerMinFees)
-        return state.DoS(100, ERRORMSG("tx fee too small!"), REJECT_INVALID,
-                        "bad-tx-fee-toosmall");
+        return state.DoS(100, ERRORMSG("tx fee too small!"), REJECT_INVALID, "bad-tx-fee-toosmall");
 
     CAccount srcAccount;
     if (!cw.accountCache.GetAccount(txUid, srcAccount)) //unregistered account not allowed to participate
-        return state.DoS(100, ERRORMSG("read account failed"), REJECT_INVALID,
-                        "bad-getaccount");
+        return state.DoS(100, ERRORMSG("read account failed"), REJECT_INVALID, "bad-getaccount");
 
     uint64_t totalInAmount = 0;
     uint64_t totalOutAmount = 0;
@@ -367,20 +361,17 @@ bool CCoinUtxoTransferTx::CheckTx(CTxExecuteContext &context) {
         //load prevUtxoTx from blockchain
         std::shared_ptr<CCoinUtxoTransferTx> pPrevUtxoTx;
         if (!GetUtxoTxFromChain(cw, input.prev_utxo_txid, pPrevUtxoTx))
-            return state.DoS(100, ERRORMSG("failed to load prev utxo from chain!"), REJECT_INVALID,
-                            "failed-to-load-prev-utxo-err");
+            return state.DoS(100, ERRORMSG("failed to load prev utxo from chain!"), REJECT_INVALID, "failed-to-load-prev-utxo-err");
 
         if ((uint16_t) pPrevUtxoTx->vouts.size() < input.prev_utxo_vout_index + 1)
-            return state.DoS(100, ERRORMSG("prev utxo index OOR error!"), REJECT_INVALID,
-                            "prev-utxo-index-OOR-err");
+            return state.DoS(100, ERRORMSG("prev utxo index OOR error!"), REJECT_INVALID, "prev-utxo-index-OOR-err");
 
         //enumerate the prev tx out conditions to check if current input meets
         //the output conditions of the previous Tx
         for (auto cond : pPrevUtxoTx->vouts[input.prev_utxo_vout_index].conds) {
             string errMsg;
             if (!CheckUtxoOutCondition(context, true, pPrevUtxoTx->txUid, srcAccount, input, cond, errMsg))
-                return state.DoS(100, ERRORMSG("CheckUtxoOutCondition error: %s!", errMsg),
-                                REJECT_INVALID, "check-utox-cond-err");
+                return state.DoS(100, ERRORMSG("CheckUtxoOutCondition error: %s!", errMsg), REJECT_INVALID, "check-utox-cond-err");
         }
 
         totalInAmount += pPrevUtxoTx->vouts[input.prev_utxo_vout_index].coin_amount;
@@ -388,16 +379,24 @@ bool CCoinUtxoTransferTx::CheckTx(CTxExecuteContext &context) {
 
     for (auto output : vouts) {
         if (output.coin_amount == 0)
-            return state.DoS(100, ERRORMSG("zeror output amount error!"),
-                            REJECT_INVALID, "zero-output-amount-err");
+            return state.DoS(100, ERRORMSG("zeror output amount error!"), REJECT_INVALID, "zero-output-amount-err");
 
+        auto outCondTypes = unordered_set<UtxoCondType>();
         //check each cond's validity
         for (auto cond : output.conds) {
             string errMsg;
             if (!CheckUtxoOutCondition(context, false, CUserID(), srcAccount, CUtxoInput(), cond, errMsg))
-                return state.DoS(100, ERRORMSG("CheckUtxoOutCondition error: %s!", errMsg),
-                                REJECT_INVALID, "check-utox-cond-err");
+                return state.DoS(100, ERRORMSG("CheckUtxoOutCondition error: %s!", errMsg), REJECT_INVALID, "check-utox-cond-err");
+
+            if (outCondTypes.count(cond.sp_utxo_cond->cond_type) > 0)
+                return state.DoS(100, ERRORMSG("cond_type (%d) exists error!", cond.sp_utxo_cond->cond_type), REJECT_INVALID, "check-utox-cond-err");
+            else
+                outCondTypes.push_back(cond.sp_utxo_cond->cond_type);
         }
+
+        if (outCondTypes.count(UtxoCondType::IP2SA) == 1 && outCondTypes.count(UtxoCondType::IP2MA) == 1)
+            return state.DoS(100, ERRORMSG("can't have both IP2SA & IP2MA error!"), REJECT_INVALID, "check-utox-cond-err");
+
 
         totalOutAmount += output.coin_amount;
     }
