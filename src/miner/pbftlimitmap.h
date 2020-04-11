@@ -12,7 +12,7 @@
 
 /** STL-like map container that only keeps the N elements with the highest value. */
 template <typename K, typename V>
-class CPbftLimitmap {
+class CFIFOLimitmap {
 public:
     typedef K key_type;
     typedef V mapped_type;
@@ -27,11 +27,11 @@ private:
     size_type nMaxSize;
 
 public:
-    explicit CPbftLimitmap(size_type nMaxSizeIn) {
+    explicit CFIFOLimitmap(size_type nMaxSizeIn) {
         nMaxSize = nMaxSizeIn;
     }
 
-    CPbftLimitmap(){ }
+    CFIFOLimitmap(){ }
 
     V& operator[](const K& key){return map[key];}
     const_iterator begin() const { return map.begin(); }

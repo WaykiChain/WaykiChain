@@ -24,7 +24,7 @@ class CPBFTMessageMan {
 
 private:
     CCriticalSection cs_pbftmessage;
-    CPbftLimitmap<uint256, set<MsgType>> blockMessagesMap;
+    CFIFOLimitmap<uint256, set<MsgType>> blockMessagesMap;
     mruset<uint256> broadcastedBlockHashSet;
     mruset<MsgType> messageKnown;
 
@@ -91,7 +91,7 @@ class CPBFTContext {
 public:
     CPBFTMessageMan<CBlockConfirmMessage> confirmMessageMan;
     CPBFTMessageMan<CBlockFinalityMessage> finalityMessageMan;
-    CPbftLimitmap<uint256, set<CRegID>> blockMinerListMap;
+    CFIFOLimitmap<uint256, set<CRegID>> blockMinerListMap;
 
     CPBFTContext(){
         blockMinerListMap.max_size(500);
