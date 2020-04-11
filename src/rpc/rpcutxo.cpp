@@ -238,8 +238,7 @@ Value submitpasswordprooftx(const Array& params, bool fHelp) {
                             prevUtxoTxid.ToString(), prevUtxoVoutIndex);
     uint256 passwordProof = Hash(text);
     int32_t validHeight  = chainActive.Height();
-    CCoinUtxoPasswordProofTx tx(txUid,validHeight, fee.symbol,fee.GetAmountInSawi(),
-                                prevUtxoTxid,prevUtxoVoutIndex,passwordProof);
+    CCoinUtxoPasswordProofTx tx(txUid, validHeight, fee.symbol, fee.GetAmountInSawi(), prevUtxoTxid, prevUtxoVoutIndex, passwordProof);
     return SubmitTx(account.keyid, tx);
 
 }
@@ -289,6 +288,31 @@ Value submitutxotransfertx(const Array& params, bool fHelp) {
     std::vector<CUtxoOutput> vouts;
     ParseUtxoInput(inputArray, vins, account.keyid);
     ParseUtxoOutput(outputArray, vouts, account.keyid);
+
+    for (auto input : vins) {
+        auto inCondTypes = unordered_set<UtxoCondType>();
+        for (auto cond: input.conds) {
+            if (inCondTypes.count(cond.sp_utxo_cond->cond_type) > 0)
+                throw JSONRPCError(RPC_INVALID_PARAMETER, "in cond type (%d) exists error!");
+            else
+                inCondTypes.emplace(cond.sp_utxo_cond->cond_type);
+        }
+
+        if (inCondTypes.count(UtxoCondType::IP2SA) == 1 && inCondTypes.count(UtxoCondType::IP2MA) == 1)
+            throw JSONRPCError(RPC_INVALID_PARAMETER, "can't have both IP2SA & IP2MA error");
+    }
+
+    for (auto output : vouts) {
+        auto outCondTypes = unordered_set<UtxoCondType>();
+        for (auto cond : output.conds) {
+            if (outCondTypes.count(cond.sp_utxo_cond->cond_type) > 0)
+                throw JSONRPCError(RPC_INVALID_PARAMETER, "out cond type (%d) exists error!");
+            else
+                outCondTypes.emplace(cond.sp_utxo_cond->cond_type);
+        }
+        if (outCondTypes.count(UtxoCondType::OP2SA) == 1 && outCondTypes.count(UtxoCondType::OP2MA) == 1)
+            throw JSONRPCError(RPC_INVALID_PARAMETER, "can't have both OP2SA & OP2MA error");
+    }
 
     int32_t validHeight  = chainActive.Height();
     CCoinUtxoTransferTx utxoTransferTx(txUid, validHeight, fee.symbol, fee.GetAmountInSawi(), coinSymbol, vins, vouts, memo);

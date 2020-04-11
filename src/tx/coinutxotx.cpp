@@ -380,8 +380,8 @@ bool CCoinUtxoTransferTx::CheckTx(CTxExecuteContext &context) {
                 inCondTypes.emplace(cond.sp_utxo_cond->cond_type);
         }
 
-        if (inCondTypes.count(UtxoCondType::OP2SA) == 1 && inCondTypes.count(UtxoCondType::OP2MA) == 1)
-            return state.DoS(100, ERRORMSG("can't have both OP2SA & OP2MA error!"), REJECT_INVALID, "check-utox-cond-err");
+        if (inCondTypes.count(UtxoCondType::IP2SA) == 1 && inCondTypes.count(UtxoCondType::IP2MA) == 1)
+            return state.DoS(100, ERRORMSG("can't have both IP2SA & IP2MA error!"), REJECT_INVALID, "check-utox-cond-err");
 
         totalInAmount += pPrevUtxoTx->vouts[input.prev_utxo_vout_index].coin_amount;
     }
@@ -403,8 +403,8 @@ bool CCoinUtxoTransferTx::CheckTx(CTxExecuteContext &context) {
                 outCondTypes.emplace(cond.sp_utxo_cond->cond_type);
         }
 
-        if (outCondTypes.count(UtxoCondType::IP2SA) == 1 && outCondTypes.count(UtxoCondType::IP2MA) == 1)
-            return state.DoS(100, ERRORMSG("can't have both IP2SA & IP2MA error!"), REJECT_INVALID, "check-utox-cond-err");
+        if (outCondTypes.count(UtxoCondType::OP2SA) == 1 && outCondTypes.count(UtxoCondType::OP2MA) == 1)
+            return state.DoS(100, ERRORMSG("can't have both OP2SA & OP2MA error!"), REJECT_INVALID, "check-utox-cond-err");
 
         totalOutAmount += output.coin_amount;
     }
@@ -432,20 +432,17 @@ bool CCoinUtxoTransferTx::ExecuteTx(CTxExecuteContext &context) {
     for (auto &input : vins) {
         auto utxoKey = std::make_pair(input.prev_utxo_txid, CFixedUInt16(input.prev_utxo_vout_index));
         if (!cw.txUtxoCache.GetUtxoTx(utxoKey))
-            return state.DoS(100, ERRORMSG("prev utxo already spent error!"), REJECT_INVALID,
-                            "double-spend-prev-utxo-err");
+            return state.DoS(100, ERRORMSG("prev utxo already spent error!"), REJECT_INVALID, "double-spend-prev-utxo-err");
 
         //load prevUtxoTx from blockchain
         std::shared_ptr<CCoinUtxoTransferTx> pPrevUtxoTx;
         if (!GetUtxoTxFromChain(cw, input.prev_utxo_txid, pPrevUtxoTx))
-            return state.DoS(100, ERRORMSG("failed to load prev utxo from chain!"), REJECT_INVALID,
-                             "failed-to-load-prev-utxo-err");
+            return state.DoS(100, ERRORMSG("failed to load prev utxo from chain!"), REJECT_INVALID, "failed-to-load-prev-utxo-err");
 
         totalInAmount += pPrevUtxoTx->vouts[input.prev_utxo_vout_index].coin_amount;
 
         if (!cw.txUtxoCache.DelUtoxTx(std::make_pair(input.prev_utxo_txid, CFixedUInt16(input.prev_utxo_vout_index))))
-            return state.DoS(100, ERRORMSG("del prev utxo error!"), REJECT_INVALID,
-                            "del-prev-utxo-err");
+            return state.DoS(100, ERRORMSG("del prev utxo error!"), REJECT_INVALID, "del-prev-utxo-err");
 
         uint256 proof = uint256();
         CRegIDKey regIdKey(txAccount.regid);
@@ -475,13 +472,13 @@ bool CCoinUtxoTransferTx::ExecuteTx(CTxExecuteContext &context) {
     if (totalInAmount <  totalOutAmount) {
         if (!txAccount.OperateBalance(coin_symbol, SUB_FREE,  totalOutAmount - totalInAmount,
                                     ReceiptType::TRANSFER_UTXO_COINS, receipts)) {
-            return state.DoS(100, ERRORMSG("CCoinUtxoTransferTx::ExecuteTx, failed to deduct coin_amount in txUid %s account",
+            return state.DoS(100, ERRORMSG("failed to deduct coin_amount in txUid %s account",
                             txUid.ToString()), UPDATE_ACCOUNT_FAIL, "insufficient-fund-utxo");
         }
     } else if (totalInAmount > totalOutAmount) {
         if (!txAccount.OperateBalance(coin_symbol, ADD_FREE, totalInAmount - totalOutAmount,
                                     ReceiptType::TRANSFER_UTXO_COINS, receipts)) {
-            return state.DoS(100, ERRORMSG("CCoinUtxoTransferTx::ExecuteTx, failed to add coin_amount in txUid %s account",
+            return state.DoS(100, ERRORMSG("failed to add coin_amount in txUid %s account",
                             txUid.ToString()), UPDATE_ACCOUNT_FAIL, "insufficient-fund-utxo");
         }
     }
@@ -497,22 +494,18 @@ bool CCoinUtxoPasswordProofTx::CheckTx(CTxExecuteContext &context) {
     CCacheWrapper &cw = *context.pCw; CValidationState &state = *context.pState;
 
     if ((txUid.is<CPubKey>()) && !txUid.get<CPubKey>().IsFullyValid())
-        return state.DoS(100, ERRORMSG("public key is invalid"), REJECT_INVALID,
-                        "bad-publickey");
+        return state.DoS(100, ERRORMSG("public key is invalid"), REJECT_INVALID, "bad-publickey");
 
     uint64_t minFee;
     if (!GetTxMinFee(cw, nTxType, context.height, fee_symbol, minFee)) { assert(false); }
     if (llFees < minFee)
-        return state.DoS(100, ERRORMSG("tx fee too small!"), REJECT_INVALID,
-                        "bad-tx-fee-toosmall");
+        return state.DoS(100, ERRORMSG("tx fee too small!"), REJECT_INVALID, "bad-tx-fee-toosmall");
 
     if (utxo_txid.IsEmpty())
-        return state.DoS(100, ERRORMSG("utxo txid empty error!"), REJECT_INVALID,
-                        "uxto-txid-empty-err");
+        return state.DoS(100, ERRORMSG("utxo txid empty error!"), REJECT_INVALID, "uxto-txid-empty-err");
 
     if (password_proof.IsEmpty())
-        return state.DoS(100, ERRORMSG("utxo password proof empty error!"), REJECT_INVALID,
-                        "utxo-password-proof-empty-err");
+        return state.DoS(100, ERRORMSG("utxo password proof empty error!"), REJECT_INVALID, "utxo-password-proof-empty-err");
 
     return true;
 }
@@ -522,7 +515,7 @@ bool CCoinUtxoPasswordProofTx::ExecuteTx(CTxExecuteContext &context) {
 
     CRegIDKey regIdKey(txAccount.regid);
     if (!cw.txUtxoCache.SetUtxoPasswordProof(std::make_tuple(utxo_txid, CFixedUInt16(utxo_vout_index), regIdKey), password_proof))
-        return state.DoS(100, ERRORMSG("CCoinUtxoTransferTx::ExecuteTx, bad saving utxo proof",
+        return state.DoS(100, ERRORMSG("bad saving utxo proof",
                         txUid.ToString()), READ_ACCOUNT_FAIL, "bad-save-utxo-passwordproof");
 
     return true;
