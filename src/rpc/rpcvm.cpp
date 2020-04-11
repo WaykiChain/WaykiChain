@@ -127,6 +127,7 @@ Value luavm_executescript(const Array& params, bool fHelp) {
         !GetTxMinFee(*spCw, LCONTRACT_INVOKE_TX, chainActive.Height(), SYMB::WICC, invokeMinFee))
         throw JSONRPCError(RPC_INTERNAL_ERROR, "Get tx min fee failed");
 
+    regMinFee += 1 * COIN;
     uint64_t minFee   = regMinFee + invokeMinFee;
     uint64_t totalFee = regMinFee + invokeMinFee * 10;  // set default totalFee
     if (params.size() > 4) {
@@ -190,8 +191,8 @@ Value luavm_executescript(const Array& params, bool fHelp) {
 
         CValidationState state;
         CTxExecuteContext context(newHeight, 1, fuelRate, blockTime, prevBlockTime, spCw.get(), &state);
-        if (!tx.ExecuteTx(context)) {
-            throw JSONRPCError(RPC_TRANSACTION_ERROR, "Executetx register contract failed");
+        if (!tx.CheckAndExecuteTx(context)) {
+            throw JSONRPCError(RPC_TRANSACTION_ERROR, "CheckAndExecuteTx register contract failed");
         }
 
         DeployContractTxObj.push_back(Pair("contract_size", contract_size));
@@ -226,8 +227,8 @@ Value luavm_executescript(const Array& params, bool fHelp) {
 
         CValidationState state;
         CTxExecuteContext context(chainActive.Height() + 1, 2, fuelRate, blockTime, prevBlockTime, spCw.get(), &state);
-        if (!contractInvokeTx.ExecuteTx(context)) {
-            throw JSONRPCError(RPC_TRANSACTION_ERROR, "Executetx contract failed");
+        if (!contractInvokeTx.CheckAndExecuteTx(context)) {
+            throw JSONRPCError(RPC_TRANSACTION_ERROR, "CheckAndExecuteTx contract failed");
         }
     }
 
