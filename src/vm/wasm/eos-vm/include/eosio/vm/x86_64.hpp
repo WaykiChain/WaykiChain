@@ -243,8 +243,8 @@ namespace eosio { namespace vm {
                   // jae MID
                   _this->emit_bytes(0x0f, 0x83);
                   void* mid_label = _this->emit_branch_target32();
-                  stack.emplace_back(mid, max, mid_label);
-                  stack.emplace_back(min, mid, nullptr);
+                  stack.push_back({mid,max,mid_label});
+                  stack.push_back({min,mid,nullptr});
                } else {
                   assert(min == _i);
                   _i++;
