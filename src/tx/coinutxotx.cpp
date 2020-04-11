@@ -391,12 +391,11 @@ bool CCoinUtxoTransferTx::CheckTx(CTxExecuteContext &context) {
             if (outCondTypes.count(cond.sp_utxo_cond->cond_type) > 0)
                 return state.DoS(100, ERRORMSG("cond_type (%d) exists error!", cond.sp_utxo_cond->cond_type), REJECT_INVALID, "check-utox-cond-err");
             else
-                outCondTypes.push_back(cond.sp_utxo_cond->cond_type);
+                outCondTypes.emplace(cond.sp_utxo_cond->cond_type);
         }
 
         if (outCondTypes.count(UtxoCondType::IP2SA) == 1 && outCondTypes.count(UtxoCondType::IP2MA) == 1)
             return state.DoS(100, ERRORMSG("can't have both IP2SA & IP2MA error!"), REJECT_INVALID, "check-utox-cond-err");
-
 
         totalOutAmount += output.coin_amount;
     }
