@@ -121,7 +121,6 @@ namespace wasm {
 		        auto &db_account                = context.database.accountCache;
 		        context.control_trx.run_cost   += context.trx.GetSerializeSize(SER_DISK, CLIENT_VERSION) * store_fuel_fee_per_byte;
 
-		        //transfer_data_type transfer_data = wasm::unpack<std::tuple<uint64_t, uint64_t, wasm::asset, string>>(context.trx.data);
 		        auto transfer_data = wasm::unpack<std::tuple <uint64_t, uint64_t, wasm::asset, string >>(context.trx.data);
 		        auto from                        = std::get<0>(transfer_data);
 		        auto to                          = std::get<1>(transfer_data);

@@ -293,7 +293,7 @@ Value submitutxotransfertx(const Array& params, bool fHelp) {
         auto inCondTypes = unordered_set<UtxoCondType>();
         for (auto cond: input.conds) {
             if (inCondTypes.count(cond.sp_utxo_cond->cond_type) > 0)
-                throw JSONRPCError(RPC_INVALID_PARAMETER, "in cond type (%d) exists error!");
+                throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("in cond type (%d) exists error!", cond.sp_utxo_cond->cond_type));
             else
                 inCondTypes.emplace(cond.sp_utxo_cond->cond_type);
         }
@@ -306,7 +306,7 @@ Value submitutxotransfertx(const Array& params, bool fHelp) {
         auto outCondTypes = unordered_set<UtxoCondType>();
         for (auto cond : output.conds) {
             if (outCondTypes.count(cond.sp_utxo_cond->cond_type) > 0)
-                throw JSONRPCError(RPC_INVALID_PARAMETER, "out cond type (%d) exists error!");
+                throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("out cond type (%d) exists error!", cond.sp_utxo_cond->cond_type));
             else
                 outCondTypes.emplace(cond.sp_utxo_cond->cond_type);
         }
