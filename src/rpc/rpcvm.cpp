@@ -243,3 +243,94 @@ Value luavm_executescript(const Array& params, bool fHelp) {
 
     return retObj;
 }
+
+namespace RPC_PARAM {
+    ComboMoney GetComboMoney(const Array& params, uint32_t index, const ComboMoney &defaultValue) {
+
+        if (params.size() <= index)
+            return defaultValue;
+        return GetComboMoney(params[index], defaultValue.symbol);
+    }
+}
+
+Value luavm_executecontract(const Array& params, bool fHelp) {
+    if (fHelp || params.size() < 2 || params.size() > 4) {
+        throw runtime_error(
+            "luavm_executecontract \"addr\" \"app_id\" [\"arguments\"] [symbol:amount:unit]\n"
+            "\nexecute the existed contract in vm simulator, and then returns the execution status.\n"
+            "\nArguments:\n"
+            "1.\"addr\":                (string required) contract owner address from this wallet\n"
+            "2.\"app_id\":            (string required) regid of app account\n"
+            "3.\"arguments\":           (string, optional) contract method invoke content (Hex encode required)\n"
+            "4.\"symbol:amount:unit\":  (string:numeric:string, optional) amount of coin to send to app account\n"
+            "\nResult vm execute detail\n"
+            "\nResult:\n"
+            "\nExamples:\n"
+            + HelpExampleCli("luavm_executecontract","\"100-3\" \"20-3\"")
+            + "\nAs json rpc call\n"
+            + HelpExampleRpc("luavm_executecontract", "\"100-3\", \"20-3"));
+    }
+
+    const CUserID &txUid = RPC_PARAM::GetUserId(params[0]);
+    const CUserID &appUid = RPC_PARAM::GetUserId(params[1]);
+    vector<uint8_t> arguments;
+    if (params.size() > 2) {
+        arguments = ParseHex(params[2].get_str());
+    }
+    const ComboMoney cbAmount = RPC_PARAM::GetComboMoney(params, 3, ComboMoney(SYMB::WICC, 0, COIN_UNIT::SAWI));
+
+    auto spCw = std::make_shared<CCacheWrapper>(pCdMan);
+    CBlockIndex *pTip      = chainActive.Tip();
+    HeightType height = pTip->height + 1;
+    uint32_t fuelRate      = GetElementForBurn(pTip);
+    uint32_t blockTime     = pTip->GetBlockTime();
+    uint32_t prevBlockTime = pTip->pprev != nullptr ? pTip->pprev->GetBlockTime() : pTip->GetBlockTime();
+    vector<CReceipt> receipts;
+
+    const TokenSymbol &feeSymbol = SYMB::WICC;
+    uint64_t minFee = 0;
+    if (!GetTxMinFee(*spCw, LCONTRACT_INVOKE_TX, height, feeSymbol, minFee))
+        throw JSONRPCError(RPC_INTERNAL_ERROR, "Get tx min fee failed");
+
+    uint64_t fees = minFee + 100000 * COIN; // give the enough fee to execute contract
+
+    CAccount txAccount = RPC_PARAM::GetUserAccount(spCw->accountCache, txUid);
+    txAccount.OperateBalance(feeSymbol, ADD_FREE, fees, ReceiptType::COIN_MINT_ONCHAIN, receipts); // add coin to account for fees
+    CAccount appAccount = RPC_PARAM::GetUserAccount(spCw->accountCache, appUid);
+
+    EnsureWalletIsUnlocked();
+
+    CLuaContractInvokeTx contractInvokeTx;
+
+    {
+        const CRegID &appRegid = appAccount.regid;
+        if (!spCw->contractCache.HasContract(appRegid)) {
+            throw runtime_error(strprintf("the contract app does not exist! app_id=%s\n", appUid.ToString()));
+        }
+        contractInvokeTx.nTxType      = LCONTRACT_INVOKE_TX;
+        contractInvokeTx.txUid        = txUid;
+        contractInvokeTx.app_uid      = appRegid;
+        contractInvokeTx.coin_amount  = cbAmount.GetAmountInSawi();
+        contractInvokeTx.llFees       = fees;
+        contractInvokeTx.arguments    = string(arguments.begin(), arguments.end());
+        contractInvokeTx.valid_height = height;
+
+        vector<uint8_t> signature;
+        if (!pWalletMain->Sign(txAccount.keyid, contractInvokeTx.GetHash(), contractInvokeTx.signature)) {
+            throw JSONRPCError(RPC_WALLET_ERROR, "Sign failed");
+        }
+
+        CValidationState state;
+        CTxExecuteContext context(height, 1, fuelRate, blockTime, prevBlockTime, spCw.get(), &state);
+        if (!contractInvokeTx.CheckAndExecuteTx(context)) {
+            throw JSONRPCError(RPC_TRANSACTION_ERROR, "CheckAndExecuteTx contract failed");
+        }
+    }
+
+    Object retObj;
+    retObj.push_back(Pair("fuel_rate",              (int32_t)fuelRate));
+    retObj.push_back(Pair("burned_fuel", contractInvokeTx.nRunStep));
+    retObj.push_back(Pair("fuel_fee", contractInvokeTx.GetFuel(height, contractInvokeTx.nFuelRate)));
+
+    return retObj;
+}

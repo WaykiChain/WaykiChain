@@ -156,6 +156,8 @@ extern Value getblockundo(const Array& params, bool fHelp);
 
 /******************************  Lua VM *********************************/
 extern Value luavm_executescript(const Array& params, bool fHelp);
+extern Value luavm_executecontract(const Array& params, bool fHelp);
+
 
 /******************************  WASM & General Module Access *********************************/
 extern Value wasm_gettable(const Array& params, bool fHelp);
