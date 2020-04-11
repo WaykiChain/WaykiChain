@@ -18,6 +18,54 @@
 ///////////////////////////////////////////////////////////////////////////////
 // local static functions
 
+#if 0 // print lua traceback
+static int countlevels (lua_State *L) {
+  lua_Debug ar;
+  int li = 1, le = 1;
+  /* find an upper bound */
+  while (lua_getstack(L, le, &ar)) { li = le; le *= 2; }
+  /* do a binary search */
+  while (li < le) {
+    int m = (li + le)/2;
+    if (lua_getstack(L, m, &ar)) li = m + 1;
+    else le = m;
+  }
+  return le - 1;
+}
+
+#define LEVELS1	120	/* size of the first part of the stack */
+#define LEVELS2	100	/* size of the second part of the stack */
+
+std::string lua_DebugToString(const lua_Debug &ar) {
+    return strprintf("%s:%d, %s %s()", ar.short_src, ar.currentline, ar.what, ar.name);
+}
+
+string luaL_traceback1 (lua_State *L, int level) {
+  lua_Debug ar;
+  int numlevels = countlevels(L);
+  int mark = (numlevels > LEVELS1 + LEVELS2) ? LEVELS1 : 0;
+
+  string str;
+  while (lua_getstack(L, level++, &ar)) {
+    if (level == mark) {  /* too many levels? */
+      str += "...\n";
+      level = numlevels - LEVELS2;  /* and skip to last ones */
+    }
+    else {
+      lua_getinfo(L, "Slnt", &ar);
+      str += strprintf("[%d] %s\n", level, lua_DebugToString(ar));
+    }
+  }
+  return str;
+}
+
+#define lua_traceback(L)                                                                           \
+    {                                                                                              \
+        string str;                                                                                \
+        str = luaL_traceback1(L, 0);                                                               \
+        LogPrint(BCLog::LUAVM, "stack traceback:\n%s\n", str);                                     \
+    }
+#endif // print lua traceback
 /*
  *  //3.往函数私有栈里存运算后的结果*/
 static inline int32_t RetRstToLua(lua_State *L, const vector<uint8_t> &resultData, bool needToTruncate = true) {
