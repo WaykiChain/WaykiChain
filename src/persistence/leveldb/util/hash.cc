@@ -6,26 +6,6 @@
 #include "util/coding.h"
 #include "util/hash.h"
 
-// The FALLTHROUGH_INTENDED macro can be used to annotate implicit fall-through
-// between switch labels. The real definition should be provided externally.
-// This one is a fallback version for unsupported compilers.
-#ifndef FALLTHROUGH_INTENDED
-#if defined(__clang__) && defined(__has_warning)
-#if __has_feature(cxx_attributes) && __has_warning("-Wimplicit-fallthrough")
-#define FALLTHROUGH_INTENDED [[clang::fallthrough]]
-#endif
-#elif defined(__GNUC__) && __GNUC__ >= 7
-#define FALLTHROUGH_INTENDED [[gnu::fallthrough]]
-#endif
-
-// If FALLTHROUGH_INTENDED is still not defined, define it.
-#ifndef FALLTHROUGH_INTENDED
-#define FALLTHROUGH_INTENDED \
-  do {                       \
-  } while (0)
-#endif
-#endif
-
 namespace leveldb {
 
 uint32_t Hash(const char* data, size_t n, uint32_t seed) {
