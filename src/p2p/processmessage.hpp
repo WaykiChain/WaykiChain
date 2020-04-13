@@ -21,8 +21,8 @@ bool static ProcessMessage(CNode *pFrom, string strCommand, CDataStream &vRecv) 
         State(pFrom->GetId())->nLastBlockProcess = GetTimeMicros();
     }
 
-    if (pFrom->nVersion == 0) {
-        // Must have a version message before anything else
+    if (pFrom->nVersion == 0 && strCommand != NetMsgType::VERSION) {
+        LogPrint(BCLog::NET, "The version not init, peer=%s, cmd=%s\n", pFrom->addr.ToString(), strCommand);
         Misbehaving(pFrom->GetId(), 1);
         return false;
     }
