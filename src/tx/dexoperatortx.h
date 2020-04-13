@@ -28,10 +28,16 @@ public:
             READWRITE(fee_receiver_uid);
             READWRITE(name);
             READWRITE(portal_url);
+            READWRITE((uint8_t&)public_mode);
             READWRITE(VARINT(maker_fee_ratio));
             READWRITE(VARINT(taker_fee_ratio));
             READWRITE(memo);
         )
+        string ToString() {
+
+            return strprintf("owner_id=%s, fee_receiver_uid =%s, name=%s, portal_url=%s, public_mode=%d, makefee=%d, takefee=%d, memo=%s", owner_uid.ToString(),
+                    fee_receiver_uid.ToString(), name,portal_url, (uint8_t&)public_mode,maker_fee_ratio,taker_fee_ratio, memo);
+        }
     };
 public:
     Data data;
@@ -63,7 +69,12 @@ public:
 
     virtual std::shared_ptr<CBaseTx> GetNewInstance() const { return std::make_shared<CDEXOperatorRegisterTx>(*this); }
 
-    virtual string ToString(CAccountDBCache &accountCache);
+    virtual string ToString(CAccountDBCache &accountCache) {
+
+        string baseString = CBaseTx::ToString(accountCache);
+        return baseString+ data.ToString();
+
+    }
     virtual Object ToJson(const CAccountDBCache &accountCache) const;
 
     virtual bool CheckTx(CTxExecuteContext &context);

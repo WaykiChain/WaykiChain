@@ -101,10 +101,7 @@ static bool ProcessDexOperatorFee(CCacheWrapper &cw, CValidationState &state, co
 ////////////////////////////////////////////////////////////////////////////////
 // class CDEXOperatorRegisterTx
 
-string CDEXOperatorRegisterTx::ToString(CAccountDBCache &accountCache) {
-    // TODO: ...
-    return "";
-}
+
 
 Object CDEXOperatorRegisterTx::ToJson(const CAccountDBCache &accountCache) const {
     Object result = CBaseTx::ToJson(accountCache);
