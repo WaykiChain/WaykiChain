@@ -70,11 +70,8 @@ public:
     virtual std::shared_ptr<CBaseTx> GetNewInstance() const { return std::make_shared<CDEXOperatorRegisterTx>(*this); }
 
     virtual string ToString(CAccountDBCache &accountCache) {
-
-      /*  string baseString = CBaseTx::ToString(accountCache);
-        return baseString + data.ToString();*/
-      return data.ToString();
-
+        string baseString = CBaseTx::ToString(accountCache);
+        return baseString + data.ToString();
     }
     virtual Object ToJson(const CAccountDBCache &accountCache) const;
 
