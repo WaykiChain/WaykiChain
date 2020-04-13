@@ -201,8 +201,6 @@ public:
     bool Check(CCacheWrapper &cw, string& errmsg, string& errcode, uint32_t currentHeight);
 
     bool UpdateToDexOperator(DexOperatorDetail& detail,CCacheWrapper& cw);
-    bool GetRegID(CCacheWrapper& cw,CRegID& regid);
-
 
     string ValueToString() const {
         switch (field){
