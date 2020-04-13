@@ -358,17 +358,13 @@ public:
     }
 
     void PushInventory(const CInv& inv, bool forced = false) {
-        {
-            LOCK(cs_inventory);
+        LOCK(cs_inventory);
 
-            if(forced){
-                setForceToSend.insert(inv);
-            }
+        if (forced)
+            setForceToSend.insert(inv);
 
-            if (forced || !setInventoryKnown.count(inv))
-                vInventoryToSend.push_back(inv);
-
-        }
+        if (forced || !setInventoryKnown.count(inv))
+            vInventoryToSend.push_back(inv);
     }
 
     void PushBlockConfirmMessage(const CBlockConfirmMessage& msg) {

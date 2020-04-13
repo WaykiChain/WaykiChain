@@ -711,10 +711,10 @@ static bool ProduceBlock(int64_t startMiningMs, CBlockIndex *pPrevIndex, Miner &
     return true;
 }
 
-void static ThreadProduceBlocks(CWallet *pWallet, int32_t targetHeight) {
+void static ThreadBlockProducing(CWallet *pWallet, int32_t targetHeight) {
     LogPrint(BCLog::INFO, "started\n");
 
-    RenameThread("Produce-blocks");
+    RenameThread("Block-Producing");
 
     auto HaveMinerKey = [&]() {
         LOCK2(cs_main, pWalletMain->cs_wallet);
@@ -828,7 +828,7 @@ void GenerateProduceBlockThread(bool fGenerate, CWallet *pWallet, int32_t target
     // }
 
     minerThreads = new boost::thread_group();
-    minerThreads->create_thread(boost::bind(&ThreadProduceBlocks, pWallet, targetHeight));
+    minerThreads->create_thread(boost::bind(&ThreadBlockProducing, pWallet, targetHeight));
 }
 
 void MinedBlockInfo::SetNull() {

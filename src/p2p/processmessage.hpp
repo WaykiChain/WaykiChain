@@ -21,29 +21,26 @@ bool static ProcessMessage(CNode *pFrom, string strCommand, CDataStream &vRecv) 
         State(pFrom->GetId())->nLastBlockProcess = GetTimeMicros();
     }
 
-    if (strCommand == NetMsgType::VERSION) {
-        int32_t res = ProcessVersionMessage(pFrom, strCommand, vRecv);
-        if (res != -1)
-            return res == 1;
-    }
-
-    else if (pFrom->nVersion == 0) {
+    if (pFrom->nVersion == 0) {
         // Must have a version message before anything else
         Misbehaving(pFrom->GetId(), 1);
         return false;
     }
 
-    else if (strCommand == NetMsgType::VERACK) {
+    if (strCommand == NetMsgType::VERSION) {
+        int32_t res = ProcessVersionMessage(pFrom, strCommand, vRecv);
+        if (res != -1)
+            return res == 1;
+
+    } else if (strCommand == NetMsgType::VERACK) {
         pFrom->SetRecvVersion(min(pFrom->nVersion, PROTOCOL_VERSION));
-    }
 
-    else if (strCommand == NetMsgType::ADDR) {
-       if(!ProcessAddrMessage(pFrom, vRecv))
+    } else if (strCommand == NetMsgType::ADDR) {
+       if (!ProcessAddrMessage(pFrom, vRecv))
            return false ;
-    }
 
-    else if (strCommand == NetMsgType::INV) {
-        if(!ProcessInvMessage(pFrom, vRecv))
+    } else if (strCommand == NetMsgType::INV) {
+        if (!ProcessInvMessage(pFrom, vRecv))
             return false ;
     }
 
@@ -128,13 +125,14 @@ bool static ProcessMessage(CNode *pFrom, string strCommand, CDataStream &vRecv) 
 
     else if (strCommand == NetMsgType::REJECT) {
         ProcessRejectMessage(pFrom, vRecv);
-    }
-    else if (strCommand == NetMsgType::CONFIRMBLOCK) {
+
+    } else if (strCommand == NetMsgType::CONFIRMBLOCK) {
         ProcessBlockConfirmMessage(pFrom, vRecv) ;
+
     } else if (strCommand == NetMsgType::FINALITYBLOCK) {
         ProcessBlockFinalityMessage(pFrom, vRecv);
-    }
-    else {
+
+    } else {
         // Ignore unknown commands for extensibility
     }
 
@@ -219,7 +217,7 @@ bool ProcessMessages(CNode *pFrom) {
         uint32_t nChecksum = 0;
         memcpy(&nChecksum, &hash, sizeof(nChecksum));
         if (nChecksum != hdr.nChecksum) {
-            LogPrint(BCLog::INFO, "ProcessMessages(%s, %u bytes) : CHECKSUM ERROR nChecksum=%08x hdr.nChecksum=%08x\n",
+            LogPrint(BCLog::INFO, "(%s, %u bytes) : CHECKSUM ERROR nChecksum=%08x hdr.nChecksum=%08x\n",
                      strCommand, nMessageSize, nChecksum, hdr.nChecksum);
             continue;
         }
@@ -233,11 +231,11 @@ bool ProcessMessages(CNode *pFrom) {
             pFrom->PushMessage(NetMsgType::REJECT, strCommand, REJECT_MALFORMED, string("error parsing message"));
             if (strstr(e.what(), "end of data")) {
                 // Allow exceptions from under-length message on vRecv
-                LogPrint(BCLog::INFO, "ProcessMessages(%s, %u bytes) : Exception '%s' caught, normally caused by a message being shorter than its stated length\n", strCommand, nMessageSize, e.what());
-                LogPrint(BCLog::INFO, "ProcessMessages(%s, %u bytes) : %s\n", strCommand, nMessageSize, HexStr(vRecv.begin(), vRecv.end()).c_str());
+                LogPrint(BCLog::INFO, "(%s, %u bytes) : Exception '%s' caught, normally caused by a message being shorter than its stated length\n", strCommand, nMessageSize, e.what());
+                LogPrint(BCLog::INFO, "(%s, %u bytes) : %s\n", strCommand, nMessageSize, HexStr(vRecv.begin(), vRecv.end()).c_str());
             } else if (strstr(e.what(), "size too large")) {
                 // Allow exceptions from over-long size
-                LogPrint(BCLog::INFO, "ProcessMessages(%s, %u bytes) : Exception '%s' caught\n", strCommand, nMessageSize, e.what());
+                LogPrint(BCLog::INFO, "(%s, %u bytes) : Exception '%s' caught\n", strCommand, nMessageSize, e.what());
             } else {
                 PrintExceptionContinue(&e, "ProcessMessages()");
             }

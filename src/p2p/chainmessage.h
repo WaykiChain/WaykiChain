@@ -101,25 +101,20 @@ inline void ProcessGetData(CNode *pFrom) {
             it++;
 
             if (inv.type == MSG_BLOCK || inv.type == MSG_FILTERED_BLOCK) {
-                bool send                                = false;
-                map<uint256, CBlockIndex *>::iterator mi = mapBlockIndex.find(inv.hash);
-                if (mi != mapBlockIndex.end()) {
-                    send = true;
-                } else {
-                    LogPrint(BCLog::NET, "block %s not exist\n", inv.hash.GetHex());
-                }
+                auto mi = mapBlockIndex.find(inv.hash);
+                if (mi == mapBlockIndex.end()) {
+                    LogPrint(BCLog::NET, "block %s not found\n", inv.hash.GetHex());
 
-                if (send) {
-                    // Send block from disk
+                } else { // Load block from disk and send it
                     CBlock block;
                     ReadBlockFromDisk((*mi).second, block);
                     if (inv.type == MSG_BLOCK) {
                         LogPrint(BCLog::NET, "send block[%u]: %s to peer %s\n", block.GetHeight(), block.GetHash().GetHex(),
                                  pFrom->addr.ToString());
+
                         pFrom->PushMessage(NetMsgType::BLOCK, block);
-                    }
-                    else  // MSG_FILTERED_BLOCK)
-                    {
+
+                    } else  {// MSG_FILTERED_BLOCK)
                         LOCK(pFrom->cs_filter);
                         if (pFrom->pFilter) {
                             CMerkleBlock merkleBlock(block, *pFrom->pFilter);
@@ -155,7 +150,7 @@ inline void ProcessGetData(CNode *pFrom) {
                 bool pushed = false;
                 {
                     LOCK(cs_mapRelay);
-                    map<CInv, CDataStream>::iterator mi = mapRelay.find(inv);
+                    auto mi = mapRelay.find(inv);
                     if (mi != mapRelay.end()) {
                         pFrom->PushMessage(inv.GetCommand(), (*mi).second);
                         pushed = true;
@@ -165,7 +160,7 @@ inline void ProcessGetData(CNode *pFrom) {
                     std::shared_ptr<CBaseTx> pBaseTx = mempool.Lookup(inv.hash);
                     if (pBaseTx && !pBaseTx->IsRelayForbidden()) {
                         CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
-                        ss.reserve(1000);
+                        ss.reserve(1000); //FIXME: hardcoding here
                         ss << pBaseTx;
                         pFrom->PushMessage(NetMsgType::TX, ss);
                         pushed = true;
@@ -178,9 +173,6 @@ inline void ProcessGetData(CNode *pFrom) {
 
             // Track requests for our stuff.
             // g_signals.Inventory(inv.hash);
-
-            if (inv.type == MSG_BLOCK || inv.type == MSG_FILTERED_BLOCK)
-                break;
         }
     }
 
@@ -577,7 +569,7 @@ inline void ProcessGetBlocksMessage(CNode *pFrom, CDataStream &vRecv) {
     LOCK(cs_main);
 
     // Find the last block the caller has in the main chain
-    CBlockIndex *pStartIndex = chainActive.FindFork(mapBlockIndex, locator);
+    auto *pStartIndex = chainActive.FindFork(mapBlockIndex, locator);
 
     // Send the rest of the chain
     if (pStartIndex)
@@ -592,7 +584,7 @@ inline void ProcessGetBlocksMessage(CNode *pFrom, CDataStream &vRecv) {
     for (; pIndex; pIndex = chainActive.Next(pIndex)) {
         if (pIndex->GetBlockHash() == hashStop) {
             LogPrint(BCLog::NET, "processing getblocks stoped by hash_end! end_block=%s, peer=%s\n",
-                pIndex->GetIndentityString(), pFrom->addrName);
+                     pIndex->GetIndentityString(), pFrom->addrName);
             break;
         }
 
@@ -603,12 +595,15 @@ inline void ProcessGetBlocksMessage(CNode *pFrom, CDataStream &vRecv) {
         bool force_to_send_again = false;
         if (pIndex == pStartIndex || pIndex->pprev == pStartIndex)
             force_to_send_again = true;
+
         pFrom->PushInventory(CInv(MSG_BLOCK, pIndex->GetBlockHash()), force_to_send_again);
+
         if (--nLimit <= 0) {
             // When this block is requested, we'll send an inv that'll make them
             // getblocks the next batch of inventory.
             LogPrint(BCLog::NET, "processing getblocks stopped by limit! end_block=%s, limit=%d, peer=%s\n",
-                pIndex->GetIndentityString(), 500, pFrom->addrName);
+                    pIndex->GetIndentityString(), 500, pFrom->addrName);
+
             pFrom->hashContinue = pIndex->GetBlockHash();
             break;
         }
@@ -731,9 +726,9 @@ inline void ProcessBlockMessage(CNode *pFrom, CDataStream &vRecv) {
 
     std::pair<int32_t ,uint256> globalfinblock = std::make_pair(0,uint256());
     pCdMan->pBlockCache->ReadGlobalFinBlock(globalfinblock);
-    if (  block.GetHeight() < (uint32_t)globalfinblock.first){
-        LogPrint(BCLog::NET,"ProcessBlock() : this inbound block's height(%d) is irrreversible(%d)",
-                                      block.GetHeight(), globalfinblock.first);
+    if (block.GetHeight() < (uint32_t)globalfinblock.first) {
+        LogPrint(BCLog::NET,"[%d] this inbound block is irrreversible (%d)",
+                            block.GetHeight(), globalfinblock.first);
     } else {
         ProcessBlock(state, pFrom, &block);
     }
