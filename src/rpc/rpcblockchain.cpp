@@ -29,7 +29,7 @@ class CBaseCoinTransferTx;
 
 Object BlockToJSON(const CBlock& block, const CBlockIndex* pBlockIndex) {
     Object result;
-    result.push_back(Pair("block_hash",     block.GetHash().GetHex()));
+    result.push_back(Pair("curr_block_hash",     block.GetHash().GetHex()));
     if (pBlockIndex->pprev)
         result.push_back(Pair("prev_block_hash", pBlockIndex->pprev->GetBlockHash().GetHex()));
     CBlockIndex* pNext = chainActive.Next(pBlockIndex);
