@@ -351,10 +351,8 @@ public:
     }
 
     void AddInventoryKnown(const CInv& inv) {
-        {
-            LOCK(cs_inventory);
-            setInventoryKnown.insert(inv);
-        }
+        LOCK(cs_inventory);
+        setInventoryKnown.insert(inv);
     }
 
     void PushInventory(const CInv& inv, bool forced = false) {
