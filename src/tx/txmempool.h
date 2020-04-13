@@ -72,6 +72,7 @@ public:
     void SetSanityCheck(bool fSanityCheckIn) { fSanityCheck = fSanityCheckIn; }
     bool AddUnchecked(const uint256 &txid, const CTxMemPoolEntry &entry, CValidationState &state);
     void Remove(CBaseTx *pBaseTx, list<std::shared_ptr<CBaseTx> > &removed, bool fRecursive = false);
+    void Remove(const uint256 &txid);
     void QueryHash(vector<uint256> &txids);
     bool CheckTxInMemPool(const uint256 &txid, const CTxMemPoolEntry &entry, CValidationState &state,
                           bool bRehearsalExecute = true);

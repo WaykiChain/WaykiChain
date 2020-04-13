@@ -55,6 +55,15 @@ void CTxMemPool::Remove(CBaseTx *pBaseTx, list<std::shared_ptr<CBaseTx> > &remov
     }
 }
 
+void CTxMemPool::Remove(const uint256 &txid) {
+    LOCK(cs);
+    auto it = memPoolTxs.find(txid);
+    if (it != memPoolTxs.end()) {
+        memPoolTxs.erase(it);
+        EraseTransactionFromWallet(txid);
+    }
+}
+
 bool CTxMemPool::AddUnchecked(const uint256 &txid, const CTxMemPoolEntry &entry, CValidationState &state) {
     // Add to memory pool without checking anything.
     // Used by main.cpp AcceptToMemoryPool(), which DOES
@@ -82,7 +91,7 @@ void CTxMemPool::QueryHash(vector<uint256> &txids) {
 bool CTxMemPool::CheckTxInMemPool(const uint256 &txid, const CTxMemPoolEntry &memPoolEntry, CValidationState &state,
                                   bool bRehearsalExecute) {
     CBlockIndex *pTip =  chainActive.Tip();
-    if (pTip == nullptr) 
+    if (pTip == nullptr)
         throw runtime_error("CheckTxInMemPool:: ChainActive.Tip() is null");
 
     HeightType newHeight = pTip->height + 1;
@@ -103,7 +112,7 @@ bool CTxMemPool::CheckTxInMemPool(const uint256 &txid, const CTxMemPoolEntry &me
         uint32_t fuelRate  = GetElementForBurn(pTip);
         uint32_t blockTime = pTip->GetBlockTime();
         uint32_t prevBlockTime = pTip->pprev != nullptr ? pTip->pprev->GetBlockTime() : pTip->GetBlockTime();
-        CTxExecuteContext context(newHeight, 0, fuelRate, blockTime, prevBlockTime, spCW.get(), &state, 
+        CTxExecuteContext context(newHeight, 0, fuelRate, blockTime, prevBlockTime, spCW.get(), &state,
                                 TxExecuteContextType::VALIDATE_MEMPOOL);
 
         if (!memPoolEntry.GetTransaction()->ExecuteFullTx(context)) { //rehearsal only within cache env

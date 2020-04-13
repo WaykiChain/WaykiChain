@@ -937,6 +937,32 @@ Value submittxraw(const Array& params, bool fHelp) {
     return obj;
 }
 
+Value droptxfrommempool(const Array& params, bool fHelp) {
+    if (fHelp || params.size() != 1) {
+        throw runtime_error(
+            "droptxfrommempool \"txid\"\n"
+            "\ndrop tx from mem pool\n"
+            "\nArguments:\n"
+            "1.\"txid\":   (string, required) the txid of dropping tx\n"
+            "\nExamples:\n" +
+            HelpExampleCli("droptxfrommempool",
+                           "\"c5287324b89793fdf7fa97b6203dfd814b8358cfa31114078ea5981916d7a8ac\"") +
+            "\nAs json rpc call\n" +
+            HelpExampleRpc("droptxfrommempool",
+                           "\"c5287324b89793fdf7fa97b6203dfd814b8358cfa31114078ea5981916d7a8ac\""));
+    }
+
+    const string &txidStr = params[0].get_str();
+
+    uint256 txid = uint256S(txidStr);
+    if (txid.IsEmpty())
+        throw JSONRPCError(RPC_INVALID_PARAMS, "Invalid txid=" + txidStr);
+
+    mempool.Remove(txid);
+    mempool.ReScanMemPoolTx();
+    return Object();
+}
+
 class CTxMultiSigner {
 public:
     struct SigningItem {

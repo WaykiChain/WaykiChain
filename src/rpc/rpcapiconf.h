@@ -86,6 +86,8 @@ static const CRPCCommand vRPCCommands[] =
     { "decodetxraw",                    &decodetxraw,                       true,       false,      false   },
     { "signtxraw",                      &signtxraw,                         true,      false,       true    },
     { "submittxraw",                    &submittxraw,                       true,       false,      false   },
+    { "droptxfrommempool",              &droptxfrommempool,                 true,       false,      false   },
+
     /* basic tx */
     { "submitsendtx",                   &submitsendtx,                      false,      false,      true    },
     { "submitsendmultitx",              &submitsendmultitx,                 false,      false,      true    },
