@@ -1381,6 +1381,10 @@ int32_t ExWriteDataDBFunc(lua_State *L) {
     } else {
         lua_BurnStoreSet(L, key.size(), oldValue.size(), value.size(), BURN_VER_R2);
     }
+    #ifdef TRACE_LUAVM_CONTRACT_DATA
+        LogPrint(BCLog::LUAVM, "WriteData(), contract_regid=%s, key=%s, key_hex=%s, new_value=%s, new_value_hex=%s\n",
+            contractRegId.ToString(), key, HexStr(key), value, HexStr(value));
+    #endif//TRACE_LUAVM_CONTRACT_DATA
     return RetRstBooleanToLua(L,flag);
 }
 
@@ -1418,7 +1422,10 @@ int32_t ExDeleteDataDBFunc(lua_State *L) {
     } else {
         lua_BurnStoreSet(L, key.size(), oldValue.size(), 0, BURN_VER_R2);
     }
-
+    #ifdef TRACE_LUAVM_CONTRACT_DATA
+    LogPrint(BCLog::LUAVM, "DeleteData(), contract_regid=%s, key=%s, key_hex=%s, old_value=%s, old_value_hex=%s\n",
+        contractRegId.ToString(), key, HexStr(key), oldValue, HexStr(oldValue));
+    #endif//TRACE_LUAVM_CONTRACT_DATA
     return RetRstBooleanToLua(L, flag);
 }
 
@@ -1453,6 +1460,10 @@ int32_t ExReadDataDBFunc(lua_State *L) {
         lua_BurnStoreGet(L, key.size(), value.size(), BURN_VER_R2);
         len = RetRstToLua(L, vector<uint8_t>(value.begin(), value.end()));
     }
+    #ifdef TRACE_LUAVM_CONTRACT_DATA
+        LogPrint(BCLog::LUAVM, "ReadData(), contract_regid=%s, key=%s, key_hex=%s, value=%s, value_hex=%s\n",
+            scriptRegId.ToString(), key, HexStr(key), value, HexStr(value));
+    #endif//TRACE_LUAVM_CONTRACT_DATA
     return len;
 }
 
@@ -1505,6 +1516,10 @@ int32_t ExModifyDataDBFunc(lua_State *L) {
     } else {
         lua_BurnStoreUnchanged(L, key.size(), newValue.size(), BURN_VER_R2);
     }
+    #ifdef TRACE_LUAVM_CONTRACT_DATA
+        LogPrint(BCLog::LUAVM, "ModifyData(), contract_regid=%s, key=%s, key_hex=%s, new_value=%s, new_value_hex=%s\n",
+            contractRegId.ToString(), key, HexStr(key), newValue, HexStr(newValue));
+    #endif//TRACE_LUAVM_CONTRACT_DATA
 
     return RetRstBooleanToLua(L,flag);
 }
@@ -1660,6 +1675,10 @@ int32_t ExGetContractDataFunc(lua_State *L) {
         lua_BurnStoreGet(L, key.size(), value.size(), BURN_VER_R2);
         len = RetRstToLua(L, vector<uint8_t>(value.begin(), value.end()));
     }
+    #ifdef TRACE_LUAVM_CONTRACT_DATA
+        LogPrint(BCLog::LUAVM, "GetContractData(), contract_regid=%s, key=%s, key_hex=%s, value=%s, value_hex=%s\n",
+            contractRegId.ToString(), key, HexStr(key), value, HexStr(value));
+    #endif//TRACE_LUAVM_CONTRACT_DATA
     /*
      * 每个函数里的Lua栈是私有的,当把返回值压入Lua栈以后，该栈会自动被清空*/
     return len;
