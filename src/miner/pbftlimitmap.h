@@ -9,7 +9,6 @@
 #include <map>
 #include <vector>
 
-
 /** STL-like map container that only keeps the N elements with the highest value. */
 template <typename K, typename V>
 class CFIFOLimitmap {
@@ -43,8 +42,9 @@ public:
 
     void insert(const value_type& x) {
 
+        auto existKey =  map.count(x.first);
         std::pair<iterator, bool> ret = map.insert(x);
-        if(ret.second && std::find(vKeys.begin(),vKeys.end(),x.first) == vKeys.end())
+        if(ret.second && (existKey == 0))
             vKeys.push_back(x.first);
 
         if (map.size() > nMaxSize) {
