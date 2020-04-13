@@ -30,28 +30,30 @@ class CBaseCoinTransferTx;
 Object BlockToJSON(const CBlock& block, const CBlockIndex* pBlockIndex) {
     Object result;
     result.push_back(Pair("block_hash",     block.GetHash().GetHex()));
-    result.push_back(Pair("block_miner",    block.vptx[0]->txUid.ToString()));
+    if (pBlockIndex->pprev)
+        result.push_back(Pair("prev_block_hash", pBlockIndex->pprev->GetBlockHash().GetHex()));
+    CBlockIndex* pNext = chainActive.Next(pBlockIndex);
+    if (pNext)
+        result.push_back(Pair("next_block_hash", pNext->GetBlockHash().GetHex()));
 
+    result.push_back(Pair("bp_uid",         block.vptx[0]->txUid.ToString()));
+    result.push_back(Pair("version",        block.GetVersion()));
+    result.push_back(Pair("merkle_root",    block.GetMerkleRootHash().GetHex()));
+    result.push_back(Pair("total_fuel",     block.GetFuel()));
     CMerkleTx txGen(block.vptx[0]);
     txGen.SetMerkleBranch(&block);
     result.push_back(Pair("confirmations",  (int32_t)txGen.GetDepthInMainChain()));
     result.push_back(Pair("size",           (int32_t)::GetSerializeSize(block, SER_NETWORK, PROTOCOL_VERSION)));
     result.push_back(Pair("height",         (int32_t)block.GetHeight()));
-    result.push_back(Pair("version",        block.GetVersion()));
-    result.push_back(Pair("merkle_root",    block.GetMerkleRootHash().GetHex()));
     result.push_back(Pair("tx_count",       (int32_t)block.vptx.size()));
+
     Array txs;
     for (const auto& ptx : block.vptx)
         txs.push_back(ptx->GetHash().GetHex());
     result.push_back(Pair("tx",             txs));
+
     result.push_back(Pair("time",           block.GetBlockTime()));
     result.push_back(Pair("nonce",          (uint64_t)block.GetNonce()));
-
-    if (pBlockIndex->pprev)
-        result.push_back(Pair("previous_block_hash", pBlockIndex->pprev->GetBlockHash().GetHex()));
-    CBlockIndex* pNext = chainActive.Next(pBlockIndex);
-    if (pNext)
-        result.push_back(Pair("next_block_hash", pNext->GetBlockHash().GetHex()));
 
     Array prices;
     const auto& priceMap = block.GetBlockMedianPrice();
