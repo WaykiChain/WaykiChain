@@ -10,7 +10,20 @@
 // between switch labels. The real definition should be provided externally.
 // This one is a fallback version for unsupported compilers.
 #ifndef FALLTHROUGH_INTENDED
-#define FALLTHROUGH_INTENDED do { } while (0)
+#if defined(__clang__) && defined(__has_warning)
+#if __has_feature(cxx_attributes) && __has_warning("-Wimplicit-fallthrough")
+#define FALLTHROUGH_INTENDED [[clang::fallthrough]]
+#endif
+#elif defined(__GNUC__) && __GNUC__ >= 7
+#define FALLTHROUGH_INTENDED [[gnu::fallthrough]]
+#endif
+
+// If FALLTHROUGH_INTENDED is still not defined, define it.
+#ifndef FALLTHROUGH_INTENDED
+#define FALLTHROUGH_INTENDED \
+  do {                       \
+  } while (0)
+#endif
 #endif
 
 namespace leveldb {
@@ -35,12 +48,12 @@ uint32_t Hash(const char* data, size_t n, uint32_t seed) {
   switch (limit - data) {
     case 3:
       h += data[2] << 16;
-      // FALLTHROUGH_INTENDED;
-      [[fallthrough]]
+      FALLTHROUGH_INTENDED;
+      // [[fallthrough]]
     case 2:
       h += data[1] << 8;
-      // FALLTHROUGH_INTENDED;
-      [[fallthrough]]
+      FALLTHROUGH_INTENDED;
+      // [[fallthrough]]
     case 1:
       h += data[0];
       h *= m;
