@@ -42,6 +42,7 @@ static const uint64_t MAX_SETTLE_ITEM_COUNT = 10000;       // max count of dex s
 
 static const uint64_t DEX_OPERATOR_FEE_RATIO_MAX = 50 * PRICE_BOOST;
 static const uint64_t DEX_PRICE_MAX = 1000000 * PRICE_BOOST;
+static const uint64_t MIN_STAKED_WICC_FOR_STEP_FEE = 1000;
 
 enum CdpParamType : uint8_t {
     NULL_CDP_PARAM_TYPE                     = 0,

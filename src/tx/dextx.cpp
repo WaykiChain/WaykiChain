@@ -35,30 +35,35 @@ namespace dex {
         return true;
     }
 
-    bool CheckOrderFee(CBaseTx &baseTx, CTxExecuteContext &context, const CAccount &txAccount,
+    bool CheckOrderFee(CBaseTx &tx, CTxExecuteContext &context, const CAccount &txAccount,
             CAccount *pOperatorAccount = nullptr, uint64_t operatorTxFee = 0) {
 
-        return baseTx.CheckFee(context, [&](CTxExecuteContext &context, uint64_t minFee) -> bool {
+        return tx.CheckFee(context, [&](CTxExecuteContext &context, uint64_t minFee) -> bool {
             if (GetFeatureForkVersion(context.height) > MAJOR_VER_R3) {
-                uint64_t totalFees = baseTx.llFees;
+                uint64_t totalFees = tx.llFees;
                 auto stakedAmount = txAccount.GetToken(SYMB::WICC).staked_amount;
                 if (pOperatorAccount != nullptr && operatorTxFee != 0) {
                     totalFees += operatorTxFee;
-                    stakedAmount = max(stakedAmount, pOperatorAccount->GetToken(SYMB::WICC).staked_amount);
+                    uint64_t op_staked_amount = pOperatorAccount->GetToken(SYMB::WICC).staked_amount;
+                    if (stakedAmount < op_staked_amount) {
+                        stakedAmount = op_staked_amount;
+                        LogPrint(BCLog::DEX, "%s, use operator stake amount=%llu instead", TX_OBJ_ERR_TITLE(tx), stakedAmount);
+                    }
                 }
 
-                if (stakedAmount > 0) {
-                    minFee = std::max(std::min(COIN * COIN / stakedAmount, minFee), (uint64_t)1);
+                if (stakedAmount > MIN_STAKED_WICC_FOR_STEP_FEE) {
+                    minFee = MIN_STAKED_WICC_FOR_STEP_FEE * minFee / stakedAmount;
                 }
+
                 if (totalFees < minFee){
                     string err = strprintf("The given fees is too small: %llu < %llu sawi when wicc staked_amount=%llu",
                         totalFees, minFee, stakedAmount);
-                    return context.pState->DoS(100, ERRORMSG("%s, tx=%s, height=%d, fee_symbol=%s",
-                        err, baseTx.GetTxTypeName(), context.height, baseTx.fee_symbol), REJECT_INVALID, err);
+                    return context.pState->DoS(100, ERRORMSG("%s, %s, height=%d, fee_symbol=%s",
+                        TX_OBJ_ERR_TITLE(tx), err, context.height, tx.fee_symbol), REJECT_INVALID, err);
                 }
                 return true;
             } else {
-                return baseTx.CheckMinFee(context, minFee);
+                return tx.CheckMinFee(context, minFee);
             }
         });
     }
