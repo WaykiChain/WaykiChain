@@ -71,8 +71,9 @@ public:
 
     virtual string ToString(CAccountDBCache &accountCache) {
 
-        string baseString = CBaseTx::ToString(accountCache);
-        return baseString+ data.ToString();
+      /*  string baseString = CBaseTx::ToString(accountCache);
+        return baseString + data.ToString();*/
+      return data.ToString();
 
     }
     virtual Object ToJson(const CAccountDBCache &accountCache) const;
@@ -113,11 +114,11 @@ public:
     ValueType value;
 
     inline unsigned int GetSerializeSize(int serializedType, int nVersion) const {
-        unsigned int baseSize = ::GetSerializeSize(VARINT(dexId),serializedType, nVersion);
+        unsigned int baseSize = ::GetSerializeSize(VARINT(dexId),serializedType, nVersion) + sizeof(uint8_t);
         switch (field) {
             case OWNER_UID:
             case FEE_RECEIVER_UID:
-                return baseSize + sizeof(uint8_t) + get<CUserID>().GetSerializeSize(serializedType, nVersion);
+                return baseSize + get<CUserID>().GetSerializeSize(serializedType, nVersion);
             case NAME:
             case PORTAL_URL :
             case MEMO :

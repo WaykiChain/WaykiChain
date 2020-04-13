@@ -268,9 +268,8 @@ Object CBaseTx::ToJson(const CAccountDBCache &accountCache) const {
 }
 
 string CBaseTx::ToString(CAccountDBCache &accountCache) {
-    return strprintf("txType=%s, hash=%s, ver=%d, pubkey=%s, llFees=%llu, keyid=%s, valid_height=%d",
-                     GetTxType(nTxType), GetHash().ToString(), nVersion, txUid.get<CPubKey>().ToString(), llFees,
-                     txUid.get<CPubKey>().GetKeyId().ToAddress(), valid_height);
+    return strprintf("txType=%s, hash=%s, ver=%d, txUid=%s, llFees=%llu,valid_height=%d",
+                     GetTxType(nTxType), GetHash().ToString(), nVersion, txUid.ToString(), llFees, valid_height);
 }
 
 bool CBaseTx::GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds) {
