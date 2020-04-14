@@ -67,9 +67,9 @@ uint32_t GetElementForBurn(CBlockIndex *pIndex) {
     }
 
     averageFuelFee = totalFuelFee / nBlock;
-    if (averageFuelFee < MAX_BLOCK_RUN_STEP * 0.75) {
+    if (averageFuelFee < MAX_BLOCK_FUEL * 0.75) {
         newFuelRate = pIndex->nFuelRate * 0.9;
-    } else if (averageFuelFee > MAX_BLOCK_RUN_STEP * 0.85) {
+    } else if (averageFuelFee > MAX_BLOCK_FUEL * 0.85) {
         newFuelRate = pIndex->nFuelRate * 1.1;
     } else {
         newFuelRate = pIndex->nFuelRate;
@@ -270,9 +270,9 @@ bool VerifyRewardTx(const CBlock *pBlock, CCacheWrapper &cwIn, VoteDelegate &cur
     //         }
 
     //         totalFuel += pBaseTx->fuel;
-    //         if (totalFuel > MAX_BLOCK_RUN_STEP)
+    //         if (totalFuel > MAX_BLOCK_FUEL)
     //             return ERRORMSG("block total run steps(%lu) exceed max run step(%lu)", totalFuel,
-    //                             MAX_BLOCK_RUN_STEP);
+    //                             MAX_BLOCK_FUEL);
 
     //         uint32_t fuelFee = pBaseTx->GetFuelFee(pBlock->GetHeight(), pBlock->GetFuelRate());
     //         totalFuelFee += fuelFee;
@@ -346,7 +346,7 @@ static bool CreateNewBlockForPreStableCoinRelease(CCacheWrapper &cwIn, std::uniq
                 }
 
                 // Run step limits
-                if (totalFuel + pBaseTx->fuel >= MAX_BLOCK_RUN_STEP) {
+                if (totalFuel + pBaseTx->fuel >= MAX_BLOCK_FUEL) {
                     LogPrint(BCLog::MINER, "exceed max block run steps, txid: %s\n",
                             pBaseTx->GetHash().GetHex());
                     continue;
@@ -510,7 +510,7 @@ static bool CreateNewBlockForStableCoinRelease(int64_t startMiningMs, CCacheWrap
                 }
 
                 // Run step limits
-                if (totalFuel + pBaseTx->fuel >= MAX_BLOCK_RUN_STEP) {
+                if (totalFuel + pBaseTx->fuel >= MAX_BLOCK_FUEL) {
                     LogPrint(BCLog::MINER, "Exceed max block run steps, txid: %s\n", pBaseTx->GetHash().GetHex());
                     continue;
                 }

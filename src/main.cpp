@@ -1135,9 +1135,9 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
             vPos.push_back(make_pair(pBaseTx->GetHash(), pos));
 
             totalFuel += pBaseTx->fuel;
-            if (totalFuel > MAX_BLOCK_RUN_STEP)
+            if (totalFuel > MAX_BLOCK_FUEL)
                 return state.DoS(100, ERRORMSG("total steps(%llu) exceed max steps(%llu)", totalFuel,
-                                 MAX_BLOCK_RUN_STEP), REJECT_INVALID, "exceed-max-fuel");
+                                 MAX_BLOCK_FUEL), REJECT_INVALID, "exceed-max-fuel");
 
             auto fuelFee = pBaseTx->GetFuelFee(block.GetHeight(), block.GetFuelRate());
             totalFuelFee += fuelFee;
