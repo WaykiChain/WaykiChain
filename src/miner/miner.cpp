@@ -728,6 +728,7 @@ void static ThreadBlockProducing(CWallet *pWallet, int32_t targetHeight) {
     targetHeight += GetCurrHeight();
     bool needSleep = false;
     int64_t nextSlotTime = 0;
+    int64_t sleepSeconds = 100;
 
     try {
         SetMinerStatus(true);
@@ -735,33 +736,42 @@ void static ThreadBlockProducing(CWallet *pWallet, int32_t targetHeight) {
         while (true) {
             boost::this_thread::interruption_point();
 
-            if (SysCfg().NetworkID() != REGTEST_NET) {
-                // Busy-wait for the network to come online so we don't waste time mining
-                // on an obsolete chain. In regtest mode we expect to fly solo.
-                while (vNodes.empty() || (chainActive.Tip() && chainActive.Height() > 1 &&
-                                          GetAdjustedTime() - chainActive.Tip()->nTime > 60 * 60 &&
-                                          !SysCfg().GetBoolArg("-genblockforce", false))) {
-                    MilliSleep(1000);
-                    needSleep = false;
+            CBlockIndex *pPrevIndex = nullptr;
+            sleepSeconds = 100; // set sleep seconds default value
+            if (!needSleep && (SysCfg().NetworkID() != REGTEST_NET)) {
+
+                LOCK(cs_main);
+                pPrevIndex = chainActive.Tip();
+
+                if (vNodes.empty() || (pPrevIndex && pPrevIndex->height > 1 &&
+                                       GetAdjustedTime() - pPrevIndex->nTime > 60 * 60 &&
+                                       !SysCfg().GetBoolArg("-genblockforce", false))) {
+                    // Busy-wait for the network to come online so we don't waste time mining
+                    // on an obsolete chain. In regtest mode we expect to fly solo.
+                    sleepSeconds = 1000;
+                    needSleep    = true;
                 }
             }
 
             if (needSleep) {
-                MilliSleep(100);
+                MilliSleep(sleepSeconds);
                 needSleep = false;
+                continue;
             }
 
-            CBlockIndex *pPrevIndex;
-            {
+            if (pPrevIndex == nullptr) {
                 LOCK(cs_main);
                 pPrevIndex = chainActive.Tip();
             }
 
-            if(pPrevIndex== nullptr)
-                continue ;
+            if(pPrevIndex== nullptr) {
+                needSleep = true;
+                continue;
+            }
 
             if(SysCfg().IsReindex()){
-                continue ;
+                needSleep = true;
+                continue;
             }
 
             int32_t blockHeight = pPrevIndex->height + 1;
@@ -793,7 +803,7 @@ void static ThreadBlockProducing(CWallet *pWallet, int32_t targetHeight) {
                     LogPrint(BCLog::MINER, "active chain tip changed when mining! pre_block=%s, tip_block=%s\n",
                         pPrevIndex->GetIndentityString(), pTipIndex->GetIndentityString());
                     needSleep = false;
-                    continue;
+                    continue; // need to check and mine again
                 }
                 if (!ProduceBlock(startMiningMs, pPrevIndex, *spMiner,totalDelegateNum)) {
                     needSleep = true;
