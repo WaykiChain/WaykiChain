@@ -38,7 +38,7 @@ CCriticalSection csMinedBlocks;
 // check the time is not exceed the limit time (2s) for packing new block
 static bool CheckPackBlockTime(int64_t startMiningMs, int32_t blockHeight) {
     int64_t nowMs  = GetTimeMillis();
-    int64_t limitedTimeMs = std::max(1000L, (int64_t)GetBlockInterval(blockHeight) * 1000L - 1000L);
+    int64_t limitedTimeMs = std::max(1000LL, (int64_t)GetBlockInterval(blockHeight) * 1000LL - 1000LL);
     if (nowMs - startMiningMs > limitedTimeMs) {
         LogPrint(BCLog::MINER, "[%d] pack block time use up! start_ms=%lld, now_ms=%lld, limited_time_ms=%lld\n",
             blockHeight, startMiningMs, nowMs, limitedTimeMs);
@@ -57,19 +57,19 @@ uint32_t GetElementForBurn(CBlockIndex *pIndex) {
         return INIT_FUEL_RATES;
     }
 
-    uint64_t nTotalStep   = 0;
-    uint64_t nAverateStep = 0;
+    uint64_t totalFuelFee   = 0;
+    uint64_t averageFuelFee = 0;
     uint32_t newFuelRate  = 0;
     CBlockIndex *pTemp    = pIndex;
     for (int32_t i = 0; i < nBlock; ++i) {
-        nTotalStep += pTemp->nFuelFee / pTemp->nFuelRate * 100;
+        totalFuelFee += pTemp->nFuelFee / pTemp->nFuelRate * 100;
         pTemp = pTemp->pprev;
     }
 
-    nAverateStep = nTotalStep / nBlock;
-    if (nAverateStep < MAX_BLOCK_RUN_STEP * 0.75) {
+    averageFuelFee = totalFuelFee / nBlock;
+    if (averageFuelFee < MAX_BLOCK_RUN_STEP * 0.75) {
         newFuelRate = pIndex->nFuelRate * 0.9;
-    } else if (nAverateStep > MAX_BLOCK_RUN_STEP * 0.85) {
+    } else if (averageFuelFee > MAX_BLOCK_RUN_STEP * 0.85) {
         newFuelRate = pIndex->nFuelRate * 1.1;
     } else {
         newFuelRate = pIndex->nFuelRate;
