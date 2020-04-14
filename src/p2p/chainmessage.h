@@ -240,8 +240,9 @@ inline bool AddBlockToQueue(const uint256 &hash, NodeId nodeId) {
         Misbehaving(nodeId, 10);
     }
 
-    LogPrint(BCLog::NET, "start to download block! time_ms=%lld, hash=%s peer=%s\n",
-        GetTimeMillis(), hash.ToString(), state->name);
+    LogPrint(BCLog::NET, "start downloading block(%s)! time_ms=%lld, peer=%s\n", hash.ToString(),
+                          GetTimeMillis(), state->name);
+
     mapBlocksToDownload[hash] = std::make_tuple(nodeId, it, GetTimeMicros());
 
     return true;
@@ -662,8 +663,9 @@ inline bool ProcessInvMessage(CNode *pFrom, CDataStream &vRecv) {
         }
 
         if (!fAlreadyHave) {
-            LogPrint(BCLog::NET, "recv inv new data! ts=%lld, i=%d, msg=%s, hash=%s, peer=%s\n",
-                GetTimeMillis(), i, msgName, inv.ToString(), pFrom->addrName);
+            LogPrint(BCLog::NET, "recv msg=%s inv=%s, ts=%lld, i=%d, peer=%s\n", msgName, inv.ToString(),
+                                 GetTimeMillis(), i, pFrom->addrName);
+
             if (!SysCfg().IsImporting() && !SysCfg().IsReindex()) {
                 if (inv.type == MSG_BLOCK)
                     AddBlockToQueue(inv.hash, pFrom->GetId());
