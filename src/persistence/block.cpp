@@ -20,7 +20,7 @@ void CBlockHeader::SetHeight(uint32_t  height) {
 
 uint256 CBlockHeader::ComputeSignatureHash() const {
     CHashWriter ss(SER_GETHASH, CLIENT_VERSION);
-    ss << nVersion << prevBlockHash << merkleRootHash << nTime << nNonce << height << nFuel << nFuelRate;
+    ss << nVersion << prevBlockHash << merkleRootHash << nTime << nNonce << height << nFuelFee << nFuelRate;
     return ss.GetHash();
 }
 
@@ -114,10 +114,10 @@ void CBlock::Print() const {
         medianPrices += strprintf("{%s/%s -> %llu}", std::get<0>(item.first), std::get<1>(item.first), item.second);
     }
 
-    LogPrint(BCLog::DEBUG, "[%d] hash=%.7s**, ver=%d, hashPrevBlock=%s, merkleRootHash=%s, nTime=%u, nNonce=%u, vtx=%u, nFuel=%d, "
+    LogPrint(BCLog::DEBUG, "[%d] hash=%.7s**, ver=%d, hashPrevBlock=%s, merkleRootHash=%s, nTime=%u, nNonce=%u, vtx=%u, nFuelFee=%d, "
              "nFuelRate=%d, median prices: %s\n",
              height, GetHash().ToString(), nVersion, prevBlockHash.ToString(), merkleRootHash.ToString(), nTime, nNonce,
-             vptx.size(), nFuel, nFuelRate, medianPrices);
+             vptx.size(), nFuelFee, nFuelRate, medianPrices);
 }
 
 std::tuple<bool, int> CBlock::GetTxIndex(const uint256& txid) const {

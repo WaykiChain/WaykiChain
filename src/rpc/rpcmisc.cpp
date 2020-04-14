@@ -126,7 +126,7 @@ Value getinfo(const Array& params, bool fHelp) {
     obj.push_back(Pair("relay_fee_perkb",       ValueFromAmount(MIN_RELAY_TX_FEE)));
 
     obj.push_back(Pair("tipblock_fuel_rate",    (int32_t)chainActive.Tip()->nFuelRate));
-    obj.push_back(Pair("tipblock_fuel",         chainActive.Tip()->nFuel));
+    obj.push_back(Pair("tipblock_fuel",         chainActive.Tip()->nFuelFee));
     obj.push_back(Pair("tipblock_time",         (int32_t)chainActive.Tip()->nTime));
     obj.push_back(Pair("tipblock_hash",         chainActive.Tip()->GetBlockHash().ToString()));
     obj.push_back(Pair("tipblock_height",       chainActive.Height()));

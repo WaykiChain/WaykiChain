@@ -62,7 +62,7 @@ uint32_t GetElementForBurn(CBlockIndex *pIndex) {
     uint32_t newFuelRate  = 0;
     CBlockIndex *pTemp    = pIndex;
     for (int32_t i = 0; i < nBlock; ++i) {
-        nTotalStep += pTemp->nFuel / pTemp->nFuelRate * 100;
+        nTotalStep += pTemp->nFuelFee / pTemp->nFuelRate * 100;
         pTemp = pTemp->pprev;
     }
 

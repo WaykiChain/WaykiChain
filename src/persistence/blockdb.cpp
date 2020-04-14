@@ -54,7 +54,7 @@ bool CBlockIndexDB::LoadBlockIndexes() {
                 pIndexNew->nNonce         = diskIndex.nNonce;
                 pIndexNew->nStatus        = diskIndex.nStatus;
                 pIndexNew->nTx            = diskIndex.nTx;
-                pIndexNew->nFuel          = diskIndex.nFuel;
+                pIndexNew->nFuelFee          = diskIndex.nFuelFee;
                 pIndexNew->nFuelRate      = diskIndex.nFuelRate;
                 pIndexNew->vSignature     = diskIndex.vSignature;
                 pIndexNew->miner          = diskIndex.miner ;

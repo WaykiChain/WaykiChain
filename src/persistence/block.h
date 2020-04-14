@@ -65,7 +65,7 @@ protected:
     uint32_t nTime;
     uint32_t nNonce;
     uint32_t height;
-    uint64_t nFuel;
+    uint64_t nFuelFee;
     uint32_t nFuelRate;
     vector<unsigned char> vSignature;
 
@@ -81,7 +81,7 @@ public:
         READWRITE(nTime);
         READWRITE(nNonce);
         READWRITE(height);
-        READWRITE(nFuel);
+        READWRITE(nFuelFee);
         READWRITE(nFuelRate);
         READWRITE(vSignature);
     )
@@ -93,7 +93,7 @@ public:
         nTime          = 0;
         nNonce         = 0;
         height         = 0;
-        nFuel          = 0;
+        nFuelFee          = 0;
         nFuelRate      = 100;
         vSignature.clear();
     }
@@ -113,8 +113,8 @@ public:
     void SetNonce(uint32_t nonce) { this->nNonce = nonce; }
     uint32_t GetHeight() const { return height; }
     void SetHeight(uint32_t height);
-    uint32_t GetFuelFee() const { return nFuel; }
-    void SetFuel(uint64_t fuel) { this->nFuel = fuel; }
+    uint32_t GetFuelFee() const { return nFuelFee; }
+    void SetFuel(uint64_t fuel) { this->nFuelFee = fuel; }
     uint32_t GetFuelRate() const { return nFuelRate; }
     void SetFuelRate(uint32_t fuelRate) { this->nFuelRate = fuelRate; }
     const vector<unsigned char> &GetSignature() const { return vSignature; }
@@ -159,7 +159,7 @@ public:
         header.SetTime(nTime);
         header.SetNonce(nNonce);
         header.SetHeight(height);
-        header.SetFuel(nFuel);
+        header.SetFuel(nFuelFee);
         header.SetFuelRate(nFuelRate);
         header.SetSignature(vSignature);
     }
@@ -235,7 +235,7 @@ public:
     uint32_t nTime;
     uint32_t nBits;
     uint32_t nNonce;
-    uint64_t nFuel;
+    uint64_t nFuelFee;
     uint32_t nFuelRate;
     vector<unsigned char> vSignature;
 
@@ -261,7 +261,7 @@ public:
         nTime          = 0;
         nBits          = 0;
         nNonce         = 0;
-        nFuel          = 0;
+        nFuelFee          = 0;
         nFuelRate      = INIT_FUEL_RATES;
         vSignature.clear();
     }
@@ -289,7 +289,7 @@ public:
         merkleRootHash = block.GetMerkleRootHash();
         nTime          = block.GetTime();
         nNonce         = block.GetNonce();
-        nFuel          = block.GetFuelFee();
+        nFuelFee          = block.GetFuelFee();
         nFuelRate      = block.GetFuelRate();
         vSignature     = block.GetSignature();
       /*  if(block.GetHeight() == 0 )
@@ -410,7 +410,7 @@ public:
         READWRITE(nTime);
         READWRITE(nBits);
         READWRITE(nNonce);
-        READWRITE(nFuel);
+        READWRITE(nFuelFee);
         READWRITE(nFuelRate);
         READWRITE(vSignature);
         READWRITE(miner);)
@@ -424,7 +424,7 @@ public:
         block.SetTime(nTime);
         block.SetNonce(nNonce);
         block.SetHeight(height);
-        block.SetFuel(nFuel);
+        block.SetFuel(nFuelFee);
         block.SetFuelRate(nFuelRate);
         block.SetSignature(vSignature);
         return block.GetHash();

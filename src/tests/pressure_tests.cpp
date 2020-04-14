@@ -344,7 +344,7 @@ BOOST_FIXTURE_TEST_CASE(tests, PressureTest)
 			{
 				LOCK(cs_main);
 				CBlockIndex *pIndex = chainActive.Tip();
-				llFuelValue += pIndex->nFuel;
+				llFuelValue += pIndex->nFuelFee;
 				BOOST_CHECK(ReadBlockFromDisk(pIndex, block));
 			}
 
