@@ -492,21 +492,19 @@ inline bool ProcessTxMessage(CNode *pFrom, string strCommand, CDataStream &vRecv
         return true ;
     }
 
-
-
     LOCK(cs_main);
     CValidationState state;
     if (AcceptToMemoryPool(mempool, state, pBaseTx.get(), true)) {
         RelayTransaction(pBaseTx.get(), inv.hash);
         mapAlreadyAskedFor.erase(inv);
 
-        LogPrint(BCLog::INFO, "AcceptToMemoryPool: %s %s : accepted %s (poolsz %u)\n", pFrom->addr.ToString(),
+        LogPrint(BCLog::NET, "[%d]~ %s %s : accepted %s (poolsz %u)\n", pBaseTx->valid_height, pFrom->addr.ToString(),
                  pFrom->cleanSubVer, pBaseTx->GetHash().ToString(), mempool.memPoolTxs.size());
     }
 
     int32_t nDoS = 0;
     if (state.IsInvalid(nDoS)) {
-        LogPrint(BCLog::INFO, "%s [%d] from %s %s was not accepted into the memory pool: %s\n",
+        LogPrint(BCLog::NET, "[%d]~ %s from %s %s not accepted into mempool: %s\n",
                 pBaseTx->GetHash().ToString(), pBaseTx->valid_height,
                 pFrom->addr.ToString(), pFrom->cleanSubVer, state.GetRejectReason());
 
