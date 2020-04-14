@@ -363,8 +363,6 @@ bool CGovCdpParamProposal::ExecuteProposal(CTxExecuteContext& context, CBaseTx& 
                 return state.DoS(100, ERRORMSG("check CDP_START_COLLATERAL_RATIO CDP_START_LIQUIDATE_RATIO"
                                                " CDP_FORCE_LIQUIDATE_RATIO relationship error"), REJECT_INVALID, "params-relation-error");
             }
-
-
         }
     }
 

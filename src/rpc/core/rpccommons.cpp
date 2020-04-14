@@ -209,6 +209,42 @@ string RegIDToAddress(CUserID &userId) {
     return "cannot get address from given RegId";
 }
 
+Object GetTxDetailJSON(const CBlockHeader& header,const shared_ptr<CBaseTx> pBaseTx) {
+    Object obj;
+    auto txid = pBaseTx->GetHash();
+    //obj = pBaseTx->IsMultiSignSupport()?pBaseTx->ToJsonMultiSign(*database):pBaseTx->ToJson(*pCdMan->pAccountCache);
+    obj = pBaseTx->ToJson(*pCdMan->pAccountCache);
+
+    obj.push_back(Pair("confirmations",     chainActive.Height() - (int32_t)header.GetHeight()));
+    obj.push_back(Pair("confirmed_height",  (int32_t)header.GetHeight()));
+    obj.push_back(Pair("confirmed_time",    (int32_t)header.GetTime()));
+    obj.push_back(Pair("block_hash",        header.GetHash().GetHex()));
+
+    if (SysCfg().IsGenReceipt()) {
+        vector<CReceipt> receipts;
+        pCdMan->pReceiptCache->GetTxReceipts(txid, receipts);
+        obj.push_back(Pair("receipts", JSON::ToJson(*pCdMan->pAccountCache, receipts)));
+    }
+
+    CDataStream ds(SER_DISK, CLIENT_VERSION);
+    ds << pBaseTx;
+    obj.push_back(Pair("rawtx", HexStr(ds.begin(), ds.end())));
+
+    string trace;
+    auto database = std::make_shared<CCacheWrapper>(pCdMan);
+    auto resolver = make_resolver(database);
+    if(database->contractCache.GetContractTraces(txid, trace)){
+
+        json_spirit::Value value_json;
+        std::vector<char>  trace_bytes = std::vector<char>(trace.begin(), trace.end());
+        transaction_trace  trace       = wasm::unpack<transaction_trace>(trace_bytes);
+        to_variant(trace, value_json, resolver);
+        obj.push_back(Pair("tx_trace", value_json));
+    }
+
+    return obj;
+}
+
 Object GetTxDetailJSON(const uint256& txid) {
     Object obj;
     {
@@ -225,36 +261,7 @@ Object GetTxDetailJSON(const uint256& txid) {
                     file >> header;
                     fseek(file, postx.nTxOffset, SEEK_CUR);
                     file >> pBaseTx;
-                    //obj = pBaseTx->IsMultiSignSupport()?pBaseTx->ToJsonMultiSign(*database):pBaseTx->ToJson(*pCdMan->pAccountCache);
-                    obj = pBaseTx->ToJson(*pCdMan->pAccountCache);
-
-                    obj.push_back(Pair("confirmations",     chainActive.Height() - (int32_t)header.GetHeight()));
-                    obj.push_back(Pair("confirmed_height",  (int32_t)header.GetHeight()));
-                    obj.push_back(Pair("confirmed_time",    (int32_t)header.GetTime()));
-                    obj.push_back(Pair("block_hash",        header.GetHash().GetHex()));
-
-                    if (SysCfg().IsGenReceipt()) {
-                        vector<CReceipt> receipts;
-                        pCdMan->pReceiptCache->GetTxReceipts(txid, receipts);
-                        obj.push_back(Pair("receipts", JSON::ToJson(*pCdMan->pAccountCache, receipts)));
-                    }
-
-                    CDataStream ds(SER_DISK, CLIENT_VERSION);
-                    ds << pBaseTx;
-                    obj.push_back(Pair("rawtx", HexStr(ds.begin(), ds.end())));
-
-                    string trace;
-                    auto database = std::make_shared<CCacheWrapper>(pCdMan);
-                    auto resolver = make_resolver(database);
-                    if(database->contractCache.GetContractTraces(txid, trace)){
-
-                        json_spirit::Value value_json;
-                        std::vector<char>  trace_bytes = std::vector<char>(trace.begin(), trace.end());
-                        transaction_trace  trace       = wasm::unpack<transaction_trace>(trace_bytes);
-                        to_variant(trace, value_json, resolver);
-                        obj.push_back(Pair("tx_trace", value_json));
-                     }
-
+                    obj = GetTxDetailJSON(header, pBaseTx);
                 } catch (std::exception &e) {
                     throw runtime_error(strprintf("%s : Deserialize or I/O error - %s", __func__, e.what()).c_str());
                 }

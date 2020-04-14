@@ -175,15 +175,16 @@ Value getrawmempool(const Array& params, bool fHelp)
 }
 
 Value getblock(const Array& params, bool fHelp) {
-    if (fHelp || params.size() < 1 || params.size() > 2) {
+    if (fHelp || params.size() < 1 || params.size() > 3) {
         throw runtime_error(
-            "getblock \"hash or height\" [\"verbose\"]\n"
+            "getblock \"hash or height\"  [\"list_txs\"] [\"verbose\"]\n"
             "\nIf verbose is false, returns a string that is serialized, hex-encoded data for block 'hash'.\n"
             "If verbose is true, returns an Object with information about block <hash>.\n"
             "\nArguments:\n"
             "1.\"hash or height\"   (string or numeric, required) string for the block hash, or numeric for the block "
             "height\n"
-            "2.\"verbose\"          (boolean, optional, default=true) true for a json object, false for the hex "
+            "2.\"list_txs\"         (boolean, optional, default=false) true:return all tx detail in the block\n"
+            "3.\"verbose\"          (boolean, optional, default=true) true for a json object, false for the hex\n"
             "encoded data\n"
             "\nResult (for verbose = true):\n"
             "{\n"
@@ -226,9 +227,14 @@ Value getblock(const Array& params, bool fHelp) {
     }
     uint256 hash(uint256S(strHash));
 
-    bool fVerbose = true;
+    bool fListTxs = false;
     if (params.size() > 1)
-        fVerbose = params[1].get_bool();
+        fListTxs = params[1].get_bool();
+
+    bool fVerbose = true;
+    if (params.size() > 2)
+        fVerbose = params[2].get_bool();
+
 
     if (mapBlockIndex.count(hash) == 0)
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Block not found");
@@ -246,12 +252,24 @@ Value getblock(const Array& params, bool fHelp) {
         return strHex;
     }
 
+
+
     vector<CReceipt> blockReceipts;
-
     Object o = BlockToJSON(block, pBlockIndex);
-    pCdMan->pReceiptCache->GetBlockReceipts(block.GetHash(), blockReceipts);
 
+    if(fListTxs) {
+        Array arr;
+        for(auto tx: block.vptx) {
+            arr.push_back(GetTxDetailJSON(block, tx));
+        }
+        o.push_back(Pair("tx_details", arr));
+
+    }
+
+    pCdMan->pReceiptCache->GetBlockReceipts(block.GetHash(), blockReceipts);
     o.push_back(Pair("receipts",  JSON::ToJson(*pCdMan->pAccountCache, blockReceipts)));
+
+
 
     return o;
 }

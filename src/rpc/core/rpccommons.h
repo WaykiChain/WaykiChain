@@ -18,8 +18,10 @@
 
 using namespace std;
 using namespace json_spirit;
+class CBlockHeader;
 
 string RegIDToAddress(CUserID &userId);
+Object GetTxDetailJSON(const CBlockHeader& block,const shared_ptr<CBaseTx> pBaseTx);
 Object GetTxDetailJSON(const uint256& txid);
 Array GetTxAddressDetail(std::shared_ptr<CBaseTx> pBaseTx);
 
