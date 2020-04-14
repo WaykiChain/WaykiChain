@@ -309,7 +309,7 @@ void BCLog::Logger::LogPrintStr(const BCLog::LogFlags& category, const char* fil
             s_func = s_func.substr(0, 20);
         #endif
 
-        string file_line_func = strprintf("[%s:%s]", file_line, s_func);
+        string file_line_func = strprintf("[%s %s]", file_line, s_func);
         string log_level = strprintf("[%s]", GetLogCategoryName(category));
         string file_line_cat_func = strprintf("%-10s %-44s", log_level, file_line_func);
 
