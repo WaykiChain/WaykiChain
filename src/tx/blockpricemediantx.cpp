@@ -307,7 +307,8 @@ bool CCdpForceLiquidator::Execute() {
         if (currRiskReserveScoins < cdp.total_owed_scoins) {
             LogPrint(BCLog::CDP, "currRiskReserveScoins(%lu) < cdp.total_owed_scoins(%lu) !!\n",
                     currRiskReserveScoins, cdp.total_owed_scoins);
-            continue;
+            // TODO: should break the force liquidate for all cdp coin pairs
+            break;
         }
 
         CAccount cdpOwnerAccount;
@@ -470,12 +471,10 @@ bool CCdpForceLiquidator::ForceLiquidateCDPCompat(CCdpRatioIndexCache::Map &cdps
                     "begin to force settle CDP (%s), currRiskReserveScoins: %llu, "
                     "index: %u\n", cdp.ToString(), currRiskReserveScoins, liquidated_count - 1);
 
-        // Suppose we have 120 (owed scoins' amount), 30, 50 three cdps, but current risk reserve scoins is 100,
-        // then skip the 120 cdp and settle the 30 and 50 cdp.
         if (currRiskReserveScoins < cdp.total_owed_scoins) {
             LogPrint(BCLog::CDP, "currRiskReserveScoins(%lu) < cdp.total_owed_scoins(%lu) !!\n",
                     currRiskReserveScoins, cdp.total_owed_scoins);
-            continue;
+            break;
         }
 
         // a) sell WICC for WUSD to return to risk reserve pool
