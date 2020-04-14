@@ -287,10 +287,10 @@ uint64_t CAccount::ComputeBlockInflateInterest(const uint32_t currHeight, const 
     uint64_t interest    = (long double)activeVotes * totalDelegateNum * holdHeight * subsidy / yearHeight / 100;
 
     LogPrint(BCLog::PROFIT,
-             "compute block inflate interest to miner: %s, current height: %u\n"
+             "[%d] compute block inflate interest to miner: %s "
              "interest = activeVotes * delegateNum * holdHeight * subsidy / yearHeight / 100\n"
              "formula: %llu = 1.0 * %llu * %u * %llu * %u / %u / 100\n",
-             regid.ToString(), currHeight, interest, activeVotes, totalDelegateNum, holdHeight, subsidy, yearHeight);
+             currHeight, regid.ToString(), interest, activeVotes, totalDelegateNum, holdHeight, subsidy, yearHeight);
 
     return interest;
 }

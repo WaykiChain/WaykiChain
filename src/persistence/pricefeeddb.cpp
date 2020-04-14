@@ -330,7 +330,7 @@ CMedianPriceDetail CPricePointMemCache::GetMedianPrice(const HeightType blockHei
         } else if (priceDetail.last_feed_height != blockHeight) {
             priceDetail.last_feed_height = it->second.last_feed_height;
 
-            LogPrint(BCLog::PRICEFEED, "%d, current block not have price feed! new_price={%s}\n",
+            LogPrint(BCLog::PRICEFEED, "[%d] current block has NO price feed! new_price={%s}\n",
                      blockHeight, priceDetail.ToString());
         }
     }

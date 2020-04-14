@@ -310,10 +310,10 @@ void BCLog::Logger::LogPrintStr(const BCLog::LogFlags& category, const char* fil
         #endif
 
         string file_line_func = strprintf("[%s %s]", file_line, s_func);
-        string log_level = strprintf("[%s]", GetLogCategoryName(category));
-        string file_line_cat_func = strprintf("%-10s %-44s", log_level, file_line_func);
+        string log_cat = strprintf("[%s]", GetLogCategoryName(category));
+        string file_line_cat_func = strprintf("%-15s %-44s", log_cat, file_line_func);
 
-        str_prefixed.insert(0, tfm::format("%-55s ", file_line_cat_func));
+        str_prefixed.insert(0, tfm::format("%-80s ", file_line_cat_func));
     }
 
     if (m_log_threadnames && m_started_new_line) {
