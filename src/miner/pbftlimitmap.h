@@ -59,14 +59,12 @@ public:
         map.erase(k);
     }
 
-
     void update(const_iterator itIn, const mapped_type& v) {
-
         iterator itTarget = map.erase(itIn, itIn);
         if (itTarget == map.end()) return;
         itTarget->second = v;
-
     }
+
     size_type max_size() const { return nMaxSize; }
 
     size_type max_size(size_type s) {
