@@ -234,8 +234,8 @@ Value luavm_executescript(const Array& params, bool fHelp) {
 
     Object callContractTxObj;
 
-    callContractTxObj.push_back(Pair("run_steps", contractInvokeTx.fuel));
-    callContractTxObj.push_back(Pair("used_fuel", contractInvokeTx.GetFuelFee(newHeight, fuelRate)));
+    callContractTxObj.push_back(Pair("fuel", contractInvokeTx.fuel));
+    callContractTxObj.push_back(Pair("fuel_fee", contractInvokeTx.GetFuelFee(newHeight, fuelRate)));
 
     Object retObj;
     retObj.push_back(Pair("fuel_rate",              (int32_t)fuelRate));

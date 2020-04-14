@@ -681,13 +681,13 @@ static uint64_t get_min_fee_in_wicc(CBaseTx& tx, CTxExecuteContext& context) {
     return min_fee;
 }
 
-static uint64_t get_run_fee_in_wicc(const uint64_t& run_steps, CBaseTx& tx, CTxExecuteContext& context) {
+static uint64_t get_run_fee_in_wicc(const uint64_t& fuel, CBaseTx& tx, CTxExecuteContext& context) {
 
     uint64_t fuel_rate = context.fuel_rate;
     CHAIN_ASSERT(fuel_rate           >  0, wasm_chain::fee_exhausted_exception, "%s", "fuel_rate cannot be 0")
-    CHAIN_ASSERT(MAX_BLOCK_FUEL  >= run_steps, wasm_chain::fee_exhausted_exception, "run steps '%ld' > max block run steps '%ld'", run_steps, MAX_BLOCK_FUEL)
+    CHAIN_ASSERT(MAX_BLOCK_FUEL  >= fuel, wasm_chain::fee_exhausted_exception, "fuel '%ld' > max block fuel '%ld'", fuel, MAX_BLOCK_FUEL)
 
-    return run_steps / 100 * fuel_rate;
+    return fuel / 100 * fuel_rate;
 }
 
 
