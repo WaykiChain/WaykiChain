@@ -262,7 +262,7 @@ bool CCdpForceLiquidator::Execute() {
 
     cw.cdpCache.GetCdpListByCollateralRatio(cdpCoinPair, forceLiquidateRatio, bcoin_price, cdpMap);
 
-    LogPrint(BCLog::CDP, "tx_cord=%d-%d, globalCollateralRatioFloor=%llu, bcoin_price: %llu, "
+    LogPrint(BCLog::CDP, "[%d] Tx[%d], globalCollateralRatioFloor=%llu, bcoin_price: %llu, "
             "forceLiquidateRatio: %llu, cdpMap: %llu\n", context.height, context.index,
             globalCollateralRatioFloor, bcoin_price, forceLiquidateRatio, cdpMap.size());
 
