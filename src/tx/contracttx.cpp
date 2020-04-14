@@ -62,16 +62,16 @@ bool CLuaContractDeployTx::CheckTx(CTxExecuteContext &context) {
         return state.DoS(100, ERRORMSG("CLuaContractDeployTx::CheckTx, contract is invalid"),
                          REJECT_INVALID, "vmscript-invalid");
 
-    uint64_t llFuel = GetFuelFee(context.height, context.fuel_rate);
-    if (llFees < llFuel)
-        return state.DoS(100, ERRORMSG("CLuaContractDeployTx::CheckTx, fee too small to cover fuel: %llu < %llu",
-                        llFees, llFuel), REJECT_INVALID, "fee-too-small-to-cover-fuel");
+    uint64_t fuelFee = GetFuelFee(context.height, context.fuel_rate);
+    if (llFees < fuelFee)
+        return state.DoS(100, ERRORMSG("CLuaContractDeployTx::CheckTx, the given fee is small than burned fuel fee: %llu < %llu",
+                        llFees, fuelFee), REJECT_INVALID, "fee-too-small-for-burned-fuel");
 
     if (GetFeatureForkVersion(context.height) >= MAJOR_VER_R2) {
         int32_t txSize  = ::GetSerializeSize(GetNewInstance(), SER_NETWORK, PROTOCOL_VERSION);
-        double feePerKb = double(llFees - llFuel) / txSize * 1000.0;
+        double feePerKb = double(llFees - fuelFee) / txSize * 1000.0;
         if (feePerKb < MIN_RELAY_TX_FEE) {
-            uint64_t minFee = ceil(double(MIN_RELAY_TX_FEE) * txSize / 1000.0 + llFuel);
+            uint64_t minFee = ceil(double(MIN_RELAY_TX_FEE) * txSize / 1000.0 + fuelFee);
             return state.DoS(100, ERRORMSG("CLuaContractDeployTx::CheckTx, fee too small in fee/kb: %llu < %llu",
                             llFees, minFee), REJECT_INVALID,
                             strprintf("fee-too-small-in-fee/kb: %llu < %llu", llFees, minFee));
@@ -258,15 +258,15 @@ bool CUniversalContractDeployR2Tx::CheckTx(CTxExecuteContext &context) {
         return state.DoS(100, ERRORMSG("CUniversalContractDeployR2Tx::CheckTx, contract is invalid"),
                          REJECT_INVALID, "vmscript-invalid");
 
-    uint64_t llFuel = GetFuelFee(context.height, context.fuel_rate);
-    if (llFees < llFuel)
-        return state.DoS(100, ERRORMSG("CUniversalContractDeployR2Tx::CheckTx, fee too small to cover fuel: %llu < %llu",
-                        llFees, llFuel), REJECT_INVALID, "fee-too-small-to-cover-fuel");
+    uint64_t fuelFee = GetFuelFee(context.height, context.fuel_rate);
+    if (llFees < fuelFee)
+        return state.DoS(100, ERRORMSG("CLuaContractDeployTx::CheckTx, the given fee is small than burned fuel fee: %llu < %llu",
+                        llFees, fuelFee), REJECT_INVALID, "fee-too-small-for-burned-fuel");
 
     int32_t txSize  = ::GetSerializeSize(GetNewInstance(), SER_NETWORK, PROTOCOL_VERSION);
-    double feePerKb = double(llFees - llFuel) / txSize * 1000.0;
+    double feePerKb = double(llFees - fuelFee) / txSize * 1000.0;
     if (feePerKb < MIN_RELAY_TX_FEE) {
-        uint64_t minFee = ceil(double(MIN_RELAY_TX_FEE) * txSize / 1000.0 + llFuel);
+        uint64_t minFee = ceil(double(MIN_RELAY_TX_FEE) * txSize / 1000.0 + fuelFee);
         return state.DoS(100, ERRORMSG("CUniversalContractDeployR2Tx::CheckTx, fee too small in fee/kb: %llu < %llu",
                         llFees, minFee), REJECT_INVALID,
                         strprintf("fee-too-small-in-fee/kb: %llu < %llu", llFees, minFee));
