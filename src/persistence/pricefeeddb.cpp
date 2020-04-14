@@ -300,9 +300,7 @@ CMedianPriceDetail CPricePointMemCache::ComputeBlockMedianPrice(const HeightType
     // }
 
     priceDetail.price = ComputeMedianNumber(prices);
-    LogPrint(BCLog::PRICEFEED,
-             "CPricePointMemCache::ComputeBlockMedianPrice, blockHeight: %d, computed median number: %llu\n",
-             blockHeight, priceDetail.price);
+    LogPrint(BCLog::PRICEFEED, "[%d] computed median number: %llu\n", blockHeight, priceDetail.price);
 
     return priceDetail;
 }
@@ -325,7 +323,7 @@ CMedianPriceDetail CPricePointMemCache::GetMedianPrice(const HeightType blockHei
         if (priceDetail.price == 0) {
             priceDetail = it->second;
             LogPrint(BCLog::PRICEFEED,
-                    "use previous block median price! blockHeight=%d, "
+                    "[%d] reuse pre-block-median-price: "
                     "coin_pair={%s}, new_price={%s}\n",
                     blockHeight, CoinPairToString(coinPricePair), priceDetail.ToString());
 

@@ -83,7 +83,7 @@ bool CPriceFeedTx::ExecuteTx(CTxExecuteContext &context) {
 
     // update the price feed cache accordingly
     if (!cw.ppCache.AddPrice(context.height, txUid.get<CRegID>(), price_points)) {
-        return state.DoS(100, ERRORMSG("txUid %s account duplicated price feed exits",
+        return state.DoS(100, ERRORMSG("[%d] txUid %s account duplicated price feed exits", context.height,
                         txUid.ToString()), PRICE_FEED_FAIL, "duplicated-pricefeed");
     }
 
