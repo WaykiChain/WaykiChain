@@ -177,7 +177,7 @@ public:
 
     virtual uint32_t GetSerializeSize(int32_t nType, int32_t nVersion) const { return 0; }
 
-    virtual uint64_t GetFuelFee(int32_t height, uint32_t nFuelRate);
+    virtual uint64_t GetFuelFee(CCacheWrapper &cw, int32_t height, uint32_t nFuelRate);
     virtual double GetPriority() const {
         return TRANSACTION_PRIORITY_CEILING / GetSerializeSize(SER_NETWORK, PROTOCOL_VERSION);
     }

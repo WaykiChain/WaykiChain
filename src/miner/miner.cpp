@@ -85,7 +85,7 @@ uint32_t GetElementForBurn(CBlockIndex *pIndex) {
 }
 
 // Sort transactions by priority and fee to decide priority orders to process transactions.
-void GetPriorityTx(int32_t height, set<TxPriority> &txPriorities, const int32_t nFuelRate) {
+void GetPriorityTx(CCacheWrapper &cw, int32_t height, set<TxPriority> &txPriorities, const int32_t nFuelRate) {
     static TokenSymbol feeSymbol;
     static uint64_t fee    = 0;
     static uint32_t txSize = 0;
@@ -98,7 +98,7 @@ void GetPriorityTx(int32_t height, set<TxPriority> &txPriorities, const int32_t 
             feeSymbol = std::get<0>(mi->second.GetFees());
             fee       = std::get<1>(mi->second.GetFees());
             txSize    = mi->second.GetTxSize();
-            feePerKb  = double(fee - pBaseTx->GetFuelFee(height, nFuelRate)) / txSize * 1000.0;
+            feePerKb  = double(fee - pBaseTx->GetFuelFee(cw, height, nFuelRate)) / txSize * 1000.0;
             priority  = mi->second.GetPriority();
 
             txPriorities.emplace(TxPriority(priority, feePerKb, mi->second.GetTransaction()));
@@ -313,7 +313,7 @@ static bool CreateNewBlockForPreStableCoinRelease(CCacheWrapper &cwIn, std::uniq
 
         // Calculate && sort transactions from memory pool.
         set<TxPriority> txPriorities;
-        GetPriorityTx(height, txPriorities, fuelRate);
+        GetPriorityTx(cwIn, height, txPriorities, fuelRate);
 
         LogPrint(BCLog::MINER, "got %lu transaction(s) sorted by priority rules\n",
                  txPriorities.size());
@@ -358,7 +358,7 @@ static bool CreateNewBlockForPreStableCoinRelease(CCacheWrapper &cwIn, std::uniq
 
             spCW->Flush();
 
-            auto fuelFee        = pBaseTx->GetFuelFee(height, fuelRate);
+            auto fuelFee        = pBaseTx->GetFuelFee(cwIn, height, fuelRate);
             auto fees_symbol = std::get<0>(pBaseTx->GetFees());
             auto fees        = std::get<1>(pBaseTx->GetFees());
             assert(fees_symbol == SYMB::WICC);
@@ -375,7 +375,7 @@ static bool CreateNewBlockForPreStableCoinRelease(CCacheWrapper &cwIn, std::uniq
             pBlock->vptx.push_back(itor->baseTx);
 
             LogPrint(BCLog::DEBUG, "miner's total fuel fee:%d, tx fuel fee:%d, fuel:%d, fuelRate:%d, txid:%s\n",
-                    totalFuelFee, pBaseTx->GetFuelFee(height, fuelRate), pBaseTx->fuel, fuelRate, pBaseTx->GetHash().GetHex());
+                    totalFuelFee, fuelFee, pBaseTx->fuel, fuelRate, pBaseTx->GetHash().GetHex());
         }
 
         nLastBlockTx                   = index + 1;
@@ -444,7 +444,7 @@ static bool CreateNewBlockForStableCoinRelease(int64_t startMiningMs, CCacheWrap
 
         // Calculate && sort transactions from memory pool.
         set<TxPriority> txPriorities;
-        GetPriorityTx(height, txPriorities, fuelRate);
+        GetPriorityTx(cwIn, height, txPriorities, fuelRate);
 
         // Push block price median transaction into queue.
         txPriorities.emplace(TxPriority(PRICE_MEDIAN_TRANSACTION_PRIORITY, 0, std::make_shared<CBlockPriceMedianTx>(height)));
@@ -522,24 +522,24 @@ static bool CreateNewBlockForStableCoinRelease(int64_t startMiningMs, CCacheWrap
 
             spCW->Flush();
 
-            auto fuel        = pBaseTx->GetFuelFee(height, fuelRate);
+            auto fuelFee        = pBaseTx->GetFuelFee(cwIn, height, fuelRate);
             auto fees_symbol = std::get<0>(pBaseTx->GetFees());
             auto fees        = std::get<1>(pBaseTx->GetFees());
             assert(fees_symbol == SYMB::WICC || fees_symbol == SYMB::WUSD);
 
             totalBlockSize += txSize;
             totalFuel += pBaseTx->fuel;
-            totalFuelFee += fuel;
+            totalFuelFee += fuelFee;
             totalFees += fees;
-            assert(fees >= fuel);
-            rewards[fees_symbol] += (fees - fuel);
+            assert(fees >= fuelFee);
+            rewards[fees_symbol] += (fees - fuelFee);
 
             ++index;
 
             pBlock->vptx.push_back(itor->baseTx);
 
             LogPrint(BCLog::DEBUG, "miner total_fuel_fee=%d, tx_fuel_fee=%d, fuel=%d, fuelRate:%d, txid:%.7s**\n",
-                    totalFuelFee, pBaseTx->GetFuelFee(height, fuelRate), pBaseTx->fuel, fuelRate, pBaseTx->GetHash().GetHex());
+                    totalFuelFee, fuelFee, pBaseTx->fuel, fuelRate, pBaseTx->GetHash().GetHex());
 
         }
 

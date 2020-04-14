@@ -1139,7 +1139,7 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
                 return state.DoS(100, ERRORMSG("total steps(%llu) exceed max steps(%llu)", totalFuel,
                                  MAX_BLOCK_FUEL), REJECT_INVALID, "exceed-max-fuel");
 
-            auto fuelFee = pBaseTx->GetFuelFee(block.GetHeight(), block.GetFuelRate());
+            auto fuelFee = pBaseTx->GetFuelFee(cw, block.GetHeight(), block.GetFuelRate());
             totalFuelFee += fuelFee;
 
             auto fees_symbol = std::get<0>(pBaseTx->GetFees());

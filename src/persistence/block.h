@@ -289,7 +289,7 @@ public:
         merkleRootHash = block.GetMerkleRootHash();
         nTime          = block.GetTime();
         nNonce         = block.GetNonce();
-        nFuelFee          = block.GetFuelFee();
+        nFuelFee       = block.GetFuelFee();
         nFuelRate      = block.GetFuelRate();
         vSignature     = block.GetSignature();
       /*  if(block.GetHeight() == 0 )

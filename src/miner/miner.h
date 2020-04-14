@@ -93,7 +93,7 @@ bool CheckWork(CBlock *pBlock);
 /** Get burn element */
 uint32_t GetElementForBurn(CBlockIndex *pIndex);
 
-void GetPriorityTx(vector<TxPriority> &vecPriority, int32_t nFuelRate);
+void GetPriorityTx(CCacheWrapper &cw, vector<TxPriority> &vecPriority, int32_t nFuelRate);
 
 void ShuffleDelegates(const int32_t nCurHeight, const int64_t blockTime,
         VoteDelegateVector &delegates);
