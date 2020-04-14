@@ -44,7 +44,7 @@ public:
     }
 
     virtual std::shared_ptr<CBaseTx> GetNewInstance() const { return std::make_shared<CLuaContractDeployTx>(*this); }
-    virtual uint64_t GetFuel(int32_t height, uint32_t fuelRate);
+    virtual uint64_t GetFuelFee(int32_t height, uint32_t fuelRate);
     virtual string ToString(CAccountDBCache &accountView);
     virtual Object ToJson(const CAccountDBCache &accountView) const;
 
@@ -115,7 +115,7 @@ public:
     }
 
     virtual std::shared_ptr<CBaseTx> GetNewInstance() const { return std::make_shared<CUniversalContractDeployR2Tx>(*this); }
-    virtual uint64_t GetFuel(int32_t height, uint32_t fuelRate);
+    virtual uint64_t GetFuelFee(int32_t height, uint32_t fuelRate);
     virtual string ToString(CAccountDBCache &accountView);
     virtual Object ToJson(const CAccountDBCache &accountView) const;
 
@@ -214,7 +214,7 @@ public:
 
     virtual std::shared_ptr<CBaseTx>   GetNewInstance() const { return std::make_shared<CUniversalContractTx>(*this); }
     virtual map<TokenSymbol, uint64_t> GetValues()      const { return map<TokenSymbol, uint64_t>{{SYMB::WICC, 0}}; }
-    virtual uint64_t                   GetFuel(int32_t height, uint32_t fuelRate);
+    virtual uint64_t                   GetFuelFee(int32_t height, uint32_t fuelRate);
     virtual bool                       GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds);
     virtual string ToString(CAccountDBCache &accountCache);
     virtual Object ToJson(const CAccountDBCache &accountCache) const;

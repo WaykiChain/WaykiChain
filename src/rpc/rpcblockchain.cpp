@@ -39,7 +39,7 @@ Object BlockToJSON(const CBlock& block, const CBlockIndex* pBlockIndex) {
     result.push_back(Pair("bp_uid",         block.vptx[0]->txUid.ToString()));
     result.push_back(Pair("version",        block.GetVersion()));
     result.push_back(Pair("merkle_root",    block.GetMerkleRootHash().GetHex()));
-    result.push_back(Pair("total_fuel",     block.GetFuel()));
+    result.push_back(Pair("total_fuel_fee",     block.GetFuelFee()));
     CMerkleTx txGen(block.vptx[0]);
     txGen.SetMerkleBranch(&block);
     result.push_back(Pair("confirmations",  (int32_t)txGen.GetDepthInMainChain()));

@@ -1101,7 +1101,7 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
     pos.nTxOffset += ::GetSerializeSize(block.vptx[0], SER_DISK, CLIENT_VERSION);
 
     // Re-compute reward values and total fuel
-    uint64_t totalFuel                 = 0;
+    uint64_t totalFuelFee                 = 0;
     map<TokenSymbol, uint64_t> rewards = {{SYMB::WICC, 0}, {SYMB::WUSD, 0}};  // Only allow WICC/WUSD as fees type.
 
     if (block.vptx.size() > 1) {
@@ -1139,26 +1139,26 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
                 return state.DoS(100, ERRORMSG("total steps(%llu) exceed max steps(%llu)", totalRunStep,
                                  MAX_BLOCK_RUN_STEP), REJECT_INVALID, "exceed-max-fuel");
 
-            auto fuel = pBaseTx->GetFuel(block.GetHeight(), block.GetFuelRate());
-            totalFuel += fuel;
+            auto fuelFee = pBaseTx->GetFuelFee(block.GetHeight(), block.GetFuelRate());
+            totalFuelFee += fuelFee;
 
             auto fees_symbol = std::get<0>(pBaseTx->GetFees());
             assert(fees_symbol == SYMB::WICC || fees_symbol == SYMB::WUSD);  // Only allow WICC/WUSD as fees type.
             auto fees = std::get<1>(pBaseTx->GetFees());
-            assert(fees >= fuel);
-            rewards[fees_symbol] += (fees - fuel);
+            assert(fees >= fuelFee);
+            rewards[fees_symbol] += (fees - fuelFee);
 
             pos.nTxOffset += ::GetSerializeSize(pBaseTx, SER_DISK, CLIENT_VERSION);
 
-            // LogPrint(BCLog::DEBUG, "total fuel fee:%d, tx fuel fee:%d runStep:%d fuelRate:%d txid:%s\n", totalFuel,
+            // LogPrint(BCLog::DEBUG, "total fuel fee:%d, tx fuel fee:%d runStep:%d fuelRate:%d txid:%s\n", totalFuelFee,
             //          fuel, pBaseTx->nRunStep, fuelRate, pBaseTx->GetHash().GetHex());
         }
     }
 
-    // Verify total fuel
-    if (totalFuel != block.GetFuel())
+    // Verify total fuel fee
+    if (totalFuelFee != block.GetFuelFee())
         return state.DoS(100, ERRORMSG("[%d] block fuel fee mismatch error (actual fuel fee=%lld vs block fuel fee=%lld)",
-                                        block.GetHeight(), block.GetFuel()));
+                                        block.GetHeight(), block.GetFuelFee()));
 
     // Verify miner account
     CAccount delegateAccount;

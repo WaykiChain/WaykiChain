@@ -62,7 +62,7 @@ bool CLuaContractDeployTx::CheckTx(CTxExecuteContext &context) {
         return state.DoS(100, ERRORMSG("CLuaContractDeployTx::CheckTx, contract is invalid"),
                          REJECT_INVALID, "vmscript-invalid");
 
-    uint64_t llFuel = GetFuel(context.height, context.fuel_rate);
+    uint64_t llFuel = GetFuelFee(context.height, context.fuel_rate);
     if (llFees < llFuel)
         return state.DoS(100, ERRORMSG("CLuaContractDeployTx::CheckTx, fee too small to cover fuel: %llu < %llu",
                         llFees, llFuel), REJECT_INVALID, "fee-too-small-to-cover-fuel");
@@ -116,12 +116,12 @@ bool CLuaContractDeployTx::ExecuteTx(CTxExecuteContext &context) {
     return true;
 }
 
-uint64_t CLuaContractDeployTx::GetFuel(int32_t height, uint32_t nFuelRate) {
+uint64_t CLuaContractDeployTx::GetFuelFee(int32_t height, uint32_t nFuelRate) {
     uint64_t minFee = 0;
     auto spCw = std::make_shared<CCacheWrapper>(pCdMan); // TODO: improve ...
     if (!GetTxMinFee(*spCw, nTxType, height, fee_symbol, minFee)) {
-        LogPrint(BCLog::ERROR, "CUniversalContractDeployR2Tx::GetFuel(), get min_fee failed! fee_symbol=%s\n", fee_symbol);
-        throw runtime_error("CUniversalContractDeployR2Tx::GetFuel(), get min_fee failed");
+        LogPrint(BCLog::ERROR, "CUniversalContractDeployR2Tx::GetFuelFee(), get min_fee failed! fee_symbol=%s\n", fee_symbol);
+        throw runtime_error("CUniversalContractDeployR2Tx::GetFuelFee(), get min_fee failed");
     }
 
     return std::max<uint64_t>(((nRunStep / 100.0f) * nFuelRate), minFee);
@@ -258,7 +258,7 @@ bool CUniversalContractDeployR2Tx::CheckTx(CTxExecuteContext &context) {
         return state.DoS(100, ERRORMSG("CUniversalContractDeployR2Tx::CheckTx, contract is invalid"),
                          REJECT_INVALID, "vmscript-invalid");
 
-    uint64_t llFuel = GetFuel(context.height, context.fuel_rate);
+    uint64_t llFuel = GetFuelFee(context.height, context.fuel_rate);
     if (llFees < llFuel)
         return state.DoS(100, ERRORMSG("CUniversalContractDeployR2Tx::CheckTx, fee too small to cover fuel: %llu < %llu",
                         llFees, llFuel), REJECT_INVALID, "fee-too-small-to-cover-fuel");
@@ -310,7 +310,7 @@ bool CUniversalContractDeployR2Tx::ExecuteTx(CTxExecuteContext &context) {
 
     // If fees paid by WUSD, send the fuel to risk reserve pool.
     if (fee_symbol == SYMB::WUSD) {
-        uint64_t fuel = GetFuel(context.height, context.fuel_rate);
+        uint64_t fuel = GetFuelFee(context.height, context.fuel_rate);
         CAccount fcoinGenesisAccount;
         cw.accountCache.GetFcoinGenesisAccount(fcoinGenesisAccount);
         if (!fcoinGenesisAccount.OperateBalance(SYMB::WUSD, BalanceOpType::ADD_FREE, fuel,
@@ -327,12 +327,12 @@ bool CUniversalContractDeployR2Tx::ExecuteTx(CTxExecuteContext &context) {
     return true;
 }
 
-uint64_t CUniversalContractDeployR2Tx::GetFuel(int32_t height, uint32_t nFuelRate) {
+uint64_t CUniversalContractDeployR2Tx::GetFuelFee(int32_t height, uint32_t nFuelRate) {
     uint64_t minFee = 0;
     auto spCw = std::make_shared<CCacheWrapper>(pCdMan); // TODO: improve ...
     if (!GetTxMinFee(*spCw, nTxType, height, fee_symbol, minFee)) {
-        LogPrint(BCLog::ERROR, "CUniversalContractDeployR2Tx::GetFuel(), get min_fee failed! fee_symbol=%s\n", fee_symbol);
-        throw runtime_error("CUniversalContractDeployR2Tx::GetFuel(), get min_fee failed");
+        LogPrint(BCLog::ERROR, "CUniversalContractDeployR2Tx::GetFuelFee(), get min_fee failed! fee_symbol=%s\n", fee_symbol);
+        throw runtime_error("CUniversalContractDeployR2Tx::GetFuelFee(), get min_fee failed");
     }
 
     return std::max<uint64_t>(((nRunStep / 100.0f) * nFuelRate), minFee);
@@ -441,7 +441,7 @@ bool CUniversalContractInvokeR2Tx::ExecuteTx(CTxExecuteContext &context) {
 
     // If fees paid by WUSD, send the fuel to risk reserve pool.
     if (fee_symbol == SYMB::WUSD) {
-        uint64_t fuel = GetFuel(context.height, context.fuel_rate);
+        uint64_t fuel = GetFuelFee(context.height, context.fuel_rate);
         CAccount fcoinGenesisAccount;
         cw.accountCache.GetFcoinGenesisAccount(fcoinGenesisAccount);
 
@@ -850,13 +850,13 @@ bool CUniversalContractTx::GetInvolvedKeyIds(CCacheWrapper &cw, set <CKeyID> &ke
     return true;
 }
 
-uint64_t CUniversalContractTx::GetFuel(int32_t height, uint32_t nFuelRate) {
+uint64_t CUniversalContractTx::GetFuelFee(int32_t height, uint32_t nFuelRate) {
 
     uint64_t minFee = 0;
     auto spCw = std::make_shared<CCacheWrapper>(pCdMan); // TODO: improve ...
     if (!GetTxMinFee(*spCw, nTxType, height, fee_symbol, minFee)) {
-        LogPrint(BCLog::ERROR, "CUniversalContractTx::GetFuel(), get min_fee failed! fee_symbol=%s\n", fee_symbol);
-        throw runtime_error("CUniversalContractTx::GetFuel(), get min_fee failed");
+        LogPrint(BCLog::ERROR, "CUniversalContractTx::GetFuelFee(), get min_fee failed! fee_symbol=%s\n", fee_symbol);
+        throw runtime_error("CUniversalContractTx::GetFuelFee(), get min_fee failed");
     }
 
     return std::max<uint64_t>(((nRunStep / 100.0f) * nFuelRate), minFee);

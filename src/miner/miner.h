@@ -66,7 +66,7 @@ public:
     int64_t time;             // block time
     int64_t nonce;            // nonce
     int32_t height;           // block height
-    uint64_t totalFuel;       // the total fuels of all transactions in the block
+    uint64_t totalFuelFee;    // the total fuel fee of all transactions in the block
     uint fuelRate;            // block fuel rate
     uint64_t txCount;         // transaction count in block, exclude coinbase
     uint64_t totalBlockSize;  // block size(bytes)

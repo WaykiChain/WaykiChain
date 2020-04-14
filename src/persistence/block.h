@@ -113,7 +113,7 @@ public:
     void SetNonce(uint32_t nonce) { this->nNonce = nonce; }
     uint32_t GetHeight() const { return height; }
     void SetHeight(uint32_t height);
-    uint32_t GetFuel() const { return nFuel; }
+    uint32_t GetFuelFee() const { return nFuel; }
     void SetFuel(uint64_t fuel) { this->nFuel = fuel; }
     uint32_t GetFuelRate() const { return nFuelRate; }
     void SetFuelRate(uint32_t fuelRate) { this->nFuelRate = fuelRate; }
@@ -289,7 +289,7 @@ public:
         merkleRootHash = block.GetMerkleRootHash();
         nTime          = block.GetTime();
         nNonce         = block.GetNonce();
-        nFuel          = block.GetFuel();
+        nFuel          = block.GetFuelFee();
         nFuelRate      = block.GetFuelRate();
         vSignature     = block.GetSignature();
       /*  if(block.GetHeight() == 0 )

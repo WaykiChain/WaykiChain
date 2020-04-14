@@ -196,7 +196,7 @@ Value luavm_executescript(const Array& params, bool fHelp) {
         }
 
         DeployContractTxObj.push_back(Pair("contract_size", contract_size));
-        DeployContractTxObj.push_back(Pair("used_fuel", tx.GetFuel(newHeight, fuelRate)));
+        DeployContractTxObj.push_back(Pair("used_fuel_fee", tx.GetFuelFee(newHeight, fuelRate)));
     }
 
     CRegID appId(newHeight, 1); //App RegId
@@ -235,7 +235,7 @@ Value luavm_executescript(const Array& params, bool fHelp) {
     Object callContractTxObj;
 
     callContractTxObj.push_back(Pair("run_steps", contractInvokeTx.nRunStep));
-    callContractTxObj.push_back(Pair("used_fuel", contractInvokeTx.GetFuel(newHeight, fuelRate)));
+    callContractTxObj.push_back(Pair("used_fuel", contractInvokeTx.GetFuelFee(newHeight, fuelRate)));
 
     Object retObj;
     retObj.push_back(Pair("fuel_rate",              (int32_t)fuelRate));
@@ -355,7 +355,7 @@ Value luavm_executecontract(const Array& params, bool fHelp) {
     Object retObj;
     retObj.push_back(Pair("fuel_rate",              (int32_t)fuelRate));
     retObj.push_back(Pair("burned_fuel", contractInvokeTx.nRunStep));
-    retObj.push_back(Pair("fuel_fee", contractInvokeTx.GetFuel(height, contractInvokeTx.nFuelRate)));
+    retObj.push_back(Pair("fuel_fee", contractInvokeTx.GetFuelFee(height, contractInvokeTx.nFuelRate)));
 
     return retObj;
 }

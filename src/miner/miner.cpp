@@ -98,7 +98,7 @@ void GetPriorityTx(int32_t height, set<TxPriority> &txPriorities, const int32_t 
             feeSymbol = std::get<0>(mi->second.GetFees());
             fee       = std::get<1>(mi->second.GetFees());
             txSize    = mi->second.GetTxSize();
-            feePerKb  = double(fee - pBaseTx->GetFuel(height, nFuelRate)) / txSize * 1000.0;
+            feePerKb  = double(fee - pBaseTx->GetFuelFee(height, nFuelRate)) / txSize * 1000.0;
             priority  = mi->second.GetPriority();
 
             txPriorities.emplace(TxPriority(priority, feePerKb, mi->second.GetTransaction()));
@@ -250,7 +250,7 @@ bool VerifyRewardTx(const CBlock *pBlock, CCacheWrapper &cwIn, VoteDelegate &cur
         return ERRORMSG("transaction version %d vs current %d", pBlock->vptx[0]->nVersion, INIT_TX_VERSION);
 
     // if (bNeedRunTx) {
-    //     uint64_t totalFuel    = 0;
+    //     uint64_t totalFuelFee    = 0;
     //     uint64_t totalRunStep = 0;
     //     for (uint32_t i = 1; i < pBlock->vptx.size(); i++) {
     //         shared_ptr<CBaseTx> pBaseTx = pBlock->vptx[i];
@@ -274,15 +274,15 @@ bool VerifyRewardTx(const CBlock *pBlock, CCacheWrapper &cwIn, VoteDelegate &cur
     //             return ERRORMSG("block total run steps(%lu) exceed max run step(%lu)", totalRunStep,
     //                             MAX_BLOCK_RUN_STEP);
 
-    //         uint32_t fuelFee = pBaseTx->GetFuel(pBlock->GetHeight(), pBlock->GetFuelRate());
-    //         totalFuel += fuelFee;
-    //         LogPrint(BCLog::DEBUG, "VerifyRewardTx() : total fuel fee:%d, tx fuel fee:%d runStep:%d fuelRate:%d txid:%s\n", totalFuel,
+    //         uint32_t fuelFee = pBaseTx->GetFuelFee(pBlock->GetHeight(), pBlock->GetFuelRate());
+    //         totalFuelFee += fuelFee;
+    //         LogPrint(BCLog::DEBUG, "VerifyRewardTx() : total fuel fee:%d, tx fuel fee:%d runStep:%d fuelRate:%d txid:%s\n", totalFuelFee,
     //                  fuelFee, pBaseTx->nRunStep, pBlock->GetFuelRate(), pBaseTx->GetHash().GetHex());
     //     }
 
-    //     if (totalFuel != pBlock->GetFuel())
-    //         return ERRORMSG("total fuel fee(%lu) mismatch what(%u) in block header", totalFuel,
-    //                         pBlock->GetFuel());
+    //     if (totalFuelFee != pBlock->GetFuelFee())
+    //         return ERRORMSG("total fuel fee(%lu) mismatch what(%u) in block header", totalFuelFee,
+    //                         pBlock->GetFuelFee());
     // }
 
     return true;
@@ -308,7 +308,7 @@ static bool CreateNewBlockForPreStableCoinRelease(CCacheWrapper &cwIn, std::uniq
         uint64_t totalBlockSize = ::GetSerializeSize(*pBlock, SER_NETWORK, PROTOCOL_VERSION);
         uint64_t totalRunStep   = 0;
         uint64_t totalFees      = 0;
-        uint64_t totalFuel      = 0;
+        uint64_t totalFuelFee   = 0;
         uint64_t reward         = 0;
 
         // Calculate && sort transactions from memory pool.
@@ -358,24 +358,24 @@ static bool CreateNewBlockForPreStableCoinRelease(CCacheWrapper &cwIn, std::uniq
 
             spCW->Flush();
 
-            auto fuel        = pBaseTx->GetFuel(height, fuelRate);
+            auto fuelFee        = pBaseTx->GetFuelFee(height, fuelRate);
             auto fees_symbol = std::get<0>(pBaseTx->GetFees());
             auto fees        = std::get<1>(pBaseTx->GetFees());
             assert(fees_symbol == SYMB::WICC);
 
             totalBlockSize += txSize;
             totalRunStep += pBaseTx->nRunStep;
-            totalFuel += fuel;
+            totalFuelFee += fuelFee;
             totalFees += fees;
-            assert(fees >= fuel);
-            reward += (fees - fuel);
+            assert(fees >= fuelFee);
+            reward += (fees - fuelFee);
 
             ++index;
 
             pBlock->vptx.push_back(itor->baseTx);
 
             LogPrint(BCLog::DEBUG, "miner's total fuel fee:%d, tx fuel fee:%d, fuel:%d, fuelRate:%d, txid:%s\n",
-                    totalFuel, pBaseTx->GetFuel(height, fuelRate), pBaseTx->nRunStep, fuelRate, pBaseTx->GetHash().GetHex());
+                    totalFuelFee, pBaseTx->GetFuelFee(height, fuelRate), pBaseTx->nRunStep, fuelRate, pBaseTx->GetHash().GetHex());
         }
 
         nLastBlockTx                   = index + 1;
@@ -387,7 +387,7 @@ static bool CreateNewBlockForPreStableCoinRelease(CCacheWrapper &cwIn, std::uniq
         pBlock->SetPrevBlockHash(pIndexPrev->GetBlockHash());
         pBlock->SetNonce(0);
         pBlock->SetHeight(height);
-        pBlock->SetFuel(totalFuel);
+        pBlock->SetFuel(totalFuelFee);
         pBlock->SetFuelRate(fuelRate);
 
         LogPrint(BCLog::INFO, "[%d] tx=%d, totalBlockSize=%llu\n", height, index + 1, totalBlockSize);
@@ -439,7 +439,7 @@ static bool CreateNewBlockForStableCoinRelease(int64_t startMiningMs, CCacheWrap
         uint64_t totalBlockSize            = ::GetSerializeSize(*pBlock, SER_NETWORK, PROTOCOL_VERSION);
         uint64_t totalRunStep              = 0;
         uint64_t totalFees                 = 0;
-        uint64_t totalFuel                 = 0;
+        uint64_t totalFuelFee              = 0;
         map<TokenSymbol, uint64_t> rewards = { {SYMB::WICC, 0}, {SYMB::WUSD, 0} };
 
         // Calculate && sort transactions from memory pool.
@@ -522,14 +522,14 @@ static bool CreateNewBlockForStableCoinRelease(int64_t startMiningMs, CCacheWrap
 
             spCW->Flush();
 
-            auto fuel        = pBaseTx->GetFuel(height, fuelRate);
+            auto fuel        = pBaseTx->GetFuelFee(height, fuelRate);
             auto fees_symbol = std::get<0>(pBaseTx->GetFees());
             auto fees        = std::get<1>(pBaseTx->GetFees());
             assert(fees_symbol == SYMB::WICC || fees_symbol == SYMB::WUSD);
 
             totalBlockSize += txSize;
             totalRunStep += pBaseTx->nRunStep;
-            totalFuel += fuel;
+            totalFuelFee += fuel;
             totalFees += fees;
             assert(fees >= fuel);
             rewards[fees_symbol] += (fees - fuel);
@@ -539,7 +539,7 @@ static bool CreateNewBlockForStableCoinRelease(int64_t startMiningMs, CCacheWrap
             pBlock->vptx.push_back(itor->baseTx);
 
             LogPrint(BCLog::DEBUG, "miner total_fuel_fee=%d, tx_fuel_fee=%d, fuel=%d, fuelRate:%d, txid:%.7s**\n",
-                    totalFuel, pBaseTx->GetFuel(height, fuelRate), pBaseTx->nRunStep, fuelRate, pBaseTx->GetHash().GetHex());
+                    totalFuelFee, pBaseTx->GetFuelFee(height, fuelRate), pBaseTx->nRunStep, fuelRate, pBaseTx->GetHash().GetHex());
 
         }
 
@@ -552,7 +552,7 @@ static bool CreateNewBlockForStableCoinRelease(int64_t startMiningMs, CCacheWrap
         pBlock->SetPrevBlockHash(pIndexPrev->GetBlockHash());
         pBlock->SetNonce(0);
         pBlock->SetHeight(height);
-        pBlock->SetFuel(totalFuel);
+        pBlock->SetFuel(totalFuelFee);
         pBlock->SetFuelRate(fuelRate);
 
         LogPrint(BCLog::INFO, "[%d] tx=%d, totalBlockSize=%llu\n", height, index + 1, totalBlockSize);
@@ -847,7 +847,7 @@ void MinedBlockInfo::SetNull() {
     time           = 0;
     nonce          = 0;
     height         = 0;
-    totalFuel      = 0;
+    totalFuelFee   = 0;
     fuelRate       = 0;
     txCount        = 0;
     totalBlockSize = 0;
@@ -859,7 +859,7 @@ void MinedBlockInfo::Set(const CBlock *pBlock) {
     time           = pBlock->GetBlockTime();
     nonce          = pBlock->GetNonce();
     height         = pBlock->GetHeight();
-    totalFuel      = pBlock->GetFuel();
+    totalFuelFee   = pBlock->GetFuelFee();
     fuelRate       = pBlock->GetFuelRate();
     txCount        = pBlock->vptx.size();
     totalBlockSize = ::GetSerializeSize(*pBlock, SER_NETWORK, PROTOCOL_VERSION);
