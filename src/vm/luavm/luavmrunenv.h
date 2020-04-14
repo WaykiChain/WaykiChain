@@ -113,7 +113,7 @@ public:
      * @param fuel: burned fuel amount
      * @return: nullptr if run success, else error string
      */
-    std::shared_ptr<string> ExecuteContract(CLuaVMContext *pContextIn, uint64_t& uRunStep);
+    std::shared_ptr<string> ExecuteContract(CLuaVMContext *pContextIn, uint64_t& fuel);
 
     /**
      * @brief just for test

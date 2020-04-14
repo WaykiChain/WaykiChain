@@ -27,7 +27,7 @@ vector<shared_ptr<CAppUserAccount>>& CLuaVMRunEnv::GetRawAppUserAccount() { retu
 
 CLuaVMRunEnv::~CLuaVMRunEnv() {}
 
-std::shared_ptr<string>  CLuaVMRunEnv::ExecuteContract(CLuaVMContext *pContextIn, uint64_t& uRunStep) {
+std::shared_ptr<string>  CLuaVMRunEnv::ExecuteContract(CLuaVMContext *pContextIn, uint64_t& fuel) {
     p_context = pContextIn;
 
     assert(p_context->p_arguments->size() <= MAX_CONTRACT_ARGUMENT_SIZE);
@@ -40,16 +40,16 @@ std::shared_ptr<string>  CLuaVMRunEnv::ExecuteContract(CLuaVMContext *pContextIn
 
     tuple<uint64_t, string> ret = pLua.get()->Run(p_context->fuel_limit, this);
 
-    int64_t step = std::get<0>(ret);
-    if (0 == step) {
+    int64_t fuelRet = std::get<0>(ret);
+    if (0 == fuelRet) {
         return make_shared<string>("VmScript run Failed");
-    } else if (-1 == step) {
+    } else if (-1 == fuelRet) {
         return make_shared<string>(std::get<1>(ret));
     } else {
-        uRunStep = step;
+        fuel = fuelRet;
     }
 
-    LogPrint(BCLog::LUAVM, "txid:%s, step:%ld\n", p_context->p_base_tx->ToString(p_context->p_cw->accountCache), uRunStep);
+    LogPrint(BCLog::LUAVM, "txid:%s, used_fuel=%ld\n", p_context->p_base_tx->ToString(p_context->p_cw->accountCache), fuel);
 
     if (!CheckOperate()) {
         return make_shared<string>("VmScript CheckOperate Failed");

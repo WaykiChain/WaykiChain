@@ -792,7 +792,7 @@ bool CUniversalContractTx::ExecuteTx(CTxExecuteContext &context) {
                       "set tx '%s' trace failed",
                       GetHash().ToString())
 
-        //set runstep for block fuel sum
+        //set fuel for block fuel sum
         fuel = run_cost;
 
         auto database = std::make_shared<CCacheWrapper>(context.pCw);

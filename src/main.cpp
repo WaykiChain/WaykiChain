@@ -1109,7 +1109,7 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
         int32_t curHeight     = mapBlockIndex[cw.blockCache.GetBestBlockHash()]->height;
         int32_t validHeight   = SysCfg().GetTxCacheHeight();
         uint32_t fuelRate     = block.GetFuelRate();
-        uint64_t totalRunStep = 0;
+        uint64_t totalFuel = 0;
 
         for (int32_t index = 1; index < (int32_t)block.vptx.size(); ++index) {
             std::shared_ptr<CBaseTx> &pBaseTx = block.vptx[index];
@@ -1134,9 +1134,9 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
 
             vPos.push_back(make_pair(pBaseTx->GetHash(), pos));
 
-            totalRunStep += pBaseTx->fuel;
-            if (totalRunStep > MAX_BLOCK_RUN_STEP)
-                return state.DoS(100, ERRORMSG("total steps(%llu) exceed max steps(%llu)", totalRunStep,
+            totalFuel += pBaseTx->fuel;
+            if (totalFuel > MAX_BLOCK_RUN_STEP)
+                return state.DoS(100, ERRORMSG("total steps(%llu) exceed max steps(%llu)", totalFuel,
                                  MAX_BLOCK_RUN_STEP), REJECT_INVALID, "exceed-max-fuel");
 
             auto fuelFee = pBaseTx->GetFuelFee(block.GetHeight(), block.GetFuelRate());
@@ -1150,7 +1150,7 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
 
             pos.nTxOffset += ::GetSerializeSize(pBaseTx, SER_DISK, CLIENT_VERSION);
 
-            // LogPrint(BCLog::DEBUG, "total fuel fee:%d, tx fuel fee:%d runStep:%d fuelRate:%d txid:%s\n", totalFuelFee,
+            // LogPrint(BCLog::DEBUG, "total fuel fee:%d, tx fuel fee:%d fuel:%d fuelRate:%d txid:%s\n", totalFuelFee,
             //          fuel, pBaseTx->fuel, fuelRate, pBaseTx->GetHash().GetHex());
         }
     }
