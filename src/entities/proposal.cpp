@@ -352,16 +352,16 @@ bool CGovCdpParamProposal::ExecuteProposal(CTxExecuteContext& context, CBaseTx& 
             uint64_t startLiquidateRatio;
             uint64_t forceLiquidateRatio;
             if (!cw.sysParamCache.GetCdpParam(coin_pair,CDP_START_COLLATERAL_RATIO, startCollateralRatio) ||
-                !cw.sysParamCache.GetCdpParam(coin_pair,CDP_START_COLLATERAL_RATIO, startLiquidateRatio) ||
-                !cw.sysParamCache.GetCdpParam(coin_pair,CDP_START_COLLATERAL_RATIO, forceLiquidateRatio)) {
-                return state.DoS(100, ERRORMSG("get CDP_START_COLLATERAL_RATIO CDP_START_COLLATERAL_RATIO CDP_START_COLLATERAL_RATIO error"
+                !cw.sysParamCache.GetCdpParam(coin_pair,CDP_START_LIQUIDATE_RATIO, startLiquidateRatio) ||
+                !cw.sysParamCache.GetCdpParam(coin_pair,CDP_FORCE_LIQUIDATE_RATIO, forceLiquidateRatio)) {
+                return state.DoS(100, ERRORMSG("get CDP_START_COLLATERAL_RATIO CDP_START_LIQUIDATE_RATIO CDP_FORCE_LIQUIDATE_RATIO error"
                                                ), REJECT_INVALID, "params-relation-error");
             }
             if(startCollateralRatio <= startLiquidateRatio
                 || startLiquidateRatio <= forceLiquidateRatio
                 || startCollateralRatio <= forceLiquidateRatio) {
-                return state.DoS(100, ERRORMSG("check CDP_START_COLLATERAL_RATIO CDP_START_COLLATERAL_RATIO"
-                                               " CDP_START_COLLATERAL_RATIO relationship error"), REJECT_INVALID, "params-relation-error");
+                return state.DoS(100, ERRORMSG("check CDP_START_COLLATERAL_RATIO CDP_START_LIQUIDATE_RATIO"
+                                               " CDP_FORCE_LIQUIDATE_RATIO relationship error"), REJECT_INVALID, "params-relation-error");
             }
 
 
