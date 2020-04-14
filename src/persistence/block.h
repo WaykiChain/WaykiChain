@@ -120,6 +120,10 @@ public:
     const vector<unsigned char> &GetSignature() const { return vSignature; }
     void SetSignature(const vector<unsigned char> &signature) { this->vSignature = signature; }
     void ClearSignature() { this->vSignature.clear(); }
+
+    string GetIdStr() {
+        return strprintf("[%u]%s", height, GetHash().ToString());
+    }
 };
 
 class CBlock : public CBlockHeader {
@@ -359,7 +363,7 @@ public:
     }
 
     string GetIndentityString() const {
-        return strprintf("%d:%s", height, GetBlockHash().ToString());
+        return strprintf("[%d]%s", height, GetBlockHash().ToString());
     }
 
     void Print() const { LogPrint(BCLog::INFO, "%s\n", ToString()); }

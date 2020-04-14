@@ -623,6 +623,7 @@ static bool GetMiner(int64_t startMiningMs, const int32_t blockHeight, Miner &mi
 
 
 static bool ProduceBlock(int64_t startMiningMs, CBlockIndex *pPrevIndex, Miner &miner, const uint32_t totalDelegateNum) {
+    // has do LOCK(cs_main);
     int64_t lastTime    = 0;
     bool success        = false;
     int32_t blockHeight = 0;
@@ -630,73 +631,62 @@ static bool ProduceBlock(int64_t startMiningMs, CBlockIndex *pPrevIndex, Miner &
     if (!pBlock.get())
         throw runtime_error("ProduceBlock() : failed to create new block");
 
-    {
-        LOCK(cs_main);
-        CBlockIndex *pTipIndex = chainActive.Tip();
-        if (pPrevIndex != pTipIndex) {
-            LogPrint(BCLog::MINER, "active chain tip changed when mining! pre_block=%d:%s, tip_block=%d:%s\n",
-                pPrevIndex->height, pPrevIndex->GetBlockHash().ToString(),
-                pTipIndex->height, pTipIndex->GetBlockHash().ToString());
-            return false;
-        }
+    blockHeight = pPrevIndex->height + 1;
+    const CRegID &minerId = miner.account.regid;
 
-        blockHeight = pPrevIndex->height + 1;
-
-        if (!CheckPackBlockTime(startMiningMs, blockHeight)) {
-            LogPrint(BCLog::MINER, "[%d] no time left to pack block! start_ms=%lld, miner_regid=%s\n",
-                    blockHeight, startMiningMs, miner.account.regid.ToString());
-            return false;
-        }
-
-        lastTime  = GetTimeMillis();
-        auto spCW = std::make_shared<CCacheWrapper>(pCdMan);
-
-        pBlock->SetTime(MillisToSecond(startMiningMs));  // set block time first
-
-        if (blockHeight == (int32_t)SysCfg().GetStableCoinGenesisHeight()) {
-            success = CreateStableCoinGenesisBlock(pBlock);  // stable coin genesis
-
-        } else if (GetFeatureForkVersion(blockHeight) == MAJOR_VER_R1) {
-            success = CreateNewBlockForPreStableCoinRelease(*spCW, pBlock); // pre-stable coin release
-
-        } else {
-            success = CreateNewBlockForStableCoinRelease(startMiningMs, *spCW, pBlock);    // stable coin release
-        }
-
-        if (!success) {
-            LogPrint(BCLog::MINER, "[%d] failed to add a new block: regid=%s, "
-                "used_time_ms=%lld\n", blockHeight, miner.account.regid.ToString(),
-                GetTimeMillis() - lastTime);
-            return false;
-        }
-        LogPrint(BCLog::MINER,
-                 "[%d] succeeded in adding a new block: regid=%s, tx_count=%u, "
-                 "used_time_ms=%lld\n", blockHeight, miner.account.regid.ToString(),
-                 pBlock->vptx.size(), GetTimeMillis() - lastTime);
-
-        lastTime = GetTimeMillis();
-        success  = CreateBlockRewardTx(miner, pBlock.get(), totalDelegateNum);
-        if (!success) {
-            LogPrint(BCLog::MINER, "[%d] failed in CreateBlockRewardTx: regid=%s, "
-                "used_time_ms=%lld\n", blockHeight, miner.account.regid.ToString(), GetTimeMillis() - lastTime);
-            return false;
-        }
-        LogPrint(BCLog::MINER, "[%d] succeeded in CreateBlockRewardTx: regid=%s, reward_txid=%s, "
-            "used_time_ms=%lld\n", blockHeight, miner.account.regid.ToString(), pBlock->vptx[0]->GetHash().ToString(),
-            GetTimeMillis() - lastTime);
-
-        lastTime = GetTimeMillis();
-        success  = CheckWork(pBlock.get());
-        if (!success) {
-            LogPrint(BCLog::MINER, "[%d] failed in CheckWork for new block, regid=%s, "
-                "used_time_ms=%lld\n", blockHeight, miner.account.regid.ToString(), GetTimeMillis() - lastTime);
-            return false;
-        }
-
-        LogPrint(BCLog::MINER, "[%d] succeeded in CheckWork for new block: regid=%s, hash=%s, "
-                "used_time_ms=%lld\n", blockHeight, miner.account.regid.ToString(), pBlock->GetHash().ToString(),
-                GetTimeMillis() - lastTime);
+    if (!CheckPackBlockTime(startMiningMs, blockHeight)) {
+        LogPrint(BCLog::MINER, "[%d] no time left to pack block! start_ms=%lld, miner_regid=%s\n",
+                blockHeight, startMiningMs, minerId.ToString());
+        return false;
     }
+
+    lastTime  = GetTimeMillis();
+    auto spCW = std::make_shared<CCacheWrapper>(pCdMan);
+
+    pBlock->SetTime(MillisToSecond(startMiningMs));  // set block time first
+
+    if (blockHeight == (int32_t)SysCfg().GetStableCoinGenesisHeight()) {
+        success = CreateStableCoinGenesisBlock(pBlock);  // stable coin genesis
+
+    } else if (GetFeatureForkVersion(blockHeight) == MAJOR_VER_R1) {
+        success = CreateNewBlockForPreStableCoinRelease(*spCW, pBlock); // pre-stable coin release
+
+    } else {
+        success = CreateNewBlockForStableCoinRelease(startMiningMs, *spCW, pBlock);    // stable coin release
+    }
+
+    if (!success) {
+        LogPrint(BCLog::MINER, "[%d] failed to add a new block: regid=%s, "
+            "used_time_ms=%lld\n", blockHeight, minerId.ToString(),
+            GetTimeMillis() - lastTime);
+        return false;
+    }
+    LogPrint(BCLog::MINER,
+                "[%d] succeeded in adding a new block: regid=%s, tx_count=%u, "
+                "used_time_ms=%lld\n", blockHeight, minerId.ToString(),
+                pBlock->vptx.size(), GetTimeMillis() - lastTime);
+
+    lastTime = GetTimeMillis();
+    success  = CreateBlockRewardTx(miner, pBlock.get(), totalDelegateNum);
+    if (!success) {
+        LogPrint(BCLog::MINER, "[%d] failed in CreateBlockRewardTx: regid=%s, "
+            "used_time_ms=%lld\n", blockHeight, minerId.ToString(), GetTimeMillis() - lastTime);
+        return false;
+    }
+    LogPrint(BCLog::MINER, "[%d] succeeded in CreateBlockRewardTx: regid=%s, reward_txid=%s, "
+        "used_time_ms=%lld\n", blockHeight, minerId.ToString(), pBlock->vptx[0]->GetHash().ToString(),
+        GetTimeMillis() - lastTime);
+
+    lastTime = GetTimeMillis();
+    success  = CheckWork(pBlock.get());
+    if (!success) {
+        LogPrint(BCLog::MINER, "[%d] failed in CheckWork for new block, regid=%s, "
+            "used_time_ms=%lld\n", blockHeight, minerId.ToString(), GetTimeMillis() - lastTime);
+        return false;
+    }
+
+    LogPrint(BCLog::MINER, "success to CheckWork for new block=%s, regid=%s, used_time_ms=%lld\n",
+            pBlock->GetIdStr(), minerId.ToString(), GetTimeMillis() - lastTime);
 
     {
         LOCK(csMinedBlocks);
@@ -706,7 +696,7 @@ static bool ProduceBlock(int64_t startMiningMs, CBlockIndex *pPrevIndex, Miner &
     }
 
     LogPrint(BCLog::INFO, "[%d] mined a new block: regid=%s, hash=%s, "
-        "used_time_ms=%lld\n", blockHeight, miner.account.regid.ToString(), pBlock->GetHash().ToString(),
+        "used_time_ms=%lld\n", blockHeight, minerId.ToString(), pBlock->GetHash().ToString(),
         GetTimeMillis() - startMiningMs);
     return true;
 }
@@ -758,26 +748,27 @@ void static ThreadBlockProducing(CWallet *pWallet, int32_t targetHeight) {
 
             if (needSleep) {
                 MilliSleep(100);
+                needSleep = false;
             }
 
-            CBlockIndex *pIndexPrev;
+            CBlockIndex *pPrevIndex;
             {
                 LOCK(cs_main);
-                pIndexPrev = chainActive.Tip();
+                pPrevIndex = chainActive.Tip();
             }
 
-            if(pIndexPrev== nullptr)
+            if(pPrevIndex== nullptr)
                 continue ;
 
             if(SysCfg().IsReindex()){
                 continue ;
             }
 
-            int32_t blockHeight = pIndexPrev->height + 1;
+            int32_t blockHeight = pPrevIndex->height + 1;
 
             int64_t startMiningMs = GetTimeMillis();
             int64_t curMiningTime = MillisToSecond(startMiningMs);
-            int64_t curSlotTime = std::max(nextSlotTime, pIndexPrev->GetBlockTime() + GetBlockInterval(blockHeight));
+            int64_t curSlotTime = std::max(nextSlotTime, pPrevIndex->GetBlockTime() + GetBlockInterval(blockHeight));
             if (curMiningTime < curSlotTime) {
                 needSleep = true;
                 continue;
@@ -795,9 +786,20 @@ void static ThreadBlockProducing(CWallet *pWallet, int32_t targetHeight) {
             }
 
             mining     = true;
-
-            if (!ProduceBlock(startMiningMs, pIndexPrev, *spMiner,totalDelegateNum))
-                continue;
+            {
+                LOCK(cs_main);
+                CBlockIndex *pTipIndex = chainActive.Tip();
+                if (pPrevIndex != pTipIndex) {
+                    LogPrint(BCLog::MINER, "active chain tip changed when mining! pre_block=%s, tip_block=%s\n",
+                        pPrevIndex->GetIndentityString(), pTipIndex->GetIndentityString());
+                    needSleep = false;
+                    continue;
+                }
+                if (!ProduceBlock(startMiningMs, pPrevIndex, *spMiner,totalDelegateNum)) {
+                    needSleep = true;
+                    continue;
+                }
+            }
 
             if (SysCfg().NetworkID() != MAIN_NET && targetHeight <= GetCurrHeight())
                 throw boost::thread_interrupted();
