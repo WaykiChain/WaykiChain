@@ -280,60 +280,57 @@ public:
     Object ToJson() const;
 };
 
-#define TX_ERR_TITLE (string(__func__) + "(), " + GetTxTypeName())
-#define TX_OBJ_ERR_TITLE(tx) (string(__func__) + "(), " + tx.GetTxTypeName())
+#define TX_ERR_TITLE (GetTxTypeName())
+#define TX_OBJ_ERR_TITLE(tx) (tx.GetTxTypeName())
 
-#define IMPLEMENT_DEFINE_CW_STATE                                                                               \
-    CCacheWrapper &cw       = *context.pCw;                                                                     \
+#define IMPLEMENT_DEFINE_CW_STATE                                                                  \
+    CCacheWrapper &cw       = *context.pCw;                                                        \
     CValidationState &state = *context.pState;
 
-#define IMPLEMENT_CHECK_TX_MEMO                                                                                 \
-    if (memo.size() > MAX_COMMON_TX_MEMO_SIZE)                                                                  \
-        return state.DoS(100, ERRORMSG("%s, memo's size too large", __FUNCTION__), REJECT_INVALID,              \
+#define IMPLEMENT_CHECK_TX_MEMO                                                                    \
+    if (memo.size() > MAX_COMMON_TX_MEMO_SIZE)                                                     \
+        return state.DoS(100, ERRORMSG("memo's size too large"), REJECT_INVALID,                   \
                          "memo-size-toolarge");
 
-#define IMPLEMENT_CHECK_TX_ARGUMENTS                                                                            \
-    if (arguments.size() > MAX_CONTRACT_ARGUMENT_SIZE)                                                          \
-        return state.DoS(100, ERRORMSG("%s, arguments's size too large", __FUNCTION__), REJECT_INVALID,         \
+#define IMPLEMENT_CHECK_TX_ARGUMENTS                                                               \
+    if (arguments.size() > MAX_CONTRACT_ARGUMENT_SIZE)                                             \
+        return state.DoS(100, ERRORMSG("arguments's size too large"), REJECT_INVALID,              \
                          "arguments-size-toolarge");
 
 #define IMPLEMENT_CHECK_TX_REGID(txUid)                                                            \
     if (!txUid.is<CRegID>()) {                                                                     \
-        return state.DoS(100, ERRORMSG("%s, txUid must be CRegID", __FUNCTION__), REJECT_INVALID,  \
+        return state.DoS(100, ERRORMSG("txUid must be CRegID"), REJECT_INVALID,                    \
                          "txUid-type-error");                                                      \
     }
 
 #define IMPLEMENT_CHECK_TX_APPID(appUid)                                                           \
     if (!appUid.is<CRegID>()) {                                                                    \
-        return state.DoS(100, ERRORMSG("%s, appUid must be CRegID", __FUNCTION__), REJECT_INVALID, \
+        return state.DoS(100, ERRORMSG("appUid must be CRegID"), REJECT_INVALID,                   \
                          "appUid-type-error");                                                     \
     }
 
 #define IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(uid)                                                    \
     if (GetFeatureForkVersion(context.height) == MAJOR_VER_R1 && !uid.is<CRegID>()) {              \
         return state.DoS(100,                                                                      \
-                         ERRORMSG("%s, txUid must be CRegID pre-stable coin release! tx=%s",       \
+                         ERRORMSG("txUid must be CRegID pre-stable coin release! tx=%s",           \
                                   __FUNCTION__, GetTxTypeName()),                                  \
                          REJECT_INVALID, "txUid-type-error");                                      \
     }                                                                                              \
     if ((!uid.is<CRegID>()) && (!uid.is<CPubKey>())) {                                             \
-        return state.DoS(                                                                          \
-            100,                                                                                   \
-            ERRORMSG("%s, txUid must be CRegID or CPubKey! tx=%s", __FUNCTION__, GetTxTypeName()), \
-            REJECT_INVALID, "txUid-type-error");                                                   \
+        return state.DoS(100, ERRORMSG("txUid must be CRegID or CPubKey! tx=%s", GetTxTypeName()), \
+                         REJECT_INVALID, "txUid-type-error");                                      \
     }
 
-#define IMPLEMENT_CHECK_TX_CANDIDATE_REGID_OR_PUBKEY(candidateUid)                                              \
-    if ((!candidateUid.is<CRegID>()) && (!candidateUid.is<CPubKey>())) {                            \
-        return state.DoS(100, ERRORMSG("%s, candidateUid must be CRegID or CPubKey", __FUNCTION__), REJECT_INVALID, \
-                         "candidateUid-type-error");                                                                \
+#define IMPLEMENT_CHECK_TX_CANDIDATE_REGID_OR_PUBKEY(candidateUid)                                 \
+    if ((!candidateUid.is<CRegID>()) && (!candidateUid.is<CPubKey>())) {                           \
+        return state.DoS(100, ERRORMSG("candidateUid must be CRegID or CPubKey"), REJECT_INVALID,  \
+                         "candidateUid-type-error");                                               \
     }
 
 #define IMPLEMENT_CHECK_TX_REGID_OR_KEYID(toUid)                                                   \
-    if ((!toUid.is<CRegID>()) && (!toUid.is<CKeyID>())) {                                           \
-        return state.DoS(100, ERRORMSG("%s, toUid must be CRegID or CKeyID", __FUNCTION__),        \
-                         REJECT_INVALID, "toUid-type-error");                                      \
+    if ((!toUid.is<CRegID>()) && (!toUid.is<CKeyID>())) {                                          \
+        return state.DoS(100, ERRORMSG("toUid must be CRegID or CKeyID"), REJECT_INVALID,          \
+                         "toUid-type-error");                                                      \
     }
-
 
 #endif //COIN_BASETX_H
