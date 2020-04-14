@@ -182,7 +182,7 @@ Value luavm_executescript(const Array& params, bool fHelp) {
         tx.txUid            = srcRegId;
         tx.contract         = contract;
         tx.llFees           = regMinFee;
-        tx.nRunStep         = contract_size;
+        tx.fuel         = contract_size;
         tx.valid_height     = newHeight;
 
         if (!pWalletMain->Sign(srcKeyId, tx.GetHash(), tx.signature)) {
@@ -234,7 +234,7 @@ Value luavm_executescript(const Array& params, bool fHelp) {
 
     Object callContractTxObj;
 
-    callContractTxObj.push_back(Pair("run_steps", contractInvokeTx.nRunStep));
+    callContractTxObj.push_back(Pair("run_steps", contractInvokeTx.fuel));
     callContractTxObj.push_back(Pair("used_fuel", contractInvokeTx.GetFuelFee(newHeight, fuelRate)));
 
     Object retObj;
@@ -354,7 +354,7 @@ Value luavm_executecontract(const Array& params, bool fHelp) {
 
     Object retObj;
     retObj.push_back(Pair("fuel_rate",              (int32_t)fuelRate));
-    retObj.push_back(Pair("burned_fuel", contractInvokeTx.nRunStep));
+    retObj.push_back(Pair("burned_fuel", contractInvokeTx.fuel));
     retObj.push_back(Pair("fuel_fee", contractInvokeTx.GetFuelFee(height, contractInvokeTx.nFuelRate)));
 
     return retObj;

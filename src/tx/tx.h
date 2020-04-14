@@ -135,7 +135,7 @@ public:
     uint64_t llFees;
     UnsignedCharArray signature;
 
-    uint64_t nRunStep;     //!< only in memory
+    uint64_t fuel;     //!< only in memory
     int32_t nFuelRate;     //!< only in memory
     mutable TxID sigHash;  //!< only in memory
     CAccount txAccount;    //!< only in memory
@@ -144,22 +144,22 @@ public:
 public:
     CBaseTx(int32_t nVersionIn, TxType nTxTypeIn, CUserID txUidIn, int32_t nValidHeightIn, uint64_t llFeesIn) :
         nVersion(nVersionIn), nTxType(nTxTypeIn), txUid(txUidIn), valid_height(nValidHeightIn),
-        fee_symbol(SYMB::WICC), llFees(llFeesIn), nRunStep(0), nFuelRate(0) {}
+        fee_symbol(SYMB::WICC), llFees(llFeesIn), fuel(0), nFuelRate(0) {}
 
     CBaseTx(TxType nTxTypeIn, CUserID txUidIn, int32_t nValidHeightIn, TokenSymbol feeSymbolIn, uint64_t llFeesIn) :
         nVersion(CURRENT_VERSION), nTxType(nTxTypeIn), txUid(txUidIn), valid_height(nValidHeightIn),
-        fee_symbol(feeSymbolIn), llFees(llFeesIn), nRunStep(0), nFuelRate(0) {}
+        fee_symbol(feeSymbolIn), llFees(llFeesIn), fuel(0), nFuelRate(0) {}
 
     CBaseTx(TxType nTxTypeIn, CUserID txUidIn, int32_t nValidHeightIn, uint64_t llFeesIn) :
         nVersion(CURRENT_VERSION), nTxType(nTxTypeIn), txUid(txUidIn), valid_height(nValidHeightIn),
-        fee_symbol(SYMB::WICC), llFees(llFeesIn), nRunStep(0), nFuelRate(0) {}
+        fee_symbol(SYMB::WICC), llFees(llFeesIn), fuel(0), nFuelRate(0) {}
 
     CBaseTx(int32_t nVersionIn, TxType nTxTypeIn) :
-        nVersion(nVersionIn), nTxType(nTxTypeIn), valid_height(0), fee_symbol(SYMB::WICC), llFees(0), nRunStep(0),
+        nVersion(nVersionIn), nTxType(nTxTypeIn), valid_height(0), fee_symbol(SYMB::WICC), llFees(0), fuel(0),
         nFuelRate(0) {}
 
     CBaseTx(TxType nTxTypeIn) :
-        nVersion(CURRENT_VERSION), nTxType(nTxTypeIn), valid_height(0), fee_symbol(SYMB::WICC), llFees(0), nRunStep(0),
+        nVersion(CURRENT_VERSION), nTxType(nTxTypeIn), valid_height(0), fee_symbol(SYMB::WICC), llFees(0), fuel(0),
         nFuelRate(0) {}
 
     virtual ~CBaseTx() {}

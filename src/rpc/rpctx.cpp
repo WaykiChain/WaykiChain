@@ -170,7 +170,7 @@ Value submitcontractdeploytx_r2(const Array& params, bool fHelp) {
     tx.txUid        = txUid;
     tx.contract     = CLuaContract(contractScript, memo);
     tx.llFees       = fee.GetAmountInSawi();
-    tx.nRunStep     = tx.contract.GetContractSize();
+    tx.fuel     = tx.contract.GetContractSize();
     tx.valid_height = validHegiht;
 
     return SubmitTx(account.keyid, tx);
@@ -366,7 +366,7 @@ Value submitucontractdeploytx(const Array& params, bool fHelp) {
     tx.contract     = CUniversalContract(contractScript, memo);
     tx.fee_symbol   = cmFee.symbol;
     tx.llFees       = cmFee.GetAmountInSawi();
-    tx.nRunStep     = tx.contract.GetContractSize();
+    tx.fuel     = tx.contract.GetContractSize();
     tx.valid_height = validHegiht;
 
     return SubmitTx(account.keyid, tx);

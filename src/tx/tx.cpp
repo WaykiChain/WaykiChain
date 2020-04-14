@@ -95,7 +95,7 @@ bool CBaseTx::RegisterAccountPubKey(CTxExecuteContext &context) {
 }
 
 uint64_t CBaseTx::GetFuelFee(int32_t height, uint32_t fuelRate) {
-    return (nRunStep == 0 || fuelRate == 0) ? 0 : std::ceil(nRunStep / 100.0f) * fuelRate;
+    return (fuel == 0 || fuelRate == 0) ? 0 : std::ceil(fuel / 100.0f) * fuelRate;
 }
 
 bool CBaseTx::CheckBaseTx(CTxExecuteContext &context) {

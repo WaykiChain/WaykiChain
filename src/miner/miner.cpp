@@ -269,7 +269,7 @@ bool VerifyRewardTx(const CBlock *pBlock, CCacheWrapper &cwIn, VoteDelegate &cur
     //                             pBaseTx->GetHash().GetHex());
     //         }
 
-    //         totalRunStep += pBaseTx->nRunStep;
+    //         totalRunStep += pBaseTx->fuel;
     //         if (totalRunStep > MAX_BLOCK_RUN_STEP)
     //             return ERRORMSG("block total run steps(%lu) exceed max run step(%lu)", totalRunStep,
     //                             MAX_BLOCK_RUN_STEP);
@@ -277,7 +277,7 @@ bool VerifyRewardTx(const CBlock *pBlock, CCacheWrapper &cwIn, VoteDelegate &cur
     //         uint32_t fuelFee = pBaseTx->GetFuelFee(pBlock->GetHeight(), pBlock->GetFuelRate());
     //         totalFuelFee += fuelFee;
     //         LogPrint(BCLog::DEBUG, "VerifyRewardTx() : total fuel fee:%d, tx fuel fee:%d runStep:%d fuelRate:%d txid:%s\n", totalFuelFee,
-    //                  fuelFee, pBaseTx->nRunStep, pBlock->GetFuelRate(), pBaseTx->GetHash().GetHex());
+    //                  fuelFee, pBaseTx->fuel, pBlock->GetFuelRate(), pBaseTx->GetHash().GetHex());
     //     }
 
     //     if (totalFuelFee != pBlock->GetFuelFee())
@@ -346,7 +346,7 @@ static bool CreateNewBlockForPreStableCoinRelease(CCacheWrapper &cwIn, std::uniq
                 }
 
                 // Run step limits
-                if (totalRunStep + pBaseTx->nRunStep >= MAX_BLOCK_RUN_STEP) {
+                if (totalRunStep + pBaseTx->fuel >= MAX_BLOCK_RUN_STEP) {
                     LogPrint(BCLog::MINER, "exceed max block run steps, txid: %s\n",
                             pBaseTx->GetHash().GetHex());
                     continue;
@@ -364,7 +364,7 @@ static bool CreateNewBlockForPreStableCoinRelease(CCacheWrapper &cwIn, std::uniq
             assert(fees_symbol == SYMB::WICC);
 
             totalBlockSize += txSize;
-            totalRunStep += pBaseTx->nRunStep;
+            totalRunStep += pBaseTx->fuel;
             totalFuelFee += fuelFee;
             totalFees += fees;
             assert(fees >= fuelFee);
@@ -375,7 +375,7 @@ static bool CreateNewBlockForPreStableCoinRelease(CCacheWrapper &cwIn, std::uniq
             pBlock->vptx.push_back(itor->baseTx);
 
             LogPrint(BCLog::DEBUG, "miner's total fuel fee:%d, tx fuel fee:%d, fuel:%d, fuelRate:%d, txid:%s\n",
-                    totalFuelFee, pBaseTx->GetFuelFee(height, fuelRate), pBaseTx->nRunStep, fuelRate, pBaseTx->GetHash().GetHex());
+                    totalFuelFee, pBaseTx->GetFuelFee(height, fuelRate), pBaseTx->fuel, fuelRate, pBaseTx->GetHash().GetHex());
         }
 
         nLastBlockTx                   = index + 1;
@@ -510,7 +510,7 @@ static bool CreateNewBlockForStableCoinRelease(int64_t startMiningMs, CCacheWrap
                 }
 
                 // Run step limits
-                if (totalRunStep + pBaseTx->nRunStep >= MAX_BLOCK_RUN_STEP) {
+                if (totalRunStep + pBaseTx->fuel >= MAX_BLOCK_RUN_STEP) {
                     LogPrint(BCLog::MINER, "Exceed max block run steps, txid: %s\n", pBaseTx->GetHash().GetHex());
                     continue;
                 }
@@ -528,7 +528,7 @@ static bool CreateNewBlockForStableCoinRelease(int64_t startMiningMs, CCacheWrap
             assert(fees_symbol == SYMB::WICC || fees_symbol == SYMB::WUSD);
 
             totalBlockSize += txSize;
-            totalRunStep += pBaseTx->nRunStep;
+            totalRunStep += pBaseTx->fuel;
             totalFuelFee += fuel;
             totalFees += fees;
             assert(fees >= fuel);
@@ -539,7 +539,7 @@ static bool CreateNewBlockForStableCoinRelease(int64_t startMiningMs, CCacheWrap
             pBlock->vptx.push_back(itor->baseTx);
 
             LogPrint(BCLog::DEBUG, "miner total_fuel_fee=%d, tx_fuel_fee=%d, fuel=%d, fuelRate:%d, txid:%.7s**\n",
-                    totalFuelFee, pBaseTx->GetFuelFee(height, fuelRate), pBaseTx->nRunStep, fuelRate, pBaseTx->GetHash().GetHex());
+                    totalFuelFee, pBaseTx->GetFuelFee(height, fuelRate), pBaseTx->fuel, fuelRate, pBaseTx->GetHash().GetHex());
 
         }
 

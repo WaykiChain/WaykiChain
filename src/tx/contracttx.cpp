@@ -111,7 +111,7 @@ bool CLuaContractDeployTx::ExecuteTx(CTxExecuteContext &context) {
                         contractRegId.ToString()), UPDATE_ACCOUNT_FAIL, "bad-save-scriptdb");
     }
 
-    nRunStep = contract.GetContractSize();
+    fuel = contract.GetContractSize();
 
     return true;
 }
@@ -124,7 +124,7 @@ uint64_t CLuaContractDeployTx::GetFuelFee(int32_t height, uint32_t nFuelRate) {
         throw runtime_error("CUniversalContractDeployR2Tx::GetFuelFee(), get min_fee failed");
     }
 
-    return std::max<uint64_t>(((nRunStep / 100.0f) * nFuelRate), minFee);
+    return std::max<uint64_t>(((fuel / 100.0f) * nFuelRate), minFee);
 }
 
 string CLuaContractDeployTx::ToString(CAccountDBCache &accountCache) {
@@ -207,7 +207,7 @@ bool CLuaContractInvokeTx::ExecuteTx(CTxExecuteContext &context) {
     luaContext.p_arguments       = &arguments;
 
     int64_t llTime = GetTimeMillis();
-    auto pExecErr  = vmRunEnv.ExecuteContract(&luaContext, nRunStep);
+    auto pExecErr  = vmRunEnv.ExecuteContract(&luaContext, fuel);
     if (pExecErr)
         return state.DoS(100, ERRORMSG("CLuaContractInvokeTx::ExecuteTx, txid=%s run script error:%s",
                         GetHash().GetHex(), *pExecErr), UPDATE_ACCOUNT_FAIL, "run-script-error: " + *pExecErr);
@@ -306,7 +306,7 @@ bool CUniversalContractDeployR2Tx::ExecuteTx(CTxExecuteContext &context) {
                         contractRegId.ToString()), UPDATE_ACCOUNT_FAIL, "bad-save-scriptdb");
     }
 
-    nRunStep = contract.GetContractSize();
+    fuel = contract.GetContractSize();
 
     // If fees paid by WUSD, send the fuel to risk reserve pool.
     if (fee_symbol == SYMB::WUSD) {
@@ -335,7 +335,7 @@ uint64_t CUniversalContractDeployR2Tx::GetFuelFee(int32_t height, uint32_t nFuel
         throw runtime_error("CUniversalContractDeployR2Tx::GetFuelFee(), get min_fee failed");
     }
 
-    return std::max<uint64_t>(((nRunStep / 100.0f) * nFuelRate), minFee);
+    return std::max<uint64_t>(((fuel / 100.0f) * nFuelRate), minFee);
 }
 
 string CUniversalContractDeployR2Tx::ToString(CAccountDBCache &accountCache) {
@@ -430,7 +430,7 @@ bool CUniversalContractInvokeR2Tx::ExecuteTx(CTxExecuteContext &context) {
     luaContext.p_arguments       = &arguments;
 
     int64_t llTime = GetTimeMillis();
-    auto pExecErr  = vmRunEnv.ExecuteContract(&luaContext, nRunStep);
+    auto pExecErr  = vmRunEnv.ExecuteContract(&luaContext, fuel);
     if (pExecErr)
         return state.DoS(100, ERRORMSG("txid=%s run script error: %s", GetHash().GetHex(), *pExecErr),
                         EXECUTE_SCRIPT_FAIL, "run-script-error: " + *pExecErr);
@@ -793,7 +793,7 @@ bool CUniversalContractTx::ExecuteTx(CTxExecuteContext &context) {
                       GetHash().ToString())
 
         //set runstep for block fuel sum
-        nRunStep = run_cost;
+        fuel = run_cost;
 
         auto database = std::make_shared<CCacheWrapper>(context.pCw);
         auto resolver = make_resolver(database);
@@ -859,7 +859,7 @@ uint64_t CUniversalContractTx::GetFuelFee(int32_t height, uint32_t nFuelRate) {
         throw runtime_error("CUniversalContractTx::GetFuelFee(), get min_fee failed");
     }
 
-    return std::max<uint64_t>(((nRunStep / 100.0f) * nFuelRate), minFee);
+    return std::max<uint64_t>(((fuel / 100.0f) * nFuelRate), minFee);
 }
 
 string CUniversalContractTx::ToString(CAccountDBCache &accountCache) {

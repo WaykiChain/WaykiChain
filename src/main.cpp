@@ -1134,7 +1134,7 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
 
             vPos.push_back(make_pair(pBaseTx->GetHash(), pos));
 
-            totalRunStep += pBaseTx->nRunStep;
+            totalRunStep += pBaseTx->fuel;
             if (totalRunStep > MAX_BLOCK_RUN_STEP)
                 return state.DoS(100, ERRORMSG("total steps(%llu) exceed max steps(%llu)", totalRunStep,
                                  MAX_BLOCK_RUN_STEP), REJECT_INVALID, "exceed-max-fuel");
@@ -1151,7 +1151,7 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
             pos.nTxOffset += ::GetSerializeSize(pBaseTx, SER_DISK, CLIENT_VERSION);
 
             // LogPrint(BCLog::DEBUG, "total fuel fee:%d, tx fuel fee:%d runStep:%d fuelRate:%d txid:%s\n", totalFuelFee,
-            //          fuel, pBaseTx->nRunStep, fuelRate, pBaseTx->GetHash().GetHex());
+            //          fuel, pBaseTx->fuel, fuelRate, pBaseTx->GetHash().GetHex());
         }
     }
 
