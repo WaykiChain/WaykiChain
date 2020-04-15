@@ -962,7 +962,7 @@ Value submitdexopupdatetx(const Array& params, bool fHelp){
     EnsureWalletIsUnlocked();
     const CUserID &userId = RPC_PARAM::GetUserId(params[0].get_str(),true);
     CDEXOperatorUpdateData updateData ;
-    updateData.dexId = CDEXOperatorUpdateData::UpdateField (params[1].get_int()) ;
+    updateData.dexId = RPC_PARAM::GetDexId(params[1]);
     updateData.field = CDEXOperatorUpdateData::UpdateField(params[2].get_int());
     string valueStr = params[3].get_str();
     switch (updateData.field){
