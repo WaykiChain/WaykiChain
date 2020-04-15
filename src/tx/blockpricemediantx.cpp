@@ -474,7 +474,7 @@ bool CCdpForceLiquidator::ForceLiquidateCDPCompat(CCdpRatioIndexCache::Map &cdps
         if (currRiskReserveScoins < cdp.total_owed_scoins) {
             LogPrint(BCLog::CDP, "currRiskReserveScoins(%lu) < cdp.total_owed_scoins(%lu) !!\n",
                     currRiskReserveScoins, cdp.total_owed_scoins);
-            break;
+            continue;
         }
 
         // a) sell WICC for WUSD to return to risk reserve pool
