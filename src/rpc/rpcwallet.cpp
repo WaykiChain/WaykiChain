@@ -400,7 +400,7 @@ Value submitsendmultitx(const Array& params, bool fHelp) {
         //check only && no persistence!
         ReceiptList receipts;
         if (!account.OperateBalance(amount.symbol, SUB_FREE, amount.GetAmountInSawi(), ReceiptType::NULL_RECEIPT_TYPE, receipts))
-            throw JSONRPCError(REJECT_INVALID, strprintf("Insufficient coins: %llu", amount.GetAmountInSawi()));
+            throw JSONRPCError(REJECT_INVALID, strprintf("%s Insufficient coins",amount.symbol));
     }
 
     RPC_PARAM::CheckAccountBalance(account, fee.symbol, SUB_FREE, fee.GetAmountInSawi());
