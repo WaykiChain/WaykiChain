@@ -29,12 +29,13 @@ static Object DexOperatorToJson(const CAccountDBCache &accountCache, const DexOp
     result.push_back(Pair("fee_receiver_addr",   feeReceiverKeyId.ToAddress()));
     result.push_back(Pair("name",           dexOperator.name));
     result.push_back(Pair("portal_url",     dexOperator.portal_url));
+    result.push_back(Pair("order_open_mode", (uint8_t)dexOperator.order_open_mode));
     result.push_back(Pair("maker_fee_ratio", dexOperator.maker_fee_ratio));
     result.push_back(Pair("taker_fee_ratio", dexOperator.taker_fee_ratio));
-    result.push_back(Pair("activated",       dexOperator.activated));
-    result.push_back(Pair("order_open_mode", (uint8_t)dexOperator.order_open_mode));
+    result.push_back(Pair("order_open_dexop_list", db_util::ToString(dexOperator.shared_dexop_set)));
     result.push_back(Pair("memo",           dexOperator.memo));
     result.push_back(Pair("memo_hex",       HexStr(dexOperator.memo)));
+    result.push_back(Pair("activated",       dexOperator.activated));
     return result;
 }
 

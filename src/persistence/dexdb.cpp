@@ -428,9 +428,10 @@ bool Dex0(DexOperatorDetail& detail){
     detail.fee_receiver_regid = regid;
     detail.name = "wayki-dex";
     detail.portal_url = "https://dex.waykichain.com";
-    detail.public_mode = OpenMode::PUBLIC;
+    detail.order_open_mode = OpenMode::PUBLIC;
     detail.taker_fee_ratio = 40000;
     detail.maker_fee_ratio = 40000;
+    detail.shared_dexop_set = {};
     detail.activated = true;
 
     return true;
