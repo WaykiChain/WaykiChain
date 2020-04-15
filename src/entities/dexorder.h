@@ -206,6 +206,7 @@ struct DexOperatorDetail {
     dex::PublicMode public_mode   = dex::PublicMode::PRIVATE; // the default public mode for creating order
     uint64_t maker_fee_ratio = 0;    // the default maker fee ratio for creating order
     uint64_t taker_fee_ratio = 0;    // the defalt taker fee ratio for creating order
+    set<uint64_t> shared_dexop_set;    // the defalt taker fee ratio for creating order
     string memo              = "";
     bool activated           = false;
 

@@ -21,6 +21,7 @@ public:
         dex::PublicMode public_mode   = dex::PublicMode::PRIVATE; // the default public mode for creating order
         uint64_t maker_fee_ratio = 0;    // the default maker fee ratio for creating order
         uint64_t taker_fee_ratio = 0;    // the defalt taker fee ratio for creating order
+        vector<uint64_t> shared_dexop_list;
         string memo              = "";
 
         IMPLEMENT_SERIALIZE(
@@ -31,12 +32,15 @@ public:
             READWRITE((uint8_t&)public_mode);
             READWRITE(VARINT(maker_fee_ratio));
             READWRITE(VARINT(taker_fee_ratio));
+            READWRITE(shared_dexop_list);
             READWRITE(memo);
         )
         string ToString() {
-
-            return strprintf("owner_id=%s, fee_receiver_uid =%s, name=%s, portal_url=%s, public_mode=%d, makefee=%d, takefee=%d, memo=%s", owner_uid.ToString(),
-                    fee_receiver_uid.ToString(), name,portal_url, (uint8_t&)public_mode,maker_fee_ratio,taker_fee_ratio, memo);
+            return strprintf("owner_id=%s, fee_receiver_uid =%s, name=%s, portal_url=%s, "
+                             "public_mode=%d, makefee=%d, takefee=%d, memo=%s, shared_dexop_list=%s",
+                             owner_uid.ToString(), fee_receiver_uid.ToString(), name, portal_url,
+                             (uint8_t &)public_mode, maker_fee_ratio, taker_fee_ratio, memo,
+                             db_util::ToString(shared_dexop_list));
         }
     };
 public:

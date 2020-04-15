@@ -190,6 +190,7 @@ Array RPCConvertValues(const string &strMethod, const vector<string> &strParams)
 
     if (strMethod == "submitdexoperatorregtx"      && n > 6) ConvertTo<int64_t>(params[6]);
     if (strMethod == "submitdexoperatorregtx"      && n > 7) ConvertTo<int64_t>(params[7]);
+    if (strMethod == "submitdexoperatorregtx"      && n > 8) ConvertTo<Array>(params[8]);
     if (strMethod == "submitdexopupdatetx"   && n > 1) ConvertTo<int32_t>(params[1]);
     if (strMethod == "submitdexopupdatetx"   && n > 2) ConvertTo<int32_t>(params[2]);
 

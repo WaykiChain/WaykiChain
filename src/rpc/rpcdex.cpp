@@ -138,6 +138,16 @@ namespace RPC_PARAM {
         }
     }
 
+    vector<uint64_t> GetSharedDexopList(const Value& jsonValue) {
+        vector<uint64_t> ret;
+        const Array &arr = jsonValue.get_array();
+        for (auto &item : arr) {
+            ret.push_back(item.get_uint64());
+        }
+        return ret;
+    }
+
+
     void CheckOrderFee(const CAccount &txAccount, uint64_t txFee, uint64_t minFee,
         CAccount *pOperatorAccount = nullptr, uint64_t operatorTxFee = 0) {
 
@@ -864,7 +874,7 @@ void CheckAccountRegId(const CUserID uid , const string fieldName){
 
 Value submitdexoperatorregtx(const Array& params, bool fHelp){
 
-    if (fHelp || params.size() < 8  || params.size() > 10){
+    if (fHelp || params.size() < 9  || params.size() > 11){
         throw runtime_error(
             "submitdexoperatorregtx  \"addr\" \"owner_uid\" \"fee_receiver_uid\" \"dex_name\" \"portal_url\" "
             "\"public_mode\" maker_fee_ratio taker_fee_ratio [\"fees\"] [\"memo\"]\n"
@@ -878,17 +888,18 @@ Value submitdexoperatorregtx(const Array& params, bool fHelp){
             "8.\"public_mode\":     (string, required) indicate the order is PUBLIC or PRIVATE\n"
             "7.\"maker_fee_ratio\": (number, required) range is 0 ~ 50000000, 50000000 stand for 50% \n"
             "8.\"taker_fee_ratio\": (number, required) range is 0 ~ 50000000, 50000000 stand for 50% \n"
-            "9.\"fee\":             (symbol:fee:unit, optional) tx fee,default is the min fee for the tx type  \n"
-            "10 \"memo\":            (string, optional) dex memo \n"
+            "9.\"shared_dexop_list\": (array, required) shared dexop list, max size is 500\n"
+            "10.\"fee\":             (symbol:fee:unit, optional) tx fee,default is the min fee for the tx type  \n"
+            "11 \"memo\":            (string, optional) dex memo \n"
             "\nResult:\n"
             "\"txHash\"             (string) The transaction id.\n"
 
             "\nExamples:\n"
             + HelpExampleCli("submitdexoperatorregtx", "\"0-1\" \"0-1\" \"0-2\" \"wayki-dex\""
-                            "\"http://www.wayki-dex.com\" \"PRIVATE\" 2000000 2000000")
+                            "\"http://www.wayki-dex.com\" \"PRIVATE\" 2000000 2000000 '[0,1]'")
             + "\nAs json rpc call\n"
             + HelpExampleRpc("submitdexoperatorregtx", "\"0-1\", \"0-1\", \"0-2\", \"wayki-dex\", "
-                            "\"http://www.wayki-dex.com\", \"PRIVATE\", 2000000, 2000000")
+                            "\"http://www.wayki-dex.com\", \"PRIVATE\", 2000000, 2000000, [0, 1]")
 
             ) ;
     }
@@ -905,6 +916,7 @@ Value submitdexoperatorregtx(const Array& params, bool fHelp){
     data.public_mode    = RPC_PARAM::GetOrderPublicMode(params[5]);
     data.maker_fee_ratio = AmountToRawValue(params[6]);
     data.taker_fee_ratio = AmountToRawValue(params[7]);
+    data.shared_dexop_list = RPC_PARAM::GetSharedDexopList(params[8]);
     ComboMoney fee  = RPC_PARAM::GetFee(params, 8, DEX_OPERATOR_REGISTER_TX);
     data.memo = RPC_PARAM::GetMemo(params, 9);
 

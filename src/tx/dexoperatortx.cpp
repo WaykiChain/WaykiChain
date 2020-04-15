@@ -17,6 +17,7 @@ static const string OPERATOR_ACTION_REGISTER = "register";
 static const string OPERATOR_ACTION_UPDATE = "update";
 static const uint32_t MAX_NAME_LEN = 32;
 static const uint64_t MAX_MATCH_FEE_RATIO_VALUE = 50000000; // 50%
+static const uint64_t SHARED_DEXOP_LIST_SIZE_MAX = 500;
 
 static bool ProcessDexOperatorFee(CCacheWrapper &cw, CValidationState &state, const string &action,
     CAccount &txAccount, vector<CReceipt> &receipts,uint32_t currHeight) {
@@ -143,11 +144,24 @@ bool CDEXOperatorRegisterTx::CheckTx(CTxExecuteContext &context) {
         return state.DoS(100, ERRORMSG("taker_fee_ratio=%d is greater than %d",
             data.taker_fee_ratio, MAX_MATCH_FEE_RATIO_VALUE), REJECT_INVALID, "invalid-match-fee-ratio-type");
 
+    if (data.shared_dexop_list.size() > SHARED_DEXOP_LIST_SIZE_MAX)
+        return state.DoS(100, ERRORMSG("size=%u of shared_dexop_list exceed max=%u",
+            data.shared_dexop_list.size(), SHARED_DEXOP_LIST_SIZE_MAX),
+            REJECT_INVALID, "invalid-shared-dexop-list-size");
     return true;
 }
 
 bool CDEXOperatorRegisterTx::ExecuteTx(CTxExecuteContext &context) {
     CCacheWrapper &cw = *context.pCw; CValidationState &state = *context.pState;
+
+    set<uint64_t> sharedDexopSet;
+    for (auto &item : data.shared_dexop_list) {
+        auto ret = sharedDexopSet.insert(item);
+        if (!ret.second) {
+            return state.DoS(100, ERRORMSG("duplicated item=%u in  shared_dexop_list",
+                item), REJECT_INVALID, "duplicated-item-in-shared-dexop-list");
+        }
+    }
 
     CAccount ownerAccount;
     if (txAccount.IsSelfUid(data.owner_uid)) {
@@ -184,6 +198,7 @@ bool CDEXOperatorRegisterTx::ExecuteTx(CTxExecuteContext &context) {
         data.public_mode,
         data.maker_fee_ratio,
         data.taker_fee_ratio,
+        sharedDexopSet,
         data.memo
     };
 
