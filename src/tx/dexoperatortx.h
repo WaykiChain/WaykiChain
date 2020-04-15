@@ -121,8 +121,8 @@ public:
             case FEE_RECEIVER_UID:
                 return baseSize + get<CUserID>().GetSerializeSize(serializedType, nVersion);
             case NAME:
-            case PORTAL_URL :
-            case MEMO :
+            case PORTAL_URL:
+            case MEMO:
                 return baseSize + ::GetSerializeSize(get<string>(), serializedType, nVersion);
             case MAKER_FEE_RATIO:
             case TAKER_FEE_RATIO:
@@ -142,8 +142,8 @@ public:
                 s<< get<CUserID>();
                 break;
             case NAME:
-            case PORTAL_URL :
-            case MEMO :
+            case PORTAL_URL:
+            case MEMO:
                 s<<get<string>();
                 break;
             case MAKER_FEE_RATIO:
@@ -172,8 +172,8 @@ public:
                 value = uidV;
                 break;
             }
-            case PORTAL_URL :
-            case MEMO :
+            case PORTAL_URL:
+            case MEMO:
             case NAME: {
                 string stringV;
                 s >> stringV;
@@ -208,12 +208,12 @@ public:
 
     string ValueToString() const {
         switch (field){
-            case FEE_RECEIVER_UID :
-            case OWNER_UID :
+            case FEE_RECEIVER_UID:
+            case OWNER_UID:
                 return get<CUserID>().ToString();
-            case NAME :
-            case PORTAL_URL :
-            case MEMO :
+            case NAME:
+            case PORTAL_URL:
+            case MEMO:
                 return get<string>();
             case MAKER_FEE_RATIO:
             case TAKER_FEE_RATIO:
