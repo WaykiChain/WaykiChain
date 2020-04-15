@@ -889,7 +889,7 @@ Value submitdexoperatorregtx(const Array& params, bool fHelp){
             "8.\"open_mode\":     (string, required) indicate the order is PUBLIC or PRIVATE\n"
             "7.\"maker_fee_ratio\": (number, required) range is 0 ~ 50000000, 50000000 stand for 50% \n"
             "8.\"taker_fee_ratio\": (number, required) range is 0 ~ 50000000, 50000000 stand for 50% \n"
-            "9.\"shared_dexop_list\": (array, required) shared dexop list, max size is 500\n"
+            "9.\"order_open_dexop_list\": (array, required) shared dexop list, max size is 500\n"
             "10.\"fee\":             (symbol:fee:unit, optional) tx fee,default is the min fee for the tx type  \n"
             "11 \"memo\":            (string, optional) dex memo \n"
             "\nResult:\n"
@@ -917,7 +917,7 @@ Value submitdexoperatorregtx(const Array& params, bool fHelp){
     data.order_open_mode    = RPC_PARAM::GetOrderOpenMode(params[5]);
     data.maker_fee_ratio = AmountToRawValue(params[6]);
     data.taker_fee_ratio = AmountToRawValue(params[7]);
-    data.shared_dexop_list = RPC_PARAM::GetSharedDexopList(params[8]);
+    data.order_open_dexop_list = RPC_PARAM::GetSharedDexopList(params[8]);
     ComboMoney fee  = RPC_PARAM::GetFee(params, 8, DEX_OPERATOR_REGISTER_TX);
     data.memo = RPC_PARAM::GetMemo(params, 9);
 
