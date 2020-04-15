@@ -29,7 +29,7 @@ static Object DexOperatorToJson(const CAccountDBCache &accountCache, const DexOp
     result.push_back(Pair("fee_receiver_addr",   feeReceiverKeyId.ToAddress()));
     result.push_back(Pair("name",           dexOperator.name));
     result.push_back(Pair("portal_url",     dexOperator.portal_url));
-    result.push_back(Pair("order_open_mode", (uint8_t)dexOperator.order_open_mode));
+    result.push_back(Pair("order_open_mode", kOpenModeHelper.GetName(dexOperator.order_open_mode)));
     result.push_back(Pair("maker_fee_ratio", dexOperator.maker_fee_ratio));
     result.push_back(Pair("taker_fee_ratio", dexOperator.taker_fee_ratio));
     result.push_back(Pair("order_open_dexop_list", db_util::ToString(dexOperator.shared_dexop_set)));
@@ -90,17 +90,17 @@ namespace RPC_PARAM {
         return "";
     }
 
-    OpenMode GetOrderPublicMode(const Value &jsonValue) {
+    OpenMode GetOrderOpenMode(const Value &jsonValue) {
         OpenMode ret = OpenMode::PRIVATE;
-        if (!kPublicModeHelper.Parse(jsonValue.get_str(), ret))
-            throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("order_public_mode=%s is invalid",
+        if (!kOpenModeHelper.Parse(jsonValue.get_str(), ret))
+            throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("order_open_mode=%s is invalid",
                 jsonValue.get_str()));
         return ret;
     }
 
-    OpenMode GetOrderPublicMode(const Array &params, const size_t index) {
+    OpenMode GetOrderOpenMode(const Array &params, const size_t index) {
 
-        return params.size() > index ? GetOrderPublicMode(params[index].get_str()) : OpenMode::PUBLIC;
+        return params.size() > index ? GetOrderOpenMode(params[index].get_str()) : OpenMode::PUBLIC;
     }
 
     DexOperatorDetail GetDexOperator(const DexID &dexId) {
@@ -494,7 +494,7 @@ Value gendexoperatorordertx(const Array& params, bool fHelp) {
                                                   "default symbol is WICC, default unit is sawi.\n"
             "6.\"price\": (numeric, required) expected price of order\n"
             "7.\"dex_id\": (numeric, required) Decentralized Exchange(DEX) ID, default is 0\n"
-            "8.\"public_mode\": (string, required) indicate the order is PUBLIC or PRIVATE\n"
+            "8.\"open_mode\": (string, required) indicate the order is PUBLIC or PRIVATE\n"
             "9.\"taker_fee_ratio\": (numeric, required) taker fee ratio config by operator, boost 100000000\n"
             "10.\"maker_fee_ratio\": (numeric, required) maker fee ratio config by operator, boost 100000000\n"
             "11.\"symbol:fee:unit\":(string:numeric:string, optional) fee pay by tx user to miner, default is WICC:10000:sawi\n"
@@ -529,7 +529,7 @@ Value gendexoperatorordertx(const Array& params, bool fHelp) {
     const ComboMoney &assets            = RPC_PARAM::GetComboMoney(params[4], SYMB::WICC);
     uint64_t price                      = RPC_PARAM::GetPrice(params[5]);
     DexID dexId                         = RPC_PARAM::GetDexId(params[6]);
-    OpenMode publicMode               = RPC_PARAM::GetOrderPublicMode(params[7]);
+    OpenMode openMode                   = RPC_PARAM::GetOrderOpenMode(params[7]);
     uint64_t takerFeeRatio              = RPC_PARAM::GetOperatorFeeRatio(params[8]);
     uint64_t makerFeeRatio              = RPC_PARAM::GetOperatorFeeRatio(params[9]);
     ComboMoney fee;
@@ -594,7 +594,7 @@ Value gendexoperatorordertx(const Array& params, bool fHelp) {
 
     shared_ptr<CDEXOrderBaseTx> pOrderBaseTx = make_shared<CDEXOperatorOrderTx>(
         userId, validHeight, fee.symbol, fee.GetAmountInSawi(), orderType, orderSide, coins.symbol,
-        assets.symbol, coins.GetAmountInSawi(), assets.GetAmountInSawi(), price, dexId, publicMode,
+        assets.symbol, coins.GetAmountInSawi(), assets.GetAmountInSawi(), price, dexId, openMode,
         makerFeeRatio, takerFeeRatio, operatorDetail.fee_receiver_regid,
         operatorTxFee.GetAmountInSawi(), memo);
 
@@ -878,7 +878,7 @@ Value submitdexoperatorregtx(const Array& params, bool fHelp){
     if (fHelp || params.size() < 9  || params.size() > 11){
         throw runtime_error(
             "submitdexoperatorregtx  \"addr\" \"owner_uid\" \"fee_receiver_uid\" \"dex_name\" \"portal_url\" "
-            "\"public_mode\" maker_fee_ratio taker_fee_ratio [\"fees\"] [\"memo\"]\n"
+            "\"open_mode\" maker_fee_ratio taker_fee_ratio [\"fees\"] [\"memo\"]\n"
             "\nregister a dex operator\n"
             "\nArguments:\n"
             "1.\"addr\":            (string, required) the dex creator's address\n"
@@ -886,7 +886,7 @@ Value submitdexoperatorregtx(const Array& params, bool fHelp){
             "3.\"fee_receiver_uid\":(string, required) the dexoperator 's fee receiver account \n"
             "4.\"dex_name\":        (string, required) dex operator's name \n"
             "5.\"portal_url\":      (string, required) the dex operator's website url \n"
-            "8.\"public_mode\":     (string, required) indicate the order is PUBLIC or PRIVATE\n"
+            "8.\"open_mode\":     (string, required) indicate the order is PUBLIC or PRIVATE\n"
             "7.\"maker_fee_ratio\": (number, required) range is 0 ~ 50000000, 50000000 stand for 50% \n"
             "8.\"taker_fee_ratio\": (number, required) range is 0 ~ 50000000, 50000000 stand for 50% \n"
             "9.\"shared_dexop_list\": (array, required) shared dexop list, max size is 500\n"
@@ -914,7 +914,7 @@ Value submitdexoperatorregtx(const Array& params, bool fHelp){
     CheckAccountRegId(data.fee_receiver_uid, "fee_receiver_uid");
     data.name = params[3].get_str();
     data.portal_url = params[4].get_str();
-    data.order_open_mode    = RPC_PARAM::GetOrderPublicMode(params[5]);
+    data.order_open_mode    = RPC_PARAM::GetOrderOpenMode(params[5]);
     data.maker_fee_ratio = AmountToRawValue(params[6]);
     data.taker_fee_ratio = AmountToRawValue(params[7]);
     data.shared_dexop_list = RPC_PARAM::GetSharedDexopList(params[8]);

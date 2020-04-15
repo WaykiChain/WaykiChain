@@ -150,7 +150,7 @@ namespace dex {
         orderDetail.user_regid         = txAccount.regid;
         if (has_operator_config) {
             orderDetail.opt_operator_params  = {
-                public_mode,
+                open_mode,
                 maker_fee_ratio,
                 taker_fee_ratio,
             };
@@ -291,9 +291,9 @@ namespace dex {
         if (has_operator_config) {
             const auto &hash = GetHash();
 
-            if (!kPublicModeHelper.CheckEnum(public_mode))
-                return context.pState->DoS(100, ERRORMSG("%s, invalid public_mode=%s", TX_ERR_TITLE,
-                        kPublicModeHelper.GetName(public_mode)), REJECT_INVALID, "invalid-public-mode");
+            if (!kOpenModeHelper.CheckEnum(open_mode))
+                return context.pState->DoS(100, ERRORMSG("%s, invalid open_mode=%s", TX_ERR_TITLE,
+                        kOpenModeHelper.GetName(open_mode)), REJECT_INVALID, "invalid-public-mode");
 
             if (!CheckOperatorFeeRatioRange(context, hash, taker_fee_ratio, TX_ERR_TITLE + ", taker_fee_ratio"))
                 return false;
@@ -910,17 +910,17 @@ namespace dex {
 
         uint32_t buyDexId = buyOrder.dex_id;
         uint32_t sellDexId = sellOrder.dex_id;
-        OpenMode buyOrderPublicMode = buyOrderOperatorParams.public_mode;
-        OpenMode sellOrderPublicMode = sellOrderOperatorParams.public_mode;
+        OpenMode buyOrderOpenMode = buyOrderOperatorParams.open_mode;
+        OpenMode sellOrderOpenMode = sellOrderOperatorParams.open_mode;
         OrderSide makerSide = takerSide == ORDER_BUY ? ORDER_SELL : ORDER_BUY;
 
         if (buyDexId != sellDexId) {
-            if (makerSide == ORDER_BUY && buyOrderPublicMode != OpenMode::PUBLIC) {
+            if (makerSide == ORDER_BUY && buyOrderOpenMode != OpenMode::PUBLIC) {
                 return context.pState->DoS(100, ERRORMSG("%s, the buy order is maker order and must be public! "
                     "buy_dex_id=%u, sell_dex_id=%u", DEAL_ITEM_TITLE, buyDexId, sellDexId),
                     REJECT_INVALID, "buy-maker-order-not-public");
             }
-            if (makerSide == ORDER_SELL && sellOrderPublicMode != OpenMode::PUBLIC) {
+            if (makerSide == ORDER_SELL && sellOrderOpenMode != OpenMode::PUBLIC) {
                 return context.pState->DoS(100, ERRORMSG("%s, the sell order is maker order and must be public! "
                     "buy_dex_id=%u, sell_dex_id=%u", DEAL_ITEM_TITLE, buyDexId, sellDexId),
                     REJECT_INVALID, "sell-maker-order-not-public");

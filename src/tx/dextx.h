@@ -37,7 +37,7 @@ namespace dex {
         string memo                 = "";               //!< memo
 
         bool has_operator_config      = false;          //! has operator config
-        OpenMode public_mode = OpenMode::PUBLIC;    //!< order public mode
+        OpenMode open_mode = OpenMode::PUBLIC;    //!< order public mode
         uint64_t maker_fee_ratio = 0;                   //!< match fee ratio
         uint64_t taker_fee_ratio = 0;                   //!< taker fee ratio
         CUserID operator_uid        = CUserID();        //!< dex operator uid
@@ -372,7 +372,7 @@ namespace dex {
                 READWRITE(VARINT(tx.coin_amount));
                 READWRITE(VARINT(tx.price));
                 READWRITE(VARINT(tx.dex_id));
-                READWRITE_ENUM(tx.public_mode, uint8_t);
+                READWRITE_ENUM(tx.open_mode, uint8_t);
                 READWRITE(VARINT(tx.maker_fee_ratio));
                 READWRITE(VARINT(tx.taker_fee_ratio));
                 READWRITE(tx.operator_uid);
@@ -391,7 +391,7 @@ namespace dex {
                             OrderSide orderSideIn, const TokenSymbol &coinSymbolIn,
                             const TokenSymbol &assetSymbolIn, uint64_t coinAmountIn,
                             uint64_t assetAmountIn, uint64_t priceIn, DexID dexIdIn,
-                            OpenMode publicModeIn, uint64_t makerFeeRatioIn,
+                            OpenMode openModeIn, uint64_t makerFeeRatioIn,
                             uint64_t takerFeeRatioIn, const CUserID &operatorUidIn,
                             uint64_t operatorTxFeeIn, const string &memoIn)
             : CDEXOrderBaseTx(DEX_OPERATOR_ORDER_TX, txUidIn, validHeightIn, feeSymbol, fees) {
@@ -403,7 +403,7 @@ namespace dex {
             asset_amount        = assetAmountIn;
             price               = priceIn;
             dex_id              = dexIdIn;
-            public_mode         = publicModeIn;
+            open_mode           = openModeIn;
             memo                = memoIn;
             has_operator_config = true;
             maker_fee_ratio     = makerFeeRatioIn;

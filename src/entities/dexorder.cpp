@@ -15,14 +15,14 @@ namespace dex {
     // COrderOperatorParams
 
     string COrderOperatorParams::ToString() const {
-        return  strprintf("public_mode=%s", kPublicModeHelper.GetName(public_mode)) + ", " +
+        return  strprintf("open_mode=%s", kOpenModeHelper.GetName(open_mode)) + ", " +
                 strprintf("taker_fee_ratio=%llu", taker_fee_ratio) + ", " +
                 strprintf("maker_fee_ratio=%s", maker_fee_ratio);
     }
 
     Object COrderOperatorParams::ToJson() const {
         json_spirit::Object obj;
-        obj.push_back(Pair("public_mode", kPublicModeHelper.GetName(public_mode)));
+        obj.push_back(Pair("open_mode", kOpenModeHelper.GetName(open_mode)));
         obj.push_back(Pair("taker_fee_ratio", taker_fee_ratio));
         obj.push_back(Pair("maker_fee_ratio", maker_fee_ratio));
         return obj;
@@ -126,7 +126,7 @@ string DexOperatorDetail::ToString() const {
             strprintf("fee_receiver_regid=%s", fee_receiver_regid.ToString()) + ", " +
             strprintf("name=%s", name) + ", " +
             strprintf("portal_url=%s", portal_url) + ", " +
-            strprintf("order_open_mode=%llu", dex::kPublicModeHelper.GetName(order_open_mode)) + ", " +
+            strprintf("order_open_mode=%llu", dex::kOpenModeHelper.GetName(order_open_mode)) + ", " +
             strprintf("maker_fee_ratio=%llu", maker_fee_ratio) + ", " +
             strprintf("taker_fee_ratio=%llu", taker_fee_ratio) + ", " +
             strprintf("shared_dexop_set=%s", db_util::ToString(shared_dexop_set)) + ", " +

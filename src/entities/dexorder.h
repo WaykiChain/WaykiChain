@@ -54,9 +54,9 @@ namespace dex {
         PRIVATE  = 2
     };
 
-    static const OpenMode PUBLIC_MODE_DEFAULT = OpenMode::PRIVATE;
+    static const OpenMode OPEN_MODE_DEFAULT = OpenMode::PRIVATE;
 
-    static const EnumHelper<OpenMode, uint8_t> kPublicModeHelper (
+    static const EnumHelper<OpenMode, uint8_t> kOpenModeHelper (
         {
             {OpenMode::PUBLIC, "PUBLIC"},
             {OpenMode::PRIVATE, "PRIVATE"}
@@ -86,7 +86,7 @@ namespace dex {
     }
 
     struct COrderOperatorParams {
-        OpenMode public_mode   = OpenMode::PUBLIC;//!< order public mode
+        OpenMode open_mode   = OpenMode::PUBLIC;//!< order public mode
         uint64_t maker_fee_ratio = 0; //!< match fee ratio
         uint64_t taker_fee_ratio = 0; //!< taker fee ratio
 
