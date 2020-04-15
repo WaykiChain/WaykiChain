@@ -93,20 +93,24 @@ public:
         friend bool operator<(const CNullDexData &a, const CNullDexData &b) { return true; }
     };
     enum UpdateField: uint8_t{
-        UPDATE_NONE     = 0 ,
-        FEE_RECEIVER_UID = 1 ,
-        NAME            = 2 ,
-        PORTAL_URL      = 3 ,
-        MAKER_FEE_RATIO = 4 ,
-        TAKER_FEE_RATIO = 5 ,
-        OWNER_UID       = 6 ,
-        MEMO            = 7
+        UPDATE_NONE             = 0 ,
+        FEE_RECEIVER_UID        = 1 ,
+        NAME                    = 2 ,
+        PORTAL_URL              = 3 ,
+        OPEN_MODE               = 4 ,
+        MAKER_FEE_RATIO         = 5 ,
+        TAKER_FEE_RATIO         = 6 ,
+        OWNER_UID               = 7 ,
+        ORDER_OPEN_DEVOP_LIST   = 8 ,
+        MEMO                    = 9
     };
 
     typedef boost::variant<CNullDexData,
             CUserID, // receiver_uid,owner_uid
             string,  // name,portal_url,memo
-            uint64_t // taker&maker fee ratio
+            uint64_t, // taker&maker fee ratio
+            dex::OpenMode,
+            vector<uint64_t>
     > ValueType;
 
 public:
@@ -124,9 +128,13 @@ public:
             case PORTAL_URL:
             case MEMO:
                 return baseSize + ::GetSerializeSize(get<string>(), serializedType, nVersion);
+            case OPEN_MODE:
+                return baseSize + ::GetSerializeSize((uint8_t)(get<dex::OpenMode>()), serializedType, nVersion);
             case MAKER_FEE_RATIO:
             case TAKER_FEE_RATIO:
                 return baseSize + ::GetSerializeSize(VARINT(get<uint64_t>()), serializedType, nVersion);
+            case ORDER_OPEN_DEVOP_LIST:
+                return baseSize + ::GetSerializeSize(get<vector<uint64_t>>(), serializedType, nVersion);
             default: break;
         }
         return 0;
@@ -139,16 +147,22 @@ public:
         switch (field) {
             case OWNER_UID:
             case FEE_RECEIVER_UID:
-                s<< get<CUserID>();
+                s << get<CUserID>();
                 break;
             case NAME:
             case PORTAL_URL:
             case MEMO:
-                s<<get<string>();
+                s << get<string>();
+                break;
+            case OPEN_MODE:
+                s << (uint8_t)get<dex::OpenMode>();
                 break;
             case MAKER_FEE_RATIO:
             case TAKER_FEE_RATIO:
-                s<<VARINT(get<uint64_t>());
+                s << VARINT(get<uint64_t>());
+                break;
+            case ORDER_OPEN_DEVOP_LIST:
+                s << get<vector<uint64_t>>();
                 break;
             default: {
                 LogPrint(BCLog::ERROR, "CDEXOperatorUpdateData::Serialize(), Invalid Asset update field=%d\n", field);
@@ -180,11 +194,23 @@ public:
                 value = stringV;
                 break;
             }
+            case OPEN_MODE: {
+                dex::OpenMode openMode;
+                s >> (uint8_t&)openMode;
+                value = openMode;
+                break;
+            }
             case MAKER_FEE_RATIO:
             case TAKER_FEE_RATIO: {
                 uint64_t uint64V;
                 s >> VARINT(uint64V);
                 value = uint64V;
+                break;
+            }
+            case ORDER_OPEN_DEVOP_LIST: {
+                vector<uint64_t> orderOpenDexopList;
+                s >> orderOpenDexopList;
+                value = orderOpenDexopList;
                 break;
             }
             default: {
@@ -215,9 +241,13 @@ public:
             case PORTAL_URL:
             case MEMO:
                 return get<string>();
+            case OPEN_MODE:
+                return dex::kOpenModeHelper.GetName(get<dex::OpenMode>());
             case MAKER_FEE_RATIO:
             case TAKER_FEE_RATIO:
-                return strprintf("%d",get<uint64_t>());
+                return db_util::ToString(get<uint64_t>());
+            case ORDER_OPEN_DEVOP_LIST:
+                return db_util::ToString(get<vector<uint64_t>>());
             default:
                 return EMPTY_STRING;
 
