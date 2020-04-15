@@ -41,7 +41,7 @@ namespace dex {
         uint64_t maker_fee_ratio = 0;                   //!< match fee ratio
         uint64_t taker_fee_ratio = 0;                   //!< taker fee ratio
         CUserID operator_uid        = CUserID();        //!< dex operator uid
-        uint64_t operator_tx_fee    = 0;                //!< tx fee paid by operator, the total_fee=llFee+operator_tx_fee
+        uint64_t operator_tx_fee    = 0;                //!< tx fee paid by operator, symbol==fee_symbol, the total_fee=llFee+operator_tx_fee
         UnsignedCharArray operator_signature;           //!< dex operator signature
 
         using CBaseTx::CBaseTx;
@@ -430,6 +430,8 @@ namespace dex {
             hw << VARINT(nVersion) << (uint8_t)nTxType << VARINT(valid_height) << txUid << fee_symbol
             << VARINT(llFees) << OrderData(*this);
         }
+
+        virtual std::pair<TokenSymbol, uint64_t> GetFees() const { return std::make_pair(fee_symbol, llFees + operator_tx_fee); }
 
         virtual std::shared_ptr<CBaseTx> GetNewInstance() const { return std::make_shared<CDEXOperatorOrderTx>(*this); }
         virtual bool CheckTx(CTxExecuteContext &context);
