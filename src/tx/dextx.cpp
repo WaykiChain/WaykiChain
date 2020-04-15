@@ -41,10 +41,10 @@ namespace dex {
         return tx.CheckFee(context, [&](CTxExecuteContext &context, uint64_t minFee) -> bool {
             if (GetFeatureForkVersion(context.height) > MAJOR_VER_R3) {
                 uint64_t totalFees = tx.llFees;
-                auto stakedAmount = txAccount.GetToken(SYMB::WICC).staked_amount;
+                uint64_t stakedAmount = txAccount.GetToken(SYMB::WICC).staked_amount / COIN;
                 if (pOperatorAccount != nullptr && operatorTxFee != 0) {
                     totalFees += operatorTxFee;
-                    uint64_t op_staked_amount = pOperatorAccount->GetToken(SYMB::WICC).staked_amount;
+                    uint64_t op_staked_amount = pOperatorAccount->GetToken(SYMB::WICC).staked_amount / COIN;
                     if (stakedAmount < op_staked_amount) {
                         stakedAmount = op_staked_amount;
                         LogPrint(BCLog::DEX, "%s, use operator stake amount=%llu instead", TX_OBJ_ERR_TITLE(tx), stakedAmount);
