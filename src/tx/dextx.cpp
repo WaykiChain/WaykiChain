@@ -536,7 +536,7 @@ namespace dex {
 
         COrderOperatorParams GetOrderOperatorParams(CDEXOrderDetail &order, DexOperatorDetail &operatorDetail);
 
-        bool CheckCrossExchangeTrading();
+        bool CheckOrderOpenMode();
 
         bool GetDealOrder(const uint256 &orderId, const OrderSide orderSide,
                           CDEXOrderDetail &dealOrder);
@@ -707,7 +707,7 @@ namespace dex {
         }
 
         // 5. check cross exchange trading with public mode
-        if (!CheckCrossExchangeTrading()) return false;
+        if (!CheckOrderOpenMode()) return false;
 
         // 6. check and operate deal amount
         uint64_t calcCoinAmount = CDEXOrderBaseTx::CalcCoinAmount(dealItem.dealAssetAmount, dealItem.dealPrice);
@@ -906,7 +906,7 @@ namespace dex {
         }
     }
 
-    bool CDealItemExecuter::CheckCrossExchangeTrading() {
+    bool CDealItemExecuter::CheckOrderOpenMode() {
 
         uint32_t buyDexId = buyOrder.dex_id;
         uint32_t sellDexId = sellOrder.dex_id;
@@ -915,15 +915,29 @@ namespace dex {
         OrderSide makerSide = takerSide == ORDER_BUY ? ORDER_SELL : ORDER_BUY;
 
         if (buyDexId != sellDexId) {
-            if (makerSide == ORDER_BUY && buyOrderOpenMode != OpenMode::PUBLIC) {
-                return context.pState->DoS(100, ERRORMSG("%s, the buy order is maker order and must be public! "
-                    "buy_dex_id=%u, sell_dex_id=%u", DEAL_ITEM_TITLE, buyDexId, sellDexId),
-                    REJECT_INVALID, "buy-maker-order-not-public");
-            }
-            if (makerSide == ORDER_SELL && sellOrderOpenMode != OpenMode::PUBLIC) {
-                return context.pState->DoS(100, ERRORMSG("%s, the sell order is maker order and must be public! "
-                    "buy_dex_id=%u, sell_dex_id=%u", DEAL_ITEM_TITLE, buyDexId, sellDexId),
-                    REJECT_INVALID, "sell-maker-order-not-public");
+            if (makerSide == ORDER_BUY) {
+                if (buyOrderOpenMode != OpenMode::PUBLIC)
+                    return context.pState->DoS(100, ERRORMSG("%s, the buy maker order not public! "
+                        "buy_dex_id=%u, sell_dex_id=%u", DEAL_ITEM_TITLE, buyDexId, sellDexId),
+                        REJECT_INVALID, "buy-maker-order-not-public");
+                const auto &orderOpenDexopSet = buyOperatorDetail.shared_dexop_set;
+                if (!orderOpenDexopSet.empty() && orderOpenDexopSet.count(sellDexId) == 0)
+                    return context.pState->DoS(100, ERRORMSG("%s, the buy maker order operator=%llu not public"
+                        " to the sell operator=%llu! buy_dex_id=%u, sell_dex_id=%u",
+                        DEAL_ITEM_TITLE, buyDexId, sellDexId, buyDexId, sellDexId),
+                        REJECT_INVALID, "buy-order-operator-public-limit");
+            } else {
+                assert(makerSide == ORDER_SELL);
+                if (sellOrderOpenMode != OpenMode::PUBLIC)
+                    return context.pState->DoS(100, ERRORMSG("%s, the sell maker order not public! "
+                        "buy_dex_id=%u, sell_dex_id=%u", DEAL_ITEM_TITLE, buyDexId, sellDexId),
+                        REJECT_INVALID, "sell-maker-order-not-public");
+                const auto &orderOpenDexopSet = sellOperatorDetail.shared_dexop_set;
+                if (!orderOpenDexopSet.empty() && orderOpenDexopSet.count(sellDexId) == 0)
+                    return context.pState->DoS(100, ERRORMSG("%s, the buy maker order operator=%llu not public"
+                        " to the sell operator=%llu! buy_dex_id=%u, sell_dex_id=%u",
+                        DEAL_ITEM_TITLE, buyDexId, sellDexId, buyDexId, sellDexId),
+                        REJECT_INVALID, "buy-order-operator-public-limit");
             }
         }
         return true;
