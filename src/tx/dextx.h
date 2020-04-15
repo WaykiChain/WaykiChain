@@ -37,7 +37,7 @@ namespace dex {
         string memo                 = "";               //!< memo
 
         bool has_operator_config      = false;          //! has operator config
-        PublicMode public_mode = PublicMode::PUBLIC;    //!< order public mode
+        OpenMode public_mode = OpenMode::PUBLIC;    //!< order public mode
         uint64_t maker_fee_ratio = 0;                   //!< match fee ratio
         uint64_t taker_fee_ratio = 0;                   //!< taker fee ratio
         CUserID operator_uid        = CUserID();        //!< dex operator uid
@@ -391,7 +391,7 @@ namespace dex {
                             OrderSide orderSideIn, const TokenSymbol &coinSymbolIn,
                             const TokenSymbol &assetSymbolIn, uint64_t coinAmountIn,
                             uint64_t assetAmountIn, uint64_t priceIn, DexID dexIdIn,
-                            PublicMode publicModeIn, uint64_t makerFeeRatioIn,
+                            OpenMode publicModeIn, uint64_t makerFeeRatioIn,
                             uint64_t takerFeeRatioIn, const CUserID &operatorUidIn,
                             uint64_t operatorTxFeeIn, const string &memoIn)
             : CDEXOrderBaseTx(DEX_OPERATOR_ORDER_TX, txUidIn, validHeightIn, feeSymbol, fees) {

@@ -89,17 +89,17 @@ namespace RPC_PARAM {
         return "";
     }
 
-    PublicMode GetOrderPublicMode(const Value &jsonValue) {
-        PublicMode ret = PublicMode::PRIVATE;
+    OpenMode GetOrderPublicMode(const Value &jsonValue) {
+        OpenMode ret = OpenMode::PRIVATE;
         if (!kPublicModeHelper.Parse(jsonValue.get_str(), ret))
             throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("order_public_mode=%s is invalid",
                 jsonValue.get_str()));
         return ret;
     }
 
-    PublicMode GetOrderPublicMode(const Array &params, const size_t index) {
+    OpenMode GetOrderPublicMode(const Array &params, const size_t index) {
 
-        return params.size() > index ? GetOrderPublicMode(params[index].get_str()) : PublicMode::PUBLIC;
+        return params.size() > index ? GetOrderPublicMode(params[index].get_str()) : OpenMode::PUBLIC;
     }
 
     DexOperatorDetail GetDexOperator(const DexID &dexId) {
@@ -528,7 +528,7 @@ Value gendexoperatorordertx(const Array& params, bool fHelp) {
     const ComboMoney &assets            = RPC_PARAM::GetComboMoney(params[4], SYMB::WICC);
     uint64_t price                      = RPC_PARAM::GetPrice(params[5]);
     DexID dexId                         = RPC_PARAM::GetDexId(params[6]);
-    PublicMode publicMode               = RPC_PARAM::GetOrderPublicMode(params[7]);
+    OpenMode publicMode               = RPC_PARAM::GetOrderPublicMode(params[7]);
     uint64_t takerFeeRatio              = RPC_PARAM::GetOperatorFeeRatio(params[8]);
     uint64_t makerFeeRatio              = RPC_PARAM::GetOperatorFeeRatio(params[9]);
     ComboMoney fee;

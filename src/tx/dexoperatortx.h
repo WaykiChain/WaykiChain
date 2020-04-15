@@ -18,7 +18,7 @@ public:
         CUserID fee_receiver_uid;            // fee receiver uid
         string name              = "";       // domain name
         string portal_url        = "";       // portal url of dex operator
-        dex::PublicMode public_mode   = dex::PublicMode::PRIVATE; // the default public mode for creating order
+        dex::OpenMode public_mode   = dex::OpenMode::PRIVATE; // the default public mode for creating order
         uint64_t maker_fee_ratio = 0;    // the default maker fee ratio for creating order
         uint64_t taker_fee_ratio = 0;    // the defalt taker fee ratio for creating order
         vector<uint64_t> shared_dexop_list;

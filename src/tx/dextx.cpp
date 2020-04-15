@@ -910,17 +910,17 @@ namespace dex {
 
         uint32_t buyDexId = buyOrder.dex_id;
         uint32_t sellDexId = sellOrder.dex_id;
-        PublicMode buyOrderPublicMode = buyOrderOperatorParams.public_mode;
-        PublicMode sellOrderPublicMode = sellOrderOperatorParams.public_mode;
+        OpenMode buyOrderPublicMode = buyOrderOperatorParams.public_mode;
+        OpenMode sellOrderPublicMode = sellOrderOperatorParams.public_mode;
         OrderSide makerSide = takerSide == ORDER_BUY ? ORDER_SELL : ORDER_BUY;
 
         if (buyDexId != sellDexId) {
-            if (makerSide == ORDER_BUY && buyOrderPublicMode != PublicMode::PUBLIC) {
+            if (makerSide == ORDER_BUY && buyOrderPublicMode != OpenMode::PUBLIC) {
                 return context.pState->DoS(100, ERRORMSG("%s, the buy order is maker order and must be public! "
                     "buy_dex_id=%u, sell_dex_id=%u", DEAL_ITEM_TITLE, buyDexId, sellDexId),
                     REJECT_INVALID, "buy-maker-order-not-public");
             }
-            if (makerSide == ORDER_SELL && sellOrderPublicMode != PublicMode::PUBLIC) {
+            if (makerSide == ORDER_SELL && sellOrderPublicMode != OpenMode::PUBLIC) {
                 return context.pState->DoS(100, ERRORMSG("%s, the sell order is maker order and must be public! "
                     "buy_dex_id=%u, sell_dex_id=%u", DEAL_ITEM_TITLE, buyDexId, sellDexId),
                     REJECT_INVALID, "sell-maker-order-not-public");

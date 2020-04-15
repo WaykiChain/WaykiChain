@@ -106,7 +106,7 @@ namespace dex {
         pSysOrder->asset_amount       = assetAmountIn;
         pSysOrder->price              = 0;
         pSysOrder->dex_id             = 0;
-        pSysOrder->opt_operator_params = {PublicMode::PUBLIC, 0, 0}; // no order fee for sys order
+        pSysOrder->opt_operator_params = {OpenMode::PUBLIC, 0, 0}; // no order fee for sys order
         pSysOrder->tx_cord            = txCord;
         pSysOrder->user_regid         = SysCfg().GetFcoinGenesisRegId();
         // other fields keep default value

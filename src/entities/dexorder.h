@@ -47,19 +47,19 @@ namespace dex {
     };
 
 ////////////////////////////////////////////////////////////////////////////////
-// enum class PublicMode
+// enum class OpenMode
 
-    enum class PublicMode: uint8_t {
+    enum class OpenMode: uint8_t {
         PUBLIC   = 1,
         PRIVATE  = 2
     };
 
-    static const PublicMode PUBLIC_MODE_DEFAULT = PublicMode::PRIVATE;
+    static const OpenMode PUBLIC_MODE_DEFAULT = OpenMode::PRIVATE;
 
-    static const EnumHelper<PublicMode, uint8_t> kPublicModeHelper (
+    static const EnumHelper<OpenMode, uint8_t> kPublicModeHelper (
         {
-            {PublicMode::PUBLIC, "PUBLIC"},
-            {PublicMode::PRIVATE, "PRIVATE"}
+            {OpenMode::PUBLIC, "PUBLIC"},
+            {OpenMode::PRIVATE, "PRIVATE"}
         }
     );
 
@@ -86,7 +86,7 @@ namespace dex {
     }
 
     struct COrderOperatorParams {
-        PublicMode public_mode   = PublicMode::PUBLIC;//!< order public mode
+        OpenMode public_mode   = OpenMode::PUBLIC;//!< order public mode
         uint64_t maker_fee_ratio = 0; //!< match fee ratio
         uint64_t taker_fee_ratio = 0; //!< taker fee ratio
 
@@ -203,7 +203,7 @@ struct DexOperatorDetail {
     CRegID fee_receiver_regid;          // fee receiver regid
     string name              = "";       // domain name
     string portal_url        = "";       // portal url of dex operator
-    dex::PublicMode public_mode   = dex::PublicMode::PRIVATE; // the default public mode for creating order
+    dex::OpenMode public_mode   = dex::OpenMode::PRIVATE; // the default public mode for creating order
     uint64_t maker_fee_ratio = 0;    // the default maker fee ratio for creating order
     uint64_t taker_fee_ratio = 0;    // the defalt taker fee ratio for creating order
     set<uint64_t> shared_dexop_set;    // the defalt taker fee ratio for creating order
