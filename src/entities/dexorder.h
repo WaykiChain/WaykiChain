@@ -203,7 +203,7 @@ struct DexOperatorDetail {
     CRegID fee_receiver_regid;          // fee receiver regid
     string name              = "";       // domain name
     string portal_url        = "";       // portal url of dex operator
-    dex::OpenMode public_mode   = dex::OpenMode::PRIVATE; // the default public mode for creating order
+    dex::OpenMode order_open_mode   = dex::OpenMode::PRIVATE; // the default public mode for creating order
     uint64_t maker_fee_ratio = 0;    // the default maker fee ratio for creating order
     uint64_t taker_fee_ratio = 0;    // the defalt taker fee ratio for creating order
     set<uint64_t> shared_dexop_set;    // the defalt taker fee ratio for creating order
@@ -217,10 +217,11 @@ struct DexOperatorDetail {
         READWRITE(fee_receiver_regid);
         READWRITE(name);
         READWRITE(portal_url);
-        READWRITE_ENUM(public_mode, uint8_t);
+        READWRITE_ENUM(order_open_mode, uint8_t);
         READWRITE(VARINT(maker_fee_ratio));
         READWRITE(VARINT(taker_fee_ratio));
-        READWRITE(activated) ;
+        READWRITE(shared_dexop_set);
+        READWRITE(activated);
         READWRITE(memo);
     )
 
@@ -233,16 +234,7 @@ struct DexOperatorDetail {
         *this = EMPTY_OBJ;
     }
 
-    string ToString() const {
-        return  strprintf("owner_regid=%s", owner_regid.ToString()) + ", " +
-                strprintf("fee_receiver_regid=%s", fee_receiver_regid.ToString()) + ", " +
-                strprintf("name=%s", name) + ", " +
-                strprintf("portal_url=%s", portal_url) + ", " +
-                strprintf("maker_fee_ratio=%llu", maker_fee_ratio) + ", " +
-                strprintf("taker_fee_ratio=%llu", taker_fee_ratio) + ", " +
-                strprintf("memo=%s", memo) + ", " +
-                strprintf("activated=%d", activated);
-    }
+    string ToString() const;
 };
 
 #endif //ENTITIES_DEX_ORDER_H

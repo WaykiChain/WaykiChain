@@ -5,6 +5,7 @@
 
 #include "dexorder.h"
 #include "config/chainparams.h"
+#include "persistence/dbaccess.h"
 
 using namespace dex;
 
@@ -119,3 +120,16 @@ namespace dex {
 // class DexOperatorDetail
 
 const DexOperatorDetail DexOperatorDetail::EMPTY_OBJ = {};
+
+string DexOperatorDetail::ToString() const {
+    return  strprintf("owner_regid=%s", owner_regid.ToString()) + ", " +
+            strprintf("fee_receiver_regid=%s", fee_receiver_regid.ToString()) + ", " +
+            strprintf("name=%s", name) + ", " +
+            strprintf("portal_url=%s", portal_url) + ", " +
+            strprintf("order_open_mode=%llu", dex::kPublicModeHelper.GetName(order_open_mode)) + ", " +
+            strprintf("maker_fee_ratio=%llu", maker_fee_ratio) + ", " +
+            strprintf("taker_fee_ratio=%llu", taker_fee_ratio) + ", " +
+            strprintf("shared_dexop_set=%s", db_util::ToString(shared_dexop_set)) + ", " +
+            strprintf("memo=%s", memo) + ", " +
+            strprintf("activated=%d", activated);
+}

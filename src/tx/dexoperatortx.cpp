@@ -195,7 +195,7 @@ bool CDEXOperatorRegisterTx::ExecuteTx(CTxExecuteContext &context) {
         data.fee_receiver_uid.get<CRegID>(),
         data.name,
         data.portal_url,
-        data.public_mode,
+        data.order_open_mode,
         data.maker_fee_ratio,
         data.taker_fee_ratio,
         sharedDexopSet,

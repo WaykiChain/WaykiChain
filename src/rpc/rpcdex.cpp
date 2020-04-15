@@ -32,7 +32,7 @@ static Object DexOperatorToJson(const CAccountDBCache &accountCache, const DexOp
     result.push_back(Pair("maker_fee_ratio", dexOperator.maker_fee_ratio));
     result.push_back(Pair("taker_fee_ratio", dexOperator.taker_fee_ratio));
     result.push_back(Pair("activated",       dexOperator.activated));
-    result.push_back(Pair("public_mode",     (uint8_t)dexOperator.public_mode));
+    result.push_back(Pair("order_open_mode", (uint8_t)dexOperator.order_open_mode));
     result.push_back(Pair("memo",           dexOperator.memo));
     result.push_back(Pair("memo_hex",       HexStr(dexOperator.memo)));
     return result;
@@ -913,7 +913,7 @@ Value submitdexoperatorregtx(const Array& params, bool fHelp){
     CheckAccountRegId(data.fee_receiver_uid, "fee_receiver_uid");
     data.name = params[3].get_str();
     data.portal_url = params[4].get_str();
-    data.public_mode    = RPC_PARAM::GetOrderPublicMode(params[5]);
+    data.order_open_mode    = RPC_PARAM::GetOrderPublicMode(params[5]);
     data.maker_fee_ratio = AmountToRawValue(params[6]);
     data.taker_fee_ratio = AmountToRawValue(params[7]);
     data.shared_dexop_list = RPC_PARAM::GetSharedDexopList(params[8]);

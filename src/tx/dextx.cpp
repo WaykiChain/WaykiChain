@@ -899,7 +899,7 @@ namespace dex {
             return order.opt_operator_params.value();
         } else {
             return {
-                operatorDetail.public_mode,
+                operatorDetail.order_open_mode,
                 operatorDetail.maker_fee_ratio,
                 operatorDetail.taker_fee_ratio
             };
