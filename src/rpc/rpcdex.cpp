@@ -32,7 +32,7 @@ static Object DexOperatorToJson(const CAccountDBCache &accountCache, const DexOp
     result.push_back(Pair("order_open_mode", kOpenModeHelper.GetName(dexOperator.order_open_mode)));
     result.push_back(Pair("maker_fee_ratio", dexOperator.maker_fee_ratio));
     result.push_back(Pair("taker_fee_ratio", dexOperator.taker_fee_ratio));
-    result.push_back(Pair("order_open_dexop_list", db_util::ToString(dexOperator.shared_dexop_set)));
+    result.push_back(Pair("order_open_dexop_list", db_util::ToString(dexOperator.order_open_dexop_set)));
     result.push_back(Pair("memo",           dexOperator.memo));
     result.push_back(Pair("memo_hex",       HexStr(dexOperator.memo)));
     result.push_back(Pair("activated",       dexOperator.activated));

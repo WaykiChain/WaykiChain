@@ -431,7 +431,7 @@ bool Dex0(DexOperatorDetail& detail){
     detail.order_open_mode = OpenMode::PUBLIC;
     detail.taker_fee_ratio = 40000;
     detail.maker_fee_ratio = 40000;
-    detail.shared_dexop_set = {};
+    detail.order_open_dexop_set = {};
     detail.activated = true;
 
     return true;

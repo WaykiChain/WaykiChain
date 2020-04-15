@@ -206,7 +206,7 @@ struct DexOperatorDetail {
     dex::OpenMode order_open_mode   = dex::OpenMode::PRIVATE; // the default public mode for creating order
     uint64_t maker_fee_ratio = 0;    // the default maker fee ratio for creating order
     uint64_t taker_fee_ratio = 0;    // the defalt taker fee ratio for creating order
-    set<uint64_t> shared_dexop_set;    // the defalt taker fee ratio for creating order
+    set<uint64_t> order_open_dexop_set;  // the dex op set for order open mode
     string memo              = "";
     bool activated           = false;
 
@@ -220,7 +220,7 @@ struct DexOperatorDetail {
         READWRITE_ENUM(order_open_mode, uint8_t);
         READWRITE(VARINT(maker_fee_ratio));
         READWRITE(VARINT(taker_fee_ratio));
-        READWRITE(shared_dexop_set);
+        READWRITE(order_open_dexop_set);
         READWRITE(activated);
         READWRITE(memo);
     )

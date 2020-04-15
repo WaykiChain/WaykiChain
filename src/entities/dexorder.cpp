@@ -129,7 +129,7 @@ string DexOperatorDetail::ToString() const {
             strprintf("order_open_mode=%llu", dex::kOpenModeHelper.GetName(order_open_mode)) + ", " +
             strprintf("maker_fee_ratio=%llu", maker_fee_ratio) + ", " +
             strprintf("taker_fee_ratio=%llu", taker_fee_ratio) + ", " +
-            strprintf("shared_dexop_set=%s", db_util::ToString(shared_dexop_set)) + ", " +
+            strprintf("order_open_dexop_set=%s", db_util::ToString(order_open_dexop_set)) + ", " +
             strprintf("memo=%s", memo) + ", " +
             strprintf("activated=%d", activated);
 }

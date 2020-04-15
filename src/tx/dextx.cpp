@@ -920,7 +920,7 @@ namespace dex {
                     return context.pState->DoS(100, ERRORMSG("%s, the buy maker order not public! "
                         "buy_dex_id=%u, sell_dex_id=%u", DEAL_ITEM_TITLE, buyDexId, sellDexId),
                         REJECT_INVALID, "buy-maker-order-not-public");
-                const auto &orderOpenDexopSet = buyOperatorDetail.shared_dexop_set;
+                const auto &orderOpenDexopSet = buyOperatorDetail.order_open_dexop_set;
                 if (!orderOpenDexopSet.empty() && orderOpenDexopSet.count(sellDexId) == 0)
                     return context.pState->DoS(100, ERRORMSG("%s, the buy maker order operator=%llu not public"
                         " to the sell operator=%llu! buy_dex_id=%u, sell_dex_id=%u",
@@ -932,7 +932,7 @@ namespace dex {
                     return context.pState->DoS(100, ERRORMSG("%s, the sell maker order not public! "
                         "buy_dex_id=%u, sell_dex_id=%u", DEAL_ITEM_TITLE, buyDexId, sellDexId),
                         REJECT_INVALID, "sell-maker-order-not-public");
-                const auto &orderOpenDexopSet = sellOperatorDetail.shared_dexop_set;
+                const auto &orderOpenDexopSet = sellOperatorDetail.order_open_dexop_set;
                 if (!orderOpenDexopSet.empty() && orderOpenDexopSet.count(sellDexId) == 0)
                     return context.pState->DoS(100, ERRORMSG("%s, the buy maker order operator=%llu not public"
                         " to the sell operator=%llu! buy_dex_id=%u, sell_dex_id=%u",
