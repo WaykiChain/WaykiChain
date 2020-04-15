@@ -623,7 +623,7 @@ static bool GetMiner(int64_t startMiningMs, const int32_t blockHeight, Miner &mi
 
 
 static bool ProduceBlock(int64_t startMiningMs, CBlockIndex *pPrevIndex, Miner &miner, const uint32_t totalDelegateNum) {
-    // has do LOCK(cs_main);
+    // has done LOCK(cs_main);
     int64_t lastTime    = 0;
     bool success        = false;
     int32_t blockHeight = 0;

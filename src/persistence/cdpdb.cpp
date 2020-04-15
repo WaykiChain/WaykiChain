@@ -23,9 +23,6 @@ CCdpDBCache::CCdpDBCache(CCdpDBCache *pBaseIn)
       cdp_height_index_cache(pBaseIn->cdp_height_index_cache) {}
 
 bool CCdpDBCache::NewCDP(const int32_t blockHeight, CUserCDP &cdp) {
-    assert(!cdp_cache.HasData(cdp.cdpid));
-    assert(!user_cdp_cache.HasData(make_pair(CRegIDKey(cdp.owner_regid), cdp.GetCoinPair())));
-
     return cdp_cache.SetData(cdp.cdpid, cdp) &&
         user_cdp_cache.SetData(make_pair(CRegIDKey(cdp.owner_regid), cdp.GetCoinPair()), cdp.cdpid) &&
         SaveCdpIndexData(cdp);
