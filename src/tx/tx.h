@@ -82,8 +82,8 @@ string GetTxType(const TxType txType);
 bool GetTxMinFee(CCacheWrapper &cw, const TxType nTxType, int height, const TokenSymbol &symbol, uint64_t &feeOut);
 
 inline const string& GetTxTypeName(TxType txType) {
-    auto it = kTxFeeTable.find(txType);
-    if (it != kTxFeeTable.end())
+    auto it = kTxTypeInfoTable.find(txType);
+    if (it != kTxTypeInfoTable.end())
         return std::get<0>(it->second);
     return EMPTY_STRING;
 }

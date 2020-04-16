@@ -32,8 +32,8 @@ extern CCacheDBManager *pCdMan;
 #define BASE_TX_TITLE ERROR_TITLE(GetTxTypeName())
 
 string GetTxType(const TxType txType) {
-    auto it = kTxFeeTable.find(txType);
-    if (it != kTxFeeTable.end())
+    auto it = kTxTypeInfoTable.find(txType);
+    if (it != kTxTypeInfoTable.end())
         return std::get<0>(it->second);
     else
         return "";
@@ -43,8 +43,8 @@ bool GetTxMinFee(CCacheWrapper &cw, const TxType nTxType, int height, const Toke
     if (cw.sysParamCache.GetMinerFee(nTxType, symbol, feeOut))
         return true ;
 
-    const auto &iter = kTxFeeTable.find(nTxType);
-    if (iter != kTxFeeTable.end()) {
+    const auto &iter = kTxTypeInfoTable.find(nTxType);
+    if (iter != kTxTypeInfoTable.end()) {
         FeatureForkVersionEnum version = GetFeatureForkVersion(height);
         if (symbol == SYMB::WICC) {
             if (version >= MAJOR_VER_R2) {
@@ -177,10 +177,12 @@ bool CBaseTx::CheckBaseTx(CTxExecuteContext &context) {
             case LCONTRACT_DEPLOY_TX:
             case LCONTRACT_INVOKE_TX:
             case DELEGATE_VOTE_TX: break; // tx available from MAJOR_VER_R1
+
             default: {
-                if (!CheckTxAvailableFromVer(context, MAJOR_VER_R2)) return false;
+                auto itr = kTxTypeInfoTable.find(nTxType);
+                if (!CheckTxAvailableFromVer(context, std::get<6>(itr->second))) return false;
             }
-            // TODO: check new tx available from MAJOR_VER_R3
+
         }
     }
 

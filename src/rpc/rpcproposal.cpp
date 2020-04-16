@@ -1031,7 +1031,7 @@ Value listmintxfees(const Array& params, bool fHelp) {
 
     auto spCw = make_shared<CCacheWrapper>(pCdMan);
     Array arr;
-    for(auto kv: kTxFeeTable){
+    for(auto kv: kTxTypeInfoTable){
         Object o;
         o.push_back(Pair("txtype_name", std::get<0>(kv.second)));
         o.push_back(Pair("txtype_code", kv.first));

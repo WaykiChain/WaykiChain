@@ -210,7 +210,7 @@ public:
         nVersion = this->nVersion;
         READWRITE(VARINT(valid_height));
         READWRITE(txUid); // reserve, should be empty
-
+        READWRITE(VARINT(llFees));
         READWRITE(cdp_list);
 
         READWRITE(signature); // reserve, should be empty

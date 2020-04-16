@@ -139,8 +139,8 @@ bool CGovMinerFeeProposal:: CheckProposal(CTxExecuteContext& context, CBaseTx& t
                         "feesymbol-error");
     }
 
-    auto itr = kTxFeeTable.find(tx_type);
-    if (itr == kTxFeeTable.end()){
+    auto itr = kTxTypeInfoTable.find(tx_type);
+    if (itr == kTxTypeInfoTable.end()){
         return state.DoS(100, ERRORMSG("CProposalRequestTx::CheckTx, the tx type (%d) is invalid!", tx_type),
                         REJECT_INVALID,
                         "txtype-error");
