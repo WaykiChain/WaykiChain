@@ -340,13 +340,17 @@ Object GetCdpInfoJson(const CCdpCoinPair &cdpCoinPair, uint64_t price) {
 
     obj.push_back(Pair("asset_symbol",                          cdpCoinPair.bcoin_symbol));
     obj.push_back(Pair("scoin_symbol",                          cdpCoinPair.scoin_symbol));
-    obj.push_back(Pair("global_staked_assets",                   cdpGlobalData.total_staked_assets));
+    obj.push_back(Pair("global_staked_assets",                  cdpGlobalData.total_staked_assets));
     obj.push_back(Pair("global_owed_scoins",                    cdpGlobalData.total_owed_scoins));
     obj.push_back(Pair("global_collateral_ceiling",             globalCollateralCeiling * COIN));
     obj.push_back(Pair("global_collateral_ceiling_reached",     global_collateral_ceiling_reached));
 
-    string gcr = cdpGlobalData.total_owed_scoins == 0 ? uint64_t(-1) : (double) globalCollateralRatio / RATIO_BOOST * 100;
-    obj.push_back(Pair("global_collateral_ratio",               gcr));
+    if (cdpGlobalData.total_owed_scoins == 0) {
+        obj.push_back(Pair("global_collateral_ratio",           -1));
+    } else {
+        obj.push_back(Pair("global_collateral_ratio",           (double) globalCollateralRatio / RATIO_BOOST * 100));
+    }
+
     obj.push_back(Pair("global_collateral_ratio_floor",         (double)globalCollateralRatioFloor / RATIO_BOOST * 100));
     obj.push_back(Pair("global_collateral_ratio_floor_reached", globalCollateralRatioFloorReached));
 
