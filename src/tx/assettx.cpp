@@ -115,32 +115,25 @@ bool CUserIssueAssetTx::CheckTx(CTxExecuteContext &context) {
 
     string errMsg = "";
     if (!CAsset::CheckSymbol(AssetType::UIA, asset.asset_symbol, errMsg))
-        return state.DoS(100, ERRORMSG("CUserIssueAssetTx::CheckTx, invlid asset symbol! %s", errMsg),
+        return state.DoS(100, ERRORMSG("invalid asset symbol! %s", errMsg),
                         REJECT_INVALID, "invalid-asset-symbol");
 
     if (asset.asset_name.empty() || asset.asset_name.size() > MAX_ASSET_NAME_LEN)
-        return state.DoS(100, ERRORMSG("CUserIssueAssetTx::CheckTx, asset_name is empty or len=%d greater than %d",
+        return state.DoS(100, ERRORMSG("asset_name is empty or len=%d greater than %d",
                         asset.asset_name.size(), MAX_ASSET_NAME_LEN), REJECT_INVALID, "invalid-asset-name");
 
     if (asset.total_supply == 0 || asset.total_supply > MAX_ASSET_TOTAL_SUPPLY)
-        return state.DoS(100, ERRORMSG("CUserIssueAssetTx::CheckTx, asset total_supply=%llu can not == 0 or > %llu",
+        return state.DoS(100, ERRORMSG("asset total_supply=%llu can not == 0 or > %llu",
             asset.total_supply, MAX_ASSET_TOTAL_SUPPLY), REJECT_INVALID, "invalid-total-supply");
 
     if (!asset.owner_uid.is<CRegID>())
-        return state.DoS(100, ERRORMSG("%s, asset owner_uid must be regid", __FUNCTION__), REJECT_INVALID,
-            "owner-uid-type-error");
+        return state.DoS(100, ERRORMSG("asset owner_uid must be regid"), REJECT_INVALID, "owner-uid-type-error");
 
     if ((txUid.is<CPubKey>()) && !txUid.get<CPubKey>().IsFullyValid())
-        return state.DoS(100, ERRORMSG("CUserIssueAssetTx::CheckTx, public key is invalid"), REJECT_INVALID,
-                         "bad-publickey");
-
-    CAccount txAccount;
-    if (!cw.accountCache.GetAccount(txUid, txAccount))
-        return state.DoS(100, ERRORMSG("CUserIssueAssetTx::CheckTx, read account failed! tx account not exist, txUid=%s",
-                     txUid.ToDebugString()), REJECT_INVALID, "bad-getaccount");
+        return state.DoS(100, ERRORMSG("public key is invalid"), REJECT_INVALID, "bad-publickey");
 
     if (!txAccount.IsRegistered() || !txUid.get<CRegID>().IsMature(context.height))
-        return state.DoS(100, ERRORMSG("CUserIssueAssetTx::CheckTx, account unregistered or immature"),
+        return state.DoS(100, ERRORMSG(" account unregistered or immature"),
                          REJECT_INVALID, "account-unregistered-or-immature");
 
     return true;
@@ -163,13 +156,13 @@ bool CUserIssueAssetTx::ExecuteTx(CTxExecuteContext &context) {
             spAssetAccount = make_shared<CAccount>();
 
             if (!cw.accountCache.GetAccount(asset.owner_uid, *spAssetAccount))
-                return state.DoS(100, ERRORMSG("CUserIssueAssetTx::CheckTx, read account failed! asset owner "
+                return state.DoS(100, ERRORMSG(" read account failed! asset owner "
                     "account not exist, owner_uid=%s", asset.owner_uid.ToDebugString()), REJECT_INVALID, "bad-getaccount");
             pOwnerAccount = spAssetAccount.get();
         }
 
         if (pOwnerAccount->regid.IsEmpty() || !pOwnerAccount->regid.IsMature(context.height)) {
-            return state.DoS(100, ERRORMSG("CUserIssueAssetTx::CheckTx, owner regid=%s account is unregistered or immature",
+            return state.DoS(100, ERRORMSG(" owner regid=%s account is unregistered or immature",
                 asset.owner_uid.get<CRegID>().ToString()), REJECT_INVALID, "owner-account-unregistered-or-immature");
         }
 
