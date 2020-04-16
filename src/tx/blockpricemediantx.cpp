@@ -8,6 +8,34 @@
 
 using namespace dex;
 
+#define OBJ_COMPARE_LT1(obj1, obj2, f1) \
+    ( obj1.f1 < obj2.f1 ? true : false )
+
+#define OBJ_COMPARE_LT1_MORE(obj1, obj2, f1, more) \
+     obj1.f1 < obj2.f1 ? true : ( obj2.f1 < obj1.f1 ? false : (more) )
+
+#define OBJ_COMPARE_LT2(obj1, obj2, f1, f2) \
+    OBJ_COMPARE_LT1_MORE( obj1, obj2, f1, OBJ_COMPARE_LT1(obj1, obj2, f2) )
+
+#define OBJ_COMPARE_LT3(obj1, obj2, f1, f2, f3) \
+    OBJ_COMPARE_LT1_MORE( obj1, obj2, f1, OBJ_COMPARE_LT2(obj1, obj2, f2, f3) )
+
+#define OBJ_COMPARE_LT4(obj1, obj2, f1, f2, f3, f4) \
+    OBJ_COMPARE_LT1_MORE( obj1, obj2, f1, OBJ_COMPARE_LT3(obj1, obj2, f2, f3, f4) )
+
+class CCdpCoinPairDetail {
+public:
+    const CCdpCoinPair &coin_pair;
+    bool is_price_active = false;
+    bool is_staked_perm = false;
+    uint64_t bcoin_price = 0;
+    CTxCord init_tx_cord;
+
+    friend bool operator<(const CCdpCoinPairDetail &a, const CCdpCoinPairDetail &b) {
+        return OBJ_COMPARE_LT4(a, b, is_price_active, is_staked_perm, init_tx_cord, coin_pair);
+    }
+};
+
 class CCdpForceLiquidator {
 public:
     uint32_t liquidated_count = 0;
@@ -144,7 +172,7 @@ bool CBlockPriceMedianTx::ForceLiquidateCdps(CTxExecuteContext &context, PriceDe
         if (scoinSymbol != SYMB::WUSD)
             throw runtime_error(strprintf("only support to force liquidate scoin=WUSD, actual_scoin=%s", scoinSymbol));
 
-        if (!cw.cdpCache.IsBcoinActivated(bcoinSymbol)) {
+        if (!cw.cdpCache.IsCdpBcoinActivated(bcoinSymbol)) {
             LogPrint(BCLog::CDP, "asset=%s does not be activated, ignore", bcoinSymbol);
             continue;
         }
