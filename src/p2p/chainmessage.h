@@ -582,7 +582,7 @@ inline void ProcessGetBlocksMessage(CNode *pFrom, CDataStream &vRecv) {
     CBlockIndex *pIndex = pStartIndex;
     for (; pIndex; pIndex = chainActive.Next(pIndex)) {
         if (pIndex->GetBlockHash() == hashStop) {
-            LogPrint(BCLog::NET, "processing getblocks stoped by hash_end! end_block=%s, peer=%s\n",
+            LogPrint(BCLog::NET, "[%d] stoped by hash_end! end_block=%s, peer=%s\n", pIndex->height,
                      pIndex->GetIndentityString(), pFrom->addrName);
             break;
         }
