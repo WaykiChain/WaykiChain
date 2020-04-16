@@ -345,12 +345,12 @@ Object GetCdpInfoJson(const CCdpCoinPair &cdpCoinPair, uint64_t price) {
     obj.push_back(Pair("global_collateral_ceiling",             globalCollateralCeiling * COIN));
     obj.push_back(Pair("global_collateral_ceiling_reached",     global_collateral_ceiling_reached));
 
-    string gcr = cdpGlobalData.total_owed_scoins == 0 ? "INF" : strprintf("%.2f%%", (double)globalCollateralRatio / RATIO_BOOST * 100);
+    string gcr = cdpGlobalData.total_owed_scoins == 0 ? uint64_t(-1) : (double) globalCollateralRatio / RATIO_BOOST * 100;
     obj.push_back(Pair("global_collateral_ratio",               gcr));
-    obj.push_back(Pair("global_collateral_ratio_floor",         strprintf("%.2f%%", (double)globalCollateralRatioFloor / RATIO_BOOST * 100)));
+    obj.push_back(Pair("global_collateral_ratio_floor",         (double)globalCollateralRatioFloor / RATIO_BOOST * 100));
     obj.push_back(Pair("global_collateral_ratio_floor_reached", globalCollateralRatioFloorReached));
 
-    obj.push_back(Pair("force_liquidate_ratio",                 strprintf("%.2f%%", (double)forceLiquidateRatio / RATIO_BOOST * 100)));
+    obj.push_back(Pair("force_liquidate_ratio",                 (double)forceLiquidateRatio / RATIO_BOOST * 100));
     obj.push_back(Pair("force_liquidate_cdp_amount",            (uint32_t) forceLiquidateCdps.size()));
     return obj;
 }
@@ -393,7 +393,7 @@ Value getscoininfo(const Array& params, bool fHelp){
 
         TokenSymbol scoinSymbol = GetCdpScoinByQuoteSymbol(quoteSymbol);
         if (scoinSymbol.empty()) {
-            LogPrint(BCLog::CDP, "quote_symbol=%s not have a corresponding scoin , ignore", bcoinSymbol);
+            LogPrint(BCLog::RPCCMD, "quote_symbol=%s not have a corresponding scoin , ignore", bcoinSymbol);
             continue;
         }
 
@@ -402,17 +402,17 @@ Value getscoininfo(const Array& params, bool fHelp){
             throw runtime_error(strprintf("only support to force liquidate scoin=WUSD, actual_scoin=%s", scoinSymbol));
 
         if (!pCdMan->pAssetCache->CheckAsset(bcoinSymbol, AssetPermType::PERM_CDP_BCOIN)) {
-            LogPrint(BCLog::CDP, "base_symbol=%s not have cdp bcoin permission, ignore", bcoinSymbol);
+            LogPrint(BCLog::RPCCMD, "base_symbol=%s not have cdp bcoin permission, ignore", bcoinSymbol);
             continue;
         }
 
         if (!pCdMan->pCdpCache->IsCdpBcoinActivated(bcoinSymbol)) {
-            LogPrint(BCLog::CDP, "asset=%s does not be activated, ignore", bcoinSymbol);
+            LogPrint(BCLog::RPCCMD, "asset=%s was not activated, ignore", bcoinSymbol);
             continue;
         }
 
         if (item.second.price == 0) {
-            LogPrint(BCLog::CDP, "coin_pair(%s) price=0, ignore\n", CoinPairToString(item.first));
+            LogPrint(BCLog::RPCCMD, "coin_pair(%s) price=0, ignore\n", CoinPairToString(item.first));
             continue;
         }
         cdpInfoArray.push_back(GetCdpInfoJson(CCdpCoinPair(bcoinSymbol, scoinSymbol), item.second.price));
@@ -426,18 +426,18 @@ Value getscoininfo(const Array& params, bool fHelp){
         }
 
         Object price;
-        price.push_back(Pair("coin_symbol",                     item.first.first));
-        price.push_back(Pair("price_symbol",                    item.first.second));
-        price.push_back(Pair("price",                           (double)item.second.price / PRICE_BOOST));
-        price.push_back(Pair("last_feed_height",                item.second.last_feed_height));
-        price.push_back(Pair("is_active",                       item.second.IsActive(height, priceTimeoutBlocks)));
+        price.push_back(Pair("coin_symbol",            item.first.first));
+        price.push_back(Pair("price_symbol",           item.first.second));
+        price.push_back(Pair("price",                  (double)item.second.price / PRICE_BOOST));
+        price.push_back(Pair("last_feed_height",       item.second.last_feed_height));
+        price.push_back(Pair("is_active",              item.second.IsActive(height, priceTimeoutBlocks)));
         prices.push_back(price);
     }
 
-    obj.push_back(Pair("tipblock_height",                       height));
-    obj.push_back(Pair("median_price",                          prices));
-    obj.push_back(Pair("slide_window_block_count",              slideWindow));
-    obj.push_back(Pair("cdp_info_list",              cdpInfoArray));
+    obj.push_back(Pair("tipblock_height",               height));
+    obj.push_back(Pair("median_price",                  prices));
+    obj.push_back(Pair("slide_window_block_count",      slideWindow));
+    obj.push_back(Pair("cdp_info_list",                 cdpInfoArray));
 
     return obj;
 }
