@@ -116,7 +116,7 @@ static const unordered_map<string, BalanceOpType> STAKE_COINS_ACTIONS = {
 namespace RPC_PARAM {
 
     BalanceOpType GetStakeAction(const Array& params, const size_t index) {
-        if (params.size() - 1 > index) {
+        if (params.size() > index) {
             string actionStr = StrToUpper(params[index].get_str());
             auto it = STAKE_COINS_ACTIONS.find(actionStr);
             if (it == STAKE_COINS_ACTIONS.end())
