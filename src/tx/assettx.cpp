@@ -115,16 +115,15 @@ bool CUserIssueAssetTx::CheckTx(CTxExecuteContext &context) {
 
     string errMsg = "";
     if (!CAsset::CheckSymbol(AssetType::UIA, asset.asset_symbol, errMsg))
-        return state.DoS(100, ERRORMSG("invalid asset symbol! %s", errMsg),
-                        REJECT_INVALID, "invalid-asset-symbol");
+        return state.DoS(100, ERRORMSG("invalid asset symbol! %s", errMsg), REJECT_INVALID, "invalid-asset-symbol");
 
     if (asset.asset_name.empty() || asset.asset_name.size() > MAX_ASSET_NAME_LEN)
-        return state.DoS(100, ERRORMSG("asset_name is empty or len=%d greater than %d",
-                        asset.asset_name.size(), MAX_ASSET_NAME_LEN), REJECT_INVALID, "invalid-asset-name");
+        return state.DoS(100, ERRORMSG("asset_name is empty or len=%d greater than %d", asset.asset_name.size(), MAX_ASSET_NAME_LEN),
+                                        REJECT_INVALID, "invalid-asset-name");
 
     if (asset.total_supply == 0 || asset.total_supply > MAX_ASSET_TOTAL_SUPPLY)
-        return state.DoS(100, ERRORMSG("asset total_supply=%llu can not == 0 or > %llu",
-            asset.total_supply, MAX_ASSET_TOTAL_SUPPLY), REJECT_INVALID, "invalid-total-supply");
+        return state.DoS(100, ERRORMSG("asset total_supply=%llu can not == 0 or > %llu", asset.total_supply, MAX_ASSET_TOTAL_SUPPLY),
+                                        REJECT_INVALID, "invalid-total-supply");
 
     if (!asset.owner_uid.is<CRegID>())
         return state.DoS(100, ERRORMSG("asset owner_uid must be regid"), REJECT_INVALID, "owner-uid-type-error");
@@ -133,8 +132,7 @@ bool CUserIssueAssetTx::CheckTx(CTxExecuteContext &context) {
         return state.DoS(100, ERRORMSG("public key is invalid"), REJECT_INVALID, "bad-publickey");
 
     if (!txAccount.IsRegistered() || !txUid.get<CRegID>().IsMature(context.height))
-        return state.DoS(100, ERRORMSG(" account unregistered or immature"),
-                         REJECT_INVALID, "account-unregistered-or-immature");
+        return state.DoS(100, ERRORMSG("account unregistered or immature"), REJECT_INVALID, "account-unregistered-or-immature");
 
     return true;
 }
@@ -143,27 +141,27 @@ bool CUserIssueAssetTx::ExecuteTx(CTxExecuteContext &context) {
     IMPLEMENT_DEFINE_CW_STATE;
 
     if (cw.assetCache.HasAsset(asset.asset_symbol))
-        return state.DoS(100, ERRORMSG("CUserIssueAssetTx::ExecuteTx, the asset has been issued! symbol=%s",
+        return state.DoS(100, ERRORMSG("the asset has been issued! symbol=%s",
             asset.asset_symbol), REJECT_INVALID, "asset-existed-error");
 
     shared_ptr<CAccount> spAssetAccount = nullptr;
     CAccount *pOwnerAccount = nullptr;
     {
-
         if (txAccount.IsSelfUid(asset.owner_uid)) {
             pOwnerAccount = &txAccount;
         } else {
             spAssetAccount = make_shared<CAccount>();
 
             if (!cw.accountCache.GetAccount(asset.owner_uid, *spAssetAccount))
-                return state.DoS(100, ERRORMSG(" read account failed! asset owner "
-                    "account not exist, owner_uid=%s", asset.owner_uid.ToDebugString()), REJECT_INVALID, "bad-getaccount");
+                return state.DoS(100, ERRORMSG(" read account failed! asset owner account not exist, owner_uid=%s",
+                                            asset.owner_uid.ToDebugString()), REJECT_INVALID, "bad-getaccount");
+
             pOwnerAccount = spAssetAccount.get();
         }
 
         if (pOwnerAccount->regid.IsEmpty() || !pOwnerAccount->regid.IsMature(context.height)) {
-            return state.DoS(100, ERRORMSG(" owner regid=%s account is unregistered or immature",
-                asset.owner_uid.get<CRegID>().ToString()), REJECT_INVALID, "owner-account-unregistered-or-immature");
+            return state.DoS(100, ERRORMSG("owner regid=%s account is unregistered or immature", asset.owner_uid.get<CRegID>().ToString()),
+                                            REJECT_INVALID, "owner-account-unregistered-or-immature");
         }
 
         if (!ProcessAssetFee(cw, state, ASSET_ACTION_ISSUE, txAccount, context.height, receipts))
@@ -171,22 +169,21 @@ bool CUserIssueAssetTx::ExecuteTx(CTxExecuteContext &context) {
 
         if (!pOwnerAccount->OperateBalance(asset.asset_symbol, BalanceOpType::ADD_FREE, asset.total_supply,
                                             ReceiptType::ASSET_MINT_NEW_AMOUNT, receipts)) {
-            return state.DoS(100, ERRORMSG("CUserIssueAssetTx::ExecuteTx, fail to add total_supply to issued account! total_supply=%llu, txUid=%s",
+            return state.DoS(100, ERRORMSG("fail to add total_supply to issued account! total_supply=%llu, txUid=%s",
                             asset.total_supply, txUid.ToDebugString()), UPDATE_ACCOUNT_FAIL, "insufficent-funds");
         }
     }
 
     if ( spAssetAccount && !cw.accountCache.SetAccount(spAssetAccount->keyid, *spAssetAccount) )
-        return state.DoS(100, ERRORMSG("CUserIssueAssetTx::ExecuteTx, set asset owner account to db failed! owner_uid=%s",
-                        asset.owner_uid.ToDebugString()), UPDATE_ACCOUNT_FAIL, "bad-set-accountdb");
+        return state.DoS(100, ERRORMSG("set asset owner account to db failed! owner_uid=%s",
+                                        asset.owner_uid.ToDebugString()), UPDATE_ACCOUNT_FAIL, "bad-set-accountdb");
 
     //Persist with Owner's RegID to save space than other User ID types
     CAsset savedAsset(asset.asset_symbol, asset.asset_name, AssetType::UIA, AssetPermType::PERM_DEX_BASE,
                     CUserID(pOwnerAccount->regid), asset.total_supply, asset.mintable);
 
     if (!cw.assetCache.SetAsset(savedAsset))
-        return state.DoS(100, ERRORMSG("CUserIssueAssetTx::ExecuteTx, save asset failed! txUid=%s",
-            txUid.ToDebugString()), UPDATE_ACCOUNT_FAIL, "save-asset-failed");
+        return state.DoS(100, ERRORMSG("save asset failed! txUid=%s", txUid.ToDebugString()), UPDATE_ACCOUNT_FAIL, "save-asset-failed");
 
     return true;
 }
@@ -242,12 +239,10 @@ void CUserUpdateAsset::Set(const CUserID &ownerUid) {
 void CUserUpdateAsset::Set(const string &name) {
     type = NAME;
     value = name;
-
 }
 void CUserUpdateAsset::Set(const uint64_t &mintAmount) {
     type = MINT_AMOUNT;
     value = mintAmount;
-
 }
 
 string CUserUpdateAsset::ValueToString() const {
@@ -304,41 +299,40 @@ bool CUserUpdateAssetTx::CheckTx(CTxExecuteContext &context) {
 
     string errMsg = "";
     if (!CAsset::CheckSymbol(AssetType::UIA, asset_symbol, errMsg))
-        return state.DoS(100, ERRORMSG("CUserUpdateAssetTx::CheckTx, asset_symbol error: %s", errMsg),
-                        REJECT_INVALID, "invalid-asset-symbol");
+        return state.DoS(100, ERRORMSG("asset_symbol error: %s", errMsg), REJECT_INVALID, "invalid-asset-symbol");
 
     switch (update_data.GetType()) {
         case CUserUpdateAsset::OWNER_UID: {
             const CUserID &newOwnerUid = update_data.get<CUserID>();
-            if (!newOwnerUid.is<CRegID>()) {
-                return state.DoS(100, ERRORMSG("%s, the new asset owner_uid must be regid", __FUNCTION__), REJECT_INVALID,
-                    "owner-uid-type-error");
-            }
+            if (!newOwnerUid.is<CRegID>())
+                return state.DoS(100, ERRORMSG("the new asset owner_uid must be regid"), REJECT_INVALID, "owner-uid-type-error");
+
             break;
         }
         case CUserUpdateAsset::NAME: {
             const string &name = update_data.get<string>();
             if (name.empty() || name.size() > MAX_ASSET_NAME_LEN)
-                return state.DoS(100, ERRORMSG("CUserUpdateAssetTx::CheckTx, asset name is empty or len=%d greater than %d",
-                    name.size(), MAX_ASSET_NAME_LEN), REJECT_INVALID, "invalid-asset-name");
+                return state.DoS(100, ERRORMSG("asset name is empty or len=%d greater than %d",
+                                name.size(), MAX_ASSET_NAME_LEN), REJECT_INVALID, "invalid-asset-name");
+
             break;
         }
         case CUserUpdateAsset::MINT_AMOUNT: {
             uint64_t mintAmount = update_data.get<uint64_t>();
-            if (mintAmount == 0 || mintAmount > MAX_ASSET_TOTAL_SUPPLY) {
-                return state.DoS(100, ERRORMSG("CUserUpdateAssetTx::CheckTx, asset mint_amount=%llu is 0 or greater than %llu",
-                    mintAmount, MAX_ASSET_TOTAL_SUPPLY), REJECT_INVALID, "invalid-mint-amount");
-            }
+            if (mintAmount == 0 || mintAmount > MAX_ASSET_TOTAL_SUPPLY)
+                return state.DoS(100, ERRORMSG("asset mint_amount=%llu is 0 or greater than %llu",
+                                mintAmount, MAX_ASSET_TOTAL_SUPPLY), REJECT_INVALID, "invalid-mint-amount");
+
             break;
         }
         default: {
-            return state.DoS(100, ERRORMSG("CUserUpdateAssetTx::CheckTx, unsupported updated_type=%d",
-                update_data.GetType()), REJECT_INVALID, "invalid-update-type");
+            return state.DoS(100, ERRORMSG("unsupported updated_type=%d",
+                            update_data.GetType()), REJECT_INVALID, "invalid-update-type");
         }
     }
 
     if (!txAccount.IsRegistered() || !txUid.get<CRegID>().IsMature(context.height))
-        return state.DoS(100, ERRORMSG("CUserUpdateAssetTx::CheckTx, account unregistered or immature"),
+        return state.DoS(100, ERRORMSG("account unregistered or immature"),
                          REJECT_INVALID, "account-unregistered-or-immature");
 
     return true;
@@ -350,32 +344,31 @@ bool CUserUpdateAssetTx::ExecuteTx(CTxExecuteContext &context) {
 
     CAsset asset;
     if (!cw.assetCache.GetAsset(asset_symbol, asset))
-        return state.DoS(100, ERRORMSG("CUserUpdateAssetTx::ExecuteTx, get asset by symbol=%s failed",
-            asset_symbol), REJECT_INVALID, "get-asset-failed");
+        return state.DoS(100, ERRORMSG("get asset by symbol=%s failed", asset_symbol), REJECT_INVALID, "get-asset-failed");
 
     if (!txAccount.IsSelfUid(asset.owner_uid))
-        return state.DoS(100, ERRORMSG("CUserUpdateAssetTx::ExecuteTx, no privilege to update asset, uid dismatch,"
-            " txUid=%s, old_asset_uid=%s",
-            txUid.ToDebugString(), asset.owner_uid.ToString()), REJECT_INVALID, "asset-uid-dismatch");
-
+        return state.DoS(100, ERRORMSG("uid mismatch: txUid=%s, old_asset_uid=%s", txUid.ToDebugString(), asset.owner_uid.ToString()),
+                        REJECT_INVALID, "asset-uid-mismatch");
 
     switch (update_data.GetType()) {
         case CUserUpdateAsset::OWNER_UID: {
             const CUserID &newOwnerUid = update_data.get<CUserID>();
             if (txAccount.IsSelfUid(newOwnerUid))
-                return state.DoS(100, ERRORMSG("CUserUpdateAssetTx::ExecuteTx, the new owner uid=%s is belong to old owner account",
+                return state.DoS(100, ERRORMSG("new_owner_uid=%s is from the same owner account",
                     newOwnerUid.ToDebugString()), REJECT_INVALID, "invalid-new-asset-owner-uid");
 
             CAccount newAccount;
             if (!cw.accountCache.GetAccount(newOwnerUid, newAccount))
-                return state.DoS(100, ERRORMSG("CUserUpdateAssetTx::ExecuteTx, the new owner uid=%s does not exist.",
-                    newOwnerUid.ToDebugString()), READ_ACCOUNT_FAIL, "bad-read-accountdb");
+                return state.DoS(100, ERRORMSG("new_owner_uid=%s does not exist", newOwnerUid.ToDebugString()),
+                                                READ_ACCOUNT_FAIL, "bad-read-accountdb");
+
             if (!newAccount.IsRegistered())
-                return state.DoS(100, ERRORMSG("CUserUpdateAssetTx::ExecuteTx, the new owner account is not registered! new uid=%s",
-                    newOwnerUid.ToDebugString()), REJECT_INVALID, "account-not-registered");
+                return state.DoS(100, ERRORMSG("new uid(%s)'s account not registered! ", newOwnerUid.ToDebugString()),
+                                                REJECT_INVALID, "account-not-registered");
+
             if (!newAccount.regid.IsMature(context.height))
-                return state.DoS(100, ERRORMSG("CUserUpdateAssetTx::ExecuteTx, the new owner regid is not matured! new uid=%s",
-                    newOwnerUid.ToDebugString()), REJECT_INVALID, "account-not-matured");
+                return state.DoS(100, ERRORMSG("new uid(%s)'s regid is not mature!", newOwnerUid.ToDebugString()),
+                                                REJECT_INVALID, "account-not-mature");
 
             asset.owner_uid = newAccount.regid;
             break;
@@ -385,21 +378,20 @@ bool CUserUpdateAssetTx::ExecuteTx(CTxExecuteContext &context) {
             break;
         }
         case CUserUpdateAsset::MINT_AMOUNT: {
-
             if (!asset.mintable)
-                return state.DoS(100, ERRORMSG("CUserUpdateAssetTx::ExecuteTx, the asset is not mintable"),
+                return state.DoS(100, ERRORMSG("the asset is not mintable"),
                                  REJECT_INVALID, "asset-not-mintable");
 
             uint64_t mintAmount = update_data.get<uint64_t>();
             uint64_t newTotalSupply = asset.total_supply + mintAmount;
             if (newTotalSupply > MAX_ASSET_TOTAL_SUPPLY || newTotalSupply < asset.total_supply) {
-                return state.DoS(100, ERRORMSG("CUserUpdateAssetTx::ExecuteTx, the new mintAmount=%llu + total_supply=%s greater than %llu,",
+                return state.DoS(100, ERRORMSG("the new mintAmount=%llu + total_supply=%s greater than %llu,",
                             mintAmount, asset.total_supply, MAX_ASSET_TOTAL_SUPPLY), REJECT_INVALID, "invalid-mint-amount");
             }
 
             if (!txAccount.OperateBalance(asset_symbol, BalanceOpType::ADD_FREE, mintAmount,
                                         ReceiptType::ASSET_MINT_NEW_AMOUNT, receipts)) {
-                return state.DoS(100, ERRORMSG("CUserUpdateAssetTx::ExecuteTx, add mintAmount to asset owner account failed, txUid=%s, mintAmount=%llu",
+                return state.DoS(100, ERRORMSG("add mintAmount to asset owner account failed, txUid=%s, mintAmount=%llu",
                                 txUid.ToDebugString(), mintAmount), UPDATE_ACCOUNT_FAIL, "account-add-free-failed");
             }
 
@@ -413,8 +405,7 @@ bool CUserUpdateAssetTx::ExecuteTx(CTxExecuteContext &context) {
         return false;
 
     if (!cw.assetCache.SetAsset(asset))
-        return state.DoS(100, ERRORMSG("CUserUpdateAssetTx::ExecuteTx, save asset failed",
-            txUid.ToDebugString()), UPDATE_ACCOUNT_FAIL, "save-asset-failed");
+        return state.DoS(100, ERRORMSG("save asset failed", txUid.ToDebugString()), UPDATE_ACCOUNT_FAIL, "save-asset-failed");
 
     return true;
 }
