@@ -109,19 +109,22 @@ Value submitpricefeedtx(const Array& params, bool fHelp) {
 }
 
 static const unordered_map<string, BalanceOpType> STAKE_COINS_ACTIONS = {
-    {"STAKE", BalanceOpType::STAKE},
+    {"STAKE",   BalanceOpType::STAKE},
     {"UNSTAKE", BalanceOpType::UNSTAKE}
 };
 
 namespace RPC_PARAM {
+
     BalanceOpType GetStakeAction(const Array& params, const size_t index) {
-        if (params.size() > index) {
+        if (params.size() - 1 > index) {
             string actionStr = StrToUpper(params[index].get_str());
             auto it = STAKE_COINS_ACTIONS.find(actionStr);
             if (it == STAKE_COINS_ACTIONS.end())
                 throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("Invalid action=%s", params[index].get_str()));
+
             return it->second;
         }
+
         return BalanceOpType::STAKE;
     }
 }
@@ -132,17 +135,17 @@ Value submitcoinstaketx(const Array& params, bool fHelp) {
             "submitcoinstaketx \"addr\" \"coins_to_stake\" [\"action\"] [\"symbol:fee:unit\"]\n"
             "\nstake coins\n"
             "\nArguments:\n"
-            "1.\"addr\":                (string, required)\n"
-            "2. \"coins_to_stake\":  (symbol:amount:unit, required) Combo Money to stake or unstake the CDP,"
+            "1.\"addr\":             (string, required)\n"
+            "2. \"coins_to_stake\":  (symbol:amount:unit, required) coins to stake or unstake to the account,"
             " default symbol=WICC, default unit=sawi\n"
-            "3. \"action\":  (string, optional) action for staking coins, must be (STAKE | UNSTAKE), default is STAKE"
-            "4.\"symbol:fee:unit\":     (string:numeric:string, optional) fee paid to miner, default is WICC:10000:sawi\n"
+            "3. \"action\":          (string, optional) action for staking coins, must be (STAKE | UNSTAKE), default is STAKE\n"
+            "4.\"fees\":             (symbol:amount:unit, optional) fees paid to miner, default is WICC:10000:sawi\n"
             "\nResult:\n"
-            "\"txid\"               (string) The transaction id.\n"
+            "\"txid\"                (string) The transaction id.\n"
             "\nExamples:\n"
-            + HelpExampleCli("submitcoinstaketx", "\"10-1\" \"WICC:0.1:wi\" \"STAKE\"")
+            + HelpExampleCli("submitcoinstaketx", "\"10-1\" \"STAKE\" \"WICC:0.1:wi\"")
             + "\nAs json rpc call\n"
-            + HelpExampleRpc("submitcoinstaketx", "\"10-1\", \"WICC:0.1:wi\", \"STAKE\"")
+            + HelpExampleRpc("submitcoinstaketx", "\"10-1\", \"STAKE\", \"WICC:0.1:wi\"")
         );
     }
 
