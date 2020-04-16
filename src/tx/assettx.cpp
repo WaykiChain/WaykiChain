@@ -111,7 +111,7 @@ static bool ProcessAssetFee(CCacheWrapper &cw, CValidationState &state, const st
 // class CUserIssueAssetTx
 
 bool CUserIssueAssetTx::CheckTx(CTxExecuteContext &context) {
-    IMPLEMENT_DEFINE_CW_STATE;
+    CValidationState &state = *context.pState;
 
     string errMsg = "";
     if (!CAsset::CheckSymbol(AssetType::UIA, asset.asset_symbol, errMsg))
