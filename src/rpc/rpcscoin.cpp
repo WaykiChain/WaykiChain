@@ -130,7 +130,7 @@ namespace RPC_PARAM {
 }
 
 Value submitcoinstaketx(const Array& params, bool fHelp) {
-    if (fHelp || params.size() < 3 || params.size() > 4) {
+    if (fHelp || params.size() < 2 || params.size() > 4) {
         throw runtime_error(
             "submitcoinstaketx \"addr\" \"coins_to_stake\" [\"action\"] [\"symbol:fee:unit\"]\n"
             "\nstake coins\n"
@@ -143,9 +143,9 @@ Value submitcoinstaketx(const Array& params, bool fHelp) {
             "\nResult:\n"
             "\"txid\"                (string) The transaction id.\n"
             "\nExamples:\n"
-            + HelpExampleCli("submitcoinstaketx", "\"10-1\" \"STAKE\" \"WICC:0.1:wi\"")
+            + HelpExampleCli("submitcoinstaketx", "\"10-1\" \"WICC:21000:wi\" \"STAKE\" \"WICC:0.1:wi\"")
             + "\nAs json rpc call\n"
-            + HelpExampleRpc("submitcoinstaketx", "\"10-1\", \"STAKE\", \"WICC:0.1:wi\"")
+            + HelpExampleRpc("submitcoinstaketx", "\"10-1\", \"WICC:21000:wi\", \"STAKE\", \"WICC:0.1:wi\"")
         );
     }
 
