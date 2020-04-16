@@ -886,7 +886,7 @@ Value submitdexoperatorregtx(const Array& params, bool fHelp){
             "3.\"fee_receiver_uid\":(string, required) the dexoperator 's fee receiver account \n"
             "4.\"dex_name\":        (string, required) dex operator's name \n"
             "5.\"portal_url\":      (string, required) the dex operator's website url \n"
-            "8.\"open_mode\":     (string, required) indicate the order is PUBLIC or PRIVATE\n"
+            "6.\"open_mode\":     (string, required) indicate the order is PUBLIC or PRIVATE\n"
             "7.\"maker_fee_ratio\": (number, required) range is 0 ~ 50000000, 50000000 stand for 50% \n"
             "8.\"taker_fee_ratio\": (number, required) range is 0 ~ 50000000, 50000000 stand for 50% \n"
             "9.\"order_open_dexop_list\": (array of number, required) order open dexop list, max size is 500\n"
@@ -918,8 +918,8 @@ Value submitdexoperatorregtx(const Array& params, bool fHelp){
     data.maker_fee_ratio = AmountToRawValue(params[6]);
     data.taker_fee_ratio = AmountToRawValue(params[7]);
     data.order_open_dexop_list = RPC_PARAM::GetSharedDexopList(params[8]);
-    ComboMoney fee  = RPC_PARAM::GetFee(params, 8, DEX_OPERATOR_REGISTER_TX);
-    data.memo = RPC_PARAM::GetMemo(params, 9);
+    ComboMoney fee  = RPC_PARAM::GetFee(params, 9, DEX_OPERATOR_REGISTER_TX);
+    data.memo = RPC_PARAM::GetMemo(params, 10);
 
     // Get account for checking balance
     CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, userId);
