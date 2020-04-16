@@ -9,7 +9,7 @@
 CCdpDBCache::CCdpDBCache(CDBAccess *pDbAccess)
     : cdp_global_data_cache(pDbAccess),
       cdp_cache(pDbAccess),
-      bcoin_status_cache(pDbAccess),
+      cdp_bcoin_cache(pDbAccess),
       user_cdp_cache(pDbAccess),
       cdp_ratio_index_cache(pDbAccess),
       cdp_height_index_cache(pDbAccess) {}
@@ -17,7 +17,7 @@ CCdpDBCache::CCdpDBCache(CDBAccess *pDbAccess)
 CCdpDBCache::CCdpDBCache(CCdpDBCache *pBaseIn)
     : cdp_global_data_cache(pBaseIn->cdp_global_data_cache),
       cdp_cache(pBaseIn->cdp_cache),
-      bcoin_status_cache(pBaseIn->bcoin_status_cache),
+      cdp_bcoin_cache(pBaseIn->cdp_bcoin_cache),
       user_cdp_cache(pBaseIn->user_cdp_cache),
       cdp_ratio_index_cache(pBaseIn->cdp_ratio_index_cache),
       cdp_height_index_cache(pBaseIn->cdp_height_index_cache) {}
@@ -136,31 +136,31 @@ bool CCdpDBCache::GetCdpBcoin(const TokenSymbol &bcoinSymbol, CCdpBcoinDetail &c
     if (bcoinSymbol == SYMB::WGRT || kCdpScoinSymbolSet.count(bcoinSymbol) > 0) {
         return false;
     }
-    return bcoin_status_cache.GetData(bcoinSymbol, cdpBcoin);
+    return cdp_bcoin_cache.GetData(bcoinSymbol, cdpBcoin);
 }
 
 bool CCdpDBCache::IsCdpBcoinActivated(const TokenSymbol &bcoinSymbol) {
     if (kCdpBcoinSymbolSet.count(bcoinSymbol) > 0) return true;
     if (bcoinSymbol == SYMB::WGRT || kCdpScoinSymbolSet.count(bcoinSymbol) > 0) return false;
-    return bcoin_status_cache.HasData(bcoinSymbol);
+    return cdp_bcoin_cache.HasData(bcoinSymbol);
 }
 
 bool CCdpDBCache::SetCdpBcoin(const TokenSymbol &bcoinSymbol, const CCdpBcoinDetail &cdpBcoin) {
     if (kCdpBcoinSymbolSet.count(bcoinSymbol) > 0) return false;
     if (bcoinSymbol == SYMB::WGRT || kCdpScoinSymbolSet.count(bcoinSymbol) > 0) return false;
     CCdpBcoinDetail oldCdpBcoin;
-    if (bcoin_status_cache.GetData(bcoinSymbol, oldCdpBcoin)) {
+    if (cdp_bcoin_cache.GetData(bcoinSymbol, oldCdpBcoin)) {
         oldCdpBcoin.status = cdpBcoin.status; // just update the status
-        return bcoin_status_cache.SetData(bcoinSymbol, oldCdpBcoin);
+        return cdp_bcoin_cache.SetData(bcoinSymbol, oldCdpBcoin);
     } else {
-        return bcoin_status_cache.SetData(bcoinSymbol, cdpBcoin);
+        return cdp_bcoin_cache.SetData(bcoinSymbol, cdpBcoin);
     }
 }
 
 void CCdpDBCache::SetBaseViewPtr(CCdpDBCache *pBaseIn) {
     cdp_global_data_cache.SetBase(&pBaseIn->cdp_global_data_cache);
     cdp_cache.SetBase(&pBaseIn->cdp_cache);
-    bcoin_status_cache.SetBase(&pBaseIn->bcoin_status_cache);
+    cdp_bcoin_cache.SetBase(&pBaseIn->cdp_bcoin_cache);
     user_cdp_cache.SetBase(&pBaseIn->user_cdp_cache);
     cdp_ratio_index_cache.SetBase(&pBaseIn->cdp_ratio_index_cache);
     cdp_height_index_cache.SetBase(&pBaseIn->cdp_height_index_cache);
@@ -169,21 +169,21 @@ void CCdpDBCache::SetBaseViewPtr(CCdpDBCache *pBaseIn) {
 void CCdpDBCache::SetDbOpLogMap(CDBOpLogMap *pDbOpLogMapIn) {
     cdp_global_data_cache.SetDbOpLogMap(pDbOpLogMapIn);
     cdp_cache.SetDbOpLogMap(pDbOpLogMapIn);
-    bcoin_status_cache.SetDbOpLogMap(pDbOpLogMapIn);
+    cdp_bcoin_cache.SetDbOpLogMap(pDbOpLogMapIn);
     user_cdp_cache.SetDbOpLogMap(pDbOpLogMapIn);
     cdp_ratio_index_cache.SetDbOpLogMap(pDbOpLogMapIn);
     cdp_height_index_cache.SetDbOpLogMap(pDbOpLogMapIn);
 }
 
 uint32_t CCdpDBCache::GetCacheSize() const {
-    return cdp_global_data_cache.GetCacheSize() + cdp_cache.GetCacheSize() + bcoin_status_cache.GetCacheSize() +
+    return cdp_global_data_cache.GetCacheSize() + cdp_cache.GetCacheSize() + cdp_bcoin_cache.GetCacheSize() +
             user_cdp_cache.GetCacheSize() + cdp_ratio_index_cache.GetCacheSize() + cdp_height_index_cache.GetCacheSize();
 }
 
 bool CCdpDBCache::Flush() {
     cdp_global_data_cache.Flush();
     cdp_cache.Flush();
-    bcoin_status_cache.Flush();
+    cdp_bcoin_cache.Flush();
     user_cdp_cache.Flush();
     cdp_ratio_index_cache.Flush();
     cdp_ratio_index_cache.Flush();

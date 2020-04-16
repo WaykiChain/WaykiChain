@@ -77,7 +77,7 @@ public:
     void RegisterUndoFunc(UndoDataFuncMap &undoDataFuncMap) {
         cdp_global_data_cache.RegisterUndoFunc(undoDataFuncMap);
         cdp_cache.RegisterUndoFunc(undoDataFuncMap);
-        bcoin_status_cache.RegisterUndoFunc(undoDataFuncMap);
+        cdp_bcoin_cache.RegisterUndoFunc(undoDataFuncMap);
         user_cdp_cache.RegisterUndoFunc(undoDataFuncMap);
         cdp_ratio_index_cache.RegisterUndoFunc(undoDataFuncMap);
         cdp_height_index_cache.RegisterUndoFunc(undoDataFuncMap);
@@ -102,7 +102,7 @@ public:
     // cdp{$cdpid} -> CUserCDP
     CCompositeKVCache<  dbk::CDP,       uint256,                    CUserCDP>           cdp_cache;
     // cbca{$bcoin_symbol} -> $cdpBcoinDetail
-    CCompositeKVCache<  dbk::CDP_BCOIN, TokenSymbol,    CCdpBcoinDetail>           bcoin_status_cache;
+    CCompositeKVCache<  dbk::CDP_BCOIN, TokenSymbol,    CCdpBcoinDetail>           cdp_bcoin_cache;
     // ucdp${CRegID}{$cdpCoinPair} -> set<cdpid>
     CCompositeKVCache<  dbk::USER_CDP, pair<CRegIDKey, CCdpCoinPair>, optional<uint256>> user_cdp_cache;
     // cdpr{Ratio}{$cdpid} -> CUserCDP

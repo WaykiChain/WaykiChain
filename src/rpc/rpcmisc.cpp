@@ -223,6 +223,7 @@ Value verifymessage(const Array& params, bool fHelp) {
     DEFINE( REGID_VOTE,           pDelegateCache,  regId2VoteCache) \
     /**** cdp db                                                                     */ \
     DEFINE( CDP,                  pCdpCache,  cdp_cache) \
+    DEFINE( CDP_BCOIN,            pCdpCache,  cdp_bcoin_cache ) \
     DEFINE( USER_CDP,             pCdpCache,  user_cdp_cache) \
     DEFINE( CDP_RATIO_INDEX,            pCdpCache,  cdp_ratio_index_cache) \
     DEFINE( CDP_HEIGHT_INDEX,            pCdpCache,  cdp_height_index_cache) \
