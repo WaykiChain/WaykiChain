@@ -295,9 +295,14 @@ bool CGovAssetPermProposal::ExecuteProposal(CTxExecuteContext& context, CBaseTx&
 
     bool newCdpBcoinPerm = asset.HasPerms(AssetPermType::PERM_CDP_BCOIN);
     if (newCdpBcoinPerm != oldCdpBcoinPerm) {
+        assert(kCdpBcoinSymbolSet.count(asset_symbol) > 0);
+        if (asset_symbol == SYMB::WGRT || kCdpScoinSymbolSet.count(asset_symbol) > 0)
+            return state.DoS(100, ERRORMSG("asset=%s is a scoin, can not change bcoin perm", asset_symbol),
+                REJECT_INVALID, "change-bcoin-perm-error");
         CdpBcoinStatus status = newCdpBcoinPerm ? CdpBcoinStatus::STAKE_ON : CdpBcoinStatus::STAKE_OFF;
-        if (cw.cdpCache.SetBcoinStatus(asset_symbol, status))
-            return state.DoS(100, ERRORMSG("Save bcoin status failed! symbol=%s", asset_symbol), REJECT_INVALID, "save-bcoin-status-failed");
+        if (cw.cdpCache.SetCdpBcoin(asset_symbol, {status, context.GetTxCord()}))
+            return state.DoS(100, ERRORMSG("Save bcoin status failed! symbol=%s", asset_symbol),
+                REJECT_INVALID, "save-bcoin-status-failed");
 
     }
     return true;

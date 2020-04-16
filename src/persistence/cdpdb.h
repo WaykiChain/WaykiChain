@@ -67,9 +67,9 @@ public:
     inline uint64_t GetGlobalOwedScoins() const;
     CCdpGlobalData GetCdpGlobalData(const CCdpCoinPair &cdpCoinPair) const;
 
-    bool GetBcoinStatus(const TokenSymbol &bcoinSymbol, CdpBcoinStatus &status);
-    bool IsBcoinActivated(const TokenSymbol &bcoinSymbol);
-    bool SetBcoinStatus(const TokenSymbol &bcoinSymbol, const CdpBcoinStatus &status);
+    bool GetCdpBcoin(const TokenSymbol &bcoinSymbol, CCdpBcoinDetail &cdpBcoin);
+    bool IsCdpBcoinActivated(const TokenSymbol &bcoinSymbol);
+    bool SetCdpBcoin(const TokenSymbol &bcoinSymbol, const CCdpBcoinDetail &cdpBcoin);
 
     void SetBaseViewPtr(CCdpDBCache *pBaseIn);
     void SetDbOpLogMap(CDBOpLogMap * pDbOpLogMapIn);
@@ -101,8 +101,8 @@ public:
     CCompositeKVCache<  dbk::CDP_GLOBAL_DATA, CCdpCoinPair,   CCdpGlobalData>    cdp_global_data_cache;
     // cdp{$cdpid} -> CUserCDP
     CCompositeKVCache<  dbk::CDP,       uint256,                    CUserCDP>           cdp_cache;
-    // cbca{$bcoin_symbol} -> $bcoinStatus
-    CCompositeKVCache<  dbk::CDP_BCOIN_STATUS, TokenSymbol,    uint8_t>           bcoin_status_cache;
+    // cbca{$bcoin_symbol} -> $cdpBcoinDetail
+    CCompositeKVCache<  dbk::CDP_BCOIN, TokenSymbol,    CCdpBcoinDetail>           bcoin_status_cache;
     // ucdp${CRegID}{$cdpCoinPair} -> set<cdpid>
     CCompositeKVCache<  dbk::USER_CDP, pair<CRegIDKey, CCdpCoinPair>, optional<uint256>> user_cdp_cache;
     // cdpr{Ratio}{$cdpid} -> CUserCDP

@@ -403,7 +403,7 @@ Value getscoininfo(const Array& params, bool fHelp){
             continue;
         }
 
-        if (!pCdMan->pCdpCache->IsBcoinActivated(bcoinSymbol)) {
+        if (!pCdMan->pCdpCache->IsCdpBcoinActivated(bcoinSymbol)) {
             LogPrint(BCLog::CDP, "asset=%s does not be activated, ignore", bcoinSymbol);
             continue;
         }

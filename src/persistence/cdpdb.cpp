@@ -126,29 +126,35 @@ CCdpGlobalData CCdpDBCache::GetCdpGlobalData(const CCdpCoinPair &cdpCoinPair) co
     return ret;
 }
 
-bool CCdpDBCache::GetBcoinStatus(const TokenSymbol &bcoinSymbol, CdpBcoinStatus &activation) {
-    if (kCdpBcoinSymbolSet.count(bcoinSymbol) > 0) {
-        activation = CdpBcoinStatus::STAKE_ON;
+bool CCdpDBCache::GetCdpBcoin(const TokenSymbol &bcoinSymbol, CCdpBcoinDetail &cdpBcoin) {
+    auto it = kCdpBcoinSymbolSet.find(bcoinSymbol);
+    if (it != kCdpBcoinSymbolSet.end()) {
+        cdpBcoin.status = CdpBcoinStatus::STAKE_ON;
+        cdpBcoin.init_tx_cord = CRegID(0, 1);
         return true;
     }
     if (bcoinSymbol == SYMB::WGRT || kCdpScoinSymbolSet.count(bcoinSymbol) > 0) {
-        activation = CdpBcoinStatus::NONE;
         return false;
     }
-    uint8_t act;
-    if (!bcoin_status_cache.GetData(bcoinSymbol, act)) return false;
-    activation = CdpBcoinStatus(act);
-    return true;
+    return bcoin_status_cache.GetData(bcoinSymbol, cdpBcoin);
 }
 
-bool CCdpDBCache::IsBcoinActivated(const TokenSymbol &bcoinSymbol) {
+bool CCdpDBCache::IsCdpBcoinActivated(const TokenSymbol &bcoinSymbol) {
     if (kCdpBcoinSymbolSet.count(bcoinSymbol) > 0) return true;
     if (bcoinSymbol == SYMB::WGRT || kCdpScoinSymbolSet.count(bcoinSymbol) > 0) return false;
     return bcoin_status_cache.HasData(bcoinSymbol);
 }
 
-bool CCdpDBCache::SetBcoinStatus(const TokenSymbol &bcoinSymbol, const CdpBcoinStatus &activation) {
-    return bcoin_status_cache.SetData(bcoinSymbol, (uint8_t)activation);
+bool CCdpDBCache::SetCdpBcoin(const TokenSymbol &bcoinSymbol, const CCdpBcoinDetail &cdpBcoin) {
+    if (kCdpBcoinSymbolSet.count(bcoinSymbol) > 0) return false;
+    if (bcoinSymbol == SYMB::WGRT || kCdpScoinSymbolSet.count(bcoinSymbol) > 0) return false;
+    CCdpBcoinDetail oldCdpBcoin;
+    if (bcoin_status_cache.GetData(bcoinSymbol, oldCdpBcoin)) {
+        oldCdpBcoin.status = cdpBcoin.status; // just update the status
+        return bcoin_status_cache.SetData(bcoinSymbol, oldCdpBcoin);
+    } else {
+        return bcoin_status_cache.SetData(bcoinSymbol, cdpBcoin);
+    }
 }
 
 void CCdpDBCache::SetBaseViewPtr(CCdpDBCache *pBaseIn) {

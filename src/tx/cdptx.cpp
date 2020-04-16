@@ -1220,7 +1220,7 @@ bool GetSettledInterestCdps(CCacheWrapper &cw, HeightType height, vector<uint256
             continue;
         }
 
-        if (!cw.cdpCache.IsBcoinActivated(bcoinSymbol)) {
+        if (!cw.cdpCache.IsCdpBcoinActivated(bcoinSymbol)) {
             LogPrint(BCLog::CDP, "bcoin=%s does not be activated, ignore", bcoinSymbol);
             continue;
         }

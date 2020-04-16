@@ -31,6 +31,29 @@ static const EnumHelper<CdpBcoinStatus, uint8_t> kCdpBcoinStatusHelper = {{
     {CdpBcoinStatus::STAKE_ON, "STAKE_ON"},
     {CdpBcoinStatus::STAKE_OFF, "STAKE_OFF"}
 }};
+
+class CCdpBcoinDetail {
+public:
+    CdpBcoinStatus status = CdpBcoinStatus::NONE;
+    CTxCord init_tx_cord; // the tx_cord of first init tx
+
+    IMPLEMENT_SERIALIZE(
+        READWRITE_ENUM(status, uint8_t);
+        READWRITE(init_tx_cord);
+    )
+
+    string ToString() const {
+        return strprintf("status=%s, init_tx_cord=%s", kCdpBcoinStatusHelper.GetName(status), init_tx_cord.ToString());
+    }
+
+    bool IsEmpty() const { return status == CdpBcoinStatus::NONE; }
+
+    void SetEmpty() {
+        status = CdpBcoinStatus::NONE;
+        init_tx_cord.SetEmpty();
+    }
+};
+
 /**
  * CDP Cache Item: stake in BaseCoin to get StableCoins
  *

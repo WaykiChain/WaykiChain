@@ -121,6 +121,8 @@ public:
           pCw(pCwIn),
           pState(pStateIn),
           context_type(contextType) {}
+
+    CTxCord GetTxCord() const { return {(HeightType)height, (uint16_t)index}; }
 };
 
 class CBaseTx {
