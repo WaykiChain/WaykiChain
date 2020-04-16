@@ -532,6 +532,16 @@ CKeyID RPC_PARAM::GetKeyId(const Value &jsonValue){
     return GetUserKeyId(ParseUserIdByAddr(jsonValue));
 }
 
+
+CUserID RPC_PARAM::GetRegId(const Value &jsonValue) {
+
+    auto uid = ParseUserIdByAddr(jsonValue);
+    CRegID regid;
+    if (pCdMan->pAccountCache->GetRegId(uid, regid))
+        throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("get regid by uid=%s failed", uid.ToString()));
+    return regid;
+}
+
 string RPC_PARAM::GetLuaContractScript(const Value &jsonValue) {
     string filePath = GetAbsolutePath(jsonValue.get_str()).string();
     if (filePath.empty())

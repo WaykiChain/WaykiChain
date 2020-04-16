@@ -889,7 +889,7 @@ Value submitdexoperatorregtx(const Array& params, bool fHelp){
             "8.\"open_mode\":     (string, required) indicate the order is PUBLIC or PRIVATE\n"
             "7.\"maker_fee_ratio\": (number, required) range is 0 ~ 50000000, 50000000 stand for 50% \n"
             "8.\"taker_fee_ratio\": (number, required) range is 0 ~ 50000000, 50000000 stand for 50% \n"
-            "9.\"order_open_dexop_list\": (array, required) shared dexop list, max size is 500\n"
+            "9.\"order_open_dexop_list\": (array of number, required) order open dexop list, max size is 500\n"
             "10.\"fee\":             (symbol:fee:unit, optional) tx fee,default is the min fee for the tx type  \n"
             "11 \"memo\":            (string, optional) dex memo \n"
             "\nResult:\n"
@@ -940,13 +940,15 @@ Value submitdexopupdatetx(const Array& params, bool fHelp){
                 "1.\"tx_uid\":          (string, required) the tx sender, must be the dexoperaor's owner regid\n"
                 "2.\"dex_id\":          (number, required) dex operator's id \n"
                 "3.\"update_field\":    (nuber, required) the dexoperator field to update\n"
-                "                       1: fee_receiver_regid\n"
-                "                       2: dex_name\n"
-                "                       3: portal_url\n"
-                "                       4: maker_fee_ratio\n"
-                "                       5: taker_fee_ratio\n"
-                "                       6: owner_regid\n"
-                "                       7: memo\n"
+                "                       1: owner_regid (string) the dexoperator 's owner account\n"
+                "                       2: fee_receiver_regid: (string) the dexoperator 's fee receiver account\n"
+                "                       3: dex_name: (string) dex operator's name\n"
+                "                       4: portal_url: (string) the dex operator's website url\n"
+                "                       5: open_mode: (string) indicate the order is PUBLIC or PRIVATE\n"
+                "                       6: maker_fee_ratio: (number) range is 0 ~ 50000000, 50000000 stand for 50%\n"
+                "                       7: taker_fee_ratio (number) range is 0 ~ 50000000, 50000000 stand for 50%\n"
+                "                       8: order_open_devop_list (Array of number) order open dexop list, max size is 500\n"
+                "                       9: memo\n"
                 "4.\"value\":           (string, required) updated value \n"
                 "5.\"fee\":             (symbol:fee:unit, optional) tx fee,default is the min fee for the tx type  \n"
                 "\nResult:\n"
@@ -964,35 +966,29 @@ Value submitdexopupdatetx(const Array& params, bool fHelp){
     CDEXOperatorUpdateData updateData ;
     updateData.dexId = RPC_PARAM::GetDexId(params[1]);
     updateData.field = CDEXOperatorUpdateData::UpdateField(params[2].get_int());
-    string valueStr = params[3].get_str();
+    const Value & updatedValue = params[3];
     switch (updateData.field){
         case CDEXOperatorUpdateData::UpdateField::FEE_RECEIVER_UID :
         case CDEXOperatorUpdateData::UpdateField::OWNER_UID :{
-            CUserID uid = RPC_PARAM::GetUserId(valueStr);
-            if(!uid.is<CRegID>()) {
-                throw JSONRPCError(RPC_INVALID_PARAMETER, "owner_uid or fee_receiver_uid must be or has regid, "
-                                                          "and regid must be muture");
-            }
-            updateData.value = uid;
+            updateData.value = CUserID(RPC_PARAM::GetRegId(updatedValue));
             break;
         }
         case CDEXOperatorUpdateData::UpdateField::NAME :
         case CDEXOperatorUpdateData::UpdateField::PORTAL_URL :
         case CDEXOperatorUpdateData::UpdateField::MEMO :
-            updateData.value = valueStr;
+            updateData.value = updatedValue.get_str();
+            break;
+        case CDEXOperatorUpdateData::UpdateField::OPEN_MODE:
+            updateData.value = RPC_PARAM::GetOrderOpenMode(updatedValue);
             break;
         case CDEXOperatorUpdateData::UpdateField::MAKER_FEE_RATIO:
         case CDEXOperatorUpdateData::UpdateField::TAKER_FEE_RATIO:{
-            uint64_t uint64V;
-            if (!ParseUint64(valueStr, uint64V))
-                throw JSONRPCError(RPC_INVALID_PARAMS, strprintf("invalid fee ratio=%s as uint64_t type",
-                                                                 valueStr));
-            updateData.value = uint64V;
+            updateData.value  = AmountToRawValue(updatedValue);
             break;
         }
 
         default:
-            throw JSONRPCError(RPC_INVALID_PARAMETER, "the dex update field code is error,its range is [1,7]");
+            throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("unsupport dex update_field=%d", updateData.field));
     }
 
     string errmsg ;

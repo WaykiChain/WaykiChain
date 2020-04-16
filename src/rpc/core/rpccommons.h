@@ -58,6 +58,7 @@ namespace RPC_PARAM {
 
     CUserID ParseUserId(const Value &jsonValue);
     CUserID GetUserId(const Value &jsonValue, const bool senderUid = false);
+    CUserID GetRegId(const Value &jsonValue);
 
     string GetLuaContractScript(const Value &jsonValue);
     CKeyID GetKeyId(const Value &jsonValue);

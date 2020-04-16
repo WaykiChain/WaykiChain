@@ -96,13 +96,13 @@ public:
     };
     enum UpdateField: uint8_t{
         UPDATE_NONE             = 0 ,
-        FEE_RECEIVER_UID        = 1 ,
-        NAME                    = 2 ,
-        PORTAL_URL              = 3 ,
-        OPEN_MODE               = 4 ,
-        MAKER_FEE_RATIO         = 5 ,
-        TAKER_FEE_RATIO         = 6 ,
-        OWNER_UID               = 7 ,
+        OWNER_UID               = 1 ,
+        FEE_RECEIVER_UID        = 2 ,
+        NAME                    = 3 ,
+        PORTAL_URL              = 4 ,
+        OPEN_MODE               = 5 ,
+        MAKER_FEE_RATIO         = 6 ,
+        TAKER_FEE_RATIO         = 7 ,
         ORDER_OPEN_DEVOP_LIST   = 8 ,
         MEMO                    = 9
     };
