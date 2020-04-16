@@ -183,8 +183,8 @@ Value getblock(const Array& params, bool fHelp) {
             "\nArguments:\n"
             "1.\"hash or height\"   (string or numeric, required) string for the block hash, or numeric for the block "
             "height\n"
-            "2.\"list_txs\"         (boolean, optional, default=false) true:return all tx detail in the block\n"
-            "3.\"verbose\"          (boolean, optional, default=true) true for a json object, false for the hex\n"
+            "2.\"list_txs\"         (boolean, optional, default=false) true: return a detailed list of txes from the block\n"
+            "3.\"verbose\"          (boolean, optional, default=true) true: return a json object; false: return hex only\n"
             "encoded data\n"
             "\nResult (for verbose = true):\n"
             "{\n"
@@ -252,8 +252,6 @@ Value getblock(const Array& params, bool fHelp) {
         return strHex;
     }
 
-
-
     vector<CReceipt> blockReceipts;
     Object o = BlockToJSON(block, pBlockIndex);
 
@@ -263,13 +261,10 @@ Value getblock(const Array& params, bool fHelp) {
             arr.push_back(GetTxDetailJSON(block, tx));
         }
         o.push_back(Pair("tx_details", arr));
-
     }
 
     pCdMan->pReceiptCache->GetBlockReceipts(block.GetHash(), blockReceipts);
     o.push_back(Pair("receipts",  JSON::ToJson(*pCdMan->pAccountCache, blockReceipts)));
-
-
 
     return o;
 }
