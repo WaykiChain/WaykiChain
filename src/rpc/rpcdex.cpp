@@ -139,11 +139,11 @@ namespace RPC_PARAM {
         }
     }
 
-    vector<uint64_t> GetSharedDexopList(const Value& jsonValue) {
-        vector<uint64_t> ret;
+    DexOpIdValueList GetSharedDexopList(const Value& jsonValue) {
+        DexOpIdValueList ret;
         const Array &arr = jsonValue.get_array();
         for (auto &item : arr) {
-            ret.push_back(item.get_uint64());
+            ret.push_back(CVarIntValue(item.get_uint64()));
         }
         return ret;
     }

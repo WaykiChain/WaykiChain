@@ -154,12 +154,12 @@ bool CDEXOperatorRegisterTx::CheckTx(CTxExecuteContext &context) {
 bool CDEXOperatorRegisterTx::ExecuteTx(CTxExecuteContext &context) {
     CCacheWrapper &cw = *context.pCw; CValidationState &state = *context.pState;
 
-    set<uint64_t> sharedDexopSet;
+    DexOpIdValueSet dexIdSet;
     for (auto &item : data.order_open_dexop_list) {
-        auto ret = sharedDexopSet.insert(item);
+        auto ret = dexIdSet.insert(item);
         if (!ret.second) {
-            return state.DoS(100, ERRORMSG("duplicated item=%u in  order_open_dexop_list",
-                item), REJECT_INVALID, "duplicated-item-in-shared-dexop-list");
+            return state.DoS(100, ERRORMSG("duplicated item=%s in  order_open_dexop_list",
+                db_util::ToString(item)), REJECT_INVALID, "duplicated-item-in-shared-dexop-list");
         }
     }
 
@@ -198,7 +198,7 @@ bool CDEXOperatorRegisterTx::ExecuteTx(CTxExecuteContext &context) {
         data.order_open_mode,
         data.maker_fee_ratio,
         data.taker_fee_ratio,
-        sharedDexopSet,
+        dexIdSet,
         data.memo
     };
 

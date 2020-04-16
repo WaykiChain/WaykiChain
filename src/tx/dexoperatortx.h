@@ -11,6 +11,8 @@
 #include "tx.h"
 #include "persistence/dexdb.h"
 
+typedef vector<CVarIntValue<uint64_t>> DexOpIdValueList;
+
 class CDEXOperatorRegisterTx: public CBaseTx {
 public:
     struct Data {
@@ -21,7 +23,7 @@ public:
         dex::OpenMode order_open_mode   = dex::OpenMode::PRIVATE; // the default public mode for creating order
         uint64_t maker_fee_ratio = 0;    // the default maker fee ratio for creating order
         uint64_t taker_fee_ratio = 0;    // the defalt taker fee ratio for creating order
-        vector<uint64_t> order_open_dexop_list;
+        DexOpIdValueList order_open_dexop_list;
         string memo              = "";
 
         IMPLEMENT_SERIALIZE(
@@ -110,7 +112,7 @@ public:
             string,  // name,portal_url,memo
             uint64_t, // taker&maker fee ratio
             dex::OpenMode,
-            vector<uint64_t>
+            DexOpIdValueList
     > ValueType;
 
 public:
@@ -134,7 +136,7 @@ public:
             case TAKER_FEE_RATIO:
                 return baseSize + ::GetSerializeSize(VARINT(get<uint64_t>()), serializedType, nVersion);
             case ORDER_OPEN_DEVOP_LIST:
-                return baseSize + ::GetSerializeSize(get<vector<uint64_t>>(), serializedType, nVersion);
+                return baseSize + ::GetSerializeSize(get<DexOpIdValueList>(), serializedType, nVersion);
             default: break;
         }
         return 0;
@@ -162,7 +164,7 @@ public:
                 s << VARINT(get<uint64_t>());
                 break;
             case ORDER_OPEN_DEVOP_LIST:
-                s << get<vector<uint64_t>>();
+                s << get<DexOpIdValueList>();
                 break;
             default: {
                 LogPrint(BCLog::ERROR, "CDEXOperatorUpdateData::Serialize(), Invalid Asset update field=%d\n", field);
@@ -208,7 +210,7 @@ public:
                 break;
             }
             case ORDER_OPEN_DEVOP_LIST: {
-                vector<uint64_t> orderOpenDexopList;
+                DexOpIdValueList orderOpenDexopList;
                 s >> orderOpenDexopList;
                 value = orderOpenDexopList;
                 break;
@@ -247,7 +249,7 @@ public:
             case TAKER_FEE_RATIO:
                 return db_util::ToString(get<uint64_t>());
             case ORDER_OPEN_DEVOP_LIST:
-                return db_util::ToString(get<vector<uint64_t>>());
+                return db_util::ToString(get<DexOpIdValueList>());
             default:
                 return EMPTY_STRING;
 

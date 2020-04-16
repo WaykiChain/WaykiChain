@@ -197,6 +197,8 @@ namespace dex {
 
 }
 
+typedef set<CVarIntValue<uint64_t>> DexOpIdValueSet;
+
 // dex operator
 struct DexOperatorDetail {
     CRegID owner_regid;                 // owner regid of exchange
@@ -206,7 +208,7 @@ struct DexOperatorDetail {
     dex::OpenMode order_open_mode   = dex::OpenMode::PRIVATE; // the default public mode for creating order
     uint64_t maker_fee_ratio = 0;    // the default maker fee ratio for creating order
     uint64_t taker_fee_ratio = 0;    // the defalt taker fee ratio for creating order
-    set<uint64_t> order_open_dexop_set;  // the dex op set for order open mode
+    DexOpIdValueSet order_open_dexop_set;  // the dex op set for order open mode
     string memo              = "";
     bool activated           = false;
 
