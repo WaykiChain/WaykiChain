@@ -406,7 +406,7 @@ ComboMoney RPC_PARAM::GetComboMoney(const Value &jsonValue,
 
     } else if (valueType == json_spirit::Value_type::str_type) {
         if (!ParseRpcInputMoney(jsonValue.get_str(), money, defaultSymbol)) {
-            throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid combo money format");
+            throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("Invalid combo money format=%s", jsonValue.get_str()));
         }
     } else {
         throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("Invalid json value type: %s", JSON::GetValueTypeName(valueType)));
