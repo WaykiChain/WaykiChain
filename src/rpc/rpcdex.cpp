@@ -153,26 +153,10 @@ namespace RPC_PARAM {
         CAccount *pOperatorAccount = nullptr, uint64_t operatorTxFee = 0) {
 
         HeightType height = chainActive.Height() + 1;
-        if (GetFeatureForkVersion(height) > MAJOR_VER_R3) {
-            uint64_t totalFees = txFee;
-            auto stakedAmount = txAccount.GetToken(SYMB::WICC).staked_amount;
-            if (pOperatorAccount != nullptr && operatorTxFee != 0) {
-                totalFees += operatorTxFee;
-                stakedAmount = max(stakedAmount, pOperatorAccount->GetToken(SYMB::WICC).staked_amount);
-            }
-
-            if (stakedAmount > 0) {
-                minFee = std::max(std::min(COIN * COIN / stakedAmount, minFee), (uint64_t)1);
-            }
-            if (totalFees < minFee){
-                throw JSONRPCError(RPC_INVALID_PARAMS,
-                    strprintf("The given fee is too small: %llu < %llu sawi when wicc staked_amount=%llu",
-                        txFee, minFee, stakedAmount));
-            }
-        } else {
-            if (txFee < minFee)
-                throw JSONRPCError(RPC_INVALID_PARAMS,
-                    strprintf("The given fee is too small: %llu < %llu sawi", txFee, minFee));
+        auto spErr = dex::CheckOrderMinFee(height, txAccount, txFee, minFee, pOperatorAccount,
+                                           operatorTxFee);
+        if (spErr) {
+            throw JSONRPCError(RPC_INVALID_PARAMS, *spErr);
         }
     }
 

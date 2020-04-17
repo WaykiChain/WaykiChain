@@ -25,6 +25,9 @@ namespace dex {
     };
 
     uint64_t CalcOrderMinFee(uint64_t defaultMinFee, uint64_t stakedWiccAmount);
+    shared_ptr<string> CheckOrderMinFee(HeightType height, const CAccount &txAccount,
+                                        const uint64_t txFee, uint64_t minFee,
+                                        CAccount *pOperatorAccount, uint64_t operatorTxFee);
 
     class CDEXOrderBaseTx : public CBaseTx {
     public:

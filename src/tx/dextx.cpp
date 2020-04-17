@@ -44,32 +44,45 @@ namespace dex {
         }
     }
 
-    bool CheckOrderMinFee(const CBaseTx &tx, CTxExecuteContext &context, uint64_t minFee,
-            CAccount *pOperatorAccount, uint64_t operatorTxFee) {
+    // @return spErrMsg
+    shared_ptr<string> CheckOrderMinFee(HeightType height, const CAccount &txAccount,
+                                        const uint64_t txFee, uint64_t minFee,
+                                        CAccount *pOperatorAccount, uint64_t operatorTxFee) {
 
-        uint64_t totalFees = tx.llFees;
+        uint64_t totalFees = txFee;
         uint64_t stakedWiccAmount = 0;
-        auto ver = GetFeatureForkVersion(context.height);
-        if (ver > MAJOR_VER_R3) {
-            stakedWiccAmount = tx.txAccount.GetToken(SYMB::WICC).staked_amount;
+        auto version = GetFeatureForkVersion(height);
+        if (version > MAJOR_VER_R3) {
+            stakedWiccAmount = txAccount.GetToken(SYMB::WICC).staked_amount;
             if (pOperatorAccount != nullptr && operatorTxFee != 0) {
                 totalFees += operatorTxFee;
                 uint64_t op_staked_amount = pOperatorAccount->GetToken(SYMB::WICC).staked_amount;
                 if (stakedWiccAmount < op_staked_amount) {
                     stakedWiccAmount = op_staked_amount;
-                    LogPrint(BCLog::DEX, "%s, use operator stake amount=%llu instead", TX_OBJ_ERR_TITLE(tx), stakedWiccAmount);
+                    LogPrint(BCLog::DEX, "Use operator stake amount=%llu instead", stakedWiccAmount);
                 }
             }
             minFee = CalcOrderMinFee(minFee, stakedWiccAmount);
+            if (totalFees < minFee){
+                return make_shared<string>(strprintf("The given fees is too small: %llu < %llu sawi, staked_wicc_amount=%llu",
+                    totalFees, minFee, stakedWiccAmount));
+            }
+        } else {
+            if (totalFees < minFee){
+                return make_shared<string>(strprintf("The given fees is too small: %llu < %llu sawi",
+                    totalFees, minFee));
+            }
         }
-        if (totalFees < minFee){
-            string err = strprintf("The given fees is too small: %llu < %llu sawi when wicc staked_wicc_amount=%llu",
-                totalFees, minFee);
-            if (ver > MAJOR_VER_R3)
-                err = strprintf("%s, staked_wicc_amount=%llu", err, stakedWiccAmount);
+        return nullptr;
+    }
+
+    bool CheckOrderMinFee(const CBaseTx &tx, CTxExecuteContext &context, uint64_t minFee,
+            CAccount *pOperatorAccount, uint64_t operatorTxFee) {
+
+        auto spErr = CheckOrderMinFee(context.height, tx.txAccount, tx.llFees, minFee, pOperatorAccount, operatorTxFee);
+        if (spErr)
             return context.pState->DoS(100, ERRORMSG("%s, %s, height=%d, fee_symbol=%s",
-                TX_OBJ_ERR_TITLE(tx), err, context.height, tx.fee_symbol), REJECT_INVALID, err);
-        }
+                TX_OBJ_ERR_TITLE(tx), *spErr, context.height, tx.fee_symbol), REJECT_INVALID, *spErr);
         return true;
     }
 
