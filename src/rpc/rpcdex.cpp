@@ -464,8 +464,8 @@ Value submitdexsellmarketordertx(const Array& params, bool fHelp) {
 Value gendexoperatorordertx(const Array& params, bool fHelp) {
     if (fHelp || params.size() < 10 || params.size() > 12) {
         throw runtime_error(
-            "gendexoperatorordertx \"addr\" \"order_type\" \"order_side\" \"coins\" \"assets\""
-                " dex_id \"pubilc_mode\" taker_fee_ratio maker_fee_ratio \"[symbol:fee:unit]\""
+            "gendexoperatorordertx \"addr\" \"order_type\" \"order_side\" \"symbol:coins:unit\" \"symbol:assets:unit\""
+                " price dex_id \"open_mode\" taker_fee_ratio maker_fee_ratio \"[symbol:fee:unit]\""
                 " \"[symbol:operator_tx_fee:unit]\" \"[memo]\"\n"
             "\ngenerator an operator dex order tx, support operator config, and must be signed by operator before sumiting.\n"
             "\nArguments:\n"
@@ -476,8 +476,8 @@ Value gendexoperatorordertx(const Array& params, bool fHelp) {
                                                   "default symbol is WUSD, default unit is sawi.\n"
             "5.\"symbol:assets:unit\",(string:numeric:string, required) the assets of order, assets=0 if market buy order"
                                                   "default symbol is WICC, default unit is sawi.\n"
-            "6.\"price\": (numeric, required) expected price of order\n"
-            "7.\"dex_id\": (numeric, required) Decentralized Exchange(DEX) ID, default is 0\n"
+            "6.\"price\": (numeric, required) expected price of order, boost 100000000\n"
+            "7.\"dex_id\": (numeric, required) Decentralized Exchange(DEX) ID\n"
             "8.\"open_mode\": (string, required) indicate the order is PUBLIC or PRIVATE\n"
             "9.\"taker_fee_ratio\": (numeric, required) taker fee ratio config by operator, boost 100000000\n"
             "10.\"maker_fee_ratio\": (numeric, required) maker fee ratio config by operator, boost 100000000\n"
