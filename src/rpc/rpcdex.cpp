@@ -205,7 +205,7 @@ namespace RPC_PARAM {
         }
     }
 
-    DexOpIdValueList GetSharedDexopList(const Value& jsonValue) {
+    DexOpIdValueList GetOrderOpenDexopList(const Value& jsonValue) {
         DexOpIdValueList ret;
         const Array &arr = jsonValue.get_array();
         for (auto &item : arr) {
@@ -967,7 +967,7 @@ Value submitdexoperatorregtx(const Array& params, bool fHelp){
     data.order_open_mode    = RPC_PARAM::GetOrderOpenMode(params[5]);
     data.maker_fee_ratio = AmountToRawValue(params[6]);
     data.taker_fee_ratio = AmountToRawValue(params[7]);
-    data.order_open_dexop_list = RPC_PARAM::GetSharedDexopList(params[8]);
+    data.order_open_dexop_list = RPC_PARAM::GetOrderOpenDexopList(params[8]);
     ComboMoney fee  = RPC_PARAM::GetFee(params, 9, DEX_OPERATOR_REGISTER_TX);
     data.memo = RPC_PARAM::GetMemo(params, 10);
 
@@ -1043,8 +1043,25 @@ Value submitdexopupdatetx(const Array& params, bool fHelp){
                 }
                 updateData.value = ratio;
             } else {
-                throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("Invalid json value type=%s of update_field",
+                throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("Invalid json value type=%s of update_field, "
+                    "expect int or string type",
                     JSON::GetValueTypeName(updatedValue.type())));
+            }
+            break;
+        }
+        case CDEXOperatorUpdateData::UpdateField::ORDER_OPEN_DEVOP_LIST:{
+            if (updatedValue.type() == json_spirit::Value_type::array_type) {
+                updateData.value  = RPC_PARAM::GetOrderOpenDexopList(updatedValue);
+            } else if (updatedValue.type() == json_spirit::Value_type::str_type) {
+                Value devOpArr;
+                if (!json_spirit::read_string(updatedValue.get_str(), devOpArr) ||
+                        devOpArr.type() == json_spirit::Value_type::array_type)
+                    throw JSONRPCError(RPC_INVALID_PARAMS, strprintf("Parse update_field=\"%s\" as array of number type error",
+                        updatedValue.get_str()));
+                updateData.value = RPC_PARAM::GetOrderOpenDexopList(devOpArr);
+            } else {
+                throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("Invalid json value type=%s of update_field, "
+                    "expect array of number type", JSON::GetValueTypeName(updatedValue.type())));
             }
             break;
         }
