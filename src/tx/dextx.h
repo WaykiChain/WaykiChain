@@ -24,6 +24,8 @@ namespace dex {
         DEX_CANCEL_ORDER_TX
     };
 
+    uint64_t CalcOrderMinFee(uint64_t defaultMinFee, uint64_t stakedWiccAmount);
+
     class CDEXOrderBaseTx : public CBaseTx {
     public:
         OrderType order_type        = ORDER_LIMIT_PRICE;//!< order type

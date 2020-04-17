@@ -1067,9 +1067,9 @@ extern Value getdexoperatorbyowner(const Array& params, bool fHelp) {
 }
 
 extern Value getdexorderfee(const Array& params, bool fHelp) {
-     if (fHelp || params.size() < 1 || params.size() > 1) {
+     if (fHelp || params.size() < 2 || params.size() > 3) {
         throw runtime_error(
-            "getdexorderfee \"addr\"\n"
+            "getdexorderfee \"addr\" \"tx_type\" [\"fee_symbol\"]\n"
             "\nget dex order fee by account.\n"
             "\nArguments:\n"
             "1.\"addr\":    (string, required) account address\n"
@@ -1086,9 +1086,9 @@ extern Value getdexorderfee(const Array& params, bool fHelp) {
             "                WUSD\n"
             "\nResult: dex order fee info\n"
             "\nExamples:\n"
-            + HelpExampleCli("getdexorderfee", "10-1")
+            + HelpExampleCli("getdexorderfee", "\"10-1\" \"DEX_LIMIT_BUY_ORDER_TX\" \"WICC\"")
             + "\nAs json rpc call\n"
-            + HelpExampleRpc("getdexorderfee", "10-1")
+            + HelpExampleRpc("getdexorderfee", "\"10-1\", \"DEX_LIMIT_BUY_ORDER_TX\", \"WICC\"")
         );
     }
 
@@ -1101,7 +1101,6 @@ extern Value getdexorderfee(const Array& params, bool fHelp) {
     int32_t height = chainActive.Height();
     uint64_t minFee = 0;
     uint64_t defaultMinFee = 0;
-    bool isInit = false;
     Object obj;
     auto spCw = make_shared<CCacheWrapper>(pCdMan);
 
@@ -1117,11 +1116,7 @@ extern Value getdexorderfee(const Array& params, bool fHelp) {
             "tx=%s, height=%d, symbol=%s", GetTxTypeName(txType), height, feeSymbol));
 
     auto stakedWiccAmount = account.GetToken(SYMB::WICC).staked_amount;
-    uint64_t actualMinFee = defaultMinFee;
-    if (stakedWiccAmount > 0) {
-        // TODO: improve calc...
-        actualMinFee = std::max(std::min(COIN * COIN / stakedWiccAmount, actualMinFee), (uint64_t)1);
-    }
+    uint64_t actualMinFee = dex::CalcOrderMinFee(defaultMinFee, stakedWiccAmount);
 
     Object accountObj;
     accountObj.push_back(Pair("addr",  account.keyid.ToAddress()));

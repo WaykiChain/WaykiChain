@@ -35,29 +35,36 @@ namespace dex {
         return true;
     }
 
+    uint64_t CalcOrderMinFee(uint64_t defaultMinFee, uint64_t stakedWiccAmount) {
+        uint64_t stakedWiccCoins = stakedWiccAmount / COIN;
+        if (stakedWiccCoins > MIN_STAKED_WICC_FOR_STEP_FEE) {
+            return MIN_STAKED_WICC_FOR_STEP_FEE * defaultMinFee / stakedWiccCoins;
+        } else {
+            return defaultMinFee;
+        }
+    }
+
     bool CheckOrderFee(CBaseTx &tx, CTxExecuteContext &context, const CAccount &txAccount,
             CAccount *pOperatorAccount = nullptr, uint64_t operatorTxFee = 0) {
 
         return tx.CheckFee(context, [&](CTxExecuteContext &context, uint64_t minFee) -> bool {
             if (GetFeatureForkVersion(context.height) > MAJOR_VER_R3) {
                 uint64_t totalFees = tx.llFees;
-                uint64_t stakedAmount = txAccount.GetToken(SYMB::WICC).staked_amount / COIN;
+                uint64_t stakedWiccAmount = txAccount.GetToken(SYMB::WICC).staked_amount;
                 if (pOperatorAccount != nullptr && operatorTxFee != 0) {
                     totalFees += operatorTxFee;
-                    uint64_t op_staked_amount = pOperatorAccount->GetToken(SYMB::WICC).staked_amount / COIN;
-                    if (stakedAmount < op_staked_amount) {
-                        stakedAmount = op_staked_amount;
-                        LogPrint(BCLog::DEX, "%s, use operator stake amount=%llu instead", TX_OBJ_ERR_TITLE(tx), stakedAmount);
+                    uint64_t op_staked_amount = pOperatorAccount->GetToken(SYMB::WICC).staked_amount;
+                    if (stakedWiccAmount < op_staked_amount) {
+                        stakedWiccAmount = op_staked_amount;
+                        LogPrint(BCLog::DEX, "%s, use operator stake amount=%llu instead", TX_OBJ_ERR_TITLE(tx), stakedWiccAmount);
                     }
                 }
 
-                if (stakedAmount > MIN_STAKED_WICC_FOR_STEP_FEE) {
-                    minFee = MIN_STAKED_WICC_FOR_STEP_FEE * minFee / stakedAmount;
-                }
+                minFee = CalcOrderMinFee(minFee, stakedWiccAmount);
 
                 if (totalFees < minFee){
-                    string err = strprintf("The given fees is too small: %llu < %llu sawi when wicc staked_amount=%llu",
-                        totalFees, minFee, stakedAmount);
+                    string err = strprintf("The given fees is too small: %llu < %llu sawi when wicc staked_wicc_amount=%llu",
+                        totalFees, minFee, stakedWiccAmount);
                     return context.pState->DoS(100, ERRORMSG("%s, %s, height=%d, fee_symbol=%s",
                         TX_OBJ_ERR_TITLE(tx), err, context.height, tx.fee_symbol), REJECT_INVALID, err);
                 }
