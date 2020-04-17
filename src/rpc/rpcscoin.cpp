@@ -688,7 +688,7 @@ Value submitassetupdatetx(const Array& params, bool fHelp) {
                 const string &valueStr = jsonUpdateValue.get_str();
                 if (!ParseUint64(valueStr, mintAmount))
                     throw JSONRPCError(RPC_INVALID_PARAMS, strprintf("invalid mint_amount=%s as uint64_t type",
-                        valueStr, MAX_ASSET_NAME_LEN));
+                        valueStr));
             } else
                 throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("Invalid json value type: %s",
                     JSON::GetValueTypeName(jsonUpdateValue.type())));

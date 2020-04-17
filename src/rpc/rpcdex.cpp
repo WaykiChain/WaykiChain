@@ -1018,8 +1018,8 @@ Value submitdexopupdatetx(const Array& params, bool fHelp){
     updateData.field = CDEXOperatorUpdateData::UpdateField(params[2].get_int());
     const Value & updatedValue = params[3];
     switch (updateData.field){
-        case CDEXOperatorUpdateData::UpdateField::FEE_RECEIVER_UID :
-        case CDEXOperatorUpdateData::UpdateField::OWNER_UID :{
+        case CDEXOperatorUpdateData::UpdateField::OWNER_UID :
+        case CDEXOperatorUpdateData::UpdateField::FEE_RECEIVER_UID : {
             updateData.value = CUserID(RPC_PARAM::GetRegId(updatedValue));
             break;
         }
@@ -1033,7 +1033,19 @@ Value submitdexopupdatetx(const Array& params, bool fHelp){
             break;
         case CDEXOperatorUpdateData::UpdateField::MAKER_FEE_RATIO:
         case CDEXOperatorUpdateData::UpdateField::TAKER_FEE_RATIO:{
-            updateData.value  = AmountToRawValue(updatedValue);
+            if (updatedValue.type() == json_spirit::Value_type::int_type) {
+                updateData.value  = AmountToRawValue(updatedValue);
+            } else if (updatedValue.type() == json_spirit::Value_type::str_type) {
+                uint64_t ratio = 0;
+                if (!ParseUint64(updatedValue.get_str(), ratio)) {
+                    throw JSONRPCError(RPC_INVALID_PARAMS, strprintf("Parse update_field=%s as uint64_t type error",
+                        updatedValue.get_str()));
+                }
+                updateData.value = ratio;
+            } else {
+                throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("Invalid json value type=%s of update_field",
+                    JSON::GetValueTypeName(updatedValue.type())));
+            }
             break;
         }
 
