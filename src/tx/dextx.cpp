@@ -44,35 +44,33 @@ namespace dex {
         }
     }
 
-    bool CheckOrderFee(CBaseTx &tx, CTxExecuteContext &context, const CAccount &txAccount,
-            CAccount *pOperatorAccount = nullptr, uint64_t operatorTxFee = 0) {
+    bool CheckOrderMinFee(const CBaseTx &tx, CTxExecuteContext &context, uint64_t minFee,
+            CAccount *pOperatorAccount, uint64_t operatorTxFee) {
 
-        return tx.CheckFee(context, [&](CTxExecuteContext &context, uint64_t minFee) -> bool {
-            if (GetFeatureForkVersion(context.height) > MAJOR_VER_R3) {
-                uint64_t totalFees = tx.llFees;
-                uint64_t stakedWiccAmount = txAccount.GetToken(SYMB::WICC).staked_amount;
-                if (pOperatorAccount != nullptr && operatorTxFee != 0) {
-                    totalFees += operatorTxFee;
-                    uint64_t op_staked_amount = pOperatorAccount->GetToken(SYMB::WICC).staked_amount;
-                    if (stakedWiccAmount < op_staked_amount) {
-                        stakedWiccAmount = op_staked_amount;
-                        LogPrint(BCLog::DEX, "%s, use operator stake amount=%llu instead", TX_OBJ_ERR_TITLE(tx), stakedWiccAmount);
-                    }
+        uint64_t totalFees = tx.llFees;
+        uint64_t stakedWiccAmount = 0;
+        auto ver = GetFeatureForkVersion(context.height);
+        if (ver > MAJOR_VER_R3) {
+            stakedWiccAmount = tx.txAccount.GetToken(SYMB::WICC).staked_amount;
+            if (pOperatorAccount != nullptr && operatorTxFee != 0) {
+                totalFees += operatorTxFee;
+                uint64_t op_staked_amount = pOperatorAccount->GetToken(SYMB::WICC).staked_amount;
+                if (stakedWiccAmount < op_staked_amount) {
+                    stakedWiccAmount = op_staked_amount;
+                    LogPrint(BCLog::DEX, "%s, use operator stake amount=%llu instead", TX_OBJ_ERR_TITLE(tx), stakedWiccAmount);
                 }
-
-                minFee = CalcOrderMinFee(minFee, stakedWiccAmount);
-
-                if (totalFees < minFee){
-                    string err = strprintf("The given fees is too small: %llu < %llu sawi when wicc staked_wicc_amount=%llu",
-                        totalFees, minFee, stakedWiccAmount);
-                    return context.pState->DoS(100, ERRORMSG("%s, %s, height=%d, fee_symbol=%s",
-                        TX_OBJ_ERR_TITLE(tx), err, context.height, tx.fee_symbol), REJECT_INVALID, err);
-                }
-                return true;
-            } else {
-                return tx.CheckMinFee(context, minFee);
             }
-        });
+            minFee = CalcOrderMinFee(minFee, stakedWiccAmount);
+        }
+        if (totalFees < minFee){
+            string err = strprintf("The given fees is too small: %llu < %llu sawi when wicc staked_wicc_amount=%llu",
+                totalFees, minFee);
+            if (ver > MAJOR_VER_R3)
+                err = strprintf("%s, staked_wicc_amount=%llu", err, stakedWiccAmount);
+            return context.pState->DoS(100, ERRORMSG("%s, %s, height=%d, fee_symbol=%s",
+                TX_OBJ_ERR_TITLE(tx), err, context.height, tx.fee_symbol), REJECT_INVALID, err);
+        }
+        return true;
     }
 
     ///////////////////////////////////////////////////////////////////////////////
@@ -98,11 +96,13 @@ namespace dex {
         if (!CheckOrderPrice(context)) return false;
 
         DexOperatorDetail operatorDetail;
-        if (!GetOrderOperator(context, operatorDetail)) return false;
-        CAccount operatorAccount;
-        if (!GetOperatorAccount(context, operatorDetail.fee_receiver_regid, operatorAccount)) return false;
+        if (!GetOrderOperator(context, operatorDetail))
+            return false;
 
-        if (!CheckOrderFee(*this, context, txAccount, &operatorAccount, operator_tx_fee)) return false;
+        CAccount operatorAccount;
+        if (!GetOperatorAccount(context, operatorDetail.fee_receiver_regid, operatorAccount))
+            return false;
+
         if (!CheckOrderOperatorParam(context, operatorDetail, operatorAccount)) return false;
 
         return true;
@@ -221,6 +221,19 @@ namespace dex {
         return result;
     }
 
+    bool CDEXOrderBaseTx::CheckMinFee(CTxExecuteContext &context, uint64_t minFee) const {
+
+        if (has_operator_config && operator_tx_fee != 0) {
+            DexOperatorDetail operatorDetail;
+            if (!GetOrderOperator(context, operatorDetail)) return false;
+            CAccount operatorAccount;
+            if (!GetOperatorAccount(context, operatorDetail.fee_receiver_regid, operatorAccount)) return false;
+            return dex::CheckOrderMinFee(*this, context, minFee, &operatorAccount, operator_tx_fee);
+        } else {
+            return dex::CheckOrderMinFee(*this, context, minFee, nullptr, 0);
+        }
+    }
+
     bool CDEXOrderBaseTx::CheckOrderSymbols(CTxExecuteContext &context, const TokenSymbol &coinSymbol,
                                             const TokenSymbol &assetSymbol) {
 
@@ -293,7 +306,7 @@ namespace dex {
 
     bool CDEXOrderBaseTx::CheckOrderOperatorParam(CTxExecuteContext &context,
                                                   DexOperatorDetail &operatorDetail,
-                                                  CAccount &operatorAccount) {
+                                                  CAccount &operatorAccount) const {
 
         if (has_operator_config) {
             const auto &hash = GetHash();
@@ -333,7 +346,7 @@ namespace dex {
     }
 
     bool CDEXOrderBaseTx::GetOrderOperator(CTxExecuteContext &context,
-                            DexOperatorDetail &operatorDetail){
+                            DexOperatorDetail &operatorDetail) const {
 
         if (!GetDexOperator(context, dex_id, operatorDetail, TX_ERR_TITLE))
             return false;
@@ -346,7 +359,7 @@ namespace dex {
     }
 
     bool CDEXOrderBaseTx::GetOperatorAccount(CTxExecuteContext &context, CRegID &operatorRegid,
-                                             CAccount &account) {
+                                             CAccount &account) const {
         if (!context.pCw->accountCache.GetAccount(operatorRegid, account))
             return context.pState->DoS(100,
                 ERRORMSG("%s, operator account not existed! operatorRegid=%s", TX_ERR_TITLE,
@@ -449,8 +462,6 @@ namespace dex {
             return state.DoS(100, ERRORMSG("CDEXCancelOrderTx::CheckTx, order_id is empty"), REJECT_INVALID,
                             "invalid-order-id");
 
-        if (!CheckOrderFee(*this, context, txAccount)) return false;
-
         return true;
     }
 
@@ -500,6 +511,12 @@ namespace dex {
         }
 
         return true;
+    }
+
+
+    bool CDEXCancelOrderTx::CheckMinFee(CTxExecuteContext &context, uint64_t minFee) const {
+
+        return dex::CheckOrderMinFee(*this, context, minFee, nullptr, 0);
     }
 
     #define DEAL_ITEM_TITLE ERROR_TITLE(tx.GetTxTypeName() + strprintf(", i[%d]", i))

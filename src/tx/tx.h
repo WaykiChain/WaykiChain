@@ -226,8 +226,6 @@ public:
     template<typename Stream>
     static void UnserializePtr(Stream& is, std::shared_ptr<CBaseTx> &pBaseTx, int nType, int nVersion);
     bool GetTxAccount(CTxExecuteContext &context, CAccount &account);
-    bool CheckFee(CTxExecuteContext &context, function<bool(CTxExecuteContext&, uint64_t)> = nullptr) const;
-    bool CheckMinFee(CTxExecuteContext &context, uint64_t minFee) const;
 
     bool CheckTxAvailableFromVer(CTxExecuteContext &context, FeatureForkVersionEnum ver);
 
@@ -236,7 +234,8 @@ protected:
     bool CheckTxFeeSufficient(CCacheWrapper &cw, const TokenSymbol &feeSymbol,
                               const uint64_t llFees, const int32_t height) const;
     bool CheckSignatureSize(const vector<unsigned char> &signature) const;
-
+    bool CheckFee(CTxExecuteContext &context) const;
+    virtual bool CheckMinFee(CTxExecuteContext &context, uint64_t minFee) const;
 
     static bool AddInvolvedKeyIds(vector<CUserID> uids, CCacheWrapper &cw, set<CKeyID> &keyIds);
 };

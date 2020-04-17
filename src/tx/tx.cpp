@@ -152,13 +152,6 @@ bool CBaseTx::CheckBaseTx(CTxExecuteContext &context) {
         switch (nTxType) {
             case LCONTRACT_DEPLOY_TX:
             case LCONTRACT_INVOKE_TX:
-            case DEX_LIMIT_BUY_ORDER_TX:
-            case DEX_LIMIT_SELL_ORDER_TX:
-            case DEX_MARKET_BUY_ORDER_TX:
-            case DEX_MARKET_SELL_ORDER_TX:
-            case DEX_ORDER_TX:
-            case DEX_OPERATOR_ORDER_TX:
-            case DEX_CANCEL_ORDER_TX:
             case UCOIN_TRANSFER_TX: break; //to be checked in Tx Code but not here
             default:
                 if(!CheckFee(context)) return false;
@@ -306,7 +299,7 @@ bool CBaseTx::GetTxAccount(CTxExecuteContext &context, CAccount &account) {
     return true;
 }
 
-bool CBaseTx::CheckFee(CTxExecuteContext &context, function<bool(CTxExecuteContext&, uint64_t)> minFeeChecker) const {
+bool CBaseTx::CheckFee(CTxExecuteContext &context) const {
     // check fee value range
     if (!CheckBaseCoinRange(llFees))
         return context.pState->DoS(100, ERRORMSG("tx fee out of range"), REJECT_INVALID,
@@ -322,11 +315,8 @@ bool CBaseTx::CheckFee(CTxExecuteContext &context, function<bool(CTxExecuteConte
         return context.pState->DoS(100, ERRORMSG("GetTxMinFee failed, tx=%s", GetTxTypeName()),
             REJECT_INVALID, "get-tx-min-fee-failed");
 
-    if (minFeeChecker != nullptr) {
-        if (!minFeeChecker(context, minFee)) return false;
-    } else {
-        if (!CheckMinFee(context, minFee)) return false;
-    }
+    if (!CheckMinFee(context, minFee)) return false;
+
     return true;
 }
 
