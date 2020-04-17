@@ -40,7 +40,7 @@ string GetTxType(const TxType txType) {
 }
 
 TxType ParseTxType(const string &str) {
-    for (const auto &item : kTxFeeTable) {
+    for (const auto &item : kTxTypeInfoTable) {
         if (std::get<0>(item.second) == str)
             return item.first;
     }
