@@ -1099,7 +1099,6 @@ extern Value getdexorderfee(const Array& params, bool fHelp) {
     CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, userId);
 
     int32_t height = chainActive.Height();
-    uint64_t minFee = 0;
     uint64_t defaultMinFee = 0;
     Object obj;
     auto spCw = make_shared<CCacheWrapper>(pCdMan);
@@ -1111,7 +1110,7 @@ extern Value getdexorderfee(const Array& params, bool fHelp) {
         throw JSONRPCError(RPC_INTERNAL_ERROR, strprintf("unsupport fee_symbol=%s", feeSymbol));
     }
 
-    if (!GetTxMinFee(*spCw, txType, height, feeSymbol, minFee))
+    if (!GetTxMinFee(*spCw, txType, height, feeSymbol, defaultMinFee))
         throw JSONRPCError(RPC_INTERNAL_ERROR, strprintf("get default min fee of tx failed! "
             "tx=%s, height=%d, symbol=%s", GetTxTypeName(txType), height, feeSymbol));
 
