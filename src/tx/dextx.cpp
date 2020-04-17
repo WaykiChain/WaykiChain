@@ -52,7 +52,7 @@ namespace dex {
         uint64_t totalFees = txFee;
         uint64_t stakedWiccAmount = 0;
         auto version = GetFeatureForkVersion(height);
-        if (version > MAJOR_VER_R3) {
+        if (version >= MAJOR_VER_R3) {
             stakedWiccAmount = txAccount.GetToken(SYMB::WICC).staked_amount;
             if (pOperatorAccount != nullptr && operatorTxFee != 0) {
                 totalFees += operatorTxFee;
@@ -236,7 +236,9 @@ namespace dex {
 
     bool CDEXOrderBaseTx::CheckMinFee(CTxExecuteContext &context, uint64_t minFee) const {
 
-        if (has_operator_config && operator_tx_fee != 0) {
+        if (txUid.is<CPubKey>()) {
+            return CBaseTx::CheckMinFee(context, minFee);
+        } else if (has_operator_config && operator_tx_fee != 0) {
             DexOperatorDetail operatorDetail;
             if (!GetOrderOperator(context, operatorDetail)) return false;
             CAccount operatorAccount;
@@ -529,7 +531,11 @@ namespace dex {
 
     bool CDEXCancelOrderTx::CheckMinFee(CTxExecuteContext &context, uint64_t minFee) const {
 
-        return dex::CheckOrderMinFee(*this, context, minFee, nullptr, 0);
+        if (txUid.is<CPubKey>()) {
+            return CBaseTx::CheckMinFee(context, minFee);
+        } else {
+            return dex::CheckOrderMinFee(*this, context, minFee, nullptr, 0);
+        }
     }
 
     #define DEAL_ITEM_TITLE ERROR_TITLE(tx.GetTxTypeName() + strprintf(", i[%d]", i))
