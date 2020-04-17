@@ -17,6 +17,72 @@
 
 using namespace dex;
 
+// TODO: move to json.h
+namespace json {
+
+#define DEFINE_SINGLE_TO_JSON(type) \
+    inline Value ToJson(const type &val) { return Value(val); }
+
+
+    DEFINE_SINGLE_TO_JSON(int32_t)
+    DEFINE_SINGLE_TO_JSON(uint8_t)
+    DEFINE_SINGLE_TO_JSON(uint16_t)
+    DEFINE_SINGLE_TO_JSON(uint32_t)
+    DEFINE_SINGLE_TO_JSON(uint64_t)
+    DEFINE_SINGLE_TO_JSON(string)
+    DEFINE_SINGLE_TO_JSON(bool)
+
+    // vector
+    template<typename T, typename A> Value ToJson(const vector<T, A>& val);
+
+    //optional
+    template<typename T> Value ToJson(const std::optional<T>& val);
+
+    // set
+    template<typename K, typename Pred, typename A> Value ToJson(const set<K, Pred, A>& val);
+
+    // map
+    template<typename K, typename T, typename Pred, typename A> Value ToJson(const map<K, T, Pred, A>& val);
+
+    // CVarIntValue
+    template<typename I> Value ToJson(const CVarIntValue<I>& val);
+
+    // common Object Type, must support T.IsEmpty() and T.SetEmpty()
+    template<typename T> Value ToJson(const T& val);
+
+    //optional
+    template<typename T> Value ToJson(const std::optional<T>& val) { return val ? ToJson(val.value()) : Value(); }
+
+    // vector
+    template<typename T, typename A> Value ToJson(const vector<T, A>& val) {
+        Array arr;
+        for (const auto &item : val) {
+            arr.push_back(ToJson(item));
+        }
+        return arr;
+    }
+
+    // set
+    template<typename K, typename Pred, typename A> Value ToJson(const set<K, Pred, A>& val) {
+        Array arr;
+        for (const auto &item : val) {
+            arr.push_back(ToJson(item));
+        }
+        return arr;
+    }
+
+    // CVarIntValue
+    template<typename I> Value ToJson(const CVarIntValue<I>& val) {
+        return ToJson(val.get());
+    }
+
+    // common Object Type, must support T.IsEmpty() and T.SetEmpty()
+    template<typename T> Value ToJson(const T& val) {
+        return val.ToJson();
+    }
+
+}
+
 static Object DexOperatorToJson(const CAccountDBCache &accountCache, const DexOperatorDetail &dexOperator) {
     Object result;
     CKeyID ownerKeyid;
@@ -32,7 +98,7 @@ static Object DexOperatorToJson(const CAccountDBCache &accountCache, const DexOp
     result.push_back(Pair("order_open_mode", kOpenModeHelper.GetName(dexOperator.order_open_mode)));
     result.push_back(Pair("maker_fee_ratio", dexOperator.maker_fee_ratio));
     result.push_back(Pair("taker_fee_ratio", dexOperator.taker_fee_ratio));
-    result.push_back(Pair("order_open_dexop_list", db_util::ToString(dexOperator.order_open_dexop_set)));
+    result.push_back(Pair("order_open_dexop_list", json::ToJson(dexOperator.order_open_dexop_set)));
     result.push_back(Pair("memo",           dexOperator.memo));
     result.push_back(Pair("memo_hex",       HexStr(dexOperator.memo)));
     result.push_back(Pair("activated",       dexOperator.activated));
