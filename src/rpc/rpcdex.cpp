@@ -462,7 +462,7 @@ Value submitdexsellmarketordertx(const Array& params, bool fHelp) {
 }
 
 Value gendexoperatorordertx(const Array& params, bool fHelp) {
-    if (fHelp || params.size() < 10 || params.size() > 12) {
+    if (fHelp || params.size() < 10 || params.size() > 13) {
         throw runtime_error(
             "gendexoperatorordertx \"addr\" \"order_type\" \"order_side\" \"symbol:coins:unit\" \"symbol:assets:unit\""
                 " price dex_id \"open_mode\" taker_fee_ratio maker_fee_ratio \"[symbol:fee:unit]\""
