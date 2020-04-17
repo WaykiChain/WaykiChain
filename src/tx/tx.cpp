@@ -321,9 +321,6 @@ bool CBaseTx::CheckFee(CTxExecuteContext &context) const {
 }
 
 bool CBaseTx::CheckMinFee(CTxExecuteContext &context, uint64_t minFee) const {
-    if (GetFeatureForkVersion(context.height) > MAJOR_VER_R3 && txUid.is<CPubKey>()) {
-        minFee = 2 * minFee;
-    }
     if (llFees < minFee){
         string err = strprintf("The given fee is too small: %llu < %llu sawi", llFees, minFee);
         return context.pState->DoS(100, ERRORMSG("%s, tx=%s, height=%d, fee_symbol=%s",
