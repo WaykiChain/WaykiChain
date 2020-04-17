@@ -88,6 +88,8 @@ inline const string& GetTxTypeName(TxType txType) {
     return EMPTY_STRING;
 }
 
+TxType ParseTxType(const string &str);
+
 class CTxExecuteContext {
 public:
     int32_t                       height;

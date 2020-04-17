@@ -87,6 +87,8 @@ namespace RPC_PARAM {
                            const TokenSymbol &assetSymbol);
     // parse hex str
     bool ParseHex(const string &hexStr, string &binStrOut, string &errStrOut);
+
+    TxType ParseTxType(const Value &jsonValue);
 }
 
 /*

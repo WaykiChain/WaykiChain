@@ -1073,6 +1073,17 @@ extern Value getdexorderfee(const Array& params, bool fHelp) {
             "\nget dex order fee by account.\n"
             "\nArguments:\n"
             "1.\"addr\":    (string, required) account address\n"
+            "2.\"tx_type\": (string, required) tx type, support:\n"
+            "                DEX_LIMIT_BUY_ORDER_TX,\n"
+            "                DEX_LIMIT_SELL_ORDER_TX,\n"
+            "                DEX_MARKET_BUY_ORDER_TX,\n"
+            "                DEX_MARKET_SELL_ORDER_TX,\n"
+            "                DEX_ORDER_TX,\n"
+            "                DEX_OPERATOR_ORDER_TX,\n"
+            "                DEX_CANCEL_ORDER_TX\n"
+            "3.\"fee_symbol\":  (string, optional) fee symbol, support:\n"
+            "                WICC,\n"
+            "                WUSD\n"
             "\nResult: dex order fee info\n"
             "\nExamples:\n"
             + HelpExampleCli("getdexorderfee", "10-1")
@@ -1082,6 +1093,8 @@ extern Value getdexorderfee(const Array& params, bool fHelp) {
     }
 
     const CUserID& userId   = RPC_PARAM::GetUserId(params[0], true);
+    TxType txType = RPC_PARAM::ParseTxType(params[1]);
+    TokenSymbol feeSymbol = params.size() > 2 ? params[2].get_str() : SYMB::WICC;
 
     CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, userId);
 
@@ -1090,46 +1103,35 @@ extern Value getdexorderfee(const Array& params, bool fHelp) {
     uint64_t defaultMinFee = 0;
     bool isInit = false;
     Object obj;
-    Array symbolArray;
-    Array txArray;
     auto spCw = make_shared<CCacheWrapper>(pCdMan);
 
-    for (auto txType : DEX_ORDER_TX_SET) {
-        for (auto symbol : kFeeSymbolSet) {
-            if (!GetTxMinFee(*spCw, txType, height, symbol, minFee))
-                throw JSONRPCError(RPC_INTERNAL_ERROR, strprintf("get default min fee of tx failed! "
-                    "tx=%s, height=%d, symbol=%s", GetTxTypeName(txType), height, symbol));
-            if (!isInit) {
-                defaultMinFee = minFee;
-            } else {
-                if (defaultMinFee != minFee)
-                    throw JSONRPCError(RPC_INTERNAL_ERROR, strprintf("the default min fee of tx is not same as others! "
-                        "tx=%s, height=%d, symbol=%s, min_fee=%llu, other_min_fee=%llu",
-                        GetTxTypeName(txType), height, symbol, minFee, defaultMinFee));
-            }
-        }
-        txArray.push_back(GetTxTypeName(txType));
+    if (DEX_ORDER_TX_SET.count(txType) == 0) {
+        throw JSONRPCError(RPC_INTERNAL_ERROR, strprintf("unsupport order tx_type=%s", GetTxTypeName(txType)));
     }
-    for (auto symbol : kFeeSymbolSet)
-        symbolArray.push_back(symbol);
+    if (kFeeSymbolSet.count(feeSymbol) == 0) {
+        throw JSONRPCError(RPC_INTERNAL_ERROR, strprintf("unsupport fee_symbol=%s", feeSymbol));
+    }
 
+    if (!GetTxMinFee(*spCw, txType, height, feeSymbol, minFee))
+        throw JSONRPCError(RPC_INTERNAL_ERROR, strprintf("get default min fee of tx failed! "
+            "tx=%s, height=%d, symbol=%s", GetTxTypeName(txType), height, feeSymbol));
+
+    auto stakedWiccAmount = account.GetToken(SYMB::WICC).staked_amount;
     uint64_t actualMinFee = defaultMinFee;
-    auto token = account.GetToken(SYMB::WICC);
-    if (token.staked_amount > 0) {
-        actualMinFee = std::max(std::min(COIN * COIN / token.staked_amount, actualMinFee), (uint64_t)1);
+    if (stakedWiccAmount > 0) {
+        // TODO: improve calc...
+        actualMinFee = std::max(std::min(COIN * COIN / stakedWiccAmount, actualMinFee), (uint64_t)1);
     }
 
     Object accountObj;
     accountObj.push_back(Pair("addr",  account.keyid.ToAddress()));
     accountObj.push_back(Pair("regid", account.regid.ToString()));
+    accountObj.push_back(Pair("staked_wicc_amount", stakedWiccAmount));
 
-    obj.push_back(Pair("block_height", height));
-    obj.push_back(Pair("staked_wicc_amount", token.staked_amount));
     obj.push_back(Pair("actual_min_fee", actualMinFee));
     obj.push_back(Pair("default_min_fee", defaultMinFee));
     obj.push_back(Pair("min_fee_for_pubkey", defaultMinFee * 2));
-    obj.push_back(Pair("symbols", symbolArray));
-    obj.push_back(Pair("transactions", txArray));
+    obj.push_back(Pair("block_height", height));
     obj.push_back(Pair("account", accountObj));
 
     return obj;

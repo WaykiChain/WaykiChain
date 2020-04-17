@@ -718,3 +718,10 @@ bool RPC_PARAM::ParseHex(const string &hexStr, string &binStrOut, string &errStr
     }
     return true;
 }
+
+TxType RPC_PARAM::ParseTxType(const Value &jsonValue) {
+    TxType ret = ::ParseTxType(jsonValue.get_str());
+    if (ret == TxType::NULL_TX)
+        throw JSONRPCError(REJECT_INVALID, strprintf("unsupport tx_type=%s", jsonValue.get_str()));
+    return ret;
+}

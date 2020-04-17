@@ -39,6 +39,14 @@ string GetTxType(const TxType txType) {
         return "";
 }
 
+TxType ParseTxType(const string &str) {
+    for (const auto &item : kTxFeeTable) {
+        if (std::get<0>(item.second) == str)
+            return item.first;
+    }
+    return TxType::NULL_TX;
+}
+
 bool GetTxMinFee(CCacheWrapper &cw, const TxType nTxType, int height, const TokenSymbol &symbol, uint64_t &feeOut) {
     if (cw.sysParamCache.GetMinerFee(nTxType, symbol, feeOut))
         return true ;
