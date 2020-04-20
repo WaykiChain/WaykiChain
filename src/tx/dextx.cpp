@@ -328,7 +328,7 @@ namespace dex {
 
             if (!kOpenModeHelper.CheckEnum(open_mode))
                 return context.pState->DoS(100, ERRORMSG("%s, invalid open_mode=%s", TX_ERR_TITLE,
-                        kOpenModeHelper.GetName(open_mode)), REJECT_INVALID, "invalid-public-mode");
+                        kOpenModeHelper.GetName(open_mode)), REJECT_INVALID, "invalid-open-mode");
 
             if (!CheckOperatorFeeRatioRange(context, hash, taker_fee_ratio, TX_ERR_TITLE + ", taker_fee_ratio"))
                 return false;
@@ -811,9 +811,7 @@ namespace dex {
             sellResidualAmount = limitAssetAmount - sellOrder.total_deal_asset_amount;
         }
 
-
         // 8. calc deal fees for dex operator
-
         // 8.1. calc deal asset fee payed by buyer for buy operator
         uint64_t dealAssetFee = 0;
         uint64_t buyOperatorFeeRatio = GetOperatorFeeRatio(buyOrder, buyOrderOperatorParams, takerSide);
@@ -828,7 +826,6 @@ namespace dex {
         if (!CheckOperatorFeeRatioRange(context, dealItem.sellOrderId, sellOperatorFeeRatio, DEAL_ITEM_TITLE))
             return false;
         if (!CalcOrderFee(dealItem.dealCoinAmount, sellOperatorFeeRatio, dealCoinFee)) return false;
-
 
         // 9. unfreeze the coins and assets
         // 9.1. unfreeze buyer's coins
