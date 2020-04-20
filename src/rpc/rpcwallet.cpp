@@ -284,7 +284,7 @@ Value signmessage(const Array& params, bool fHelp) {
 Value submitsendtx(const Array& params, bool fHelp) {
     if (fHelp || (params.size() != 4 && params.size() != 5))
         throw runtime_error(
-                "submitsendtx \"from\" \"to\" \"symbol:coin:unit\" \"symbol:fee:unit\" [\"memo\"]\n"
+                "submitsendtx \"from\" \"to\" \"symbol:coin:unit\" 【\"symbol:fee:unit\"] [\"memo\"]\n"
                 "\nSend coins to a given address.\n" +
                 HelpRequiringPassphrase() +
                 "\nArguments:\n"
@@ -351,19 +351,19 @@ Value submitsendtx(const Array& params, bool fHelp) {
 
 
 Value submitsendmultitx(const Array& params, bool fHelp) {
-    if (fHelp || (params.size() != 3 && params.size() != 4))
+    if (fHelp || (params.size() < 2 && params.size() > 4))
         throw runtime_error(
             "submitsendmultitx \"from\" \"to\" \"transfer_array\" \"fee\" [\"memo\"]\n"
             "\nSend coins to many addresses.\n" +
             HelpRequiringPassphrase() +
             "\nArguments:\n"
             "1.\"from\":                (string, required) The address where coins are sent from\n"
-            "2.\"transfer_array\"        (Array(string),  required) the transfer info array\n "
+            "2.\"transfer_array\"       (Array(string),  required) the transfer info array\n "
             "                           \"[{\n"
             "                               \"to_uid\":              (string,required) The address where coins are received\n"
             "                               \"symbol_amount_unit\":  (comboMoney, required) transferred coins\n"
             "                            }]\"\n"
-            "3.\"fee\":                 bt(symbol:amount:unit, required) fee paid to miner, default is WICC:10000:sawi\n"
+            "3.\"fee\":                 bt(symbol:amount:unit, optional) fee paid to miner, default is WICC:10000:sawi\n"
             "4.\"memo\":                (string, optional)\n"
             "\nResult:\n"
             "\"txid\"                   (string) The transaction id.\n"
