@@ -61,9 +61,6 @@ private:
     vector<CReceipt> &receipts;
     CAccount &fcoinGenesisAccount;
     const CCdpCoinPairDetail &cdp_cdoin_pair_detail;
-    // const TokenSymbol &assetSymbol;
-    // const TokenSymbol &scoinSymbol;
-    //uint64_t bcoin_price = 0;
     uint64_t fcoin_usd_price = 0;
     uint32_t liquidated_limit_count = 0;
 
@@ -330,10 +327,6 @@ bool CCdpForceLiquidator::Execute() {
         return ForceLiquidateCDPCompat(cdpMap, receipts);
     }
 
-    // TODO: remove me??
-    // uint64_t totalCloseoutScoins = 0;
-    // uint64_t totalSelloutBcoins  = 0;
-    // uint64_t totalInflateFcoins  = 0;
     for (auto &cdpItem : cdpMap) {
         auto &cdp = cdpItem.second;
         liquidated_count++;
@@ -386,9 +379,6 @@ bool CCdpForceLiquidator::Execute() {
                                         receipts))
             return false;
 
-        // TODO: remove me??
-        //totalSelloutBcoins += cdp.total_staked_bcoins;
-
         // c) inflate WGRT coins to risk reserve pool and sell them to get WUSD  if necessary
         uint64_t bcoinsValueInScoin = uint64_t(double(cdp.total_staked_bcoins) * bcoinPrice / PRICE_BOOST);
         if (bcoinsValueInScoin < cdp.total_owed_scoins) {  // 0 ~ 1
@@ -401,9 +391,6 @@ bool CCdpForceLiquidator::Execute() {
             if (!SellAssetToRiskRevervePool(cdp, SYMB::WGRT, fcoinsToInflate, cdpCoinPair.bcoin_symbol, fcoinSellOrderId,
                                             pFcoinSellOrder, receipts))
                 return false;
-
-            // TODO: remove me??
-            // totalInflateFcoins += fcoinsToInflate;
 
             LogPrint(BCLog::CDP, "Force settled CDP: "
                 "Placed BcoinSellMarketOrder:  %s, orderId: %s\n"
@@ -431,9 +418,6 @@ bool CCdpForceLiquidator::Execute() {
                 LogPrint(BCLog::ERROR, "persistclosedcdp add failed for force-liquidated cdpid (%s)", oldCDP.cdpid.GetHex());
             }
         }
-
-        // TODO: remove me??
-        // totalCloseoutScoins += cdp.total_owed_scoins;
     }
 
     return true;
@@ -484,10 +468,6 @@ uint256 CCdpForceLiquidator::GenOrderId(const CUserCDP &cdp, TokenSymbol assetSy
 
 bool CCdpForceLiquidator::ForceLiquidateCDPCompat(CCdpRatioIndexCache::Map &cdps, ReceiptList &receipts) {
 
-    // TODO: remove me??
-    // uint64_t totalCloseoutScoins = 0;
-    // uint64_t totalSelloutBcoins  = 0;
-    // uint64_t totalInflateFcoins  = 0;
     CCacheWrapper &cw = *context.pCw; CValidationState &state = *context.pState;
     const uint256 &txid = tx.GetHash();
     uint64_t bcoinPrice = cdp_cdoin_pair_detail.bcoin_price;
@@ -540,9 +520,6 @@ bool CCdpForceLiquidator::ForceLiquidateCDPCompat(CCdpRatioIndexCache::Map &cdps
             return state.DoS(100, ERRORMSG("create sys order for SellBcoinForScoin (%s) failed",
                             pBcoinSellMarketOrder->ToString()), CREATE_SYS_ORDER_FAILED, "create-sys-order-failed");
         }
-
-        // TODO: remove me??
-        // totalSelloutBcoins += cdp.total_staked_bcoins;
 
         // b) inflate WGRT coins and sell them for WUSD to return to risk reserve pool if necessary
         uint64_t bcoinsValueInScoin = uint64_t(double(cdp.total_staked_bcoins) * bcoinPrice / PRICE_BOOST);
@@ -603,7 +580,6 @@ bool CCdpForceLiquidator::ForceLiquidateCDPCompat(CCdpRatioIndexCache::Map &cdps
 
         // d) minus scoins from the risk reserve pool to repay CDP scoins
         currRiskReserveScoins -= cdp.total_owed_scoins;
-        // totalCloseoutScoins += cdp.total_owed_scoins;
     }
 
     // 4. operate fcoin genesis account
@@ -615,13 +591,6 @@ bool CCdpForceLiquidator::ForceLiquidateCDPCompat(CCdpRatioIndexCache::Map &cdps
         return state.DoS(100, ERRORMSG("opeate fcoin genesis account failed"),
                             UPDATE_ACCOUNT_FAIL, "operate-fcoin-genesis-account-failed");
     }
-
-    // receipts.emplace_back(fcoinGenesisAccount.regid, nullId, SYMB::WUSD, totalCloseoutScoins,
-    //                         ReceiptType::CDP_TOTAL_CLOSEOUT_SCOIN_FROM_RESERVE);
-    // receipts.emplace_back(nullId, fcoinGenesisAccount.regid, SYMB::WICC, totalSelloutBcoins,
-    //                         ReceiptType::CDP_TOTAL_ASSET_TO_RESERVE);
-    // receipts.emplace_back(nullId, fcoinGenesisAccount.regid, SYMB::WGRT, totalInflateFcoins,
-    //                         ReceiptType::CDP_TOTAL_INFLATE_FCOIN_TO_RESERVE);
 
     return true;
 }
