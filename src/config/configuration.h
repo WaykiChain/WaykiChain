@@ -50,7 +50,7 @@ public:
     uint32_t GetMaxVoteCandidateNum() const;
     uint64_t GetCoinInitValue() const { return InitialCoin; };
 	uint32_t GetVer2ForkHeight(const NET_TYPE type) const;
-    uint32_t GetStableCoinGenesisHeight(const NET_TYPE type) const;
+    uint32_t GetVer2GenesisHeight(const NET_TYPE type) const;
     uint32_t GetVer3ForkHeight(const NET_TYPE type) const;
     const vector<string> GetStableCoinGenesisTxid(const NET_TYPE type) const;
 
@@ -117,7 +117,7 @@ private:
     static uint32_t MaxVoteCandidateNum;
 
     /* Soft fork height to enable feature fork version */
-	static uint32_t nFeatureForkHeight[3];
+	static uint32_t nVer2ForkHeight[3];
 
     /* Soft fork height for stable coin genesis */
     static uint32_t nStableScoinGenesisHeight[3];
@@ -140,16 +140,16 @@ inline FeatureForkVersionEnum GetFeatureForkVersion(const int32_t currBlockHeigh
 inline uint32_t GetBlockInterval(const int32_t currBlockHeight) {
     return
         (currBlockHeight < (int32_t)SysCfg().GetVer2ForkHeight()) ?
-            SysCfg().GetBlockIntervalPreStableCoinRelease() :
-            SysCfg().GetBlockIntervalStableCoinRelease();
+            SysCfg().GetBlockIntervalPreVer2Fork() :
+            SysCfg().GetBlockIntervalPostVer2Fork();
 }
 
 
-inline uint32_t GetContinuousBlockCount(const int32_t currHeight){
+inline uint32_t GetContinuousBlockProduceCount(const int32_t currHeight){
     return
-        (currHeight  < (int32_t)SysCfg().GetVer3ForkHeight()) ?
-            SysCfg().GetContinuousCountBeforeFork() :
-            SysCfg().GetContinuousCountAfterFork();
+        (currHeight  < (int32_t) SysCfg().GetVer3ForkHeight()) ?
+            SysCfg().GetContinuousProducePreVer3Fork() :
+            SysCfg().GetContinuousProducePostVer3Fork();
 
 }
 
@@ -219,14 +219,15 @@ inline uint8_t GetSubsidyRate(const int32_t currBlockHeight) {
 static const int32_t INIT_BLOCK_VERSION = 1;
 
 /* No amount larger than this (in sawi) is valid */
-static const int64_t BASECOIN_MAX_MONEY   = IniCfg().GetCoinInitValue() * COIN;  // 210 million
-static const int64_t FUNDCOIN_MAX_MONEY   = BASECOIN_MAX_MONEY * 100;            // 21000 million
-static const int64_t STABLECOIN_MAX_MONEY = BASECOIN_MAX_MONEY * 10;             // 2100 million
+static const int64_t BCOIN_MAX_MONEY    = IniCfg().GetCoinInitValue() * COIN;   // 210      million base coins
+static const int64_t FCOIN_MAX_MONEY    = BCOIN_MAX_MONEY * 100;                // 21000    million fund coins
+static const int64_t SCOIN_MAX_MONEY    = BCOIN_MAX_MONEY * 10;                 // 2100     million stable coins
 
-inline int64_t GetBaseCoinMaxMoney() { return BASECOIN_MAX_MONEY; }
-inline bool CheckBaseCoinRange(const int64_t amount) { return (amount >= 0 && amount <= BASECOIN_MAX_MONEY); }
-inline bool CheckFundCoinRange(const int64_t amount) { return (amount >= 0 && amount <= FUNDCOIN_MAX_MONEY); }
-inline bool CheckStableCoinRange(const int64_t amount) { return (amount >= 0 && amount <= STABLECOIN_MAX_MONEY); }
+inline int64_t GetBaseCoinMaxMoney() { return BCOIN_MAX_MONEY; }
+inline bool CheckBaseCoinRange(const int64_t amount) { return (amount >= 0 && amount <= BCOIN_MAX_MONEY); }
+inline bool CheckFundCoinRange(const int64_t amount) { return (amount >= 0 && amount <= FCOIN_MAX_MONEY); }
+inline bool CheckStableCoinRange(const int64_t amount) { return (amount >= 0 && amount <= SCOIN_MAX_MONEY); }
+
 inline bool CheckCoinRange(const TokenSymbol &symbol, const int64_t amount) {
     if (symbol == SYMB::WICC) {
         return CheckBaseCoinRange(amount);

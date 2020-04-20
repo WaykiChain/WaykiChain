@@ -65,8 +65,7 @@ bool PrintTestNotSetPara() {
 bool AppInit(int argc, char *argv[], boost::thread_group &threadGroup) {
     bool fRet = false;
     try {
-        CBaseParams::InitializeParams(argc, argv);
-        SysCfg().InitializeConfig();
+        CBaseParams::LoadParamsFromConfigFile(argc, argv);
 
         PrintTestNotSetPara();
 

@@ -37,22 +37,23 @@ public:
         // The characters are rarely used upper ASCII, not valid as UTF-8, and produce
         // a large 4-byte int at any alignment.
         memcpy(pchMessageStart, IniCfg().GetMagicNumber(MAIN_NET), sizeof(pchMessageStart));
-        vAlertPubKey                       = ParseHex(IniCfg().GetAlertPkey(MAIN_NET));
-        nDefaultPort                       = IniCfg().GetDefaultPort(MAIN_NET);
-        nRPCPort                           = IniCfg().GetRPCPort(MAIN_NET);
-        strDataDir                         = "main";
-        nBlockIntervalPreStableCoinRelease = BLOCK_INTERVAL_PRE_STABLE_COIN_RELEASE;
-        nBlockIntervalStableCoinRelease    = BLOCK_INTERVAL_STABLE_COIN_RELEASE;
-        nContinuousCountBeforeFork         = CONTINUOUS_BLOCK_COUNT_BEFORE_FORK;
-        nContinuousCountAfterFork          = CONTINUOUS_BLOCK_COUNT_AFTER_FORK;
-        nFeatureForkHeight                 = IniCfg().GetVer2ForkHeight(MAIN_NET);
-        nStableCoinGenesisHeight           = IniCfg().GetStableCoinGenesisHeight(MAIN_NET);
-        nVer3ForkHeight                    = IniCfg().GetVer3ForkHeight(MAIN_NET);
+
+        strDataDir                          = "main";
+        vAlertPubKey                        = ParseHex(IniCfg().GetAlertPkey(MAIN_NET));
+        nDefaultPort                        = IniCfg().GetDefaultPort(MAIN_NET);
+        nRPCPort                            = IniCfg().GetRPCPort(MAIN_NET);
+        nBlockIntervalPreVer2Fork           = BLOCK_INTERVAL_PRE_V2FORK;
+        nBlockIntervalPostVer2Fork          = BLOCK_INTERVAL_POST_V2FORK;
+        nContinuousBlockProducePreVer3Fork  = CONTINUOUS_BLOCK_PRODUCE_PRE_V3FORK;
+        nContinuousBlockProducePostVer3Fork = CONTINUOUS_BLOCK_PRODUCE_POST_V3FORK;
+        nVer2GenesisHeight                  = IniCfg().GetVer2GenesisHeight(MAIN_NET);
+        nVer2ForkHeight                     = IniCfg().GetVer2ForkHeight(MAIN_NET);
+        nVer3ForkHeight                     = IniCfg().GetVer3ForkHeight(MAIN_NET);
+
         assert(CreateGenesisBlockRewardTx(genesis.vptx, MAIN_NET));
         assert(CreateGenesisDelegateTx(genesis.vptx, MAIN_NET));
         genesis.SetPrevBlockHash(uint256());
         genesis.SetMerkleRootHash(genesis.BuildMerkleTree());
-
         genesis.SetVersion(INIT_BLOCK_VERSION);
         genesis.SetTime(IniCfg().GetStartTimeInit(MAIN_NET));
         genesis.SetNonce(IniCfg().GetGenesisBlockNonce(MAIN_NET));
@@ -93,7 +94,6 @@ public:
 
     virtual const CBlock& GenesisBlock() const { return genesis; }
     virtual NET_TYPE NetworkID() const { return MAIN_NET; }
-    virtual bool InitializeConfig() { return CBaseParams::InitializeConfig(); }
     virtual uint32_t GetBlockMaxNonce() const { return 1000; }
     virtual const vector<CAddress>& FixedSeeds() const { return vFixedSeeds; }
     virtual bool IsInFixedSeeds(CAddress& addr) {
@@ -113,13 +113,15 @@ public:
         // The characters are rarely used upper ASCII, not valid as UTF-8, and produce
         // a large 4-byte int at any alignment.
         memcpy(pchMessageStart, IniCfg().GetMagicNumber(TEST_NET), sizeof(pchMessageStart));
+
+        strDataDir               = "testnet";
         vAlertPubKey             = ParseHex(IniCfg().GetAlertPkey(TEST_NET));
         nDefaultPort             = IniCfg().GetDefaultPort(TEST_NET);
         nRPCPort                 = IniCfg().GetRPCPort(TEST_NET);
-        strDataDir               = "testnet";
-        nFeatureForkHeight       = IniCfg().GetVer2ForkHeight(TEST_NET);
-        nStableCoinGenesisHeight = IniCfg().GetStableCoinGenesisHeight(TEST_NET);
+        nVer2GenesisHeight       = IniCfg().GetVer2GenesisHeight(TEST_NET);
+        nVer2ForkHeight          = IniCfg().GetVer2ForkHeight(TEST_NET);
         nVer3ForkHeight          = IniCfg().GetVer3ForkHeight(TEST_NET);
+
         // Modify the testnet genesis block so the timestamp is valid for a later start.
         genesis.SetTime(IniCfg().GetStartTimeInit(TEST_NET));
         genesis.SetNonce(IniCfg().GetGenesisBlockNonce(TEST_NET));
@@ -143,24 +145,13 @@ public:
         base58Prefixes[SECRET_KEY]     = IniCfg().GetAddressPrefix(TEST_NET, SECRET_KEY);
         base58Prefixes[EXT_PUBLIC_KEY] = IniCfg().GetAddressPrefix(TEST_NET, EXT_PUBLIC_KEY);
         base58Prefixes[EXT_SECRET_KEY] = IniCfg().GetAddressPrefix(TEST_NET, EXT_SECRET_KEY);
+
+        nVer2GenesisHeight = GetArg("-ver2genesisheight", IniCfg().GetVer2GenesisHeight(TEST_NET));
+        nVer2ForkHeight    = std::max<uint32_t>(nVer2GenesisHeight + 1, GetArg("-ver2forkheight", IniCfg().GetVer2ForkHeight(TEST_NET)));
+        nVer3ForkHeight    = std::max<uint32_t>(nVer2ForkHeight + 1, GetArg("-ver3forkheight", IniCfg().GetVer3ForkHeight(TEST_NET)));
     }
 
     virtual NET_TYPE NetworkID() const { return TEST_NET; }
-
-    virtual bool InitializeConfig() {
-        CMainParams::InitializeConfig();
-
-        nStableCoinGenesisHeight = GetArg("-stablecoingenesisheight", IniCfg().GetStableCoinGenesisHeight(TEST_NET));
-        nFeatureForkHeight       = std::max<uint32_t>(nStableCoinGenesisHeight + 1,
-                                                GetArg("-featureforkheight", IniCfg().GetVer2ForkHeight(TEST_NET)));
-
-        nVer3ForkHeight          = std::max<uint32_t>(nFeatureForkHeight + 1,
-                                                GetArg("-ver3forkheight", IniCfg().GetVer3ForkHeight(TEST_NET)));
-
-        fServer = true;
-
-        return true;
-    }
 
     virtual uint32_t GetBlockMaxNonce() const { return 1000; }
 };
@@ -172,11 +163,13 @@ class CRegTestParams: public CTestNetParams {
 public:
     CRegTestParams() {
         memcpy(pchMessageStart, IniCfg().GetMagicNumber(REGTEST_NET), sizeof(pchMessageStart));
-        nDefaultPort             = IniCfg().GetDefaultPort(REGTEST_NET);
-        strDataDir               = "regtest";
-        nFeatureForkHeight       = IniCfg().GetVer2ForkHeight(REGTEST_NET);
-        nStableCoinGenesisHeight = IniCfg().GetStableCoinGenesisHeight(REGTEST_NET);
-        nVer3ForkHeight          = IniCfg().GetVer3ForkHeight(REGTEST_NET);
+
+        strDataDir              = "regtest";
+        nDefaultPort            = IniCfg().GetDefaultPort(REGTEST_NET);
+        nVer2GenesisHeight      = IniCfg().GetVer2GenesisHeight(REGTEST_NET);
+        nVer2ForkHeight         = IniCfg().GetVer2ForkHeight(REGTEST_NET);
+        nVer3ForkHeight         = IniCfg().GetVer3ForkHeight(REGTEST_NET);
+
         genesis.SetTime(IniCfg().GetStartTimeInit(REGTEST_NET));
         genesis.SetNonce(IniCfg().GetGenesisBlockNonce(REGTEST_NET));
         genesis.vptx.clear();
@@ -188,28 +181,19 @@ public:
 
         vFixedSeeds.clear();
         vSeeds.clear();  // Regtest mode doesn't have any DNS seeds.
+
+        nBlockIntervalPreVer2Fork  = GetArg("-blockintervalprever2fork", BLOCK_INTERVAL_PRE_V2FORK);
+        nBlockIntervalPostVer2Fork = GetArg("-blockintervalpostver2fork", BLOCK_INTERVAL_POST_V2FORK);
+        nVer2GenesisHeight = GetArg("-ver2genesisheight", IniCfg().GetVer2GenesisHeight(REGTEST_NET));
+        nVer2ForkHeight    = std::max<uint32_t>(nVer2GenesisHeight + 1, GetArg("-ver2forkheight", IniCfg().GetVer2ForkHeight(REGTEST_NET)));
+        nVer3ForkHeight    = std::max<uint32_t>(nVer2ForkHeight + 1, GetArg("-ver3forkheight", IniCfg().GetVer3ForkHeight(REGTEST_NET)));
+
     }
 
     virtual bool RequireRPCPassword() const { return false; }
 
     virtual NET_TYPE NetworkID() const { return REGTEST_NET; }
 
-    virtual bool InitializeConfig() {
-        CTestNetParams::InitializeConfig();
-
-        nBlockIntervalPreStableCoinRelease =
-            GetArg("-blockintervalprestablecoinrelease", BLOCK_INTERVAL_PRE_STABLE_COIN_RELEASE);
-        nBlockIntervalStableCoinRelease = GetArg("-blockintervalstablecoinrelease", BLOCK_INTERVAL_STABLE_COIN_RELEASE);
-        nStableCoinGenesisHeight = GetArg("-stablecoingenesisheight", IniCfg().GetStableCoinGenesisHeight(REGTEST_NET));
-        nFeatureForkHeight       = std::max<uint32_t>(
-            nStableCoinGenesisHeight + 1, GetArg("-featureforkheight", IniCfg().GetVer2ForkHeight(REGTEST_NET)));
-
-        nVer3ForkHeight          = std::max<uint32_t>(nFeatureForkHeight + 1,
-                                                GetArg("-ver3forkheight", IniCfg().GetVer3ForkHeight(REGTEST_NET)));
-        fServer = true;
-
-        return true;
-    }
 };
 
 const vector<string>& CBaseParams::GetMultiArgs(const string& strArg) { return m_mapMultiArgs[strArg]; }
@@ -254,16 +238,13 @@ void CBaseParams::EraseArg(const string& strArgKey) {
 }
 
 bool CBaseParams::SoftSetBoolArg(const string& strArg, bool fValue) {
-    if (fValue)
-        return SoftSetArg(strArg, string("1"));
-    else
-        return SoftSetArg(strArg, string("0"));
+    return SoftSetArg(strArg, string(fValue ? "1" : "0"));
 }
 
 bool CBaseParams::IsArgCount(const string& strArg) {
-    if (m_mapArgs.count(strArg)) {
+    if (m_mapArgs.count(strArg))
         return true;
-    }
+
     return false;
 }
 
@@ -281,10 +262,15 @@ CBaseParams& SysCfg() {
         } else if (netType == "regtest") {  // REGTEST_NET
             pParams = std::make_shared<CRegTestParams>();
         } else {
-            throw runtime_error("Given nettype not in (main|test|regtest) \n");
+            throw runtime_error("nettype should be of (main|test|regtest) \n");
         }
     }
 
+    bool fServerIn = CBaseParams::GetBoolArg("-rpcserver", false);
+    bool fDebugIn = CBaseParams::GetBoolArg("-debug", false);
+    int64_t maxForkTime = CBaseParams::GetArg("-maxforktime", 24 * 60 * 60);
+
+    pParams->InitConfig(fServerIn, fDebugIn, maxForkTime);
     assert(pParams.get());
     return *pParams.get();
 }
@@ -389,30 +375,29 @@ bool CBaseParams::CreateGenesisDelegateTx(vector<std::shared_ptr<CBaseTx> > &vpt
 
 bool CBaseParams::CreateFundCoinMintTx(vector<std::shared_ptr<CBaseTx> >& vptx, NET_TYPE type) {
     // Stablecoin Global Reserve Account with its initial reseve creation
-    auto pTx = std::make_shared<CCoinMintTx>(CNullID(), nStableCoinGenesisHeight, SYMB::WUSD,
+    auto pTx = std::make_shared<CCoinMintTx>(CNullID(), nVer2GenesisHeight, SYMB::WUSD,
                                                FUND_COIN_GENESIS_INITIAL_RESERVE_AMOUNT * COIN);
     pTx->nVersion = INIT_TX_VERSION;
     vptx.push_back(pTx);
 
     // FundCoin Genesis Account with the total FundCoin release creation
     pTx = std::make_shared<CCoinMintTx>(CPubKey(ParseHex(IniCfg().GetInitFcoinOwnerPubKey(type))),
-                                          nStableCoinGenesisHeight, SYMB::WGRT,
+                                          nVer2GenesisHeight, SYMB::WGRT,
                                           FUND_COIN_GENESIS_TOTAL_RELEASE_AMOUNT * COIN);
     vptx.push_back(pTx);
 
     // DEX Order Matching Service Account
     pTx = std::make_shared<CCoinMintTx>(CPubKey(ParseHex(IniCfg().GetDexMatchServicePubKey(type))),
-                                          nStableCoinGenesisHeight, SYMB::WGRT, 0);
+                                          nVer2GenesisHeight, SYMB::WGRT, 0);
     vptx.push_back(pTx);
 
     return true;
 }
 
-bool CBaseParams::InitializeParams(int argc, const char* const argv[]) {
+bool CBaseParams::LoadParamsFromConfigFile(int argc, const char* const argv[]) {
     ParseParameters(argc, argv);
     if (!boost::filesystem::is_directory(GetDataDir(false))) {
-        fprintf(stderr, "Error: Specified data directory \"%s\" does not exist.\n",
-                CBaseParams::m_mapArgs["-datadir"].c_str());
+        fprintf(stderr, "Error: Specified data directory \"%s\" does not exist.\n", CBaseParams::m_mapArgs["-datadir"].c_str());
         return false;
     }
 

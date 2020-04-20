@@ -21,7 +21,7 @@ struct TestingSetup {
 				string strArgv = boost::unit_test::framework::master_test_suite().argv[i];
 				if (string::npos != strArgv.find("-datadir=")) {
 					const char* newArgv[] = { boost::unit_test::framework::master_test_suite().argv[0], strArgv.c_str() };
-					CBaseParams::InitializeParams(2, newArgv);
+					CBaseParams::LoadParamsFromConfigFile(2, newArgv);
 					bSetDataDir = true;
 					break;
 				}

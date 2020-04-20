@@ -268,7 +268,7 @@ BOOST_FIXTURE_TEST_CASE(test1, CSendItem)
 {
 	const char *argv[] = {"progname", "-datadir=D:\\bitcoin\\1"};
 	int argc = sizeof(argv) / sizeof(char*);
-	CBaseParams::InitializeParams(argc, argv);
+	CBaseParams::LoadParamsFromConfigFile(argc, argv);
 //	time_t t1 = string2time("2014-12-01 17:30:00","%d-%d-%d %d:%d:%d");
 
 	Value resulut = DeployContractTx("dsjkLDFfhenmx2JkFMdtJ22TYDvSGgmJem","unit_test.bin",0);
@@ -297,7 +297,7 @@ BOOST_AUTO_TEST_CASE(test2)
 {
 	const char *argv[] = {"progname", "-datadir=D:\\bitcoin\\2"};
 	int argc = sizeof(argv) / sizeof(char*);
-	CBaseParams::InitializeParams(argc, argv);
+	CBaseParams::LoadParamsFromConfigFile(argc, argv);
 	int64_t runTime = GetTime()+llTime;
 	Value resulut = DeployContractTx("dsjkLDFfhenmx2JkFMdtJ22TYDvSGgmJem","unit_test.bin",0);
 	string scripthash = "";
@@ -323,7 +323,7 @@ BOOST_AUTO_TEST_CASE(test3)
 {
 	const char *argv[] = {"progname", "-datadir=D:\\bitcoin\\3"};
 	int argc = sizeof(argv) / sizeof(char*);
-	CBaseParams::InitializeParams(argc, argv);
+	CBaseParams::LoadParamsFromConfigFile(argc, argv);
 	int64_t runTime = GetTime()+llTime;
 
 	Value resulut = DeployContractTx("dsjkLDFfhenmx2JkFMdtJ22TYDvSGgmJem","unit_test.bin",0);
@@ -350,7 +350,7 @@ BOOST_AUTO_TEST_CASE(test4)
 
 	const char *argv[] = {"progname", "-datadir=D:\\bitcoin\\4"};
 	int argc = sizeof(argv) / sizeof(char*);
-	CBaseParams::InitializeParams(argc, argv);
+	CBaseParams::LoadParamsFromConfigFile(argc, argv);
 	int64_t runTime = GetTime()+llTime;
 
 	Value resulut = DeployContractTx("dsjkLDFfhenmx2JkFMdtJ22TYDvSGgmJem","unit_test.bin",0);
@@ -375,7 +375,7 @@ BOOST_AUTO_TEST_CASE(test5)
 {
 	const char *argv[] = {"progname", "-datadir=D:\\bitcoin\\5"};
 	int argc = sizeof(argv) / sizeof(char*);
-	CBaseParams::InitializeParams(argc, argv);
+	CBaseParams::LoadParamsFromConfigFile(argc, argv);
 
 	int64_t runTime = GetTime()+llTime;
 	Value resulut = DeployContractTx("dsjkLDFfhenmx2JkFMdtJ22TYDvSGgmJem", "unit_test.bin",0);

@@ -114,7 +114,7 @@ public:
     bool GetGovernors(set<CRegID>& governors) {
         governors_cache.GetData(governors);
         if(governors.empty())
-            governors.insert(CRegID(SysCfg().GetStableCoinGenesisHeight(), 2));
+            governors.insert(CRegID(SysCfg().GetVer2GenesisHeight(), 2));
 
         return true;
     }

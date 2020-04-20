@@ -77,7 +77,7 @@ string CCreateMinerkey::GetOneAccount() {
 void CCreateMinerkey::CreateAccount() {
 //	if(2 == argc){
 //		const char* newArgv[] = {argv[0], argv[2] };
-//		CBaseParams::InitializeParams(2, newArgv);
+//		CBaseParams::LoadParamsFromConfigFile(2, newArgv);
 //	}
 	if(!SelectAccounts())
 		return;

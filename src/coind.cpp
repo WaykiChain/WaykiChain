@@ -59,8 +59,7 @@ bool AppInit(int argc, char* argv[], boost::thread_group& threadGroup) {
         // Parameters
         //
         // If Qt is used, parameters/coin.conf are parsed in qt/Coin.cpp's main()
-        CBaseParams::InitializeParams(argc, argv);
-        SysCfg().InitializeConfig();
+        CBaseParams::LoadParamsFromConfigFile(argc, argv);
 
         if (SysCfg().IsArgCount("-?") || SysCfg().IsArgCount("--help")) {
             // First part of help message is specific to coind / RPC client

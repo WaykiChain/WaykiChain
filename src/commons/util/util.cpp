@@ -672,8 +672,7 @@ fs::path GetAbsolutePath(const string& path) {
     return canonical(fs::path(path), ec);
 }
 
-void ReadConfigFile(map<string, string>& mapSettingsRet,
-                    map<string, vector<string>>& mapMultiSettingsRet) {
+void ReadConfigFile(map<string, string>& mapSettingsRet, map<string, vector<string>>& mapMultiSettingsRet) {
     fs::ifstream streamConfig(GetConfigFile());
     if (!streamConfig.good())
         return;  // No WaykiChain.conf file is OK
@@ -681,13 +680,12 @@ void ReadConfigFile(map<string, string>& mapSettingsRet,
     set<string> setOptions;
     setOptions.insert("*");
 
-    for (boost::program_options::detail::config_file_iterator it(streamConfig, setOptions), end;
-         it != end; ++it) {
+    for (boost::program_options::detail::config_file_iterator it(streamConfig, setOptions), end; it != end; ++it) {
         // Don't overwrite existing settings so command line settings override WaykiChain.conf
-        string strKey = string("-") + it->string_key;
-        if (mapSettingsRet.count(strKey) == 0) {
+        string strKey = strprintf("-%s", it->string_key);
+        if (mapSettingsRet.count(strKey) == 0)
             mapSettingsRet[strKey] = it->value[0];
-        }
+
         mapMultiSettingsRet[strKey].push_back(it->value[0]);
     }
     // If datadir is changed in .conf file:

@@ -110,7 +110,7 @@ void GetPriorityTx(CCacheWrapper &cw, int32_t height, set<TxPriority> &txPriorit
 bool GetCurrentDelegate(const int64_t currentTime, const int32_t currHeight, const VoteDelegateVector &delegates,
                                VoteDelegate &delegate) {
 
-    uint32_t slot  = currentTime / GetBlockInterval(currHeight) / GetContinuousBlockCount(currHeight);
+    uint32_t slot  = currentTime / GetBlockInterval(currHeight) / GetContinuousBlockProduceCount(currHeight);
     uint32_t index = slot % delegates.size() ;
     delegate       = delegates[index];
     LogPrint(BCLog::DEBUG, "[%d] currTime=%lld, slot=%d, index=%d, regId=%s\n", currHeight, currentTime, slot, index, delegate.regid.ToString());
@@ -150,7 +150,7 @@ inline int64_t GetShuffleOriginSeed(const int32_t curHeight, const int64_t block
         return curHeight ;
     }else{
         int64_t slot = blockTime/GetBlockInterval(curHeight) ;
-        return slot/ GetContinuousBlockCount(curHeight);
+        return slot/ GetContinuousBlockProduceCount(curHeight);
     }
 }
 
@@ -645,7 +645,7 @@ static bool ProduceBlock(int64_t startMiningMs, CBlockIndex *pPrevIndex, Miner &
 
     pBlock->SetTime(MillisToSecond(startMiningMs));  // set block time first
 
-    if (blockHeight == (int32_t)SysCfg().GetStableCoinGenesisHeight()) {
+    if (blockHeight == (int32_t)SysCfg().GetVer2GenesisHeight()) {
         success = CreateStableCoinGenesisBlock(pBlock);  // stable coin genesis
 
     } else if (GetFeatureForkVersion(blockHeight) == MAJOR_VER_R1) {

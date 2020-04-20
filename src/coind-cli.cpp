@@ -18,11 +18,7 @@
 //
 static bool AppInitRPC(int argc, char* argv[])
 {
-    //
-    // Parameters
-    //
-	CBaseParams::InitializeParams(argc, argv);
-	SysCfg().InitializeConfig();
+	CBaseParams::LoadParamsFromConfigFile(argc, argv);
 
     if (argc < 2 || SysCfg().IsArgCount("-?") || SysCfg().IsArgCount("--help")) {
         // First part of help message is specific to RPC client

@@ -75,14 +75,6 @@ protected:
 public:
     virtual ~CBaseParams() {}
 
-    virtual bool InitializeConfig() {
-        fServer = GetBoolArg("-rpcserver", false);
-        fDebug = !m_mapMultiArgs["-debug"].empty();
-        nMaxForkTime = GetArg("-maxforktime", 24 * 60 * 60);
-
-        return true;
-    }
-
     virtual string ToString() const {
         string te = "";
 
@@ -102,8 +94,8 @@ public:
         te += strprintf("fTxIndex:%d\n",                            fTxIndex);
         te += strprintf("fLogFailures:%d\n",                        fLogFailures);
         te += strprintf("nTimeBestReceived:%llu\n",                 nTimeBestReceived);
-        te += strprintf("nBlockIntervalPreStableCoinRelease:%u\n",  nBlockIntervalPreStableCoinRelease);
-        te += strprintf("nBlockIntervalStableCoinRelease:%u\n",     nBlockIntervalStableCoinRelease);
+        te += strprintf("nBlockIntervalPreVer2Fork:%u\n",  nBlockIntervalPreVer2Fork);
+        te += strprintf("nBlockIntervalPostVer2Fork:%u\n",     nBlockIntervalPostVer2Fork);
         te += strprintf("nCacheSize:%u\n",                          nCacheSize);
         te += strprintf("nTxCacheHeight:%u\n",                      nTxCacheHeight);
         te += strprintf("nMaxForkTime:%d\n",                        nMaxForkTime);
@@ -147,6 +139,13 @@ public:
         }
         return nConnectTimeout;
     }
+
+    void InitConfig(bool fServerIn, bool fDebugIn, int64_t maxForkTimeIn) {
+        fServer         = fServerIn;
+        fDebug          = fDebugIn;
+        nMaxForkTime    = maxForkTimeIn;
+    }
+
     bool IsDebug() const { return fDebug; }
     bool IsServer() const { return fServer; }
     bool IsImporting() const { return fImporting; }
@@ -169,16 +168,20 @@ public:
     const MessageStartChars& MessageStart() const { return pchMessageStart; }
     const vector<uint8_t>& AlertKey() const { return vAlertPubKey; }
     int32_t GetDefaultPort() const { return nDefaultPort; }
-    uint32_t GetBlockIntervalPreStableCoinRelease() const { return nBlockIntervalPreStableCoinRelease; }
-    uint32_t GetBlockIntervalStableCoinRelease() const { return nBlockIntervalStableCoinRelease; }
-    uint32_t GetVer2ForkHeight() const { return nFeatureForkHeight; }
-    uint32_t GetStableCoinGenesisHeight() const { return nStableCoinGenesisHeight; }
+
+    uint32_t GetVer2GenesisHeight() const { return nVer2GenesisHeight; }
+    uint32_t GetVer2ForkHeight() const { return nVer2ForkHeight; }
     uint32_t GetVer3ForkHeight() const { return nVer3ForkHeight; }
-    uint32_t GetContinuousCountBeforeFork() const { return nContinuousCountBeforeFork; }
-    uint32_t GetContinuousCountAfterFork() const { return nContinuousCountAfterFork; }
-    CRegID GetFcoinGenesisRegId() const { return CRegID(nStableCoinGenesisHeight, 1); }
-    CRegID GetDexMatchSvcRegId() const  { return CRegID(nStableCoinGenesisHeight, 3); }
-    CRegID GetDex0OwnerRegId() const  { return CRegID(nStableCoinGenesisHeight, 3); }
+
+    uint32_t GetBlockIntervalPreVer2Fork()  const { return nBlockIntervalPreVer2Fork; }
+    uint32_t GetBlockIntervalPostVer2Fork() const { return nBlockIntervalPostVer2Fork; }
+    uint32_t GetContinuousProducePreVer3Fork()  const { return nContinuousBlockProducePreVer3Fork; }
+    uint32_t GetContinuousProducePostVer3Fork() const { return nContinuousBlockProducePostVer3Fork; }
+
+    CRegID GetFcoinGenesisRegId()   const { return CRegID(nVer2GenesisHeight, 1); }
+    CRegID GetDexMatchSvcRegId()    const { return CRegID(nVer2GenesisHeight, 3); }
+    CRegID GetDex0OwnerRegId()      const { return CRegID(nVer2GenesisHeight, 3); }
+
     virtual uint64_t GetMaxFee() const { return 1000 * COIN; }
     virtual const CBlock& GenesisBlock() const = 0;
     const uint256& GetGenesisBlockHash() const { return genesisBlockHash; }
@@ -193,7 +196,7 @@ public:
     virtual const vector<CAddress>& FixedSeeds() const = 0;
     virtual bool IsInFixedSeeds(CAddress& addr)        = 0;
     int RPCPort() const { return nRPCPort; }
-    static bool InitializeParams(int argc, const char* const argv[]);
+    static bool LoadParamsFromConfigFile(int argc, const char* const argv[]);
     static int64_t GetArg(const string& strArg, int64_t nDefault);
     static string GetArg(const string& strArg, const string& strDefault);
     static bool GetBoolArg(const string& strArg, bool fDefault);
@@ -211,6 +214,7 @@ public:
     static void SetMapArgs(const map<string, string>& mapArgs) { m_mapArgs = mapArgs; }
     static void SetMultiMapArgs(const map<string, vector<string> >& mapMultiArgs) { m_mapMultiArgs = mapMultiArgs; }
 
+
 protected:
     static map<string, string> m_mapArgs;
     static map<string, vector<string> > m_mapMultiArgs;
@@ -218,6 +222,7 @@ protected:
 protected:
     CBaseParams();
 
+    string strDataDir;
     uint256 genesisBlockHash;
     MessageStartChars pchMessageStart;
     // Raw pub key bytes for the broadcast alert signing key.
@@ -225,16 +230,14 @@ protected:
     int32_t nDefaultPort;
     int32_t nRPCPort;
     string alartPKey;
-    uint32_t nStableCoinGenesisHeight;
-    uint32_t nFeatureForkHeight;
+    uint32_t nVer2GenesisHeight;
+    uint32_t nVer2ForkHeight;
     uint32_t nVer3ForkHeight;
-    uint32_t nBlockIntervalPreStableCoinRelease;
-    uint32_t nBlockIntervalStableCoinRelease;
-    uint32_t nContinuousProduceForkHeight ;
-    uint32_t nContinuousCountBeforeFork;
-    uint32_t nContinuousCountAfterFork ;
+    uint32_t nBlockIntervalPreVer2Fork;
+    uint32_t nBlockIntervalPostVer2Fork;
+    uint32_t nContinuousBlockProducePreVer3Fork;
+    uint32_t nContinuousBlockProducePostVer3Fork;
 
-    string strDataDir;
     vector<CDNSSeedData> vSeeds;
     vector<uint8_t> base58Prefixes[MAX_BASE58_TYPES];
 };

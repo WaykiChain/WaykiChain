@@ -10,7 +10,7 @@
 
 bool CCoinMintTx::CheckTx(CTxExecuteContext &context) {
     // Only used in stable coin genesis.
-    return ( context.height == (int32_t) SysCfg().GetStableCoinGenesisHeight() );
+    return ( context.height == (int32_t) SysCfg().GetVer2GenesisHeight() );
 }
 
 bool CCoinMintTx::ExecuteTx(CTxExecuteContext &context) {

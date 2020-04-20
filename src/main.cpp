@@ -1069,7 +1069,7 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
     }
 
     // In stable coin genesis, need to verify txid for every transaction in block.
-    if (block.GetHeight() == SysCfg().GetStableCoinGenesisHeight()) {
+    if (block.GetHeight() == SysCfg().GetVer2GenesisHeight()) {
         assert(block.vptx.size() == 4);
 
         vector<string> ScoinTxIDs = IniCfg().GetStableCoinGenesisTxid(SysCfg().NetworkID());

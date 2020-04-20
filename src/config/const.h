@@ -194,42 +194,41 @@ static const int32_t BLOCK_REWARD_MATURITY = 100;
 /** RegId's mature period measured by blocks */
 static const int32_t REG_ID_MATURITY = 100;
 
-static const uint16_t MAX_MINED_BLOCK_COUNT      = 100;        // maximun cache size for mined blocks
-static const int32_t MAX_RECENT_BLOCK_COUNT      = 10000;      // most recent block number limit
-static const uint32_t MAX_RPC_SIG_STR_LEN        = 65 * 1024;  // 65K max length of raw string to be signed via rpc call
-static const uint32_t MAX_SIGNATURE_SIZE         = 100;        // 100 bytes max size of tx or block signature
-static const uint32_t MAX_CONTRACT_CODE_SIZE     = 65536;      // 64 KB max for contract script size
-static const uint32_t MAX_CONTRACT_ARGUMENT_SIZE = 4096;       // 4 KB max for contract argument size
-static const uint32_t MAX_COMMON_TX_MEMO_SIZE    = 100;        // 100 bytes max for memo size
-static const uint32_t MAX_CONTRACT_MEMO_SIZE     = 100;        // 100 bytes max for memo size
-static const uint32_t MAX_CONTRACT_KEY_SIZE      = 512;        // 512 bytes max for contract key size
-static const int32_t MAX_MULSIG_NUMBER           = 15;         // m-n multisig, refer to n
-static const int32_t MAX_MULSIG_SCRIPT_SIZE      = 1000;       // multisig script max size
-static const uint32_t MAX_TRANSFER_SIZE          = 100;        // maximun transfer pair size
+static const uint16_t MAX_MINED_BLOCK_COUNT                 = 100;        // maximun cache size for mined blocks
+static const int32_t MAX_RECENT_BLOCK_COUNT                 = 10000;      // most recent block number limit
+static const uint32_t MAX_RPC_SIG_STR_LEN                   = 65 * 1024;  // 65K max length of raw string to be signed via rpc call
+static const uint32_t MAX_SIGNATURE_SIZE                    = 100;        // 100 bytes max size of tx or block signature
+static const uint32_t MAX_CONTRACT_CODE_SIZE                = 65536;      // 64 KB max for contract script size
+static const uint32_t MAX_CONTRACT_ARGUMENT_SIZE            = 4096;       // 4 KB max for contract argument size
+static const uint32_t MAX_COMMON_TX_MEMO_SIZE               = 100;        // 100 bytes max for memo size
+static const uint32_t MAX_CONTRACT_MEMO_SIZE                = 100;        // 100 bytes max for memo size
+static const uint32_t MAX_CONTRACT_KEY_SIZE                 = 512;        // 512 bytes max for contract key size
+static const int32_t MAX_MULSIG_NUMBER                      = 15;         // m-n multisig, refer to n
+static const int32_t MAX_MULSIG_SCRIPT_SIZE                 = 1000;       // multisig script max size
+static const uint32_t MAX_TRANSFER_SIZE                     = 100;        // maximun transfer pair size
 
-static const uint32_t MAX_WASM_CONTRACT_CODE_BYTES = 1024 * 1024;      // 1 MB max for wasm contract code bytes
-static const uint32_t MAX_WASM_CONTRACT_ABI_BYTES  = 1024 * 1024;      // 1 MB max for wasm contract abi bytes
+static const uint32_t MAX_WASM_CONTRACT_CODE_BYTES          = 1024 * 1024;      // 1 MB max for wasm contract code bytes
+static const uint32_t MAX_WASM_CONTRACT_ABI_BYTES           = 1024 * 1024;      // 1 MB max for wasm contract abi bytes
 
-static const string LUA_CONTRACT_LOCATION_PREFIX = "/tmp/lua/";  // prefix of lua contract file location
-static const string LUA_CONTRACT_HEADLINE        = "mylib = require";
+static const string LUA_CONTRACT_LOCATION_PREFIX            = "/tmp/lua/";  // prefix of lua contract file location
+static const string LUA_CONTRACT_HEADLINE                   = "mylib = require";
 
-static const uint64_t INITIAL_BASE_COIN_AMOUNT               = 210000000;  // 210 million
-static const uint32_t BLOCK_INTERVAL_PRE_STABLE_COIN_RELEASE = 10;         // 10 seconds
-static const uint32_t BLOCK_INTERVAL_STABLE_COIN_RELEASE     = 3;          // 3 seconds
+static const uint64_t INITIAL_BASE_COIN_AMOUNT              = 210000000;  // 210 million
+static const uint32_t BLOCK_INTERVAL_PRE_V2FORK             = 10;         // 10 seconds
+static const uint32_t BLOCK_INTERVAL_POST_V2FORK            = 3;          // 3 seconds
+static const uint32_t CONTINUOUS_BLOCK_PRODUCE_PRE_V3FORK   = 1 ;   //coutinuous produce block count
+static const uint32_t CONTINUOUS_BLOCK_PRODUCE_POST_V3FORK  = 2 ;
 
-static const uint32_t CONTINUOUS_BLOCK_COUNT_BEFORE_FORK = 1 ;   //coutinuous produce block count
-static const uint32_t CONTINUOUS_BLOCK_COUNT_AFTER_FORK  = 2 ;
 
+static const uint64_t INITIAL_SUBSIDY_RATE                  = 5;  // Initial subsidy rate upon vote casting
+static const uint64_t FIXED_SUBSIDY_RATE                    = 1;  // Eventual/lasting subsidy rate for vote casting
 
-static const uint64_t INITIAL_SUBSIDY_RATE = 5;  // Initial subsidy rate upon vote casting
-static const uint64_t FIXED_SUBSIDY_RATE   = 1;  // Eventual/lasting subsidy rate for vote casting
+static const uint32_t CONTRACT_CALL_RESERVED_FEES_RATIO     = 10;  // boosted by 10^2
 
-static const uint32_t CONTRACT_CALL_RESERVED_FEES_RATIO = 10;  // boosted by 10^2
+static const string EMPTY_STRING                            = "";
 
-static const string EMPTY_STRING = "";
-
-static const uint8_t BP_MAX_COUNT = 255;    //max number of allowed BPs
-static const uint32_t BPSSIZE_EFFECTIVE_AFTER_BLOCK_COUNT = 3600;
+static const uint8_t BP_MAX_COUNT                           = 255;    //max number of allowed BPs
+static const uint32_t BPSSIZE_EFFECTIVE_AFTER_BLOCK_COUNT   = 3600;
 
 ////////////////////////////////////////////////////////////////////////////////
 // delegate
