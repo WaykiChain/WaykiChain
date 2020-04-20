@@ -215,15 +215,17 @@ namespace RPC_PARAM {
     }
 
 
-    void CheckOrderFee(const CAccount &txAccount, uint64_t txFee, uint64_t minFee,
+    void CheckOrderFee(CAccount &txAccount, const ComboMoney &txFee, uint64_t minTxFeeAmount,
         CAccount *pOperatorAccount = nullptr, uint64_t operatorTxFee = 0) {
 
         HeightType height = chainActive.Height() + 1;
-        auto spErr = dex::CheckOrderMinFee(height, txAccount, txFee, minFee, pOperatorAccount,
-                                           operatorTxFee);
+        auto spErr        = dex::CheckOrderMinFee(height, txAccount, txFee.GetAmountInSawi(),
+                                           minTxFeeAmount, pOperatorAccount, operatorTxFee);
         if (spErr) {
             throw JSONRPCError(RPC_INVALID_PARAMS, *spErr);
         }
+
+        CheckAccountBalance(txAccount, txFee.symbol, SUB_FREE, txFee.GetAmountInSawi());
     }
 
 } // namespace RPC_PARAM
@@ -319,8 +321,7 @@ Value submitdexbuylimitordertx(const Array& params, bool fHelp) {
     RPC_PARAM::CheckOrderSymbols(__func__, coinSymbol, assetInfo.symbol);
     // Get account for checking balance
     CAccount txAccount = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, userId);
-    RPC_PARAM::CheckOrderFee(txAccount, txFee.GetAmountInSawi(), minTxFeeAmount);
-    RPC_PARAM::CheckAccountBalance(txAccount, txFee.symbol, SUB_FREE, txFee.GetAmountInSawi());
+    RPC_PARAM::CheckOrderFee(txAccount, txFee, minTxFeeAmount);
     uint64_t coinAmount = CDEXOrderBaseTx::CalcCoinAmount(assetInfo.GetAmountInSawi(), price);
     RPC_PARAM::CheckAccountBalance(txAccount, coinSymbol, FREEZE, coinAmount);
 
@@ -383,8 +384,7 @@ Value submitdexselllimitordertx(const Array& params, bool fHelp) {
     RPC_PARAM::CheckOrderSymbols(__FUNCTION__, coinSymbol, assetInfo.symbol);
     // Get account for checking balance
     CAccount txAccount = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, userId);
-    RPC_PARAM::CheckOrderFee(txAccount, txFee.GetAmountInSawi(), minTxFeeAmount);
-    RPC_PARAM::CheckAccountBalance(txAccount, txFee.symbol, SUB_FREE, txFee.GetAmountInSawi());
+    RPC_PARAM::CheckOrderFee(txAccount, txFee, minTxFeeAmount);
     RPC_PARAM::CheckAccountBalance(txAccount, assetInfo.symbol, FREEZE, assetInfo.GetAmountInSawi());
 
     DexOperatorDetail operatorDetail = RPC_PARAM::GetDexOperator(dexId);
@@ -446,8 +446,7 @@ Value submitdexbuymarketordertx(const Array& params, bool fHelp) {
     RPC_PARAM::CheckOrderSymbols(__FUNCTION__, coinInfo.symbol, assetSymbol);
     // Get account for checking balance
     CAccount txAccount = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, userId);
-    RPC_PARAM::CheckOrderFee(txAccount, txFee.GetAmountInSawi(), minTxFeeAmount);
-    RPC_PARAM::CheckAccountBalance(txAccount, txFee.symbol, SUB_FREE, txFee.GetAmountInSawi());
+    RPC_PARAM::CheckOrderFee(txAccount, txFee, minTxFeeAmount);
     RPC_PARAM::CheckAccountBalance(txAccount, coinInfo.symbol, FREEZE, coinInfo.GetAmountInSawi());
 
     DexOperatorDetail operatorDetail = RPC_PARAM::GetDexOperator(dexId);
@@ -508,8 +507,7 @@ Value submitdexsellmarketordertx(const Array& params, bool fHelp) {
     RPC_PARAM::CheckOrderSymbols(__FUNCTION__, coinSymbol, assetInfo.symbol);
     // Get account for checking balance
     CAccount txAccount = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, userId);
-    RPC_PARAM::CheckOrderFee(txAccount, txFee.GetAmountInSawi(), minTxFeeAmount);
-    RPC_PARAM::CheckAccountBalance(txAccount, txFee.symbol, SUB_FREE, txFee.GetAmountInSawi());
+    RPC_PARAM::CheckOrderFee(txAccount, txFee, minTxFeeAmount);
     RPC_PARAM::CheckAccountBalance(txAccount, assetInfo.symbol, FREEZE, assetInfo.GetAmountInSawi());
 
     DexOperatorDetail operatorDetail = RPC_PARAM::GetDexOperator(dexId);
@@ -629,10 +627,8 @@ Value gendexoperatorordertx(const Array& params, bool fHelp) {
             strprintf("operator_tx_fee_symbol=%s does not euqal to fee_symbol=%s",
                 txFee.symbol, operatorTxFee.symbol));
 
-    RPC_PARAM::CheckOrderFee(txAccount, txFee.GetAmountInSawi(), minTxFeeAmount, &operatorAccount, operatorTxFee.GetAmountInSawi());
-
-    RPC_PARAM::CheckAccountBalance(txAccount, txFee.symbol, SUB_FREE,
-            txFee.GetAmountInSawi() + operatorTxFee.GetAmountInSawi());
+    RPC_PARAM::CheckOrderFee(txAccount, txFee, minTxFeeAmount, &operatorAccount,
+                             operatorTxFee.GetAmountInSawi());
 
     if (orderSide == ORDER_BUY) {
         uint64_t coinAmount = coins.GetAmountInSawi();
@@ -686,8 +682,7 @@ Value submitdexcancelordertx(const Array& params, bool fHelp) {
 
     // Get account for checking balance
     CAccount txAccount = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, userId);
-    RPC_PARAM::CheckOrderFee(txAccount, txFee.GetAmountInSawi(), minTxFeeAmount);
-    RPC_PARAM::CheckAccountBalance(txAccount, txFee.symbol, SUB_FREE, txFee.GetAmountInSawi());
+    RPC_PARAM::CheckOrderFee(txAccount, txFee, minTxFeeAmount);
 
     // check active order tx
     RPC_PARAM::CheckActiveOrderExisted(*pCdMan->pDexCache, txid);
