@@ -54,8 +54,6 @@ const vector<string> G_CONFIG_TABLE::GetDelegatePubKey(const NET_TYPE type) cons
     return delegatePubKey[type];
 }
 
-const uint256 G_CONFIG_TABLE::GetMerkleRootHash() const { return (uint256S((MerkleRootHash))); }
-
 string G_CONFIG_TABLE::GetDelegateSignature(const NET_TYPE type) const {
     assert(type >=0 && type < 3);
     return delegateSignature[type];
@@ -196,7 +194,6 @@ string G_CONFIG_TABLE::genesisBlockHash[3] = {
     "0xab8d8b1d11784098108df399b247a0b80049de26af1b9c775d550228351c768d"};  //regtest
 
 // Merkle Root Hash
-string G_CONFIG_TABLE::MerkleRootHash = "0x16b211137976871bb062e211f08b2f70a60fa8651b609823f298d1a3d3f3e05d";
 
 // Public key for initial fund coin owner
 string G_CONFIG_TABLE::initFcoinOwnerPubKey[3] = {

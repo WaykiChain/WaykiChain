@@ -66,7 +66,6 @@ public:
         //     << "\nacutal blockhash: " << genesisBlockHash.GetHex() << "\r\n";
 
         assert(genesisBlockHash == IniCfg().GetGenesisBlockHash(MAIN_NET));
-        // assert(genesis.GetMerkleRootHash() == IniCfg().GetMerkleRootHash());
 
         vSeeds.push_back(CDNSSeedData("seed1.waykichain.net", "n1.waykichain.net"));
         vSeeds.push_back(CDNSSeedData("seed2.waykichain.net", "n2.waykichain.net"));

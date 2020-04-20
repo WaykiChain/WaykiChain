@@ -35,7 +35,6 @@ public:
     uint256 GetGenesisBlockHash(const NET_TYPE type) const;
     string GetDelegateSignature(const NET_TYPE type) const;
     const vector<string> GetDelegatePubKey(const NET_TYPE type) const;
-    const uint256 GetMerkleRootHash() const;
 
     const string GetDexMatchServicePubKey(const NET_TYPE type) const;
     const string GetInitFcoinOwnerPubKey(const NET_TYPE type) const;
@@ -71,9 +70,6 @@ private:
 
     /* alert public key */
     static string AlertPubKey[2];
-
-    /* merkle root hash */
-    static string MerkleRootHash;
 
     /* fund coin initial owner public key */
     static string initFcoinOwnerPubKey[3];
