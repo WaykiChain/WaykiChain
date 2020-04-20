@@ -284,7 +284,7 @@ Value signmessage(const Array& params, bool fHelp) {
 Value submitsendtx(const Array& params, bool fHelp) {
     if (fHelp || (params.size() != 4 && params.size() != 5))
         throw runtime_error(
-                "submitsendtx \"from\" \"to\" \"symbol:coin:unit\" 【\"symbol:fee:unit\"] [\"memo\"]\n"
+                "submitsendtx \"from\" \"to\" \"symbol:coin:unit\" [\"symbol:fee:unit\"] [\"memo\"]\n"
                 "\nSend coins to a given address.\n" +
                 HelpRequiringPassphrase() +
                 "\nArguments:\n"
