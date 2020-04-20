@@ -135,7 +135,7 @@ namespace dex {
                 return false;
 
             if (!operatorAccount.OperateBalance(fee_symbol, SUB_FREE, operator_tx_fee,
-                                                ReceiptType::DEX_COIN_FEE_TO_OPERATOR, receipts)) {
+                                                ReceiptType::BLOCK_REWARD_TO_MINER, receipts)) {
                 return state.DoS(100, ERRORMSG("%s, operator account has insufficient funds for tx fee",
                                 ERROR_TITLE(GetTxTypeName())), UPDATE_ACCOUNT_FAIL, "operator-account-insufficient");
             }
@@ -146,11 +146,11 @@ namespace dex {
             coinAmount = CDEXOrderBaseTx::CalcCoinAmount(asset_amount, price);
 
         if (order_side == ORDER_BUY) {
-            if (!FreezeBalance(context, txAccount, coin_symbol, coinAmount, ReceiptType::DEX_ASSET_TO_BUYER))
+            if (!FreezeBalance(context, txAccount, coin_symbol, coinAmount, ReceiptType::DEX_FREEZE_COIN_TO_BUYER))
                 return false;
         } else {
             assert(order_side == ORDER_SELL);
-            if (!FreezeBalance(context, txAccount, asset_symbol, asset_amount, ReceiptType::DEX_COIN_TO_SELLER))
+            if (!FreezeBalance(context, txAccount, asset_symbol, asset_amount, ReceiptType::DEX_FREEZE_ASSET_TO_SELLER))
                 return false;
         }
 
