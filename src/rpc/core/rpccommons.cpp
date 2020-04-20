@@ -424,30 +424,32 @@ uint64_t RPC_PARAM::GetTxMinFeeBy(const TxType txType, const TokenSymbol &symbol
     return minFee;
 }
 
-void RPC_PARAM::ParseTxFee(const Array &params, const size_t index, const TxType txType,
-                          ComboMoney &feeOut, uint64_t &minFeeOut) {
+// @return pair(ComboMoney txFee, uint64_t minTxFeeAmount)
+pair<ComboMoney, uint64_t> RPC_PARAM::ParseTxFee(const Array &params, const size_t index,
+                                                 const TxType txType) {
 
+    ComboMoney txFee;
+    uint64_t minTxFeeAmount;
     if (params.size() > index) {
-        feeOut = GetComboMoney(params[index], SYMB::WICC);
-        if (!kFeeSymbolSet.count(feeOut.symbol))
+        txFee = GetComboMoney(params[index], SYMB::WICC);
+        if (!kFeeSymbolSet.count(txFee.symbol))
             throw JSONRPCError(RPC_INVALID_PARAMS,
-                strprintf("Fee symbol is %s, but expect %s", feeOut.symbol, GetFeeSymbolSetStr()));
+                strprintf("Fee symbol is %s, but expect %s", txFee.symbol, GetFeeSymbolSetStr()));
 
-        minFeeOut = GetTxMinFeeBy(txType, feeOut.symbol);
+        minTxFeeAmount = GetTxMinFeeBy(txType, txFee.symbol);
     } else {
-        minFeeOut = GetTxMinFeeBy(txType, SYMB::WICC);
-        feeOut = {SYMB::WICC, minFeeOut, COIN_UNIT::SAWI};
+        minTxFeeAmount = GetTxMinFeeBy(txType, SYMB::WICC);
+        txFee = {SYMB::WICC, minTxFeeAmount, COIN_UNIT::SAWI};
     }
+    return {txFee, minTxFeeAmount};
 }
 
 ComboMoney RPC_PARAM::GetFee(const Array& params, const size_t index, const TxType txType) {
-    ComboMoney fee;
-    uint64_t minFee;
-    ParseTxFee(params, index, txType, fee, minFee);
-    if (fee.GetAmountInSawi() < minFee)
+    const auto [txFee, minTxFeeAmount] = ParseTxFee(params, index, txType);
+    if (txFee.GetAmountInSawi() < minTxFeeAmount)
         throw JSONRPCError(RPC_INVALID_PARAMS,
-            strprintf("The given fee is too small: %llu < %llu sawi", fee.amount, minFee));
-    return fee;
+            strprintf("The given fee is too small: %llu < %llu sawi", txFee.amount, minTxFeeAmount));
+    return txFee;
 }
 
 uint64_t RPC_PARAM::GetWiccFee(const Array& params, const size_t index, const TxType txType) {

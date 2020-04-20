@@ -582,10 +582,8 @@ Value gendexoperatorordertx(const Array& params, bool fHelp) {
     OpenMode openMode                   = RPC_PARAM::GetOrderOpenMode(params[7]);
     uint64_t takerFeeRatio              = RPC_PARAM::GetOperatorFeeRatio(params[8]);
     uint64_t makerFeeRatio              = RPC_PARAM::GetOperatorFeeRatio(params[9]);
-    ComboMoney fee;
-    uint64_t minFee;
-    RPC_PARAM::ParseTxFee(params, 10, txType, fee, minFee);
-    ComboMoney operatorTxFee = RPC_PARAM::GetOperatorTxFee(params, 11);
+    auto [txFee, minTxFeeAmount]        = RPC_PARAM::ParseTxFee(params, 10, txType);
+    ComboMoney operatorTxFee            = RPC_PARAM::GetOperatorTxFee(params, 11);
     string memo                         = RPC_PARAM::GetMemo(params, 12);
 
     RPC_PARAM::CheckOrderSymbols(__func__, coins.symbol, assets.symbol);
@@ -622,15 +620,15 @@ Value gendexoperatorordertx(const Array& params, bool fHelp) {
     CAccount txAccount = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, userId);
     CAccount operatorAccount = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, operatorDetail.fee_receiver_regid);
 
-    if (fee.symbol != operatorTxFee.symbol)
+    if (txFee.symbol != operatorTxFee.symbol)
         throw JSONRPCError(RPC_INVALID_PARAMS,
             strprintf("operator_tx_fee_symbol=%s does not euqal to fee_symbol=%s",
-                fee.symbol, operatorTxFee.symbol));
+                txFee.symbol, operatorTxFee.symbol));
 
-    RPC_PARAM::CheckOrderFee(txAccount, fee.GetAmountInSawi(), minFee, &operatorAccount, operatorTxFee.GetAmountInSawi());
+    RPC_PARAM::CheckOrderFee(txAccount, txFee.GetAmountInSawi(), minTxFeeAmount, &operatorAccount, operatorTxFee.GetAmountInSawi());
 
-    RPC_PARAM::CheckAccountBalance(txAccount, fee.symbol, SUB_FREE,
-            fee.GetAmountInSawi() + operatorTxFee.GetAmountInSawi());
+    RPC_PARAM::CheckAccountBalance(txAccount, txFee.symbol, SUB_FREE,
+            txFee.GetAmountInSawi() + operatorTxFee.GetAmountInSawi());
 
     if (orderSide == ORDER_BUY) {
         uint64_t coinAmount = coins.GetAmountInSawi();
@@ -643,9 +641,9 @@ Value gendexoperatorordertx(const Array& params, bool fHelp) {
     }
 
     shared_ptr<CDEXOrderBaseTx> pOrderBaseTx = make_shared<CDEXOperatorOrderTx>(
-        userId, validHeight, fee.symbol, fee.GetAmountInSawi(), orderType, orderSide, coins.symbol,
-        assets.symbol, coins.GetAmountInSawi(), assets.GetAmountInSawi(), price, dexId, openMode,
-        makerFeeRatio, takerFeeRatio, operatorDetail.fee_receiver_regid,
+        userId, validHeight, txFee.symbol, txFee.GetAmountInSawi(), orderType, orderSide,
+        coins.symbol, assets.symbol, coins.GetAmountInSawi(), assets.GetAmountInSawi(), price,
+        dexId, openMode, makerFeeRatio, takerFeeRatio, operatorDetail.fee_receiver_regid,
         operatorTxFee.GetAmountInSawi(), memo);
 
     CDataStream ds(SER_DISK, CLIENT_VERSION);

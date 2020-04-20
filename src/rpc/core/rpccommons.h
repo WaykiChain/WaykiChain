@@ -46,8 +46,10 @@ namespace RPC_PARAM {
     ComboMoney GetComboMoney(const Value &jsonValue, const TokenSymbol &defaultSymbol = SYMB::WICC);
 
     uint64_t GetTxMinFeeBy(const TxType txType, const TokenSymbol &symbol);
-    void ParseTxFee(const Array &params, const size_t index, const TxType txType,
-                          ComboMoney &feeOut, uint64_t &minFeeOut);
+
+    // @return pair(ComboMoney txFee, uint64_t minTxFeeAmount)
+    pair<ComboMoney, uint64_t> ParseTxFee(const Array &params, const size_t index,
+                                          const TxType txType);
     ComboMoney GetFee(const Array& params, const size_t index, const TxType txType);
     uint64_t GetWiccFee(const Array& params, const size_t index, const TxType txType);
 
