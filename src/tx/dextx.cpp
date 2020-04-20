@@ -135,7 +135,7 @@ namespace dex {
                 return false;
 
             if (!operatorAccount.OperateBalance(fee_symbol, SUB_FREE, operator_tx_fee,
-                                                ReceiptType::DEX_COIN_FEE_TO_SETTLER, receipts)) {
+                                                ReceiptType::DEX_COIN_FEE_TO_OPERATOR, receipts)) {
                 return state.DoS(100, ERRORMSG("%s, operator account has insufficient funds for tx fee",
                                 ERROR_TITLE(GetTxTypeName())), UPDATE_ACCOUNT_FAIL, "operator-account-insufficient");
             }
@@ -811,81 +811,84 @@ namespace dex {
             sellResidualAmount = limitAssetAmount - sellOrder.total_deal_asset_amount;
         }
 
-        // 8. subtract the buyer's coins and seller's assets
-        //  - unfreeze and subtract the coins from buyer account
-        if (    !pBuyOrderAccount->OperateBalance(buyOrder.coin_symbol, UNFREEZE, dealItem.dealCoinAmount,
-                                                ReceiptType::DEX_UNFREEZE_COIN_TO_BUYER, receipts) ||
-                !pBuyOrderAccount->OperateBalance(buyOrder.coin_symbol, SUB_FREE, dealItem.dealCoinAmount,
-                                                ReceiptType::DEX_COIN_TO_SELLER, receipts)) {// - subtract buyer's coins
-            return state.DoS(100, ERRORMSG("%s, subtract coins from buyer account failed!"
-                " deal_info={%s}, coin_symbol=%s",
-                DEAL_ITEM_TITLE, dealItem.ToString(), buyOrder.coin_symbol),
-                REJECT_INVALID, "operate-account-failed");
-        }
-        //  - unfreeze and subtract the assets from seller account
-        if (    !pSellOrderAccount->OperateBalance(sellOrder.asset_symbol, UNFREEZE, dealItem.dealAssetAmount,
-                                                ReceiptType::DEX_UNFREEZE_ASSET_TO_SELLER, receipts) ||
-                !pSellOrderAccount->OperateBalance(sellOrder.asset_symbol, SUB_FREE, dealItem.dealAssetAmount,
-                                                ReceiptType::DEX_ASSET_TO_BUYER, receipts)) { // - subtract seller's assets
-            return state.DoS(100, ERRORMSG("%s, subtract assets from seller account failed!"
-                " deal_info={%s}, asset_symbol=%s",
-                DEAL_ITEM_TITLE, dealItem.ToString(), sellOrder.asset_symbol),
-                REJECT_INVALID, "operate-account-failed");
-        }
 
-        // 9. calc deal dex operator fees
-        uint64_t buyerReceivedAssets = dealItem.dealAssetAmount;
-        // 9.1 buyer pay the fee from the received assets to settler
+        // 8. calc deal fees for dex operator
 
+        // 8.1. calc deal asset fee payed by buyer for buy operator
+        uint64_t dealAssetFee = 0;
         uint64_t buyOperatorFeeRatio = GetOperatorFeeRatio(buyOrder, buyOrderOperatorParams, takerSide);
-        uint64_t sellOperatorFeeRatio = GetOperatorFeeRatio(sellOrder, sellOrderOperatorParams, takerSide);
-
         if (!CheckOperatorFeeRatioRange(context, dealItem.buyOrderId, buyOperatorFeeRatio, DEAL_ITEM_TITLE))
             return false;
-
-        uint64_t dealAssetFee;
         if (!CalcOrderFee(dealItem.dealAssetAmount, buyOperatorFeeRatio, dealAssetFee))
             return false;
 
-        buyerReceivedAssets = dealItem.dealAssetAmount - dealAssetFee;
-        // pay asset fee from seller to settler
-        if (!pBuyMatchAccount->OperateBalance(buyOrder.asset_symbol, ADD_FREE, dealAssetFee,
-                                            ReceiptType::DEX_ASSET_FEE_TO_SETTLER, receipts)) {
-            return state.DoS(100, ERRORMSG("%s, pay asset fee from buyer to operator account failed!"
-                " deal_info={%s}, asset_symbol=%s, asset_fee=%llu, buy_match_regid=%s",
-                DEAL_ITEM_TITLE, dealItem.ToString(), buyOrder.asset_symbol, dealAssetFee, pBuyMatchAccount->regid.ToString()),
-                REJECT_INVALID, "operate-account-failed");
-        }
-
-
-        // 9.2 seller pay the fee from the received coins to settler
-        uint64_t sellerReceivedCoins = dealItem.dealCoinAmount;
+        // 8.2. calc deal coin fee payed by seller for sell operator
+        uint64_t dealCoinFee = 0;
+        uint64_t sellOperatorFeeRatio = GetOperatorFeeRatio(sellOrder, sellOrderOperatorParams, takerSide);
         if (!CheckOperatorFeeRatioRange(context, dealItem.sellOrderId, sellOperatorFeeRatio, DEAL_ITEM_TITLE))
             return false;
-        uint64_t dealCoinFee;
         if (!CalcOrderFee(dealItem.dealCoinAmount, sellOperatorFeeRatio, dealCoinFee)) return false;
 
-        sellerReceivedCoins = dealItem.dealCoinAmount - dealCoinFee;
-        // pay coin fee from buyer to settler
-        if (!pTxAccount->OperateBalance(sellOrder.coin_symbol, ADD_FREE, dealCoinFee,
-                                        ReceiptType::DEX_COIN_FEE_TO_SETTLER, receipts)) {
-            return state.DoS(100, ERRORMSG("%s, pay coin fee from seller to operator account failed!"
-                " deal_info={%s}, coin_symbol=%s, coin_fee=%llu, sell_match_regid=%s",
-                DEAL_ITEM_TITLE, dealItem.ToString(), sellOrder.coin_symbol, dealCoinFee,
-                pSellMatchAccount->regid.ToString()),
-                REJECT_INVALID, "operate-account-failed");
+
+        // 9. unfreeze the coins and assets
+        // 9.1. unfreeze buyer's coins
+        if (!pBuyOrderAccount->OperateBalance(buyOrder.coin_symbol, UNFREEZE,
+                                              dealItem.dealCoinAmount,
+                                              ReceiptType::DEX_UNFREEZE_COIN_TO_BUYER, receipts)) {
+            return state.DoS(100, ERRORMSG("%s, unfreeze buyer coins failed! deal_info={%s}, coin_symbol=%s",
+                    DEAL_ITEM_TITLE, dealItem.ToString(), buyOrder.coin_symbol),
+                    REJECT_INVALID, "unfreeze-buyer-coins-failed");
+        }
+        // 9.2. unfreeze and subtract the assets from seller account
+        if (!pSellOrderAccount->OperateBalance(
+                sellOrder.asset_symbol, UNFREEZE, dealItem.dealAssetAmount,
+                ReceiptType::DEX_UNFREEZE_ASSET_TO_SELLER, receipts)) {
+            return state.DoS(100, ERRORMSG("%s, unfreeze seller assets failed! deal_info={%s}, asset_symbol=%s",
+                    DEAL_ITEM_TITLE, dealItem.ToString(), sellOrder.asset_symbol),
+                    REJECT_INVALID, "unfreeze-seller-assets-failed");
         }
 
-        // 10. add the buyer's assets and seller's coins
-        if (   !pBuyOrderAccount->OperateBalance(buyOrder.asset_symbol, ADD_FREE, buyerReceivedAssets,
-                                                ReceiptType::DEX_ASSET_TO_BUYER, receipts)    // + add buyer's assets
-            || !pSellOrderAccount->OperateBalance(sellOrder.coin_symbol, ADD_FREE, sellerReceivedCoins,
-                                                ReceiptType::DEX_COIN_TO_SELLER, receipts)){ // + add seller's coin
-            return state.DoS(100,ERRORMSG("%s, add assets to buyer or add coins to seller failed!"
-                " deal_info={%s}, asset_symbol=%s, assets=%llu, coin_symbol=%s, coins=%llu",
-                DEAL_ITEM_TITLE, dealItem.ToString(), buyOrder.asset_symbol,
-                buyerReceivedAssets, sellOrder.coin_symbol, sellerReceivedCoins),
-                REJECT_INVALID, "operate-account-failed");
+        // 10. transfer the deal coins and assets
+        // 10.1. transfer deal coins from buyer to seller
+        if (!pBuyOrderAccount->OperateBalance(
+                buyOrder.coin_symbol, SUB_FREE, dealItem.dealCoinAmount,
+                ReceiptType::DEX_COIN_TO_SELLER, receipts, pSellOrderAccount.get())) {
+            return state.DoS(100, ERRORMSG("%s, transfer coins from buyer to seller!"
+                    " deal_info={%s}, coin_symbol=%s",
+                    DEAL_ITEM_TITLE, dealItem.ToString(), buyOrder.coin_symbol),
+                    REJECT_INVALID, "transfer-coins-failed");
+        }
+
+        // 10.2. transfer assets from seller to buyer
+        if (!pSellOrderAccount->OperateBalance(
+                sellOrder.asset_symbol, SUB_FREE, dealItem.dealAssetAmount,
+                ReceiptType::DEX_ASSET_TO_BUYER, receipts, pBuyOrderAccount.get())) {
+            return state.DoS(100, ERRORMSG("%s, transfer assets from seller to buyer failed!"
+                " deal_info={%s}, asset_symbol=%s",
+                DEAL_ITEM_TITLE, dealItem.ToString(), sellOrder.asset_symbol),
+                REJECT_INVALID, "transfer-assets-failed");
+        }
+
+        // 11. transfer the deal fee of coins and assets to dex operators
+        // 11.1. transfer deal coin fee from seller to sell operator
+        if (!pSellOrderAccount->OperateBalance(sellOrder.coin_symbol, SUB_FREE, dealCoinFee,
+                                               ReceiptType::DEX_COIN_FEE_TO_OPERATOR, receipts,
+                                               pSellMatchAccount.get())) {
+            return state.DoS(100, ERRORMSG("%s, transfer deal coin fee from seller to sell operator failed!"
+                    " deal_info={%s}, coin_symbol=%s, coin_fee=%llu, sell_op_regid=%s",
+                    DEAL_ITEM_TITLE, dealItem.ToString(), sellOrder.coin_symbol, dealCoinFee,
+                    pSellMatchAccount->regid.ToString()),
+                    REJECT_INVALID, "transfer-deal-coin-fee-failed");
+        }
+
+        // 11.2. transfer deal asset fee from buyer to buy operator
+        if (!pBuyOrderAccount->OperateBalance(buyOrder.asset_symbol, SUB_FREE, dealAssetFee,
+                                              ReceiptType::DEX_ASSET_FEE_TO_OPERATOR, receipts,
+                                              pBuyMatchAccount.get())) {
+            return state.DoS(100, ERRORMSG("%s, transfer deal asset fee from buyer to buy operator failed!"
+                " deal_info={%s}, asset_symbol=%s, asset_fee=%llu, buy_match_regid=%s",
+                DEAL_ITEM_TITLE, dealItem.ToString(), buyOrder.asset_symbol, dealAssetFee, pBuyMatchAccount->regid.ToString()),
+                REJECT_INVALID, "transfer-deal-asset-fee-failed");
         }
 
         // 11. check order fullfiled or save residual amount
@@ -895,7 +898,7 @@ namespace dex {
                     uint64_t residualCoinAmount = buyOrder.coin_amount - buyOrder.total_deal_coin_amount;
 
                     if (!pBuyOrderAccount->OperateBalance(buyOrder.coin_symbol, UNFREEZE, residualCoinAmount,
-                                                        ReceiptType::DEX_ASSET_TO_BUYER, receipts)) {
+                                                        ReceiptType::DEX_UNFREEZE_COIN_TO_BUYER, receipts)) {
                         return state.DoS(100, ERRORMSG("%s, unfreeze buyer's residual coins failed!"
                             " deal_info={%s}, coin_symbol=%s, residual_coins=%llu",
                             DEAL_ITEM_TITLE, dealItem.ToString(), buyOrder.coin_symbol, residualCoinAmount),

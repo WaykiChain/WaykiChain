@@ -58,8 +58,8 @@ static CUserID nullId;
     DEFINE(CDP_TOTAL_INFLATE_FCOIN_TO_RESERVE,    461, "total inflate fcoins to risk reserve in forced-liquidation") \
     DEFINE(CDP_TOTAL_ASSET_TO_RESERVE,            462, "total assets to reserve in forced-liquidation") \
     /**** DEX */ \
-    DEFINE(DEX_ASSET_FEE_TO_SETTLER,            501, "dex deal asset fee from buyer to settler") \
-    DEFINE(DEX_COIN_FEE_TO_SETTLER,             502, "dex deal coin fee from seller to settler") \
+    DEFINE(DEX_ASSET_FEE_TO_OPERATOR,           501, "dex deal asset fee from buyer to operator") \
+    DEFINE(DEX_COIN_FEE_TO_OPERATOR,            502, "dex deal coin fee from seller to operator") \
     DEFINE(DEX_ASSET_TO_BUYER,                  503, "dex dealed: transfer assets to buyer") \
     DEFINE(DEX_COIN_TO_SELLER,                  504, "dex dealed: transfer coins to seller") \
     DEFINE(DEX_UNFREEZE_COIN_TO_BUYER,          505, "dex unfreeze buyer's coins") \
