@@ -976,11 +976,11 @@ namespace dex {
                         "buy_dex_id=%u, sell_dex_id=%u", DEAL_ITEM_TITLE, buyDexId, sellDexId),
                         REJECT_INVALID, "sell-maker-order-not-public");
                 const auto &orderOpenDexopSet = sellOperatorDetail.order_open_dexop_set;
-                if (!orderOpenDexopSet.empty() && orderOpenDexopSet.count(sellDexId) == 0)
-                    return context.pState->DoS(100, ERRORMSG("%s, the buy maker order operator=%llu not public"
-                        " to the sell operator=%llu! buy_dex_id=%u, sell_dex_id=%u",
-                        DEAL_ITEM_TITLE, buyDexId, sellDexId, buyDexId, sellDexId),
-                        REJECT_INVALID, "buy-order-operator-public-limit");
+                if (!orderOpenDexopSet.empty() && orderOpenDexopSet.count(buyDexId) == 0)
+                    return context.pState->DoS(100, ERRORMSG("%s, the sell maker order operator=%llu not public"
+                        " to the buy operator=%llu! buy_dex_id=%u, sell_dex_id=%u",
+                        DEAL_ITEM_TITLE, sellDexId, buyDexId, buyDexId, sellDexId),
+                        REJECT_INVALID, "sell-order-operator-public-limit");
             }
         }
         return true;
