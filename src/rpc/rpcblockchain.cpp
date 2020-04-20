@@ -153,7 +153,7 @@ Value getrawmempool(const Array& params, bool fHelp)
             Object info;
             info.push_back(Pair("size",         (int) mpe.GetTxSize()));
             info.push_back(Pair("fees_type",    std::get<0>(mpe.GetFees())));
-            info.push_back(Pair("fees",         ValueFromAmount(std::get<1>(mpe.GetFees()))));
+            info.push_back(Pair("fees",         JsonValueFromAmount(std::get<1>(mpe.GetFees()))));
             info.push_back(Pair("time",         mpe.GetTime()));
             info.push_back(Pair("height",       (int) mpe.GetHeight()));
             info.push_back(Pair("priority",     mpe.GetPriority()));

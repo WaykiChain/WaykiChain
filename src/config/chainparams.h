@@ -11,11 +11,12 @@
 #include <boost/filesystem/fstream.hpp>
 #include <vector>
 
-#include "entities/id.h"
+#include "commons/json/json_spirit_value.h"
 #include "commons/uint256.h"
 #include "commons/arith_uint256.h"
 #include "commons/util/util.h"
 #include "config/scoin.h"
+#include "entities/id.h"
 
 using namespace std;
 
@@ -61,6 +62,7 @@ class CBaseParams {
 protected:
     mutable bool fDebug;
     mutable bool fServer;
+    mutable bool fDisplayValueInSawi;
     mutable bool fImporting;
     mutable bool fReindex;
     mutable bool fBenchmark;
@@ -140,14 +142,16 @@ public:
         return nConnectTimeout;
     }
 
-    void InitConfig(bool fServerIn, bool fDebugIn, int64_t maxForkTimeIn) {
+    void InitConfig(bool fServerIn, bool fDebugIn, bool fDisplayValueInSawiIn, int64_t maxForkTimeIn) {
         fServer         = fServerIn;
         fDebug          = fDebugIn;
         nMaxForkTime    = maxForkTimeIn;
+        fDisplayValueInSawi = fDisplayValueInSawiIn;
     }
 
     bool IsDebug() const { return fDebug; }
     bool IsServer() const { return fServer; }
+    bool IsDisplayValueInSawi() const { return fDisplayValueInSawi; }
     bool IsImporting() const { return fImporting; }
     bool IsReindex() const { return fReindex; }
     bool IsBenchmark() const { return fBenchmark; }
@@ -243,6 +247,8 @@ protected:
 };
 
 extern CBaseParams &SysCfg();
+
+inline json_spirit::Value JsonValueFromAmount(uint64_t amount) { return SysCfg().IsDisplayValueInSawi() ? amount : (double)amount / (double)COIN; }
 
 // Note: it's deliberate that this returns "false" for regression test mode.
 inline bool TestNet() { return SysCfg().NetworkID() == TEST_NET; }

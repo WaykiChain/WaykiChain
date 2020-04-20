@@ -460,9 +460,9 @@ inline std::string StrToUpper(const std::string &str) {
     return ret;
 }
 
-inline double ValueFromAmount(uint64_t amount) {
-    return (double)amount / (double)COIN;
-}
+// inline double ValueFromAmount(uint64_t amount) {
+//     return (double)amount / (double)COIN;
+// }
 
 template <size_t N>
 void splitString(string (&arr)[N], string str)

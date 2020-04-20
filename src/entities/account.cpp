@@ -328,12 +328,12 @@ Object CAccount::ToJsonObj() const {
         if (total_amount == 0)
             continue;
 
-        tokenObj.push_back(Pair("free_amount",      ValueFromAmount(token.free_amount)));    //FREE
-        tokenObj.push_back(Pair("staked_amount",    ValueFromAmount(token.staked_amount)));  //Stake
-        tokenObj.push_back(Pair("frozen_amount",    ValueFromAmount(token.frozen_amount)));  //DEX
-        tokenObj.push_back(Pair("voted_amount",     ValueFromAmount(token.voted_amount)));   //VOTES
-        tokenObj.push_back(Pair("pledged_amount",   ValueFromAmount(token.pledged_amount))); //CDP
-        tokenObj.push_back(Pair("total_amount",     ValueFromAmount(total_amount)));         //Total
+        tokenObj.push_back(Pair("free_amount",      JsonValueFromAmount(token.free_amount)));    //FREE
+        tokenObj.push_back(Pair("staked_amount",    JsonValueFromAmount(token.staked_amount)));  //Stake
+        tokenObj.push_back(Pair("frozen_amount",    JsonValueFromAmount(token.frozen_amount)));  //DEX
+        tokenObj.push_back(Pair("voted_amount",     JsonValueFromAmount(token.voted_amount)));   //VOTES
+        tokenObj.push_back(Pair("pledged_amount",   JsonValueFromAmount(token.pledged_amount))); //CDP
+        tokenObj.push_back(Pair("total_amount",     JsonValueFromAmount(total_amount)));         //Total
 
         tokenMapObj.push_back(Pair(tokenPair.first, tokenObj));
     }
@@ -350,7 +350,7 @@ Object CAccount::ToJsonObj() const {
     obj.push_back(Pair("miner_pubkey",      miner_pubkey.ToString()));
     obj.push_back(Pair("perms",             permsString));
     obj.push_back(Pair("tokens",            tokenMapObj));
-    obj.push_back(Pair("received_votes",    ValueFromAmount(received_votes)));
+    obj.push_back(Pair("received_votes",    JsonValueFromAmount(received_votes)));
     obj.push_back(Pair("vote_list",         candidateVoteArray));
 
     return obj;
@@ -362,13 +362,13 @@ string CAccount::ToString() const {
     for (auto pair : tokens) {
         CAccountToken &token = pair.second;
         strTokens += strprintf ("\n %s: {free=%llu, staked=%llu, frozen=%llu}\n",
-                    pair.first, ValueFromAmount(token.free_amount), ValueFromAmount(token.staked_amount), ValueFromAmount(token.frozen_amount));
+                    pair.first, JsonValueFromAmount(token.free_amount), JsonValueFromAmount(token.staked_amount), JsonValueFromAmount(token.frozen_amount));
     }
     str += strprintf(
         "regid=%s, keyid=%s, owner_pubkey=%s, miner_pubkey=%s, "
         "tokens=%s, received_votes=%llu, last_vote_height=%llu\n",
         regid.ToString(), keyid.GetHex(), owner_pubkey.ToString(), miner_pubkey.ToString(),
-        strTokens, ValueFromAmount(received_votes), last_vote_height);
+        strTokens, JsonValueFromAmount(received_votes), last_vote_height);
 
     str += "candidate vote list: \n";
 

@@ -116,14 +116,14 @@ Value getinfo(const Array& params, bool fHelp) {
     obj.push_back(Pair("time_offset",           GetTimeOffset()));
 
     if (pWalletMain) {
-        obj.push_back(Pair("WICC_balance",      ValueFromAmount(pWalletMain->GetFreeCoins(SYMB::WICC))));
-        obj.push_back(Pair("WUSD_balance",      ValueFromAmount(pWalletMain->GetFreeCoins(SYMB::WUSD))));
-        obj.push_back(Pair("WGRT_balance",      ValueFromAmount(pWalletMain->GetFreeCoins(SYMB::WGRT))));
+        obj.push_back(Pair("WICC_balance",      JsonValueFromAmount(pWalletMain->GetFreeCoins(SYMB::WICC))));
+        obj.push_back(Pair("WUSD_balance",      JsonValueFromAmount(pWalletMain->GetFreeCoins(SYMB::WUSD))));
+        obj.push_back(Pair("WGRT_balance",      JsonValueFromAmount(pWalletMain->GetFreeCoins(SYMB::WGRT))));
         if (pWalletMain->IsEncrypted())
             obj.push_back(Pair("wallet_unlock_time", nWalletUnlockTime));
     }
 
-    obj.push_back(Pair("relay_fee_perkb",       ValueFromAmount(MIN_RELAY_TX_FEE)));
+    obj.push_back(Pair("relay_fee_perkb",       JsonValueFromAmount(MIN_RELAY_TX_FEE)));
 
     obj.push_back(Pair("tipblock_fuel_rate",    (int32_t)chainActive.Tip()->nFuelRate));
     obj.push_back(Pair("tipblock_fuel",         chainActive.Tip()->nFuelFee));

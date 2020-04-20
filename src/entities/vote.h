@@ -96,14 +96,14 @@ public:
 
         obj.push_back(json_spirit::Pair("vote_type", GetVoteType(voteType)));
         obj.push_back(json_spirit::Pair("candidate_uid", candidateUid.ToJson()));
-        obj.push_back(json_spirit::Pair("voted_bcoins", ValueFromAmount(votedBcoins)));
+        obj.push_back(json_spirit::Pair("voted_bcoins", JsonValueFromAmount(votedBcoins)));
 
         return obj;
     }
 
     string ToString() const {
         return strprintf("voteType: %s, candidateUid: %s, votes: %f\n", GetVoteType(voteType),
-                               candidateUid.ToString(), ValueFromAmount(votedBcoins));
+                               candidateUid.ToString(), JsonValueFromAmount(votedBcoins));
     }
 
 private:
@@ -145,13 +145,13 @@ public:
         json_spirit::Object obj;
 
         obj.push_back(json_spirit::Pair("candidate_uid", candidate_uid.ToJson()));
-        obj.push_back(json_spirit::Pair("voted_bcoins", ValueFromAmount(voted_bcoins)));
+        obj.push_back(json_spirit::Pair("voted_bcoins", JsonValueFromAmount(voted_bcoins)));
 
         return obj;
     }
 
     string ToString() const {
-        string str = strprintf("candidate_uid: %s, voted_bcoins: %f \n", candidate_uid.ToString(), ValueFromAmount(voted_bcoins));
+        string str = strprintf("candidate_uid: %s, voted_bcoins: %f \n", candidate_uid.ToString(), JsonValueFromAmount(voted_bcoins));
         return str;
     }
 

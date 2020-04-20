@@ -721,9 +721,9 @@ Value getwalletinfo(const Array& params, bool fHelp) {
     Object obj;
 
     obj.push_back(Pair("wallet_version",    pWalletMain->GetVersion()));
-    obj.push_back(Pair("WICC_balance",      ValueFromAmount(pWalletMain->GetFreeCoins(SYMB::WICC))));
-    obj.push_back(Pair("WUSD_balance",      ValueFromAmount(pWalletMain->GetFreeCoins(SYMB::WUSD))));
-    obj.push_back(Pair("WGRT_balance",      ValueFromAmount(pWalletMain->GetFreeCoins(SYMB::WGRT))));
+    obj.push_back(Pair("WICC_balance",      JsonValueFromAmount(pWalletMain->GetFreeCoins(SYMB::WICC))));
+    obj.push_back(Pair("WUSD_balance",      JsonValueFromAmount(pWalletMain->GetFreeCoins(SYMB::WUSD))));
+    obj.push_back(Pair("WGRT_balance",      JsonValueFromAmount(pWalletMain->GetFreeCoins(SYMB::WGRT))));
     obj.push_back(Pair("wallet_encrypted",  pWalletMain->IsEncrypted()));
     obj.push_back(Pair("wallet_locked",     pWalletMain->IsLocked()));
     obj.push_back(Pair("unlocked_until",    nWalletUnlockTime));

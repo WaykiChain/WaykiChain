@@ -267,9 +267,10 @@ CBaseParams& SysCfg() {
 
     bool fServerIn = CBaseParams::GetBoolArg("-rpcserver", false);
     bool fDebugIn = CBaseParams::GetBoolArg("-debug", false);
+    bool fDisplayValueInSawi = GetBoolArg("-displayvalueinsawi", true);
     int64_t maxForkTime = CBaseParams::GetArg("-maxforktime", 24 * 60 * 60);
+    pParams->InitConfig(fServerIn, fDebugIn, fDisplayValueInSawi, maxForkTime);
 
-    pParams->InitConfig(fServerIn, fDebugIn, maxForkTime);
     assert(pParams.get());
     return *pParams.get();
 }

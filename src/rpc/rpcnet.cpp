@@ -352,7 +352,7 @@ Value getnetworkinfo(const Array& params, bool fHelp) {
     obj.push_back(Pair("timeoffset",        GetTimeOffset()));
     obj.push_back(Pair("connections",       (int32_t)vNodes.size()));
     obj.push_back(Pair("proxy",             (proxy.first.IsValid() ? proxy.first.ToStringIPPort() : string())));
-    obj.push_back(Pair("relayfee",          ValueFromAmount(MIN_RELAY_TX_FEE)));
+    obj.push_back(Pair("relayfee",          JsonValueFromAmount(MIN_RELAY_TX_FEE)));
     Array localAddresses;
     {
         LOCK(cs_mapLocalHost);
@@ -414,7 +414,7 @@ Value getchaininfo(const Array& params, bool fHelp) {
         object.push_back(Pair("height",     pBlockIndex->height));
         object.push_back(Pair("time",       pBlockIndex->GetBlockTime()));
         object.push_back(Pair("tx_count",   (int32_t)pBlockIndex->nTx));
-        object.push_back(Pair("fuel_fee",       (int64_t)pBlockIndex->nFuelFee));
+        object.push_back(Pair("fuel_fee",   (int64_t)pBlockIndex->nFuelFee));
         object.push_back(Pair("fuel_rate",  (int32_t)pBlockIndex->nFuelRate));
 
         block.SetNull();

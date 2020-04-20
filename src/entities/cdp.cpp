@@ -21,9 +21,9 @@ Object CUserCDP::ToJson(uint64_t bcoinMedianPrice) const {
     result.push_back(Pair("regid",              owner_regid.ToString()));
     result.push_back(Pair("last_height",        block_height));
     result.push_back(Pair("bcoin_symbol",       bcoin_symbol));
-    result.push_back(Pair("total_bcoin",        ValueFromAmount(total_staked_bcoins)));
+    result.push_back(Pair("total_bcoin",        JsonValueFromAmount(total_staked_bcoins)));
     result.push_back(Pair("scoin_symbol",       scoin_symbol));
-    result.push_back(Pair("total_scoin",        ValueFromAmount(total_owed_scoins)));
+    result.push_back(Pair("total_scoin",        JsonValueFromAmount(total_owed_scoins)));
     result.push_back(Pair("collateral_ratio",   total_owed_scoins == 0 ? "INF" : strprintf("%.2f%%", collateralRatio)));
     return result;
 }

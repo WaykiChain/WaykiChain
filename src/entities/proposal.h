@@ -595,7 +595,7 @@ struct CGovAxcOutProposal: CProposal {
         if(!self_chain_uid.is<CNullID>())
             obj.push_back(Pair("self_chain_uid", self_chain_uid.ToString()));
         obj.push_back(Pair("peer_chain_addr", peer_chain_addr));
-        obj.push_back(Pair("swap_amount", ValueFromAmount(swap_amount)));
+        obj.push_back(Pair("swap_amount", JsonValueFromAmount(swap_amount)));
         Array arr;
         for(auto sig: peer_chain_tx_multisigs)
             arr.push_back(HexStr(sig));
