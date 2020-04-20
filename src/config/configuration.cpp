@@ -258,9 +258,6 @@ uint32_t G_CONFIG_TABLE::StartTime[3]   = { 1525404897 /*main*/, 1505401100 /*te
 // Initial Coin
 uint64_t G_CONFIG_TABLE::InitialCoin    = INITIAL_BASE_COIN_AMOUNT;  // 210 million
 
-// Default Miner Fee
-uint64_t G_CONFIG_TABLE::DefaultFee = 15;
-
 // Total Delegate Number
 uint8_t G_CONFIG_TABLE::TotalDelegateNum = 11;
 // Max Number of Delegate Candidate to Vote for by a single account
