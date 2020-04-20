@@ -153,7 +153,7 @@ bool CBlockPriceMedianTx::ForceLiquidateCdps(CTxExecuteContext &context, PriceDe
                          "save-median-prices-failed");
     }
 
-    uint32_t liquidatedLimitCount = CDP_FORCE_LIQUIDATE_MAX_COUNT;
+    set<CCdpCoinPairDetail> cdpCoinPairSet;
 
     for (const auto& item : priceDetails) {
         if (item.first == kFcoinPriceCoinPair) continue;
@@ -172,8 +172,9 @@ bool CBlockPriceMedianTx::ForceLiquidateCdps(CTxExecuteContext &context, PriceDe
         if (scoinSymbol != SYMB::WUSD)
             throw runtime_error(strprintf("only support to force liquidate scoin=WUSD, actual_scoin=%s", scoinSymbol));
 
-        if (!cw.cdpCache.IsCdpBcoinActivated(bcoinSymbol)) {
-            LogPrint(BCLog::CDP, "asset=%s does not be activated, ignore", bcoinSymbol);
+        CCdpBcoinDetail cdpBcoinDetail;
+        if (!cw.cdpCache.GetCdpBcoin(bcoinSymbol, cdpBcoinDetail)) {
+            LogPrint(BCLog::CDP, "asset=%s not be activated as bcoin, ignore", bcoinSymbol);
             continue;
         }
 
@@ -186,8 +187,21 @@ bool CBlockPriceMedianTx::ForceLiquidateCdps(CTxExecuteContext &context, PriceDe
             continue;
         }
 
+        cdpCoinPairSet.insert({
+            CCdpCoinPair(bcoinSymbol, scoinSymbol), // coin_pair
+            true,                                   // is_price_active
+            true,                                   // is_staked_perm
+            item.second.price,                      // bcoin_price
+            cdpBcoinDetail.init_tx_cord             // init_tx_cord
+        });
+    }
+
+    uint32_t liquidatedLimitCount = CDP_FORCE_LIQUIDATE_MAX_COUNT;
+    for (const auto& cdpCoinPairDetail : cdpCoinPairSet) {
+        const TokenSymbol &bcoinSymbol = cdpCoinPairDetail.coin_pair.bcoin_symbol;
+        const TokenSymbol &scoinSymbol = cdpCoinPairDetail.coin_pair.scoin_symbol;
         CCdpForceLiquidator forceLiquidator(*this, context, receipts, fcoinGenesisAccount,
-                                            bcoinSymbol, scoinSymbol, item.second.price,
+                                            bcoinSymbol, scoinSymbol, cdpCoinPairDetail.bcoin_price,
                                             fcoinUsdPrice, liquidatedLimitCount);
         if (!forceLiquidator.Execute())
             return false; // the forceLiquidator.Execute() has processed the error
