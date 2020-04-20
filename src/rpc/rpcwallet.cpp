@@ -363,7 +363,7 @@ Value submitsendmultitx(const Array& params, bool fHelp) {
             "                               \"to_uid\":              (string,required) The address where coins are received\n"
             "                               \"symbol_amount_unit\":  (comboMoney, required) transferred coins\n"
             "                            }]\"\n"
-            "3.\"fee\":                 bt(symbol:amount:unit, optional) fee paid to miner, default is WICC:10000:sawi\n"
+            "3.\"fee\":                 (symbol:amount:unit, required) fee paid to miner, the min fee is trasfer_array.size * (default fee of UCOIN_TRANSFER_TX)\n"
             "4.\"memo\":                (string, optional)\n"
             "\nResult:\n"
             "\"txid\"                   (string) The transaction id.\n"
