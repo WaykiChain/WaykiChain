@@ -313,13 +313,14 @@ Value submitdexbuylimitordertx(const Array& params, bool fHelp) {
     ComboMoney assetInfo           = RPC_PARAM::GetComboMoney(params[2], SYMB::WICC);
     uint64_t price                 = RPC_PARAM::GetPrice(params[3]);
     DexID dexId                    = RPC_PARAM::GetDexId(params, 4);
-    ComboMoney cmFee               = RPC_PARAM::GetFee(params, 5, txType);
+    auto [txFee, minTxFeeAmount]   = RPC_PARAM::ParseTxFee(params, 5, txType);
     string memo                    = RPC_PARAM::GetMemo(params, 6);
 
     RPC_PARAM::CheckOrderSymbols(__func__, coinSymbol, assetInfo.symbol);
     // Get account for checking balance
     CAccount txAccount = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, userId);
-    RPC_PARAM::CheckAccountBalance(txAccount, cmFee.symbol, SUB_FREE, cmFee.GetAmountInSawi());
+    RPC_PARAM::CheckOrderFee(txAccount, txFee.GetAmountInSawi(), minTxFeeAmount);
+    RPC_PARAM::CheckAccountBalance(txAccount, txFee.symbol, SUB_FREE, txFee.GetAmountInSawi());
     uint64_t coinAmount = CDEXOrderBaseTx::CalcCoinAmount(assetInfo.GetAmountInSawi(), price);
     RPC_PARAM::CheckAccountBalance(txAccount, coinSymbol, FREEZE, coinAmount);
 
@@ -330,11 +331,11 @@ Value submitdexbuylimitordertx(const Array& params, bool fHelp) {
         CheckDexId0BeforeV3(dexId, validHeight);
         CheckMemoEmptyBeforeV3(memo, validHeight);
         pOrderBaseTx = make_shared<CDEXBuyLimitOrderTx>(
-            userId, validHeight, cmFee.symbol, cmFee.GetAmountInSawi(), coinSymbol, assetInfo.symbol,
+            userId, validHeight, txFee.symbol, txFee.GetAmountInSawi(), coinSymbol, assetInfo.symbol,
             assetInfo.GetAmountInSawi(), price);
     } else {
         pOrderBaseTx =
-            make_shared<CDEXOrderTx>(userId, validHeight, cmFee.symbol, cmFee.GetAmountInSawi(),
+            make_shared<CDEXOrderTx>(userId, validHeight, txFee.symbol, txFee.GetAmountInSawi(),
                                      ORDER_LIMIT_PRICE, ORDER_BUY, coinSymbol, assetInfo.symbol,
                                      0, assetInfo.GetAmountInSawi(), price, dexId, memo);
     }
@@ -376,13 +377,14 @@ Value submitdexselllimitordertx(const Array& params, bool fHelp) {
     ComboMoney assetInfo           = RPC_PARAM::GetComboMoney(params[2], SYMB::WICC);
     uint64_t price                 = RPC_PARAM::GetPrice(params[3]);
     DexID dexId                    = RPC_PARAM::GetDexId(params, 4);
-    ComboMoney cmFee               = RPC_PARAM::GetFee(params, 5, txType);
+    auto [txFee, minTxFeeAmount]   = RPC_PARAM::ParseTxFee(params, 5, txType);
     string memo                    = RPC_PARAM::GetMemo(params, 6);
 
     RPC_PARAM::CheckOrderSymbols(__FUNCTION__, coinSymbol, assetInfo.symbol);
     // Get account for checking balance
     CAccount txAccount = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, userId);
-    RPC_PARAM::CheckAccountBalance(txAccount, cmFee.symbol, SUB_FREE, cmFee.GetAmountInSawi());
+    RPC_PARAM::CheckOrderFee(txAccount, txFee.GetAmountInSawi(), minTxFeeAmount);
+    RPC_PARAM::CheckAccountBalance(txAccount, txFee.symbol, SUB_FREE, txFee.GetAmountInSawi());
     RPC_PARAM::CheckAccountBalance(txAccount, assetInfo.symbol, FREEZE, assetInfo.GetAmountInSawi());
 
     DexOperatorDetail operatorDetail = RPC_PARAM::GetDexOperator(dexId);
@@ -392,11 +394,11 @@ Value submitdexselllimitordertx(const Array& params, bool fHelp) {
         CheckDexId0BeforeV3(dexId, validHeight);
         CheckMemoEmptyBeforeV3(memo, validHeight);
         pOrderBaseTx = make_shared<CDEXSellLimitOrderTx>(
-            userId, validHeight, cmFee.symbol, cmFee.GetAmountInSawi(), coinSymbol, assetInfo.symbol,
+            userId, validHeight, txFee.symbol, txFee.GetAmountInSawi(), coinSymbol, assetInfo.symbol,
             assetInfo.GetAmountInSawi(), price);
     } else {
         pOrderBaseTx =
-            make_shared<CDEXOrderTx>(userId, validHeight, cmFee.symbol, cmFee.GetAmountInSawi(),
+            make_shared<CDEXOrderTx>(userId, validHeight, txFee.symbol, txFee.GetAmountInSawi(),
                                      ORDER_LIMIT_PRICE, ORDER_SELL, coinSymbol, assetInfo.symbol,
                                      0, assetInfo.GetAmountInSawi(), price, dexId, memo);
     }
@@ -438,13 +440,14 @@ Value submitdexbuymarketordertx(const Array& params, bool fHelp) {
     ComboMoney coinInfo            = RPC_PARAM::GetComboMoney(params[1], SYMB::WUSD);
     const TokenSymbol& assetSymbol = RPC_PARAM::GetOrderAssetSymbol(params[2]);
     DexID dexId                    = RPC_PARAM::GetDexId(params, 3);
-    ComboMoney cmFee               = RPC_PARAM::GetFee(params, 4, txType);
+    auto [txFee, minTxFeeAmount]   = RPC_PARAM::ParseTxFee(params, 4, txType);
     string memo                    = RPC_PARAM::GetMemo(params, 5);
 
     RPC_PARAM::CheckOrderSymbols(__FUNCTION__, coinInfo.symbol, assetSymbol);
     // Get account for checking balance
     CAccount txAccount = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, userId);
-    RPC_PARAM::CheckAccountBalance(txAccount, cmFee.symbol, SUB_FREE, cmFee.GetAmountInSawi());
+    RPC_PARAM::CheckOrderFee(txAccount, txFee.GetAmountInSawi(), minTxFeeAmount);
+    RPC_PARAM::CheckAccountBalance(txAccount, txFee.symbol, SUB_FREE, txFee.GetAmountInSawi());
     RPC_PARAM::CheckAccountBalance(txAccount, coinInfo.symbol, FREEZE, coinInfo.GetAmountInSawi());
 
     DexOperatorDetail operatorDetail = RPC_PARAM::GetDexOperator(dexId);
@@ -453,12 +456,12 @@ Value submitdexbuymarketordertx(const Array& params, bool fHelp) {
     if (version < MAJOR_VER_R3) {
         CheckDexId0BeforeV3(dexId, validHeight);
         CheckMemoEmptyBeforeV3(memo, validHeight);
-        pOrderBaseTx = make_shared<CDEXBuyMarketOrderTx>(userId, validHeight, cmFee.symbol,
-                                                         cmFee.GetAmountInSawi(), coinInfo.symbol,
+        pOrderBaseTx = make_shared<CDEXBuyMarketOrderTx>(userId, validHeight, txFee.symbol,
+                                                         txFee.GetAmountInSawi(), coinInfo.symbol,
                                                          assetSymbol, coinInfo.GetAmountInSawi());
     } else {
         pOrderBaseTx = make_shared<CDEXOrderTx>(
-            userId, validHeight, cmFee.symbol, cmFee.GetAmountInSawi(), ORDER_MARKET_PRICE, ORDER_BUY,
+            userId, validHeight, txFee.symbol, txFee.GetAmountInSawi(), ORDER_MARKET_PRICE, ORDER_BUY,
             coinInfo.symbol, assetSymbol, coinInfo.GetAmountInSawi(), 0, 0, dexId, memo);
     }
 
@@ -499,13 +502,14 @@ Value submitdexsellmarketordertx(const Array& params, bool fHelp) {
     const TokenSymbol& coinSymbol  = RPC_PARAM::GetOrderCoinSymbol(params[1]);
     ComboMoney assetInfo           = RPC_PARAM::GetComboMoney(params[2], SYMB::WICC);
     DexID dexId                    = RPC_PARAM::GetDexId(params, 3);
-    ComboMoney cmFee               = RPC_PARAM::GetFee(params, 4, txType);
+    auto [txFee, minTxFeeAmount]   = RPC_PARAM::ParseTxFee(params, 4, txType);
     string memo                    = RPC_PARAM::GetMemo(params, 5);
 
     RPC_PARAM::CheckOrderSymbols(__FUNCTION__, coinSymbol, assetInfo.symbol);
     // Get account for checking balance
     CAccount txAccount = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, userId);
-    RPC_PARAM::CheckAccountBalance(txAccount, cmFee.symbol, SUB_FREE, cmFee.GetAmountInSawi());
+    RPC_PARAM::CheckOrderFee(txAccount, txFee.GetAmountInSawi(), minTxFeeAmount);
+    RPC_PARAM::CheckAccountBalance(txAccount, txFee.symbol, SUB_FREE, txFee.GetAmountInSawi());
     RPC_PARAM::CheckAccountBalance(txAccount, assetInfo.symbol, FREEZE, assetInfo.GetAmountInSawi());
 
     DexOperatorDetail operatorDetail = RPC_PARAM::GetDexOperator(dexId);
@@ -515,11 +519,11 @@ Value submitdexsellmarketordertx(const Array& params, bool fHelp) {
         CheckDexId0BeforeV3(dexId, validHeight);
         CheckMemoEmptyBeforeV3(memo, validHeight);
         pOrderBaseTx = make_shared<CDEXSellMarketOrderTx>(
-            userId, validHeight, cmFee.symbol, cmFee.GetAmountInSawi(), coinSymbol, assetInfo.symbol,
+            userId, validHeight, txFee.symbol, txFee.GetAmountInSawi(), coinSymbol, assetInfo.symbol,
             assetInfo.GetAmountInSawi());
     } else {
         pOrderBaseTx =
-            make_shared<CDEXOrderTx>(userId, validHeight, cmFee.symbol, cmFee.GetAmountInSawi(),
+            make_shared<CDEXOrderTx>(userId, validHeight, txFee.symbol, txFee.GetAmountInSawi(),
                                      ORDER_MARKET_PRICE, ORDER_SELL, coinSymbol, assetInfo.symbol,
                                      0, assetInfo.GetAmountInSawi(), 0, dexId, memo);
     }
@@ -678,18 +682,19 @@ Value submitdexcancelordertx(const Array& params, bool fHelp) {
 
     const CUserID& userId = RPC_PARAM::GetUserId(params[0], true);
     const uint256& txid   = RPC_PARAM::GetTxid(params[1], "txid");
-    ComboMoney cmFee      = RPC_PARAM::GetFee(params, 2, DEX_CANCEL_ORDER_TX);
+    auto [txFee, minTxFeeAmount]   = RPC_PARAM::ParseTxFee(params, 2, DEX_CANCEL_ORDER_TX);
 
     // Get account for checking balance
-    CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, userId);
-    RPC_PARAM::CheckAccountBalance(account, cmFee.symbol, SUB_FREE, cmFee.GetAmountInSawi());
+    CAccount txAccount = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, userId);
+    RPC_PARAM::CheckOrderFee(txAccount, txFee.GetAmountInSawi(), minTxFeeAmount);
+    RPC_PARAM::CheckAccountBalance(txAccount, txFee.symbol, SUB_FREE, txFee.GetAmountInSawi());
 
     // check active order tx
     RPC_PARAM::CheckActiveOrderExisted(*pCdMan->pDexCache, txid);
 
     int32_t validHeight = chainActive.Height();
-    CDEXCancelOrderTx tx(userId, validHeight, cmFee.symbol, cmFee.GetAmountInSawi(), txid);
-    return SubmitTx(account.keyid, tx);
+    CDEXCancelOrderTx tx(userId, validHeight, txFee.symbol, txFee.GetAmountInSawi(), txid);
+    return SubmitTx(txAccount.keyid, tx);
 }
 
 Value submitdexsettletx(const Array& params, bool fHelp) {
