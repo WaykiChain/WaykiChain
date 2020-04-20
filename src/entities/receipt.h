@@ -7,12 +7,12 @@
 #ifndef ENTITIES_RECEIPT_H
 #define ENTITIES_RECEIPT_H
 
+#include "chainparams.h"
 #include "config/txbase.h"
 #include "crypto/hash.h"
 #include "entities/asset.h"
 #include "entities/id.h"
 #include "commons/json/json_spirit_utils.h"
-#include "main.h"
 
 static CUserID nullId;
 
@@ -149,7 +149,7 @@ public:
         return strprintf("from_uid=%s", from_uid.ToString()) + ", " +
         strprintf("to_uid=%s", to_uid.ToString()) + ", " +
         strprintf("coin_symbol=%s", coin_symbol) + ", " +
-        strprintf("coin_amount=%f", JsonValueFromAmount(coin_amount)) + ", " +
+        strprintf("coin_amount=%f", ValueFromAmount(coin_amount)) + ", " +
         strprintf("receipt_type=%s", GetReceiptTypeName(receipt_type));
     }
 };

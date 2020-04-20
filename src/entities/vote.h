@@ -12,11 +12,10 @@
 #include <vector>
 #include <unordered_map>
 
-#include "commons/json/json_spirit_utils.h"
-#include "commons/json/json_spirit_value.h"
 #include "key.h"
 #include "crypto/hash.h"
 #include "entities/id.h"
+#include "chainparams.h"
 
 enum VoteType : uint8_t {
     NULL_VOTE   = 0,  //!< invalid vote operate
@@ -102,8 +101,8 @@ public:
     }
 
     string ToString() const {
-        return strprintf("voteType: %s, candidateUid: %s, votes: %f\n", GetVoteType(voteType),
-                               candidateUid.ToString(), JsonValueFromAmount(votedBcoins));
+        return strprintf("voteType: %s, candidateUid: %s, votes: %f\n",
+                        GetVoteType(voteType), candidateUid.ToString(), ValueFromAmount(votedBcoins));
     }
 
 private:
@@ -151,7 +150,7 @@ public:
     }
 
     string ToString() const {
-        string str = strprintf("candidate_uid: %s, voted_bcoins: %f \n", candidate_uid.ToString(), JsonValueFromAmount(voted_bcoins));
+        string str = strprintf("candidate_uid: %s, voted_bcoins: %f \n", candidate_uid.ToString(), ValueFromAmount(voted_bcoins));
         return str;
     }
 

@@ -249,6 +249,7 @@ protected:
 extern CBaseParams &SysCfg();
 
 inline json_spirit::Value JsonValueFromAmount(uint64_t amount) { return SysCfg().IsDisplayValueInSawi() ? amount : (double)amount / (double)COIN; }
+inline double ValueFromAmount(uint64_t amount) { return (double)amount / (double)COIN; }
 
 // Note: it's deliberate that this returns "false" for regression test mode.
 inline bool TestNet() { return SysCfg().NetworkID() == TEST_NET; }

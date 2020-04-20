@@ -362,13 +362,13 @@ string CAccount::ToString() const {
     for (auto pair : tokens) {
         CAccountToken &token = pair.second;
         strTokens += strprintf ("\n %s: {free=%llu, staked=%llu, frozen=%llu}\n",
-                    pair.first, JsonValueFromAmount(token.free_amount), JsonValueFromAmount(token.staked_amount), JsonValueFromAmount(token.frozen_amount));
+                    pair.first, ValueFromAmount(token.free_amount), ValueFromAmount(token.staked_amount), ValueFromAmount(token.frozen_amount));
     }
     str += strprintf(
         "regid=%s, keyid=%s, owner_pubkey=%s, miner_pubkey=%s, "
         "tokens=%s, received_votes=%llu, last_vote_height=%llu\n",
         regid.ToString(), keyid.GetHex(), owner_pubkey.ToString(), miner_pubkey.ToString(),
-        strTokens, JsonValueFromAmount(received_votes), last_vote_height);
+        strTokens, ValueFromAmount(received_votes), last_vote_height);
 
     str += "candidate vote list: \n";
 
