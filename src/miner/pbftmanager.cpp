@@ -381,7 +381,7 @@ bool BroadcastBlockConfirm(const CBlockIndex* block) {
     uint256 preHash = block->pprev->GetBlockHash();
     pbftContext.GetMinerListByBlockHash(preHash, delegates);
 
-    string debugMsg = strprintf("find delegates.size == %d,blockHeigh=%d preHash= %s\n", delegates.size(),block->height, preHash.ToString());
+    string debugMsg = strprintf("[%d] found %d delegates, prevHash= %s\n", block->height, delegates.size(), preHash.ToString());
     LogPrint(BCLog::PBFT_LOG, debugMsg.c_str());
 
     CBlockConfirmMessage msg(block->height, block->GetBlockHash(), preHash);
