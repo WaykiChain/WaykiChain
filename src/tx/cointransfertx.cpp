@@ -135,8 +135,8 @@ bool CCoinTransferTx::ExecuteTx(CTxExecuteContext &context) {
         // process WUSD transaction risk-reverse fees
         if (transfer.coin_symbol == SYMB::WUSD) {  // if transferring WUSD, must pay friction fees to the risk reserve
             uint64_t riskReserveFeeRatio;
-            if (!cw.sysParamCache.GetParam(TRANSFER_SCOIN_RESERVE_FEE_RATIO, riskReserveFeeRatio))
-                return state.DoS(100, ERRORMSG("CCoinTransferTx::ExecuteTx, transfers[%d], read TRANSFER_SCOIN_RESERVE_FEE_RATIO error", i),
+            if (!cw.sysParamCache.GetParam(TRANSFER_SCOIN_FRICTION_FEE_RATIO, riskReserveFeeRatio))
+                return state.DoS(100, ERRORMSG("CCoinTransferTx::ExecuteTx, transfers[%d], read TRANSFER_SCOIN_FRICTION_FEE_RATIO error", i),
                                 READ_SYS_PARAM_FAIL, "bad-read-sysparamdb");
 
             uint64_t reserveFeeScoins = transfer.coin_amount * riskReserveFeeRatio / RATIO_BOOST;
