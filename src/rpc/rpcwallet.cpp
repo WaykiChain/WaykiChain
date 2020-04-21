@@ -247,11 +247,11 @@ Value signmessage(const Array& params, bool fHelp) {
             "\nUnlock the wallet for 30 seconds\n"
             + HelpExampleCli("walletpassphrase", "\"mypassphrase\" 30") +
             "\nCreate the signature\n"
-            + HelpExampleCli("signmessage", "\"wLKf2NqwtHk3BfzK5wMDfbKYN1SC3weyR4\" \"my message\"") +
+            + HelpExampleCli("signmessage", R"("wLKf2NqwtHk3BfzK5wMDfbKYN1SC3weyR4" "my message")") +
             "\nVerify the signature\n"
-            + HelpExampleCli("verifymessage", "\"wLKf2NqwtHk3BfzK5wMDfbKYN1SC3weyR4\" \"signature\" \"my message\"") +
+            + HelpExampleCli("verifymessage", R"("wLKf2NqwtHk3BfzK5wMDfbKYN1SC3weyR4" "signature" "my message")") +
             "\nAs json rpc\n"
-            + HelpExampleRpc("signmessage", "\"wLKf2NqwtHk3BfzK5wMDfbKYN1SC3weyR4\", \"my message\"")
+            + HelpExampleRpc("signmessage", R"("wLKf2NqwtHk3BfzK5wMDfbKYN1SC3weyR4", "my message")")
         );
     }
 
@@ -278,8 +278,6 @@ Value signmessage(const Array& params, bool fHelp) {
 
     return EncodeBase64(&vchSig[0], vchSig.size());
 }
-
-
 
 Value submitsendtx(const Array& params, bool fHelp) {
     if (fHelp || (params.size() < 3 && params.size() > 5))
@@ -346,9 +344,6 @@ Value submitsendtx(const Array& params, bool fHelp) {
 
     return obj;
 }
-
-
-
 
 Value submitsendmultitx(const Array& params, bool fHelp) {
     if (fHelp || (params.size() < 2 && params.size() > 4))
@@ -567,8 +562,8 @@ Value walletpassphrasechange(const Array& params, bool fHelp) {
             "1.\"oldpassphrase\"       (string, required) The current passphrase\n"
             "2.\"newpassphrase\"       (string, required) The new passphrase\n"
             "\nExamples:\n" +
-            HelpExampleCli("walletpassphrasechange", "\"oldpassphrase\" \"newpassphrase\"") + "\nAs json rpc call\n" +
-            HelpExampleRpc("walletpassphrasechange", "\"oldpassphrase\", \"newpassphrase\"")
+            HelpExampleCli("walletpassphrasechange", R"("oldpassphrase" "newpassphrase")") + "\nAs json rpc call\n" +
+            HelpExampleRpc("walletpassphrasechange", R"("oldpassphrase", "newpassphrase")")
         );
 
     LOCK2(cs_main, pWalletMain->cs_wallet);
@@ -621,7 +616,7 @@ Value encryptwallet(const Array& params, bool fHelp) {
             "\nNow set the passphrase to use the wallet, such as for signing or sending Coin\n"
             + HelpExampleCli("walletpassphrase", "\"my passphrase\"") +
             "\nNow we can so something like sign\n"
-            + HelpExampleCli("signmessage", "\"address\" \"my message\"") +
+            + HelpExampleCli("signmessage", R"("address" "my message")") +
             "\nNow lock the wallet again by removing the passphrase\n"
             + HelpExampleCli("walletlock", "") +
             "\nAs a json rpc call\n"
@@ -675,7 +670,7 @@ Value walletlock(const Array& params, bool fHelp) {
             "\nSet the passphrase for 2 minutes to perform a transaction\n"
             + HelpExampleCli("walletpassphrase", "\"my passphrase\" 120") +
             "\nPerform a send (requires passphrase set)\n"
-            + HelpExampleCli("send", "\"0-1\" \"0-2\" 10000 10000") +
+            + HelpExampleCli("send", R"("0-1" "0-2" 10000 10000)") +
             "\nClear the passphrase since we are done before 2 minutes is up\n"
             + HelpExampleCli("walletlock", "") +
             "\nAs json rpc call\n"

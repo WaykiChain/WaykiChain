@@ -24,10 +24,6 @@
 
 using namespace std;
 
-
-
-
-
 //
 // CDB
 //
