@@ -838,7 +838,7 @@ namespace dex {
         // 9.2 seller's assets -> buyer
         if (!pSellOrderAccount->OperateBalance(sellOrder.asset_symbol, DEX_DEAL, dealItem.dealAssetAmount,
                                               ReceiptType::DEX_ASSET_TO_BUYER, receipts, pBuyOrderAccount.get())) {
-            return state.DoS(100, ERRORMSG("%s, deal seller's assets failed! deal_info={%s}, coin_symbol=%s",
+            return state.DoS(100, ERRORMSG("%s, deal seller's assets failed! deal_info={%s}, asset_symbol=%s",
                     DEAL_ITEM_TITLE, dealItem.ToString(), sellOrder.asset_symbol),
                     REJECT_INVALID, "deal-seller-assets-failed");
         }
