@@ -15,7 +15,7 @@
 #include "key.h"
 #include "crypto/hash.h"
 #include "entities/id.h"
-#include "chainparams.h"
+#include "config/chainparams.h"
 
 enum VoteType : uint8_t {
     NULL_VOTE   = 0,  //!< invalid vote operate

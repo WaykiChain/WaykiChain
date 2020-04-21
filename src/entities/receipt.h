@@ -7,7 +7,6 @@
 #ifndef ENTITIES_RECEIPT_H
 #define ENTITIES_RECEIPT_H
 
-#include "chainparams.h"
 #include "config/txbase.h"
 #include "crypto/hash.h"
 #include "entities/asset.h"
