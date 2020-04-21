@@ -44,12 +44,13 @@ bool CAccount::OperateBalance(const TokenSymbol &tokenSymbol, const BalanceOpTyp
             accountToken.free_amount += value;
 
             if (pOtherAccount != nullptr) {
-                CAccountToken token = pOtherAccount->GetToken(tokenSymbol);
-                if (token.free_amount < value)
-                    return false;
+                CAccountToken peerToken = pOtherAccount->GetToken(tokenSymbol);
+                if (peerToken.free_amount < value)
+                    return ERRORMSG("peer token free_amount insufficient(%llu vs %llu) of %s",
+                                peerToken.free_amount, value, tokenSymbol);
 
-                token.free_amount -= value;
-                pOtherAccount->SetToken(tokenSymbol, token);
+                peerToken.free_amount -= value;
+                pOtherAccount->SetToken(tokenSymbol, peerToken);
                 toUid = CUserID(pOtherAccount->keyid);
             } else {
                 toUid = fromUid;
@@ -60,16 +61,16 @@ bool CAccount::OperateBalance(const TokenSymbol &tokenSymbol, const BalanceOpTyp
         }
         case SUB_FREE: {
             if (accountToken.free_amount < value)
-                return ERRORMSG("CAccount::OperateBalance, free_amount insufficient(%llu vs %llu) of %s",
+                return ERRORMSG("free_amount insufficient(%llu vs %llu) of %s",
                                 accountToken.free_amount, value, tokenSymbol);
 
             accountToken.free_amount -= value;
 
             if (pOtherAccount != nullptr) {
-                CAccountToken token = pOtherAccount->GetToken(tokenSymbol);
+                CAccountToken peerToken = pOtherAccount->GetToken(tokenSymbol);
 
-                token.free_amount += value;
-                pOtherAccount->SetToken(tokenSymbol, token);
+                peerToken.free_amount += value;
+                pOtherAccount->SetToken(tokenSymbol, peerToken);
                 toUid = CUserID(pOtherAccount->keyid);
             }
 
@@ -77,115 +78,91 @@ bool CAccount::OperateBalance(const TokenSymbol &tokenSymbol, const BalanceOpTyp
         }
         case STAKE: {
             if (accountToken.free_amount < value)
-                return ERRORMSG("CAccount::OperateBalance, free_amount insufficient(%llu vs %llu) of %s",
+                return ERRORMSG("free_amount insufficient(%llu vs %llu) of %s",
                                 accountToken.free_amount, value, tokenSymbol);
 
             accountToken.free_amount -= value;
             accountToken.staked_amount += value;
-            if (pOtherAccount != nullptr)
-                toUid = CUserID(pOtherAccount->keyid);
-
             break;
         }
         case UNSTAKE: {
             if (accountToken.staked_amount < value)
-                return ERRORMSG("CAccount::OperateBalance, staked_amount insufficient(%llu vs %llu) of %s",
+                return ERRORMSG("staked_amount insufficient(%llu vs %llu) of %s",
                                 accountToken.staked_amount, value, tokenSymbol);
 
             accountToken.free_amount += value;
             accountToken.staked_amount -= value;
-            if (pOtherAccount != nullptr) {
-                toUid = CUserID(pOtherAccount->keyid);
-            } else {
-                toUid = fromUid;
-                fromUid = CNullID();
-            }
-
             break;
         }
         case FREEZE: {
             if (accountToken.free_amount < value)
-                return ERRORMSG("CAccount::OperateBalance, free_amount insufficient(%llu vs %llu) of %s",
+                return ERRORMSG("free_amount insufficient(%llu vs %llu) of %s",
                                 accountToken.free_amount, value, tokenSymbol);
 
             accountToken.free_amount -= value;
             accountToken.frozen_amount += value;
-            if (pOtherAccount != nullptr)
-                toUid = CUserID(pOtherAccount->keyid);
-
             break;
         }
         case UNFREEZE: {
             if (accountToken.frozen_amount < value)
-                return ERRORMSG("CAccount::OperateBalance, frozen_amount insufficient(%llu vs %llu) of %s",
+                return ERRORMSG("frozen_amount insufficient(%llu vs %llu) of %s",
                                 accountToken.frozen_amount, value, tokenSymbol);
 
             accountToken.free_amount += value;
             accountToken.frozen_amount -= value;
-            if (pOtherAccount != nullptr) {
-                toUid = CUserID(pOtherAccount->keyid);
-            } else {
-                toUid = fromUid;
-                fromUid = CNullID();
-            }
-
             break;
         }
         case VOTE: {
             if (accountToken.free_amount < value)
-                return ERRORMSG("CAccount::OperateBalance, free_amount insufficient(%llu vs %llu) of %s",
+                return ERRORMSG("free_amount insufficient(%llu vs %llu) of %s",
                                 accountToken.free_amount, value, tokenSymbol);
 
             accountToken.free_amount -= value;
             accountToken.voted_amount += value;
-            if (pOtherAccount != nullptr)
-                toUid = CUserID(pOtherAccount->keyid);
-
             break;
         }
         case UNVOTE: {
             if (accountToken.voted_amount < value)
-                return ERRORMSG("CAccount::OperateBalance, voted_amount insufficient(%llu vs %llu) of %s",
+                return ERRORMSG("voted_amount insufficient(%llu vs %llu) of %s",
                                 accountToken.voted_amount, value, tokenSymbol);
 
             accountToken.free_amount += value;
             accountToken.voted_amount -= value;
-            if (pOtherAccount != nullptr) {
-                toUid = CUserID(pOtherAccount->keyid);
-            } else {
-                toUid = fromUid;
-                fromUid = CNullID();
-            }
-
             break;
         }
         case PLEDGE: {
             if (accountToken.free_amount < value)
-                return ERRORMSG("CAccount::OperateBalance, free_amount insufficient(%llu vs %llu) of %s",
+                return ERRORMSG("free_amount insufficient(%llu vs %llu) of %s",
                                 accountToken.free_amount, value, tokenSymbol);
 
             accountToken.free_amount -= value;
             accountToken.pledged_amount += value;
-            if (pOtherAccount != nullptr)
-                toUid = CUserID(pOtherAccount->keyid);
-
             break;
         }
         case UNPLEDGE: {
             if (accountToken.pledged_amount < value)
-                return ERRORMSG("CAccount::OperateBalance, pledged_amount insufficient(%llu vs %llu) of %s",
+                return ERRORMSG("pledged_amount insufficient(%llu vs %llu) of %s",
                                 accountToken.pledged_amount, value, tokenSymbol);
 
             accountToken.free_amount += value;
             accountToken.pledged_amount -= value;
-            if (pOtherAccount != nullptr) {
-                toUid = CUserID(pOtherAccount->keyid);
-            } else {
-                toUid = fromUid;
-                fromUid = CNullID();
-            }
-
             break;
+        }
+        case DEX_DEAL: {
+            if (pOtherAccount != nullptr)
+                return ERRORMSG("peer account not specified!");
+
+            if (accountToken.frozen_amount < value)
+                return ERRORMSG("free_amount insufficient(%llu vs %llu) of %s",
+                                accountToken.free_amount, value, tokenSymbol);
+
+            CAccountToken peerToken = pOtherAccount->GetToken(tokenSymbol);
+            accountToken.frozen_amount -= value;
+            peerToken.free_amount += value;
+            pOtherAccount->SetToken(tokenSymbol, peerToken);
+            toUid = CUserID(pOtherAccount->keyid);
+            break;
+
         }
         default: return false;
     }

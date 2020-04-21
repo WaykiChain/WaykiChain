@@ -71,7 +71,8 @@ enum BalanceOpType : uint8_t {
     VOTE     = 7,  //!< free -> voted
     UNVOTE   = 8,  //!< voted -> free
     PLEDGE   = 9,  //!< free -> pledged
-    UNPLEDGE = 10  //!< pledged -> free, and then SUB_FREE for further ops
+    UNPLEDGE = 10, //!< pledged -> free, and then SUB_FREE for further ops
+    DEX_DEAL = 11  //!< unfreeze and transfer out to peer
 };
 
 struct BalanceOpTypeHash {
