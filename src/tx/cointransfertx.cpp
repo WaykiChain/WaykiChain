@@ -180,18 +180,28 @@ bool CCoinTransferTx::ExecuteTx(CTxExecuteContext &context) {
                                 TX_ERR_TITLE, toUid.ToString()), REJECT_INVALID, "account-not-exist");
                     }
                 }
+
+                // register account, must be only one dest
+                if ( transfers.size() == 1 && toUid.is<CPubKey>() && !spDestAccount->IsRegistered()) {
+                    spDestAccount->regid = CRegID(context.height, context.index); // generate new regid for the account
+                }
+
                 pDestAccount = spDestAccount.get(); // transfer to other account
             }
 
             if (!txAccount.OperateBalance(transfer.coin_symbol, SUB_FREE, actualCoinsToSend, ReceiptType::TRANSFER_ACTUAL_COINS, receipts, pDestAccount))
                 return state.DoS(100, ERRORMSG("CCoinTransferTx::ExecuteTx, transfers[%d], failed to add coins in toUid %s account", i,
                             toUid.ToDebugString()), UPDATE_ACCOUNT_FAIL, "failed-sub-coins");
+
         }
+
 
         if (spDestAccount && !cw.accountCache.SaveAccount(*spDestAccount))
             return state.DoS(100, ERRORMSG("CCoinTransferTx::ExecuteTx, write dest addr %s account info error",
                         toUid.ToDebugString()), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
     }
+
+
 
     return true;
 }
