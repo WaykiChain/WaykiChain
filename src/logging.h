@@ -59,7 +59,7 @@ namespace BCLog { //blockchain log
         DEX         = (1 << 21),
         RPCCMD      = (1 << 22),
         DELEGATE    = (1 << 23),
-        PBFT_LOG    = (1 << 24),
+        PBFT        = (1 << 24),
         ALL         = ~(uint32_t)0,
     };
 

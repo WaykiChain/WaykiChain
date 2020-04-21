@@ -157,12 +157,10 @@ bool CPBFTMan::UpdateLocalFinBlock(const CBlockConfirmMessage& msg, const uint32
 
     CBlockIndex* fi = GetLocalFinIndex();
 
-    if(fi == nullptr ||(uint32_t)fi->height >= msg.height) {
-        if(fi != nullptr) {
-            string msgLog = strprintf("fi->height=%d, msg.height=%d\n", fi->height, msg.height);
-            LogPrint(BCLog::PBFT_LOG, msgLog.c_str());
+    if (fi == nullptr || (uint32_t)fi->height >= msg.height) {
+        if(fi != nullptr)
+            LogPrint(BCLog::PBFT, "[%d] msg.height=%d\n", fi->height, msg.height);
 
-        }
         return false;
     }
 
@@ -381,8 +379,7 @@ bool BroadcastBlockConfirm(const CBlockIndex* block) {
     uint256 preHash = block->pprev->GetBlockHash();
     pbftContext.GetMinerListByBlockHash(preHash, delegates);
 
-    string debugMsg = strprintf("[%d] found %d delegates, prevHash= %s\n", block->height, delegates.size(), preHash.ToString());
-    LogPrint(BCLog::PBFT_LOG, debugMsg.c_str());
+    LogPrint(BCLog::PBFT, "[%d] found %d delegates, prevHash= %s\n", block->height, delegates.size(), preHash.ToString());
 
     CBlockConfirmMessage msg(block->height, block->GetBlockHash(), preHash);
 
