@@ -209,7 +209,15 @@ bool CDEXOperatorRegisterTx::ExecuteTx(CTxExecuteContext &context) {
     return true;
 }
 
-bool CDEXOperatorUpdateData::Check(CCacheWrapper &cw, string& errmsg, string& errcode,const uint32_t currentHeight ){
+bool CDEXOperatorUpdateData::Check(CCacheWrapper &cw, string& errmsg, string& errcode,const uint32_t currentHeight){
+
+    DexOperatorDetail dex;
+
+    if(!cw.dexCache.GetDexOperator(dexId,dex)) {
+        errmsg = strprintf("dexoperator(id=%d) not found", dexId);
+        errcode = "invalid-dex-id";
+        return false;
+    }
 
     if(field == UPDATE_NONE || field > MEMO ){
         errmsg = "CDEXOperatorUpdateData::check(): update field is error";
@@ -253,7 +261,7 @@ bool CDEXOperatorUpdateData::Check(CCacheWrapper &cw, string& errmsg, string& er
     }
 
 
-    if(field == TAKER_FEE_RATIO || field == MAKER_FEE_RATIO ){
+    if (field == TAKER_FEE_RATIO || field == MAKER_FEE_RATIO ){
 
         uint64_t v = get<uint64_t>();
         if( v > MAX_MATCH_FEE_RATIO_VALUE){
@@ -263,6 +271,38 @@ bool CDEXOperatorUpdateData::Check(CCacheWrapper &cw, string& errmsg, string& er
             return false;
         }
     }
+
+    if (field == OPEN_MODE) {
+        dex::OpenMode  om = get<dex::OpenMode>();
+        if (om != dex::OpenMode::PRIVATE && om != dex::OpenMode::PUBLIC) {
+            errmsg = strprintf("dex open mode value(%d) is error", (uint8_t)om);
+            errcode = "invalid-open-mode";
+            return false;
+        }
+
+        if (om == dex.order_open_mode) {
+            errmsg = strprintf("the new dex open mode value(%d) is as same as old open mode", (uint8_t)om);
+            errcode = "same-open-mode";
+            return false;
+        }
+    }
+
+    if (field == ORDER_OPEN_DEXOP_LIST) {
+       auto dexlist = get<DexOpIdValueList>();
+       for (auto dexOpId: dexlist) {
+           if (!cw.dexCache.HaveDexOperator(dexOpId.get())) {
+                errmsg = strprintf("dex(id=%d) is not exist!!", dexOpId.get());
+                errcode = "invalid-dexid";
+                return false;
+           }
+           if( dexOpId.get() == dexId) {
+               errmsg = "the open dexop list can't contains self";
+               errcode = "self-dexid-error";
+               return false;
+           }
+       }
+    }
+
 
     return true;
 
@@ -300,9 +340,20 @@ bool CDEXOperatorUpdateData::UpdateToDexOperator(DexOperatorDetail& detail,CCach
             detail.maker_fee_ratio = get<uint64_t>();
             break;
         case MEMO:
-            detail.memo =get<string>();
+            detail.memo = get<string>();
             break;
-
+        case OPEN_MODE:
+            detail.order_open_mode = get<dex::OpenMode>();
+            break;
+        case ORDER_OPEN_DEXOP_LIST:{
+            auto dexIdList = get<DexOpIdValueList>();
+            DexOpIdValueSet dexIdSet;
+            for (auto dexId: dexIdList) {
+                dexIdSet.insert(dexId);
+            }
+            detail.order_open_dexop_set = dexIdSet;
+            break;
+        }
         default:
             return false;
 

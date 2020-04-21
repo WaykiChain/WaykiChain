@@ -107,7 +107,7 @@ inline string GetFeeSymbolSetStr() {
  * Fees are boosted by COIN=10^8
  */
 static const unordered_map<TxType, std::tuple<string, uint64_t, uint64_t, uint64_t, uint64_t, bool,FeatureForkVersionEnum>, TxTypeHash> kTxTypeInfoTable = {
-/* tx type                                   tx type name               V1:WICC     V2:WICC    V1:WUSD     V2:WUSD     can_update      */
+/* tx type                                   tx type name               V1:WICC     V2:WICC    V1:WUSD     V2:WUSD     can_update   MIN_SUPPORT_VER   */
 { NULL_TX,                  std::make_tuple("NULL_TX",                  0,          0,          0,          0,           false, MAJOR_VER_R1 ) },
 
 { BLOCK_REWARD_TX,          std::make_tuple("BLOCK_REWARD_TX",          0,          0,          0,          0,           false, MAJOR_VER_R1) }, //deprecated

@@ -1047,13 +1047,13 @@ Value submitdexopupdatetx(const Array& params, bool fHelp){
             }
             break;
         }
-        case CDEXOperatorUpdateData::UpdateField::ORDER_OPEN_DEVOP_LIST:{
+        case CDEXOperatorUpdateData::UpdateField::ORDER_OPEN_DEXOP_LIST:{
             if (updatedValue.type() == json_spirit::Value_type::array_type) {
                 updateData.value  = RPC_PARAM::GetOrderOpenDexopList(updatedValue);
             } else if (updatedValue.type() == json_spirit::Value_type::str_type) {
                 Value devOpArr;
                 if (!json_spirit::read_string(updatedValue.get_str(), devOpArr) ||
-                        devOpArr.type() == json_spirit::Value_type::array_type)
+                        devOpArr.type() != json_spirit::Value_type::array_type)
                     throw JSONRPCError(RPC_INVALID_PARAMS, strprintf("Parse update_field=\"%s\" as array of number type error",
                         updatedValue.get_str()));
                 updateData.value = RPC_PARAM::GetOrderOpenDexopList(devOpArr);

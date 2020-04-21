@@ -103,7 +103,7 @@ public:
         OPEN_MODE               = 5 ,
         MAKER_FEE_RATIO         = 6 ,
         TAKER_FEE_RATIO         = 7 ,
-        ORDER_OPEN_DEVOP_LIST   = 8 ,
+        ORDER_OPEN_DEXOP_LIST   = 8 ,
         MEMO                    = 9
     };
 
@@ -135,7 +135,7 @@ public:
             case MAKER_FEE_RATIO:
             case TAKER_FEE_RATIO:
                 return baseSize + ::GetSerializeSize(VARINT(get<uint64_t>()), serializedType, nVersion);
-            case ORDER_OPEN_DEVOP_LIST:
+            case ORDER_OPEN_DEXOP_LIST:
                 return baseSize + ::GetSerializeSize(get<DexOpIdValueList>(), serializedType, nVersion);
             default: break;
         }
@@ -163,7 +163,7 @@ public:
             case TAKER_FEE_RATIO:
                 s << VARINT(get<uint64_t>());
                 break;
-            case ORDER_OPEN_DEVOP_LIST:
+            case ORDER_OPEN_DEXOP_LIST:
                 s << get<DexOpIdValueList>();
                 break;
             default: {
@@ -209,7 +209,7 @@ public:
                 value = uint64V;
                 break;
             }
-            case ORDER_OPEN_DEVOP_LIST: {
+            case ORDER_OPEN_DEXOP_LIST: {
                 DexOpIdValueList orderOpenDexopList;
                 s >> orderOpenDexopList;
                 value = orderOpenDexopList;
@@ -248,7 +248,7 @@ public:
             case MAKER_FEE_RATIO:
             case TAKER_FEE_RATIO:
                 return db_util::ToString(get<uint64_t>());
-            case ORDER_OPEN_DEVOP_LIST:
+            case ORDER_OPEN_DEXOP_LIST:
                 return db_util::ToString(get<DexOpIdValueList>());
             default:
                 return EMPTY_STRING;
