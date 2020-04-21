@@ -332,7 +332,7 @@ bool CBaseTx::CheckMinFee(CTxExecuteContext &context, uint64_t minFee) const {
 bool CBaseTx::CheckTxAvailableFromVer(CTxExecuteContext &context, FeatureForkVersionEnum ver) {
     if (GetFeatureForkVersion(context.height) < ver)
         return context.pState->DoS(100, ERRORMSG("[%d]tx type=%s is unavailable before height=%d",
-                context.height, GetTxTypeName()),
+                context.height, GetTxTypeName(), GetForkHeightByVersion(ver)),
                 REJECT_INVALID, "unavailable-tx");
     return true;
 }

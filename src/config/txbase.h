@@ -139,6 +139,7 @@ static const unordered_map<TxType, std::tuple<string, uint64_t, uint64_t, uint64
 { DEX_MARKET_SELL_ORDER_TX, std::make_tuple("DEX_MARKET_SELL_ORDER_TX", 0,          0.001*COIN, 0.001*COIN, 0.001*COIN  ,true,  MAJOR_VER_R2) },
 { DEX_CANCEL_ORDER_TX,      std::make_tuple("DEX_CANCEL_ORDER_TX",      0,          0.001*COIN, 0.001*COIN, 0.001*COIN  ,true,  MAJOR_VER_R2) },
 { DEX_TRADE_SETTLE_TX,      std::make_tuple("DEX_TRADE_SETTLE_TX",      0,          0.0001*COIN,0.0001*COIN,0.0001*COIN ,true,  MAJOR_VER_R2) },
+{ UIA_UPDATE_TX,            std::make_tuple("UIA_UPDATE_TX",            0,          0.01*COIN,  0.01*COIN,  0.01*COIN   ,true,  MAJOR_VER_R2) }, //plus 110 WICC
 
 { DEX_OPERATOR_REGISTER_TX, std::make_tuple("DEX_OPERATOR_REGISTER_TX", 0,          0.01*COIN,  0.01*COIN,  0.01*COIN   ,true,  MAJOR_VER_R3) },
 { DEX_OPERATOR_UPDATE_TX,   std::make_tuple("DEX_OPERATOR_UPDATE_TX",   0,          0.01*COIN,  0.01*COIN,  0.01*COIN   ,true,  MAJOR_VER_R3) },
@@ -149,7 +150,6 @@ static const unordered_map<TxType, std::tuple<string, uint64_t, uint64_t, uint64
 { ACCOUNT_PERMS_CLEAR_TX,   std::make_tuple("ACCOUNT_PERMS_CLEAR_TX",   0,          0.001*COIN, 0.001*COIN, 0.001*COIN  ,true,  MAJOR_VER_R3) },
 { UNIVERSAL_CONTRACT_TX,    std::make_tuple("UNIVERSAL_CONTRACT_TX",    0,          0.001*COIN, 0.001*COIN, 0.001*COIN  ,true,  MAJOR_VER_R3) },
 { CDP_FORCE_SETTLE_INTEREST_TX,    std::make_tuple("CDP_FORCE_SETTLE_INTEREST_TX",    0,      0,         0,          0  ,false,  MAJOR_VER_R3) },
-{ UIA_UPDATE_TX,            std::make_tuple("UIA_UPDATE_TX",            0,          0.01*COIN,  0.01*COIN,  0.01*COIN   ,true,  MAJOR_VER_R3) }, //plus 110 WICC
 { UTXO_TRANSFER_TX,         std::make_tuple("UTXO_TRANSFER_TX",         0,          0.001*COIN, 0.001*COIN, 0.001*COIN  ,true,  MAJOR_VER_R3) },
 { UTXO_PASSWORD_PROOF_TX,   std::make_tuple("UTXO_PASSWORD_PROOF_TX",   0,          0.001*COIN, 0.001*COIN, 0.001*COIN  ,true,  MAJOR_VER_R3) },
 
