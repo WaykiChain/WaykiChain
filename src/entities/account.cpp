@@ -149,7 +149,7 @@ bool CAccount::OperateBalance(const TokenSymbol &tokenSymbol, const BalanceOpTyp
             break;
         }
         case DEX_DEAL: {
-            if (pOtherAccount != nullptr)
+            if (pOtherAccount == nullptr)
                 return ERRORMSG("peer account not specified!");
 
             if (accountToken.frozen_amount < value)
