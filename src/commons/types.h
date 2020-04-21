@@ -90,11 +90,17 @@ static const unordered_map<BalanceOpType, string, BalanceOpTypeHash> kBalanceOpT
     { VOTE,     "VOTE"      },
     { UNVOTE,   "UNVOTE"    },
     { PLEDGE,   "PLEDGE"    },
-    { UNPLEDGE, "UNPLEDGE"  }
+    { UNPLEDGE, "UNPLEDGE"  },
+    { DEX_DEAL, "DEX_DEAL"  }
 };
 
 inline string GetBalanceOpTypeName(const BalanceOpType opType) {
-    return kBalanceOpTypeTable.at(opType);
+    auto it = kBalanceOpTypeTable.find(opType);
+    if (it != kBalanceOpTypeTable.end()) {
+        return it->second;
+    } else {
+        return "NULL_OP";
+    }
 }
 
 #endif //COMMONS_TYPES_H
