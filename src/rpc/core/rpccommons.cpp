@@ -297,6 +297,11 @@ Object GetTxDetailJSON(const uint256& txid) {
 
                 CDataStream ds(SER_DISK, CLIENT_VERSION);
                 ds << genesisblock.vptx[i];
+                if (SysCfg().IsGenReceipt()) {
+                    vector<CReceipt> receipts;
+                    pCdMan->pReceiptCache->GetTxReceipts(txid, receipts);
+                    obj.push_back(Pair("receipts", JSON::ToJson(*pCdMan->pAccountCache, receipts)));
+                }
                 obj.push_back(Pair("rawtx", HexStr(ds.begin(), ds.end())));
 
                 return obj;

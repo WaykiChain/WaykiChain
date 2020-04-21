@@ -28,7 +28,6 @@ using namespace std;
 using namespace json_spirit;
 
 
-static const uint32_t LCONTRACT_DEPLOY_TX_FEE_MIN = 1 * COIN;
 
 static bool FindKeyId(CAccountDBCache *pAccountView, string const &addr, CKeyID &keyId) {
     // first, try to parse regId
