@@ -151,6 +151,23 @@ namespace wasm {
 
 				transfer_balance( fromAccount, toAccount, quantity, context );
 
+				CAsset asset;
+				string symbol = quantity.symbol.code().to_string();
+      			CHAIN_ASSERT( context.database.assetCache.GetAsset(symbol, asset),
+                    wasm_chain::asset_type_exception,
+                    "asset (%s) not found from d/b",
+                    symbol );
+				if (!asset.owner_uid.IsEmpty()) {
+					CAccount assetOwnerAccount;
+					CHAIN_ASSERT( db_account.GetAccount(asset.owner_uid, assetOwnerAccount),
+						wasm_chain::account_access_exception,
+						"asset owner (%s) not found from d/b",
+						asset.owner_uid.ToString() );
+					auto owner = assetOwnerAccount.regid.GetIntValue();
+
+					context.notify_recipient(owner); // to cater for asset owner centralized control need
+				}
+
 		        context.notify_recipient(from);
 		        context.notify_recipient(to);
 
