@@ -89,7 +89,7 @@ namespace cdp_util {
                             UPDATE_ACCOUNT_FAIL, "operate-fcoin-genesis-account-failed");
         }
 
-        // should freeze user's coin for buying the asset
+        // should freeze genesis account's coin for buying the asset
         if (!fcoinGenesisAccount.OperateBalance(SYMB::WUSD, BalanceOpType::FREEZE, scoinsInterest,
                                                 ReceiptType::CDP_INTEREST_BUY_DEFLATE_FCOINS, receipts)) {
             return state.DoS(100, ERRORMSG("%s, fcoin genesis account has insufficient funds", TX_OBJ_ERR_TITLE(tx)),
@@ -128,7 +128,7 @@ namespace cdp_util {
                             UPDATE_ACCOUNT_FAIL, "operate-fcoin-genesis-account-failed");
         }
 
-        // should freeze user's coin for buying the asset
+        // should freeze genesis account's coin for buying the asset
         if (!fcoinGenesisAccount.OperateBalance(SYMB::WUSD, BalanceOpType::FREEZE, scoinsInterest,
                                                 ReceiptType::CDP_INTEREST_BUY_DEFLATE_FCOINS, receipts)) {
             return state.DoS(100, ERRORMSG("%s, fcoin genesis account has insufficient funds", TX_OBJ_ERR_TITLE(tx)),
@@ -361,7 +361,7 @@ bool CCDPStakeTx::ExecuteTx(CTxExecuteContext &context) {
             LogPrint(BCLog::CDP, "Mint scoins=%llu for interest!\n", mintScoinForInterest);
         }
 
-        newMintScoins          = scoins_to_mint + mintScoinForInterest;
+        newMintScoins                   = scoins_to_mint + mintScoinForInterest;
         uint64_t totalBcoinsToStake     = cdp.total_staked_bcoins + assetAmount;
         uint64_t totalScoinsToOwe       = cdp.total_owed_scoins + newMintScoins;
         uint64_t partialCollateralRatio = CalcCollateralRatio(assetAmount, newMintScoins, bcoinMedianPrice);
