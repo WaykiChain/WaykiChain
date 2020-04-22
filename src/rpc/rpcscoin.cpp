@@ -258,7 +258,7 @@ Value submitcdpredeemtx(const Array& params, bool fHelp) {
     uint256 cdpTxId         = uint256S(params[1].get_str());
     uint64_t repayAmount    = AmountToRawValue(params[2]);
     uint64_t redeemAmount   = AmountToRawValue(params[3]);
-    const ComboMoney& cmFee = RPC_PARAM::GetFee(params, 4, CDP_STAKE_TX);
+    const ComboMoney& cmFee = RPC_PARAM::GetFee(params, 4, CDP_REDEEM_TX);
     int32_t validHeight     = chainActive.Height();
 
     CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, cdpUid);
@@ -298,7 +298,7 @@ Value submitcdpliquidatetx(const Array& params, bool fHelp) {
     const CUserID& cdpUid    = RPC_PARAM::GetUserId(params[0], true);
     const uint256& cdpTxId   = RPC_PARAM::GetTxid(params[1], "cdp_id");
     uint64_t liquidateAmount = AmountToRawValue(params[2]);
-    const ComboMoney& cmFee  = RPC_PARAM::GetFee(params, 3, CDP_STAKE_TX);
+    const ComboMoney& cmFee  = RPC_PARAM::GetFee(params, 3, CDP_LIQUIDATE_TX);
     int32_t validHeight      = chainActive.Height();
 
     CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, cdpUid);
