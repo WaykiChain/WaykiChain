@@ -215,8 +215,8 @@ static const string LUA_CONTRACT_HEADLINE                   = "mylib = require";
 static const uint64_t INITIAL_BASE_COIN_AMOUNT              = 210000000;  // 210 million
 static const uint32_t BLOCK_INTERVAL_PRE_V2FORK             = 10;         // 10 seconds
 static const uint32_t BLOCK_INTERVAL_POST_V2FORK            = 3;          // 3 seconds
-static const uint32_t CONTINUOUS_BLOCK_PRODUCE_PRE_V3FORK   = 1 ;   //coutinuous produce block count
-static const uint32_t CONTINUOUS_BLOCK_PRODUCE_POST_V3FORK  = 2 ;
+static const uint32_t CONTINUOUS_BLOCK_PRODUCE_PRE_V3FORK   = 1;   //coutinuous produce block count
+static const uint32_t CONTINUOUS_BLOCK_PRODUCE_POST_V3FORK  = 2;
 
 
 static const uint64_t INITIAL_SUBSIDY_RATE                  = 5;  // Initial subsidy rate upon vote casting

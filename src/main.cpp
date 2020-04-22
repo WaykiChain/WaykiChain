@@ -817,6 +817,7 @@ static bool PersistDefaultFeedCoinPairs(CCacheWrapper& cw) {
             cw.priceFeedCache.AddFeedCoinPair(PriceCoinPair(SYMB::WGRT,SYMB::USD));
 
 }
+
 static bool ProcessGenesisBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValidationState &state) {
 
     cw.blockCache.SetBestBlock(pIndex->GetBlockHash());
