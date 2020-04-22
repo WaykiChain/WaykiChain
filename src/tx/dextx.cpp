@@ -538,7 +538,7 @@ namespace dex {
         }
     }
 
-    #define DEAL_ITEM_TITLE ERROR_TITLE(tx.GetTxTypeName() + strprintf(", i[%d]", i))
+    #define DEAL_ITEM_TITLE ERROR_TITLE(tx.GetTxTypeName() + strprintf(", i[%d]", idx))
 
 ////////////////////////////////////////////////////////////////////////////////
 // class CDealItemExecuter
@@ -548,7 +548,7 @@ namespace dex {
     public:
         // input data
         DealItem &dealItem;
-        uint32_t i;       // index of deal item
+        uint32_t idx;       // index of deal item
         CDEXSettleTx &tx;
         CTxExecuteContext &context;
         shared_ptr<CAccount> &pTxAccount;
@@ -568,11 +568,11 @@ namespace dex {
         COrderOperatorParams sellOrderOperatorParams;
         OrderSide takerSide;
 
-        CDealItemExecuter(DealItem &dealItemIn, uint32_t index, CDEXSettleTx &txIn,
+        CDealItemExecuter(DealItem &dealItemIn, uint32_t idxIn, CDEXSettleTx &txIn,
                           CTxExecuteContext &contextIn, shared_ptr<CAccount> &pTxAccountIn,
                           map<CRegID, shared_ptr<CAccount>> &accountMapIn,
                           vector<CReceipt> &receiptsIn)
-            : dealItem(dealItemIn), i(index), tx(txIn), context(contextIn),
+            : dealItem(dealItemIn), idx(idxIn), tx(txIn), context(contextIn),
               pTxAccount(pTxAccountIn), accountMap(accountMapIn), receipts(receiptsIn) {}
 
         bool Execute();
@@ -1006,16 +1006,16 @@ namespace dex {
     bool CDealItemExecuter::GetDealOrder(const uint256 &orderId, const OrderSide orderSide,
                                          CDEXOrderDetail &dealOrder) {
         if (!context.pCw->dexCache.GetActiveOrder(orderId, dealOrder))
-            return context.pState->DoS(100, ERRORMSG("%s, get active order failed! i=%d, orderId=%s", DEAL_ITEM_TITLE, i,
+            return context.pState->DoS(100, ERRORMSG("%s, get active order failed! orderId=%s", DEAL_ITEM_TITLE,
                 orderId.ToString()), REJECT_INVALID,
-                strprintf("get-active-order-failed, i=%d, order_id=%s", i, orderId.ToString()));
+                strprintf("get-active-order-failed, i=%d, order_id=%s", idx, orderId.ToString()));
 
         if (dealOrder.order_side != orderSide)
             return context.pState->DoS(100, ERRORMSG("%s, expected order_side=%s but got order_side=%s! orderId=%s",
                     DEAL_ITEM_TITLE, kOrderSideHelper.GetName(orderSide),
                     kOrderSideHelper.GetName(dealOrder.order_side), orderId.ToString()),
                     REJECT_INVALID,
-                    strprintf("order-side-unmatched, i=%d, order_id=%s", i, orderId.ToString()));
+                    strprintf("order-side-unmatched, i=%d, order_id=%s", idx, orderId.ToString()));
 
         return true;
     }
@@ -1124,7 +1124,7 @@ namespace dex {
                                     UPDATE_ACCOUNT_FAIL, "operate-fcoin-genesis-account-failed");
                 }
                 CHashWriter hashWriter(SER_GETHASH, 0);
-                hashWriter << tx.GetHash() << SYMB::WUSD << index;
+                hashWriter << tx.GetHash() << SYMB::WUSD << idx;
                 uint256 orderId = hashWriter.GetHash();
                 auto pSysBuyMarketOrder = dex::CSysOrder::CreateBuyMarketOrder(context.GetTxCord(), buyOrder.asset_symbol, SYMB::WGRT, buyScoins);
                 if (!cw.dexCache.CreateActiveOrder(orderId, *pSysBuyMarketOrder)) {
@@ -1219,9 +1219,8 @@ namespace dex {
             {txAccount.regid, pTxAccount}
         };
 
-        for (size_t i = 0; i < dealItems.size(); i++) {
-            auto &dealItem = dealItems[i];
-            CDealItemExecuter dealItemExec(dealItem, i, *this, context, pTxAccount, accountMap, receipts);
+        for (size_t idx = 0; idx < dealItems.size(); idx++) {
+            CDealItemExecuter dealItemExec(dealItems[idx], idx, *this, context, pTxAccount, accountMap, receipts);
             if (!dealItemExec.Execute()) {
                 return false;
             }
