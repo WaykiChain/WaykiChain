@@ -28,6 +28,7 @@ enum SysParamType : uint8_t {
     DEX_OPERATOR_REGISTER_FEE               = 21,
     DEX_OPERATOR_UPDATE_FEE                 = 22,
     PROPOSAL_EXPIRE_BLOCK_COUNT             = 23,
+    DEX_SCOIN_FRICTION_FEE_RATIO            = 24,
     TRANSFER_SCOIN_FRICTION_FEE_RATIO       = 25,
     ASSET_RISK_FEE_RATIO                    = 26,
     DEX_OPERATOR_RISK_FEE_RATIO             = 27,
@@ -50,6 +51,7 @@ static const unordered_map<string, SysParamType> paramNameToSysParamTypeMap = {
         {"DEX_OPERATOR_REGISTER_FEE",                   DEX_OPERATOR_REGISTER_FEE                   },
         {"DEX_OPERATOR_UPDATE_FEE",                     DEX_OPERATOR_UPDATE_FEE                     },
         {"PROPOSAL_EXPIRE_BLOCK_COUNT",                 PROPOSAL_EXPIRE_BLOCK_COUNT                 },
+        {"DEX_SCOIN_FRICTION_FEE_RATIO",                DEX_SCOIN_FRICTION_FEE_RATIO                },
         {"TRANSFER_SCOIN_FRICTION_FEE_RATIO",           TRANSFER_SCOIN_FRICTION_FEE_RATIO           },
         {"ASSET_RISK_FEE_RATIO",                        ASSET_RISK_FEE_RATIO                        },
         {"DEX_OPERATOR_RISK_FEE_RATIO",                 DEX_OPERATOR_RISK_FEE_RATIO                 },
@@ -77,7 +79,8 @@ static const unordered_map<SysParamType, std::tuple< uint64_t,string >, SysParam
     { DEX_OPERATOR_REGISTER_FEE,                make_tuple( 1100 * COIN, "DEX_OPERATOR_REGISTER_FEE")               }, // dex operator register fee = 1100 WICC
     { DEX_OPERATOR_UPDATE_FEE,                  make_tuple( 110 * COIN,  "DEX_OPERATOR_UPDATE_FEE")                 },  // dex operator update fee = 110 WICC
     { PROPOSAL_EXPIRE_BLOCK_COUNT,              make_tuple( 1200,        "PROPOSAL_EXPIRE_BLOCK_COUNT")             },   //
-    { TRANSFER_SCOIN_FRICTION_FEE_RATIO,        make_tuple( 0,           "TRANSFER_SCOIN_FRICTION_FEE_RATIO")       },  // WUSD friction fee to risk reserve
+    { DEX_SCOIN_FRICTION_FEE_RATIO,             make_tuple( 10,          "DEX_SCOIN_FRICTION_FEE_RATIO")            },  // DEX WUSD friction fee to risk reserve
+    { TRANSFER_SCOIN_FRICTION_FEE_RATIO,        make_tuple( 0,           "TRANSFER_SCOIN_FRICTION_FEE_RATIO")       },  // transfer WUSD friction fee to risk reserve
     { ASSET_RISK_FEE_RATIO,                     make_tuple( 4000,        "ASSET_RISK_FEE_RATIO")                    },
     { DEX_OPERATOR_RISK_FEE_RATIO,              make_tuple( 4000,        "DEX_OPERATOR_RISK_FEE_RATIO")             },
     { AXC_SWAP_FEE_RATIO,                       make_tuple( 20,          "AXC_SWAP_FEE_RATIO")                      },  // 0.2%, boosted by 10000
@@ -100,7 +103,8 @@ static const unordered_map<SysParamType, std::pair<uint64_t, uint64_t>, SysParam
     { DEX_OPERATOR_REGISTER_FEE,                 RANGE(0,0)        },  // dex operator register fee = 1100 WICC
     { DEX_OPERATOR_UPDATE_FEE,                   RANGE(0,0)        },  // dex operator update fee = 110 WICC
     { PROPOSAL_EXPIRE_BLOCK_COUNT,               RANGE(0,0)        },  //
-    { TRANSFER_SCOIN_FRICTION_FEE_RATIO,         RANGE(0,10000)    },  // WUSD friction fee to risk reserve
+    { DEX_SCOIN_FRICTION_FEE_RATIO,              RANGE(0, 5000)    },  // max 50%
+    { TRANSFER_SCOIN_FRICTION_FEE_RATIO,         RANGE(0, 5000)    },  // max 50%
     { ASSET_RISK_FEE_RATIO,                      RANGE(0,10000)    },
     { DEX_OPERATOR_RISK_FEE_RATIO,               RANGE(0,10000)    },
     { AXC_SWAP_FEE_RATIO,                        RANGE(0,1000)     },    //max 10%
