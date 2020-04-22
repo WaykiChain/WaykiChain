@@ -475,4 +475,13 @@ void splitString(string (&arr)[N], string str)
 
 bool ConvertPermsToString(uint64_t perms, uint8_t total_perms_count, string& permsList);
 
+static inline bool CalcAmountByRatio(uint64_t amountIn, uint64_t ratio, uint64_t ratioBoost, uint64_t &amountOut) {
+    uint128_t calcAmount = amountIn * (uint128_t)ratio / ratioBoost;
+    if (calcAmount > ULLONG_MAX) {
+        return false;
+    }
+    amountOut = calcAmount;
+    return true;
+}
+
 #endif

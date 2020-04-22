@@ -592,7 +592,11 @@ namespace dex {
 
         bool GetAccount(const CRegID &regid, shared_ptr<CAccount> &pAccount);
 
-        bool CalcOrderFee(uint64_t amount, uint64_t fee_ratio, uint64_t &orderFee);
+        bool CalcOrderFee(uint64_t amount, uint64_t feeRatio, uint64_t &orderFee);
+
+        bool CalcWusdFrictionFee(uint64_t amount, uint64_t &frictionFee);
+
+        bool ProcessWusdFrictionFee(CAccount &fromAccount, uint64_t amount, uint64_t &frictionFee);
     };
 
     /* process flow for settle tx
@@ -811,8 +815,21 @@ namespace dex {
             sellResidualAmount = limitAssetAmount - sellOrder.total_deal_asset_amount;
         }
 
-        // 8. calc deal fees for dex operator
-        // 8.1. calc deal asset fee payed by buyer for buy operator
+        uint64_t actualReceivedCoins = dealItem.dealCoinAmount;
+        uint64_t actualReceivedAssets = dealItem.dealAssetAmount;
+
+        // 8. process WUSD friction fee payed for risk-reserve
+        uint64_t frictionFee;
+        if (buyOrder.coin_symbol == SYMB::WUSD) {
+            if (!ProcessWusdFrictionFee(*pBuyOrderAccount, dealItem.dealAssetAmount, frictionFee)) return false;
+            actualReceivedCoins -= frictionFee;
+        } else if (sellOrder.asset_symbol == SYMB::WUSD) {
+            if (!ProcessWusdFrictionFee(*pSellOrderAccount, dealItem.dealAssetAmount, frictionFee)) return false;
+            actualReceivedAssets -= frictionFee;
+        }
+
+        // 9. calc deal fees for dex operator
+        // 9.1. calc deal asset fee payed by buyer for buy operator
         uint64_t dealAssetFee = 0;
         uint64_t buyOperatorFeeRatio = GetOperatorFeeRatio(buyOrder, buyOrderOperatorParams, takerSide);
         if (!CheckOperatorFeeRatioRange(context, dealItem.buyOrderId, buyOperatorFeeRatio, DEAL_ITEM_TITLE))
@@ -1025,12 +1042,63 @@ namespace dex {
         return true;
     }
 
-    bool CDealItemExecuter::CalcOrderFee(uint64_t amount, uint64_t fee_ratio, uint64_t &orderFee) {
-        uint128_t fee = amount * (uint128_t)fee_ratio / PRICE_BOOST;
-        if (fee > (uint128_t)ULLONG_MAX)
+    bool CDealItemExecuter::CalcOrderFee(uint64_t amount, uint64_t feeRatio, uint64_t &orderFee) {
+        if (!CalcAmountByRatio(amount, feeRatio, PRICE_BOOST, orderFee))
             return context.pState->DoS(100, ERRORMSG("%s, the calc_order_fee out of range! amount=%llu, "
-                "fee_ratio=%llu", DEAL_ITEM_TITLE,  amount, fee_ratio), REJECT_INVALID, "calc-order-fee-error");
-        orderFee = fee;
+                "fee_ratio=%llu", DEAL_ITEM_TITLE,  amount, feeRatio), REJECT_INVALID, "calc-order-fee-error");
+        return true;
+    }
+
+    bool CDealItemExecuter::CalcWusdFrictionFee(uint64_t amount, uint64_t &frictionFee) {
+            uint64_t frictionFeeRatio;
+            if (!context.pCw->sysParamCache.GetParam(TRANSFER_SCOIN_FRICTION_FEE_RATIO, frictionFeeRatio))
+                return context.pState->DoS(100, ERRORMSG("%s, read TRANSFER_SCOIN_FRICTION_FEE_RATIO error", DEAL_ITEM_TITLE),
+                                READ_SYS_PARAM_FAIL, "bad-read-sysparamdb");
+        if (!CalcAmountByRatio(amount, frictionFeeRatio, RATIO_BOOST, frictionFee))
+            return context.pState->DoS(100, ERRORMSG("%s, the calc_friction_fee out of range! amount=%llu, "
+                "fee_ratio=%llu", DEAL_ITEM_TITLE,  amount, frictionFeeRatio), REJECT_INVALID, "calc-wusd-friction-fee-error");
+        return true;
+    }
+
+    bool CDealItemExecuter::ProcessWusdFrictionFee(CAccount &fromAccount, uint64_t amount, uint64_t &frictionFee) {
+
+        CCacheWrapper &cw = *context.pCw; CValidationState &state = *context.pState;
+        if (!CalcWusdFrictionFee(dealItem.dealAssetAmount, frictionFee)) return false;
+
+        if (frictionFee > 0) {
+
+            uint64_t reserveScoins = frictionFee / 2;
+            uint64_t buyScoins  = frictionFee - reserveScoins;  // handle odd amount
+            shared_ptr<CAccount> spFcoinAccount = make_shared<CAccount>();
+            const auto &fcoinRegid = SysCfg().GetFcoinGenesisRegId();
+            if (!GetAccount(fcoinRegid, spFcoinAccount)) {
+                return state.DoS(100, ERRORMSG("%s, read fcoinGenesisUid %s account info error",
+                        DEAL_ITEM_TITLE, fcoinRegid.ToString()), READ_ACCOUNT_FAIL, "bad-read-accountdb");
+            }
+
+            // 1) transfer all risk fee to risk-reserve
+            if (!fromAccount.OperateBalance(SYMB::WUSD, BalanceOpType::SUB_FREE, frictionFee,
+                                                    ReceiptType::CDP_PENALTY_TO_RESERVE, receipts, spFcoinAccount.get())) {
+                return state.DoS(100, ERRORMSG("transfer risk fee to risk-reserve account failed"),
+                                UPDATE_ACCOUNT_FAIL, "transfer-risk-fee-failed");
+            }
+
+            // 2) sell 50% risk fees and burn it
+            // should freeze user's coin for buying the WGRT
+            if (buyScoins > 0) {
+                if (!spFcoinAccount->OperateBalance(SYMB::WUSD, BalanceOpType::FREEZE, buyScoins,
+                                                        ReceiptType::CDP_PENALTY_TO_RESERVE, receipts)) {
+                    return state.DoS(100, ERRORMSG("account has insufficient funds"),
+                                    UPDATE_ACCOUNT_FAIL, "operate-fcoin-genesis-account-failed");
+                }
+                uint256 orderId = tx.GetHash();
+                auto pSysBuyMarketOrder = dex::CSysOrder::CreateBuyMarketOrder(context.GetTxCord(), buyOrder.asset_symbol, SYMB::WGRT, buyScoins);
+                if (!cw.dexCache.CreateActiveOrder(orderId, *pSysBuyMarketOrder)) {
+                    return state.DoS(100, ERRORMSG("create system buy order failed, orderId=%s", orderId.ToString()),
+                                    CREATE_SYS_ORDER_FAILED, "create-sys-order-failed");
+                }
+            }
+        }
         return true;
     }
 
