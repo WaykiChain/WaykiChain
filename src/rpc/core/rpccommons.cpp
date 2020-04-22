@@ -215,7 +215,7 @@ Object GetTxDetailJSON(const CBlockHeader& header,const shared_ptr<CBaseTx> pBas
     //obj = pBaseTx->IsMultiSignSupport()?pBaseTx->ToJsonMultiSign(*database):pBaseTx->ToJson(*pCdMan->pAccountCache);
     obj = pBaseTx->ToJson(*pCdMan->pAccountCache);
 
-    obj.push_back(Pair("confirmations",     chainActive.Height() - (int32_t)header.GetHeight()));
+
     obj.push_back(Pair("confirmed_height",  (int32_t)header.GetHeight()));
     obj.push_back(Pair("confirmed_time",    (int32_t)header.GetTime()));
     obj.push_back(Pair("block_hash",        header.GetHash().GetHex()));
@@ -229,6 +229,7 @@ Object GetTxDetailJSON(const CBlockHeader& header,const shared_ptr<CBaseTx> pBas
     CDataStream ds(SER_DISK, CLIENT_VERSION);
     ds << pBaseTx;
     obj.push_back(Pair("rawtx", HexStr(ds.begin(), ds.end())));
+    obj.push_back(Pair("confirmations",     chainActive.Height() - (int32_t)header.GetHeight()));
 
     string trace;
     auto database = std::make_shared<CCacheWrapper>(pCdMan);
@@ -290,7 +291,7 @@ Object GetTxDetailJSON(const uint256& txid) {
             if (txid == genesisblock.GetTxid(i)) {
                 obj = genesisblock.vptx[i]->ToJson(*pCdMan->pAccountCache);
 
-                obj.push_back(Pair("confirmations",     chainActive.Height()));
+
                 obj.push_back(Pair("confirmed_height",  chainActive.Height()));
                 obj.push_back(Pair("confirmed_time",    (int32_t)genesisblock.GetTime()));
                 obj.push_back(Pair("block_hash",        genesisblock.GetHash().GetHex()));
@@ -303,6 +304,7 @@ Object GetTxDetailJSON(const uint256& txid) {
                     obj.push_back(Pair("receipts", JSON::ToJson(*pCdMan->pAccountCache, receipts)));
                 }
                 obj.push_back(Pair("rawtx", HexStr(ds.begin(), ds.end())));
+                obj.push_back(Pair("confirmations",     chainActive.Height()));
 
                 return obj;
             }
