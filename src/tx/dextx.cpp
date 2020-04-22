@@ -1110,7 +1110,7 @@ namespace dex {
 
             // 1) transfer all risk fee to risk-reserve
             if (!fromAccount.OperateBalance(SYMB::WUSD, BalanceOpType::SUB_FREE, frictionFee,
-                                                    ReceiptType::CDP_PENALTY_TO_RESERVE, receipts, spFcoinAccount.get())) {
+                                                    ReceiptType::SOIN_FRICTION_FEE_TO_RESERVE, receipts, spFcoinAccount.get())) {
                 return state.DoS(100, ERRORMSG("transfer risk fee to risk-reserve account failed"),
                                 UPDATE_ACCOUNT_FAIL, "transfer-risk-fee-failed");
             }
@@ -1119,7 +1119,7 @@ namespace dex {
             // should freeze user's coin for buying the WGRT
             if (buyScoins > 0) {
                 if (!spFcoinAccount->OperateBalance(SYMB::WUSD, BalanceOpType::FREEZE, buyScoins,
-                                                        ReceiptType::CDP_PENALTY_TO_RESERVE, receipts)) {
+                                                        ReceiptType::BUY_FCOINS_FOR_DEFLATION, receipts)) {
                     return state.DoS(100, ERRORMSG("account has insufficient funds"),
                                     UPDATE_ACCOUNT_FAIL, "operate-fcoin-genesis-account-failed");
                 }
