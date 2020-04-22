@@ -818,14 +818,18 @@ namespace dex {
         uint64_t actualReceivedCoins = dealItem.dealCoinAmount;
         uint64_t actualReceivedAssets = dealItem.dealAssetAmount;
 
+        FeatureForkVersionEnum version = GetFeatureForkVersion(context.height);
+
         // 8. process WUSD friction fee payed for risk-reserve
-        uint64_t frictionFee;
-        if (buyOrder.coin_symbol == SYMB::WUSD) {
-            if (!ProcessWusdFrictionFee(*pBuyOrderAccount, dealItem.dealAssetAmount, frictionFee)) return false;
-            actualReceivedCoins -= frictionFee;
-        } else if (sellOrder.asset_symbol == SYMB::WUSD) {
-            if (!ProcessWusdFrictionFee(*pSellOrderAccount, dealItem.dealAssetAmount, frictionFee)) return false;
-            actualReceivedAssets -= frictionFee;
+        if (version >= FeatureForkVersionEnum::MAJOR_VER_R3) {
+            uint64_t frictionFee;
+            if (buyOrder.coin_symbol == SYMB::WUSD) {
+                if (!ProcessWusdFrictionFee(*pBuyOrderAccount, dealItem.dealAssetAmount, frictionFee)) return false;
+                actualReceivedCoins -= frictionFee;
+            } else if (sellOrder.asset_symbol == SYMB::WUSD) {
+                if (!ProcessWusdFrictionFee(*pSellOrderAccount, dealItem.dealAssetAmount, frictionFee)) return false;
+                actualReceivedAssets -= frictionFee;
+            }
         }
 
         // 9. calc deal fees for dex operator
@@ -837,22 +841,22 @@ namespace dex {
         if (!CalcOrderFee(dealItem.dealAssetAmount, buyOperatorFeeRatio, dealAssetFee))
             return false;
 
-        // 8.2. calc deal coin fee payed by seller for sell operator
+        // 9.2. calc deal coin fee payed by seller for sell operator
         uint64_t dealCoinFee = 0;
         uint64_t sellOperatorFeeRatio = GetOperatorFeeRatio(sellOrder, sellOrderOperatorParams, takerSide);
         if (!CheckOperatorFeeRatioRange(context, dealItem.sellOrderId, sellOperatorFeeRatio, DEAL_ITEM_TITLE))
             return false;
         if (!CalcOrderFee(dealItem.dealCoinAmount, sellOperatorFeeRatio, dealCoinFee)) return false;
 
-        // 9. Deal for the coins and assets
-        // 9.1 buyer's coins -> seller
+        // 10. Deal for the coins and assets
+        // 10.1 buyer's coins -> seller
         if (!pBuyOrderAccount->OperateBalance(buyOrder.coin_symbol, DEX_DEAL, dealItem.dealCoinAmount,
                                               ReceiptType::DEX_COIN_TO_SELLER, receipts, pSellOrderAccount.get())) {
             return state.DoS(100, ERRORMSG("%s, deal buyer's coins failed! deal_info={%s}, coin_symbol=%s",
                     DEAL_ITEM_TITLE, dealItem.ToString(), buyOrder.coin_symbol),
                     REJECT_INVALID, "deal-buyer-coins-failed");
         }
-        // 9.2 seller's assets -> buyer
+        // 10.2 seller's assets -> buyer
         if (!pSellOrderAccount->OperateBalance(sellOrder.asset_symbol, DEX_DEAL, dealItem.dealAssetAmount,
                                               ReceiptType::DEX_ASSET_TO_BUYER, receipts, pBuyOrderAccount.get())) {
             return state.DoS(100, ERRORMSG("%s, deal seller's assets failed! deal_info={%s}, asset_symbol=%s",
@@ -860,8 +864,8 @@ namespace dex {
                     REJECT_INVALID, "deal-seller-assets-failed");
         }
 
-        // 10. transfer the deal fee of coins and assets to dex operators
-        // 10.1. transfer deal coin fee from seller to sell operator
+        // 11. transfer the deal fee of coins and assets to dex operators
+        // 11.1. transfer deal coin fee from seller to sell operator
         if (!pSellOrderAccount->OperateBalance(sellOrder.coin_symbol, SUB_FREE, dealCoinFee,
                                                ReceiptType::DEX_COIN_FEE_TO_OPERATOR, receipts,
                                                pSellMatchAccount.get())) {
@@ -872,7 +876,7 @@ namespace dex {
                     REJECT_INVALID, "transfer-deal-coin-fee-failed");
         }
 
-        // 10.2. transfer deal asset fee from buyer to buy operator
+        // 11.2. transfer deal asset fee from buyer to buy operator
         if (!pBuyOrderAccount->OperateBalance(buyOrder.asset_symbol, SUB_FREE, dealAssetFee,
                                               ReceiptType::DEX_ASSET_FEE_TO_OPERATOR, receipts,
                                               pBuyMatchAccount.get())) {
@@ -882,7 +886,7 @@ namespace dex {
                 REJECT_INVALID, "transfer-deal-asset-fee-failed");
         }
 
-        // 11. check order fullfiled or save residual amount
+        // 12. check order fullfiled or save residual amount
         if (buyResidualAmount == 0) { // buy order fulfilled
             if (buyOrder.order_type == ORDER_LIMIT_PRICE) {
                 if (buyOrder.coin_amount > buyOrder.total_deal_coin_amount) {
