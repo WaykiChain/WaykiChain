@@ -1126,7 +1126,7 @@ namespace dex {
                 CHashWriter hashWriter(SER_GETHASH, 0);
                 hashWriter << tx.GetHash() << SYMB::WUSD << idx;
                 uint256 orderId = hashWriter.GetHash();
-                auto pSysBuyMarketOrder = dex::CSysOrder::CreateBuyMarketOrder(context.GetTxCord(), buyOrder.asset_symbol, SYMB::WGRT, buyScoins);
+                auto pSysBuyMarketOrder = dex::CSysOrder::CreateBuyMarketOrder(context.GetTxCord(), SYMB::WUSD, SYMB::WGRT, buyScoins);
                 if (!cw.dexCache.CreateActiveOrder(orderId, *pSysBuyMarketOrder)) {
                     return state.DoS(100, ERRORMSG("create system buy order failed, orderId=%s", orderId.ToString()),
                                     CREATE_SYS_ORDER_FAILED, "create-sys-order-failed");

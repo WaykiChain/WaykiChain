@@ -375,7 +375,7 @@ bool CCdpForceLiquidator::Execute() {
         uint256 assetSellOrderId;
         shared_ptr<CDEXOrderDetail> pAssetSellOrder;
         if (!SellAssetToRiskRevervePool(cdp, cdpCoinPair.bcoin_symbol, cdp.total_staked_bcoins,
-                                        cdpCoinPair.bcoin_symbol, assetSellOrderId, pAssetSellOrder,
+                                        cdpCoinPair.scoin_symbol, assetSellOrderId, pAssetSellOrder,
                                         receipts))
             return false;
 
