@@ -594,7 +594,9 @@ namespace dex {
 
         bool GetAccount(const CRegID &regid, shared_ptr<CAccount> &pAccount);
 
-        bool CalcOrderFee(uint64_t amount, uint64_t feeRatio, uint64_t &orderFee);
+        bool CalcDealFee(const uint256 &orderId, const CDEXOrderDetail &order,
+                          const COrderOperatorParams &orderOperatorParams,
+                          const OrderSide &takerSide, uint64_t amount, uint64_t &orderFee);
 
         bool CalcWusdFrictionFee(uint64_t amount, uint64_t &frictionFee);
 
@@ -833,18 +835,14 @@ namespace dex {
         // 9. calc deal fees for dex operator
         // 9.1. calc deal asset fee payed by buyer for buy operator
         uint64_t dealAssetFee = 0;
-        uint64_t buyOperatorFeeRatio = GetOperatorFeeRatio(buyOrder, buyOrderOperatorParams, takerSide);
-        if (!CheckOperatorFeeRatioRange(context, dealItem.buyOrderId, buyOperatorFeeRatio, DEAL_ITEM_TITLE))
+        if (!CalcDealFee(dealItem.buyOrderId, buyOrder, buyOrderOperatorParams, takerSide,
+                          dealItem.dealAssetAmount, dealAssetFee))
             return false;
-        if (!CalcOrderFee(dealItem.dealAssetAmount, buyOperatorFeeRatio, dealAssetFee))
-            return false;
-
         // 9.2. calc deal coin fee payed by seller for sell operator
         uint64_t dealCoinFee = 0;
-        uint64_t sellOperatorFeeRatio = GetOperatorFeeRatio(sellOrder, sellOrderOperatorParams, takerSide);
-        if (!CheckOperatorFeeRatioRange(context, dealItem.sellOrderId, sellOperatorFeeRatio, DEAL_ITEM_TITLE))
+        if (!CalcDealFee(dealItem.sellOrderId, sellOrder, sellOrderOperatorParams, takerSide,
+                          dealItem.dealCoinAmount, dealCoinFee))
             return false;
-        if (!CalcOrderFee(dealItem.dealCoinAmount, sellOperatorFeeRatio, dealCoinFee)) return false;
 
         // 10. check total trading fees
         if (!CheckTotalTradingFees(dealItem.dealCoinAmount, frictionCoinFee, dealCoinFee, "coin")) return false;
@@ -1068,10 +1066,20 @@ namespace dex {
         return true;
     }
 
-    bool CDealItemExecuter::CalcOrderFee(uint64_t amount, uint64_t feeRatio, uint64_t &orderFee) {
+    bool CDealItemExecuter::CalcDealFee(const uint256 &orderId, const CDEXOrderDetail &order,
+                                         const COrderOperatorParams &orderOperatorParams,
+                                         const OrderSide &takerSide, uint64_t amount,
+                                         uint64_t &orderFee) {
+
+        uint64_t feeRatio;
+        uint64_t buyOperatorFeeRatio = GetOperatorFeeRatio(order, orderOperatorParams, takerSide);
+        if (!CheckOperatorFeeRatioRange(context, orderId, buyOperatorFeeRatio, DEAL_ITEM_TITLE))
+            return false;
         if (!CalcAmountByRatio(amount, feeRatio, PRICE_BOOST, orderFee))
-            return context.pState->DoS(100, ERRORMSG("%s, the calc_order_fee out of range! amount=%llu, "
-                "fee_ratio=%llu", DEAL_ITEM_TITLE,  amount, feeRatio), REJECT_INVALID, "calc-order-fee-error");
+            return context.pState->DoS(100, ERRORMSG("%s, the calc_deal_fee out of range! amount=%llu, "
+                "fee_ratio=%llu, side=%s", DEAL_ITEM_TITLE,  amount, feeRatio,
+                kOrderSideHelper.GetName(order.order_side)),
+                REJECT_INVALID, "calc-deal-fee-error");
         return true;
     }
 
