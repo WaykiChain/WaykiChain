@@ -236,9 +236,7 @@ namespace dex {
 
     bool CDEXOrderBaseTx::CheckMinFee(CTxExecuteContext &context, uint64_t minFee) const {
 
-        if (txUid.is<CPubKey>()) {
-            return CBaseTx::CheckMinFee(context, minFee);
-        } else if (has_operator_config && operator_tx_fee != 0) {
+        if (has_operator_config && operator_tx_fee != 0) {
             DexOperatorDetail operatorDetail;
             if (!GetOrderOperator(context, operatorDetail)) return false;
             CAccount operatorAccount;
@@ -530,12 +528,7 @@ namespace dex {
 
 
     bool CDEXCancelOrderTx::CheckMinFee(CTxExecuteContext &context, uint64_t minFee) const {
-
-        if (txUid.is<CPubKey>()) {
-            return CBaseTx::CheckMinFee(context, minFee);
-        } else {
-            return dex::CheckOrderMinFee(*this, context, minFee, nullptr, 0);
-        }
+        return dex::CheckOrderMinFee(*this, context, minFee, nullptr, 0);
     }
 
     #define DEAL_ITEM_TITLE ERROR_TITLE(tx.GetTxTypeName() + strprintf(", i[%d]", idx))
