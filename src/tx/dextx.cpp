@@ -1123,7 +1123,9 @@ namespace dex {
                     return state.DoS(100, ERRORMSG("account has insufficient funds"),
                                     UPDATE_ACCOUNT_FAIL, "operate-fcoin-genesis-account-failed");
                 }
-                uint256 orderId = tx.GetHash();
+                CHashWriter hashWriter(SER_GETHASH, 0);
+                hashWriter << tx.GetHash() << SYMB::WUSD << index;
+                uint256 orderId = hashWriter.GetHash();
                 auto pSysBuyMarketOrder = dex::CSysOrder::CreateBuyMarketOrder(context.GetTxCord(), buyOrder.asset_symbol, SYMB::WGRT, buyScoins);
                 if (!cw.dexCache.CreateActiveOrder(orderId, *pSysBuyMarketOrder)) {
                     return state.DoS(100, ERRORMSG("create system buy order failed, orderId=%s", orderId.ToString()),
