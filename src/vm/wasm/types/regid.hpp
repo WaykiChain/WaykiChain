@@ -9,36 +9,7 @@
 
 namespace wasm {
 
-    constexpr bool is_digit(char c) {
-        return c >= '0' && c <= '9';
-    }
-
-    constexpr int stoi_impl(const char* str, int value = 0) {
-        return *str ?
-                is_digit(*str) ?
-                    stoi_impl(str + 1, (*str - '0') + value * 10)
-                    : throw runtime_error(string("stoi_impl() error:") + *str + " not a digit")
-                : value;
-    }
-
-    constexpr int stoi(const char* str) {
-        return stoi_impl(str);
-    }
-
-    constexpr inline uint64_t string_to_regid( const char * s ) {
-
-        std::string_view str = std::string_view(s);
-        int pos = str.find('-');
-        if (pos < 0) throw runtime_error(string("invalid regid=") + s);
-
-        uint64_t height   = stoi(str.substr(0, pos).data());
-        uint64_t index    = stoi(str.substr(pos + 1).data());
-
-        return (height << 20) + index;
-    }
-
-
-    //#define REGID( X ) string_to_regid(#X)
+    // #define REGID( X ) regid_to_int(#X)
     #define REGID(h, i) ((uint64_t(h) << 20) + i)
 
     //for account identity in wasm
