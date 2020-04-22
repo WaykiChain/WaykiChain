@@ -32,6 +32,8 @@ static const uint64_t FCOIN_VOTEMINE_EPOCH_TO   = 1792116960;  // Fri Oct 16 202
 static const uint32_t CDP_FORCE_LIQUIDATE_MAX_COUNT = 1000;  // depends on TPS
 static const uint32_t CDP_SETTLE_INTEREST_MAX_COUNT = 100;
 
+static const uint64_t CDP_SYSORDER_PENALTY_FEE_MIN = 10;
+
 static const double TRANSACTION_PRIORITY_CEILING      = 1000.0;  // Most trx priority is less than 1000.0
 static const double PRICE_MEDIAN_TRANSACTION_PRIORITY = 10000.0;
 static const double PRICE_FEED_TRANSACTION_PRIORITY   = 20000.0;
@@ -56,7 +58,6 @@ enum CdpParamType : uint8_t {
     CDP_BCOINSTOSTAKE_AMOUNT_MIN_IN_SCOIN   = 9,
     CDP_INTEREST_PARAM_A                    = 10,
     CDP_INTEREST_PARAM_B                    = 11,
-    CDP_SYSORDER_PENALTY_FEE_MIN            = 12,
     CDP_CONVERT_INTEREST_TO_DEBT_DAYS       = 13, //beyond this will result in force converting interest to debt
 
 };
@@ -74,7 +75,6 @@ static const unordered_map<string, CdpParamType> paramNameToCdpParamTypeMap = {
     {"CDP_BCOINSTOSTAKE_AMOUNT_MIN_IN_SCOIN",           CDP_BCOINSTOSTAKE_AMOUNT_MIN_IN_SCOIN   },
     {"CDP_INTEREST_PARAM_A",                            CDP_INTEREST_PARAM_A                    },
     {"CDP_INTEREST_PARAM_B",                            CDP_INTEREST_PARAM_B                    },
-    {"CDP_SYSORDER_PENALTY_FEE_MIN",                    CDP_SYSORDER_PENALTY_FEE_MIN            },
     {"CDP_CONVERT_INTEREST_TO_DEBT_DAYS",               CDP_CONVERT_INTEREST_TO_DEBT_DAYS       }
 };
 
@@ -94,8 +94,7 @@ static const unordered_map<CdpParamType, std::tuple< uint64_t,string >, CdpParam
         { CDP_LIQUIDATE_DISCOUNT_RATIO,             make_tuple(  9700,         "CDP_LIQUIDATE_DISCOUNT_RATIO")            },  // discount: 97%
         { CDP_BCOINSTOSTAKE_AMOUNT_MIN_IN_SCOIN,    make_tuple(  90000000,     "CDP_BCOINSTOSTAKE_AMOUNT_MIN_IN_SCOIN")   },  // 0.9 WUSD, dust amount (<0.9) rejected
         { CDP_INTEREST_PARAM_A,                     make_tuple(  2,            "CDP_INTEREST_PARAM_A")                    },  // a = 2
-        { CDP_INTEREST_PARAM_B,                     make_tuple(  1,            "CDP_INTEREST_PARAM_B")                    },  // b = 1
-        { CDP_SYSORDER_PENALTY_FEE_MIN,             make_tuple(  10,           "CDP_SYSORDER_PENALTY_FEE_MIN")            },  // min penalty fee = 10
+        { CDP_INTEREST_PARAM_B,                     make_tuple(  1,            "CDP_INTEREST_PARAM_B")                    },  // min penalty fee = 10
         { CDP_CONVERT_INTEREST_TO_DEBT_DAYS,        make_tuple(  30,           "CDP_CONVERT_INTEREST_TO_DEBT_DAYS")       },  // after 30 days, unpaid interest will be converted into debt
 };
 
@@ -110,7 +109,6 @@ static const unordered_map<CdpParamType, std::pair<uint64_t,uint64_t>, CdpParamT
         { CDP_BCOINSTOSTAKE_AMOUNT_MIN_IN_SCOIN,    RANGE(0,0)          },  // 0.9 WUSD, dust amount (<0.9) rejected
         { CDP_INTEREST_PARAM_A,                     RANGE(0,0)          },  // a = 2
         { CDP_INTEREST_PARAM_B,                     RANGE(0,0)          },  // b = 1
-        { CDP_SYSORDER_PENALTY_FEE_MIN,             RANGE(0,0)          },  // min penalty fee = 10
         { CDP_CONVERT_INTEREST_TO_DEBT_DAYS,        RANGE(0,3650)       },  // max 10 years
 };
 

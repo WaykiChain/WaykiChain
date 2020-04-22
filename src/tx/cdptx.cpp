@@ -998,12 +998,15 @@ bool CCDPLiquidateTx::ProcessPenaltyFees(CTxExecuteContext &context, const CUser
                         READ_ACCOUNT_FAIL, "bad-read-accountdb");
     }
 
-    CCdpCoinPair cdpCoinPair(cdp.bcoin_symbol, cdp.scoin_symbol);
-    uint64_t minSysOrderPenaltyFee;
-    if (!ReadCdpParam(*this, context, cdpCoinPair, CDP_SYSORDER_PENALTY_FEE_MIN, minSysOrderPenaltyFee))
-        return false;
-
-    if (scoinPenaltyFees > minSysOrderPenaltyFee ) { //10+ WUSD
+    FeatureForkVersionEnum version = GetFeatureForkVersion(context.height);
+    if (version < FeatureForkVersionEnum::MAJOR_VER_R3 && scoinPenaltyFees <= CDP_SYSORDER_PENALTY_FEE_MIN) {
+        // send penalty fees into risk reserve directly
+        if (!fcoinGenesisAccount.OperateBalance(cdp.scoin_symbol, BalanceOpType::ADD_FREE, scoinPenaltyFees,
+                                                ReceiptType::CDP_PENALTY_TO_RESERVE, receipts)) {
+            return state.DoS(100, ERRORMSG("CCDPLiquidateTx::ExecuteTx, add scoins to fcoin genesis account failed"),
+                             UPDATE_ACCOUNT_FAIL, "add-scoins-to-fcoin-genesis-account-failed");
+        }
+    } else {
         uint64_t halfScoinsPenalty = scoinPenaltyFees / 2;
         uint64_t leftScoinPenalty  = scoinPenaltyFees - halfScoinsPenalty;  // handle odd amount
 
@@ -1038,13 +1041,6 @@ bool CCDPLiquidateTx::ProcessPenaltyFees(CTxExecuteContext &context, const CUser
         CUserID fcoinGenesisUid(fcoinGenesisAccount.regid);
         receipts.emplace_back(ReceiptType::CDP_PENALTY_TO_RESERVE, BalanceOpType::FREEZE, nullId, fcoinGenesisUid, cdp.scoin_symbol, halfScoinsPenalty);
         receipts.emplace_back(ReceiptType::CDP_PENALTY_BUY_DEFLATE_FCOINS, BalanceOpType::FREEZE, nullId, fcoinGenesisUid, cdp.scoin_symbol, leftScoinPenalty);
-    } else {
-        // send penalty fees into risk reserve
-        if (!fcoinGenesisAccount.OperateBalance(cdp.scoin_symbol, BalanceOpType::ADD_FREE, scoinPenaltyFees,
-                                                ReceiptType::CDP_PENALTY_TO_RESERVE, receipts)) {
-            return state.DoS(100, ERRORMSG("CCDPLiquidateTx::ExecuteTx, add scoins to fcoin genesis account failed"),
-                             UPDATE_ACCOUNT_FAIL, "add-scoins-to-fcoin-genesis-account-failed");
-        }
     }
 
     if (!cw.accountCache.SetAccount(fcoinGenesisAccount.keyid, fcoinGenesisAccount))
