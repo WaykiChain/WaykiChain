@@ -102,8 +102,8 @@ static const unordered_map<CdpParamType, std::pair<uint64_t,uint64_t>, CdpParamT
         { CDP_GLOBAL_COLLATERAL_CEILING_AMOUNT,     RANGE(0,0)          },  // 25% * 210000000
         { CDP_GLOBAL_COLLATERAL_RATIO_MIN,          RANGE(0,0)          },  // 80% * 10000
         { CDP_START_COLLATERAL_RATIO,               RANGE(10000,100000) },  // 190% * 10000 : starting collateral ratio
-        { CDP_START_LIQUIDATE_RATIO,                RANGE(10000,15000)  },  // 1.13 ~ 1.5  : common liquidation
-        { CDP_NONRETURN_LIQUIDATE_RATIO,            RANGE(10400,11300)  },  // 1.04 ~ 1.13 : Non-return to CDP owner
+        { CDP_START_LIQUIDATE_RATIO,                RANGE(11300,20000)  },  // 1.13 ~ 1.5  : common liquidation
+        { CDP_NONRETURN_LIQUIDATE_RATIO,            RANGE(10400,20000)  },  // 1.04 ~ 1.13 : Non-return to CDP owner
         { CDP_FORCE_LIQUIDATE_RATIO,                RANGE(10000,10400)  },  // 0 ~ 1.04    : forced liquidation only
         { CDP_LIQUIDATE_DISCOUNT_RATIO,             RANGE(0,10000)      },  // discount: 97%
         { CDP_BCOINSTOSTAKE_AMOUNT_MIN_IN_SCOIN,    RANGE(0,0)          },  // 0.9 WUSD, dust amount (<0.9) rejected
