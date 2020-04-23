@@ -299,7 +299,7 @@ shared_ptr<CAccount> CBaseTx::GetAccount(CTxExecuteContext &context, const CUser
     CKeyID keyid;
     if (!context.pCw->accountCache.GetKeyId(uid, keyid)) {
         if (checkError)
-            context.pState->DoS(100, ERRORMSG("%s, %s account dos not exist, uid=%s", GetTxTypeName(), name, uid.ToString()),
+            context.pState->DoS(100, ERRORMSG("%s, %s account not exist, uid=%s", GetTxTypeName(), name, uid.ToString()),
                                     REJECT_INVALID, "uid-not-exist");
         return nullptr;
     }
@@ -310,7 +310,7 @@ shared_ptr<CAccount> CBaseTx::GetAccount(CTxExecuteContext &context, const CUser
         shared_ptr<CAccount> spAccount = make_shared<CAccount>();
         if (!context.pCw->accountCache.GetAccount(uid, *spAccount)) {
             if (checkError)
-                context.pState->DoS(100, ERRORMSG("%s, %s account dos not exist, uid=%s", GetTxTypeName(), name, txUid.ToString()),
+                context.pState->DoS(100, ERRORMSG("%s, %s account not exist, uid=%s", GetTxTypeName(), name, txUid.ToString()),
                                         REJECT_INVALID, "account-not-exist");
             return nullptr;
         }

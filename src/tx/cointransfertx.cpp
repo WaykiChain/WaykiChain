@@ -27,34 +27,24 @@ bool CBaseCoinTransferTx::CheckTx(CTxExecuteContext &context) {
 }
 
 bool CBaseCoinTransferTx::ExecuteTx(CTxExecuteContext &context) {
-    IMPLEMENT_DEFINE_CW_STATE;
+    CValidationState &state = *context.pState;
 
-    shared_ptr<CAccount> spDestAccount = nullptr;
-    {
-        CAccount *pDestAccount = nullptr;
-        if (sp_tx_account->IsSelfUid(toUid)) {
-            pDestAccount = sp_tx_account.get(); // transfer to self account
+    shared_ptr<CAccount> spDestAccount = GetAccount(context, toUid, "toUid", false/*checkError*/);
+    if (!spDestAccount) {
+        if (toUid.is<CKeyID>()) { // first involved in transaction
+            spDestAccount = NewAccount(context, toUid.get<CKeyID>());
         } else {
-            spDestAccount = make_shared<CAccount>();
-            if (!cw.accountCache.GetAccount(toUid, *spDestAccount)) {
-                if (toUid.is<CKeyID>()) { // first involved in transaction
-                    spDestAccount->keyid = toUid.get<CKeyID>();
-                } else {
-                    return state.DoS(100, ERRORMSG("CBaseCoinTransferTx::ExecuteTx, get account info failed"),
-                                    READ_ACCOUNT_FAIL, "bad-read-accountdb");
-                }
-            }
-            pDestAccount = spDestAccount.get(); // transfer to other account
+            return state.DoS(100, ERRORMSG("%s, to account of transfer not exist, uid=%s",
+                    TX_ERR_TITLE, toUid.ToString()),
+                    READ_ACCOUNT_FAIL, "account-not-exist");
         }
-
-        if (!sp_tx_account->OperateBalance(SYMB::WICC, BalanceOpType::SUB_FREE, coin_amount,
-                                    ReceiptType::TRANSFER_ACTUAL_COINS, receipts, pDestAccount))
-            return state.DoS(100, ERRORMSG("CBaseCoinTransferTx::ExecuteTx, account has insufficient funds"),
-                            UPDATE_ACCOUNT_FAIL, "operate-minus-account-failed");
     }
-    if (spDestAccount && !cw.accountCache.SetAccount(toUid, *spDestAccount))
-        return state.DoS(100, ERRORMSG("CBaseCoinTransferTx::ExecuteTx, save account error, addr=%s",
-                         spDestAccount->keyid.ToAddress()), UPDATE_ACCOUNT_FAIL, "bad-save-account");
+    if (!sp_tx_account->OperateBalance(SYMB::WICC, BalanceOpType::SUB_FREE, coin_amount,
+                                       ReceiptType::TRANSFER_ACTUAL_COINS, receipts,
+                                       spDestAccount.get())) {
+        return state.DoS(100, ERRORMSG("%s, account has insufficient funds", TX_ERR_TITLE),
+                        UPDATE_ACCOUNT_FAIL, "account-free-insufficient");
+    }
 
     return true;
 }
@@ -149,17 +139,13 @@ bool CCoinTransferTx::ExecuteTx(CTxExecuteContext &context) {
                 uint64_t reserveScoins = frictionFee / 2;
                 uint64_t buyScoins  = frictionFee - reserveScoins;  // handle odd amount
 
-                CAccount fcoinGenesisAccount;
-                if (!cw.accountCache.GetFcoinGenesisAccount(fcoinGenesisAccount)) {
-                    return state.DoS(100, ERRORMSG("transfers[%d], read fcoinGenesisUid %s account info error",
-                            i, SysCfg().GetFcoinGenesisRegId().ToString()),
-                            READ_ACCOUNT_FAIL, "bad-read-accountdb");
-                }
+                auto spFcoinGenesisAccount = GetAccount(context, SysCfg().GetFcoinGenesisRegId(), "fcoin");
+                if (!spFcoinGenesisAccount) return false;
 
                 // 1) transfer all risk fee to risk-reserve
                 if (!sp_tx_account->OperateBalance(SYMB::WUSD, BalanceOpType::SUB_FREE, frictionFee,
                                                 ReceiptType::SOIN_FRICTION_FEE_TO_RESERVE, receipts,
-                                                &fcoinGenesisAccount)) {
+                                                spFcoinGenesisAccount.get())) {
                     return state.DoS(100, ERRORMSG("transfer risk fee to risk-reserve account failed"),
                                     UPDATE_ACCOUNT_FAIL, "transfer-risk-fee-failed");
                 }
@@ -167,7 +153,7 @@ bool CCoinTransferTx::ExecuteTx(CTxExecuteContext &context) {
                 // 2) sell 50% risk fees and burn it
                 // should freeze user's coin for buying the WGRT
                 if (buyScoins > 0) {
-                    if (!fcoinGenesisAccount.OperateBalance(SYMB::WUSD, BalanceOpType::FREEZE, buyScoins,
+                    if (!spFcoinGenesisAccount->OperateBalance(SYMB::WUSD, BalanceOpType::FREEZE, buyScoins,
                                                             ReceiptType::BUY_FCOINS_FOR_DEFLATION, receipts)) {
                         return state.DoS(100, ERRORMSG("account has insufficient funds"),
                                         UPDATE_ACCOUNT_FAIL, "operate-fcoin-genesis-account-failed");
@@ -181,49 +167,34 @@ bool CCoinTransferTx::ExecuteTx(CTxExecuteContext &context) {
                                         CREATE_SYS_ORDER_FAILED, "create-sys-order-failed");
                     }
                 }
-                if (!cw.accountCache.SaveAccount(fcoinGenesisAccount)) {
-                    return state.DoS(100, ERRORMSG("transfers[%d], update fcoin Account error", i),
-                                    UPDATE_ACCOUNT_FAIL, "bad-save-accountdb");
-                }
             }
         }
 
-        shared_ptr<CAccount> spDestAccount = nullptr;
-        {
-            CAccount *pDestAccount = nullptr;
-            if (sp_tx_account->IsSelfUid(toUid)) {
-                pDestAccount = sp_tx_account.get(); // transfer to self account
+        shared_ptr<CAccount> spDestAccount = GetAccount(context, toUid, "toUid", false/*checkError*/);
+        if (!spDestAccount) {
+            if (toUid.is<CKeyID>()) {
+                spDestAccount = NewAccount(context, toUid.get<CKeyID>());
+            } else if (toUid.is<CPubKey>()) {
+                const auto& pubkey = toUid.get<CPubKey>();
+                spDestAccount = NewAccount(context, pubkey.GetKeyId());
             } else {
-                spDestAccount = make_shared<CAccount>();
-                if (!cw.accountCache.GetAccount(toUid, *spDestAccount)) {
-                    // first-time involved in transacion
-                    if (toUid.is<CKeyID>()) {
-                        spDestAccount->keyid = toUid.get<CKeyID>();
-                    } else if (toUid.is<CPubKey>()) {
-                        spDestAccount->keyid = toUid.get<CPubKey>().GetKeyId();
-                    } else {
-                        return context.pState->DoS(100, ERRORMSG("%s, the toUid=%s account does not exist",
-                                TX_ERR_TITLE, toUid.ToString()), REJECT_INVALID, "account-not-exist");
-                    }
-                }
-
-                // register account, must be only one dest
-                if ( transfers.size() == 1 && toUid.is<CPubKey>() && !spDestAccount->IsRegistered()) {
-                    spDestAccount->regid = CRegID(context.height, context.index); // generate new regid for the account
-                }
-
-                pDestAccount = spDestAccount.get(); // transfer to other account
+                return state.DoS(100, ERRORMSG("%s, to account of transfer not exist, uid=%s",
+                        TX_ERR_TITLE, toUid.ToString()),
+                        READ_ACCOUNT_FAIL, "account-not-exist");
             }
-
-            if (!sp_tx_account->OperateBalance(transfer.coin_symbol, SUB_FREE, actualCoinsToSend, ReceiptType::TRANSFER_ACTUAL_COINS, receipts, pDestAccount))
-                return state.DoS(100, ERRORMSG("CCoinTransferTx::ExecuteTx, transfers[%d], failed to add coins in toUid %s account", i,
-                            toUid.ToDebugString()), UPDATE_ACCOUNT_FAIL, "failed-sub-coins");
-
+        }
+        // register account, must be only one dest
+        if ( transfers.size() == 1 && toUid.is<CPubKey>() && !spDestAccount->IsRegistered()) {
+            spDestAccount->regid = CRegID(context.height, context.index); // generate new regid for the account
+            spDestAccount->owner_pubkey = toUid.get<CPubKey>();
         }
 
-        if (spDestAccount && !cw.accountCache.SaveAccount(*spDestAccount))
-            return state.DoS(100, ERRORMSG("CCoinTransferTx::ExecuteTx, write dest addr %s account info error",
-                        toUid.ToDebugString()), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
+        if (!sp_tx_account->OperateBalance(transfer.coin_symbol, SUB_FREE, actualCoinsToSend,
+                                           ReceiptType::TRANSFER_ACTUAL_COINS, receipts,
+                                           spDestAccount.get())) {
+            return state.DoS(100, ERRORMSG("%s, transfers[%d], transfer coin failed! fromUid=%s",
+                    TX_ERR_TITLE, i, txUid.ToDebugString()), UPDATE_ACCOUNT_FAIL, "transfer-coin-failed");
+        }
     }
 
 
