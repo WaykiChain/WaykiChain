@@ -71,7 +71,6 @@ namespace dex {
 
         bool GetOrderOperator(CTxExecuteContext &context,
                               DexOperatorDetail &operatorDetail) const;
-        bool GetOperatorAccount(CTxExecuteContext &context, CRegID &operatorRegid, CAccount &account) const;
         bool CheckOrderOperatorParam(CTxExecuteContext &context, DexOperatorDetail &operatorDetail,
                               CAccount &operatorAccount) const;
 
