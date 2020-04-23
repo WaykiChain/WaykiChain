@@ -1069,10 +1069,10 @@ namespace dex {
         if (!CheckOperatorFeeRatioRange(context, orderId, buyOperatorFeeRatio, DEAL_ITEM_TITLE))
             return false;
         if (!CalcAmountByRatio(amount, feeRatio, PRICE_BOOST, orderFee))
-            return context.pState->DoS(100, ERRORMSG("%s, the calc_deal_fee out of range! amount=%llu, "
+            return context.pState->DoS(100, ERRORMSG("%s, the calc_deal_fee overflow! amount=%llu, "
                 "fee_ratio=%llu, side=%s", DEAL_ITEM_TITLE,  amount, feeRatio,
                 kOrderSideHelper.GetName(order.order_side)),
-                REJECT_INVALID, "calc-deal-fee-error");
+                REJECT_INVALID, "calc-deal-fee-overflow");
         return true;
     }
 
@@ -1082,8 +1082,9 @@ namespace dex {
                 return context.pState->DoS(100, ERRORMSG("%s, read TRANSFER_SCOIN_FRICTION_FEE_RATIO error", DEAL_ITEM_TITLE),
                                 READ_SYS_PARAM_FAIL, "bad-read-sysparamdb");
         if (!CalcAmountByRatio(amount, frictionFeeRatio, RATIO_BOOST, frictionFee))
-            return context.pState->DoS(100, ERRORMSG("%s, the calc_friction_fee out of range! amount=%llu, "
-                "fee_ratio=%llu", DEAL_ITEM_TITLE,  amount, frictionFeeRatio), REJECT_INVALID, "calc-wusd-friction-fee-error");
+            return context.pState->DoS(100, ERRORMSG("%s, the calc_friction_fee overflow! amount=%llu, "
+                "fee_ratio=%llu", DEAL_ITEM_TITLE,  amount, frictionFeeRatio),
+                REJECT_INVALID, "calc-friction-fee-overflow");
         return true;
     }
 
@@ -1117,7 +1118,7 @@ namespace dex {
                                     UPDATE_ACCOUNT_FAIL, "operate-fcoin-genesis-account-failed");
                 }
                 CHashWriter hashWriter(SER_GETHASH, 0);
-                hashWriter << tx.GetHash() << SYMB::WUSD << idx;
+                hashWriter << tx.GetHash() << SYMB::WUSD << VARINT(idx);
                 uint256 orderId = hashWriter.GetHash();
                 auto pSysBuyMarketOrder = dex::CSysOrder::CreateBuyMarketOrder(context.GetTxCord(), SYMB::WUSD, SYMB::WGRT, buyScoins);
                 if (!cw.dexCache.CreateActiveOrder(orderId, *pSysBuyMarketOrder)) {

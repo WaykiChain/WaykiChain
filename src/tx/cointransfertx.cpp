@@ -134,29 +134,55 @@ bool CCoinTransferTx::ExecuteTx(CTxExecuteContext &context) {
 
         // process WUSD transaction risk-reverse fees
         if (transfer.coin_symbol == SYMB::WUSD) {  // if transferring WUSD, must pay friction fees to the risk reserve
-            uint64_t riskReserveFeeRatio;
-            if (!cw.sysParamCache.GetParam(TRANSFER_SCOIN_FRICTION_FEE_RATIO, riskReserveFeeRatio))
-                return state.DoS(100, ERRORMSG("CCoinTransferTx::ExecuteTx, transfers[%d], read TRANSFER_SCOIN_FRICTION_FEE_RATIO error", i),
+            uint64_t frictionFeeRatio;
+            if (!cw.sysParamCache.GetParam(TRANSFER_SCOIN_FRICTION_FEE_RATIO, frictionFeeRatio))
+                return state.DoS(100, ERRORMSG("transfers[%d], read TRANSFER_SCOIN_FRICTION_FEE_RATIO error", i),
                                 READ_SYS_PARAM_FAIL, "bad-read-sysparamdb");
+            uint64_t frictionFee = 0;
+            if (!CalcAmountByRatio(transfer.coin_amount, frictionFeeRatio, RATIO_BOOST, frictionFee))
+                return state.DoS(100, ERRORMSG("transfers[%d], the calc_friction_fee overflow! amount=%llu, "
+                    "fee_ratio=%llu", i, transfer.coin_amount, frictionFeeRatio),
+                    REJECT_INVALID, "calc-friction-fee-overflow");
 
-            uint64_t reserveFeeScoins = transfer.coin_amount * riskReserveFeeRatio / RATIO_BOOST;
-            if (reserveFeeScoins > 0) {
-                actualCoinsToSend -= reserveFeeScoins;
+            if (frictionFee > 0) {
+                actualCoinsToSend -= frictionFee;
+                uint64_t reserveScoins = frictionFee / 2;
+                uint64_t buyScoins  = frictionFee - reserveScoins;  // handle odd amount
 
                 CAccount fcoinGenesisAccount;
                 if (!cw.accountCache.GetFcoinGenesisAccount(fcoinGenesisAccount)) {
-                    return state.DoS(100, ERRORMSG("CCoinTransferTx::ExecuteTx, transfers[%d],"
-                                                " read fcoinGenesisUid %s account info error",
-                                                i, SysCfg().GetFcoinGenesisRegId().ToString()), READ_ACCOUNT_FAIL, "bad-read-accountdb");
+                    return state.DoS(100, ERRORMSG("transfers[%d], read fcoinGenesisUid %s account info error",
+                            i, SysCfg().GetFcoinGenesisRegId().ToString()),
+                            READ_ACCOUNT_FAIL, "bad-read-accountdb");
                 }
 
-                if (!txAccount.OperateBalance(SYMB::WUSD, SUB_FREE, reserveFeeScoins, ReceiptType::SOIN_FRICTION_FEE_TO_RESERVE, receipts, &fcoinGenesisAccount)) {
-                    return state.DoS(100, ERRORMSG("CCoinTransferTx::ExecuteTx, add scoins to fcoin genesis account failed"),
-                                     UPDATE_ACCOUNT_FAIL, "failed-add-scoins");
+                // 1) transfer all risk fee to risk-reserve
+                if (!txAccount.OperateBalance(SYMB::WUSD, BalanceOpType::SUB_FREE, frictionFee,
+                                                ReceiptType::SOIN_FRICTION_FEE_TO_RESERVE, receipts,
+                                                &fcoinGenesisAccount)) {
+                    return state.DoS(100, ERRORMSG("transfer risk fee to risk-reserve account failed"),
+                                    UPDATE_ACCOUNT_FAIL, "transfer-risk-fee-failed");
+                }
+
+                // 2) sell 50% risk fees and burn it
+                // should freeze user's coin for buying the WGRT
+                if (buyScoins > 0) {
+                    if (!fcoinGenesisAccount.OperateBalance(SYMB::WUSD, BalanceOpType::FREEZE, buyScoins,
+                                                            ReceiptType::BUY_FCOINS_FOR_DEFLATION, receipts)) {
+                        return state.DoS(100, ERRORMSG("account has insufficient funds"),
+                                        UPDATE_ACCOUNT_FAIL, "operate-fcoin-genesis-account-failed");
+                    }
+                    CHashWriter hashWriter(SER_GETHASH, 0);
+                    hashWriter << GetHash() << SYMB::WUSD << VARINT(i);
+                    uint256 orderId = hashWriter.GetHash();
+                    auto pSysBuyMarketOrder = dex::CSysOrder::CreateBuyMarketOrder(context.GetTxCord(), SYMB::WUSD, SYMB::WGRT, buyScoins);
+                    if (!cw.dexCache.CreateActiveOrder(orderId, *pSysBuyMarketOrder)) {
+                        return state.DoS(100, ERRORMSG("create system buy order failed, orderId=%s", orderId.ToString()),
+                                        CREATE_SYS_ORDER_FAILED, "create-sys-order-failed");
+                    }
                 }
                 if (!cw.accountCache.SaveAccount(fcoinGenesisAccount)) {
-                    return state.DoS(100, ERRORMSG("CCoinTransferTx::ExecuteTx, transfers[%d],"
-                                    " update fcoinGenesisAccount info error", i),
+                    return state.DoS(100, ERRORMSG("transfers[%d], update fcoin Account error", i),
                                     UPDATE_ACCOUNT_FAIL, "bad-save-accountdb");
                 }
             }
@@ -194,7 +220,6 @@ bool CCoinTransferTx::ExecuteTx(CTxExecuteContext &context) {
                             toUid.ToDebugString()), UPDATE_ACCOUNT_FAIL, "failed-sub-coins");
 
         }
-
 
         if (spDestAccount && !cw.accountCache.SaveAccount(*spDestAccount))
             return state.DoS(100, ERRORMSG("CCoinTransferTx::ExecuteTx, write dest addr %s account info error",
