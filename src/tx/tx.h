@@ -228,7 +228,8 @@ public:
     static void UnserializePtr(Stream& is, std::shared_ptr<CBaseTx> &pBaseTx, int nType, int nVersion);
 
     shared_ptr<CAccount> GetAccount(CTxExecuteContext &context, const CUserID &uid,
-                                    const string &name, bool checkError = true);
+                                    const string &name);
+    shared_ptr<CAccount> GetAccount(CCacheWrapper &cw, const CUserID &uid);
     shared_ptr<CAccount> NewAccount(CTxExecuteContext &context, const CKeyID &keyid);
     bool SaveAllAccounts(CTxExecuteContext &context);
 

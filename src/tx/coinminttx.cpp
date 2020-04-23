@@ -25,7 +25,7 @@ bool CCoinMintTx::ExecuteTx(CTxExecuteContext &context) {
     } else if (txUid.is<CPubKey>()) {
         const CPubKey &pubkey = txUid.get<CPubKey>();
         const CKeyID &keyid = pubkey.GetKeyId();
-        sp_tx_account = GetAccount(context, txUid, "txUid", false/* checkError*/);
+        sp_tx_account = GetAccount(*context.pCw, txUid);
         if (!sp_tx_account) {
             sp_tx_account = NewAccount(context, keyid); // genrate new keyid from regid
         }

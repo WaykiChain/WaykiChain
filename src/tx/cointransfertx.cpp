@@ -29,7 +29,7 @@ bool CBaseCoinTransferTx::CheckTx(CTxExecuteContext &context) {
 bool CBaseCoinTransferTx::ExecuteTx(CTxExecuteContext &context) {
     CValidationState &state = *context.pState;
 
-    shared_ptr<CAccount> spDestAccount = GetAccount(context, toUid, "toUid", false/*checkError*/);
+    shared_ptr<CAccount> spDestAccount = GetAccount(*context.pCw, toUid);
     if (!spDestAccount) {
         if (toUid.is<CKeyID>()) { // first involved in transaction
             spDestAccount = NewAccount(context, toUid.get<CKeyID>());
@@ -170,7 +170,7 @@ bool CCoinTransferTx::ExecuteTx(CTxExecuteContext &context) {
             }
         }
 
-        shared_ptr<CAccount> spDestAccount = GetAccount(context, toUid, "toUid", false/*checkError*/);
+        shared_ptr<CAccount> spDestAccount = GetAccount(*context.pCw, toUid);
         if (!spDestAccount) {
             if (toUid.is<CKeyID>()) {
                 spDestAccount = NewAccount(context, toUid.get<CKeyID>());

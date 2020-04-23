@@ -294,13 +294,20 @@ bool CBaseTx::AddInvolvedKeyIds(vector<CUserID> uids, CCacheWrapper &cw, set<CKe
 }
 
 shared_ptr<CAccount> CBaseTx::GetAccount(CTxExecuteContext &context, const CUserID &uid,
-                                         const string &name, bool checkError) {
+                                         const string &name) {
+    shared_ptr<CAccount> spAccount = GetAccount(*context.pCw, uid);
+    if (spAccount) {
+        context.pState->DoS(100, ERRORMSG("%s, %s account not exist, uid=%s", GetTxTypeName(), name, txUid.ToString()),
+                                REJECT_INVALID, "account-not-exist");
+        return nullptr;
+    }
+    return spAccount;
+}
+
+shared_ptr<CAccount> CBaseTx::GetAccount(CCacheWrapper &cw, const CUserID &uid) {
     shared_ptr<CAccount> spAccount = nullptr;
     CKeyID keyid;
-    if (!context.pCw->accountCache.GetKeyId(uid, keyid)) {
-        if (checkError)
-            context.pState->DoS(100, ERRORMSG("%s, %s account not exist, uid=%s", GetTxTypeName(), name, uid.ToString()),
-                                    REJECT_INVALID, "uid-not-exist");
+    if (!cw.accountCache.GetKeyId(uid, keyid)) {
         return nullptr;
     }
     auto it = account_map.find(keyid);
@@ -308,10 +315,7 @@ shared_ptr<CAccount> CBaseTx::GetAccount(CTxExecuteContext &context, const CUser
         spAccount = it->second;
     } else {
         shared_ptr<CAccount> spAccount = make_shared<CAccount>();
-        if (!context.pCw->accountCache.GetAccount(uid, *spAccount)) {
-            if (checkError)
-                context.pState->DoS(100, ERRORMSG("%s, %s account not exist, uid=%s", GetTxTypeName(), name, txUid.ToString()),
-                                        REJECT_INVALID, "account-not-exist");
+        if (!cw.accountCache.GetAccount(uid, *spAccount)) {
             return nullptr;
         }
         account_map.emplace(spAccount->keyid, spAccount);
