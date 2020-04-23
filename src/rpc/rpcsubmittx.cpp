@@ -89,7 +89,8 @@ void read_file_limit(const string& path, string& data, uint64_t max_size){
     while (f.get(byte)) data.push_back(byte);
 }
 
-void read_and_validate_code(const string& path, string& code){
+//TODO: to be extended for LuaVM
+void read_and_validate_code(const string& path, string& code, VMType &type) {
 
     read_file_limit(path, code, MAX_WASM_CONTRACT_CODE_BYTES);
 
@@ -97,6 +98,8 @@ void read_and_validate_code(const string& path, string& code){
     c.insert(c.begin(), code.begin(), code.end());
     wasm_interface wasmif;
     wasmif.validate(c);
+
+    type = VMType::WASM_VM;
 }
 
 void read_and_validate_abi(const string& abi_file, string& abi){
@@ -147,8 +150,9 @@ Value submitcontractdeploytx( const Array &params, bool fHelp ) {
         auto wallet   = pWalletMain;
 
         string code, abi;
-        read_and_validate_code(params[2].get_str(), code);
-        read_and_validate_abi (params[3].get_str(), abi );
+        VMType vmType;
+        read_and_validate_code(params[2].get_str(), code, vmType);
+        read_and_validate_abi (params[3].get_str(), abi);
 
         CHAIN_ASSERT( wallet != NULL, wasm_chain::wallet_not_available_exception, "wallet error" )
         EnsureWalletIsUnlocked();
@@ -172,7 +176,7 @@ Value submitcontractdeploytx( const Array &params, bool fHelp ) {
             tx.llFees       = fee.GetAmountInSawi();
             tx.valid_height = chainActive.Tip()->height;
             tx.inline_transactions.push_back({wasmio, wasm::N(setcode), std::vector<permission>{{payer_regid.value, wasmio_owner}},
-                                             wasm::pack(std::tuple(contract.value, code, abi, ""))});
+                                             wasm::pack(std::tuple(contract.value, vmType, code, abi, ""))});
 
             //tx.signatures.push_back({payer_regid.value, vector<uint8_t>()});
             CHAIN_ASSERT( wallet->Sign(payer.keyid, tx.GetHash(), tx.signature),

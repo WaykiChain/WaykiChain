@@ -16,6 +16,8 @@
 using namespace std;
 
 /**
+ *  @@Deprecated
+ *
  *  lua contract - for blockchain tx serialization/deserialization purpose
  *      - This is a backward compability implentation,
  *      - Only universal contract tx will be allowed after the software fork height
@@ -71,15 +73,17 @@ enum VMType : uint8_t {
 };
 
 /**
- * @@Deprecated
  *
  * Used for both blockchain tx (new tx only) and levelDB Persistence (both old & new tx)
  *   serialization/deserialization purposes
+ *
+ *   shall support both Lua and WASM
  */
 class CUniversalContract  {
 public:
     VMType vm_type;
     bool upgradable;    //!< if true, the contract can be upgraded otherwise cannot anyhow.
+    CRegID maintainer;  //!< when upgradable, the maintenaner can update contract code & abi etc.
     string code;        //!< Contract code
     string memo;        //!< Contract description
     string abi;         //!< ABI for contract invocation
@@ -100,6 +104,10 @@ public:
                        const string &abiIn)
         : vm_type(vmTypeIn), upgradable(upgradableIn), code(codeIn), memo(memoIn), abi(abiIn) {}
 
+    CUniversalContract(VMType vmTypeIn, bool upgradableIn, CRegID &maintainerIn, const string &codeIn, const string &memoIn,
+                       const string &abiIn)
+        : vm_type(vmTypeIn), upgradable(upgradableIn), maintainer(maintainerIn), code(codeIn), memo(memoIn), abi(abiIn) {}
+
 public:
     inline uint32_t GetContractSize() const { return GetSerializeSize(SER_DISK, CLIENT_VERSION); }
 
@@ -115,6 +123,7 @@ public:
     IMPLEMENT_SERIALIZE(
         READWRITE((uint8_t &) vm_type);
         READWRITE(upgradable);
+        READWRITE(maintainer);
         READWRITE(code);
         READWRITE(memo);
         READWRITE(abi);
@@ -123,11 +132,12 @@ public:
     bool IsValid();
 
     string ToString() const {
-        return strprintf("vm_type=%d", vm_type) + ", " +
-        strprintf("upgradable=%d", upgradable) + ", " +
-        strprintf("code=%s", code) + ", " +
-        strprintf("memo=%s", memo) + ", " +
-        strprintf("abi=%d", abi);
+        return  strprintf("vm_type=%d", vm_type) + ", " +
+                strprintf("upgradable=%d", upgradable) + ", " +
+                strprintf("maintainer=%s", maintainer.ToString()) + ", " +
+                strprintf("code=%s", code) + ", " +
+                strprintf("memo=%s", memo) + ", " +
+                strprintf("abi=%d", abi);
     }
 };
 
