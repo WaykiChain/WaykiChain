@@ -15,7 +15,7 @@
 
 namespace wasm {
 
-	static uint64_t bank_native_module_id = wasmio_bank;//REGID(800-2);
+	static uint64_t bank_native_module_id = wasmio_bank;//REGID(0-800);
 
 	class wasm_bank_native_module: public native_module {
 

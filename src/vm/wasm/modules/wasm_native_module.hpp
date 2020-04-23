@@ -14,11 +14,9 @@
 
 namespace wasm {
 
-	static uint64_t native_module_id = wasmio;//REGID(800-1);
+	static uint64_t native_module_id = wasmio;//REGID(0-100);
 
 	class wasm_native_module: public native_module {
-
-		//uint64_t module_id = REGID(800-1);
 		public:
 	        wasm_native_module()  {}
 	        ~wasm_native_module() {}
@@ -77,16 +75,16 @@ namespace wasm {
 		       		           wasm::regid(native_module_id).to_string(),
 		                       wasm::regid(context._receiver).to_string());
 
-		        auto &db_account         = context.database.accountCache;
-		        auto &db_contract        = context.database.contractCache;
+		        auto &db_account    	= context.database.accountCache;
+		        auto &db_contract   	= context.database.contractCache;
 		        //auto &control_trx              = context.control_trx;
 
 		        //set_code_data_type set_code_data = wasm::unpack<std::tuple<uint64_t, string, string, string>>(context.trx.data);
-		        auto set_code_data  = wasm::unpack<std::tuple<uint64_t, string, string, string>>(context.trx.data);
-		        auto contract_regid = std::get<0>(set_code_data);
-		        auto code           = std::get<1>(set_code_data);
-		        auto abi            = std::get<2>(set_code_data);
-		        auto memo           = std::get<3>(set_code_data);
+		        auto set_code_data  	= wasm::unpack<std::tuple<uint64_t, string, string, string>>(context.trx.data);
+		        auto contract_regid 	= std::get<0>(set_code_data);
+		        auto code           	= std::get<1>(set_code_data);
+		        auto abi            	= std::get<2>(set_code_data);
+		        auto memo           	= std::get<3>(set_code_data);
 
 		        context.require_auth(contract_regid);
 
@@ -97,10 +95,10 @@ namespace wasm {
 		                      wasm::regid(contract_regid).to_string())
 
 		        CUniversalContract contract_store;
-		        contract_store.vm_type = VMType::WASM_VM;
-		        contract_store.code    = code;
-		        contract_store.abi     = abi;
-		        contract_store.memo    = memo;
+		        contract_store.vm_type 	= VMType::WASM_VM;
+		        contract_store.code    	= code;
+		        contract_store.abi     	= abi;
+		        contract_store.memo    	= memo;
 
 		        CHAIN_ASSERT( db_contract.SaveContract(contract.regid, contract_store),
 		                      wasm_chain::account_access_exception,
