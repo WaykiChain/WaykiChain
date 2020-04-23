@@ -108,7 +108,6 @@ uint64_t CBaseTx::GetFuelFee(CCacheWrapper &cw, int32_t height, uint32_t fuelRat
 
 bool CBaseTx::CheckBaseTx(CTxExecuteContext &context) {
     CValidationState &state = *context.pState;
-    sp_tx_account = make_shared<CAccount>();
 
     if(nTxType == BLOCK_REWARD_TX
     || nTxType == PRICE_MEDIAN_TX
@@ -117,9 +116,8 @@ bool CBaseTx::CheckBaseTx(CTxExecuteContext &context) {
     || nTxType == CDP_FORCE_SETTLE_INTEREST_TX) {
         return true;
     }
-
-    if (!GetTxAccount(context, *sp_tx_account))
-        return false; // error msg has been processed
+    sp_tx_account = GetAccount(context, txUid, "txUid");
+    if (!sp_tx_account) return false;
 
     { //1. Tx signature check
         bool signatureValid = false;
@@ -288,15 +286,6 @@ bool CBaseTx::AddInvolvedKeyIds(vector<CUserID> uids, CCacheWrapper &cw, set<CKe
             return false;
 
         keyIds.insert(keyId);
-    }
-    return true;
-}
-
-bool CBaseTx::GetTxAccount(CTxExecuteContext &context, CAccount &account) {
-
-    if (!context.pCw->accountCache.GetAccount(txUid, account)) {
-        return context.pState->DoS(100, ERRORMSG("tx %s account dos not exist, tx_uid=%s", GetTxTypeName(), txUid.ToString()),
-                                    REJECT_INVALID, "tx-account-not-exist");
     }
     return true;
 }

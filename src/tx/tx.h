@@ -226,7 +226,7 @@ public:
 
     template<typename Stream>
     static void UnserializePtr(Stream& is, std::shared_ptr<CBaseTx> &pBaseTx, int nType, int nVersion);
-    bool GetTxAccount(CTxExecuteContext &context, CAccount &account);
+
     shared_ptr<CAccount> GetAccount(CTxExecuteContext &context, const CUserID &uid, const string &name);
     shared_ptr<CAccount> NewAccount(CTxExecuteContext &context, const CKeyID &keyid);
     bool SaveAllAccounts(CTxExecuteContext &context, const CKeyID &keyid);
