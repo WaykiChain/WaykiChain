@@ -1064,9 +1064,8 @@ namespace dex {
                                          const OrderSide &takerSide, uint64_t amount,
                                          uint64_t &orderFee) {
 
-        uint64_t feeRatio;
-        uint64_t buyOperatorFeeRatio = GetOperatorFeeRatio(order, orderOperatorParams, takerSide);
-        if (!CheckOperatorFeeRatioRange(context, orderId, buyOperatorFeeRatio, DEAL_ITEM_TITLE))
+        uint64_t feeRatio = GetOperatorFeeRatio(order, orderOperatorParams, takerSide);
+        if (!CheckOperatorFeeRatioRange(context, orderId, feeRatio, DEAL_ITEM_TITLE))
             return false;
         if (!CalcAmountByRatio(amount, feeRatio, PRICE_BOOST, orderFee))
             return context.pState->DoS(100, ERRORMSG("%s, the calc_deal_fee overflow! amount=%llu, "
