@@ -14,18 +14,20 @@ bool CCoinMintTx::CheckTx(CTxExecuteContext &context) {
 }
 
 bool CCoinMintTx::ExecuteTx(CTxExecuteContext &context) {
-    CCacheWrapper &cw = *context.pCw; CValidationState &state = *context.pState;
+    CValidationState &state = *context.pState;
     CRegID newRegid = CRegID(context.height, context.index);
     sp_tx_account = make_shared<CAccount>();
 
     if (txUid.IsEmpty()) {
-        sp_tx_account->keyid = Hash160(newRegid.GetRegIdRaw()); // genrate new keyid from regid
+        sp_tx_account = NewAccount(context, Hash160(newRegid.GetRegIdRaw()));
         sp_tx_account->regid = newRegid; // generate new regid
+        // no pubkey
     } else if (txUid.is<CPubKey>()) {
         const CPubKey &pubkey = txUid.get<CPubKey>();
         const CKeyID &keyid = pubkey.GetKeyId();
-        if (!cw.accountCache.GetAccount(keyid, *sp_tx_account)) {
-            sp_tx_account->keyid = keyid; // genrate new keyid from regid
+        sp_tx_account = GetAccount(context, txUid, "txUid", false/* checkError*/);
+        if (!sp_tx_account) {
+            sp_tx_account = NewAccount(context, keyid); // genrate new keyid from regid
         }
         if (!sp_tx_account->IsRegistered()) {
             sp_tx_account->regid = newRegid; // generate new regid
@@ -40,9 +42,6 @@ bool CCoinMintTx::ExecuteTx(CTxExecuteContext &context) {
         return state.DoS(100, ERRORMSG("CCoinMintTx::ExecuteTx, operate account failed"), UPDATE_ACCOUNT_FAIL,
                          "operate-account-failed");
 
-    if (!cw.accountCache.SaveAccount(*sp_tx_account))
-        return state.DoS(100, ERRORMSG("ExecuteFullTx, write source addr %s account info error",
-                        txUid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
     return true;
 }
 
