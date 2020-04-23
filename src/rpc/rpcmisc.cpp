@@ -237,7 +237,6 @@ Value verifymessage(const Array& params, bool fHelp) {
     DEFINE( DEX_OPERATOR_LAST_ID, pDexCache, operator_last_id_cache) \
     DEFINE( DEX_OPERATOR_DETAIL,  pDexCache, operator_detail_cache) \
     DEFINE( DEX_OPERATOR_OWNER_MAP, pDexCache, operator_owner_map_cache) \
-    DEFINE( DEX_OPERATOR_TRADE_PAIR, pDexCache, operator_trade_pair_cache) \
     /**** price feed */ \
     DEFINE( MEDIAN_PRICES,        pPriceFeedCache, median_price_cache) \
     DEFINE( PRICE_FEED_COIN_PAIRS,      pPriceFeedCache,price_feed_coin_pairs_cache) \
