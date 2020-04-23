@@ -63,10 +63,10 @@ namespace wasm {
         const char* get_action_data()      { return trx.data.data(); }
         uint32_t    get_action_data_size() { return trx.data.size(); }
 
-        bool        is_account   (const uint64_t& account) const ;
-        void        require_auth (const uint64_t& account) const ;
+        bool        is_account   (const uint64_t& account) const;
+        void        require_auth (const uint64_t& account) const;
         void        require_auth2(const uint64_t& account, const uint64_t& permission) const {}
-        bool        has_authorization(const uint64_t& account) const ;
+        bool        has_authorization(const uint64_t& account) const;
         uint64_t    pending_block_time() { return control_trx.pending_block_time; }
         string      get_txid()  { return control_trx.GetHash().ToString();}
         void        exit    ()  { wasmif.exit(); }

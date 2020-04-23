@@ -1283,7 +1283,7 @@ int32_t ExGetCurRunEnvHeightFunc(lua_State *L) {
         /*
         if(lua_checkstack(L,sizeof(lua_Number))){
              lua_pushnumber(L,(lua_Number)height);
-             return 1 ;
+             return 1;
         }else{
             LogPrint(BCLog::LUAVM,"%s\n", "ExGetCurRunEnvHeightFunc stack overflow");
         }
@@ -1533,7 +1533,7 @@ static bool GetDataTableWriteOutput(lua_State *L, CVmOperate &operate) {
 
     double doubleValue = 0;
     uint16_t len = 0;
-    vector<uint8_t> vBuf ;
+    vector<uint8_t> vBuf;
     if (!(getNumberInTable(L,(char *)"addrType",doubleValue))) {
         LogPrint(BCLog::LUAVM, "WriteOutput(), get addrType failed\n");
         return false;
@@ -1619,7 +1619,7 @@ static bool GetDataTableGetContractData(lua_State *L, vector<std::shared_ptr<std
         return false;
     }
 
-    vector<uint8_t> vBuf ;
+    vector<uint8_t> vBuf;
     //取脚本id
     if (!getArrayInTable(L,(char *)"id",6,vBuf)) {
         LogPrint(BCLog::LUAVM,"idTbl not table\n");
@@ -1772,7 +1772,7 @@ int32_t ExGetUserAppAccValueFunc(lua_State *L) {
         return RetFalse("pVmRunEnv is nullptr");
 
     shared_ptr<CAppUserAccount> appAccount;
-    uint64_t valueData = 0 ;
+    uint64_t valueData = 0;
     int32_t len = 0;
     LUA_BurnAccount(L, FUEL_ACCOUNT_GET_VALUE, BURN_VER_R2);
     if (pVmRunEnv->GetAppUserAccount(accountId, appAccount)) {
@@ -1792,7 +1792,7 @@ static bool GetDataTableOutAppOperate(lua_State *L, vector<std::shared_ptr<std::
         return false;
     }
     double doubleValue = 0;
-    vector<uint8_t> vBuf ;
+    vector<uint8_t> vBuf;
     CAppFundOperate temp;
     memset(&temp,0,sizeof(temp));
     if (!(getNumberInTable(L,(char *)"operatorType",doubleValue))) {
@@ -1884,7 +1884,7 @@ int32_t ExGetUserAppAccFundWithTagFunc(lua_State *L) {
             return RetFalse("GetUserAppAccFundWithTag GetAppCFund fail");
 
         CDataStream tep(SER_DISK, CLIENT_VERSION);
-        tep << fund.GetValue() ;
+        tep << fund.GetValue();
         vector<uint8_t> TMP(tep.begin(),tep.end());
         len = RetRstToLua(L,TMP);
     }
@@ -1899,7 +1899,7 @@ static bool GetDataTableAssetOperate(lua_State *L, int32_t index, vector<std::sh
     }
 
     double doubleValue = 0;
-    vector<uint8_t> vBuf ;
+    vector<uint8_t> vBuf;
     CAssetOperate temp;
     memset(&temp,0,sizeof(temp));
 
@@ -2007,7 +2007,7 @@ int32_t ExGetBase58AddrFunc(lua_State *L) {
         LogPrint(BCLog::LUAVM, "==============%02X\n", recvKey[i]);
 
     vector<uint8_t> tmp;
-    for(int32_t i = recvKey.size() - 1; i >=0 ; i--)
+    for(int32_t i = recvKey.size() - 1; i >=0; i--)
         tmp.push_back(recvKey[i]);
 */
 
@@ -2198,7 +2198,7 @@ int32_t ExTransferSomeAsset(lua_State *L) {
     op.opType = (height > 0) ? SUB_TAG_OP : SUB_FREE_OP;
     pVmRunEnv->InsertOutAPPOperte(sendKey, op);
 
-    op.opType = (height > 0) ? ADD_TAG_OP : ADD_FREE_OP ;
+    op.opType = (height > 0) ? ADD_TAG_OP : ADD_FREE_OP;
     op.appuserIDlen = recvKey.size();
 
     for (i = 0; i < op.appuserIDlen; i++) {

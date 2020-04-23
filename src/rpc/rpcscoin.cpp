@@ -530,24 +530,24 @@ Value getclosedcdp(const Array& params, bool fHelp) {
                 + HelpExampleCli("getclosedcdp", "\"c01f0aefeeb25fd6afa596f27ee3a1e861b657d2e1c341bfd1c412e87d9135c8\"\n")
                 + "\nAs json rpc call\n"
                 + HelpExampleRpc("getclosedcdp", "\"c01f0aefeeb25fd6afa596f27ee3a1e861b657d2e1c341bfd1c412e87d9135c8\"\n")
-                ) ;
+                );
     }
 
     uint256 id = uint256S(params[0].get_str());
     std::pair<uint256, uint8_t> cdp;
-    Object obj ;
+    Object obj;
     if( pCdMan->pClosedCdpCache->GetClosedCdpById(id,cdp)){
-        obj.push_back(Pair("cdp_id", params[0].get_str())) ;
+        obj.push_back(Pair("cdp_id", params[0].get_str()));
         obj.push_back(Pair("cdp_close_txid", std::get<0>(cdp).GetHex()));
         obj.push_back(Pair("cdp_close_type", GetCdpCloseTypeName((CDPCloseType)std::get<1>(cdp))));
-        return obj ;
+        return obj;
     }
 
     if( pCdMan->pClosedCdpCache->GetClosedCdpByTxId(id,cdp)){
         obj.push_back(Pair("cdp_id", std::get<0>(cdp).GetHex()));
         obj.push_back(Pair("cdp_close_txid", params[0].get_str()));
         obj.push_back(Pair("cdp_close_type", GetCdpCloseTypeName((CDPCloseType)std::get<1>(cdp))));
-        return obj ;
+        return obj;
     }
 
     throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, strprintf("Closed CDP (%s) does not exist!", params[0].get_str()));

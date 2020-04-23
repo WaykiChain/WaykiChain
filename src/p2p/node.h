@@ -18,9 +18,9 @@
 #include "commons/random.h"
 #include "p2p/netmessage.h"
 
-class CNode ;
+class CNode;
 struct CNodeSignals;
-struct CNodeState ;
+struct CNodeState;
 
 typedef int32_t NodeId;
 extern CCriticalSection cs_nLastNodeId;
@@ -127,7 +127,7 @@ struct CNodeState {
 };
 
 // Requires cs_mapNodeState.
-CNodeState *State(NodeId pNode) ;
+CNodeState *State(NodeId pNode);
 
 /** Information about a peer */
 class CNode {
@@ -209,11 +209,11 @@ public:
     multimap<int64_t, CInv> mapAskFor;  //向网络请求交易的时间, a priority queue
 
 
-    mruset<CBlockConfirmMessage> setBlockConfirmMsgKnown ;
-    CCriticalSection cs_blockConfirm ;
+    mruset<CBlockConfirmMessage> setBlockConfirmMsgKnown;
+    CCriticalSection cs_blockConfirm;
 
-    mruset<CBlockFinalityMessage> setBlockFinalityMsgKnown ;
-    CCriticalSection cs_blockFinality ;
+    mruset<CBlockFinalityMessage> setBlockFinalityMsgKnown;
+    CCriticalSection cs_blockFinality;
 
     // Ping time measurement
     uint64_t nPingNonceSent;
@@ -376,7 +376,7 @@ public:
     void PushBlockFinalityMessage(const CBlockFinalityMessage& msg) {
         LOCK(cs_blockFinality);
         if(!setBlockFinalityMsgKnown.count(msg)){
-            PushMessage(NetMsgType::FINALITYBLOCK, msg) ;
+            PushMessage(NetMsgType::FINALITYBLOCK, msg);
             setBlockFinalityMsgKnown.insert(msg);
         }
     }

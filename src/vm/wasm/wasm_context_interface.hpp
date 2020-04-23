@@ -29,8 +29,8 @@ namespace wasm {
         virtual uint64_t receiver() = 0;//  { return 0; }
         virtual uint64_t contract() = 0;//  { return 0; }
         virtual uint64_t action  () = 0;//  { return 0; }
-        virtual const char* get_action_data     () = 0 ;// { return nullptr; }
-        virtual uint32_t    get_action_data_size() = 0 ;// { return 0;       }
+        virtual const char* get_action_data     () = 0;// { return nullptr; }
+        virtual uint32_t    get_action_data_size() = 0;// { return 0;       }
 
         virtual bool is_account       ( const uint64_t& account ) const = 0;//{ return true; }
         virtual void require_auth     ( const uint64_t& account ) const = 0;//{}

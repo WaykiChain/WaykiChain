@@ -28,7 +28,7 @@ using namespace boost;
 using namespace boost::assign;
 using namespace json_spirit;
 
-extern CPBFTMan pbftMan ;
+extern CPBFTMan pbftMan;
 
 Value getcoinunitinfo(const Array& params, bool fHelp){
     if (fHelp || params.size() > 1) {
@@ -132,14 +132,14 @@ Value getinfo(const Array& params, bool fHelp) {
     obj.push_back(Pair("tipblock_height",       chainActive.Height()));
     obj.push_back(Pair("synblock_height",       nSyncTipHeight));
 
-    CBlockIndex* localFinIndex =pbftMan.GetLocalFinIndex() ;
-    //CBlockIndex* globalFinIndex = chainActive.GetGlobalFinIndex() ;
+    CBlockIndex* localFinIndex =pbftMan.GetLocalFinIndex();
+    //CBlockIndex* globalFinIndex = chainActive.GetGlobalFinIndex();
     std::pair<int32_t ,uint256> globalfinblock = std::make_pair(0,uint256());
     pCdMan->pBlockCache->ReadGlobalFinBlock(globalfinblock);
-    obj.push_back(Pair("finblock_height",       globalfinblock.first)) ;
-    obj.push_back(Pair("finblock_hash",         globalfinblock.second.GetHex())) ;
-    obj.push_back(Pair("local_finblock_height", localFinIndex->height)) ;
-    obj.push_back(Pair("local_finblock_hash",   localFinIndex->GetBlockHash().GetHex())) ;
+    obj.push_back(Pair("finblock_height",       globalfinblock.first));
+    obj.push_back(Pair("finblock_hash",         globalfinblock.second.GetHex()));
+    obj.push_back(Pair("local_finblock_height", localFinIndex->height));
+    obj.push_back(Pair("local_finblock_hash",   localFinIndex->GetBlockHash().GetHex()));
 
     obj.push_back(Pair("connections",           (int32_t)vNodes.size()));
     obj.push_back(Pair("errors",                GetWarnings("statusbar")));

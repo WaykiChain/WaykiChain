@@ -75,8 +75,8 @@ void CCacheWrapper::CopyFrom(CCacheDBManager* pCdMan){
 
     txCache         = *pCdMan->pTxCache;
     ppCache         = *pCdMan->pPpCache;
-    sysGovernCache = *pCdMan->pSysGovernCache ;
-    priceFeedCache = *pCdMan->pPriceFeedCache ;
+    sysGovernCache = *pCdMan->pSysGovernCache;
+    priceFeedCache = *pCdMan->pPriceFeedCache;
 }
 
 CCacheWrapper& CCacheWrapper::operator=(CCacheWrapper& other) {
@@ -136,8 +136,8 @@ void CCacheWrapper::SetDbOpLogMap(CDBOpLogMap *pDbOpLogMap) {
     txReceiptCache.SetDbOpLogMap(pDbOpLogMap);
     txUtxoCache.SetDbOpLogMap(pDbOpLogMap);
     axcCache.SetDbOpLogMap(pDbOpLogMap);
-    sysGovernCache.SetDbOpLogMap(pDbOpLogMap) ;
-    priceFeedCache.SetDbOpLogMap(pDbOpLogMap) ;
+    sysGovernCache.SetDbOpLogMap(pDbOpLogMap);
+    priceFeedCache.SetDbOpLogMap(pDbOpLogMap);
 }
 
 UndoDataFuncMap CCacheWrapper::GetUndoDataFuncMap() {

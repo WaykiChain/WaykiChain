@@ -260,9 +260,9 @@ struct CUtxoCondStorageBean {
 
     unsigned int GetSerializeSize(int nType, int nVersion) const {
         if (IsEmpty())
-            return 1 ;
+            return 1;
 
-        return (*sp_utxo_cond).GetSerializeSize(nType, nVersion) + 1 ;
+        return (*sp_utxo_cond).GetSerializeSize(nType, nVersion) + 1;
     }
 
     template <typename Stream>
@@ -278,7 +278,7 @@ struct CUtxoCondStorageBean {
         ::Serialize(os, pt, nType, nVersion);
 
         if(IsEmpty())
-            return ;
+            return;
 
         switch (sp_utxo_cond->cond_type) {
             case UtxoCondType::IP2SA:

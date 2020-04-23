@@ -583,7 +583,7 @@ Value submitproposalapprovaltx(const Array& params, bool fHelp){
 
     EnsureWalletIsUnlocked();
     const CUserID& txUid = RPC_PARAM::GetUserId(params[0], true);
-    uint256 proposalId   = uint256S(params[1].get_str()) ;
+    uint256 proposalId   = uint256S(params[1].get_str());
     ComboMoney fee       = RPC_PARAM::GetFee(params, 2, PROPOSAL_APPROVAL_TX);
     UnsignedCharArray axcOutSignature;
     if (params.size() > 3) {
@@ -599,7 +599,7 @@ Value submitproposalapprovaltx(const Array& params, bool fHelp){
 
 
 
-    CProposalApprovalTx tx ;
+    CProposalApprovalTx tx;
     tx.txUid        = txUid;
     tx.llFees       = fee.GetAmountInSawi();
     tx.fee_symbol    = fee.symbol;

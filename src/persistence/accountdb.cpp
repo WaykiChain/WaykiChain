@@ -128,7 +128,7 @@ bool CAccountDBCache::SaveAccount(const CAccount &account) {
 
     accountCache.SetData(account.keyid, account);
 
-    return true ;
+    return true;
 }
 
 bool CAccountDBCache::GetUserId(const string &addr, CUserID &userId) const {

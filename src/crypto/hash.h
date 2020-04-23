@@ -100,7 +100,7 @@ inline uint256 Hash(const T1 p1begin, const T1 p1end, const T2 p2begin, const T2
 
 template <typename C>
 inline uint256 Hash(const basic_string<C>& str) {
-    return Hash(str.begin(), str.end()) ;
+    return Hash(str.begin(), str.end());
 }
 
 template <typename T>

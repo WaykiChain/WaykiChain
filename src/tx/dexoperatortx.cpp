@@ -380,8 +380,8 @@ Object CDEXOperatorUpdateTx::ToJson(const CAccountDBCache &accountCache) const {
 bool CDEXOperatorUpdateTx::CheckTx(CTxExecuteContext &context) {
     IMPLEMENT_DEFINE_CW_STATE;
 
-    string errmsg ;
-    string errcode ;
+    string errmsg;
+    string errcode;
     if(!update_data.Check(*context.pCw, errmsg ,errcode, context.height )){
         return state.DoS(100, ERRORMSG("%s", errmsg), REJECT_INVALID, errcode);
     }
@@ -392,13 +392,13 @@ bool CDEXOperatorUpdateTx::CheckTx(CTxExecuteContext &context) {
                                            update_data.ValueToString()), REJECT_INVALID, "owner-had-dexoperator");
     }
 
-    return true ;
+    return true;
 }
 
 bool CDEXOperatorUpdateTx::ExecuteTx(CTxExecuteContext &context) {
     CCacheWrapper &cw = *context.pCw; CValidationState &state = *context.pState;
 
-    DexOperatorDetail oldDetail  ;
+    DexOperatorDetail oldDetail;
     if (!cw.dexCache.GetDexOperator((DexID)update_data.dexId, oldDetail))
         return state.DoS(100, ERRORMSG("the dexoperator( id= %u) is not exist!",
                                        update_data.dexId), UPDATE_ACCOUNT_FAIL, "dexoperator-not-exist");

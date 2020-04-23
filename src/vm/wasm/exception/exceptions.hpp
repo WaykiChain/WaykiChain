@@ -9,7 +9,7 @@ namespace wasm_chain {
 
 #define CHAIN_ASSERT( expr, exception_type, ... )       \
 	if ( !( expr ) ) {                            \
-		throw exception_type( CHAIN_LOG_MESSAGE( log_level::warn, __VA_ARGS__ ) );} 
+		throw exception_type( CHAIN_LOG_MESSAGE( log_level::warn, __VA_ARGS__ ) );}
 
 #define CHAIN_THROW( exception_type, ... )       \
 		throw exception_type( CHAIN_LOG_MESSAGE( log_level::warn, __VA_ARGS__ ) );
@@ -42,7 +42,7 @@ namespace wasm_chain {
                 CHAIN_LOG_MESSAGE( log_level::warn,  ": " + tfm::format(__VA_ARGS__) + " " + e.what()), \
                 wasm_chain::std_exception_code,\
                 "std_exception", \
-                e.what() ) ; throw wasme;\
+                e.what() ); throw wasme;\
    } catch( ... ) {  \
       throw wasm_chain::unhandled_exception( \
                 CHAIN_LOG_MESSAGE( log_level::warn, tfm::format(__VA_ARGS__)), \
@@ -51,7 +51,7 @@ namespace wasm_chain {
 
 
   #define CHAIN_EXCEPTION_APPEND_LOG( E, LOG_LEVEL, ... ) \
-      E.append_log( CHAIN_LOG_MESSAGE( LOG_LEVEL, __VA_ARGS__) ) ;
+      E.append_log( CHAIN_LOG_MESSAGE( LOG_LEVEL, __VA_ARGS__) );
 
   #define CHAIN_RETHROW_EXECPTION(E, LOG_LEVEL, ...) \
       CHAIN_EXCEPTION_APPEND_LOG(E, LOG_LEVEL, __VA_ARGS__ ) \
@@ -557,36 +557,36 @@ namespace wasm_chain {
    CHAIN_DECLARE_DERIVED_EXCEPTION( native_contract_exception,    chain_exception,
                                  3260000, "Native contract exception" )
       CHAIN_DECLARE_DERIVED_EXCEPTION( native_contract_assert_exception, native_contract_exception,
-                                    3260001, "Native contract assert exception" )  
+                                    3260001, "Native contract assert exception" )
       CHAIN_DECLARE_DERIVED_EXCEPTION( native_contract_access_exception, native_contract_exception,
                                     3260002, "Native contract access exception" )
 
    CHAIN_DECLARE_DERIVED_EXCEPTION( account_exception,    chain_exception,
                                  3270000, "Account exception" )
       CHAIN_DECLARE_DERIVED_EXCEPTION( account_access_exception, account_exception,
-                                    3270001, "Account access exception" )  
+                                    3270001, "Account access exception" )
 
    CHAIN_DECLARE_DERIVED_EXCEPTION( size_exceeds_exception,    chain_exception,
                                  3280000, "Size exceeds exception" )
       CHAIN_DECLARE_DERIVED_EXCEPTION( inline_transaction_data_size_exceeds_exception, size_exceeds_exception,
-                                    3280001, "Inline transaction data size exceeds exception" ) 
+                                    3280001, "Inline transaction data size exceeds exception" )
       CHAIN_DECLARE_DERIVED_EXCEPTION( contract_code_size_exceeds_exception, size_exceeds_exception,
                                     3280002, "contract code size exceeds exception" )
       CHAIN_DECLARE_DERIVED_EXCEPTION( rpc_params_size_exceeds_exception, size_exceeds_exception,
-                                    3280003, "rpc params size exceeds exception" )  
+                                    3280003, "rpc params size exceeds exception" )
       CHAIN_DECLARE_DERIVED_EXCEPTION( inline_transaction_size_exceeds_exception, size_exceeds_exception,
-                                    3280004, "Inline transaction size exceeds exception" ) 
+                                    3280004, "Inline transaction size exceeds exception" )
       CHAIN_DECLARE_DERIVED_EXCEPTION( recipients_size_exceeds_exception, size_exceeds_exception,
-                                    3280005, "Recipients size exceeds exception" ) 
+                                    3280005, "Recipients size exceeds exception" )
       CHAIN_DECLARE_DERIVED_EXCEPTION( wasm_api_data_size_exceeds_exception, size_exceeds_exception,
-                                    3280006, "Wasm api data size exceeds exception" ) 
+                                    3280006, "Wasm api data size exceeds exception" )
       CHAIN_DECLARE_DERIVED_EXCEPTION( array_size_exceeds_exception, size_exceeds_exception,
-                                    3280007, "array size exceeds exceeds exception" ) 
+                                    3280007, "array size exceeds exceeds exception" )
 
    CHAIN_DECLARE_DERIVED_EXCEPTION( file_exception,    chain_exception,
                                  3290000, "File exception" )
       CHAIN_DECLARE_DERIVED_EXCEPTION( file_read_exception, file_exception,
-                                    3290001, "File read exception" ) 
+                                    3290001, "File read exception" )
       CHAIN_DECLARE_DERIVED_EXCEPTION( file_write_exception, file_exception,
                                     3290002, "File write exception" )
 

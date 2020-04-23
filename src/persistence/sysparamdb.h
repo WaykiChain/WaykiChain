@@ -62,7 +62,7 @@ public:
             return false;
 
         auto iter = SysParamTable.find(paramType);
-        CVarIntValue<uint64_t > value ;
+        CVarIntValue<uint64_t > value;
         if (!sys_param_chache.GetData(paramType, value)) {
             paramValue = std::get<0>(iter->second);
         } else{
@@ -78,7 +78,7 @@ public:
 
         auto iter = kCdpParamTable.find(paramType);
         auto key = std::make_pair(coinPair, paramType);
-        CVarIntValue<uint64_t > value ;
+        CVarIntValue<uint64_t > value;
         if (!cdp_param_cache.GetData(key, value)) {
             paramValue = std::get<0>(iter->second);
         } else{
@@ -132,7 +132,7 @@ public:
         new_total_bps_size_cache.RegisterUndoFunc(undoDataFuncMap);
     }
     bool SetParam(const SysParamType& key, const uint64_t& value){
-        return sys_param_chache.SetData(key, CVarIntValue(value)) ;
+        return sys_param_chache.SetData(key, CVarIntValue(value));
     }
 
     bool SetCdpParam(const CCdpCoinPair& coinPair, const CdpParamType& paramkey, const uint64_t& value) {
@@ -141,8 +141,8 @@ public:
     }
     bool SetMinerFee( const TxType txType, const string feeSymbol, const uint64_t feeSawiAmount) {
 
-        auto pa = std::make_pair(txType, feeSymbol) ;
-        return miner_fee_cache.SetData(pa , CVarIntValue(feeSawiAmount)) ;
+        auto pa = std::make_pair(txType, feeSymbol);
+        return miner_fee_cache.SetData(pa , CVarIntValue(feeSawiAmount));
 
     }
 
@@ -159,7 +159,7 @@ public:
             assert(false && "must be param_a || param_b");
             return false;
         }
-        return cdp_interest_param_changes_cache.SetData(coinPair, changeMap) ;
+        return cdp_interest_param_changes_cache.SetData(coinPair, changeMap);
     }
 
     bool GetCdpInterestParamChanges(const CCdpCoinPair& coinPair, int32_t beginHeight, int32_t endHeight,
@@ -213,17 +213,17 @@ public:
 
     bool GetMinerFee( const uint8_t txType, const string feeSymbol, uint64_t& feeSawiAmount) {
 
-        auto pa = std::make_pair(txType, feeSymbol) ;
-        CVarIntValue<uint64_t > value ;
-        bool result =  miner_fee_cache.GetData(pa , value) ;
+        auto pa = std::make_pair(txType, feeSymbol);
+        CVarIntValue<uint64_t > value;
+        bool result =  miner_fee_cache.GetData(pa , value);
 
         if(result)
             feeSawiAmount = value.get();
-        return result ;
+        return result;
     }
 
     bool GetAxcSwapGwRegId(CRegID& regid) {
-        uint64_t param ;
+        uint64_t param;
         if(GetParam(SysParamType::AXC_SWAP_GATEWAY_REGID, param)) {
             regid = CRegID(param);
             return !regid.IsEmpty();
@@ -232,7 +232,7 @@ public:
     }
 
     CRegID GetDexMatchSvcRegId() {
-        uint64_t param ;
+        uint64_t param;
         CRegID regid;
         if(GetParam(SysParamType::DEX_MATCH_SVC_REGID, param)) {
             regid = CRegID(param);
@@ -244,7 +244,7 @@ public:
     }
 public:
     bool SetNewTotalBpsSize(uint8_t newTotalBpsSize, uint32_t effectiveHeight) {
-        return new_total_bps_size_cache.SetData(std::make_pair(CVarIntValue(effectiveHeight), newTotalBpsSize)) ;
+        return new_total_bps_size_cache.SetData(std::make_pair(CVarIntValue(effectiveHeight), newTotalBpsSize));
     }
     bool SetCurrentTotalBpsSize(uint8_t totalBpsSize) {
 
@@ -280,6 +280,6 @@ public:
     CCompositeKVCache< dbk::CDP_PARAM,     pair<CCdpCoinPair,uint8_t>, CVarIntValue<uint64_t> > cdp_param_cache;
     // [prefix]cdpCoinPair -> cdp_interest_param_changes (contain all changes)
     CCompositeKVCache< dbk::CDP_INTEREST_PARAMS, CCdpCoinPair, CCdpInterestParamChangeMap>      cdp_interest_param_changes_cache;
-    CSimpleKVCache<dbk:: TOTAL_BPS_SIZE, uint8_t>                                               current_total_bps_size_cache ;
-    CSimpleKVCache<dbk:: NEW_TOTAL_BPS_SIZE, pair<CVarIntValue<uint32_t>,uint8_t>>              new_total_bps_size_cache ;
+    CSimpleKVCache<dbk:: TOTAL_BPS_SIZE, uint8_t>                                               current_total_bps_size_cache;
+    CSimpleKVCache<dbk:: NEW_TOTAL_BPS_SIZE, pair<CVarIntValue<uint32_t>,uint8_t>>              new_total_bps_size_cache;
 };

@@ -57,7 +57,7 @@ bool CBlockIndexDB::LoadBlockIndexes() {
                 pIndexNew->nFuelFee          = diskIndex.nFuelFee;
                 pIndexNew->nFuelRate      = diskIndex.nFuelRate;
                 pIndexNew->vSignature     = diskIndex.vSignature;
-                pIndexNew->miner          = diskIndex.miner ;
+                pIndexNew->miner          = diskIndex.miner;
 
                 if (!pIndexNew->CheckIndex())
                     return ERRORMSG("LoadBlockIndex() : CheckIndex failed: %s", pIndexNew->ToString());
@@ -110,7 +110,7 @@ uint32_t CBlockDBCache::GetCacheSize() const {
         best_block_hash_cache.GetCacheSize() +
         last_block_file_cache.GetCacheSize() +
         reindex_cache.GetCacheSize() +
-        finality_block_cache.GetCacheSize() ;
+        finality_block_cache.GetCacheSize();
 }
 
 bool CBlockDBCache::Flush() {
@@ -176,9 +176,9 @@ bool CBlockDBCache::ReadFlag(const string &name, bool &fValue) {
     return flag_cache.GetData(name, fValue);
 }
 bool CBlockDBCache::WriteGlobalFinBlock(const int32_t height, const uint256 hash) {
-    finality_block_cache.SetData(std::make_pair(height, hash)) ;
-    return true ;
+    finality_block_cache.SetData(std::make_pair(height, hash));
+    return true;
 }
 bool CBlockDBCache::ReadGlobalFinBlock(std::pair<int32_t,uint256>& block) {
-    return finality_block_cache.GetData(block) ;
+    return finality_block_cache.GetData(block);
 }

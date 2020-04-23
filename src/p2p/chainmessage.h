@@ -31,8 +31,8 @@ class CInv;
 class COrphanBlock;
 class CBlockConfirmMessage;
 
-extern CPBFTContext pbftContext ;
-extern CPBFTMan pbftMan ;
+extern CPBFTContext pbftContext;
+extern CPBFTMan pbftMan;
 extern CChain chainActive;
 extern uint256 GetOrphanRoot(const uint256 &hash);
 extern map<uint256, COrphanBlock *> mapOrphanBlocks;
@@ -490,7 +490,7 @@ inline bool ProcessTxMessage(CNode *pFrom, string strCommand, CDataStream &vRecv
 
     if(IsInitialBlockDownload()){
         RelayTransaction(pBaseTx.get(), inv.hash);
-        return true ;
+        return true;
     }
 
     LOCK(cs_main);
@@ -825,43 +825,43 @@ inline void ProcessFilterAddMessage(CNode *pFrom, CDataStream &vRecv) {
 bool ProcessBlockConfirmMessage(CNode *pFrom, CDataStream &vRecv) {
 
     if(SysCfg().IsReindex()|| GetTime()-chainActive.Tip()->GetBlockTime()>600){
-        LogPrint(BCLog::NET, "local tip's height is too low,drop the confirm message ") ;
-        return false ;
+        LogPrint(BCLog::NET, "local tip's height is too low,drop the confirm message ");
+        return false;
     }
 
-    CPBFTMessageMan<CBlockConfirmMessage>& msgMan = pbftContext.confirmMessageMan ;
-    CBlockConfirmMessage message ;
+    CPBFTMessageMan<CBlockConfirmMessage>& msgMan = pbftContext.confirmMessageMan;
+    CBlockConfirmMessage message;
     vRecv >> message;
 
     LogPrint(BCLog::NET, "received Block confirmedMessage: blockHeight=%d, blockHash=%s, minerid =%s, signature=%s \n",
              message.height, message.blockHash.GetHex(), message.miner.ToString(), HexStr<vector<unsigned char>>(message.vSignature));
 
-    pFrom->AddBlockConfirmMessageKnown(message) ;
+    pFrom->AddBlockConfirmMessageKnown(message);
 
     if(msgMan.IsKnown(message)){
         LogPrint(BCLog::NET, "duplicate confirm message,miner_id=%s, blockhash=%s \n",message.miner.ToString(), message.blockHash.GetHex());
-        return false ;
+        return false;
     }
 
     if(!CheckPBFTMessage(PBFTMsgType::CONFIRM_BLOCK,message)){
         LogPrint(BCLog::NET, "confirm message check failed,miner_id=%s, blockhash=%s \n",message.miner.ToString(), message.blockHash.GetHex());
-        return false ;
+        return false;
     }
 
     msgMan.AddMessageKnown(message);
     int messageCount = msgMan.SaveMessageByBlock(message.blockHash, message);
 
-    bool updateFinalitySuccess = pbftMan.UpdateLocalFinBlock(message,  messageCount) ;
+    bool updateFinalitySuccess = pbftMan.UpdateLocalFinBlock(message,  messageCount);
 
 
     if(CheckPBFTMessageSignaturer(message))
-        RelayBlockConfirmMessage(message) ;
+        RelayBlockConfirmMessage(message);
 
     if(updateFinalitySuccess){
         BroadcastBlockFinality(pbftMan.GetLocalFinIndex());
     }
 
-    return true ;
+    return true;
 }
 
 
@@ -869,25 +869,25 @@ bool ProcessBlockFinalityMessage(CNode *pFrom, CDataStream &vRecv) {
 
 
     if(SysCfg().IsReindex()|| GetTime()-chainActive.Tip()->GetBlockTime()>600)
-        return false ;
+        return false;
 
-    CPBFTMessageMan<CBlockFinalityMessage>& msgMan = pbftContext.finalityMessageMan ;
-    CBlockFinalityMessage message ;
+    CPBFTMessageMan<CBlockFinalityMessage>& msgMan = pbftContext.finalityMessageMan;
+    CBlockFinalityMessage message;
     vRecv >> message;
 
     LogPrint(BCLog::NET, "received Block FinalityMessage: blockHeight=%d, blockHash=%s, minerid =%s, signature=%s \n",
              message.height, message.blockHash.GetHex(), message.miner.ToString(), HexStr<vector<unsigned char>>(message.vSignature));
 
-    pFrom->AddBlockFinalityMessageKnown(message) ;
+    pFrom->AddBlockFinalityMessageKnown(message);
 
     if(msgMan.IsKnown(message)){
         LogPrint(BCLog::NET, "duplicate finality message,miner_id=%s, blockhash=%s \n",message.miner.ToString(), message.blockHash.GetHex());
-        return false ;
+        return false;
     }
 
     if(!CheckPBFTMessage(PBFTMsgType::FINALITY_BLOCK,message)){
         LogPrint(BCLog::NET, "finality block message check failed,miner_id=%s, blockhash=%s \n",message.miner.ToString(), message.blockHash.GetHex());
-        return false ;
+        return false;
     }
 
     msgMan.AddMessageKnown(message);
@@ -899,7 +899,7 @@ bool ProcessBlockFinalityMessage(CNode *pFrom, CDataStream &vRecv) {
     }
 
 
-    return true ;
+    return true;
 }
 inline void ProcessRejectMessage(CNode *pFrom, CDataStream &vRecv) {
     if (SysCfg().IsDebug()) {

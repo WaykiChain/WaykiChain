@@ -431,5 +431,5 @@ int32_t CBaseParams::GetMaxForkHeight(int32_t currBlockHeight) const {
     if (interval != 0)
         return nMaxForkTime / (uint32_t)interval;
 
-    return 0 ;
+    return 0;
 }

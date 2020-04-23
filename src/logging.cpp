@@ -136,7 +136,7 @@ uint64_t BCLog::Logger::GetCurrentLogSize() {
 
     if(file != nullptr)
         fclose(file);
-    return log_size ;
+    return log_size;
 
 }
 
@@ -357,7 +357,7 @@ void BCLog::Logger::LogPrintStr(const BCLog::LogFlags& category, const char* fil
 
         if(m_totoal_written_size > m_max_log_size){
             ShrinkDebugFile();
-            m_totoal_written_size = 0 ;
+            m_totoal_written_size = 0;
 
         }
 
@@ -368,8 +368,8 @@ void BCLog::Logger::ShrinkDebugFile()
 {
     assert(!m_file_path.empty());
     string new_path =  strprintf("%s%s",m_file_path.string(), ".1");
-    remove(new_path.c_str()) ;
-    rename(m_file_path.string().c_str(), new_path.c_str()) ;
-    m_reopen_file = true ;
+    remove(new_path.c_str());
+    rename(m_file_path.string().c_str(), new_path.c_str());
+    m_reopen_file = true;
 
 }

@@ -94,7 +94,7 @@ Value genutxomultisignaddr( const Array& params, bool fHelp) {
     vector<string> vAddr;
     for(auto v: uidStringArray){
         CUserID  uid = RPC_PARAM::GetUserId(v);
-        CAccount acct ;
+        CAccount acct;
         if (!pCdMan->pAccountCache->GetAccount(uid, acct))
             throw JSONRPCError(RPC_INVALID_PARAMETER, "the uid is not on chain");
 
@@ -224,12 +224,12 @@ Value submitpasswordprooftx(const Array& params, bool fHelp) {
 
     EnsureWalletIsUnlocked();
     CUserID txUid = RPC_PARAM::GetUserId(params[0], true );
-    TxID prevUtxoTxid = uint256S(params[1].get_str()) ;
-    uint16_t prevUtxoVoutIndex = params[2].get_int() ;
-    string password = params[3].get_str() ;
+    TxID prevUtxoTxid = uint256S(params[1].get_str());
+    uint16_t prevUtxoVoutIndex = params[2].get_int();
+    string password = params[3].get_str();
     CUserID preUtxoTxUid = RPC_PARAM::GetUserId(params[4]);
     CAccount preUtxoTxAccount = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, preUtxoTxUid);
-    ComboMoney fee = RPC_PARAM::GetFee(params, 5 ,TxType::UTXO_PASSWORD_PROOF_TX) ;
+    ComboMoney fee = RPC_PARAM::GetFee(params, 5 ,TxType::UTXO_PASSWORD_PROOF_TX);
     CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, txUid);
     RPC_PARAM::CheckAccountBalance(account, fee.symbol, SUB_FREE, fee.GetAmountInSawi());
 
@@ -333,15 +333,15 @@ static void TransToStorageBean(const vector<shared_ptr<CUtxoCond>>& vCond, vecto
 static void ParseUtxoInput(const Array& arr, vector<CUtxoInput>& vInput, const CKeyID& txKeyID) {
     for (auto obj : arr) {
         const Value& preTxidObj  = JSON::GetObjectFieldValue(obj, "prev_utxo_txid");
-        TxID prevUtxoTxid = uint256S(preTxidObj.get_str()) ;
+        TxID prevUtxoTxid = uint256S(preTxidObj.get_str());
         const Value& preVoutIndexObj = JSON::GetObjectFieldValue(obj,"prev_utxo_vout_index");
-        uint16_t  preUoutIndex = AmountToRawValue(preVoutIndexObj) ;
+        uint16_t  preUoutIndex = AmountToRawValue(preVoutIndexObj);
         const Array& condArray = JSON::GetObjectFieldValue(obj, "conds").get_array();
-        vector<CUtxoCondStorageBean> vCondStorageBean ;
-        vector<shared_ptr<CUtxoCond>> vCond ;
-        ParseUtxoCond(condArray, vCond,txKeyID) ;
+        vector<CUtxoCondStorageBean> vCondStorageBean;
+        vector<shared_ptr<CUtxoCond>> vCond;
+        ParseUtxoCond(condArray, vCond,txKeyID);
         CheckUtxoCondDirection(vCond, UtxoCondDirection::IN);
-        TransToStorageBean(vCond, vCondStorageBean) ;
+        TransToStorageBean(vCond, vCondStorageBean);
         CUtxoInput input = CUtxoInput(prevUtxoTxid,preUoutIndex,vCondStorageBean);
         vInput.push_back(input);
 
@@ -389,7 +389,7 @@ static void CheckUtxoCondDirection(const vector<shared_ptr<CUtxoCond>>& vCond, U
                 break;
             case NULL_UTXOCOND_TYPE:
             default:
-                throw JSONRPCError(RPC_INVALID_PARAMETER, "cond type is error") ;
+                throw JSONRPCError(RPC_INVALID_PARAMETER, "cond type is error");
 
         }
 
@@ -400,7 +400,7 @@ static void ParseUtxoCond(const Array& arr, vector<shared_ptr<CUtxoCond>>& vCond
 
     for (auto& obj : arr) {
         const Value& typeObj = JSON::GetObjectFieldValue(obj, "cond_type");
-        uint8_t typeInt = AmountToRawValue(typeObj) ;
+        uint8_t typeInt = AmountToRawValue(typeObj);
         UtxoCondType  type = UtxoCondType(typeInt);
         switch(type){
             case UtxoCondType::IP2SA: {
@@ -409,9 +409,9 @@ static void ParseUtxoCond(const Array& arr, vector<shared_ptr<CUtxoCond>>& vCond
             }
             case UtxoCondType::IP2PH: {
                 const Value& passwordObj = JSON::GetObjectFieldValue(obj,"password");
-                string password = passwordObj.get_str() ;
+                string password = passwordObj.get_str();
                 vCond.push_back(make_shared<CPasswordHashLockCondIn>(password));
-                break ;
+                break;
 
             }
             case UtxoCondType::IP2MA: {
@@ -429,7 +429,7 @@ static void ParseUtxoCond(const Array& arr, vector<shared_ptr<CUtxoCond>>& vCond
                 }
 
                 const Array& signArray = JSON::GetObjectFieldValue(obj, "signatures").get_array();
-                vector<UnsignedCharArray> vSign ;
+                vector<UnsignedCharArray> vSign;
                 for (auto s: signArray) {
                     UnsignedCharArray unsignedCharArray = ParseHex(s.get_str());
                     vSign.push_back(unsignedCharArray);
@@ -459,32 +459,32 @@ static void ParseUtxoCond(const Array& arr, vector<shared_ptr<CUtxoCond>>& vCond
             case UtxoCondType::OP2MA: {
 
 
-                const Value& addrV = JSON::GetObjectFieldValue(obj,"multisign_address") ;
-                CKeyID multiSignKeyId(addrV.get_str()) ;
+                const Value& addrV = JSON::GetObjectFieldValue(obj,"multisign_address");
+                CKeyID multiSignKeyId(addrV.get_str());
                 if (multiSignKeyId.IsNull()) {
                     throw  JSONRPCError(RPC_INVALID_PARAMETER,
                             strprintf("the multi sign address (%s) is illegal",addrV.get_str()));
                 }
-                vCond.push_back(make_shared<CMultiSignAddressCondOut>(multiSignKeyId)) ;
+                vCond.push_back(make_shared<CMultiSignAddressCondOut>(multiSignKeyId));
                 break;
             }
 
             case UtxoCondType::OCLAIM_LOCK: {
-                uint64_t height = AmountToRawValue(JSON::GetObjectFieldValue(obj, "height")) ;
-                vCond.push_back(make_shared<CClaimLockCondOut>(height)) ;
+                uint64_t height = AmountToRawValue(JSON::GetObjectFieldValue(obj, "height"));
+                vCond.push_back(make_shared<CClaimLockCondOut>(height));
                 break;
             }
 
             case UtxoCondType::ORECLAIM_LOCK: {
 
-                uint64_t height = AmountToRawValue(JSON::GetObjectFieldValue(obj, "height")) ;
-                vCond.push_back(make_shared<CReClaimLockCondOut>(height)) ;
+                uint64_t height = AmountToRawValue(JSON::GetObjectFieldValue(obj, "height"));
+                vCond.push_back(make_shared<CReClaimLockCondOut>(height));
                 break;
             }
 
             case UtxoCondType ::NULL_UTXOCOND_TYPE:
             default:
-                throw JSONRPCError(RPC_INVALID_PARAMETER, "condition type error") ;
+                throw JSONRPCError(RPC_INVALID_PARAMETER, "condition type error");
 
         }
     }

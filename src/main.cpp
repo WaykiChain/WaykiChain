@@ -68,7 +68,7 @@ extern CPBFTMan pbftMan;
 map<uint256/* blockhash */, COrphanBlock *> mapOrphanBlocks;
 multimap<uint256/* blockhash */, COrphanBlock *> mapOrphanBlocksByPrev;
 map<uint256/* blockhash */, std::shared_ptr<CBaseTx> > mapOrphanTransactions;
-extern CPBFTContext pbftContext ;
+extern CPBFTContext pbftContext;
 const string strMessageMagic = "Coin Signed Message:\n";
 
 
@@ -104,18 +104,18 @@ namespace {
 
         // First sort by most total work, ...
         if (pa->nChainWork != pb->nChainWork) {
-            return (pa->nChainWork < pb->nChainWork) ;
+            return (pa->nChainWork < pb->nChainWork);
         }
 
         // ... then by earliest time received, ...
         if (pa->nSequenceId != pb->nSequenceId) {
-            return (pa->nSequenceId > pb->nSequenceId) ;
+            return (pa->nSequenceId > pb->nSequenceId);
         }
 
         // Use pointer address as tie breaker (should only happen with blocks
         // loaded from disk, as those all have id 0).
 
-        return pa > pb ;
+        return pa > pb;
     }
 };
 
@@ -1560,7 +1560,7 @@ bool ConnectBlockOnFinChain(CBlockIndex* pNewIndex, CValidationState& state) {
 
         mempool.ReScanMemPoolTx();
     }
-    return true ;
+    return true;
 
 }
 // Try to activate to the most-work chain (thereby connecting it).
@@ -1579,13 +1579,13 @@ bool ActivateBestChain(CValidationState &state, CBlockIndex* pNewIndex) {
 
         auto height = chainActive.Height();
         while(height >= 0 ){
-            auto chainIndex = chainActive[height] ;
+            auto chainIndex = chainActive[height];
             if( chainIndex &&!chainMostWork.Contains(chainIndex)){
                 CBlockIndex* finIndex = pbftMan.GetLocalFinIndex();
                 if(finIndex && chainIndex->GetBlockHash() == finIndex->GetBlockHash()){
                     LogPrint(BCLog::INFO, "finality block can't be reverse\n");
                     if (GetTime() - pbftMan.GetLocalFinLastUpdate() > 60) {
-                        pbftMan.SetLocalFinTimeout() ;
+                        pbftMan.SetLocalFinTimeout();
                     } else{
                         LogPrint(BCLog::INFO, "connect block on fin chain\n");
                         return ConnectBlockOnFinChain(pNewIndex, state);
@@ -1595,14 +1595,14 @@ bool ActivateBestChain(CValidationState &state, CBlockIndex* pNewIndex) {
                 uint256 globalFinIndexHash = pbftMan.GetGlobalFinBlockHash();
                 if( chainIndex->GetBlockHash() == globalFinIndexHash){
                     LogPrint(BCLog::INFO, "globalfinality block can't be reverse\n");
-                    return ConnectBlockOnFinChain(pNewIndex, state) ;
+                    return ConnectBlockOnFinChain(pNewIndex, state);
                 }
 
-                height-- ;
+                height--;
             }else if (chainIndex&& chainMostWork.Contains(chainIndex)){
-                break ;
+                break;
             }else if(chainIndex == nullptr)
-                return true ;
+                return true;
         }
 
         // Disconnect active blocks which are no longer in the best chain.
@@ -1873,7 +1873,7 @@ bool ProcessForkedChain(const CBlock &block, CBlockIndex *pPreBlockIndex, CValid
     }
 
     VoteDelegate curDelegate;
-    uint32_t totalDelegateNum ;
+    uint32_t totalDelegateNum;
     if (!VerifyRewardTx(&block, *spCW, curDelegate, totalDelegateNum))
         return state.DoS(100, ERRORMSG("[%u]: %s verify reward tx error",
                         block.GetHeight(), block.GetHash().GetHex()), REJECT_INVALID, "bad-reward-tx");
@@ -2023,7 +2023,7 @@ bool AcceptBlock(CBlock &block, CValidationState &state, CDiskBlockPos *dbp, boo
     }
 
     // Relay inventory, but don't relay old inventory during initial block download
-    CBlockIndex* pTip = chainActive.Tip() ;
+    CBlockIndex* pTip = chainActive.Tip();
     if (pTip->GetBlockHash() == blockHash) {
         {
             LOCK(cs_vNodes);
@@ -2043,7 +2043,7 @@ bool AcceptBlock(CBlock &block, CValidationState &state, CDiskBlockPos *dbp, boo
             pbftContext.SaveMinersByHash(blockHash, delegates);
         }
 
-        BroadcastBlockConfirm(pTip) ;
+        BroadcastBlockConfirm(pTip);
         if(pbftMan.UpdateLocalFinBlock(pTip)){
             BroadcastBlockFinality(pTip);
             pbftMan.UpdateGlobalFinBlock(pTip);

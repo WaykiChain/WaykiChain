@@ -914,7 +914,7 @@ void CheckAccountRegId(const CUserID uid , const string fieldName){
     if(!uid.is<CRegID>() || !uid.get<CRegID>().IsMature(chainActive.Height())){
         throw JSONRPCError(RPC_INVALID_PARAMS, strprintf("%s must be a matured regid!", fieldName));
     }
-    CAccount account ;
+    CAccount account;
 
     if(!pCdMan->pAccountCache->GetAccount(uid, account))
         throw JSONRPCError(RPC_INVALID_PARAMS, strprintf("the account of %s doest not exist, uid=%s",
@@ -950,12 +950,12 @@ Value submitdexoperatorregtx(const Array& params, bool fHelp){
             + HelpExampleRpc("submitdexoperatorregtx", "\"0-1\", \"0-1\", \"0-2\", \"wayki-dex\", "
                             "\"http://www.wayki-dex.com\", \"PRIVATE\", 2000000, 2000000, [0, 1]")
 
-            ) ;
+            );
     }
 
     EnsureWalletIsUnlocked();
     const CUserID &userId = RPC_PARAM::GetUserId(params[0].get_str(),true);
-    CDEXOperatorRegisterTx::Data data ;
+    CDEXOperatorRegisterTx::Data data;
     data.owner_uid = RPC_PARAM::GetUserId(params[1].get_str());
     data.fee_receiver_uid = RPC_PARAM::GetUserId(params[2].get_str());
     CheckAccountRegId(data.owner_uid, "owner_uid");
@@ -1006,12 +1006,12 @@ Value submitdexopupdatetx(const Array& params, bool fHelp){
                 + "\nAs json rpc call\n"
                 + HelpExampleRpc("submitdexopupdatetx", "0-1 1 1 0-3")
 
-                ) ;
+                );
     }
 
     EnsureWalletIsUnlocked();
     const CUserID &userId = RPC_PARAM::GetUserId(params[0].get_str(),true);
-    CDEXOperatorUpdateData updateData ;
+    CDEXOperatorUpdateData updateData;
     updateData.dexId = RPC_PARAM::GetDexId(params[1]);
     updateData.field = CDEXOperatorUpdateData::UpdateField(params[2].get_int());
     const Value & updatedValue = params[3];
@@ -1068,13 +1068,13 @@ Value submitdexopupdatetx(const Array& params, bool fHelp){
             throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("unsupport dex update_field=%d", updateData.field));
     }
 
-    string errmsg ;
-    string errcode ;
+    string errmsg;
+    string errcode;
     shared_ptr<CCacheWrapper> spCw = make_shared<CCacheWrapper>(pCdMan);
     if(!updateData.Check(*spCw, errmsg,errcode,chainActive.Height())){
         throw JSONRPCError(RPC_INVALID_PARAMS, errmsg);
     }
-    ComboMoney fee = RPC_PARAM::GetFee(params,4, DEX_OPERATOR_UPDATE_TX) ;
+    ComboMoney fee = RPC_PARAM::GetFee(params,4, DEX_OPERATOR_UPDATE_TX);
 
     // Get account for checking balance
     CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, userId);

@@ -19,7 +19,7 @@
 #include "commons/json/json_spirit_utils.h"
 #include "commons/json/json_spirit_writer_template.h"
 using namespace std;
-using namespace json_spirit ;
+using namespace json_spirit;
 class CBlockIndex;
 
 Value help(const Array& params, bool fHelp);

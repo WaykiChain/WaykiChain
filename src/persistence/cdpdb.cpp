@@ -206,11 +206,11 @@ CCdpHeightIndexCache::KeyType CCdpDBCache::MakeCdpHeightIndexKey(const CUserCDP 
 string GetCdpCloseTypeName(const CDPCloseType type) {
     switch (type) {
         case CDPCloseType:: BY_REDEEM:
-            return "redeem" ;
+            return "redeem";
         case CDPCloseType:: BY_FORCE_LIQUIDATE :
-            return "force_liquidate" ;
+            return "force_liquidate";
         case CDPCloseType ::BY_MANUAL_LIQUIDATE:
-            return "manual_liquidate" ;
+            return "manual_liquidate";
     }
-    return "undefined" ;
+    return "undefined";
 }

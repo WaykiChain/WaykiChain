@@ -35,7 +35,7 @@ bool IsDigitalString(const string str){
         if (!isdigit(te))
             return false;
     }
-    return true ;
+    return true;
 }
 
 bool CRegID::IsSimpleRegIdStr(const string & str) {
@@ -49,7 +49,7 @@ bool CRegID::IsSimpleRegIdStr(const string & str) {
         string firstStr = str.substr(0, pos);
         string endStr = str.substr(pos + 1);
 
-        return IsDigitalString(firstStr) && IsDigitalString(endStr) ;
+        return IsDigitalString(firstStr) && IsDigitalString(endStr);
     }
     return false;
 }

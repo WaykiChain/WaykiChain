@@ -59,13 +59,13 @@ bool OpenNetworkConnection(const CAddress& addrConnect, CSemaphoreGrant* grantOu
 // Global state variables
 //
 bool fDiscover          = true;
-extern uint64_t nLocalServices ;
+extern uint64_t nLocalServices;
 CCriticalSection cs_mapLocalHost;
 map<CNetAddr, LocalServiceInfo> mapLocalHost;
 static bool vfReachable[NET_MAX] = {};
 static bool vfLimited[NET_MAX]   = {};
 static CNode* pnodeLocalHost     = nullptr;
-extern CNode* pnodeSync  ;
+extern CNode* pnodeSync;
 
 static vector<SOCKET> vhListenSocket;
 CAddrMan addrman;

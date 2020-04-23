@@ -50,7 +50,7 @@ if(! (expr)){                                \
 #define WASM_CHECK_EXCEPTION( expr, passed, ex, msg ) \
  passed = false;                              \
  try{                                         \
-     expr  ;                                  \
+     expr;                                    \
  } catch(wasm_chain::exception &e){                 \
      if( ex(CHAIN_LOG_MESSAGE( log_level::warn, msg )).code() == e.code()) {        \
          WASM_TRACE("%s%s \nexception: %s\n", msg , "[ passed ]", e.to_detail_string())   \
@@ -889,8 +889,8 @@ BOOST_AUTO_TEST_CASE( abi_serialize_incomplete_json_array ) {
     auto abi = R"({
       "version": "wasm::abi/1.0",
       "structs": [
-         {"name": "s", 
-          "base": "", 
+         {"name": "s",
+          "base": "",
           "fields": [
             {"name": "i0", "type": "int8"},
             {"name": "i1", "type": "int8"},
@@ -1415,7 +1415,7 @@ BOOST_AUTO_TEST_CASE( general ) {
       }],
       "asset"         : "100.0000 SYS",
       "asset_arr"     : ["100.0000 SYS","100.0000 SYS"],
-    }  
+    }
     )=====";
 
 

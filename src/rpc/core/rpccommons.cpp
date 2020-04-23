@@ -38,7 +38,7 @@ std::vector<std::string> split(std::string strToSplit, char delimeter) {
 
 bool is_decimal(const string& s ){
     std::regex r("([1-9][0-9]*|0)\\.[0-9]+");
-    return regex_match(s, r) ;
+    return regex_match(s, r);
 }
 
 
@@ -64,28 +64,28 @@ std::vector<std::string> split(std::string stringToBeSplitted, std::string delim
 }
 bool pow10(string comboAmountStr, const unsigned int precision, int64_t& sawiAmount){
 
-    auto v = split(comboAmountStr, ".") ;
+    auto v = split(comboAmountStr, ".");
     if(v.size() == 1)
-        v.push_back("") ;
-    string& intPart = v[0] ;
-    string& decimalPart = v[1] ;
+        v.push_back("");
+    string& intPart = v[0];
+    string& decimalPart = v[1];
 
     if(decimalPart.size() > precision )
-        return false ;
-    unsigned int i = 0 ;
+        return false;
+    unsigned int i = 0;
     for(;i<precision;i++){
         if(decimalPart.size() > i)
             intPart.push_back(decimalPart[i]);
         else
-            intPart.push_back('0') ;
+            intPart.push_back('0');
     }
-    sawiAmount =  atoll(intPart.data()) ;
-    return true ;
+    sawiAmount =  atoll(intPart.data());
+    return true;
 }
 
 bool parseAmountAndUnit( vector<string>& comboMoneyArr, ComboMoney& comboMoney,const TokenSymbol &defaultSymbol = SYMB::WICC){
 
-    int64_t iValue = 0 ;
+    int64_t iValue = 0;
 
     string strUnit = comboMoneyArr[1];
     std::for_each(strUnit.begin(), strUnit.end(), [](char &c) { c = ::tolower(c); });
@@ -102,7 +102,7 @@ bool parseAmountAndUnit( vector<string>& comboMoneyArr, ComboMoney& comboMoney,c
     comboMoney.amount = (uint64_t)iValue;
     comboMoney.unit   = COIN_UNIT::SAWI;
 
-    return true ;
+    return true;
 }
 
 bool parseSymbolAndAmount(vector<string>& comboMoneyArr, ComboMoney& comboMoney){
@@ -121,7 +121,7 @@ bool parseSymbolAndAmount(vector<string>& comboMoneyArr, ComboMoney& comboMoney)
     comboMoney.amount = (uint64_t)iValue;
     comboMoney.unit   = COIN_UNIT::SAWI;
 
-    return true ;
+    return true;
 }
 
 // [symbol]:amount:[unit]
@@ -147,7 +147,7 @@ bool ParseRpcInputMoney(const string &comboMoneyStr, ComboMoney &comboMoney, con
         case 2: {
             if (is_number(comboMoneyArr[0]) || is_decimal(comboMoneyArr[0])) {
 
-                return parseAmountAndUnit(comboMoneyArr, comboMoney) ;
+                return parseAmountAndUnit(comboMoneyArr, comboMoney);
 
             } else if (is_number(comboMoneyArr[1])) {
                 return parseSymbolAndAmount(comboMoneyArr,comboMoney);
@@ -167,12 +167,12 @@ bool ParseRpcInputMoney(const string &comboMoneyStr, ComboMoney &comboMoney, con
 
             string strSymbol = comboMoneyArr[0];
           //  std::for_each(strSymbol.begin(), strSymbol.end(), [](char &c) { c = ::toupper(c); });
-            vector<string> amountAndUnit ;
+            vector<string> amountAndUnit;
             amountAndUnit.push_back(comboMoneyArr[1]);
             amountAndUnit.push_back(comboMoneyArr[2]);
-            return parseAmountAndUnit(amountAndUnit,comboMoney,strSymbol) ;
+            return parseAmountAndUnit(amountAndUnit,comboMoney,strSymbol);
 
-            break ;
+            break;
         }
         default:
             return false;
@@ -331,10 +331,10 @@ bool JSON::GetObjectFieldValue(const Value &jsonObj, const string &fieldName,Val
     const Value& jsonValue = find_value(jsonObj.get_obj(), fieldName);
     if (jsonValue.type() == null_type) {
 
-        return false ;
+        return false;
     }
-    returnValue = jsonValue ;
-    return true ;
+    returnValue = jsonValue;
+    return true;
 
 }
 

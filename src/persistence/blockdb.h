@@ -126,7 +126,7 @@ public:
     CSimpleKVCache< dbk::BEST_BLOCKHASH,            uint256>      best_block_hash_cache;    // best blockHash
     CSimpleKVCache< dbk::LAST_BLOCKFILE,            int32_t>          last_block_file_cache;
     CSimpleKVCache< dbk::REINDEX,                   bool>         reindex_cache;
-    CSimpleKVCache< dbk::FINALITY_BLOCK,            std::pair<int32_t,uint256>> finality_block_cache ;
+    CSimpleKVCache< dbk::FINALITY_BLOCK,            std::pair<int32_t,uint256>> finality_block_cache;
 };
 
 /** Create a new block index entry for a given block hash */

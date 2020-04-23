@@ -49,7 +49,7 @@ TxType ParseTxType(const string &str) {
 
 bool GetTxMinFee(CCacheWrapper &cw, const TxType nTxType, int height, const TokenSymbol &symbol, uint64_t &feeOut) {
     if (cw.sysParamCache.GetMinerFee(nTxType, symbol, feeOut))
-        return true ;
+        return true;
 
     const auto &iter = kTxTypeInfoTable.find(nTxType);
     if (iter != kTxTypeInfoTable.end()) {
@@ -346,7 +346,7 @@ bool CBaseTx::VerifySignature(CTxExecuteContext &context, const CPubKey &pubkey)
     if (!::VerifySignature(sighash, signature, pubkey))
         return context.pState->DoS(100, ERRORMSG("%s, tx signature error", BASE_TX_TITLE), REJECT_INVALID, "bad-tx-signature");
 
-    return true ;
+    return true;
 }
 
 /**################################ Universal Coin Transfer ########################################**/

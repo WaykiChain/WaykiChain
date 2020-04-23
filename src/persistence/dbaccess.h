@@ -53,7 +53,7 @@ namespace db_util {
     }
     template <typename T> void SetEmpty(shared_ptr<T>& val) {
         if(val == nullptr){
-            val = make_shared<T>() ;
+            val = make_shared<T>();
         }
         (*val).SetEmpty();
     }

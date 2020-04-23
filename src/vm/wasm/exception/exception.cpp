@@ -60,7 +60,7 @@ namespace wasm_chain {
 		std::stringstream ss;
 		try {
 			try {
-				ss << "\n(" << _code << ")" ;
+				ss << "\n(" << _code << ")";
 			} catch( std::bad_alloc& ) {
 				throw;
 			} catch( ... ) {
@@ -75,8 +75,8 @@ namespace wasm_chain {
 					string context_str = itr->get_context().to_string();
 					std::ostringstream o;
 					o << itr->get_context().to_string();
-				    while (o.str().size() < CHAIN_CONTEXT_PRINT_LENGTH) 
-       					 o << " "; 
+				    while (o.str().size() < CHAIN_CONTEXT_PRINT_LENGTH)
+       					 o << " ";
 
 					//ss << itr->get_context().to_string();
        			    ss << o.str();
@@ -126,7 +126,7 @@ namespace wasm_chain {
 		} catch( ... ) {
 			ss << "<- exception in to_string.\n";
 		}
-		return ss.str();		
+		return ss.str();
 	}
 
 	string exception::top_message()const
@@ -157,8 +157,8 @@ namespace wasm_chain {
 	:exception( std::move(m) )
 	{
 	    _inner = e;
-	} 
-	
+	}
+
 	unhandled_exception::unhandled_exception( const exception& r )
 	:exception(r)
 	{

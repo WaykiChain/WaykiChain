@@ -37,16 +37,16 @@ bool static ProcessMessage(CNode *pFrom, string strCommand, CDataStream &vRecv) 
 
     } else if (strCommand == NetMsgType::ADDR) {
        if (!ProcessAddrMessage(pFrom, vRecv))
-           return false ;
+           return false;
 
     } else if (strCommand == NetMsgType::INV) {
         if (!ProcessInvMessage(pFrom, vRecv))
-            return false ;
+            return false;
     }
 
     else if (strCommand == NetMsgType::GETDATA) {
         if(!ProcessGetDataMessage(pFrom, vRecv))
-            return false ;
+            return false;
     }
 
     else if (strCommand == NetMsgType::GETBLOCKS) {
@@ -101,11 +101,11 @@ bool static ProcessMessage(CNode *pFrom, string strCommand, CDataStream &vRecv) 
     }
 
     else if (strCommand == NetMsgType::PONG) {
-       ProcessPongMessage(pFrom, vRecv) ;
+       ProcessPongMessage(pFrom, vRecv);
     }
 
     else if (strCommand == NetMsgType::ALERT) {
-        ProcessAlertMessage(pFrom, vRecv) ;
+        ProcessAlertMessage(pFrom, vRecv);
     }
 
     else if (strCommand == NetMsgType::FILTERLOAD) {
@@ -127,7 +127,7 @@ bool static ProcessMessage(CNode *pFrom, string strCommand, CDataStream &vRecv) 
         ProcessRejectMessage(pFrom, vRecv);
 
     } else if (strCommand == NetMsgType::CONFIRMBLOCK) {
-        ProcessBlockConfirmMessage(pFrom, vRecv) ;
+        ProcessBlockConfirmMessage(pFrom, vRecv);
 
     } else if (strCommand == NetMsgType::FINALITYBLOCK) {
         ProcessBlockFinalityMessage(pFrom, vRecv);

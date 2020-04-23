@@ -134,7 +134,7 @@ inline FeatureForkVersionEnum GetFeatureForkVersion(const int32_t currBlockHeigh
 }
 
 inline uint32_t GetForkHeightByVersion(FeatureForkVersionEnum ver) {
-    if (ver == FeatureForkVersionEnum::MAJOR_VER_R1) return 0 ;
+    if (ver == FeatureForkVersionEnum::MAJOR_VER_R1) return 0;
     if (ver == FeatureForkVersionEnum :: MAJOR_VER_R2) return SysCfg().GetVer2ForkHeight();
     if (ver == FeatureForkVersionEnum:: MAJOR_VER_R3) SysCfg().GetVer3ForkHeight();
     throw runtime_error("the version code is error");

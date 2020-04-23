@@ -49,7 +49,7 @@ extern map<uint256, CBlockIndex *> mapBlockIndex;
 extern uint64_t nLastBlockTx;
 extern uint64_t nLastBlockSize;
 extern const string strMessageMagic;
-extern bool ReadBlockFromDisk(const CBlockIndex *pIndex, CBlock &block) ;
+extern bool ReadBlockFromDisk(const CBlockIndex *pIndex, CBlock &block);
 
 extern bool mining;     // could be changed due to vote change
 extern CKeyID minerKeyId;  // miner accout keyId

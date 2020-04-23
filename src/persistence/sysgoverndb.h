@@ -70,18 +70,18 @@ public:
 
     bool GetProposal(const uint256& txid, shared_ptr<CProposal>& proposal) {
 
-        CProposalStorageBean bean ;
+        CProposalStorageBean bean;
         if(proposals_cache.GetData(txid, bean) ){
-            proposal = bean.sp_proposal ;
+            proposal = bean.sp_proposal;
             return true;
         }
 
-        return false ;
+        return false;
     }
 
     int GetApprovalCount(const uint256 &proposalId){
-        vector<CRegID> v ;
-        approvals_cache.GetData(proposalId, v) ;
+        vector<CRegID> v;
+        approvals_cache.GetData(proposalId, v);
         return static_cast<int>(v.size());
     }
 
@@ -91,15 +91,15 @@ public:
 
     bool SetApproval(const uint256 &proposalId, const CRegID &governor){
 
-        vector<CRegID> v  ;
+        vector<CRegID> v;
         if(approvals_cache.GetData(proposalId, v)){
             if(find(v.begin(),v.end(),governor) != v.end()){
                 return ERRORMSG("governor(regid= %s) had approvaled this proposal(proposalid=%s)",
                                 governor.ToString(), proposalId.ToString());
             }
         }
-        v.push_back(governor) ;
-        return approvals_cache.SetData(proposalId,v) ;
+        v.push_back(governor);
+        return approvals_cache.SetData(proposalId,v);
     }
 
     bool CheckIsGovernor(const CRegID &candidateRegId) {
@@ -108,7 +108,7 @@ public:
            return regids.count(candidateRegId) > 0;
         }
 
-        return false ;
+        return false;
     }
 
     bool GetGovernors(set<CRegID>& governors) {
@@ -123,14 +123,14 @@ public:
         set<CRegID> governors;
         governors_cache.GetData(governors);
         governors.insert(governor);
-        return governors_cache.SetData(governors) ;
+        return governors_cache.SetData(governors);
     }
 
     bool EraseGovernor(const CRegID governor){
         set<CRegID> governors;
         governors_cache.GetData(governors);
         governors.erase(governor);
-        return governors_cache.SetData(governors) ;
+        return governors_cache.SetData(governors);
     }
 
     void RegisterUndoFunc(UndoDataFuncMap &undoDataFuncMap) {

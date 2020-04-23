@@ -50,7 +50,7 @@ private:
     uint256 GetCheckSum() const;
 
 public:
-    CPubKey vchDefaultKey ;
+    CPubKey vchDefaultKey;
 
     bool fFileBacked;
     string strWalletFile;
@@ -109,7 +109,7 @@ public:
     bool DropMainKeysForColdMining();
 
     CWallet(string strWalletFileIn);
-    void SetNull() ;
+    void SetNull();
 
     bool LoadMinVersion(int32_t nVersion);
 
@@ -130,7 +130,7 @@ public:
     bool ChangeWalletPassphrase(const SecureString& strOldWalletPassphrase, const SecureString& strNewWalletPassphrase);
 
     // get the current wallet format (the oldest client version guaranteed to understand this wallet)
-    int32_t GetVersion() ;
+    int32_t GetVersion();
 
     bool SetMinVersion(enum WalletFeature nVersion, CWalletDB* pWalletDbIn);
 

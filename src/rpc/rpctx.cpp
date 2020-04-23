@@ -1318,7 +1318,7 @@ Value listdelegates(const Array& params, bool fHelp) {
     }
 
 
-    int32_t defaultDelegateNum = pCdMan->pDelegateCache->GetActivedDelegateNum() ;
+    int32_t defaultDelegateNum = pCdMan->pDelegateCache->GetActivedDelegateNum();
 
     int32_t delegateNum = (params.size() == 1) ? params[0].get_int() : defaultDelegateNum;
     if (delegateNum < 1 || delegateNum > defaultDelegateNum) {
@@ -1335,7 +1335,7 @@ Value listdelegates(const Array& params, bool fHelp) {
     Array delegateArray;
 
     CAccount account;
-    int i = 0 ;
+    int i = 0;
     for (const auto& delegate : delegates) {
 
         if (!pCdMan->pAccountCache->GetAccount(delegate.regid, account)) {
@@ -1345,7 +1345,7 @@ Value listdelegates(const Array& params, bool fHelp) {
         accountObj.push_back(Pair("active_votes", delegate.votes));
         delegateArray.push_back(accountObj);
         if(++i == delegateNum)
-            break ;
+            break;
     }
 
     obj.push_back(Pair("delegates", delegateArray));

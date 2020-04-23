@@ -23,7 +23,7 @@
 #include <boost/circular_buffer.hpp>
 
 extern CWallet *pWalletMain;
-extern CPBFTContext pbftContext ;
+extern CPBFTContext pbftContext;
 extern void SetMinerStatus(bool bStatus);
 
 
@@ -111,7 +111,7 @@ bool GetCurrentDelegate(const int64_t currentTime, const int32_t currHeight, con
                                VoteDelegate &delegate) {
 
     uint32_t slot  = currentTime / GetBlockInterval(currHeight) / GetContinuousBlockProduceCount(currHeight);
-    uint32_t index = slot % delegates.size() ;
+    uint32_t index = slot % delegates.size();
     delegate       = delegates[index];
     LogPrint(BCLog::DEBUG, "[%d] currTime=%lld, slot=%d, index=%d, regId=%s\n", currHeight, currentTime, slot, index, delegate.regid.ToString());
 
@@ -147,9 +147,9 @@ static bool CreateBlockRewardTx(Miner &miner, CBlock *pBlock,const uint32_t tota
 
 inline int64_t GetShuffleOriginSeed(const int32_t curHeight, const int64_t blockTime ){
     if (curHeight < (int32_t)SysCfg().GetVer3ForkHeight()){
-        return curHeight ;
+        return curHeight;
     }else{
-        int64_t slot = blockTime/GetBlockInterval(curHeight) ;
+        int64_t slot = blockTime/GetBlockInterval(curHeight);
         return slot/ GetContinuousBlockProduceCount(curHeight);
     }
 }
@@ -157,7 +157,7 @@ inline int64_t GetShuffleOriginSeed(const int32_t curHeight, const int64_t block
 void ShuffleDelegates(const int32_t curHeight, const int64_t blockTime, VoteDelegateVector &delegates) {
 
     int64_t oriSeed = GetShuffleOriginSeed( curHeight,blockTime );
-    auto totalDelegateNum = delegates.size() ;
+    auto totalDelegateNum = delegates.size();
 
     string seedSource = strprintf("%u", oriSeed / totalDelegateNum + (oriSeed % totalDelegateNum > 0 ? 1 : 0));
     CHashWriter ss(SER_GETHASH, 0);
@@ -588,7 +588,7 @@ static bool GetMiner(int64_t startMiningMs, const int32_t blockHeight, Miner &mi
             return false;
         }
     }
-    totalDelegateNumOut = delegates.size() ;
+    totalDelegateNumOut = delegates.size();
 
     ShuffleDelegates(blockHeight,MillisToSecond(startMiningMs), delegates);
 
@@ -785,7 +785,7 @@ void static ThreadBlockProducing(CWallet *pWallet, int32_t targetHeight) {
             }
 
             shared_ptr<Miner> spMiner = make_shared<Miner>();
-            uint32_t totalDelegateNum ;
+            uint32_t totalDelegateNum;
             if (!GetMiner(startMiningMs, blockHeight, *spMiner,totalDelegateNum)) {
                 needSleep = true;
                 mining     = false;
@@ -817,7 +817,7 @@ void static ThreadBlockProducing(CWallet *pWallet, int32_t targetHeight) {
     } catch (...) {
         LogPrint(BCLog::INFO, "terminated\n");
         SetMinerStatus(false);
-        throw ;
+        throw;
     }
 }
 

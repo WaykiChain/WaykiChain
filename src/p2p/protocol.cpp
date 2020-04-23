@@ -35,7 +35,7 @@ namespace NetMsgType {
     const char *FILTERCLEAR="filterclear";
     const char *REJECT="reject";
     const char *CONFIRMBLOCK = "confirmblock";
-    const char *FINALITYBLOCK = "finblock" ;
+    const char *FINALITYBLOCK = "finblock";
     // const char *SENDHEADERS="sendheaders";
     // const char *FEEFILTER="feefilter";
     // const char *SENDCMPCT="sendcmpct";
@@ -183,10 +183,10 @@ void CInv::Print() const
 
 bool operator<(const CPBFTMessage& a , const CPBFTMessage& b){
     if(a.height != b.height)
-        return a.height < b.height ;
+        return a.height < b.height;
     if(a.miner != b.miner)
-        return a.miner < b.miner ;
-    return a.blockHash < b.blockHash ;
+        return a.miner < b.miner;
+    return a.blockHash < b.blockHash;
 }
 
 uint256 CPBFTMessage::GetHash() const {

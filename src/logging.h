@@ -95,8 +95,8 @@ namespace BCLog { //blockchain log
         bool m_log_timestamps = DEFAULT_LOGTIMESTAMPS;
         bool m_log_time_micros = DEFAULT_LOGTIMEMICROS;
         bool m_log_threadnames = DEFAULT_LOGTHREADNAMES;
-        uint64_t m_totoal_written_size = 0 ;
-        uint64_t m_max_log_size = 0 ;
+        uint64_t m_totoal_written_size = 0;
+        uint64_t m_max_log_size = 0;
 
         fs::path m_file_path;
         std::atomic<bool> m_reopen_file{false};
@@ -126,7 +126,7 @@ namespace BCLog { //blockchain log
             m_print_callbacks.erase(it);
         }
 
-        uint64_t GetCurrentLogSize() ;
+        uint64_t GetCurrentLogSize();
 
         /** Start logging (and flush all buffered messages) */
         bool StartLogging();

@@ -259,7 +259,7 @@ Value submittx( const Array &params, bool fHelp ) {
             tx.fee_symbol   = fee.symbol;
             tx.llFees       = fee.GetAmountInSawi();
 
-            //for(int i = 0; i < 300 ; i++)
+            //for(int i = 0; i < 300; i++)
             tx.inline_transactions.push_back({contract_regid.value, action.value, std::vector<permission>{{payer_regid.value, wasmio_owner}}, action_data});
 
             //tx.signatures.push_back({payer_regid.value, vector<uint8_t>()});

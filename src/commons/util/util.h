@@ -187,7 +187,7 @@ inline int64_t atoi64(const string& str) {
 #endif
 }
 inline uint64_t atoui64(const string& str) {
-    return strtoull(str.c_str(), NULL, 10) ;
+    return strtoull(str.c_str(), NULL, 10);
 }
 
 inline int32_t atoi(const string& str) { return atoi(str.c_str()); }

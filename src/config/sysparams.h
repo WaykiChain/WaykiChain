@@ -117,7 +117,7 @@ static const unordered_map<SysParamType, std::pair<uint64_t, uint64_t>, SysParam
 inline string CheckSysParamValue(const SysParamType paramType, uint64_t value){
     if(sysParamRangeTable.count(paramType) == 0)
         return strprintf("check param range error: don't find param type (%d)", paramType);
-    auto itr = sysParamRangeTable.find(paramType) ;
+    auto itr = sysParamRangeTable.find(paramType);
 
     auto min = std::get<0>(itr->second);
     auto max = std::get<1>(itr->second);
