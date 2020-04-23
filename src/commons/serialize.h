@@ -31,8 +31,6 @@
 
 class CAutoFile;
 class CDataStream;
-class CBaseTx;
-class CProposal;
 
 static const uint32_t MAX_SIZE           = 0x02000000;
 static const uint32_t MAX_SERIALIZE_SIZE = MAX_BLOCK_SIZE;
