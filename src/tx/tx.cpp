@@ -301,6 +301,44 @@ bool CBaseTx::GetTxAccount(CTxExecuteContext &context, CAccount &account) {
     return true;
 }
 
+shared_ptr<CAccount> CBaseTx::GetAccount(CTxExecuteContext &context, const CUserID &uid, const string &name) {
+    shared_ptr<CAccount> spAccount = nullptr;
+    CKeyID keyid;
+    if (!context.pCw->accountCache.GetKeyId(uid, keyid)) {
+        context.pState->DoS(100, ERRORMSG("%s, %s account dos not exist, uid=%s", GetTxTypeName(), name, uid.ToString()),
+                                    REJECT_INVALID, "account-not-exist");
+        return nullptr;
+    }
+    auto it = account_map.find(keyid);
+    if (it != account_map.end()) {
+        spAccount = it->second;
+    } else {
+        shared_ptr<CAccount> spAccount = make_shared<CAccount>();
+        if (!context.pCw->accountCache.GetAccount(uid, *spAccount)) {
+            context.pState->DoS(100, ERRORMSG("%s, %s account dos not exist, uid=%s", GetTxTypeName(), name, txUid.ToString()),
+                                        REJECT_INVALID, "account-not-exist");
+            return nullptr;
+        }
+        account_map.emplace(spAccount->keyid, spAccount);
+    }
+    return spAccount;
+}
+
+shared_ptr<CAccount> CBaseTx::NewAccount(CTxExecuteContext &context, const CKeyID &keyid) {
+    shared_ptr<CAccount> spAccount = make_shared<CAccount>(keyid);
+    account_map.emplace(spAccount->keyid, spAccount);
+    return spAccount;
+}
+
+bool CBaseTx::SaveAllAccounts(CTxExecuteContext &context, const CKeyID &keyid) {
+    for (auto item : account_map) {
+        if (!context.pCw->accountCache.SaveAccount(*item.second))
+                return context.pState->DoS(100, ERRORMSG("write addr %s account info error",
+                                item.first.ToAddress()), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
+    }
+    return true;
+}
+
 bool CBaseTx::CheckFee(CTxExecuteContext &context) const {
     // check fee value range
     if (!CheckBaseCoinRange(llFees))
