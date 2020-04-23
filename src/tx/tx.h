@@ -142,7 +142,7 @@ public:
     uint64_t fuel;     //!< only in memory
     int32_t nFuelRate;     //!< only in memory
     mutable TxID sigHash;  //!< only in memory
-    CAccount txAccount;    //!< only in memory
+    std::shared_ptr<CAccount> sp_tx_account;    //!< only in memory
     ReceiptList receipts;  //!< not persisted within Tx Cache
 
 public:

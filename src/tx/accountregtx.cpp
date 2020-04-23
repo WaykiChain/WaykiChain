@@ -28,7 +28,7 @@ bool CAccountRegisterTx::CheckTx(CTxExecuteContext &context) {
                          REJECT_INVALID, "bad-tx-publickey");
 
     CKeyID keyId = txUid.get<CPubKey>().GetKeyId();
-    if (txAccount.HasOwnerPubKey())
+    if (sp_tx_account->HasOwnerPubKey())
         return state.DoS(100, ERRORMSG("CAccountRegisterTx::ExecuteTx, keyId %s duplicate register", keyId.ToString()),
                          UPDATE_ACCOUNT_FAIL, "duplicate-register-account");
 
@@ -47,11 +47,9 @@ bool CAccountRegisterTx::CheckTx(CTxExecuteContext &context) {
 
 //useful for cold mining
 bool CAccountRegisterTx::ExecuteTx(CTxExecuteContext &context) {
-
     if (miner_uid.is<CPubKey>()) {
-        txAccount.miner_pubkey = miner_uid.get<CPubKey>();
+        sp_tx_account->miner_pubkey = miner_uid.get<CPubKey>();
     }
-
     return true;
 }
 

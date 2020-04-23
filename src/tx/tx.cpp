@@ -92,13 +92,13 @@ bool CBaseTx::RegisterAccountPubKey(CTxExecuteContext &context) {
     if (!txUid.is<CPubKey>())
         return true;
 
-    if (txAccount.IsRegistered())
+    if (sp_tx_account->IsRegistered())
         return true;
 
-    txAccount.owner_pubkey = txUid.get<CPubKey>(); // init owner pubkey
-    txAccount.regid = CRegID(context.height, context.index); // generate new regid for account
+    sp_tx_account->owner_pubkey = txUid.get<CPubKey>(); // init owner pubkey
+    sp_tx_account->regid = CRegID(context.height, context.index); // generate new regid for account
 
-    return( context.pCw->accountCache.SaveAccount(txAccount) );
+    return( context.pCw->accountCache.SaveAccount(*sp_tx_account) );
 
 }
 
@@ -108,6 +108,7 @@ uint64_t CBaseTx::GetFuelFee(CCacheWrapper &cw, int32_t height, uint32_t fuelRat
 
 bool CBaseTx::CheckBaseTx(CTxExecuteContext &context) {
     CValidationState &state = *context.pState;
+    sp_tx_account = make_shared<CAccount>();
 
     if(nTxType == BLOCK_REWARD_TX
     || nTxType == PRICE_MEDIAN_TX
@@ -117,7 +118,7 @@ bool CBaseTx::CheckBaseTx(CTxExecuteContext &context) {
         return true;
     }
 
-    if (!GetTxAccount(context, txAccount))
+    if (!GetTxAccount(context, *sp_tx_account))
         return false; // error msg has been processed
 
     { //1. Tx signature check
@@ -129,15 +130,15 @@ bool CBaseTx::CheckBaseTx(CTxExecuteContext &context) {
             if (txUid.is<CPubKey>()) {
                 pubKey = txUid.get<CPubKey>();
             } else {
-                if (txAccount.perms_sum == 0) {
+                if (sp_tx_account->perms_sum == 0) {
                     return state.DoS(100, ERRORMSG("CheckBaseTx::CheckTx, perms_sum is zero error! txUid=%s",
                                 txUid.ToString()), READ_ACCOUNT_FAIL, "bad-tx-sign");
                 }
-                if (!txAccount.IsRegistered())
+                if (!sp_tx_account->IsRegistered())
                     return state.DoS(100, ERRORMSG("CheckBaseTx::CheckTx, tx account was not registered! txUid=%s",
                                 txUid.ToString()), READ_ACCOUNT_FAIL, "tx-account-not-registered");
 
-                pubKey = txAccount.owner_pubkey;
+                pubKey = sp_tx_account->owner_pubkey;
             }
 
             signatureValid = VerifySignature(context, pubKey);
@@ -191,7 +192,7 @@ bool CBaseTx::CheckBaseTx(CTxExecuteContext &context) {
         if (kTxTypePermMap.find(nTxType) == kTxTypePermMap.end())
             return true; //no perm required
 
-        if (txAccount.perms_sum == 0 || (txAccount.perms_sum & kTxTypePermMap.at(nTxType)) == 0)
+        if (sp_tx_account->perms_sum == 0 || (sp_tx_account->perms_sum & kTxTypePermMap.at(nTxType)) == 0)
             return state.DoS(100, ERRORMSG("CheckBaseTx::CheckTx, account (%s) has NO required perm",
                                            txUid.ToString()), READ_ACCOUNT_FAIL, "account-lacks-perm");
     }
@@ -200,13 +201,14 @@ bool CBaseTx::CheckBaseTx(CTxExecuteContext &context) {
 
 bool CBaseTx::ExecuteFullTx(CTxExecuteContext &context) {
     IMPLEMENT_DEFINE_CW_STATE;
+    sp_tx_account = make_shared<CAccount>();
 
     bool processingTxAccount = (nTxType != PRICE_MEDIAN_TX) && (nTxType != UCOIN_MINT_TX) && (nTxType != CDP_FORCE_SETTLE_INTEREST_TX);
 
     /////////////////////////
     // 1. Prior ExecuteTx
     if (processingTxAccount) {
-        if (!cw.accountCache.GetAccount(txUid, txAccount))
+        if (!cw.accountCache.GetAccount(txUid, *sp_tx_account))
             return state.DoS(100, ERRORMSG("ExecuteFullTx: read txUid %s account info error",
                             txUid.ToString()), READ_ACCOUNT_FAIL, "bad-read-accountdb");
 
@@ -215,7 +217,7 @@ bool CBaseTx::ExecuteFullTx(CTxExecuteContext &context) {
         }
 
         if (nTxType != UCOIN_BLOCK_REWARD_TX && nTxType != BLOCK_REWARD_TX) {
-            if (llFees > 0 && !txAccount.OperateBalance(fee_symbol, SUB_FREE, llFees, ReceiptType::BLOCK_REWARD_TO_MINER, receipts))
+            if (llFees > 0 && !sp_tx_account->OperateBalance(fee_symbol, SUB_FREE, llFees, ReceiptType::BLOCK_REWARD_TO_MINER, receipts))
                     return state.DoS(100, ERRORMSG("ExecuteFullTx: account has insufficient funds"),
                                     UPDATE_ACCOUNT_FAIL, "sub-account-fees-failed");
         }
@@ -228,7 +230,7 @@ bool CBaseTx::ExecuteFullTx(CTxExecuteContext &context) {
 
     /////////////////////////
     // 3. Post ExecuteTx
-    if (processingTxAccount && !cw.accountCache.SaveAccount(txAccount))
+    if (processingTxAccount && !cw.accountCache.SaveAccount(*sp_tx_account))
             return state.DoS(100, ERRORMSG("ExecuteFullTx, write source addr %s account info error",
                             txUid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
 

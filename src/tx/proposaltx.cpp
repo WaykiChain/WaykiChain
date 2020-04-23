@@ -71,13 +71,9 @@ Object CProposalRequestTx::ToJson(const CAccountDBCache &accountCache) const {
 bool CProposalRequestTx::ExecuteTx(CTxExecuteContext &context) {
     IMPLEMENT_DEFINE_CW_STATE;
 
-    if (!txAccount.OperateBalance(fee_symbol, SUB_FREE, llFees, ReceiptType::BLOCK_REWARD_TO_MINER, receipts))
+    if (!sp_tx_account->OperateBalance(fee_symbol, SUB_FREE, llFees, ReceiptType::BLOCK_REWARD_TO_MINER, receipts))
         return state.DoS(100, ERRORMSG("CProposalRequestTx::ExecuteTx, account has insufficient funds"),
                     UPDATE_ACCOUNT_FAIL, "operate-minus-account-failed");
-
-    if (!cw.accountCache.SetAccount(CUserID(txAccount.keyid), txAccount))
-        return state.DoS(100, ERRORMSG("CProposalRequestTx::ExecuteTx, set account info error"),
-                    WRITE_ACCOUNT_FAIL, "bad-write-accountdb");
 
     uint64_t expiryBlockCount;
     if(!cw.sysParamCache.GetParam(PROPOSAL_EXPIRE_BLOCK_COUNT, expiryBlockCount))

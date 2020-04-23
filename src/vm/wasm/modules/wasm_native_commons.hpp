@@ -20,10 +20,10 @@ namespace wasm {
                                               "Account %s balance overdrawn",
                                               fromAccount.regid.ToString())
 
-      if ( fromAccount.keyid != context.control_trx.txAccount.keyid )
+      if ( fromAccount.keyid != context.control_trx.sp_tx_account->keyid )
         CHAIN_ASSERT( context.database.accountCache.SetAccount(fromAccount.keyid, fromAccount), account_access_exception, "Save fromAccount error")
 
-      if ( !toAccount.IsEmpty() && toAccount.keyid != context.control_trx.txAccount.keyid )
+      if ( !toAccount.IsEmpty() && toAccount.keyid != context.control_trx.sp_tx_account->keyid )
         CHAIN_ASSERT( context.database.accountCache.SetAccount(toAccount.keyid, toAccount), account_access_exception, "Save toAccount error")
   }
 
@@ -65,7 +65,7 @@ namespace wasm {
                       "Asset Owner (%s) balance overminted",
                       assetOwnerAccount.regid.ToString())
 
-        CHAIN_ASSERT( assetOwnerAccount.keyid != context.control_trx.txAccount.keyid &&
+        CHAIN_ASSERT( assetOwnerAccount.keyid != context.control_trx.sp_tx_account->keyid &&
                       context.database.accountCache.SetAccount(assetOwnerAccount.keyid, assetOwnerAccount),
                       wasm_chain::account_access_exception,
                       "Save assetOwnerAccount error")
@@ -78,7 +78,7 @@ namespace wasm {
                       "Asset Owner (%s) balance overburnt",
                       assetOwnerAccount.regid.ToString())
 
-        CHAIN_ASSERT( assetOwnerAccount.keyid != context.control_trx.txAccount.keyid &&
+        CHAIN_ASSERT( assetOwnerAccount.keyid != context.control_trx.sp_tx_account->keyid &&
                       context.database.accountCache.SetAccount(assetOwnerAccount.keyid, assetOwnerAccount),
                       wasm_chain::account_access_exception,
                       "Save assetOwnerAccount error")

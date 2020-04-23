@@ -79,7 +79,8 @@ namespace dex {
     bool CheckOrderMinFee(const CBaseTx &tx, CTxExecuteContext &context, uint64_t minFee,
             CAccount *pOperatorAccount, uint64_t operatorTxFee) {
 
-        auto spErr = CheckOrderMinFee(context.height, tx.txAccount, tx.llFees, minFee, pOperatorAccount, operatorTxFee);
+        auto spErr = CheckOrderMinFee(context.height, *tx.sp_tx_account, tx.llFees, minFee,
+                                      pOperatorAccount, operatorTxFee);
         if (spErr)
             return context.pState->DoS(100, ERRORMSG("%s, %s, height=%d, fee_symbol=%s",
                 TX_OBJ_ERR_TITLE(tx), *spErr, context.height, tx.fee_symbol), REJECT_INVALID, *spErr);
@@ -146,15 +147,15 @@ namespace dex {
             coinAmount = CDEXOrderBaseTx::CalcCoinAmount(asset_amount, price);
 
         if (order_side == ORDER_BUY) {
-            if (!FreezeBalance(context, txAccount, coin_symbol, coinAmount, ReceiptType::DEX_FREEZE_COIN_TO_BUYER))
+            if (!FreezeBalance(context, *sp_tx_account, coin_symbol, coinAmount, ReceiptType::DEX_FREEZE_COIN_TO_BUYER))
                 return false;
         } else {
             assert(order_side == ORDER_SELL);
-            if (!FreezeBalance(context, txAccount, asset_symbol, asset_amount, ReceiptType::DEX_FREEZE_ASSET_TO_SELLER))
+            if (!FreezeBalance(context, *sp_tx_account, asset_symbol, asset_amount, ReceiptType::DEX_FREEZE_ASSET_TO_SELLER))
                 return false;
         }
 
-        assert(!txAccount.regid.IsEmpty());
+        assert(!sp_tx_account->regid.IsEmpty());
         const uint256 &txid = GetHash();
         CDEXOrderDetail orderDetail;
         orderDetail.generate_type      = USER_GEN_ORDER;
@@ -167,7 +168,7 @@ namespace dex {
         orderDetail.price              = price;
         orderDetail.dex_id             = dex_id;
         orderDetail.tx_cord            = CTxCord(context.height, context.index);
-        orderDetail.user_regid         = txAccount.regid;
+        orderDetail.user_regid         = sp_tx_account->regid;
         if (has_operator_config) {
             orderDetail.opt_operator_params  = {
                 open_mode,
@@ -492,7 +493,7 @@ namespace dex {
                             REJECT_INVALID, "order-inactive");
         }
 
-        if (txAccount.regid.IsEmpty() || txAccount.regid != activeOrder.user_regid) {
+        if (sp_tx_account->regid.IsEmpty() || sp_tx_account->regid != activeOrder.user_regid) {
             return state.DoS(100, ERRORMSG("CDEXCancelOrderTx::ExecuteTx, can not cancel other user's order tx"),
                             REJECT_INVALID, "user-unmatched");
         }
@@ -514,7 +515,7 @@ namespace dex {
             assert(false && "Order side must be ORDER_BUY|ORDER_SELL");
         }
 
-        if (!txAccount.OperateBalance(frozenSymbol, UNFREEZE, frozenAmount, code, receipts))
+        if (!sp_tx_account->OperateBalance(frozenSymbol, UNFREEZE, frozenAmount, code, receipts))
             return state.DoS(100, ERRORMSG("CDEXCancelOrderTx::ExecuteTx, account has insufficient frozen amount to unfreeze"),
                             UPDATE_ACCOUNT_FAIL, "unfreeze-account-coin");
 
@@ -1207,13 +1208,12 @@ namespace dex {
     bool CDEXSettleTx::ExecuteTx(CTxExecuteContext &context) {
         IMPLEMENT_DEFINE_CW_STATE;
 
-        auto pTxAccount = std::make_shared<CAccount>(txAccount);
         map<CRegID, std::shared_ptr<CAccount>> accountMap = {
-            {txAccount.regid, pTxAccount}
+            {sp_tx_account->regid, sp_tx_account}
         };
 
         for (size_t idx = 0; idx < dealItems.size(); idx++) {
-            CDealItemExecuter dealItemExec(dealItems[idx], idx, *this, context, pTxAccount, accountMap, receipts);
+            CDealItemExecuter dealItemExec(dealItems[idx], idx, *this, context, sp_tx_account, accountMap, receipts);
             if (!dealItemExec.Execute()) {
                 return false;
             }
@@ -1222,9 +1222,7 @@ namespace dex {
         // save accounts, include tx account
         for (auto accountItem : accountMap) {
             auto pAccount = accountItem.second;
-            if (txAccount.IsSelfUid(pAccount->regid)) {
-                txAccount = *pTxAccount;
-            } else {
+            if (!sp_tx_account->IsSelfUid(pAccount->regid)) {
                 if (!cw.accountCache.SetAccount(pAccount->keyid, *pAccount))
                     return state.DoS(100, ERRORMSG("%s, set account info error! regid=%s, addr=%s",
                         TX_ERR_TITLE, pAccount->regid.ToString(), pAccount->keyid.ToAddress()),

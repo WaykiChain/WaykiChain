@@ -445,7 +445,7 @@ bool CCoinUtxoTransferTx::ExecuteTx(CTxExecuteContext &context) {
             return state.DoS(100, ERRORMSG("del prev utxo error!"), REJECT_INVALID, "del-prev-utxo-err");
 
         uint256 proof = uint256();
-        CRegIDKey regIdKey(txAccount.regid);
+        CRegIDKey regIdKey(sp_tx_account->regid);
         auto proofKey = std::make_tuple(input.prev_utxo_txid, CFixedUInt16(input.prev_utxo_vout_index), regIdKey);
         if (cw.txUtxoCache.GetUtxoPasswordProof(proofKey, proof)) {
             cw.txUtxoCache.DelUtoxPasswordProof(proofKey);
@@ -464,19 +464,19 @@ bool CCoinUtxoTransferTx::ExecuteTx(CTxExecuteContext &context) {
     }
 
     uint64_t accountBalance;
-    if ( !txAccount.GetBalance(coin_symbol, BalanceType::FREE_VALUE, accountBalance) ||
+    if ( !sp_tx_account->GetBalance(coin_symbol, BalanceType::FREE_VALUE, accountBalance) ||
          (accountBalance + totalInAmount < totalOutAmount) )
         return state.DoS(100, ERRORMSG("account balance coin_amount insufficient!"), REJECT_INVALID,
                         "insufficient-account-coin-amount");
 
     if (totalInAmount <  totalOutAmount) {
-        if (!txAccount.OperateBalance(coin_symbol, SUB_FREE,  totalOutAmount - totalInAmount,
+        if (!sp_tx_account->OperateBalance(coin_symbol, SUB_FREE,  totalOutAmount - totalInAmount,
                                     ReceiptType::TRANSFER_UTXO_COINS, receipts)) {
             return state.DoS(100, ERRORMSG("failed to deduct coin_amount in txUid %s account",
                             txUid.ToString()), UPDATE_ACCOUNT_FAIL, "insufficient-fund-utxo");
         }
     } else if (totalInAmount > totalOutAmount) {
-        if (!txAccount.OperateBalance(coin_symbol, ADD_FREE, totalInAmount - totalOutAmount,
+        if (!sp_tx_account->OperateBalance(coin_symbol, ADD_FREE, totalInAmount - totalOutAmount,
                                     ReceiptType::TRANSFER_UTXO_COINS, receipts)) {
             return state.DoS(100, ERRORMSG("failed to add coin_amount in txUid %s account",
                             txUid.ToString()), UPDATE_ACCOUNT_FAIL, "insufficient-fund-utxo");
@@ -513,7 +513,7 @@ bool CCoinUtxoPasswordProofTx::CheckTx(CTxExecuteContext &context) {
 bool CCoinUtxoPasswordProofTx::ExecuteTx(CTxExecuteContext &context) {
     IMPLEMENT_DEFINE_CW_STATE
 
-    CRegIDKey regIdKey(txAccount.regid);
+    CRegIDKey regIdKey(sp_tx_account->regid);
     if (!cw.txUtxoCache.SetUtxoPasswordProof(std::make_tuple(utxo_txid, CFixedUInt16(utxo_vout_index), regIdKey), password_proof))
         return state.DoS(100, ERRORMSG("bad saving utxo proof",
                         txUid.ToString()), READ_ACCOUNT_FAIL, "bad-save-utxo-passwordproof");

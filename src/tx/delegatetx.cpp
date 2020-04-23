@@ -55,10 +55,10 @@ bool CDelegateVoteTx::ExecuteTx(CTxExecuteContext &context) {
     CValidationState &state = *context.pState;
 
     vector<CCandidateReceivedVote> candidateVotesInOut;
-    CRegID &regId = txAccount.regid;
+    CRegID &regId = sp_tx_account->regid;
     cw.delegateCache.GetCandidateVotes(regId, candidateVotesInOut);
 
-    if (!txAccount.ProcessCandidateVotes(candidateVotes, candidateVotesInOut, context.height, context.block_time,
+    if (!sp_tx_account->ProcessCandidateVotes(candidateVotes, candidateVotesInOut, context.height, context.block_time,
                                           cw.accountCache, receipts)) {
         return state.DoS(
             100, ERRORMSG("CDelegateVoteTx::ExecuteTx, operate candidate votes failed, txUid=%s", txUid.ToString()),
@@ -73,8 +73,8 @@ bool CDelegateVoteTx::ExecuteTx(CTxExecuteContext &context) {
         const CUserID &delegateUId = vote.GetCandidateUid();
         shared_ptr<CAccount> spDelegateAccount = nullptr;
         CAccount *pDelegateAcct = nullptr;
-        if (txAccount.IsSelfUid(delegateUId)) {
-            pDelegateAcct = &txAccount;
+        if (sp_tx_account->IsSelfUid(delegateUId)) {
+            pDelegateAcct = sp_tx_account.get();
         } else {
             spDelegateAccount = make_shared<CAccount>();
             if (!cw.accountCache.GetAccount(delegateUId, *spDelegateAccount)) {

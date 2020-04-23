@@ -32,8 +32,8 @@ bool CBaseCoinTransferTx::ExecuteTx(CTxExecuteContext &context) {
     shared_ptr<CAccount> spDestAccount = nullptr;
     {
         CAccount *pDestAccount = nullptr;
-        if (txAccount.IsSelfUid(toUid)) {
-            pDestAccount = &txAccount; // transfer to self account
+        if (sp_tx_account->IsSelfUid(toUid)) {
+            pDestAccount = sp_tx_account.get(); // transfer to self account
         } else {
             spDestAccount = make_shared<CAccount>();
             if (!cw.accountCache.GetAccount(toUid, *spDestAccount)) {
@@ -47,7 +47,7 @@ bool CBaseCoinTransferTx::ExecuteTx(CTxExecuteContext &context) {
             pDestAccount = spDestAccount.get(); // transfer to other account
         }
 
-        if (!txAccount.OperateBalance(SYMB::WICC, BalanceOpType::SUB_FREE, coin_amount,
+        if (!sp_tx_account->OperateBalance(SYMB::WICC, BalanceOpType::SUB_FREE, coin_amount,
                                     ReceiptType::TRANSFER_ACTUAL_COINS, receipts, pDestAccount))
             return state.DoS(100, ERRORMSG("CBaseCoinTransferTx::ExecuteTx, account has insufficient funds"),
                             UPDATE_ACCOUNT_FAIL, "operate-minus-account-failed");
@@ -157,7 +157,7 @@ bool CCoinTransferTx::ExecuteTx(CTxExecuteContext &context) {
                 }
 
                 // 1) transfer all risk fee to risk-reserve
-                if (!txAccount.OperateBalance(SYMB::WUSD, BalanceOpType::SUB_FREE, frictionFee,
+                if (!sp_tx_account->OperateBalance(SYMB::WUSD, BalanceOpType::SUB_FREE, frictionFee,
                                                 ReceiptType::SOIN_FRICTION_FEE_TO_RESERVE, receipts,
                                                 &fcoinGenesisAccount)) {
                     return state.DoS(100, ERRORMSG("transfer risk fee to risk-reserve account failed"),
@@ -191,8 +191,8 @@ bool CCoinTransferTx::ExecuteTx(CTxExecuteContext &context) {
         shared_ptr<CAccount> spDestAccount = nullptr;
         {
             CAccount *pDestAccount = nullptr;
-            if (txAccount.IsSelfUid(toUid)) {
-                pDestAccount = &txAccount; // transfer to self account
+            if (sp_tx_account->IsSelfUid(toUid)) {
+                pDestAccount = sp_tx_account.get(); // transfer to self account
             } else {
                 spDestAccount = make_shared<CAccount>();
                 if (!cw.accountCache.GetAccount(toUid, *spDestAccount)) {
@@ -215,7 +215,7 @@ bool CCoinTransferTx::ExecuteTx(CTxExecuteContext &context) {
                 pDestAccount = spDestAccount.get(); // transfer to other account
             }
 
-            if (!txAccount.OperateBalance(transfer.coin_symbol, SUB_FREE, actualCoinsToSend, ReceiptType::TRANSFER_ACTUAL_COINS, receipts, pDestAccount))
+            if (!sp_tx_account->OperateBalance(transfer.coin_symbol, SUB_FREE, actualCoinsToSend, ReceiptType::TRANSFER_ACTUAL_COINS, receipts, pDestAccount))
                 return state.DoS(100, ERRORMSG("CCoinTransferTx::ExecuteTx, transfers[%d], failed to add coins in toUid %s account", i,
                             toUid.ToDebugString()), UPDATE_ACCOUNT_FAIL, "failed-sub-coins");
 

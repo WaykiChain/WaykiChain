@@ -164,15 +164,15 @@ bool CDEXOperatorRegisterTx::ExecuteTx(CTxExecuteContext &context) {
     }
 
     CAccount ownerAccount;
-    if (txAccount.IsSelfUid(data.owner_uid)) {
-        ownerAccount = txAccount;
+    if (sp_tx_account->IsSelfUid(data.owner_uid)) {
+        ownerAccount = *sp_tx_account;
     } else {
         if (!cw.accountCache.GetAccount(data.owner_uid, ownerAccount))
             return state.DoS(100, ERRORMSG("CDEXOperatorRegisterTx::ExecuteTx, read owner account failed! owner_uid=%s",
                 data.owner_uid.ToDebugString()), REJECT_INVALID, "owner-account-not-exist");
     }
     shared_ptr<CAccount> pMatchAccount;
-    if (!txAccount.IsSelfUid(data.fee_receiver_uid) && !ownerAccount.IsSelfUid(data.fee_receiver_uid)) {
+    if (!sp_tx_account->IsSelfUid(data.fee_receiver_uid) && !ownerAccount.IsSelfUid(data.fee_receiver_uid)) {
         if (!cw.accountCache.HasAccount(data.fee_receiver_uid))
             return state.DoS(100, ERRORMSG("CDEXOperatorRegisterTx::ExecuteTx, get match account failed! fee_receiver_uid=%s",
                 data.fee_receiver_uid.ToDebugString()), REJECT_INVALID, "match-account-not-exist");
@@ -182,7 +182,7 @@ bool CDEXOperatorRegisterTx::ExecuteTx(CTxExecuteContext &context) {
         return state.DoS(100, ERRORMSG("the owner already has a dex operator! owner_regid=%s",
                         ownerAccount.regid.ToString()), REJECT_INVALID, "owner-had-dexoperator-already");
 
-    if (!ProcessDexOperatorFee(cw, state, OPERATOR_ACTION_REGISTER, txAccount, receipts,context.height))
+    if (!ProcessDexOperatorFee(cw, state, OPERATOR_ACTION_REGISTER, *sp_tx_account, receipts,context.height))
         return false;
 
     uint32_t new_id;
@@ -403,12 +403,12 @@ bool CDEXOperatorUpdateTx::ExecuteTx(CTxExecuteContext &context) {
         return state.DoS(100, ERRORMSG("the dexoperator( id= %u) is not exist!",
                                        update_data.dexId), UPDATE_ACCOUNT_FAIL, "dexoperator-not-exist");
 
-    if (!txAccount.IsSelfUid(oldDetail.owner_regid))
+    if (!sp_tx_account->IsSelfUid(oldDetail.owner_regid))
         return state.DoS(100, ERRORMSG("only owner can update dexoperator! owner_regid=%s, txUid=%s, dexId=%u",
                                        oldDetail.owner_regid.ToString(),txUid.ToString(), update_data.dexId),
                                                UPDATE_ACCOUNT_FAIL, "dexoperator-update-permession-deny");
 
-    if (!ProcessDexOperatorFee(cw, state, OPERATOR_ACTION_UPDATE, txAccount, receipts, context.height))
+    if (!ProcessDexOperatorFee(cw, state, OPERATOR_ACTION_UPDATE, *sp_tx_account, receipts, context.height))
          return false;
 
     DexOperatorDetail detail = oldDetail;

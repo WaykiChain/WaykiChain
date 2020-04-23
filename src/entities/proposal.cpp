@@ -168,7 +168,7 @@ bool CGovMinerFeeProposal::ExecuteProposal(CTxExecuteContext& context, CBaseTx& 
 bool CGovCoinTransferProposal::CheckProposal(CTxExecuteContext& context, CBaseTx& tx) {
     IMPLEMENT_DEFINE_CW_STATE
 
-    if(tx.nTxType == TxType::PROPOSAL_REQUEST_TX && tx.txAccount.IsSelfUid(from_uid)) {
+    if(tx.nTxType == TxType::PROPOSAL_REQUEST_TX && tx.sp_tx_account->IsSelfUid(from_uid)) {
         return state.DoS(100, ERRORMSG("CGovCoinTransferProposal::CheckProposal, can't"
                                        " create this proposal that from_uid is same as txUid"), REJECT_DUST, "invalid-coin-amount");
     }
@@ -237,8 +237,8 @@ bool CGovAccountPermProposal::ExecuteProposal(CTxExecuteContext& context, CBaseT
     CCacheWrapper &cw       = *context.pCw;
 
 
-    if (tx.txAccount.IsSelfUid(account_uid)) {
-        tx.txAccount.perms_sum = proposed_perms_sum;
+    if (tx.sp_tx_account->IsSelfUid(account_uid)) {
+        tx.sp_tx_account->perms_sum = proposed_perms_sum;
         return true;
     }
 
@@ -521,8 +521,8 @@ bool ProcessAxcInFee(CTxExecuteContext& context, CBaseTx& tx, TokenSymbol& selfC
     uint64_t swapFeesPerBp = swapFees / (govBpRegIds.size() + 3);
     for (const auto &bpRegID : govBpRegIds) {
 
-        if(tx.txAccount.IsSelfUid(bpRegID)){
-            if (!tx.txAccount.OperateBalance(selfChainTokenSymbol, BalanceOpType::ADD_FREE, swapFeesPerBp,
+        if(tx.sp_tx_account->IsSelfUid(bpRegID)){
+            if (!tx.sp_tx_account->OperateBalance(selfChainTokenSymbol, BalanceOpType::ADD_FREE, swapFeesPerBp,
                                              ReceiptType::AXC_REWARD_FEE_TO_GOVERNOR, tx.receipts))
                 return state.DoS(100,
                                  ERRORMSG("CGovAxcInProposal::ExecuteProposal, opreate balance failed, swapFeesPerBp=%llu",
@@ -560,8 +560,8 @@ bool ProcessAxcInFee(CTxExecuteContext& context, CBaseTx& tx, TokenSymbol& selfC
     }
 
 
-    if (tx.txAccount.IsSelfUid(axcgwId)) {
-        if (!tx.txAccount.OperateBalance(selfChainTokenSymbol, BalanceOpType::ADD_FREE, swapFeeForGw,
+    if (tx.sp_tx_account->IsSelfUid(axcgwId)) {
+        if (!tx.sp_tx_account->OperateBalance(selfChainTokenSymbol, BalanceOpType::ADD_FREE, swapFeeForGw,
                                          ReceiptType::AXC_REWARD_FEE_TO_GW, tx.receipts))
             return state.DoS(100, ERRORMSG("CGovAxcInProposal::ExecuteProposal, opreate balance failed, swapFeesPerBp=%llu",
                                            swapFeesPerBp), REJECT_INVALID, "bad-operate-balance");
@@ -615,9 +615,9 @@ bool CGovAxcInProposal::ExecuteProposal(CTxExecuteContext& context, CBaseTx& tx)
 
 
 
-    if (tx.txAccount.IsSelfUid(self_chain_uid)) {
+    if (tx.sp_tx_account->IsSelfUid(self_chain_uid)) {
         // mint the new mirro-coin (self_chain_token_symbol) out of thin air
-        if (!tx.txAccount.OperateBalance(self_chain_token_symbol, BalanceOpType::ADD_FREE, swap_amount_after_fees,
+        if (!tx.sp_tx_account->OperateBalance(self_chain_token_symbol, BalanceOpType::ADD_FREE, swap_amount_after_fees,
                                  ReceiptType::AXC_MINT_COINS, tx.receipts))
             return state.DoS(100, ERRORMSG("CGovAxcInProposal::ExecuteProposal, opreate balance failed, swap_amount_after_fees=%llu",
                                            swap_amount_after_fees), REJECT_INVALID, "bad-operate-balance");
@@ -709,9 +709,9 @@ bool CGovAxcOutProposal::ExecuteProposal(CTxExecuteContext& context, CBaseTx& tx
                         REJECT_INVALID, "bad-get-swap_fee_ratio");
 
 
-    if (tx.txAccount.IsSelfUid(self_chain_uid)) {
+    if (tx.sp_tx_account->IsSelfUid(self_chain_uid)) {
         // burn the mirroed tokens from self-chain
-        if (!tx.txAccount.OperateBalance(self_chain_token_symbol, BalanceOpType::SUB_FREE, swap_amount, ReceiptType::AXC_BURN_COINS, tx.receipts))
+        if (!tx.sp_tx_account->OperateBalance(self_chain_token_symbol, BalanceOpType::SUB_FREE, swap_amount, ReceiptType::AXC_BURN_COINS, tx.receipts))
             return state.DoS(100, ERRORMSG("CGovAxcOutProposal::ExecuteProposal, opreate balance failed, swap_amount=%llu",
                                            swap_amount), REJECT_INVALID, "bad-operate-balance");
     } else {

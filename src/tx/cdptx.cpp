@@ -290,10 +290,10 @@ bool CCDPStakeTx::ExecuteTx(CTxExecuteContext &context) {
             return state.DoS(100, ERRORMSG("invalid amount"), REJECT_INVALID, "invalid-amount");
 
         vector<CUserCDP> userCdps;
-        if (cw.cdpCache.UserHaveCdp(txAccount.regid, assetSymbol, scoin_symbol)) {
+        if (cw.cdpCache.UserHaveCdp(sp_tx_account->regid, assetSymbol, scoin_symbol)) {
             return state.DoS(100, ERRORMSG("the user (regid=%s) has existing CDP (txid=%s)!"
                             "asset_symbol=%s, scoin_symbol=%s",
-                             GetHash().GetHex(), txAccount.regid.ToString(), assetSymbol, scoin_symbol),
+                             GetHash().GetHex(), sp_tx_account->regid.ToString(), assetSymbol, scoin_symbol),
                              REJECT_INVALID, "user-cdp-created");
         }
 
@@ -306,7 +306,7 @@ bool CCDPStakeTx::ExecuteTx(CTxExecuteContext &context) {
                                       100.0 * startingCdpCollateralRatio / RATIO_BOOST, bcoinMedianPrice),
                              REJECT_INVALID, "CDP-collateral-ratio-toosmall");
 
-        CUserCDP cdp(txAccount.regid, GetHash(), context.height, assetSymbol, scoin_symbol, assetAmount, scoins_to_mint);
+        CUserCDP cdp(sp_tx_account->regid, GetHash(), context.height, assetSymbol, scoin_symbol, assetAmount, scoins_to_mint);
 
         if (!cw.cdpCache.NewCDP(context.height, cdp)) {
             return state.DoS(100, ERRORMSG("save new cdp to db failed"),
@@ -335,7 +335,7 @@ bool CCDPStakeTx::ExecuteTx(CTxExecuteContext &context) {
             return state.DoS(100, ERRORMSG("the asset symbol=%s does not match with the current CDP's=%s",
                             assetSymbol, cdp.bcoin_symbol), REJECT_INVALID, "invalid-asset-symbol");
 
-        if (txAccount.regid != cdp.owner_regid)
+        if (sp_tx_account->regid != cdp.owner_regid)
             return state.DoS(100, ERRORMSG("permission denied! cdp_txid=%s, owner(%s) vs operator(%s)",
                             cdp_txid.ToString(), cdp.owner_regid.ToString(), txUid.ToString()), REJECT_INVALID, "permission-denied");
 
@@ -352,11 +352,11 @@ bool CCDPStakeTx::ExecuteTx(CTxExecuteContext &context) {
             return false;
         }
 
-        uint64_t ownerScoins = txAccount.GetToken(scoin_symbol).free_amount;
+        uint64_t ownerScoins = sp_tx_account->GetToken(scoin_symbol).free_amount;
         uint64_t mintScoinForInterest = 0;
         if (scoinsInterestToRepay > ownerScoins) {
             mintScoinForInterest = scoinsInterestToRepay - ownerScoins;
-            txAccount.OperateBalance(scoin_symbol, BalanceOpType::ADD_FREE, mintScoinForInterest,
+            sp_tx_account->OperateBalance(scoin_symbol, BalanceOpType::ADD_FREE, mintScoinForInterest,
                                    ReceiptType::CDP_MINTED_SCOIN_TO_OWNER, receipts);
             LogPrint(BCLog::CDP, "Mint scoins=%llu for interest!\n", mintScoinForInterest);
         }
@@ -379,7 +379,7 @@ bool CCDPStakeTx::ExecuteTx(CTxExecuteContext &context) {
         if (!SellInterestForFcoins(CTxCord(context.height, context.index), cdp, scoinsInterestToRepay, cw, state, receipts))
             return false;
 
-        if (!txAccount.OperateBalance(scoin_symbol, BalanceOpType::SUB_FREE, scoinsInterestToRepay, ReceiptType::CDP_REPAY_INTEREST, receipts))
+        if (!sp_tx_account->OperateBalance(scoin_symbol, BalanceOpType::SUB_FREE, scoinsInterestToRepay, ReceiptType::CDP_REPAY_INTEREST, receipts))
             return state.DoS(100, ERRORMSG("scoins balance < scoinsInterestToRepay: %llu",
                             scoinsInterestToRepay), UPDATE_ACCOUNT_FAIL,
                             strprintf("deduct-interest(%llu)-error", scoinsInterestToRepay));
@@ -392,11 +392,11 @@ bool CCDPStakeTx::ExecuteTx(CTxExecuteContext &context) {
     }
 
     // update account accordingly
-    if (!txAccount.OperateBalance(assetSymbol, BalanceOpType::PLEDGE, assetAmount, ReceiptType::CDP_PLEDGED_ASSET_FROM_OWNER, receipts))
+    if (!sp_tx_account->OperateBalance(assetSymbol, BalanceOpType::PLEDGE, assetAmount, ReceiptType::CDP_PLEDGED_ASSET_FROM_OWNER, receipts))
         return state.DoS(100, ERRORMSG("bcoins insufficient to pledge"), UPDATE_ACCOUNT_FAIL,
                          "bcoins-insufficient-error");
 
-    if (!txAccount.OperateBalance(scoin_symbol, BalanceOpType::ADD_FREE, scoins_to_mint, ReceiptType::CDP_MINTED_SCOIN_TO_OWNER, receipts))
+    if (!sp_tx_account->OperateBalance(scoin_symbol, BalanceOpType::ADD_FREE, scoins_to_mint, ReceiptType::CDP_MINTED_SCOIN_TO_OWNER, receipts))
         return state.DoS(100, ERRORMSG("add scoins failed"), UPDATE_ACCOUNT_FAIL,
                          "add-scoins-error");
 
@@ -499,7 +499,7 @@ bool CCDPRedeemTx::ExecuteTx(CTxExecuteContext &context) {
         return state.DoS(100, ERRORMSG("asset symbol to redeem is not match!"),
                         REJECT_INVALID, "invalid-stake-asset");
 
-    if (txAccount.regid != cdp.owner_regid) {
+    if (sp_tx_account->regid != cdp.owner_regid) {
         return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, permission denied! cdp_txid=%s, owner(%s) vs operator(%s)",
                         cdp_txid.ToString(), cdp.owner_regid.ToString(), txUid.ToString()), REJECT_INVALID, "permission-denied");
     }
@@ -534,7 +534,7 @@ bool CCDPRedeemTx::ExecuteTx(CTxExecuteContext &context) {
         return false;
     }
 
-    if (!txAccount.OperateBalance(cdp.scoin_symbol, BalanceOpType::SUB_FREE, scoinsInterestToRepay,
+    if (!sp_tx_account->OperateBalance(cdp.scoin_symbol, BalanceOpType::SUB_FREE, scoinsInterestToRepay,
                                 ReceiptType::CDP_REPAY_INTEREST, receipts)) {
         return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, Deduct interest error!"),
                         REJECT_INVALID, "deduct-interest-error");
@@ -565,7 +565,7 @@ bool CCDPRedeemTx::ExecuteTx(CTxExecuteContext &context) {
     }
 
     // check account balance vs scoins_to_repay
-    if (txAccount.GetToken(cdp.scoin_symbol).free_amount < scoins_to_repay) {
+    if (sp_tx_account->GetToken(cdp.scoin_symbol).free_amount < scoins_to_repay) {
         return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, account balance insufficient"), REJECT_INVALID,
                          "account-balance-insufficient");
     }
@@ -620,15 +620,15 @@ bool CCDPRedeemTx::ExecuteTx(CTxExecuteContext &context) {
         }
     }
 
-    if (!txAccount.OperateBalance(cdp.scoin_symbol, BalanceOpType::SUB_FREE, actualScoinsToRepay,
+    if (!sp_tx_account->OperateBalance(cdp.scoin_symbol, BalanceOpType::SUB_FREE, actualScoinsToRepay,
                                 ReceiptType::CDP_REPAID_SCOIN_FROM_OWNER, receipts)) {
         return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, update account(%s) SUB WUSD(%lu) failed",
-                        txAccount.regid.ToString(), actualScoinsToRepay), UPDATE_ACCOUNT_FAIL, "bad-operate-account");
+                        sp_tx_account->regid.ToString(), actualScoinsToRepay), UPDATE_ACCOUNT_FAIL, "bad-operate-account");
     }
-    if (!txAccount.OperateBalance(cdp.bcoin_symbol, BalanceOpType::UNPLEDGE, assetAmount,
+    if (!sp_tx_account->OperateBalance(cdp.bcoin_symbol, BalanceOpType::UNPLEDGE, assetAmount,
                                 ReceiptType::CDP_REDEEMED_ASSET_TO_OWNER, receipts)) {
         return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, update account(%s) ADD WICC(%lu) failed",
-                        txAccount.regid.ToString(), assetAmount), UPDATE_ACCOUNT_FAIL, "bad-operate-account");
+                        sp_tx_account->regid.ToString(), assetAmount), UPDATE_ACCOUNT_FAIL, "bad-operate-account");
     }
 
     return true;
@@ -740,7 +740,7 @@ bool CCDPLiquidateTx::ExecuteTx(CTxExecuteContext &context) {
     CCdpCoinPair cdpCoinPair(cdp.bcoin_symbol, cdp.scoin_symbol);
     CUserCDP oldCDP = cdp; // copy before modify.
 
-    uint64_t free_scoins = txAccount.GetToken(cdp.scoin_symbol).free_amount;
+    uint64_t free_scoins = sp_tx_account->GetToken(cdp.scoin_symbol).free_amount;
     if (free_scoins < scoins_to_liquidate) {  // more applicable when scoinPenalty is omitted
         return state.DoS(100, ERRORMSG("CdpLiquidateTx::ExecuteTx, account scoins %d < scoins_to_liquidate: %d", free_scoins,
                         scoins_to_liquidate), CDP_LIQUIDATE_FAIL, "account-scoins-insufficient");
@@ -824,12 +824,12 @@ bool CCDPLiquidateTx::ExecuteTx(CTxExecuteContext &context) {
     }
 
     if (scoins_to_liquidate >= totalScoinsToLiquidate) {
-        if (!txAccount.OperateBalance(cdp.scoin_symbol, SUB_FREE, totalScoinsToLiquidate,
+        if (!sp_tx_account->OperateBalance(cdp.scoin_symbol, SUB_FREE, totalScoinsToLiquidate,
                                     ReceiptType::CDP_SCOIN_FROM_LIQUIDATOR, receipts)) {
             return state.DoS(100, ERRORMSG("CCDPLiquidateTx::ExecuteTx, deduct scoins from regId=%s failed",
                             txUid.ToString()), UPDATE_ACCOUNT_FAIL, "deduct-account-scoins-failed");
         }
-        if (!txAccount.OperateBalance(cdp.bcoin_symbol, ADD_FREE, totalBcoinsToReturnLiquidator,
+        if (!sp_tx_account->OperateBalance(cdp.bcoin_symbol, ADD_FREE, totalBcoinsToReturnLiquidator,
                                     ReceiptType::CDP_ASSET_TO_LIQUIDATOR, receipts)) {
             return state.DoS(100, ERRORMSG("CCDPLiquidateTx::ExecuteTx, add bcoins failed"), UPDATE_ACCOUNT_FAIL,
                              "add-bcoins-failed");
@@ -847,7 +847,7 @@ bool CCDPLiquidateTx::ExecuteTx(CTxExecuteContext &context) {
                              "deduct-bcoins-failed");
         }
 
-        if (txAccount.regid != cdpOwnerAccount.regid) { //liquidate by others
+        if (sp_tx_account->regid != cdpOwnerAccount.regid) { //liquidate by others
             if (!cdpOwnerAccount.OperateBalance(cdp.bcoin_symbol, UNPLEDGE, totalBcoinsToCdpOwner,
                                                 ReceiptType::CDP_LIQUIDATED_ASSET_TO_OWNER, receipts)) {
                 return state.DoS(100, ERRORMSG("CCDPLiquidateTx::ExecuteTx, unpledge bcoins failed"), UPDATE_ACCOUNT_FAIL,
@@ -857,7 +857,7 @@ bool CCDPLiquidateTx::ExecuteTx(CTxExecuteContext &context) {
                 return state.DoS(100, ERRORMSG("CCDPLiquidateTx::ExecuteTx, write cdp owner account info error! owner_regid=%s",
                                 cdp.owner_regid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-write-accountdb");
         } else {  // liquidate by oneself
-            if (!txAccount.OperateBalance(cdp.bcoin_symbol, UNPLEDGE, totalBcoinsToCdpOwner,
+            if (!sp_tx_account->OperateBalance(cdp.bcoin_symbol, UNPLEDGE, totalBcoinsToCdpOwner,
                                         ReceiptType::CDP_LIQUIDATED_ASSET_TO_OWNER, receipts)) {
                 return state.DoS(100, ERRORMSG("CCDPLiquidateTx::ExecuteTx, unpledge bcoins failed"), UPDATE_ACCOUNT_FAIL,
                                  "unpledge-bcoins-failed");
@@ -887,12 +887,12 @@ bool CCDPLiquidateTx::ExecuteTx(CTxExecuteContext &context) {
         assert(liquidateRate < 1);
         totalBcoinsToReturnLiquidator *= liquidateRate;
 
-        if (!txAccount.OperateBalance(cdp.scoin_symbol, SUB_FREE, scoins_to_liquidate,
+        if (!sp_tx_account->OperateBalance(cdp.scoin_symbol, SUB_FREE, scoins_to_liquidate,
                                     ReceiptType::CDP_SCOIN_FROM_LIQUIDATOR, receipts)) {
             return state.DoS(100, ERRORMSG("CCDPLiquidateTx::ExecuteTx, sub scoins to liquidator failed"),
                              UPDATE_ACCOUNT_FAIL, "sub-scoins-to-liquidator-failed");
         }
-        if (!txAccount.OperateBalance(cdp.bcoin_symbol, ADD_FREE, totalBcoinsToReturnLiquidator,
+        if (!sp_tx_account->OperateBalance(cdp.bcoin_symbol, ADD_FREE, totalBcoinsToReturnLiquidator,
                                     ReceiptType::CDP_ASSET_TO_LIQUIDATOR, receipts)) {
             return state.DoS(100, ERRORMSG("CCDPLiquidateTx::ExecuteTx, add bcoins to liquidator failed"),
                              UPDATE_ACCOUNT_FAIL, "add-bcoins-to-liquidator-failed");
@@ -911,7 +911,7 @@ bool CCDPLiquidateTx::ExecuteTx(CTxExecuteContext &context) {
         }
 
         uint64_t bcoinsToCDPOwner = totalBcoinsToCdpOwner * liquidateRate;
-        if (txAccount.regid != cdpOwnerAccount.regid) {
+        if (sp_tx_account->regid != cdpOwnerAccount.regid) {
             if (!cdpOwnerAccount.OperateBalance(cdp.bcoin_symbol, UNPLEDGE, bcoinsToCDPOwner,
                                                 ReceiptType::CDP_LIQUIDATED_ASSET_TO_OWNER, receipts)) {
                 return state.DoS(100, ERRORMSG("CCDPLiquidateTx::ExecuteTx, unpledge bcoins to cdp owner failed"),
@@ -921,7 +921,7 @@ bool CCDPLiquidateTx::ExecuteTx(CTxExecuteContext &context) {
                 return state.DoS(100, ERRORMSG("CCDPLiquidateTx::ExecuteTx, write cdp owner account info error! owner_regid=%s",
                                 cdp.owner_regid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-write-accountdb");
         } else {  // liquidate by oneself
-            if (!txAccount.OperateBalance(cdp.bcoin_symbol, UNPLEDGE, bcoinsToCDPOwner,
+            if (!sp_tx_account->OperateBalance(cdp.bcoin_symbol, UNPLEDGE, bcoinsToCDPOwner,
                                         ReceiptType::CDP_LIQUIDATED_ASSET_TO_OWNER, receipts)) {
                 return state.DoS(100, ERRORMSG("CCDPLiquidateTx::ExecuteTx, unpledge bcoins to cdp owner failed"),
                                  UPDATE_ACCOUNT_FAIL, "unpledge-bcoins-to-cdp-owner-failed");
@@ -1108,13 +1108,13 @@ bool CCDPInterestForceSettleTx::ExecuteTx(CTxExecuteContext &context) {
             return false;
         }
 
-        txAccount.OperateBalance(cdp.scoin_symbol, BalanceOpType::ADD_FREE, mintScoinForInterest,
+        sp_tx_account->OperateBalance(cdp.scoin_symbol, BalanceOpType::ADD_FREE, mintScoinForInterest,
                                 ReceiptType::CDP_MINTED_SCOIN_TO_OWNER, receipts);
 
         if (!cdp_util::SellInterestForFcoins(*this, context, cdp, mintScoinForInterest, receipts))
             return false; // error msg has been processed
 
-        if (!txAccount.OperateBalance(cdp.scoin_symbol, BalanceOpType::SUB_FREE,
+        if (!sp_tx_account->OperateBalance(cdp.scoin_symbol, BalanceOpType::SUB_FREE,
                                       mintScoinForInterest, ReceiptType::CDP_REPAY_INTEREST,
                                       receipts))
             return state.DoS(100, ERRORMSG("scoins balance < scoinsInterestToRepay: %llu",

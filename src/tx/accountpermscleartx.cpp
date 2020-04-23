@@ -19,8 +19,6 @@ bool CAccountPermsClearTx::CheckTx(CTxExecuteContext &context) {
 }
 
 bool CAccountPermsClearTx::ExecuteTx(CTxExecuteContext &context) {
-
-    txAccount.perms_sum = 0;
-
+    sp_tx_account->perms_sum = 0;
     return true;
 }

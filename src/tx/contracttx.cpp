@@ -179,7 +179,7 @@ bool CLuaContractInvokeTx::ExecuteTx(CTxExecuteContext &context) {
                         app_uid.get<CRegID>().ToString()), READ_ACCOUNT_FAIL, "bad-read-accountdb");
     }
 
-    if (coin_amount > 0 && !txAccount.OperateBalance(SYMB::WICC, BalanceOpType::SUB_FREE, coin_amount,
+    if (coin_amount > 0 && !sp_tx_account->OperateBalance(SYMB::WICC, BalanceOpType::SUB_FREE, coin_amount,
                                 ReceiptType::LUAVM_TRANSFER_ACTUAL_COINS, receipts, &appAccount))
         return state.DoS(100, ERRORMSG("CLuaContractInvokeTx::ExecuteTx, txAccount has insufficient funds"),
                          UPDATE_ACCOUNT_FAIL, "operate-minus-account-failed");
@@ -200,7 +200,7 @@ bool CLuaContractInvokeTx::ExecuteTx(CTxExecuteContext &context) {
     luaContext.fuel_limit        = fuelLimit;
     luaContext.transfer_symbol   = SYMB::WICC;
     luaContext.transfer_amount   = coin_amount;
-    luaContext.p_tx_user_account = &txAccount;
+    luaContext.p_tx_user_account = sp_tx_account.get();
     luaContext.p_app_account     = &appAccount;
     luaContext.p_contract        = &contract;
     luaContext.p_arguments       = &arguments;
@@ -401,7 +401,7 @@ bool CUniversalContractInvokeR2Tx::ExecuteTx(CTxExecuteContext &context) {
                         app_uid.get<CRegID>().ToString()), READ_ACCOUNT_FAIL, "bad-read-accountdb");
     }
 
-    if (!txAccount.OperateBalance(coin_symbol, BalanceOpType::SUB_FREE, coin_amount,
+    if (!sp_tx_account->OperateBalance(coin_symbol, BalanceOpType::SUB_FREE, coin_amount,
                                   ReceiptType::LUAVM_TRANSFER_ACTUAL_COINS, receipts, &appAccount))
         return state.DoS(100, ERRORMSG("txAccount has insufficient funds"),
                          UPDATE_ACCOUNT_FAIL, "operate-minus-account-failed");
@@ -422,7 +422,7 @@ bool CUniversalContractInvokeR2Tx::ExecuteTx(CTxExecuteContext &context) {
     luaContext.fuel_limit        = fuelLimit;
     luaContext.transfer_symbol   = coin_symbol;
     luaContext.transfer_amount   = coin_amount;
-    luaContext.p_tx_user_account = &txAccount;
+    luaContext.p_tx_user_account = sp_tx_account.get();
     luaContext.p_app_account     = &appAccount;
     luaContext.p_contract        = &contract;
     luaContext.p_arguments       = &arguments;

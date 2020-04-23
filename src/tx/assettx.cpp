@@ -131,7 +131,7 @@ bool CUserIssueAssetTx::CheckTx(CTxExecuteContext &context) {
     if ((txUid.is<CPubKey>()) && !txUid.get<CPubKey>().IsFullyValid())
         return state.DoS(100, ERRORMSG("public key is invalid"), REJECT_INVALID, "bad-publickey");
 
-    if (!txAccount.IsRegistered() || !txUid.get<CRegID>().IsMature(context.height))
+    if (!sp_tx_account->IsRegistered() || !txUid.get<CRegID>().IsMature(context.height))
         return state.DoS(100, ERRORMSG("account unregistered or immature"), REJECT_INVALID, "account-unregistered-or-immature");
 
     return true;
@@ -147,8 +147,8 @@ bool CUserIssueAssetTx::ExecuteTx(CTxExecuteContext &context) {
     shared_ptr<CAccount> spAssetAccount = nullptr;
     CAccount *pOwnerAccount = nullptr;
     {
-        if (txAccount.IsSelfUid(asset.owner_uid)) {
-            pOwnerAccount = &txAccount;
+        if (sp_tx_account->IsSelfUid(asset.owner_uid)) {
+            pOwnerAccount = sp_tx_account.get();
         } else {
             spAssetAccount = make_shared<CAccount>();
 
@@ -164,7 +164,7 @@ bool CUserIssueAssetTx::ExecuteTx(CTxExecuteContext &context) {
                                             REJECT_INVALID, "owner-account-unregistered-or-immature");
         }
 
-        if (!ProcessAssetFee(cw, state, ASSET_ACTION_ISSUE, txAccount, context.height, receipts))
+        if (!ProcessAssetFee(cw, state, ASSET_ACTION_ISSUE, *sp_tx_account, context.height, receipts))
             return false;
 
         if (!pOwnerAccount->OperateBalance(asset.asset_symbol, BalanceOpType::ADD_FREE, asset.total_supply,
@@ -331,7 +331,7 @@ bool CUserUpdateAssetTx::CheckTx(CTxExecuteContext &context) {
         }
     }
 
-    if (!txAccount.IsRegistered() || !txUid.get<CRegID>().IsMature(context.height))
+    if (!sp_tx_account->IsRegistered() || !txUid.get<CRegID>().IsMature(context.height))
         return state.DoS(100, ERRORMSG("account unregistered or immature"),
                          REJECT_INVALID, "account-unregistered-or-immature");
 
@@ -346,14 +346,14 @@ bool CUserUpdateAssetTx::ExecuteTx(CTxExecuteContext &context) {
     if (!cw.assetCache.GetAsset(asset_symbol, asset))
         return state.DoS(100, ERRORMSG("get asset by symbol=%s failed", asset_symbol), REJECT_INVALID, "get-asset-failed");
 
-    if (!txAccount.IsSelfUid(asset.owner_uid))
+    if (!sp_tx_account->IsSelfUid(asset.owner_uid))
         return state.DoS(100, ERRORMSG("uid mismatch: txUid=%s, old_asset_uid=%s", txUid.ToDebugString(), asset.owner_uid.ToString()),
                         REJECT_INVALID, "asset-uid-mismatch");
 
     switch (update_data.GetType()) {
         case CUserUpdateAsset::OWNER_UID: {
             const CUserID &newOwnerUid = update_data.get<CUserID>();
-            if (txAccount.IsSelfUid(newOwnerUid))
+            if (sp_tx_account->IsSelfUid(newOwnerUid))
                 return state.DoS(100, ERRORMSG("new_owner_uid=%s is from the same owner account",
                     newOwnerUid.ToDebugString()), REJECT_INVALID, "invalid-new-asset-owner-uid");
 
@@ -389,7 +389,7 @@ bool CUserUpdateAssetTx::ExecuteTx(CTxExecuteContext &context) {
                             mintAmount, asset.total_supply, MAX_ASSET_TOTAL_SUPPLY), REJECT_INVALID, "invalid-mint-amount");
             }
 
-            if (!txAccount.OperateBalance(asset_symbol, BalanceOpType::ADD_FREE, mintAmount,
+            if (!sp_tx_account->OperateBalance(asset_symbol, BalanceOpType::ADD_FREE, mintAmount,
                                         ReceiptType::ASSET_MINT_NEW_AMOUNT, receipts)) {
                 return state.DoS(100, ERRORMSG("add mintAmount to asset owner account failed, txUid=%s, mintAmount=%llu",
                                 txUid.ToDebugString(), mintAmount), UPDATE_ACCOUNT_FAIL, "account-add-free-failed");
@@ -401,7 +401,7 @@ bool CUserUpdateAssetTx::ExecuteTx(CTxExecuteContext &context) {
         default: assert(false);
     }
 
-    if (!ProcessAssetFee(cw, state, ASSET_ACTION_UPDATE, txAccount, context.height, receipts))
+    if (!ProcessAssetFee(cw, state, ASSET_ACTION_UPDATE, *sp_tx_account, context.height, receipts))
         return false;
 
     if (!cw.assetCache.SetAsset(asset))

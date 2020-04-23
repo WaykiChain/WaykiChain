@@ -16,30 +16,31 @@ bool CCoinMintTx::CheckTx(CTxExecuteContext &context) {
 bool CCoinMintTx::ExecuteTx(CTxExecuteContext &context) {
     CCacheWrapper &cw = *context.pCw; CValidationState &state = *context.pState;
     CRegID newRegid = CRegID(context.height, context.index);
+    sp_tx_account = make_shared<CAccount>();
 
     if (txUid.IsEmpty()) {
-        txAccount = CAccount(Hash160(newRegid.GetRegIdRaw())); // genrate new keyid from regid
-        txAccount.regid = newRegid; // generate new regid
+        sp_tx_account->keyid = Hash160(newRegid.GetRegIdRaw()); // genrate new keyid from regid
+        sp_tx_account->regid = newRegid; // generate new regid
     } else if (txUid.is<CPubKey>()) {
         const CPubKey &pubkey = txUid.get<CPubKey>();
         const CKeyID &keyid = pubkey.GetKeyId();
-        if (!cw.accountCache.GetAccount(keyid, txAccount)) {
-            txAccount.keyid = keyid; // genrate new keyid from regid
+        if (!cw.accountCache.GetAccount(keyid, *sp_tx_account)) {
+            sp_tx_account->keyid = keyid; // genrate new keyid from regid
         }
-        if (!txAccount.IsRegistered()) {
-            txAccount.regid = newRegid; // generate new regid
-            txAccount.owner_pubkey = pubkey; // init owner pubkey
+        if (!sp_tx_account->IsRegistered()) {
+            sp_tx_account->regid = newRegid; // generate new regid
+            sp_tx_account->owner_pubkey = pubkey; // init owner pubkey
         }
     } else {
         return state.DoS(100, ERRORMSG("%s(), unsupported txUid type=%s",
                 TX_ERR_TITLE, txUid.GetIDName()), READ_ACCOUNT_FAIL, "unsupported-txUid-type");
     }
 
-    if (!txAccount.OperateBalance(coin_symbol, ADD_FREE, coin_amount, ReceiptType::COIN_MINT_ONCHAIN, receipts))
+    if (!sp_tx_account->OperateBalance(coin_symbol, ADD_FREE, coin_amount, ReceiptType::COIN_MINT_ONCHAIN, receipts))
         return state.DoS(100, ERRORMSG("CCoinMintTx::ExecuteTx, operate account failed"), UPDATE_ACCOUNT_FAIL,
                          "operate-account-failed");
 
-    if (!cw.accountCache.SaveAccount(txAccount))
+    if (!cw.accountCache.SaveAccount(*sp_tx_account))
         return state.DoS(100, ERRORMSG("ExecuteFullTx, write source addr %s account info error",
                         txUid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
     return true;
