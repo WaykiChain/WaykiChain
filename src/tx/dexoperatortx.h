@@ -230,7 +230,7 @@ public:
     const T_Value &get() const {
         return boost::get<T_Value>(value);
     }
-    bool Check(CCacheWrapper &cw, string& errmsg, string& errcode, uint32_t currentHeight);
+    bool Check(CBaseTx &tx, CCacheWrapper &cw, string& errmsg, string& errcode, uint32_t currentHeight);
 
     bool UpdateToDexOperator(DexOperatorDetail& detail,CCacheWrapper& cw);
 

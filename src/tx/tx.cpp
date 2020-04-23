@@ -296,7 +296,7 @@ bool CBaseTx::AddInvolvedKeyIds(vector<CUserID> uids, CCacheWrapper &cw, set<CKe
 shared_ptr<CAccount> CBaseTx::GetAccount(CTxExecuteContext &context, const CUserID &uid,
                                          const string &name) {
     shared_ptr<CAccount> spAccount = GetAccount(*context.pCw, uid);
-    if (spAccount) {
+    if (!spAccount) {
         context.pState->DoS(100, ERRORMSG("%s, %s account not exist, uid=%s", GetTxTypeName(), name, txUid.ToString()),
                                 REJECT_INVALID, "account-not-exist");
         return nullptr;

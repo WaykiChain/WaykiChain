@@ -1071,9 +1071,9 @@ Value submitdexopupdatetx(const Array& params, bool fHelp){
     string errmsg;
     string errcode;
     shared_ptr<CCacheWrapper> spCw = make_shared<CCacheWrapper>(pCdMan);
-    if(!updateData.Check(*spCw, errmsg,errcode,chainActive.Height())){
-        throw JSONRPCError(RPC_INVALID_PARAMS, errmsg);
-    }
+    // if(!updateData.Check(*spCw, errmsg,errcode,chainActive.Height())){
+    //     throw JSONRPCError(RPC_INVALID_PARAMS, errmsg);
+    // }
     ComboMoney fee = RPC_PARAM::GetFee(params,4, DEX_OPERATOR_UPDATE_TX);
 
     // Get account for checking balance
