@@ -388,7 +388,7 @@ bool CCdpForceLiquidator::Execute() {
             // inflate fcoin to fcoin genesis account
             uint256 fcoinSellOrderId;
             shared_ptr<CDEXOrderDetail> pFcoinSellOrder;
-            if (!SellAssetToRiskRevervePool(cdp, SYMB::WGRT, fcoinsToInflate, cdpCoinPair.bcoin_symbol, fcoinSellOrderId,
+            if (!SellAssetToRiskRevervePool(cdp, SYMB::WGRT, fcoinsToInflate, cdpCoinPair.scoin_symbol, fcoinSellOrderId,
                                             pFcoinSellOrder, receipts))
                 return false;
 
