@@ -94,6 +94,10 @@ bool CAccountDBCache::EraseAccount(const CKeyID &keyId) {
     return accountCache.EraseData(keyId);
 }
 
+bool CAccountDBCache::NewRegId(const CRegID &regid, const CKeyID &keyId) {
+    return regId2KeyIdCache.SetData(regid, keyId);
+}
+
 bool CAccountDBCache::GetKeyId(const CRegID &regId, CKeyID &keyId) const {
     return regId2KeyIdCache.GetData(regId, keyId);
 }

@@ -207,9 +207,6 @@ public:
 
     bool IsValidHeight(int32_t nCurHeight, int32_t nTxCacheHeight) const;
 
-    // If the sender has no regid before, generate a regid for the sender.
-    bool RegisterAccountPubKey(CTxExecuteContext &context);
-
     bool IsBlockRewardTx()  { return nTxType == BLOCK_REWARD_TX || nTxType == UCOIN_BLOCK_REWARD_TX; }
     bool IsPriceMedianTx()  { return nTxType == PRICE_MEDIAN_TX; }
     bool IsPriceFeedTx()    { return nTxType == PRICE_FEED_TX; }
@@ -235,6 +232,9 @@ public:
     shared_ptr<CAccount> GetAccount(CCacheWrapper &cw, const CUserID &uid);
     shared_ptr<CAccount> NewAccount(CCacheWrapper &cw, const CKeyID &keyid);
     bool SaveAllAccounts(CTxExecuteContext &context);
+    // If the sender has no regid before, generate a regid for the sender.
+    bool RegisterAccountPubKey(CTxExecuteContext &context);
+    bool RegisterAccount(CTxExecuteContext &context, const CPubKey *pPubkey, CAccount &account);
 
 
     bool CheckTxAvailableFromVer(CTxExecuteContext &context, FeatureForkVersionEnum ver);

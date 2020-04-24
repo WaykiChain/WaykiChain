@@ -88,20 +88,6 @@ bool CBaseTx::IsValidHeight(int32_t nCurrHeight, int32_t nTxCacheHeight) const {
     return true;
 }
 
-bool CBaseTx::RegisterAccountPubKey(CTxExecuteContext &context) {
-    if (!txUid.is<CPubKey>())
-        return true;
-
-    if (sp_tx_account->IsRegistered())
-        return true;
-
-    sp_tx_account->owner_pubkey = txUid.get<CPubKey>(); // init owner pubkey
-    sp_tx_account->regid = CRegID(context.height, context.index); // generate new regid for account
-
-    return( context.pCw->accountCache.SaveAccount(*sp_tx_account) );
-
-}
-
 uint64_t CBaseTx::GetFuelFee(CCacheWrapper &cw, int32_t height, uint32_t fuelRate) {
     return (fuel == 0 || fuelRate == 0) ? 0 : std::ceil(fuel / 100.0f) * fuelRate;
 }
@@ -342,6 +328,30 @@ bool CBaseTx::SaveAllAccounts(CTxExecuteContext &context) {
                                 item.first.ToAddress()), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
     }
     return true;
+}
+
+bool CBaseTx::RegisterAccountPubKey(CTxExecuteContext &context) {
+    if (!txUid.is<CPubKey>())
+        return true;
+
+    if (sp_tx_account->IsRegistered())
+        return true;
+
+    const CPubKey &pubkey = txUid.get<CPubKey>(); // init owner pubkey
+    return RegisterAccount(context, &pubkey, *sp_tx_account);
+}
+
+bool CBaseTx::RegisterAccount(CTxExecuteContext &context, const CPubKey *pPubkey,
+                              CAccount &account) {
+    account.regid = CRegID(context.height, context.index); // generate new regid for account
+    if (pPubkey != nullptr)
+        account.owner_pubkey = *pPubkey; // init owner pubkey
+
+    if (!context.pCw->accountCache.NewRegId(account.regid, account.keyid)) {
+        return context.pState->DoS(100, ERRORMSG("save new regid failed! regid=%s, addr=%s",
+                    account.regid.ToString(), account.keyid.ToAddress()),
+                    READ_ACCOUNT_FAIL, "save-new-regid-failed");
+    }
 }
 
 bool CBaseTx::CheckFee(CTxExecuteContext &context) {

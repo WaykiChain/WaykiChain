@@ -21,7 +21,8 @@ bool CCoinMintTx::ExecuteTx(CTxExecuteContext &context) {
     if (txUid.IsEmpty()) {
         sp_tx_account = NewAccount(cw, Hash160(newRegid.GetRegIdRaw()));
         sp_tx_account->regid = newRegid; // generate new regid
-        // no pubkey
+        if (!RegisterAccount(context, /*pubkey*/nullptr, *sp_tx_account)) // generate new regid for the account
+            return false;
     } else if (txUid.is<CPubKey>()) {
         const CPubKey &pubkey = txUid.get<CPubKey>();
         const CKeyID &keyid = pubkey.GetKeyId();
@@ -30,8 +31,8 @@ bool CCoinMintTx::ExecuteTx(CTxExecuteContext &context) {
             sp_tx_account = NewAccount(cw, keyid); // genrate new keyid from regid
         }
         if (!sp_tx_account->IsRegistered()) {
-            sp_tx_account->regid = newRegid; // generate new regid
-            sp_tx_account->owner_pubkey = pubkey; // init owner pubkey
+            if (!RegisterAccount(context, &pubkey, *sp_tx_account)) // generate new regid for the account
+                return false;
         }
     } else {
         return state.DoS(100, ERRORMSG("%s(), unsupported txUid type=%s",
