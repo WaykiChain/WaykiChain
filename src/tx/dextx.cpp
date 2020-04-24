@@ -233,14 +233,14 @@ namespace dex {
         return result;
     }
 
-    bool CDEXOrderBaseTx::CheckMinFee(CTxExecuteContext &context, uint64_t minFee) const {
+    bool CDEXOrderBaseTx::CheckMinFee(CTxExecuteContext &context, uint64_t minFee) {
 
         if (has_operator_config && operator_tx_fee != 0) {
             DexOperatorDetail operatorDetail;
             if (!GetOrderOperator(context, operatorDetail)) return false;
-            CAccount operatorAccount;
-            if (!GetOperatorAccount(context, operatorDetail.fee_receiver_regid, operatorAccount)) return false;
-            return dex::CheckOrderMinFee(*this, context, minFee, &operatorAccount, operator_tx_fee);
+            auto spOperatorAccount= GetAccount(context, operatorDetail.fee_receiver_regid, "operator");
+            if (!spOperatorAccount) return false;
+            return dex::CheckOrderMinFee(*this, context, minFee, spOperatorAccount.get(), operator_tx_fee);
         } else {
             return dex::CheckOrderMinFee(*this, context, minFee, nullptr, 0);
         }
@@ -512,7 +512,7 @@ namespace dex {
     }
 
 
-    bool CDEXCancelOrderTx::CheckMinFee(CTxExecuteContext &context, uint64_t minFee) const {
+    bool CDEXCancelOrderTx::CheckMinFee(CTxExecuteContext &context, uint64_t minFee) {
         return dex::CheckOrderMinFee(*this, context, minFee, nullptr, 0);
     }
 

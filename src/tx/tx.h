@@ -242,8 +242,8 @@ protected:
     bool CheckTxFeeSufficient(CCacheWrapper &cw, const TokenSymbol &feeSymbol,
                               const uint64_t llFees, const int32_t height) const;
     bool CheckSignatureSize(const vector<unsigned char> &signature) const;
-    bool CheckFee(CTxExecuteContext &context) const;
-    virtual bool CheckMinFee(CTxExecuteContext &context, uint64_t minFee) const;
+    bool CheckFee(CTxExecuteContext &context);
+    virtual bool CheckMinFee(CTxExecuteContext &context, uint64_t minFee);
 
     static bool AddInvolvedKeyIds(vector<CUserID> uids, CCacheWrapper &cw, set<CKeyID> &keyIds);
 };

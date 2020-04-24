@@ -58,7 +58,7 @@ namespace dex {
         virtual string ToString(CAccountDBCache &accountCache); //logging usage
         virtual Object ToJson(const CAccountDBCache &accountCache) const; //json-rpc usage
     protected:
-        virtual bool CheckMinFee(CTxExecuteContext &context, uint64_t minFee) const;
+        virtual bool CheckMinFee(CTxExecuteContext &context, uint64_t minFee);
 
         bool CheckOrderSymbols(CTxExecuteContext &context, const TokenSymbol &coinSymbol,
                             const TokenSymbol &assetSymbol);
@@ -482,7 +482,7 @@ namespace dex {
         virtual bool ExecuteTx(CTxExecuteContext &context);
 
     protected:
-        virtual bool CheckMinFee(CTxExecuteContext &context, uint64_t minFee) const;
+        virtual bool CheckMinFee(CTxExecuteContext &context, uint64_t minFee);
     public:
         uint256  order_id;       //!< id of oder need to be canceled.
     };

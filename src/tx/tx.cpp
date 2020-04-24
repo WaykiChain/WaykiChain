@@ -338,7 +338,7 @@ bool CBaseTx::SaveAllAccounts(CTxExecuteContext &context) {
     return true;
 }
 
-bool CBaseTx::CheckFee(CTxExecuteContext &context) const {
+bool CBaseTx::CheckFee(CTxExecuteContext &context) {
     // check fee value range
     if (!CheckBaseCoinRange(llFees))
         return context.pState->DoS(100, ERRORMSG("tx fee out of range"), REJECT_INVALID,
@@ -359,7 +359,7 @@ bool CBaseTx::CheckFee(CTxExecuteContext &context) const {
     return true;
 }
 
-bool CBaseTx::CheckMinFee(CTxExecuteContext &context, uint64_t minFee) const {
+bool CBaseTx::CheckMinFee(CTxExecuteContext &context, uint64_t minFee) {
     if (llFees < minFee){
         string err = strprintf("The given fee is too small: %llu < %llu sawi", llFees, minFee);
         return context.pState->DoS(100, ERRORMSG("%s, tx=%s, height=%d, fee_symbol=%s",
