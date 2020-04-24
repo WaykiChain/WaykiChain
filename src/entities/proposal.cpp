@@ -61,10 +61,8 @@ bool CGovBpMcListProposal::CheckProposal(CTxExecuteContext& context, CBaseTx& tx
         return state.DoS(100, ERRORMSG("CProposalRequestTx::CheckTx, operate type is illegal!"), REJECT_INVALID,
                          "operate_type-illegal");
 
-    CAccount govBpAccount;
-    if (!cw.accountCache.GetAccount(gov_bp_regid, govBpAccount))
-        return state.DoS(100, ERRORMSG("CProposalRequestTx::CheckTx, governor regid(%s) is not exist!", gov_bp_regid.ToString()), REJECT_INVALID,
-                         "governor-not-exist");
+    auto spGovBpAccount = tx.GetAccount(context, gov_bp_regid, "gov_bp");
+    if (!spGovBpAccount) return false;
 
     if (op_type == ProposalOperateType::DISABLE && !cw.sysGovernCache.CheckIsGovernor(gov_bp_regid))
         return state.DoS(100, ERRORMSG("CProposalRequestTx::CheckTx, regid(%s) is not a governor!", gov_bp_regid.ToString()), REJECT_INVALID,
@@ -166,7 +164,7 @@ bool CGovMinerFeeProposal::ExecuteProposal(CTxExecuteContext& context, CBaseTx& 
 }
 
 bool CGovCoinTransferProposal::CheckProposal(CTxExecuteContext& context, CBaseTx& tx) {
-    IMPLEMENT_DEFINE_CW_STATE
+    CValidationState &state = *context.pState;
 
     if(tx.nTxType == TxType::PROPOSAL_REQUEST_TX && tx.sp_tx_account->IsSelfUid(from_uid)) {
         return state.DoS(100, ERRORMSG("CGovCoinTransferProposal::CheckProposal, can't"
@@ -177,11 +175,8 @@ bool CGovCoinTransferProposal::CheckProposal(CTxExecuteContext& context, CBaseTx
         return state.DoS(100, ERRORMSG("CGovCoinTransferProposal::CheckProposal, dust amount, %llu < %llu", amount,
                                        DUST_AMOUNT_THRESHOLD), REJECT_DUST, "invalid-coin-amount");
 
-    CAccount srcAccount;
-    if (!cw.accountCache.GetAccount(from_uid, srcAccount))
-        return state.DoS(100, ERRORMSG("CGovCoinTransferProposal::CheckProposal, read account failed"), REJECT_INVALID,
-                         "bad-getaccount");
-
+    auto spSrcAccount = tx.GetAccount(context, from_uid, "from");
+    if (!spSrcAccount) return false;
 
     return true;
 }
@@ -189,32 +184,21 @@ bool CGovCoinTransferProposal::CheckProposal(CTxExecuteContext& context, CBaseTx
 bool CGovCoinTransferProposal::ExecuteProposal(CTxExecuteContext& context, CBaseTx& tx) {
     IMPLEMENT_DEFINE_CW_STATE;
 
-    CAccount srcAccount;
-    if (!cw.accountCache.GetAccount(from_uid, srcAccount))
-        return state.DoS(100, ERRORMSG("CGovCoinTransferProposal::ExecuteProposal, read source addr account info error"),
-                         READ_ACCOUNT_FAIL, "bad-read-accountdb");
+    auto spSrcAccount = tx.GetAccount(context, from_uid, "from");
+    if (!spSrcAccount) return false;
 
-    CAccount desAccount;
-    if (!cw.accountCache.GetAccount(to_uid, desAccount)) {
-        if (!to_uid.is<CKeyID>()) // first involved in transaction
-            return state.DoS(100, ERRORMSG("CGovCoinTransferProposal::ExecuteProposal, get account info failed"),
-                             READ_ACCOUNT_FAIL, "bad-read-accountdb");
-
-        desAccount.keyid = to_uid.get<CKeyID>();
+    auto spDesAccount = tx.GetAccount(cw, to_uid);
+    if (!spDesAccount) {
+        if (!to_uid.is<CKeyID>()) { // first involved in transaction
+            return context.pState->DoS(100, ERRORMSG("%s, to account not exist, uid=%s",
+                    tx.GetTxTypeName(), to_uid.ToString()), REJECT_INVALID, "account-not-exist");
+        }
+        auto spDesAccount = tx.NewAccount(context, to_uid.get<CKeyID>());
     }
 
-    if (!srcAccount.OperateBalance(token, BalanceOpType::SUB_FREE, amount, ReceiptType::TRANSFER_PROPOSAL, tx.receipts, &desAccount))
+    if (!spSrcAccount->OperateBalance(token, BalanceOpType::SUB_FREE, amount, ReceiptType::TRANSFER_PROPOSAL, tx.receipts, spDesAccount.get()))
         return state.DoS(100, ERRORMSG("CGovCoinTransferProposal::ExecuteProposal, account has insufficient funds"),
                          UPDATE_ACCOUNT_FAIL, "operate-minus-account-failed");
-
-    if (!cw.accountCache.SetAccount(CUserID(srcAccount.keyid), srcAccount))
-        return state.DoS(100, ERRORMSG("CGovCoinTransferProposal::ExecuteProposal, save account info error"), WRITE_ACCOUNT_FAIL,
-                         "bad-write-accountdb");
-
-    if (!cw.accountCache.SetAccount(to_uid, desAccount))
-        return state.DoS(100, ERRORMSG("CGovCoinTransferProposal::ExecuteProposal, save account error, kyeId=%s",
-                                       desAccount.keyid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-save-account");
-
     return true;
 }
 
@@ -233,30 +217,11 @@ bool CGovAccountPermProposal::CheckProposal(CTxExecuteContext& context, CBaseTx&
 }
 
 bool CGovAccountPermProposal::ExecuteProposal(CTxExecuteContext& context, CBaseTx& tx) {
-    CValidationState &state = *context.pState;
-    CCacheWrapper &cw       = *context.pCw;
 
-
-    if (tx.sp_tx_account->IsSelfUid(account_uid)) {
-        tx.sp_tx_account->perms_sum = proposed_perms_sum;
-        return true;
-    }
-
-    CAccount acct;
-    if (!cw.accountCache.GetAccount(account_uid, acct)) {
-        return state.DoS(100, ERRORMSG("CGovAccountPermProposal::ExecuteProposal, target account_uid error"),
-                         REJECT_INVALID, "account-notfound");
-
-    }
-
-    acct.perms_sum = proposed_perms_sum;
-    if (!cw.accountCache.SetAccount(account_uid, acct))
-        return state.DoS(100, ERRORMSG("CGovAccountPermProposal::ExecuteProposal, target account_uid error"),
-                         REJECT_INVALID, "account-save-error");
-
-
+    auto spAccount = tx.GetAccount(context, account_uid, "uid");
+    if (!spAccount) return false;
+    spAccount->perms_sum = proposed_perms_sum;
     return true;
-
 }
 
 bool CGovAssetPermProposal::CheckProposal(CTxExecuteContext& context, CBaseTx& tx) {
@@ -493,10 +458,9 @@ bool CGovAxcInProposal::CheckProposal(CTxExecuteContext& context, CBaseTx& tx) {
     if (self_chain_uid.IsEmpty())
         return state.DoS(100, ERRORMSG("CGovAxcInProposal::CheckProposal: self_chain_uid empty"),
                                         REJECT_INVALID, "self_chain_uid-empty");
-    CAccount acct;
-    if (!cw.accountCache.GetAccount(self_chain_uid, acct))
-        return state.DoS(100, ERRORMSG("CGovAxcInProposal::CheckProposal: read account failed"), REJECT_INVALID,
-                        "bad-getaccount");
+
+    auto spAccount = tx.GetAccount(context, self_chain_uid, "self_chain");
+    if (!spAccount) return false;
 
     if (swap_amount < DUST_AMOUNT_THRESHOLD)
         return state.DoS(100, ERRORMSG("CGovAxcInProposal::CheckProposal: swap_amount=%llu too small",
@@ -520,33 +484,14 @@ bool ProcessAxcInFee(CTxExecuteContext& context, CBaseTx& tx, TokenSymbol& selfC
 
     uint64_t swapFeesPerBp = swapFees / (govBpRegIds.size() + 3);
     for (const auto &bpRegID : govBpRegIds) {
+        auto spBpAccount = tx.GetAccount(context, bpRegID, "self_chain");
+        if (!spBpAccount) return false;
 
-        if(tx.sp_tx_account->IsSelfUid(bpRegID)){
-            if (!tx.sp_tx_account->OperateBalance(selfChainTokenSymbol, BalanceOpType::ADD_FREE, swapFeesPerBp,
-                                             ReceiptType::AXC_REWARD_FEE_TO_GOVERNOR, tx.receipts))
-                return state.DoS(100,
-                                 ERRORMSG("CGovAxcInProposal::ExecuteProposal, opreate balance failed, swapFeesPerBp=%llu",
-                                          swapFeesPerBp), REJECT_INVALID, "bad-operate-balance");
-            continue;
-        }
-
-        CAccount bpAcct;
-        if (!cw.accountCache.GetAccount(bpRegID, bpAcct))
-            return state.DoS(100, ERRORMSG("CGovAxcInProposal::ExecuteProposal, failed to get BP account (%s)",
-                                           bpRegID.ToString()),
-                             REJECT_INVALID, "bad-get-bp-account");
-
-        if (!bpAcct.OperateBalance(selfChainTokenSymbol, BalanceOpType::ADD_FREE, swapFeesPerBp,
+        if (!spBpAccount->OperateBalance(selfChainTokenSymbol, BalanceOpType::ADD_FREE, swapFeesPerBp,
                                    ReceiptType::AXC_REWARD_FEE_TO_GOVERNOR, tx.receipts))
             return state.DoS(100,
                              ERRORMSG("CGovAxcInProposal::ExecuteProposal, opreate balance failed, swapFeesPerBp=%llu",
                                       swapFeesPerBp), REJECT_INVALID, "bad-operate-balance");
-
-        if (!cw.accountCache.SetAccount(bpRegID, bpAcct)) {
-            return state.DoS(100, ERRORMSG(
-                    "CGovAxcInProposal::ExecuteProposal, save governor account error, swapFeesPerBp=%llu",
-                    swapFeesPerBp), REJECT_INVALID, "bad-writedb");
-        }
     }
 
     uint64_t swapFeeForGw = swapFees - swapFeesPerBp * govBpRegIds.size();
@@ -559,32 +504,13 @@ bool ProcessAxcInFee(CTxExecuteContext& context, CBaseTx& tx, TokenSymbol& selfC
                          REJECT_INVALID, "bad-get-gw-account");
     }
 
+    auto spAxcgwAccount = tx.GetAccount(context, axcgwId, "axcgwId");
+    if (!spAxcgwAccount) return false;
 
-    if (tx.sp_tx_account->IsSelfUid(axcgwId)) {
-        if (!tx.sp_tx_account->OperateBalance(selfChainTokenSymbol, BalanceOpType::ADD_FREE, swapFeeForGw,
-                                         ReceiptType::AXC_REWARD_FEE_TO_GW, tx.receipts))
-            return state.DoS(100, ERRORMSG("CGovAxcInProposal::ExecuteProposal, opreate balance failed, swapFeesPerBp=%llu",
-                                           swapFeesPerBp), REJECT_INVALID, "bad-operate-balance");
-        return true;
-    }
-
-
-    if (!cw.accountCache.GetAccount(axcgwId, axcgwAccount))
-        return state.DoS(100, ERRORMSG("CGovAxcInProposal::ExecuteProposal, failed to get GW account (%s)",
-                                       axcgwId.ToString()),
-                         REJECT_INVALID, "bad-get-gw-account");
-
-    if (!axcgwAccount.OperateBalance(selfChainTokenSymbol, BalanceOpType::ADD_FREE, swapFeeForGw,
+    if (!spAxcgwAccount->OperateBalance(selfChainTokenSymbol, BalanceOpType::ADD_FREE, swapFeeForGw,
                                      ReceiptType::AXC_REWARD_FEE_TO_GW, tx.receipts))
         return state.DoS(100, ERRORMSG("CGovAxcInProposal::ExecuteProposal, opreate balance failed, swapFeesPerBp=%llu",
                                        swapFeesPerBp), REJECT_INVALID, "bad-operate-balance");
-
-    if (!cw.accountCache.SetAccount(axcgwId, axcgwAccount)) {
-        return state.DoS(100,
-                         ERRORMSG("CGovAxcInProposal::ExecuteProposal, save axcgw account error, swapFeesPerBp=%llu",
-                                  swapFeesPerBp), REJECT_INVALID, "bad-writedb");
-    }
-
     return true;
 }
 
@@ -613,31 +539,14 @@ bool CGovAxcInProposal::ExecuteProposal(CTxExecuteContext& context, CBaseTx& tx)
                          "bad-process-swapfee");
     }
 
+    auto spSelfChainAccount = tx.GetAccount(context, self_chain_uid, "self_chain");
+    if (!spSelfChainAccount) return false;
 
-
-    if (tx.sp_tx_account->IsSelfUid(self_chain_uid)) {
-        // mint the new mirro-coin (self_chain_token_symbol) out of thin air
-        if (!tx.sp_tx_account->OperateBalance(self_chain_token_symbol, BalanceOpType::ADD_FREE, swap_amount_after_fees,
-                                 ReceiptType::AXC_MINT_COINS, tx.receipts))
-            return state.DoS(100, ERRORMSG("CGovAxcInProposal::ExecuteProposal, opreate balance failed, swap_amount_after_fees=%llu",
-                                           swap_amount_after_fees), REJECT_INVALID, "bad-operate-balance");
-    } else {
-        CAccount acct;
-        if (!cw.accountCache.GetAccount(self_chain_uid, acct))
-            return state.DoS(100, ERRORMSG("CGovAxcInProposal::ExecuteProposal, read account failed"), REJECT_INVALID,
-                             "bad-getaccount");
-        // mint the new mirro-coin (self_chain_token_symbol) out of thin air
-        if (!acct.OperateBalance(self_chain_token_symbol, BalanceOpType::ADD_FREE, swap_amount_after_fees,
-                                 ReceiptType::AXC_MINT_COINS, tx.receipts))
-            return state.DoS(100, ERRORMSG("CGovAxcInProposal::ExecuteProposal, opreate balance failed, swap_amount_after_fees=%llu",
-                                           swap_amount_after_fees), REJECT_INVALID, "bad-operate-balance");
-
-        if (!cw.accountCache.SetAccount(self_chain_uid, acct))
-            return state.DoS(100, ERRORMSG("CGovAxcInProposal::ExecuteProposal, write account failed"), REJECT_INVALID,
-                             "bad-write-account");
-    }
-
-
+    // mint the new mirro-coin (self_chain_token_symbol) out of thin air
+    if (!spSelfChainAccount->OperateBalance(self_chain_token_symbol, BalanceOpType::ADD_FREE, swap_amount_after_fees,
+                                ReceiptType::AXC_MINT_COINS, tx.receipts))
+        return state.DoS(100, ERRORMSG("CGovAxcInProposal::ExecuteProposal, opreate balance failed, swap_amount_after_fees=%llu",
+                                        swap_amount_after_fees), REJECT_INVALID, "bad-operate-balance");
 
     uint64_t mintAmount = 0;
     if (cw.axcCache.GetSwapInMintRecord(peer_chain_type, peer_chain_txid, mintAmount))
@@ -685,9 +594,8 @@ bool CGovAxcOutProposal::CheckProposal(CTxExecuteContext& context, CBaseTx& tx) 
     else
         uid = self_chain_uid;
 
-    if (!cw.accountCache.GetAccount(uid, acct))
-        return state.DoS(100, ERRORMSG("CGovAxcInProposal::ExecuteProposal, read account failed"), REJECT_INVALID,
-                         "bad-getaccount");
+    auto spSelfChainAccount = tx.GetAccount(context, uid, "self_chain");
+    if (!spSelfChainAccount) return false;
 
     if (!acct.CheckBalance(self_chain_token_symbol, BalanceType::FREE_VALUE, swap_amount))
         return state.DoS(100, ERRORMSG("CGovAxcOutProposal::CheckProposal:Account does not have enough %s",
@@ -708,26 +616,14 @@ bool CGovAxcOutProposal::ExecuteProposal(CTxExecuteContext& context, CBaseTx& tx
         return state.DoS(100, ERRORMSG("CGovAxcOutProposal::ExecuteProposal, get sysparam: axc_swap_fee_ratio failed"),
                         REJECT_INVALID, "bad-get-swap_fee_ratio");
 
+    auto spSelfChainAccount = tx.GetAccount(context, self_chain_uid, "self_chain");
+    if (!spSelfChainAccount) return false;
 
-    if (tx.sp_tx_account->IsSelfUid(self_chain_uid)) {
-        // burn the mirroed tokens from self-chain
-        if (!tx.sp_tx_account->OperateBalance(self_chain_token_symbol, BalanceOpType::SUB_FREE, swap_amount, ReceiptType::AXC_BURN_COINS, tx.receipts))
-            return state.DoS(100, ERRORMSG("CGovAxcOutProposal::ExecuteProposal, opreate balance failed, swap_amount=%llu",
-                                           swap_amount), REJECT_INVALID, "bad-operate-balance");
-    } else {
-        CAccount acct;
-        if (!cw.accountCache.GetAccount(self_chain_uid, acct))
-            return state.DoS(100, ERRORMSG("CGovAxcOutProposal::ExecuteProposal, read account failed"), REJECT_INVALID,
-                             "bad-getaccount");
-        // burn the mirroed tokens from self-chain
-        if (!acct.OperateBalance(self_chain_token_symbol, BalanceOpType::SUB_FREE, swap_amount, ReceiptType::AXC_BURN_COINS, tx.receipts))
-            return state.DoS(100, ERRORMSG("CGovAxcOutProposal::ExecuteProposal, opreate balance failed, swap_amount=%llu",
-                                           swap_amount), REJECT_INVALID, "bad-operate-balance");
-
-        if (!cw.accountCache.SetAccount(self_chain_uid, acct))
-            return state.DoS(100, ERRORMSG("CGovAxcOutProposal::ExecuteProposal, write account failed"), REJECT_INVALID,
-                             "bad-writeaccount");
-    }
+    // burn the mirroed tokens from self-chain
+    if (!spSelfChainAccount->OperateBalance(self_chain_token_symbol, BalanceOpType::SUB_FREE,
+                                            swap_amount, ReceiptType::AXC_BURN_COINS, tx.receipts))
+        return state.DoS(100, ERRORMSG("CGovAxcOutProposal::ExecuteProposal, opreate balance failed, swap_amount=%llu",
+                                        swap_amount), REJECT_INVALID, "bad-operate-balance");
 
     //sub dia total supply
     CAsset asset;
@@ -820,10 +716,8 @@ bool CGovAssetIssueProposal::CheckProposal(CTxExecuteContext& context, CBaseTx& 
         return state.DoS(100, ERRORMSG("CUserIssueAssetTx::CheckTx, asset total_supply=%llu can not == 0 or > %llu",
                                        total_supply, MAX_ASSET_TOTAL_SUPPLY), REJECT_INVALID, "invalid-total-supply");
 
-    CAccount acct;
-    if (!cw.accountCache.GetAccount(owner_uid, acct))
-        return state.DoS(100, ERRORMSG("CGovAssetIssueProposal::CheckProposal, read account failed"), REJECT_INVALID,
-                         "bad-getaccount");
+    auto spOwnerAccount = tx.GetAccount(context, owner_uid, "owner");
+    if (!spOwnerAccount) return false;
 
     if (!cw.assetCache.HasAsset(asset_symbol))
         return state.DoS(100, ERRORMSG("CGovAssetIssueProposal::CheckProposal, asset_symbol is exist"), REJECT_INVALID,
