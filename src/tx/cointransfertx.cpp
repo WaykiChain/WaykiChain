@@ -27,12 +27,12 @@ bool CBaseCoinTransferTx::CheckTx(CTxExecuteContext &context) {
 }
 
 bool CBaseCoinTransferTx::ExecuteTx(CTxExecuteContext &context) {
-    CValidationState &state = *context.pState;
+    IMPLEMENT_DEFINE_CW_STATE;
 
     shared_ptr<CAccount> spDestAccount = GetAccount(*context.pCw, toUid);
     if (!spDestAccount) {
         if (toUid.is<CKeyID>()) { // first involved in transaction
-            spDestAccount = NewAccount(context, toUid.get<CKeyID>());
+            spDestAccount = NewAccount(cw, toUid.get<CKeyID>());
         } else {
             return state.DoS(100, ERRORMSG("%s, to account of transfer not exist, uid=%s",
                     TX_ERR_TITLE, toUid.ToString()),
@@ -173,10 +173,10 @@ bool CCoinTransferTx::ExecuteTx(CTxExecuteContext &context) {
         shared_ptr<CAccount> spDestAccount = GetAccount(*context.pCw, toUid);
         if (!spDestAccount) {
             if (toUid.is<CKeyID>()) {
-                spDestAccount = NewAccount(context, toUid.get<CKeyID>());
+                spDestAccount = NewAccount(cw, toUid.get<CKeyID>());
             } else if (toUid.is<CPubKey>()) {
                 const auto& pubkey = toUid.get<CPubKey>();
-                spDestAccount = NewAccount(context, pubkey.GetKeyId());
+                spDestAccount = NewAccount(cw, pubkey.GetKeyId());
             } else {
                 return state.DoS(100, ERRORMSG("%s, to account of transfer not exist, uid=%s",
                         TX_ERR_TITLE, toUid.ToString()),

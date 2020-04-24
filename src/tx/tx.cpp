@@ -327,7 +327,7 @@ shared_ptr<CAccount> CBaseTx::GetAccount(CCacheWrapper &cw, const CUserID &uid) 
     return spAccount;
 }
 
-shared_ptr<CAccount> CBaseTx::NewAccount(CTxExecuteContext &context, const CKeyID &keyid) {
+shared_ptr<CAccount> CBaseTx::NewAccount(CCacheWrapper &cw, const CKeyID &keyid) {
     shared_ptr<CAccount> spAccount = make_shared<CAccount>(keyid);
     account_map.emplace(spAccount->keyid, spAccount);
     return spAccount;

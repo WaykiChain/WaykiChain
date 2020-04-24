@@ -156,14 +156,16 @@ static CLuaVMRunEnv* GetVmRunEnvByContext(lua_State *L) {
     return (CLuaVMRunEnv*)pState->pContext;
 }
 
-static bool GetKeyId(const CAccountDBCache &accountCache, vector<uint8_t> &ret, CKeyID &keyId) {
+static bool GetKeyId(CLuaVMRunEnv *pVmRunEnv, vector<uint8_t> &ret, CKeyID &keyId) {
     // LogPrint(BCLog::LUAVM, "ret.size=%d", ret.size());
 
     if (ret.size() == 6) {
         CRegID regid(ret);
         if (regid.IsEmpty()) return false;
 
-        accountCache.GetKeyId(regid, keyId);
+        auto spAcct = pVmRunEnv->GetAccount(regid);
+        if (!spAcct) return false;
+        keyId = spAcct->keyid;
     } else if (ret.size() == 34) {
         string addr(ret.begin(), ret.end());
         keyId = CKeyID(addr);
@@ -1110,30 +1112,21 @@ int32_t ExGetAccountPublickeyFunc(lua_State *L) {
 
     LUA_BurnFuncCall(L, FUEL_CALL_GetAccountPublickey, BURN_VER_R2);
     CKeyID addrKeyId;
-    if (!GetKeyId(*(pVmRunEnv->GetAccountCache()), *retdata.at(0).get(), addrKeyId)) {
+    if (!GetKeyId(pVmRunEnv, *retdata.at(0).get(), addrKeyId)) {
         return RetFalse("ExGetAccountPublickeyFunc para err2");
     }
     CUserID uid(addrKeyId);
-    shared_ptr<CAccount> spAccount = nullptr;
-    CAccount *pAccount = nullptr;
-    if (pVmRunEnv->GetContext().p_app_account->IsSelfUid(uid)) {
-        pAccount = pVmRunEnv->GetContext().p_app_account;
-    } else if (pVmRunEnv->GetContext().p_tx_user_account->IsSelfUid(uid)) {
-        pAccount = pVmRunEnv->GetContext().p_tx_user_account;
-    } else {
-        spAccount = make_shared<CAccount>();
-        if (!pVmRunEnv->GetCw()->accountCache.GetAccount(uid, *spAccount)) {
-            LogPrint(BCLog::LUAVM, "[ERROR] The account not exist! address=%s\n", uid.ToDebugString());
-            return 0;
-        }
-        pAccount = spAccount.get();
+    shared_ptr<CAccount> spAccount = pVmRunEnv->GetAccount(uid);
+    if (!spAccount) {
+        LogPrint(BCLog::LUAVM, "[ERROR] The account not exist! address=%s\n", uid.ToDebugString());
+        return 0;
     }
-    if (pAccount->owner_pubkey.IsFullyValid()) {
+    if (!spAccount->owner_pubkey.IsFullyValid()) {
         return RetFalse("ExGetAccountPublickeyFunc pubKey invalid");
     }
     CDataStream tep(SER_DISK, CLIENT_VERSION);
     vector<char> te;
-    tep << pAccount->owner_pubkey;
+    tep << spAccount->owner_pubkey;
     tep >> te;
     vector<uint8_t> tep1(te.begin(), te.end());
     return RetRstToLua(L, tep1);
@@ -1158,28 +1151,19 @@ int32_t ExQueryAccountBalanceFunc(lua_State *L) {
 
     LUA_BurnFuncCall(L, FUEL_ACCOUNT_GET_VALUE, BURN_VER_R2);
     CKeyID addrKeyId;
-    if (!GetKeyId(*(pVmRunEnv->GetAccountCache()), *retdata.at(0).get(), addrKeyId)) {
+    if (!GetKeyId(pVmRunEnv, *retdata.at(0).get(), addrKeyId)) {
         return RetFalse("ExQueryAccountBalanceFunc para err2");
     }
 
     CUserID uid(addrKeyId);
     int32_t len = 0;
-    shared_ptr<CAccount> spAccount = nullptr;
-    CAccount *pAccount = nullptr;
-    if (pVmRunEnv->GetContext().p_app_account->IsSelfUid(uid)) {
-        pAccount = pVmRunEnv->GetContext().p_app_account;
-    } else if (pVmRunEnv->GetContext().p_tx_user_account->IsSelfUid(uid)) {
-        pAccount = pVmRunEnv->GetContext().p_tx_user_account;
-    } else {
-        spAccount = make_shared<CAccount>();
-        if (!pVmRunEnv->GetCw()->accountCache.GetAccount(uid, *spAccount)) {
-            LogPrint(BCLog::LUAVM, "[ERROR] The account not exist! address=%s\n", uid.ToDebugString());
-            return 0;
-        }
-        pAccount = spAccount.get();
+    shared_ptr<CAccount> spAccount = pVmRunEnv->GetAccount(uid);
+    if (!spAccount) {
+        LogPrint(BCLog::LUAVM, "[ERROR] The account not exist! address=%s\n", uid.ToDebugString());
+        return 0;
     }
 
-    uint64_t nbalance = pAccount->GetToken(SYMB::WICC).free_amount;
+    uint64_t nbalance = spAccount->GetToken(SYMB::WICC).free_amount;
     CDataStream tep(SER_DISK, CLIENT_VERSION);
     tep << nbalance;
     vector<uint8_t> TMP(tep.begin(), tep.end());
@@ -2014,7 +1998,7 @@ int32_t ExGetBase58AddrFunc(lua_State *L) {
     LUA_BurnFuncCall(L, FUEL_CALL_GetBase58Addr, BURN_VER_R2);
     CKeyID addrKeyId;
     auto pAddr = retdata.at(0).get();
-    if (!GetKeyId(*pVmRunEnv->GetAccountCache(), *pAddr, addrKeyId)) {
+    if (!GetKeyId(pVmRunEnv, *pAddr, addrKeyId)) {
         string sAddr(pAddr->begin(), pAddr->end());
         return RetFalse(strprintf("ExGetBase58AddrFunc para (%s)", sAddr));
     }
@@ -2054,7 +2038,7 @@ int32_t ExTransferContractAsset(lua_State *L) {
     }
 
     CKeyID RecvKeyID;
-    bool bValid = GetKeyId(*pVmRunEnv->GetAccountCache(), recvKey, RecvKeyID);
+    bool bValid = GetKeyId(pVmRunEnv, recvKey, RecvKeyID);
     if (!bValid) {
         LUA_BurnAccount(L, FUEL_ACCOUNT_UNCHANGED, BURN_VER_R2);
         LogPrint(BCLog::LUAVM, "%s\n", "recv addr is not valid !");
@@ -2163,7 +2147,7 @@ int32_t ExTransferSomeAsset(lua_State *L) {
     }
 
     CKeyID RecvKeyID;
-    bool bValid = GetKeyId(*pVmRunEnv->GetAccountCache(), recvKey, RecvKeyID);
+    bool bValid = GetKeyId(pVmRunEnv, recvKey, RecvKeyID);
     if (!bValid) {
         LogPrint(BCLog::LUAVM, "%s\n", "recv addr is not valid !");
         return RetFalse(string(__FUNCTION__)+"recv addr is not valid !");
@@ -2505,23 +2489,14 @@ int32_t ExGetAccountAssetFunc(lua_State *L) {
     }
     LUA_BurnAccount(L, FUEL_ACCOUNT_GET_VALUE, BURN_VER_R2);
 
-    shared_ptr<CAccount> spAccount = nullptr;
-    CAccount *pAccount = nullptr;
-    if (pVmRunEnv->GetContext().p_app_account->IsSelfUid(uid)) {
-        pAccount = pVmRunEnv->GetContext().p_app_account;
-    } else if (pVmRunEnv->GetContext().p_tx_user_account->IsSelfUid(uid)) {
-        pAccount = pVmRunEnv->GetContext().p_tx_user_account;
-    } else {
-        spAccount = make_shared<CAccount>();
-        if (!pVmRunEnv->GetCw()->accountCache.GetAccount(uid, *spAccount)) {
-            LogPrint(BCLog::LUAVM, "[ERROR] The account not exist! address=%s\n", uid.ToDebugString());
-            return 0;
-        }
-        pAccount = spAccount.get();
+    shared_ptr<CAccount> spAccount = pVmRunEnv->GetAccount(uid);
+    if (!spAccount) {
+        LogPrint(BCLog::LUAVM, "[ERROR] The account not exist! address=%s\n", uid.ToDebugString());
+        return 0;
     }
 
     uint64_t value;
-    if (!pAccount->GetBalance(tokenType, FREE_VALUE, value)) {
+    if (!spAccount->GetBalance(tokenType, FREE_VALUE, value)) {
         value = 0;
     }
 
