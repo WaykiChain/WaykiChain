@@ -61,17 +61,6 @@ bool CAssetDbCache::GetAssetTokensByPerm(const AssetPermType& permType, set<Toke
     return true;
 }
 
-bool CAssetDbCache::CheckPriceFeedBaseSymbol(const TokenSymbol &feedSymbol) {
-    CAsset baseAsset;
-    if (!GetAsset(feedSymbol, baseAsset))
-        return ERRORMSG("price base_symbol=%s not exist", feedSymbol);
-
-    if (!baseAsset.HasPerms(AssetPermType::PERM_PRICE_FEED))
-        return ERRORMSG("price base_symbol=%s not have PERM_PRICE_FEED", feedSymbol);
-
-    return true;
-}
-
 bool CAssetDbCache::CheckPriceFeedQuoteSymbol(const TokenSymbol &quoteSymbol) {
     if (kPriceQuoteSymbolSet.count(quoteSymbol) == 0)
         return ERRORMSG("unsupported price quote_symbol=%s", quoteSymbol);

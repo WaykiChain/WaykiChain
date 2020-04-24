@@ -119,9 +119,8 @@ public:
     }
 
     bool GetAssetTokensByPerm( const AssetPermType& permType, set<TokenSymbol> &symbolSet);
+
 public:
-    // check functions for price feed
-    bool CheckPriceFeedBaseSymbol(const TokenSymbol &baseSymbol);
     bool CheckPriceFeedQuoteSymbol(const TokenSymbol &quoteSymbol);
     // check functions for dex order
     bool CheckDexBaseSymbol(const TokenSymbol &baseSymbol);
@@ -132,6 +131,7 @@ public:
     bool HasAxcCoinPairByPeerSymbol(TokenSymbol peerSymbol);
     bool GetAxcCoinPairBySelfSymbol(TokenSymbol token, AxcSwapCoinPair& p);
     bool GetAxcCoinPairByPeerSymbol(TokenSymbol token, AxcSwapCoinPair& p);
+
 public:
 /*  CCompositeKVCache     prefixType            key              value           variable           */
 /*  -------------------- --------------------   --------------  -------------   --------------------- */

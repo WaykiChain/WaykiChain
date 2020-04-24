@@ -78,9 +78,9 @@ bool CCoinTransferTx::CheckTx(CTxExecuteContext &context) {
     }
 
     for (size_t i = 0; i < transfers.size(); i++) {
-        if (transfers[i].to_uid.IsEmpty()) {
+        if (transfers[i].to_uid.IsEmpty())
             return state.DoS(100, ERRORMSG("to_uid can not be empty"), REJECT_INVALID, "invalid-toUid");
-        }
+
         if (!cw.assetCache.CheckAsset(transfers[i].coin_symbol, AssetPermType::PERM_TRANSFER))
             return state.DoS(100, ERRORMSG("transfers[%d], invalid coin_symbol=%s", i,
                             transfers[i].coin_symbol), REJECT_INVALID, "invalid-coin-symbol");

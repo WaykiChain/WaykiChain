@@ -363,11 +363,11 @@ bool CPricePointMemCache::CalcMedianPriceDetails(CCacheWrapper &cw, const Height
         // check the base asset has price feed permission
         for (auto it = coinPairSet.begin(); it != coinPairSet.end(); ) {
             CAsset asset;
-            if (!cw.assetCache.GetAsset(it->first, asset)) {
-                return ERRORMSG("the asset of base_symbol=%s not exist", it->first);
-            }
+            if (!cw.assetCache.CheckAsset(it->first, asset))
+                return ERRORMSG("asset(%s) not exist", it->first);
+
             if (!asset.HasPerms(AssetPermType::PERM_PRICE_FEED)) {
-                LogPrint(BCLog::PRICEFEED, "the asset of base_symbol=%s not have PERM_PRICE_FEED", it->first);
+                LogPrint(BCLog::PRICEFEED, "asset(%s) has no PERM_PRICE_FEED\n", it->first);
                 it = coinPairSet.erase(it);
                 continue;
             }

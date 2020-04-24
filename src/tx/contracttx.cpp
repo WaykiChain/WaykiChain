@@ -354,9 +354,9 @@ bool CUniversalContractInvokeR2Tx::CheckTx(CTxExecuteContext &context) {
     if (SysCfg().NetworkID() == TEST_NET && context.height < 260000) {
         // TODO: remove me if reset testnet.
     } else {
-            if (!cw.assetCache.CheckAsset(coin_symbol))
-                return state.DoS(100, ERRORMSG("invalid coin_symbol=%s", coin_symbol),
-                                 REJECT_INVALID, "invalid-coin-symbol");
+        if (!cw.assetCache.CheckAsset(coin_symbol))
+            return state.DoS(100, ERRORMSG("invalid coin_symbol=%s", coin_symbol),
+                                REJECT_INVALID, "invalid-coin-symbol");
     }
 
     CUniversalContract contract;

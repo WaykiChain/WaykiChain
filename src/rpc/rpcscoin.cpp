@@ -74,7 +74,7 @@ Value submitpricefeedtx(const Array& params, bool fHelp) {
                                strprintf("coin_symbol=%s is same to currency_symbol=%s ",
                                          coinSymbol, currencySymbol));
 
-        if (!pCdMan->pAssetCache->CheckPriceFeedBaseSymbol(coinSymbol))
+        if (!pCdMan->pAssetCache->CheckAsset(coinSymbol, AssetPermType::PERM_PRICE_FEED))
             throw JSONRPCError(RPC_INVALID_PARAMETER,
                                strprintf("unsupported price feed symbol=%s", coinSymbol));
 

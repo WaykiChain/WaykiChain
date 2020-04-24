@@ -430,7 +430,7 @@ bool CGovFeedCoinPairProposal::CheckProposal(CTxExecuteContext& context, CBaseTx
     if (!cw.assetCache.CheckPriceFeedQuoteSymbol(quote_symbol))
         return state.DoS(100, ERRORMSG("Unsupported quote_symbol=%s", quote_symbol), REJECT_INVALID, "unsupported-quote-symbol");
 
-    if (!cw.assetCache.CheckPriceFeedBaseSymbol(base_symbol))
+    if (!cw.assetCache.CheckAsset(base_symbol, AssetPermType::PERM_PRICE_FEED))
         return state.DoS(100, ERRORMSG("Unsupported base_symbol=%s", base_symbol), REJECT_INVALID, "unsupported-base-symbol");
 
     PriceCoinPair coinPair(base_symbol, quote_symbol);

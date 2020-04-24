@@ -44,6 +44,8 @@ enum AssetPermType : uint64_t {
 
 };
 
+const uint64_t kAssetAllPerms = uint64_t(-1); // == 0xFFFFFFFFFFFFFFFF enable all perms
+
 static const unordered_map<uint64_t, string> kAssetPermTitleMap = {
     {   PERM_TRANSFER,      "PERM_TRANSFER"     },
     {   PERM_DEX_BASE,      "PERM_DEX_BASE"     },
@@ -85,7 +87,7 @@ public:
     CAsset(): asset_type(AssetType::NULL_ASSET), perms_sum(AssetPermType::PERM_TRANSFER + AssetPermType::PERM_DEX_BASE) {}
 
     CAsset(const TokenSymbol& assetSymbol, const TokenName& assetName, const AssetType AssetType, uint64_t assetPermsSum,
-            const CUserID& ownerUid, uint64_t totalSupply, bool mintableIn)
+           const CUserID& ownerUid, uint64_t totalSupply, bool mintableIn)
         : asset_symbol(assetSymbol), asset_name(assetName), asset_type(AssetType), perms_sum(assetPermsSum),
         owner_uid(ownerUid), total_supply(totalSupply), mintable(mintableIn) {};
 

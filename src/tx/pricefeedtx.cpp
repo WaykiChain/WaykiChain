@@ -41,10 +41,10 @@ bool CPriceFeedTx::CheckTx(CTxExecuteContext &context) {
                              ERRORMSG("baseSymbol=%s is same to quoteSymbol=%s", baseSymbol, quoteSymbol),
                              REJECT_INVALID, "same-base-quote-symbol");
 
-        if (!cw.assetCache.CheckPriceFeedBaseSymbol(baseSymbol))
-            return state.DoS(
-                100, ERRORMSG("unsupported baseSymbol=%s for price feed coin pair", baseSymbol),
-                REJECT_INVALID, "unsupported-base-symbol");
+        if (!cw.assetCache.CheckAsset(baseSymbol, AssetPermType::PERM_PRICE_FEED))
+            return state.DoS(100,
+                            ERRORMSG("unsupported baseSymbol=%s for price feed coin pair", baseSymbol),
+                            REJECT_INVALID, "unsupported-base-symbol");
 
         if (!cw.assetCache.CheckPriceFeedQuoteSymbol(quoteSymbol))
             return state.DoS(100,
