@@ -71,7 +71,7 @@ enum TxType: uint8_t {
     DEX_OPERATOR_UPDATE_TX      = 93,   //!< dex operator update tx
 
     /** unified tx for all future on-chain interactions **/
-    UNIVERSAL_CONTRACT_TX       = 100,  //!< universal system or user contract deployment/invocation
+    UNIVERSAL_TX                = 100,  //!< universal system or user contract deployment/invocation
 
     /////////////////////<< NO MORE TX TYPES AFTER THIS LINE >>/////////////////////////////
 };
@@ -148,7 +148,7 @@ static const unordered_map<TxType, std::tuple<string, uint64_t, uint64_t, uint64
 { PROPOSAL_REQUEST_TX,      std::make_tuple("PROPOSAL_REQUEST_TX",      0,          0.01*COIN,  0.01*COIN,  0.01*COIN   ,true,  MAJOR_VER_R3) },
 { PROPOSAL_APPROVAL_TX,     std::make_tuple("PROPOSAL_APPROVAL_TX",     0,          0.01*COIN,  0.01*COIN,  0.01*COIN   ,true,  MAJOR_VER_R3) },
 { ACCOUNT_PERMS_CLEAR_TX,   std::make_tuple("ACCOUNT_PERMS_CLEAR_TX",   0,          0.001*COIN, 0.001*COIN, 0.001*COIN  ,true,  MAJOR_VER_R3) },
-{ UNIVERSAL_CONTRACT_TX,    std::make_tuple("UNIVERSAL_CONTRACT_TX",    0,          0.001*COIN, 0.001*COIN, 0.001*COIN  ,true,  MAJOR_VER_R3) },
+{ UNIVERSAL_TX,    std::make_tuple("UNIVERSAL_TX",    0,          0.001*COIN, 0.001*COIN, 0.001*COIN  ,true,  MAJOR_VER_R3) },
 { CDP_FORCE_SETTLE_INTEREST_TX,    std::make_tuple("CDP_FORCE_SETTLE_INTEREST_TX",    0,      0,         0,          0  ,false,  MAJOR_VER_R3) },
 { UTXO_TRANSFER_TX,         std::make_tuple("UTXO_TRANSFER_TX",         0,          0.001*COIN, 0.001*COIN, 0.001*COIN  ,true,  MAJOR_VER_R3) },
 { UTXO_PASSWORD_PROOF_TX,   std::make_tuple("UTXO_PASSWORD_PROOF_TX",   0,          0.001*COIN, 0.001*COIN, 0.001*COIN  ,true,  MAJOR_VER_R3) },

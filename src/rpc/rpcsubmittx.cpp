@@ -161,7 +161,7 @@ Value submitsetcodetx( const Array &params, bool fHelp ) {
             read_and_validate_code(                     params[1].get_str(), code, vm);
             read_and_validate_abi (                     params[2].get_str(), abi);
             auto              contract    = RPC_PARAM::GetRegId(params, 3, "0-0").GetIntValue();
-            const ComboMoney& fee         = RPC_PARAM::GetFee(params, 4, TxType::UNIVERSAL_CONTRACT_TX);
+            const ComboMoney& fee         = RPC_PARAM::GetFee(params, 4, TxType::UNIVERSAL_TX);
 
             CHAIN_ASSERT( database->GetAccount(CRegID(payer_regid.value), payer),
                           wasm_chain::account_access_exception,
@@ -170,7 +170,7 @@ Value submitsetcodetx( const Array &params, bool fHelp ) {
 
             RPC_PARAM::CheckAccountBalance(payer, fee.symbol, SUB_FREE, fee.GetAmountInSawi());
 
-            tx.nTxType      = UNIVERSAL_CONTRACT_TX;
+            tx.nTxType      = UNIVERSAL_TX;
             tx.txUid        = payer.regid;
             tx.fee_symbol   = fee.symbol;
             tx.llFees       = fee.GetAmountInSawi();
@@ -220,7 +220,7 @@ Value submitsetcodertx( const Array &params, bool fHelp ) {
     RESPONSE_RPC_HELP( fHelp || params.size() < 3 || params.size() > 4, wasm::rpc::submit_setcoder_tx_rpc_help_message)
     RPCTypeCheck(params, list_of(str_type)(str_type)(str_type)(str_type));
 
-    const ComboMoney& fee         = RPC_PARAM::GetFee(params, 4, TxType::UNIVERSAL_CONTRACT_TX);
+    const ComboMoney& fee         = RPC_PARAM::GetFee(params, 4, TxType::UNIVERSAL_TX);
      try{
         auto database = pCdMan->pAccountCache;
         auto wallet   = pWalletMain;
@@ -233,7 +233,7 @@ Value submitsetcodertx( const Array &params, bool fHelp ) {
             auto payer_regid        = wasm::regid(params[0].get_str());
             auto contract           = wasm::regid(params[1].get_str());
             auto maintainer         = wasm::regid(params[2].get_str());
-            const ComboMoney& fee   = RPC_PARAM::GetFee(params, 3, TxType::UNIVERSAL_CONTRACT_TX);
+            const ComboMoney& fee   = RPC_PARAM::GetFee(params, 3, TxType::UNIVERSAL_TX);
 
             CHAIN_ASSERT( database->GetAccount(CRegID(payer_regid.value), payer),
                           wasm_chain::account_access_exception,
@@ -242,7 +242,7 @@ Value submitsetcodertx( const Array &params, bool fHelp ) {
 
             RPC_PARAM::CheckAccountBalance(payer, fee.symbol, SUB_FREE, fee.GetAmountInSawi());
 
-            tx.nTxType      = UNIVERSAL_CONTRACT_TX;
+            tx.nTxType      = UNIVERSAL_TX;
             tx.txUid        = payer.regid;
             tx.fee_symbol   = fee.symbol;
             tx.llFees       = fee.GetAmountInSawi();
@@ -327,9 +327,9 @@ Value submittx( const Array &params, bool fHelp ) {
 
             std::vector<char> action_data = wasm::abi_serializer::pack(abi, action.to_string(), params[3].get_str(), max_serialization_time);
 
-            ComboMoney fee  = RPC_PARAM::GetFee(params, 4, TxType::UNIVERSAL_CONTRACT_TX);
+            ComboMoney fee  = RPC_PARAM::GetFee(params, 4, TxType::UNIVERSAL_TX);
 
-            tx.nTxType      = UNIVERSAL_CONTRACT_TX;
+            tx.nTxType      = UNIVERSAL_TX;
             tx.txUid        = payer.regid;
             tx.valid_height = chainActive.Height();
             tx.fee_symbol   = fee.symbol;

@@ -184,11 +184,11 @@ public:
     void                      set_signature(const wasm::signature_pair& signature);
 
 public:
-    CUniversalTx(const CBaseTx *pBaseTx): CBaseTx(UNIVERSAL_CONTRACT_TX) {
-        assert(UNIVERSAL_CONTRACT_TX == pBaseTx->nTxType);
+    CUniversalTx(const CBaseTx *pBaseTx): CBaseTx(UNIVERSAL_TX) {
+        assert(UNIVERSAL_TX == pBaseTx->nTxType);
         *this = *(CUniversalTx *)pBaseTx;
     }
-    CUniversalTx(): CBaseTx(UNIVERSAL_CONTRACT_TX) {}
+    CUniversalTx(): CBaseTx(UNIVERSAL_TX) {}
     ~CUniversalTx() {}
 
     IMPLEMENT_SERIALIZE(

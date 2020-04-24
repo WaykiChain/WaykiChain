@@ -120,7 +120,7 @@ void CBaseTx::SerializePtr(Stream& os, const std::shared_ptr<CBaseTx> &pBaseTx, 
         case ACCOUNT_PERMS_CLEAR_TX:
             ::Serialize(os, (const CAccountPermsClearTx&)tx,serType, version); break;
 
-        case UNIVERSAL_CONTRACT_TX:
+        case UNIVERSAL_TX:
             ::Serialize(os, (const CUniversalTx&)tx, serType, version); break;
 
         default:
@@ -323,7 +323,7 @@ void CBaseTx::UnserializePtr(Stream& is, std::shared_ptr<CBaseTx> &pBaseTx, int 
             break;
         }
 
-        case UNIVERSAL_CONTRACT_TX: {
+        case UNIVERSAL_TX: {
             pBaseTx = std::make_shared<CUniversalTx>();
             ::Unserialize(is, *((CUniversalTx *)(pBaseTx.get())), serType, version);
             break;
