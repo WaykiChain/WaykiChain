@@ -30,8 +30,11 @@ namespace wasm {
 	    public:
 		  	static void act_handler(wasm_context &context, uint64_t action){
 	    		switch (action){
-	    			case N(setcode):
+					case N(setcode):
 	    			     setcode(context);
+	    			     return;
+					case N(setcoder):
+	    			     setcoder(context);
 	    			     return;
 	    			default:
 	    			     break;
@@ -53,14 +56,24 @@ namespace wasm {
 
 		        abi.structs.emplace_back(struct_def{
 		                "setcode", "", {
-		                        {"account", "name"  },
-		                        {"code",    "bytes" },
-		                        {"abi",     "bytes" },
-		                        {"memo",    "string"}
+		                        {"contract", 	"regid"  },
+								{"maintainer", 	"regid"  },
+								{"vmtype",		"uint8_t"},
+		                        {"code",    	"bytes"  },
+		                        {"abi",     	"bytes"  },
+		                        {"memo",    	"string" }
 		                }
 		        });
 
-		        abi.actions.emplace_back("setcode", "setcode", "");
+				abi.structs.emplace_back(struct_def{
+		                "setcoder", "", {
+		                        {"contract", 	"regid"  },
+								{"maintainer", 	"regid"  }
+			            }
+		        });
+
+		        abi.actions.emplace_back("setcode",  "setcode",  "");
+				abi.actions.emplace_back("setcoder", "setcoder", "");
 
 		        auto abi_bytes = wasm::pack<wasm::abi_def>(abi);
 		        return abi_bytes;
@@ -81,10 +94,13 @@ namespace wasm {
 
 		        //set_code_data_type set_code_data = wasm::unpack<std::tuple<uint64_t, string, string, string>>(context.trx.data);
 		        auto set_code_data  	= wasm::unpack<std::tuple<uint64_t, string, string, string>>(context.trx.data);
+
 		        auto contract_regid 	= std::get<0>(set_code_data);
-		        auto code           	= std::get<1>(set_code_data);
-		        auto abi            	= std::get<2>(set_code_data);
-		        auto memo           	= std::get<3>(set_code_data);
+				auto maintainer_regid 	= std::get<1>(set_code_data);
+				auto vm_type 			= std::get<2>(set_code_data);
+		        auto code           	= std::get<3>(set_code_data);
+		        auto abi            	= std::get<4>(set_code_data);
+		        auto memo           	= std::get<5>(set_code_data);
 
 		        context.require_auth(contract_regid);
 
@@ -94,16 +110,25 @@ namespace wasm {
 		                      "contract '%s' does not exist",
 		                      wasm::regid(contract_regid).to_string())
 
-		        CUniversalContract contract_store;
-		        contract_store.vm_type 	= VMType::WASM_VM;
-		        contract_store.code    	= code;
-		        contract_store.abi     	= abi;
-		        contract_store.memo    	= memo;
+				CUniversalContract contract_store;
+				if (!db_contract.GetContract(CRegID(contract_regid), contract_store)) {
+					//first-time deployment
+					contract_store.vm_type 		= vm_type;
+					contract_store.maintainer 	= contract_regid; //set self as maintainer
+				} else {
+					//code upgrade
+					contract_store.maintainer  	= maintainer_regid;
+
+				}
+				contract_store.code    			= code;
+				contract_store.abi     			= abi;
+				contract_store.memo    			= memo;
 
 		        CHAIN_ASSERT( db_contract.SaveContract(contract.regid, contract_store),
 		                      wasm_chain::account_access_exception,
 		                      "save contract '%s' error",
 		                      wasm::regid(contract_regid).to_string())
+
 		    }
 
 	};

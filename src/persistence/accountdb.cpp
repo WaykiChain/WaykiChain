@@ -273,8 +273,8 @@ Object CAccountDBCache::GetAccountDBStats() {
         fcoinsStates[4] += wgrt.pledged_amount;
 
         totalBCoins += wicc.free_amount + wicc.voted_amount + wicc.frozen_amount + wicc.staked_amount + wicc.pledged_amount;
-        totalSCoins += wusd.free_amount + wusd.voted_amount + wusd.frozen_amount + wusd.staked_amount + wicc.pledged_amount;
-        totalFCoins += wgrt.free_amount + wgrt.voted_amount + wgrt.frozen_amount + wgrt.staked_amount + wicc.pledged_amount;
+        totalSCoins += wusd.free_amount + wusd.voted_amount + wusd.frozen_amount + wusd.staked_amount + wusd.pledged_amount;
+        totalFCoins += wgrt.free_amount + wgrt.voted_amount + wgrt.frozen_amount + wgrt.staked_amount + wgrt.pledged_amount;
     }
 
     Object obj_wicc;
@@ -291,7 +291,7 @@ Object CAccountDBCache::GetAccountDBStats() {
     obj_wusd.push_back(Pair("frozen_amount",    JsonValueFromAmount(scoinsStates[2])));
     obj_wusd.push_back(Pair("staked_amount",    JsonValueFromAmount(scoinsStates[3])));
     obj_wusd.push_back(Pair("pledged_amount",   JsonValueFromAmount(scoinsStates[4])));
-    obj_wicc.push_back(Pair("total_amount",     JsonValueFromAmount(totalSCoins)));
+    obj_wusd.push_back(Pair("total_amount",     JsonValueFromAmount(totalSCoins)));
 
     Object obj_wgrt;
     obj_wgrt.push_back(Pair("free_amount",      JsonValueFromAmount(fcoinsStates[0])));
@@ -299,7 +299,7 @@ Object CAccountDBCache::GetAccountDBStats() {
     obj_wgrt.push_back(Pair("frozen_amount",    JsonValueFromAmount(fcoinsStates[2])));
     obj_wgrt.push_back(Pair("staked_amount",    JsonValueFromAmount(fcoinsStates[3])));
     obj_wgrt.push_back(Pair("pledged_amount",   JsonValueFromAmount(fcoinsStates[4])));
-    obj_wicc.push_back(Pair("total_amount",     JsonValueFromAmount(totalFCoins)));
+    obj_wusd.push_back(Pair("total_amount",     JsonValueFromAmount(totalFCoins)));
 
     Object obj;
     obj.push_back(Pair("WICC",          obj_wicc));
