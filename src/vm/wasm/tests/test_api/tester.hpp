@@ -90,7 +90,7 @@ public:
 
 class validating_tester : public base_tester {
 public:
-    CUniversalContractTx ctrl;
+    CUniversalTx ctrl;
     transaction_trace trace;
 };
 

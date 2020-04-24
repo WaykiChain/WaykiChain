@@ -453,7 +453,7 @@ Object CUniversalContractInvokeR2Tx::ToJson(const CAccountDBCache &accountCache)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// class CUniversalContractTx
+// class CUniversalTx
 
 map <UnsignedCharArray, uint64_t> &get_signatures_cache() {
     //fixme:this map should be in maxsize to protect memory
@@ -476,7 +476,7 @@ inline bool get_signature_from_cache(const UnsignedCharArray& signature, uint64_
 
 }
 
-void CUniversalContractTx::pause_billing_timer() {
+void CUniversalTx::pause_billing_timer() {
 
     if (billed_time > chrono::microseconds(0)) {
         return;// already paused
@@ -487,7 +487,7 @@ void CUniversalContractTx::pause_billing_timer() {
 
 }
 
-void CUniversalContractTx::resume_billing_timer() {
+void CUniversalTx::resume_billing_timer() {
 
     if (billed_time == chrono::microseconds(0)) {
         return;// already release pause
@@ -498,7 +498,7 @@ void CUniversalContractTx::resume_billing_timer() {
 
 }
 
-void CUniversalContractTx::validate_contracts(CTxExecuteContext& context) {
+void CUniversalTx::validate_contracts(CTxExecuteContext& context) {
 
     auto &database = *context.pCw;
 
@@ -529,7 +529,7 @@ void CUniversalContractTx::validate_contracts(CTxExecuteContext& context) {
 
 }
 
-void CUniversalContractTx::validate_authorization(const std::vector<uint64_t>& authorization_accounts) {
+void CUniversalTx::validate_authorization(const std::vector<uint64_t>& authorization_accounts) {
 
     //authorization in each inlinetransaction must be a subset of signatures from transaction
     for (auto i: inline_transactions) {
@@ -542,7 +542,7 @@ void CUniversalContractTx::validate_authorization(const std::vector<uint64_t>& a
             // if(p.account != account){
             //     WASM_ASSERT( false,
             //                  account_operation_exception,
-            //                  "CUniversalContractTx.authorization_validation, authorization %s does not have signature",
+            //                  "CUniversalTx.authorization_validation, authorization %s does not have signature",
             //                  wasm::name(p.account).to_string().c_str())
             // }
         }
@@ -550,10 +550,10 @@ void CUniversalContractTx::validate_authorization(const std::vector<uint64_t>& a
 
 }
 
-//bool CUniversalContractTx::validate_payer_signature(CTxExecuteContext &context)
+//bool CUniversalTx::validate_payer_signature(CTxExecuteContext &context)
 
 void
-CUniversalContractTx::get_accounts_from_signatures(CCacheWrapper& database, std::vector <uint64_t>& authorization_accounts) {
+CUniversalTx::get_accounts_from_signatures(CCacheWrapper& database, std::vector <uint64_t>& authorization_accounts) {
 
     TxID signature_hash = GetHash();
 
@@ -599,7 +599,7 @@ CUniversalContractTx::get_accounts_from_signatures(CCacheWrapper& database, std:
 
 }
 
-bool CUniversalContractTx::CheckTx(CTxExecuteContext& context) {
+bool CUniversalTx::CheckTx(CTxExecuteContext& context) {
     auto &database           = *context.pCw;
     auto &check_tx_to_return = *context.pState;
 
@@ -697,7 +697,7 @@ static uint64_t get_run_fee_in_wicc(const uint64_t& fuel, CBaseTx& tx, CTxExecut
 //     }
 // }
 
-bool CUniversalContractTx::ExecuteTx(CTxExecuteContext &context) {
+bool CUniversalTx::ExecuteTx(CTxExecuteContext &context) {
 
     auto& database             = *context.pCw;
     auto& execute_tx_to_return = *context.pState;
@@ -785,7 +785,7 @@ bool CUniversalContractTx::ExecuteTx(CTxExecuteContext &context) {
     return true;
 }
 
-void CUniversalContractTx::execute_inline_transaction(wasm::inline_transaction_trace& trace,
+void CUniversalTx::execute_inline_transaction(wasm::inline_transaction_trace& trace,
                                                  wasm::inline_transaction&       trx,
                                                  uint64_t                        receiver,
                                                  CCacheWrapper&                  database,
@@ -805,7 +805,7 @@ void CUniversalContractTx::execute_inline_transaction(wasm::inline_transaction_t
 }
 
 
-bool CUniversalContractTx::GetInvolvedKeyIds(CCacheWrapper &cw, set <CKeyID> &keyIds) {
+bool CUniversalTx::GetInvolvedKeyIds(CCacheWrapper &cw, set <CKeyID> &keyIds) {
 
     CKeyID senderKeyId;
     if (!cw.accountCache.GetKeyId(txUid, senderKeyId))
@@ -815,18 +815,18 @@ bool CUniversalContractTx::GetInvolvedKeyIds(CCacheWrapper &cw, set <CKeyID> &ke
     return true;
 }
 
-uint64_t CUniversalContractTx::GetFuelFee(CCacheWrapper &cw, int32_t height, uint32_t nFuelRate) {
+uint64_t CUniversalTx::GetFuelFee(CCacheWrapper &cw, int32_t height, uint32_t nFuelRate) {
 
     uint64_t minFee = 0;
     if (!GetTxMinFee(cw, nTxType, height, fee_symbol, minFee)) {
-        LogPrint(BCLog::ERROR, "CUniversalContractTx::GetFuelFee(), get min_fee failed! fee_symbol=%s\n", fee_symbol);
-        throw runtime_error("CUniversalContractTx::GetFuelFee(), get min_fee failed");
+        LogPrint(BCLog::ERROR, "CUniversalTx::GetFuelFee(), get min_fee failed! fee_symbol=%s\n", fee_symbol);
+        throw runtime_error("CUniversalTx::GetFuelFee(), get min_fee failed");
     }
 
     return std::max<uint64_t>(((fuel / 100.0f) * nFuelRate), minFee);
 }
 
-string CUniversalContractTx::ToString(CAccountDBCache &accountCache) {
+string CUniversalTx::ToString(CAccountDBCache &accountCache) {
 
     if (inline_transactions.size() == 0) return string("");
     inline_transaction trx = inline_transactions[0];
@@ -844,7 +844,7 @@ string CUniversalContractTx::ToString(CAccountDBCache &accountCache) {
             HexStr(trx.data), valid_height);
 }
 
-Object CUniversalContractTx::ToJson(const CAccountDBCache &accountCache) const {
+Object CUniversalTx::ToJson(const CAccountDBCache &accountCache) const {
 
     if (inline_transactions.size() == 0) return Object{};
 
@@ -878,7 +878,7 @@ Object CUniversalContractTx::ToJson(const CAccountDBCache &accountCache) const {
     return result;
 }
 
-void CUniversalContractTx::set_signature(const uint64_t& account, const vector<uint8_t>& signature) {
+void CUniversalTx::set_signature(const uint64_t& account, const vector<uint8_t>& signature) {
     for( auto& s:signatures ){
         if( s.account == account ){
             s.signature = signature;
@@ -888,6 +888,6 @@ void CUniversalContractTx::set_signature(const uint64_t& account, const vector<u
     CHAIN_ASSERT(false, wasm_chain::missing_auth_exception, "cannot find account %s in signature list", wasm::name(account).to_string());
 }
 
-void CUniversalContractTx::set_signature(const wasm::signature_pair& signature) {
+void CUniversalTx::set_signature(const wasm::signature_pair& signature) {
     set_signature(signature.account, signature.signature);
 }

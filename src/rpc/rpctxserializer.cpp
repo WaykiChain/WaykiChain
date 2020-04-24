@@ -168,7 +168,7 @@ std::shared_ptr<CBaseTx> genWasmContractCalltx(json_spirit::Value param_json) {
 
     auto db_contract = pCdMan->pContractCache;
 
-    std::shared_ptr<CUniversalContractTx> pBaseTx = std::make_shared<CUniversalContractTx>();
+    std::shared_ptr<CUniversalTx> pBaseTx = std::make_shared<CUniversalTx>();
 
     pBaseTx->nTxType      = UNIVERSAL_CONTRACT_TX;
     pBaseTx->txUid        = CRegID(authorizer_name.value);

@@ -163,7 +163,7 @@ public:
 };
 
 /**#################### Unified System/User Contract Class Definition ##############################**/
-class CUniversalContractTx : public CBaseTx {
+class CUniversalTx : public CBaseTx {
 public:
     vector<wasm::inline_transaction> inline_transactions;
     vector<wasm::signature_pair>     signatures;
@@ -184,12 +184,12 @@ public:
     void                      set_signature(const wasm::signature_pair& signature);
 
 public:
-    CUniversalContractTx(const CBaseTx *pBaseTx): CBaseTx(UNIVERSAL_CONTRACT_TX) {
+    CUniversalTx(const CBaseTx *pBaseTx): CBaseTx(UNIVERSAL_CONTRACT_TX) {
         assert(UNIVERSAL_CONTRACT_TX == pBaseTx->nTxType);
-        *this = *(CUniversalContractTx *)pBaseTx;
+        *this = *(CUniversalTx *)pBaseTx;
     }
-    CUniversalContractTx(): CBaseTx(UNIVERSAL_CONTRACT_TX) {}
-    ~CUniversalContractTx() {}
+    CUniversalTx(): CBaseTx(UNIVERSAL_CONTRACT_TX) {}
+    ~CUniversalTx() {}
 
     IMPLEMENT_SERIALIZE(
         READWRITE(VARINT(this->nVersion));
@@ -212,7 +212,7 @@ public:
         }
     }
 
-    virtual std::shared_ptr<CBaseTx>   GetNewInstance() const { return std::make_shared<CUniversalContractTx>(*this); }
+    virtual std::shared_ptr<CBaseTx>   GetNewInstance() const { return std::make_shared<CUniversalTx>(*this); }
     virtual map<TokenSymbol, uint64_t> GetValues()      const { return map<TokenSymbol, uint64_t>{{SYMB::WICC, 0}}; }
     virtual uint64_t                   GetFuelFee(CCacheWrapper &cw, int32_t height, uint32_t fuelRate);
     virtual bool                       GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds);

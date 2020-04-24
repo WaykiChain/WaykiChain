@@ -121,7 +121,7 @@ void CBaseTx::SerializePtr(Stream& os, const std::shared_ptr<CBaseTx> &pBaseTx, 
             ::Serialize(os, (const CAccountPermsClearTx&)tx,serType, version); break;
 
         case UNIVERSAL_CONTRACT_TX:
-            ::Serialize(os, (const CUniversalContractTx&)tx, serType, version); break;
+            ::Serialize(os, (const CUniversalTx&)tx, serType, version); break;
 
         default:
             throw runtime_error(strprintf("%s(), unsupport nTxType(%d:%s) to serialize",
@@ -324,8 +324,8 @@ void CBaseTx::UnserializePtr(Stream& is, std::shared_ptr<CBaseTx> &pBaseTx, int 
         }
 
         case UNIVERSAL_CONTRACT_TX: {
-            pBaseTx = std::make_shared<CUniversalContractTx>();
-            ::Unserialize(is, *((CUniversalContractTx *)(pBaseTx.get())), serType, version);
+            pBaseTx = std::make_shared<CUniversalTx>();
+            ::Unserialize(is, *((CUniversalTx *)(pBaseTx.get())), serType, version);
             break;
         }
 

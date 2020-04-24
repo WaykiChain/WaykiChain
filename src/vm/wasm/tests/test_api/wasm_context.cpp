@@ -45,14 +45,14 @@ namespace wasm {
         return nullptr;
     }
 
-    bool CUniversalContractTx::ExecuteTx(wasm::transaction_trace &trx_trace, wasm::inline_transaction& trx){
+    bool CUniversalTx::ExecuteTx(wasm::transaction_trace &trx_trace, wasm::inline_transaction& trx){
         trx_trace.traces.emplace_back();
         execute_inline_transaction(trx_trace.traces.back(), trx, trx.contract, cache, state, 0);
         return true;
 
     };
 
-    void CUniversalContractTx::execute_inline_transaction( wasm::inline_transaction_trace& trace,
+    void CUniversalTx::execute_inline_transaction( wasm::inline_transaction_trace& trace,
                                     wasm::inline_transaction& trx,
                                      uint64_t receiver,
                                      CCacheWrapper &cache,
