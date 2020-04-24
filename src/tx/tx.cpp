@@ -306,11 +306,11 @@ shared_ptr<CAccount> CBaseTx::GetAccount(CCacheWrapper &cw, const CUserID &uid) 
     if (it != account_map.end()) {
         spAccount = it->second;
     } else {
-        shared_ptr<CAccount> spAccount = make_shared<CAccount>();
-        if (!cw.accountCache.GetAccount(uid, *spAccount)) {
+        spAccount = make_shared<CAccount>();
+        if (!cw.accountCache.GetAccount(keyid, *spAccount)) {
             return nullptr;
         }
-        account_map.emplace(spAccount->keyid, spAccount);
+        account_map.emplace(keyid, spAccount);
     }
     return spAccount;
 }
@@ -352,6 +352,7 @@ bool CBaseTx::RegisterAccount(CTxExecuteContext &context, const CPubKey *pPubkey
                     account.regid.ToString(), account.keyid.ToAddress()),
                     READ_ACCOUNT_FAIL, "save-new-regid-failed");
     }
+    return true;
 }
 
 bool CBaseTx::CheckFee(CTxExecuteContext &context) {
