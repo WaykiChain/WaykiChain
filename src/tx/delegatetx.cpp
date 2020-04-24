@@ -73,20 +73,19 @@ bool CDelegateVoteTx::ExecuteTx(CTxExecuteContext &context) {
         auto spCandidateAcct = GetAccount(context, vote.GetCandidateUid(), "candidate_uid");
         if (!spCandidateAcct) return false;
 
-        shared_ptr<CAccount> spDelegateAccount = nullptr;
-        uint64_t oldVotes = spDelegateAccount->received_votes;
-        if (!spDelegateAccount->StakeVoteBcoins(VoteType(vote.GetCandidateVoteType()), vote.GetVotedBcoins())) {
+        uint64_t oldVotes = spCandidateAcct->received_votes;
+        if (!spCandidateAcct->StakeVoteBcoins(VoteType(vote.GetCandidateVoteType()), vote.GetVotedBcoins())) {
             return state.DoS(100, ERRORMSG("CDelegateVoteTx::ExecuteTx, operate account id %s vote fund error",
                             delegateUId.ToString()), UPDATE_ACCOUNT_FAIL, "operate-vote-error");
         }
 
         // Votes: set the new value and erase the old value
-        if (!cw.delegateCache.SetDelegateVotes(spDelegateAccount->regid, spDelegateAccount->received_votes)) {
+        if (!cw.delegateCache.SetDelegateVotes(spCandidateAcct->regid, spCandidateAcct->received_votes)) {
             return state.DoS(100, ERRORMSG("CDelegateVoteTx::ExecuteTx, save account id %s vote info error",
                             delegateUId.ToString()), UPDATE_ACCOUNT_FAIL, "bad-save-delegatedb");
         }
 
-        if (!cw.delegateCache.EraseDelegateVotes(spDelegateAccount->regid, oldVotes)) {
+        if (!cw.delegateCache.EraseDelegateVotes(spCandidateAcct->regid, oldVotes)) {
             return state.DoS(100, ERRORMSG("CDelegateVoteTx::ExecuteTx, erase account id %s vote info error",
                             delegateUId.ToString()), UPDATE_ACCOUNT_FAIL, "bad-save-delegatedb");
         }
