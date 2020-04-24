@@ -108,7 +108,7 @@ static const unordered_map<CdpParamType, std::pair<uint64_t,uint64_t>, CdpParamT
         { CDP_LIQUIDATE_DISCOUNT_RATIO,             RANGE(0,10000)      },  // discount: 97%
         { CDP_BCOINSTOSTAKE_AMOUNT_MIN_IN_SCOIN,    RANGE(0,0)          },  // 0.9 WUSD, dust amount (<0.9) rejected
         { CDP_INTEREST_PARAM_A,                     RANGE(0,0)          },  // a = 2
-        { CDP_INTEREST_PARAM_B,                     RANGE(0,0)          },  // b = 1
+        { CDP_INTEREST_PARAM_B,                     RANGE(1,100000000)  },  // b = 1
         { CDP_CONVERT_INTEREST_TO_DEBT_DAYS,        RANGE(0,3650)       },  // max 10 years
 };
 

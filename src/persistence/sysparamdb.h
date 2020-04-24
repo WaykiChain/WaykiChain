@@ -153,8 +153,16 @@ public:
         auto &item = changeMap[CVarIntValue(height)];
         if (paramType == CdpParamType::CDP_INTEREST_PARAM_A) {
             item.param_a = value;
+            uint64_t param_b;
+            if(!GetCdpParam(coinPair,CDP_INTEREST_PARAM_B, param_b))
+                return false;
+            item.param_b = param_b;
         } else if (paramType == CdpParamType::CDP_INTEREST_PARAM_B) {
             item.param_b = value;
+            uint64_t param_a;
+            if(!GetCdpParam(coinPair,CDP_INTEREST_PARAM_A, param_a))
+                return false;
+            item.param_a = param_a;
         } else {
             assert(false && "must be param_a || param_b");
             return false;
