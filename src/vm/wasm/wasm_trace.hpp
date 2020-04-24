@@ -1,6 +1,7 @@
 #pragma once
 
 #include <chrono>
+#include "entities/id.h"
 #include "commons/uint256.h"
 #include "wasm/types/inline_transaction.hpp"
 #include "wasm/wasm_serialize_reflect.hpp"
@@ -25,7 +26,7 @@ namespace wasm {
     };
 
 
-    struct transaction_trace {       
+    struct transaction_trace {
         uint256                   trx_id;
         std::chrono::microseconds elapsed;
         uint64_t                  fuel_rate;

@@ -139,11 +139,14 @@ public:
     uint64_t llFees;
     UnsignedCharArray signature;
 
-    uint64_t fuel = 0;     //!< only in memory
-    int32_t nFuelRate = 0;     //!< only in memory
-    mutable TxID sigHash;  //!< only in memory
-    map< CKeyID, std::shared_ptr<CAccount> > account_map;    //!< only in memory
-    std::shared_ptr<CAccount> sp_tx_account = nullptr;    //!< only in memory
+    /*************** Memory Cache Only *******************/
+    CTxCord txCord;
+    uint64_t fuel = 0;
+    int32_t nFuelRate = 0;
+    mutable TxID sigHash;
+    map< CKeyID, std::shared_ptr<CAccount> > account_map;
+    std::shared_ptr<CAccount> sp_tx_account = nullptr;
+
     ReceiptList receipts;  //!< not persisted within Tx Cache
 
 public:

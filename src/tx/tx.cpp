@@ -201,6 +201,7 @@ bool CBaseTx::CheckBaseTx(CTxExecuteContext &context) {
 bool CBaseTx::ExecuteFullTx(CTxExecuteContext &context) {
     IMPLEMENT_DEFINE_CW_STATE;
     ClearMemData();
+    txCord = CTxCord(context.height, context.index);
 
     bool processingTxAccount = (nTxType != PRICE_MEDIAN_TX) && (nTxType != UCOIN_MINT_TX) && (nTxType != CDP_FORCE_SETTLE_INTEREST_TX);
 

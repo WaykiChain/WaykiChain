@@ -146,7 +146,7 @@ class wasm_context : public wasm_context_interface {
         wasm_context(CUniversalContractTx &ctrl, inline_transaction &t, CCacheWrapper &cw,
                      CValidationState &s, bool mining = false,
                      uint32_t depth = 0)
-            : trx(t), control_trx(ctrl), cache(cw), state(s), recurse_depth(depth) {
+            : trx_cord(ctrl.txCord), trx(t), control_trx(ctrl), cache(cw), state(s), recurse_depth(depth) {
             reset_console();
         };
 
@@ -211,21 +211,22 @@ class wasm_context : public wasm_context_interface {
 
     public:
 
-        inline_transaction& trx;
-        CUniversalContractTx&    control_trx;
-        CCacheWrapper&      cache;
-        CValidationState&   state;
+        CTxCord                     trx_cord;
+        inline_transaction&         trx;
+        CUniversalContractTx&       control_trx;
+        CCacheWrapper&              cache;
+        CValidationState&           state;
 
         uint32_t                    recurse_depth;
         vector <uint64_t>           notified;
         vector <inline_transaction> inline_transactions;
 
-        wasm::wasm_interface wasmif;
-        vm::wasm_allocator   wasm_alloc;
-        uint64_t             _receiver;
+        wasm::wasm_interface        wasmif;
+        vm::wasm_allocator          wasm_alloc;
+        uint64_t                    _receiver;
         //std::chrono::milliseconds ;
 
     private:
-        std::ostringstream _pending_console_output;
+        std::ostringstream          _pending_console_output;
     };
 }

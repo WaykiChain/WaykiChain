@@ -29,7 +29,7 @@ namespace wasm {
     public:
         wasm_context(CUniversalContractTx &ctrl, inline_transaction &t, CCacheWrapper &cw,
                      vector <CReceipt> &receipts_in, bool mining, uint32_t depth = 0)
-                : trx(t), control_trx(ctrl), database(cw), receipts(receipts_in), recurse_depth(depth) {
+                : trx_cord(ctrl.txCord), trx(t), control_trx(ctrl), database(cw), receipts(receipts_in), recurse_depth(depth) {
             reset_console();
         };
 
@@ -126,8 +126,9 @@ namespace wasm {
         void                      resume_billing_timer()  { control_trx.resume_billing_timer(); };
 
     public:
+        CTxCord&                   trx_cord;
         inline_transaction&        trx;
-        CUniversalContractTx&           control_trx;
+        CUniversalContractTx&      control_trx;
         CCacheWrapper&             database;
         vector<CReceipt>&          receipts;
         uint32_t                   recurse_depth;

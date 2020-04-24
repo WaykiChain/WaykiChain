@@ -17,7 +17,7 @@ using namespace json_spirit;
 
 /***************************** Universal *******************************************/
 extern Value submittx(const Array& params, bool fHelp);
-extern Value submitcontractdeploytx(const Array& params, bool fHelp);
+extern Value submitsetcodetx(const Array& params, bool fHelp);
 
 /***************************** Basic *******************************************/
 

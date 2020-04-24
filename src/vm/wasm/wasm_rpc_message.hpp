@@ -3,24 +3,40 @@
 
 namespace wasm { namespace rpc{
 
-    const char *submit_wasm_contract_deploy_tx_rpc_help_message = R"=====(
-        submitcontractdeploytx "sender" "contract" "wasm_file" "abi_file" [symbol:fee:unit]
+    const char *submit_setcode_tx_rpc_help_message = R"=====(
+        submitsetcodetx "sender" "wasm_file" "abi_file" ["contract"] [symbol:fee:unit]
         deploy code and abi to an account as contract
         Arguments:
-        1."sender":          (string required) contract regid address from this wallet
-        2."contract":        (string required), contract regid
-        3."wasm_file":       (string required), the file path of the contract wasm code
-        4."abi_file":        (string required), the file path of the contract abi
+        1."sender":          (string, required), contract regid address from this wallet
+        2."code_file":       (string, required), the file path of the contract code
+        3."abi_file":        (string, required), the file path of the contract abi
+        4."contract":        (string, optional), existing contract regid, omitted for new deployment.
         5."symbol:fee:unit": (string:numeric:string, optional) fee paid to miner, default is WICC:100000:sawi
         Result:
         "txhash":            (string)
         Examples:
-        > ./coind submitcontractdeploytx 0-2 0-2 /tmp/token.wasm /tmp/token.abi
+        > ./coind submitsetcodetx 0-2 0-2 /tmp/token.wasm /tmp/token.abi
         As json rpc call
-        > curl --user myusername -d '{"jsonrpc": "1.0", "id":"curltest", "method":"submitcontractdeploytx", "params":["0-2", "0-2", "/tmp/token.wasm", "/tmp/token.abi"]}' -H 'Content-Type: application/json;' http://127.0.0.1:8332
+        > curl --user myusername -d '{"jsonrpc": "1.0", "id":"curltest", "method":"submitsetcodetx", "params":["0-2", "0-2", "/tmp/token.wasm", "/tmp/token.abi"]}' -H 'Content-Type: application/json;' http://127.0.0.1:8332
     )=====";
 
-    const char *submit_wasm_contract_call_tx_rpc_help_message = R"=====(
+    const char *submit_setcoder_tx_rpc_help_message = R"=====(
+        submitsetcodertx "sender" "contract" "maintainer" [symbol:fee:unit]
+        set a new maintainer to the contract
+        Arguments:
+        1."sender":          (string, required) the original maintainer (regid) of the contract
+        2."contract":        (string, required) contract regid
+        3."maintainer":      (string, required) the new maintainer regid (when set as 0-0, it is to disable further upgrade)
+        4."symbol:fee:unit": (string:numeric:string, optional) fee paid to miner, default is WICC:100000:sawi
+        Result:
+        "txhash":            (string)
+        Examples:
+        > ./coind submitsetcodertx 0-2 100-3 0-3
+        As json rpc call
+        > curl --user myusername -d '{"jsonrpc": "1.0", "id":"curltest", "method":"submitsetcodertx", "params":["0-2", "100-3", "0-3"]}' -H 'Content-Type: application/json;' http://127.0.0.1:8332
+    )=====";
+
+    const char *submit_tx_rpc_help_message = R"=====(
         submittx "sender" "contract" "action" "data" "fee"
         1."sender ":         (string, required) sender regid
         2."contract":        (string, required) contract regid

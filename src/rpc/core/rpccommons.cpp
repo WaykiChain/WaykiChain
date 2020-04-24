@@ -541,7 +541,6 @@ CKeyID RPC_PARAM::GetKeyId(const Value &jsonValue){
     return GetUserKeyId(ParseUserIdByAddr(jsonValue));
 }
 
-
 CUserID RPC_PARAM::GetRegId(const Value &jsonValue) {
 
     auto uid = ParseUserIdByAddr(jsonValue);
@@ -549,6 +548,20 @@ CUserID RPC_PARAM::GetRegId(const Value &jsonValue) {
     if (!pCdMan->pAccountCache->GetRegId(uid, regid))
         throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("get regid by uid=%s failed", uid.ToString()));
     return regid;
+}
+
+CRegID RPC_PARAM::GetRegId(const Array& params, const size_t index, const string &defaultRegId) {
+    auto uid = ParseUserIdByAddr(params[index]);
+    CRegID regid;
+
+    if (params.size() > index) {
+        if (!pCdMan->pAccountCache->GetRegId(uid, regid))
+            throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("get regid by uid=%s failed", uid.ToString()));
+
+        return regid;
+    } else {
+        return CRegID(defaultRegId);
+    }
 }
 
 string RPC_PARAM::GetLuaContractScript(const Value &jsonValue) {

@@ -139,35 +139,35 @@ void get_contract( CAccountDBCache*    db_account,
     //JSON_RPC_ASSERT(contract_store.code.size() > 0,                                 RPC_WALLET_ERROR,  "contract lose code")
 }
 
-// set code and abi
-Value submitcontractdeploytx( const Array &params, bool fHelp ) {
 
-    RESPONSE_RPC_HELP( fHelp || params.size() < 4 || params.size() > 5, wasm::rpc::submit_wasm_contract_deploy_tx_rpc_help_message)
+// set code and abi to wasm/lua contract
+Value submitsetcodetx( const Array &params, bool fHelp ) {
+
+    RESPONSE_RPC_HELP( fHelp || params.size() < 3 || params.size() > 5, wasm::rpc::submit_setcode_tx_rpc_help_message)
     RPCTypeCheck(params, list_of(str_type)(str_type)(str_type)(str_type)(str_type));
 
     try{
         auto database = pCdMan->pAccountCache;
         auto wallet   = pWalletMain;
-
-        string code, abi;
-        VMType vmType;
-        read_and_validate_code(params[2].get_str(), code, vmType);
-        read_and_validate_abi (params[3].get_str(), abi);
-
         CHAIN_ASSERT( wallet != NULL, wasm_chain::wallet_not_available_exception, "wallet error" )
         EnsureWalletIsUnlocked();
 
         CUniversalContractTx tx;
         {
             CAccount payer;
+            string code, abi;
+            VMType vm;
             auto              payer_regid = wasm::regid(params[0].get_str());
-            auto              contract    = wasm::regid(params[1].get_str());
+            read_and_validate_code(                     params[1].get_str(), code, vm);
+            read_and_validate_abi (                     params[2].get_str(), abi);
+            auto              contract    = RPC_PARAM::GetRegId(params, 3, "0-0").GetIntValue();
             const ComboMoney& fee         = RPC_PARAM::GetFee(params, 4, TxType::UNIVERSAL_CONTRACT_TX);
 
             CHAIN_ASSERT( database->GetAccount(CRegID(payer_regid.value), payer),
                           wasm_chain::account_access_exception,
                           "payer '%s' does not exist ",
                           payer_regid.to_string().c_str())
+
             RPC_PARAM::CheckAccountBalance(payer, fee.symbol, SUB_FREE, fee.GetAmountInSawi());
 
             tx.nTxType      = UNIVERSAL_CONTRACT_TX;
@@ -176,7 +176,7 @@ Value submitcontractdeploytx( const Array &params, bool fHelp ) {
             tx.llFees       = fee.GetAmountInSawi();
             tx.valid_height = chainActive.Tip()->height;
             tx.inline_transactions.push_back({wasmio, wasm::N(setcode), std::vector<permission>{{payer_regid.value, wasmio_owner}},
-                                             wasm::pack(std::tuple(contract.value, vmType, code, abi, ""))});
+                                             wasm::pack(std::tuple(contract, vm, code, abi, ""))});
 
             //tx.signatures.push_back({payer_regid.value, vector<uint8_t>()});
             CHAIN_ASSERT( wallet->Sign(payer.keyid, tx.GetHash(), tx.signature),
@@ -214,11 +214,83 @@ Value submitcontractdeploytx( const Array &params, bool fHelp ) {
     } JSON_RPC_CAPTURE_AND_RETHROW;
 }
 
+// set a new maintainer to a wasm/lua contract
+Value submitsetcodertx( const Array &params, bool fHelp ) {
+
+    RESPONSE_RPC_HELP( fHelp || params.size() < 3 || params.size() > 4, wasm::rpc::submit_setcoder_tx_rpc_help_message)
+    RPCTypeCheck(params, list_of(str_type)(str_type)(str_type)(str_type));
+
+    const ComboMoney& fee         = RPC_PARAM::GetFee(params, 4, TxType::UNIVERSAL_CONTRACT_TX);
+     try{
+        auto database = pCdMan->pAccountCache;
+        auto wallet   = pWalletMain;
+        CHAIN_ASSERT( wallet != NULL, wasm_chain::wallet_not_available_exception, "wallet error" )
+        EnsureWalletIsUnlocked();
+
+        CUniversalContractTx tx;
+        {
+            CAccount payer;
+            auto payer_regid        = wasm::regid(params[0].get_str());
+            auto contract           = wasm::regid(params[1].get_str());
+            auto maintainer         = wasm::regid(params[2].get_str());
+            const ComboMoney& fee   = RPC_PARAM::GetFee(params, 3, TxType::UNIVERSAL_CONTRACT_TX);
+
+            CHAIN_ASSERT( database->GetAccount(CRegID(payer_regid.value), payer),
+                          wasm_chain::account_access_exception,
+                          "payer '%s' does not exist ",
+                          payer_regid.to_string().c_str())
+
+            RPC_PARAM::CheckAccountBalance(payer, fee.symbol, SUB_FREE, fee.GetAmountInSawi());
+
+            tx.nTxType      = UNIVERSAL_CONTRACT_TX;
+            tx.txUid        = payer.regid;
+            tx.fee_symbol   = fee.symbol;
+            tx.llFees       = fee.GetAmountInSawi();
+            tx.valid_height = chainActive.Tip()->height;
+            tx.inline_transactions.push_back({wasmio, wasm::N(setcoder), std::vector<permission>{{payer_regid.value, wasmio_owner}},
+                                             wasm::pack(std::tuple(contract.value, maintainer.value))});
+
+            //tx.signatures.push_back({payer_regid.value, vector<uint8_t>()});
+            CHAIN_ASSERT( wallet->Sign(payer.keyid, tx.GetHash(), tx.signature),
+                          wasm_chain::wallet_sign_exception, "wallet sign error")
+
+            //tx.set_signature({payer_regid.value, tx.signature});
+        }
+
+        string retMsg;
+        bool fSuccess = wallet->CommitTx((CBaseTx * ) & tx, retMsg);
+        JSON_RPC_ASSERT(fSuccess, RPC_WALLET_ERROR, retMsg);
+
+        // Object obj_return;
+        // json_spirit::Config::add(obj_return, "txid", std::get<1>(ret) );
+        // return obj_return;
+
+        Object obj_return;
+        Value  v_trx_id, value_json;
+        json_spirit::read(retMsg, value_json);
+
+        //if (value_json.type() == json_spirit::obj_type) {
+        auto o = value_json.get_obj();
+        for (json_spirit::Object::const_iterator iter = o.begin(); iter != o.end(); ++iter) {
+            string name = Config_type::get_name(*iter);
+            if (name == "trx_id") {
+                v_trx_id = Config_type::get_value(*iter);
+                break;
+            }
+        }
+        //}
+
+        json_spirit::Config::add(obj_return, "trx_id", v_trx_id );
+        return obj_return;
+
+    } JSON_RPC_CAPTURE_AND_RETHROW;
+
+}
 
 Value submittx( const Array &params, bool fHelp ) {
 
     //WASM_TRACE(params[1].get_str())
-    RESPONSE_RPC_HELP( fHelp || params.size() < 4 || params.size() > 5 , wasm::rpc::submit_wasm_contract_call_tx_rpc_help_message)
+    RESPONSE_RPC_HELP( fHelp || params.size() < 4 || params.size() > 5 , wasm::rpc::submit_tx_rpc_help_message)
     RPCTypeCheck(params, list_of(str_type)(str_type)(str_type)(str_type)(str_type));
 
     try {
@@ -232,7 +304,7 @@ Value submittx( const Array &params, bool fHelp ) {
         if (!get_native_contract_abi(contract_regid.value, abi)) {
             CAccount           contract;
             CUniversalContract contract_store;
-            get_contract(db_account, db_contract, contract_regid, contract, contract_store );
+            get_contract(db_account, db_contract, contract_regid, contract, contract_store);
             abi = std::vector<char>(contract_store.abi.begin(), contract_store.abi.end());
         }
 

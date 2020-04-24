@@ -7,6 +7,7 @@
 #ifndef ENTITIES_CONTRACT_H
 #define ENTITIES_CONTRACT_H
 
+#include "id.h"
 #include "commons/serialize.h"
 #include "config/version.h"
 #include "commons/util/util.h"
