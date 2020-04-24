@@ -14,12 +14,12 @@ bool CCoinMintTx::CheckTx(CTxExecuteContext &context) {
 }
 
 bool CCoinMintTx::ExecuteTx(CTxExecuteContext &context) {
-    CValidationState &state = *context.pState;
+    IMPLEMENT_DEFINE_CW_STATE;
     CRegID newRegid = CRegID(context.height, context.index);
     sp_tx_account = make_shared<CAccount>();
 
     if (txUid.IsEmpty()) {
-        sp_tx_account = NewAccount(context, Hash160(newRegid.GetRegIdRaw()));
+        sp_tx_account = NewAccount(cw, Hash160(newRegid.GetRegIdRaw()));
         sp_tx_account->regid = newRegid; // generate new regid
         // no pubkey
     } else if (txUid.is<CPubKey>()) {
@@ -27,7 +27,7 @@ bool CCoinMintTx::ExecuteTx(CTxExecuteContext &context) {
         const CKeyID &keyid = pubkey.GetKeyId();
         sp_tx_account = GetAccount(*context.pCw, txUid);
         if (!sp_tx_account) {
-            sp_tx_account = NewAccount(context, keyid); // genrate new keyid from regid
+            sp_tx_account = NewAccount(cw, keyid); // genrate new keyid from regid
         }
         if (!sp_tx_account->IsRegistered()) {
             sp_tx_account->regid = newRegid; // generate new regid

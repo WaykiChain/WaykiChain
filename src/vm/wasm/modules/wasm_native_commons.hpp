@@ -48,40 +48,30 @@ namespace wasm {
                     "asset (%s) not found from d/b",
                     symbol );
 
-      CAccount assetOwnerAccount;
-      CHAIN_ASSERT( context.database.accountCache.GetAccount(asset.owner_uid, assetOwnerAccount),
+      auto spOwnerAcct = context.control_trx.GetAccount(context.database, asset.owner_uid);
+      CHAIN_ASSERT( spOwnerAcct,
                     wasm_chain::account_access_exception,
                     "asset owner (%s) not found from d/b",
                     asset.owner_uid.ToString() );
 
-      CHAIN_ASSERT( owner == assetOwnerAccount.regid.GetIntValue(),
+      CHAIN_ASSERT( owner == spOwnerAcct->regid.GetIntValue(),
                     wasm_chain::native_contract_assert_exception,
                     "input asset owner (%s) diff from asset owner(%s) from d/b",
-                    CRegID(owner).ToString(), assetOwnerAccount.regid.ToString() );
+                    CRegID(owner).ToString(), spOwnerAcct->regid.ToString() );
 
       if (isMintOperate) { //mint operation
-        CHAIN_ASSERT( assetOwnerAccount.OperateBalance(symbol, BalanceOpType::ADD_FREE, quantity.amount, ReceiptType::WASM_MINT_COINS, context.control_trx.receipts),
+        CHAIN_ASSERT( spOwnerAcct->OperateBalance(symbol, BalanceOpType::ADD_FREE, quantity.amount, ReceiptType::WASM_MINT_COINS, context.control_trx.receipts),
                       wasm_chain::account_access_exception,
                       "Asset Owner (%s) balance overminted",
-                      assetOwnerAccount.regid.ToString())
-
-        CHAIN_ASSERT( assetOwnerAccount.keyid != context.control_trx.sp_tx_account->keyid &&
-                      context.database.accountCache.SetAccount(assetOwnerAccount.keyid, assetOwnerAccount),
-                      wasm_chain::account_access_exception,
-                      "Save assetOwnerAccount error")
+                      spOwnerAcct->regid.ToString())
 
         asset.total_supply += quantity.amount;
 
       } else {            //burn operation
-        CHAIN_ASSERT( assetOwnerAccount.OperateBalance(symbol, BalanceOpType::SUB_FREE, quantity.amount, ReceiptType::WASM_BURN_COINS, context.control_trx.receipts),
+        CHAIN_ASSERT( spOwnerAcct->OperateBalance(symbol, BalanceOpType::SUB_FREE, quantity.amount, ReceiptType::WASM_BURN_COINS, context.control_trx.receipts),
                       wasm_chain::account_access_exception,
                       "Asset Owner (%s) balance overburnt",
-                      assetOwnerAccount.regid.ToString())
-
-        CHAIN_ASSERT( assetOwnerAccount.keyid != context.control_trx.sp_tx_account->keyid &&
-                      context.database.accountCache.SetAccount(assetOwnerAccount.keyid, assetOwnerAccount),
-                      wasm_chain::account_access_exception,
-                      "Save assetOwnerAccount error")
+                      spOwnerAcct->regid.ToString())
 
         CHAIN_ASSERT( asset.total_supply >= quantity.amount,
                       wasm_chain::native_contract_assert_exception,

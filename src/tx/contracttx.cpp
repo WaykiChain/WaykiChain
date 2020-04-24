@@ -193,8 +193,8 @@ bool CLuaContractInvokeTx::ExecuteTx(CTxExecuteContext &context) {
     luaContext.fuel_limit        = fuelLimit;
     luaContext.transfer_symbol   = SYMB::WICC;
     luaContext.transfer_amount   = coin_amount;
-    luaContext.p_tx_user_account = sp_tx_account.get();
-    luaContext.p_app_account     = spAppAccount.get();
+    luaContext.sp_tx_account     = sp_tx_account;
+    luaContext.sp_app_account    = spAppAccount;
     luaContext.p_contract        = &contract;
     luaContext.p_arguments       = &arguments;
 
@@ -399,8 +399,8 @@ bool CUniversalContractInvokeR2Tx::ExecuteTx(CTxExecuteContext &context) {
     luaContext.fuel_limit        = fuelLimit;
     luaContext.transfer_symbol   = coin_symbol;
     luaContext.transfer_amount   = coin_amount;
-    luaContext.p_tx_user_account = sp_tx_account.get();
-    luaContext.p_app_account     = spAppAccount.get();
+    luaContext.sp_tx_account     = sp_tx_account;
+    luaContext.sp_app_account    = spAppAccount;
     luaContext.p_contract        = &contract;
     luaContext.p_arguments       = &arguments;
 

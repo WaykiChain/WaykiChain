@@ -193,7 +193,7 @@ bool CGovCoinTransferProposal::ExecuteProposal(CTxExecuteContext& context, CBase
             return context.pState->DoS(100, ERRORMSG("%s, to account not exist, uid=%s",
                     tx.GetTxTypeName(), to_uid.ToString()), REJECT_INVALID, "account-not-exist");
         }
-        auto spDesAccount = tx.NewAccount(context, to_uid.get<CKeyID>());
+        auto spDesAccount = tx.NewAccount(cw, to_uid.get<CKeyID>());
     }
 
     if (!spSrcAccount->OperateBalance(token, BalanceOpType::SUB_FREE, amount, ReceiptType::TRANSFER_PROPOSAL, tx.receipts, spDesAccount.get()))
