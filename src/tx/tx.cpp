@@ -110,13 +110,13 @@ bool CBaseTx::CheckBaseTx(CTxExecuteContext &context) {
     CValidationState &state = *context.pState;
     ClearMemData();
 
-    if(nTxType == BLOCK_REWARD_TX
-    || nTxType == PRICE_MEDIAN_TX
-    || nTxType == UCOIN_MINT_TX
-    || nTxType == UCOIN_BLOCK_REWARD_TX
-    || nTxType == CDP_FORCE_SETTLE_INTEREST_TX) {
+    if(    nTxType == BLOCK_REWARD_TX
+        || nTxType == PRICE_MEDIAN_TX
+        || nTxType == UCOIN_MINT_TX
+        || nTxType == UCOIN_BLOCK_REWARD_TX
+        || nTxType == CDP_FORCE_SETTLE_INTEREST_TX )
         return true;
-    }
+
     sp_tx_account = GetAccount(context, txUid, "txUid");
     if (!sp_tx_account) return false;
 
@@ -130,11 +130,11 @@ bool CBaseTx::CheckBaseTx(CTxExecuteContext &context) {
                 pubKey = txUid.get<CPubKey>();
             } else {
                 if (sp_tx_account->perms_sum == 0) {
-                    return state.DoS(100, ERRORMSG("CheckBaseTx::CheckTx, perms_sum is zero error! txUid=%s",
+                    return state.DoS(100, ERRORMSG("perms_sum is zero error! txUid=%s",
                                 txUid.ToString()), READ_ACCOUNT_FAIL, "bad-tx-sign");
                 }
                 if (!sp_tx_account->IsRegistered())
-                    return state.DoS(100, ERRORMSG("CheckBaseTx::CheckTx, tx account was not registered! txUid=%s",
+                    return state.DoS(100, ERRORMSG("tx account was not registered! txUid=%s",
                                 txUid.ToString()), READ_ACCOUNT_FAIL, "tx-account-not-registered");
 
                 pubKey = sp_tx_account->owner_pubkey;
@@ -144,7 +144,7 @@ bool CBaseTx::CheckBaseTx(CTxExecuteContext &context) {
         }
 
         if (!signatureValid)
-            return state.DoS(100, ERRORMSG("CheckBaseTx::CheckTx, verify txUid %s sign failed", txUid.ToString()),
+            return state.DoS(100, ERRORMSG("verify txUid %s sign failed", txUid.ToString()),
                             READ_ACCOUNT_FAIL, "bad-tx-sign");
     }
 
@@ -192,9 +192,10 @@ bool CBaseTx::CheckBaseTx(CTxExecuteContext &context) {
             return true; //no perm required
 
         if (sp_tx_account->perms_sum == 0 || (sp_tx_account->perms_sum & kTxTypePermMap.at(nTxType)) == 0)
-            return state.DoS(100, ERRORMSG("CheckBaseTx::CheckTx, account (%s) has NO required perm",
+            return state.DoS(100, ERRORMSG("account (%s) has NO required perm",
                                            txUid.ToString()), READ_ACCOUNT_FAIL, "account-lacks-perm");
     }
+
     return true;
 }
 

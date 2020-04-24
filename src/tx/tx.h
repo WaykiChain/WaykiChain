@@ -56,7 +56,7 @@ static const std::unordered_map<TxType, AccountPermType> kTxTypePermMap = {
     { LCONTRACT_INVOKE_TX,          AccountPermType::PERM_INVOKE_SC  },
     { UCONTRACT_DEPLOY_R2_TX,       AccountPermType::PERM_DEPLOY_SC  },
     { UCONTRACT_INVOKE_R2_TX,       AccountPermType::PERM_INVOKE_SC  },
-    { UNIVERSAL_TX,        AccountPermType::PERM_INVOKE_SC  },
+    { UNIVERSAL_TX,                 AccountPermType::PERM_INVOKE_SC  },
     { PRICE_FEED_TX,                AccountPermType::PERM_FEED_PRICE },
 
     { CDP_STAKE_TX,                 AccountPermType::PERM_CDP        },

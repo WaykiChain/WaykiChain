@@ -16,11 +16,11 @@ bool CBaseCoinTransferTx::CheckTx(CTxExecuteContext &context) {
     IMPLEMENT_CHECK_TX_REGID_OR_KEYID(toUid);
 
     if (coin_amount < DUST_AMOUNT_THRESHOLD)
-        return state.DoS(100, ERRORMSG("CBaseCoinTransferTx::CheckTx, dust amount, %llu < %llu", coin_amount,
+        return state.DoS(100, ERRORMSG("dust amount, %llu < %llu", coin_amount,
                          DUST_AMOUNT_THRESHOLD), REJECT_DUST, "invalid-coin-amount");
 
     if ((txUid.is<CPubKey>()) && !txUid.get<CPubKey>().IsFullyValid())
-        return state.DoS(100, ERRORMSG("CBaseCoinTransferTx::CheckTx, public key is invalid"), REJECT_INVALID,
+        return state.DoS(100, ERRORMSG("public key is invalid"), REJECT_INVALID,
                          "bad-publickey");
 
     return true;
@@ -73,28 +73,26 @@ bool CCoinTransferTx::CheckTx(CTxExecuteContext &context) {
     IMPLEMENT_CHECK_TX_MEMO;
 
     if (transfers.empty() || transfers.size() > MAX_TRANSFER_SIZE) {
-        return state.DoS(100, ERRORMSG("CCoinTransferTx::CheckTx, transfers is empty or too large count=%d than %d",
-            transfers.size(), MAX_TRANSFER_SIZE),
-                        REJECT_INVALID, "invalid-transfers");
+        return state.DoS(100, ERRORMSG("transfers is empty or too large count=%d than %d",
+            transfers.size(), MAX_TRANSFER_SIZE), REJECT_INVALID, "invalid-transfers");
     }
 
     for (size_t i = 0; i < transfers.size(); i++) {
         if (transfers[i].to_uid.IsEmpty()) {
-            return state.DoS(100, ERRORMSG("%s, to_uid can not be empty", __FUNCTION__),
-                            REJECT_INVALID, "invalid-toUid");
+            return state.DoS(100, ERRORMSG("to_uid can not be empty"), REJECT_INVALID, "invalid-toUid");
         }
-        if (!cw.assetCache.CheckAsset(transfers[i].coin_symbol))
-            return state.DoS(100, ERRORMSG("CCoinTransferTx::CheckTx, transfers[%d], invalid coin_symbol=%s", i,
+        if (!cw.assetCache.CheckAsset(transfers[i].coin_symbol, AssetPermType::PERM_TRANSFER))
+            return state.DoS(100, ERRORMSG("transfers[%d], invalid coin_symbol=%s", i,
                             transfers[i].coin_symbol), REJECT_INVALID, "invalid-coin-symbol");
 
         if (transfers[i].coin_amount < DUST_AMOUNT_THRESHOLD)
-            return state.DoS(100, ERRORMSG("CCoinTransferTx::CheckTx, transfers[%d], dust amount, %llu < %llu",
+            return state.DoS(100, ERRORMSG("transfers[%d], dust amount, %llu < %llu",
                 i, transfers[i].coin_amount, DUST_AMOUNT_THRESHOLD), REJECT_DUST, "invalid-coin-amount");
 
 
         if (!CheckCoinRange(transfers[i].coin_symbol, transfers[i].coin_amount))
             return state.DoS(100,
-                ERRORMSG("CCoinTransferTx::CheckTx, transfers[%d], coin_symbol=%s, coin_amount=%llu out of valid range",
+                ERRORMSG("transfers[%d], coin_symbol=%s, coin_amount=%llu out of valid range",
                          i, transfers[i].coin_symbol, transfers[i].coin_amount), REJECT_DUST, "invalid-coin-amount");
     }
 
@@ -102,12 +100,12 @@ bool CCoinTransferTx::CheckTx(CTxExecuteContext &context) {
     if (!GetTxMinFee(cw, nTxType, context.height, fee_symbol, minFee)) { assert(false); /* has been check before */ }
 
     if (llFees < transfers.size() * minFee) {
-        return state.DoS(100, ERRORMSG("CCoinTransferTx::CheckTx, tx fee too small (height: %d, fee symbol: %s, fee: %llu)",
+        return state.DoS(100, ERRORMSG("tx fee too small (height: %d, fee symbol: %s, fee: %llu)",
                          context.height, fee_symbol, llFees), REJECT_INVALID, "bad-tx-fee-toosmall");
     }
 
     if ((txUid.is<CPubKey>()) && !txUid.get<CPubKey>().IsFullyValid())
-        return state.DoS(100, ERRORMSG("CCoinTransferTx::CheckTx, public key is invalid"), REJECT_INVALID,
+        return state.DoS(100, ERRORMSG("public key is invalid"), REJECT_INVALID,
                          "bad-publickey");
 
     return true;

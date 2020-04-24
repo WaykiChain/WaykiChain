@@ -386,6 +386,7 @@ Value submitsendmultitx(const Array& params, bool fHelp) {
         ComboMoney amount = RPC_PARAM::GetComboMoney(amountV);
         if (amount.GetAmountInSawi() == 0)
             throw JSONRPCError(RPC_INVALID_PARAMETER, "Coins is zero!");
+
         if (!pCdMan->pAssetCache->CheckAsset(amount.symbol))
             throw JSONRPCError(REJECT_INVALID, strprintf("Invalid coin symbol=%s!", amount.symbol));
 

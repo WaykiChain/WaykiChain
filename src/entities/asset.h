@@ -36,14 +36,16 @@ enum AssetType : uint8_t {
 // perms for an asset group
 enum AssetPermType : uint64_t {
     NULL_ASSET_PERM     = 0,         // no perm at all w/ the asset including coin transfer etc.
-    PERM_DEX_BASE       = (1 << 0 ), // as base symbol of dex trading pair(baseSymbol/quoteSymbol)
-    PERM_DEX_QUOTE      = (1 << 1 ), // as quote symbol of dex trading pair(baseSymbol/quoteSymbol)
-    PERM_CDP_BCOIN      = (1 << 2 ), // bcoins must have the perm while stable coins are only hard coded
-    PERM_PRICE_FEED     = (1 << 3 ), // as base symbol of price feed coin pair(baseSymbol/quoteSymbol)
+    PERM_TRANSFER       = (1 << 0 ), // allow transfer between accounts
+    PERM_DEX_BASE       = (1 << 1 ), // as base symbol of dex trading pair(baseSymbol/quoteSymbol)
+    PERM_DEX_QUOTE      = (1 << 2 ), // as quote symbol of dex trading pair(baseSymbol/quoteSymbol)
+    PERM_CDP_BCOIN      = (1 << 3 ), // bcoins must have the perm while stable coins are only hard coded
+    PERM_PRICE_FEED     = (1 << 4 ), // as base symbol of price feed coin pair(baseSymbol/quoteSymbol)
 
 };
 
 static const unordered_map<uint64_t, string> kAssetPermTitleMap = {
+    {   PERM_TRANSFER,      "PERM_TRANSFER"     },
     {   PERM_DEX_BASE,      "PERM_DEX_BASE"     },
     {   PERM_DEX_QUOTE,     "PERM_DEX_QUOTE"    },
     {   PERM_CDP_BCOIN,     "PERM_CDP_BCOIN"    },
@@ -80,7 +82,7 @@ public:
     bool        mintable;           //whether this token can be minted in the future.
 
 public:
-    CAsset(): asset_type(AssetType::NULL_ASSET), perms_sum(AssetPermType::PERM_DEX_BASE) {}
+    CAsset(): asset_type(AssetType::NULL_ASSET), perms_sum(AssetPermType::PERM_TRANSFER + AssetPermType::PERM_DEX_BASE) {}
 
     CAsset(const TokenSymbol& assetSymbol, const TokenName& assetName, const AssetType AssetType, uint64_t assetPermsSum,
             const CUserID& ownerUid, uint64_t totalSupply, bool mintableIn)

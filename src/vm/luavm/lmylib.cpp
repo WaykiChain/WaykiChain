@@ -2280,39 +2280,39 @@ int32_t ExLuaPrint(lua_State *L) {
 
 static bool ParseAccountAssetTransfer(lua_State *L, CLuaVMRunEnv &vmRunEnv, AssetTransfer &transfer) {
     if (!lua_istable(L,-1)) {
-        LogPrint(BCLog::LUAVM,"ParseAccountAssetTransfer(), transfer param must be table\n");
+        LogPrint(BCLog::LUAVM,"transfer param must be table\n");
         return false;
     }
 
     if (!(GetBoolInTable(L, "isContractAccount", transfer.isContractAccount))) {
-        LogPrint(BCLog::LUAVM, "ParseAccountAssetTransfer(), get isContractAccount failed\n");
+        LogPrint(BCLog::LUAVM, "get isContractAccount failed\n");
         return false;
     }
 
     AccountType uidType;
     if (!(ParseUidTypeInTable(L, "toAddressType", uidType))) {
-        LogPrint(BCLog::LUAVM, "ParseAccountAssetTransfer(), get toAddressType failed\n");
+        LogPrint(BCLog::LUAVM, "get toAddressType failed\n");
         return false;
     }
 
     if (!ParseUidInTable(L, "toAddress", uidType, transfer.toUid)) {
-        LogPrint(BCLog::LUAVM,"ParseAccountAssetTransfer(), get toAddress failed\n");
+        LogPrint(BCLog::LUAVM,"get toAddress failed\n");
         return false;
     }
 
     if (!(getStringInTable(L, "tokenType", transfer.tokenType))) {
-        LogPrint(BCLog::LUAVM, "ParseAccountAssetTransfer(), get tokenType failed\n");
+        LogPrint(BCLog::LUAVM, "get tokenType failed\n");
         return false;
     }
 
     if (!vmRunEnv.GetCw()->assetCache.CheckAsset(transfer.tokenType)) {
-        LogPrint(BCLog::LUAVM, "ParseAccountAssetTransfer(), Invalid tokenType=%s!\n", transfer.tokenType);
+        LogPrint(BCLog::LUAVM, "Invalid tokenType=%s!\n", transfer.tokenType);
         return false;
     }
 
     vector<uint8_t> amountVector;
     if (!getArrayInTable(L, "tokenAmount", sizeof(uint64_t), amountVector)) {
-        LogPrint(BCLog::LUAVM, "ParseAccountAssetTransfer(), get tokenAmount failed\n");
+        LogPrint(BCLog::LUAVM, "get tokenAmount failed\n");
         return false;
     };
     assert(amountVector.size() == sizeof(uint64_t));
@@ -2322,7 +2322,7 @@ static bool ParseAccountAssetTransfer(lua_State *L, CLuaVMRunEnv &vmRunEnv, Asse
     ssAmount >> amount;
 
     if (amount == 0 || !CheckBaseCoinRange(amount) ) {
-        LogPrint(BCLog::LUAVM, "ParseAccountAssetTransfer(), tokenAmount=%lld is 0 or out of range\n", amount);
+        LogPrint(BCLog::LUAVM, "tokenAmount=%lld is 0 or out of range\n", amount);
         return false;
     }
     transfer.tokenAmount = amount;
@@ -2457,34 +2457,34 @@ int32_t ExGetCurTxInputAssetFunc(lua_State *L) {
 int32_t ExGetAccountAssetFunc(lua_State *L) {
     CLuaVMRunEnv* pVmRunEnv = GetVmRunEnv(L);
     if (nullptr == pVmRunEnv) {
-        LogPrint(BCLog::LUAVM,"[ERROR]%s(), pVmRunEnv is nullptr", __FUNCTION__);
+        LogPrint(BCLog::LUAVM,"[ERROR] pVmRunEnv is nullptr");
         return 0;
     }
 
     if (!lua_istable(L,-1)) {
-        LogPrint(BCLog::LUAVM,"[ERROR]%s(), input param must be a table\n", __FUNCTION__);
+        LogPrint(BCLog::LUAVM,"[ERROR] input param must be a table\n");
         return 0;
     }
 
     AccountType uidType;
     if (!(ParseUidTypeInTable(L, "addressType", uidType))) {
-        LogPrint(BCLog::LUAVM, "[ERROR]%s(), get addressType failed\n", __FUNCTION__);
+        LogPrint(BCLog::LUAVM, "[ERROR] get addressType failed\n");
         return 0;
     }
 
     CUserID uid;
     if (!ParseUidInTable(L, "address", uidType, uid)) {
-        LogPrint(BCLog::LUAVM,"[ERROR]%s(), get address failed\n", __FUNCTION__);
+        LogPrint(BCLog::LUAVM,"[ERROR] get address failed\n");
         return 0;
     }
 
     TokenSymbol tokenType;
     if (!(getStringInTable(L, "tokenType", tokenType))) {
-        LogPrint(BCLog::LUAVM, "[ERROR]%s(), get tokenType failed\n", __FUNCTION__);
+        LogPrint(BCLog::LUAVM, "[ERROR] get tokenType failed\n");
         return 0;
     }
     if (!pVmRunEnv->GetCw()->assetCache.CheckAsset(tokenType)) {
-        LogPrint(BCLog::LUAVM, "[ERROR]%s(), Invalid tokenType=%s!\n", __FUNCTION__, tokenType);
+        LogPrint(BCLog::LUAVM, "[ERROR] Invalid tokenType=%s!\n", tokenType);
         return 0;
     }
     LUA_BurnAccount(L, FUEL_ACCOUNT_GET_VALUE, BURN_VER_R2);

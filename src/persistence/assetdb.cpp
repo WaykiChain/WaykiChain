@@ -24,17 +24,27 @@ bool CAssetDbCache::HasAsset(const TokenSymbol &tokenSymbol) {
     return asset_cache.HasData(tokenSymbol);
 }
 
-bool CAssetDbCache::CheckAsset(const TokenSymbol &symbol, uint64_t permsSum) {
+bool CAssetDbCache::CheckAsset(const TokenSymbol &symbol, CAsset &asset) {
     if (symbol.size() < 3 || symbol.size() > MAX_TOKEN_SYMBOL_LEN) {
         LogPrint(BCLog::INFO, "[WARN] Invalid format of symbol=%s\n", symbol);
         return false;
     }
 
-    CAsset asset;
     if (!GetAsset(symbol, asset)) {
         LogPrint(BCLog::INFO, "[WARN] Asset of symbol=%s does not exist\n", symbol);
         return false;
     }
+
+    return true;
+}
+
+bool CAssetDbCache::CheckAsset(const TokenSymbol &symbol, const uint64_t permsSum) {
+    CAsset asset;
+    if (!CheckAsset(symbol, asset))
+        return false;
+
+    if (permsSum == 0)
+        return true;
 
     return asset.HasPerms(permsSum);
 }

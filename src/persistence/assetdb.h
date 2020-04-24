@@ -82,7 +82,8 @@ public:
     bool SetAsset(const CAsset &asset);
     bool HasAsset(const TokenSymbol &tokenSymbol);
 
-    bool CheckAsset(const TokenSymbol &symbol, uint64_t permsSum = 0);
+    bool CheckAsset(const TokenSymbol &symbol, CAsset &asset);
+    bool CheckAsset(const TokenSymbol &symbol, const uint64_t permsSum = 0);
 
     bool Flush() {
         asset_cache.Flush();
