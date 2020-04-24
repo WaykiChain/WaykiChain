@@ -16,7 +16,7 @@
 #include "config/version.h"
 
 bool CDelegateVoteTx::CheckTx(CTxExecuteContext &context) {
-    IMPLEMENT_DEFINE_CW_STATE;
+    CValidationState &state = *context.pState;
 
     if (candidateVotes.empty() || candidateVotes.size() > IniCfg().GetMaxVoteCandidateNum()) {
         return state.DoS(100, ERRORMSG("CDelegateVoteTx::CheckTx, candidate votes out of range"), REJECT_INVALID,
@@ -34,13 +34,11 @@ bool CDelegateVoteTx::CheckTx(CTxExecuteContext &context) {
         if (0 >= vote.GetVotedBcoins() || (uint64_t)GetBaseCoinMaxMoney() < vote.GetVotedBcoins())
             return ERRORMSG("CDelegateVoteTx::CheckTx, votes: %lld not within (0 .. MaxVote)", vote.GetVotedBcoins());
 
-        CAccount candidateAcct;
-        if (!cw.accountCache.GetAccount(vote.GetCandidateUid(), candidateAcct))
-            return state.DoS(100, ERRORMSG("CDelegateVoteTx::CheckTx, get account info error, address=%s",
-                             vote.GetCandidateUid().ToString()), REJECT_INVALID, "bad-read-accountdb");
+        auto spCandidateAcct = GetAccount(context, vote.GetCandidateUid(), "candidate_uid");
+        if (!spCandidateAcct) return false;
 
         if (GetFeatureForkVersion(context.height) >= MAJOR_VER_R2) {
-            if (!candidateAcct.HasOwnerPubKey()) {
+            if (!spCandidateAcct->HasOwnerPubKey()) {
                 return state.DoS(100, ERRORMSG("CDelegateVoteTx::CheckTx, account is unregistered, address=%s",
                                  vote.GetCandidateUid().ToString()), REJECT_INVALID, "bad-read-accountdb");
             }
@@ -71,38 +69,26 @@ bool CDelegateVoteTx::ExecuteTx(CTxExecuteContext &context) {
 
     for (const auto &vote : candidateVotes) {
         const CUserID &delegateUId = vote.GetCandidateUid();
+
+        auto spCandidateAcct = GetAccount(context, vote.GetCandidateUid(), "candidate_uid");
+        if (!spCandidateAcct) return false;
+
         shared_ptr<CAccount> spDelegateAccount = nullptr;
-        CAccount *pDelegateAcct = nullptr;
-        if (sp_tx_account->IsSelfUid(delegateUId)) {
-            pDelegateAcct = sp_tx_account.get();
-        } else {
-            spDelegateAccount = make_shared<CAccount>();
-            if (!cw.accountCache.GetAccount(delegateUId, *spDelegateAccount)) {
-                return state.DoS(100, ERRORMSG("CDelegateVoteTx::ExecuteTx, read account id %s account info error",
-                                delegateUId.ToString()), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
-            }
-            pDelegateAcct = spDelegateAccount.get();
-        }
-        uint64_t oldVotes = pDelegateAcct->received_votes;
-        if (!pDelegateAcct->StakeVoteBcoins(VoteType(vote.GetCandidateVoteType()), vote.GetVotedBcoins())) {
+        uint64_t oldVotes = spDelegateAccount->received_votes;
+        if (!spDelegateAccount->StakeVoteBcoins(VoteType(vote.GetCandidateVoteType()), vote.GetVotedBcoins())) {
             return state.DoS(100, ERRORMSG("CDelegateVoteTx::ExecuteTx, operate account id %s vote fund error",
                             delegateUId.ToString()), UPDATE_ACCOUNT_FAIL, "operate-vote-error");
         }
 
         // Votes: set the new value and erase the old value
-        if (!cw.delegateCache.SetDelegateVotes(pDelegateAcct->regid, pDelegateAcct->received_votes)) {
+        if (!cw.delegateCache.SetDelegateVotes(spDelegateAccount->regid, spDelegateAccount->received_votes)) {
             return state.DoS(100, ERRORMSG("CDelegateVoteTx::ExecuteTx, save account id %s vote info error",
                             delegateUId.ToString()), UPDATE_ACCOUNT_FAIL, "bad-save-delegatedb");
         }
 
-        if (!cw.delegateCache.EraseDelegateVotes(pDelegateAcct->regid, oldVotes)) {
+        if (!cw.delegateCache.EraseDelegateVotes(spDelegateAccount->regid, oldVotes)) {
             return state.DoS(100, ERRORMSG("CDelegateVoteTx::ExecuteTx, erase account id %s vote info error",
                             delegateUId.ToString()), UPDATE_ACCOUNT_FAIL, "bad-save-delegatedb");
-        }
-
-        if (spDelegateAccount && !cw.accountCache.SaveAccount(*spDelegateAccount)) {
-            return state.DoS(100, ERRORMSG("CDelegateVoteTx::ExecuteTx, save account id %s info error",
-                            spDelegateAccount->regid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-save-accountdb");
         }
     }
 

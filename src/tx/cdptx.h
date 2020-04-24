@@ -71,8 +71,8 @@ public:
     virtual bool ExecuteTx(CTxExecuteContext &context);
 
 private:
-    bool SellInterestForFcoins(const CTxCord &txCord, const CUserCDP &cdp, const uint64_t scoinsInterestToRepay,
-        CCacheWrapper &cw, CValidationState &state, vector<CReceipt> &receipts);
+    bool SellInterestForFcoins(CTxExecuteContext &context, const CUserCDP &cdp,
+                               const uint64_t scoinsInterestToRepay);
 
 private:
     TxID cdp_txid;                      // optional: only required for staking existing CDPs
@@ -127,8 +127,8 @@ public:
     virtual bool CheckTx(CTxExecuteContext &context);
     virtual bool ExecuteTx(CTxExecuteContext &context);
 private:
-    bool SellInterestForFcoins(const CTxCord &txCord, const CUserCDP &cdp, const uint64_t scoinsInterestToRepay,
-        CCacheWrapper &cw, CValidationState &state, vector<CReceipt> &receipts);
+    bool SellInterestForFcoins(CTxExecuteContext &context, const CUserCDP &cdp,
+                               const uint64_t scoinsInterestToRepay);
 
 private:
     uint256 cdp_txid;           // CDP cdpTxId
@@ -182,8 +182,7 @@ public:
     virtual bool ExecuteTx(CTxExecuteContext &context);
 
 private:
-    bool ProcessPenaltyFees(CTxExecuteContext &context, const CUserCDP &cdp, uint64_t scoinPenaltyFees,
-        vector<CReceipt> &receipts);
+    bool ProcessPenaltyFees(CTxExecuteContext &context, const CUserCDP &cdp, uint64_t scoinPenaltyFees);
 
 private:
     uint256     cdp_txid;            // target CDP to liquidate

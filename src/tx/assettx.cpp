@@ -29,8 +29,9 @@ Object AssetToJson(const CAccountDBCache &accountCache, const CUserIssuedAsset &
 Object AssetToJson(const CAccountDBCache &accountCache, const CAsset &asset){
     return asset.ToJsonObj();
 }
-static bool ProcessAssetFee(CCacheWrapper &cw, CValidationState &state, const string &action,
-    CAccount &txAccount, uint32_t currHeight, ReceiptList &receipts) {
+
+static bool ProcessAssetFee(CBaseTx &tx, CTxExecuteContext &context, const string &action) {
+    IMPLEMENT_DEFINE_CW_STATE;
 
     uint64_t assetFee = 0;
     if (action == ASSET_ACTION_ISSUE) {
@@ -44,14 +45,14 @@ static bool ProcessAssetFee(CCacheWrapper &cw, CValidationState &state, const st
                             REJECT_INVALID, "read-sysparam-error");
     }
 
-    if (!txAccount.OperateBalance(SYMB::WICC, BalanceOpType::SUB_FREE, assetFee, ReceiptType::TRANSFER_ACTUAL_COINS, receipts))
+    if (!tx.sp_tx_account->OperateBalance(SYMB::WICC, BalanceOpType::SUB_FREE, assetFee, ReceiptType::TRANSFER_ACTUAL_COINS, tx.receipts))
         return state.DoS(100, ERRORMSG("ProcessAssetFee, insufficient funds in account for %s asset fee=%llu, tx_regid=%s",
-                        action, assetFee, txAccount.regid.ToString()), UPDATE_ACCOUNT_FAIL, "insufficent-funds");
+                        action, assetFee, tx.sp_tx_account->regid.ToString()), UPDATE_ACCOUNT_FAIL, "insufficent-funds");
 
     uint64_t assetRiskFeeRatio;
     if(!cw.sysParamCache.GetParam(SysParamType::ASSET_RISK_FEE_RATIO, assetRiskFeeRatio)) {
-        return state.DoS(100, ERRORMSG("ProcessAssetFee, get assetRiskFeeRatio error",
-                                       action, assetFee, txAccount.regid.ToString()), READ_SYS_PARAM_FAIL, "read-db-error");
+        return state.DoS(100, ERRORMSG("ProcessAssetFee, get assetRiskFeeRatio error"),
+                READ_SYS_PARAM_FAIL, "read-db-error");
     }
 
     uint64_t riskFee       = assetFee * assetRiskFeeRatio / RATIO_BOOST;
@@ -65,7 +66,7 @@ static bool ProcessAssetFee(CCacheWrapper &cw, CValidationState &state, const st
     ReceiptType code = (action == ASSET_ACTION_ISSUE) ? ReceiptType::ASSET_ISSUED_FEE_TO_RESERVE :
                                                         ReceiptType::ASSET_UPDATED_FEE_TO_RESERVE;
 
-    if (!fcoinGenesisAccount.OperateBalance(SYMB::WICC, BalanceOpType::ADD_FREE, riskFee, code, receipts)) {
+    if (!fcoinGenesisAccount.OperateBalance(SYMB::WICC, BalanceOpType::ADD_FREE, riskFee, code, tx.receipts)) {
         return state.DoS(100, ERRORMSG("ProcessAssetFee, operate balance failed! add %s asset fee=%llu to risk reserve account error",
             action, riskFee), UPDATE_ACCOUNT_FAIL, "update-account-failed");
     }
@@ -83,25 +84,18 @@ static bool ProcessAssetFee(CCacheWrapper &cw, CValidationState &state, const st
 
     for (size_t i = 0; i < delegates.size(); i++) {
         const CRegID &delegateRegid = delegates[i].regid;
-        CAccount delegateAccount;
-        if (!cw.accountCache.GetAccount(CUserID(delegateRegid), delegateAccount)) {
-            return state.DoS(100, ERRORMSG("ProcessAssetFee, get delegate account info failed! delegate regid=%s",
-                delegateRegid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
-        }
+        auto spDelegateAccount = tx.GetAccount(context, delegateRegid, "delegate");
+        if (!spDelegateAccount) return false;
+
         uint64_t minerUpdatedFee = minerTotalFee / delegates.size();
         if (i == 0) minerUpdatedFee += minerTotalFee % delegates.size(); // give the dust amount to topmost miner
 
         ReceiptType code = (action == ASSET_ACTION_ISSUE) ? ReceiptType::ASSET_ISSUED_FEE_TO_MINER :
                                                             ReceiptType::ASSET_UPDATED_FEE_TO_MINER;
-        if (!delegateAccount.OperateBalance(SYMB::WICC, BalanceOpType::ADD_FREE, minerUpdatedFee, code, receipts)) {
+        if (!spDelegateAccount->OperateBalance(SYMB::WICC, BalanceOpType::ADD_FREE, minerUpdatedFee, code, tx.receipts)) {
             return state.DoS(100, ERRORMSG("ProcessAssetFee, add %s asset fee to miner failed, miner regid=%s",
                 action, delegateRegid.ToString()), UPDATE_ACCOUNT_FAIL, "operate-account-failed");
         }
-
-        if (!cw.accountCache.SetAccount(delegateRegid, delegateAccount))
-            return state.DoS(100, ERRORMSG("ProcessAssetFee, write delegate account info error, delegate regid=%s",
-                delegateRegid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
-
     }
 
     return true;
@@ -144,43 +138,26 @@ bool CUserIssueAssetTx::ExecuteTx(CTxExecuteContext &context) {
         return state.DoS(100, ERRORMSG("the asset has been issued! symbol=%s",
             asset.asset_symbol), REJECT_INVALID, "asset-existed-error");
 
-    shared_ptr<CAccount> spAssetAccount = nullptr;
-    CAccount *pOwnerAccount = nullptr;
-    {
-        if (sp_tx_account->IsSelfUid(asset.owner_uid)) {
-            pOwnerAccount = sp_tx_account.get();
-        } else {
-            spAssetAccount = make_shared<CAccount>();
+    auto spOwnerAccount = GetAccount(context, asset.owner_uid, "asset_owner");
+    if (!spOwnerAccount) return false;
 
-            if (!cw.accountCache.GetAccount(asset.owner_uid, *spAssetAccount))
-                return state.DoS(100, ERRORMSG(" read account failed! asset owner account not exist, owner_uid=%s",
-                                            asset.owner_uid.ToDebugString()), REJECT_INVALID, "bad-getaccount");
-
-            pOwnerAccount = spAssetAccount.get();
-        }
-
-        if (pOwnerAccount->regid.IsEmpty() || !pOwnerAccount->regid.IsMature(context.height)) {
-            return state.DoS(100, ERRORMSG("owner regid=%s account is unregistered or immature", asset.owner_uid.get<CRegID>().ToString()),
-                                            REJECT_INVALID, "owner-account-unregistered-or-immature");
-        }
-
-        if (!ProcessAssetFee(cw, state, ASSET_ACTION_ISSUE, *sp_tx_account, context.height, receipts))
-            return false;
-
-        if (!pOwnerAccount->OperateBalance(asset.asset_symbol, BalanceOpType::ADD_FREE, asset.total_supply,
-                                            ReceiptType::ASSET_MINT_NEW_AMOUNT, receipts)) {
-            return state.DoS(100, ERRORMSG("fail to add total_supply to issued account! total_supply=%llu, txUid=%s",
-                            asset.total_supply, txUid.ToDebugString()), UPDATE_ACCOUNT_FAIL, "insufficent-funds");
-        }
+    if (spOwnerAccount->regid.IsEmpty() || !spOwnerAccount->regid.IsMature(context.height)) {
+        return state.DoS(100, ERRORMSG("owner regid=%s account is unregistered or immature",
+                asset.owner_uid.get<CRegID>().ToString()),
+                REJECT_INVALID, "owner-account-unregistered-or-immature");
     }
 
-    if ( spAssetAccount && !cw.accountCache.SetAccount(spAssetAccount->keyid, *spAssetAccount) )
-        return state.DoS(100, ERRORMSG("set asset owner account to db failed! owner_uid=%s",
-                                        asset.owner_uid.ToDebugString()), UPDATE_ACCOUNT_FAIL, "bad-set-accountdb");
+    if (!ProcessAssetFee(*this, context, ASSET_ACTION_ISSUE)) return false;
+
+    if (!spOwnerAccount->OperateBalance(asset.asset_symbol, BalanceOpType::ADD_FREE, asset.total_supply,
+                                        ReceiptType::ASSET_MINT_NEW_AMOUNT, receipts)) {
+        return state.DoS(100, ERRORMSG("fail to add total_supply to issued account! total_supply=%llu, txUid=%s",
+                        asset.total_supply, txUid.ToDebugString()), UPDATE_ACCOUNT_FAIL, "insufficent-funds");
+    }
 
     //Persist with Owner's RegID to save space than other User ID types
     CAsset savedAsset(asset.asset_symbol, asset.asset_name, AssetType::UIA, AssetPermType::PERM_DEX_BASE,
-                    CUserID(pOwnerAccount->regid), asset.total_supply, asset.mintable);
+                    spOwnerAccount->regid, asset.total_supply, asset.mintable);
 
     if (!cw.assetCache.SetAsset(savedAsset))
         return state.DoS(100, ERRORMSG("save asset failed! txUid=%s", txUid.ToDebugString()), UPDATE_ACCOUNT_FAIL, "save-asset-failed");
@@ -357,20 +334,18 @@ bool CUserUpdateAssetTx::ExecuteTx(CTxExecuteContext &context) {
                 return state.DoS(100, ERRORMSG("new_owner_uid=%s is from the same owner account",
                     newOwnerUid.ToDebugString()), REJECT_INVALID, "invalid-new-asset-owner-uid");
 
-            CAccount newAccount;
-            if (!cw.accountCache.GetAccount(newOwnerUid, newAccount))
-                return state.DoS(100, ERRORMSG("new_owner_uid=%s does not exist", newOwnerUid.ToDebugString()),
-                                                READ_ACCOUNT_FAIL, "bad-read-accountdb");
+            auto spNewOwnerAccount = GetAccount(context, newOwnerUid, "asset_owner");
+            if (!spNewOwnerAccount) return false;
 
-            if (!newAccount.IsRegistered())
+            if (!spNewOwnerAccount->IsRegistered())
                 return state.DoS(100, ERRORMSG("new uid(%s)'s account not registered! ", newOwnerUid.ToDebugString()),
                                                 REJECT_INVALID, "account-not-registered");
 
-            if (!newAccount.regid.IsMature(context.height))
+            if (!spNewOwnerAccount->regid.IsMature(context.height))
                 return state.DoS(100, ERRORMSG("new uid(%s)'s regid is not mature!", newOwnerUid.ToDebugString()),
                                                 REJECT_INVALID, "account-not-mature");
 
-            asset.owner_uid = newAccount.regid;
+            asset.owner_uid = spNewOwnerAccount->regid;
             break;
         }
         case CUserUpdateAsset::NAME: {
@@ -401,7 +376,7 @@ bool CUserUpdateAssetTx::ExecuteTx(CTxExecuteContext &context) {
         default: assert(false);
     }
 
-    if (!ProcessAssetFee(cw, state, ASSET_ACTION_UPDATE, *sp_tx_account, context.height, receipts))
+    if (!ProcessAssetFee(*this, context, ASSET_ACTION_UPDATE))
         return false;
 
     if (!cw.assetCache.SetAsset(asset))

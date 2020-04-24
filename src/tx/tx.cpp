@@ -108,7 +108,7 @@ uint64_t CBaseTx::GetFuelFee(CCacheWrapper &cw, int32_t height, uint32_t fuelRat
 
 bool CBaseTx::CheckBaseTx(CTxExecuteContext &context) {
     CValidationState &state = *context.pState;
-    sp_tx_account = make_shared<CAccount>();
+    ClearMemData();
 
     if(nTxType == BLOCK_REWARD_TX
     || nTxType == PRICE_MEDIAN_TX
@@ -117,9 +117,8 @@ bool CBaseTx::CheckBaseTx(CTxExecuteContext &context) {
     || nTxType == CDP_FORCE_SETTLE_INTEREST_TX) {
         return true;
     }
-
-    if (!GetTxAccount(context, *sp_tx_account))
-        return false; // error msg has been processed
+    sp_tx_account = GetAccount(context, txUid, "txUid");
+    if (!sp_tx_account) return false;
 
     { //1. Tx signature check
         bool signatureValid = false;
@@ -201,16 +200,15 @@ bool CBaseTx::CheckBaseTx(CTxExecuteContext &context) {
 
 bool CBaseTx::ExecuteFullTx(CTxExecuteContext &context) {
     IMPLEMENT_DEFINE_CW_STATE;
-    sp_tx_account = make_shared<CAccount>();
+    ClearMemData();
 
     bool processingTxAccount = (nTxType != PRICE_MEDIAN_TX) && (nTxType != UCOIN_MINT_TX) && (nTxType != CDP_FORCE_SETTLE_INTEREST_TX);
 
     /////////////////////////
     // 1. Prior ExecuteTx
     if (processingTxAccount) {
-        if (!cw.accountCache.GetAccount(txUid, *sp_tx_account))
-            return state.DoS(100, ERRORMSG("ExecuteFullTx: read txUid %s account info error",
-                            txUid.ToString()), READ_ACCOUNT_FAIL, "bad-read-accountdb");
+        sp_tx_account = GetAccount(context, txUid, "txUid");
+        if (!sp_tx_account) return false;
 
         if (!RegisterAccountPubKey(context)) {
             return false; // error msg has been processed
@@ -230,9 +228,7 @@ bool CBaseTx::ExecuteFullTx(CTxExecuteContext &context) {
 
     /////////////////////////
     // 3. Post ExecuteTx
-    if (processingTxAccount && !cw.accountCache.SaveAccount(*sp_tx_account))
-            return state.DoS(100, ERRORMSG("ExecuteFullTx, write source addr %s account info error",
-                            txUid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
+    if (!SaveAllAccounts(context)) return false;
 
     if (!receipts.empty() && !cw.txReceiptCache.SetTxReceipts(GetHash(), receipts))
         return state.DoS(100, ERRORMSG("ExecuteFullTx: save receipts error, txid=%s",
@@ -241,6 +237,11 @@ bool CBaseTx::ExecuteFullTx(CTxExecuteContext &context) {
     return true;
 }
 
+void CBaseTx::ClearMemData() {
+    account_map.clear();
+    sp_tx_account = nullptr;
+    receipts.clear();
+}
 
 bool CBaseTx::CheckTxFeeSufficient(CCacheWrapper &cw, const TokenSymbol &feeSymbol, const uint64_t llFees, const int32_t height) const {
     uint64_t minFee;
@@ -292,16 +293,56 @@ bool CBaseTx::AddInvolvedKeyIds(vector<CUserID> uids, CCacheWrapper &cw, set<CKe
     return true;
 }
 
-bool CBaseTx::GetTxAccount(CTxExecuteContext &context, CAccount &account) {
+shared_ptr<CAccount> CBaseTx::GetAccount(CTxExecuteContext &context, const CUserID &uid,
+                                         const string &name) {
+    shared_ptr<CAccount> spAccount = GetAccount(*context.pCw, uid);
+    if (!spAccount) {
+        context.pState->DoS(100, ERRORMSG("%s, %s account not exist, uid=%s", GetTxTypeName(), name, uid.ToString()),
+                                REJECT_INVALID, "account-not-exist");
+        return nullptr;
+    }
+    return spAccount;
+}
 
-    if (!context.pCw->accountCache.GetAccount(txUid, account)) {
-        return context.pState->DoS(100, ERRORMSG("tx %s account dos not exist, tx_uid=%s", GetTxTypeName(), txUid.ToString()),
-                                    REJECT_INVALID, "tx-account-not-exist");
+shared_ptr<CAccount> CBaseTx::GetAccount(CCacheWrapper &cw, const CUserID &uid) {
+    if (sp_tx_account && !sp_tx_account->IsEmpty() && sp_tx_account->IsSelfUid(uid)) {
+        return sp_tx_account;
+    }
+
+    shared_ptr<CAccount> spAccount = nullptr;
+    CKeyID keyid;
+    if (!cw.accountCache.GetKeyId(uid, keyid)) {
+        return nullptr;
+    }
+    auto it = account_map.find(keyid);
+    if (it != account_map.end()) {
+        spAccount = it->second;
+    } else {
+        shared_ptr<CAccount> spAccount = make_shared<CAccount>();
+        if (!cw.accountCache.GetAccount(uid, *spAccount)) {
+            return nullptr;
+        }
+        account_map.emplace(spAccount->keyid, spAccount);
+    }
+    return spAccount;
+}
+
+shared_ptr<CAccount> CBaseTx::NewAccount(CTxExecuteContext &context, const CKeyID &keyid) {
+    shared_ptr<CAccount> spAccount = make_shared<CAccount>(keyid);
+    account_map.emplace(spAccount->keyid, spAccount);
+    return spAccount;
+}
+
+bool CBaseTx::SaveAllAccounts(CTxExecuteContext &context) {
+    for (auto item : account_map) {
+        if (!context.pCw->accountCache.SaveAccount(*item.second))
+                return context.pState->DoS(100, ERRORMSG("write addr %s account info error",
+                                item.first.ToAddress()), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
     }
     return true;
 }
 
-bool CBaseTx::CheckFee(CTxExecuteContext &context) const {
+bool CBaseTx::CheckFee(CTxExecuteContext &context) {
     // check fee value range
     if (!CheckBaseCoinRange(llFees))
         return context.pState->DoS(100, ERRORMSG("tx fee out of range"), REJECT_INVALID,
@@ -322,7 +363,7 @@ bool CBaseTx::CheckFee(CTxExecuteContext &context) const {
     return true;
 }
 
-bool CBaseTx::CheckMinFee(CTxExecuteContext &context, uint64_t minFee) const {
+bool CBaseTx::CheckMinFee(CTxExecuteContext &context, uint64_t minFee) {
     if (llFees < minFee){
         string err = strprintf("The given fee is too small: %llu < %llu sawi", llFees, minFee);
         return context.pState->DoS(100, ERRORMSG("%s, tx=%s, height=%d, fee_symbol=%s",

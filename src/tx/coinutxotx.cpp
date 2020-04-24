@@ -52,16 +52,14 @@ bool ComputeRedeemScript(const uint8_t m, const uint8_t n, vector<string>& addre
 }
 
 // internal function to this file only
-bool ComputeRedeemScript(const CTxExecuteContext &context, const CMultiSignAddressCondIn &p2maIn, string &redeemScript) {
-    CCacheWrapper &cw = *context.pCw;
+bool ComputeRedeemScript(CBaseTx &tx, CTxExecuteContext &context, const CMultiSignAddressCondIn &p2maIn, string &redeemScript) {
 
-    CAccount acct;
     vector<string> vAddress;
     for (const auto &uid : p2maIn.uids) {
-        if (!cw.accountCache.GetAccount(uid, acct))
-            return false;
+        auto spAccount = tx.GetAccount(context, uid, "uid");
+        if (!spAccount) return false;
 
-        vAddress.push_back(acct.keyid.ToAddress());
+        vAddress.push_back(spAccount->keyid.ToAddress());
     }
 
     ComputeRedeemScript(p2maIn.m, p2maIn.n, vAddress, redeemScript);
@@ -84,25 +82,23 @@ bool ComputeUtxoMultisignHash(const TxID &prevUtxoTxId, uint16_t prevUtxoTxVoutI
     return true;
 }
 
-bool VerifyMultiSig(const CTxExecuteContext &context, const uint256 &utxoMultiSignHash, const CMultiSignAddressCondIn &p2maIn) {
+bool VerifyMultiSig(CBaseTx &tx, CTxExecuteContext &context, const uint256 &utxoMultiSignHash,
+                    const CMultiSignAddressCondIn &p2maIn) {
     if (p2maIn.signatures.size() < p2maIn.m)
         return false;
 
-    CCacheWrapper &cw = *context.pCw;
-
     string redeemScript("");
-    if (!ComputeRedeemScript(context, p2maIn, redeemScript))
+    if (!ComputeRedeemScript(tx, context, p2maIn, redeemScript))
         return false;
 
     int verifyPassNum = 0;
-    CAccount acct;
     for (const auto &signature : p2maIn.signatures) {
         for (const auto uid : p2maIn.uids) {
-            if (!cw.accountCache.GetAccount(uid, acct) ||
-                !acct.HasOwnerPubKey())
+            auto spAccount = tx.GetAccount(context, uid, "uid");
+            if (!spAccount || !spAccount->HasOwnerPubKey())
                 return false;
 
-            if (VerifySignature(utxoMultiSignHash, signature, acct.owner_pubkey)) {
+            if (VerifySignature(utxoMultiSignHash, signature, spAccount->owner_pubkey)) {
                 verifyPassNum++;
                 break;
             }
@@ -113,25 +109,20 @@ bool VerifyMultiSig(const CTxExecuteContext &context, const uint256 &utxoMultiSi
     return verified;
 }
 
-
-inline bool CheckUtxoOutCondition( const CTxExecuteContext &context, const bool isPrevUtxoOut,
-                                const CUserID &prevUtxoTxUid, const CAccount &txAcct,
-                                const CUtxoInput &input, CUtxoCondStorageBean &cond, string &errMsg) {
-
-    CCacheWrapper &cw = *context.pCw;
+inline bool CheckUtxoOutCondition(CBaseTx &tx, CTxExecuteContext &context,
+                                  const bool isPrevUtxoOut, const CUserID &prevUtxoTxUid,
+                                  const CAccount &txAcct, const CUtxoInput &input,
+                                  CUtxoCondStorageBean &cond, string &errMsg) {
 
     switch (cond.sp_utxo_cond->cond_type) {
         case UtxoCondType::OP2SA : {
             CSingleAddressCondOut& theCond = dynamic_cast< CSingleAddressCondOut& > (*cond.sp_utxo_cond);
 
             if(isPrevUtxoOut) {
-                CAccount outAcct;
-                if (!cw.accountCache.GetAccount(theCond.uid, outAcct)) {
-                    errMsg = strprintf("GetAccount failed: %s", theCond.uid.ToString());
-                    return false;
-                }
+                auto spAccount = tx.GetAccount(context, theCond.uid, "cond_uid");
+                if (!spAccount) return false;
 
-                if (outAcct.keyid != txAcct.keyid) {
+                if (spAccount->keyid != txAcct.keyid) {
                     errMsg = "keyid mismatch";
                     return false;
                 }
@@ -168,7 +159,7 @@ inline bool CheckUtxoOutCondition( const CTxExecuteContext &context, const bool 
                         }
                         CKeyID multiSignKeyId;
                         string redeemScript("");
-                        if (!ComputeRedeemScript(context, p2maCondIn, redeemScript) ||
+                        if (!ComputeRedeemScript(tx, context, p2maCondIn, redeemScript) ||
                             !ComputeMultiSignKeyId(redeemScript, multiSignKeyId) ||
                             theCond.dest_multisign_keyid != multiSignKeyId) {
                             errMsg = "ComputeRedeemScript or ComputeMultiSignKeyId failed";
@@ -178,7 +169,7 @@ inline bool CheckUtxoOutCondition( const CTxExecuteContext &context, const bool 
                         uint256 utxoMultiSignHash;
                         if (!ComputeUtxoMultisignHash(input.prev_utxo_txid, input.prev_utxo_vout_index, txAcct,
                                                     redeemScript, utxoMultiSignHash) ||
-                            !VerifyMultiSig(context, utxoMultiSignHash, p2maCondIn)) {
+                            !VerifyMultiSig(tx, context, utxoMultiSignHash, p2maCondIn)) {
                             errMsg = "ComputeUtxoMultisignHash or VerifyMultiSig failed";
                             return false;
                         }
@@ -213,14 +204,11 @@ inline bool CheckUtxoOutCondition( const CTxExecuteContext &context, const bool 
                             errMsg = strprintf("p2phCondIn.password.size() =%d > 256", p2phCondIn.password.size());
                             return false;
                         }
-                        CAccount acct;
                         CKeyID prevUtxoTxKeyId ;
+                        auto spAccount = tx.GetAccount(context, prevUtxoTxUid, "prevUtxoTxUid");
+                        if (!spAccount) return false;
 
-                        if (!cw.accountCache.GetAccount(prevUtxoTxUid, acct)) {
-                            errMsg = strprintf("prevUtxoTxUid(%s)'s account not found", prevUtxoTxUid.ToString());
-                            return false;
-                        }
-                        prevUtxoTxKeyId = acct.keyid;
+                        prevUtxoTxKeyId = spAccount->keyid;
 
                         if (theCond.password_proof_required) { //check if existing password ownership proof
                             string text = strprintf("%s%s%s%s%d", p2phCondIn.password,
@@ -289,19 +277,14 @@ inline bool CheckUtxoOutCondition( const CTxExecuteContext &context, const bool 
             CReClaimLockCondOut& theCond = dynamic_cast< CReClaimLockCondOut& > (*cond.sp_utxo_cond);
 
             if (isPrevUtxoOut) {
-
-
                 CKeyID prevUtxoTxKeyId ;
                 if(prevUtxoTxUid.is<CKeyID>()) {
                     prevUtxoTxKeyId = prevUtxoTxUid.get<CKeyID>();
                 }
                 else {
-                    CAccount acct;
-                    if (!cw.accountCache.GetAccount(prevUtxoTxUid, acct)) {
-                        errMsg = strprintf("prevUtxoTxUid(%s)'s account not found", prevUtxoTxUid.ToString());
-                        return false;
-                    }
-                    prevUtxoTxKeyId = acct.keyid;
+                    auto spAccount = tx.GetAccount(context, prevUtxoTxUid, "prevUtxoTxUid");
+                    if (!spAccount) return false;
+                    prevUtxoTxKeyId = spAccount->keyid;
                 }
 
 
@@ -328,7 +311,6 @@ inline bool CheckUtxoOutCondition( const CTxExecuteContext &context, const bool 
     return true;
 }
 
-
 bool CCoinUtxoTransferTx::CheckTx(CTxExecuteContext &context) {
     IMPLEMENT_DEFINE_CW_STATE;
     IMPLEMENT_CHECK_TX_MEMO;
@@ -351,10 +333,6 @@ bool CCoinUtxoTransferTx::CheckTx(CTxExecuteContext &context) {
     if (llFees < minerMinFees)
         return state.DoS(100, ERRORMSG("tx fee too small!"), REJECT_INVALID, "bad-tx-fee-toosmall");
 
-    CAccount srcAccount;
-    if (!cw.accountCache.GetAccount(txUid, srcAccount)) //unregistered account not allowed to participate
-        return state.DoS(100, ERRORMSG("read account failed"), REJECT_INVALID, "bad-getaccount");
-
     uint64_t totalInAmount = 0;
     uint64_t totalOutAmount = 0;
     for (auto input : vins) {
@@ -371,7 +349,7 @@ bool CCoinUtxoTransferTx::CheckTx(CTxExecuteContext &context) {
         auto inCondTypes = unordered_set<UtxoCondType>();
         for (auto cond : pPrevUtxoTx->vouts[input.prev_utxo_vout_index].conds) {
             string errMsg;
-            if (!CheckUtxoOutCondition(context, true, pPrevUtxoTx->txUid, srcAccount, input, cond, errMsg))
+            if (!CheckUtxoOutCondition(*this, context, true, pPrevUtxoTx->txUid, *sp_tx_account, input, cond, errMsg))
                 return state.DoS(100, ERRORMSG("CheckUtxoOutCondition error: %s!", errMsg), REJECT_INVALID, "check-utox-cond-err");
 
             if (inCondTypes.count(cond.sp_utxo_cond->cond_type) > 0)
@@ -394,7 +372,7 @@ bool CCoinUtxoTransferTx::CheckTx(CTxExecuteContext &context) {
         //check each cond's validity
         for (auto cond : output.conds) {
             string errMsg;
-            if (!CheckUtxoOutCondition(context, false, CUserID(), srcAccount, CUtxoInput(), cond, errMsg))
+            if (!CheckUtxoOutCondition(*this, context, false, CUserID(), *sp_tx_account, CUtxoInput(), cond, errMsg))
                 return state.DoS(100, ERRORMSG("CheckUtxoOutCondition error: %s!", errMsg), REJECT_INVALID, "check-utox-cond-err");
 
             if (outCondTypes.count(cond.sp_utxo_cond->cond_type) > 0)
@@ -410,13 +388,13 @@ bool CCoinUtxoTransferTx::CheckTx(CTxExecuteContext &context) {
     }
 
     uint64_t accountBalance;
-    if ( !srcAccount.GetBalance(coin_symbol, BalanceType::FREE_VALUE, accountBalance) ||
+    if ( !sp_tx_account->GetBalance(coin_symbol, BalanceType::FREE_VALUE, accountBalance) ||
          (accountBalance + totalInAmount < totalOutAmount + llFees) )
         return state.DoS(100, ERRORMSG("account balance coin_amount insufficient!\n"
                                     "accountBalance=%llu, totalInAmount=%llu, totalOutAmount=%llu, llFees=%llu\n"
-                                    "srcAccount=%s coinSymbol=%s",
+                                    "txAccount=%s coinSymbol=%s",
                                     accountBalance, totalInAmount, totalOutAmount, llFees,
-                                    srcAccount.regid.ToString(), coin_symbol),
+                                    sp_tx_account->regid.ToString(), coin_symbol),
                         REJECT_INVALID, "insufficient-account-coin-amount");
 
     return true;

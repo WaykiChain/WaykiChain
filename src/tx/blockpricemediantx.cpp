@@ -343,11 +343,8 @@ bool CCdpForceLiquidator::Execute() {
             break;
         }
 
-        CAccount cdpOwnerAccount;
-        if (!cw.accountCache.GetAccount(cdp.owner_regid, cdpOwnerAccount)) {
-            return state.DoS(100, ERRORMSG("read CDP Owner account info error! uid=%s",
-                            cdp.owner_regid.ToString()), READ_ACCOUNT_FAIL, "bad-read-accountdb");
-        }
+        auto spCdpOwnerAccount = tx.GetAccount(context, cdp.owner_regid, "cdp_owner");
+        if (!spCdpOwnerAccount) return false;
 
         LogPrint(BCLog::CDP,
                     "begin to force settle CDP {%s}, currRiskReserveScoins: %llu, "
@@ -360,13 +357,13 @@ bool CCdpForceLiquidator::Execute() {
         // b) sell bcoins for risk reserve pool
         // b.1) clean up cdp owner's pledged_amount
         code = ReceiptType::CDP_TOTAL_ASSET_TO_RESERVE;
-        if (!cdpOwnerAccount.OperateBalance(cdp.bcoin_symbol, UNPLEDGE, cdp.total_staked_bcoins, code, receipts)) {
+        if (!spCdpOwnerAccount->OperateBalance(cdp.bcoin_symbol, UNPLEDGE, cdp.total_staked_bcoins, code, receipts)) {
             return state.DoS(100, ERRORMSG("unpledge bcoins failed! cdp={%s}", cdp.ToString()),
                     UPDATE_ACCOUNT_FAIL, "unpledge-bcoins-failed");
         }
 
         code = ReceiptType::CDP_LIQUIDATED_ASSET_TO_OWNER;
-        if (!cdpOwnerAccount.OperateBalance(cdp.bcoin_symbol, SUB_FREE, cdp.total_staked_bcoins, code, receipts)) {
+        if (!spCdpOwnerAccount->OperateBalance(cdp.bcoin_symbol, SUB_FREE, cdp.total_staked_bcoins, code, receipts)) {
             return state.DoS(100, ERRORMSG("sub unpledged bcoins failed! cdp={%s}", cdp.ToString()),
                     UPDATE_ACCOUNT_FAIL, "deduct-bcoins-failed");
         }

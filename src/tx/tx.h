@@ -139,10 +139,11 @@ public:
     uint64_t llFees;
     UnsignedCharArray signature;
 
-    uint64_t fuel;     //!< only in memory
-    int32_t nFuelRate;     //!< only in memory
+    uint64_t fuel = 0;     //!< only in memory
+    int32_t nFuelRate = 0;     //!< only in memory
     mutable TxID sigHash;  //!< only in memory
-    std::shared_ptr<CAccount> sp_tx_account;    //!< only in memory
+    map< CKeyID, std::shared_ptr<CAccount> > account_map;    //!< only in memory
+    std::shared_ptr<CAccount> sp_tx_account = nullptr;    //!< only in memory
     ReceiptList receipts;  //!< not persisted within Tx Cache
 
 public:
@@ -225,17 +226,24 @@ public:
 
     template<typename Stream>
     static void UnserializePtr(Stream& is, std::shared_ptr<CBaseTx> &pBaseTx, int nType, int nVersion);
-    bool GetTxAccount(CTxExecuteContext &context, CAccount &account);
+
+    shared_ptr<CAccount> GetAccount(CTxExecuteContext &context, const CUserID &uid,
+                                    const string &name);
+    shared_ptr<CAccount> GetAccount(CCacheWrapper &cw, const CUserID &uid);
+    shared_ptr<CAccount> NewAccount(CTxExecuteContext &context, const CKeyID &keyid);
+    bool SaveAllAccounts(CTxExecuteContext &context);
+
 
     bool CheckTxAvailableFromVer(CTxExecuteContext &context, FeatureForkVersionEnum ver);
 
     bool VerifySignature(CTxExecuteContext &context, const CPubKey &pubkey);
 protected:
+    void ClearMemData();
     bool CheckTxFeeSufficient(CCacheWrapper &cw, const TokenSymbol &feeSymbol,
                               const uint64_t llFees, const int32_t height) const;
     bool CheckSignatureSize(const vector<unsigned char> &signature) const;
-    bool CheckFee(CTxExecuteContext &context) const;
-    virtual bool CheckMinFee(CTxExecuteContext &context, uint64_t minFee) const;
+    bool CheckFee(CTxExecuteContext &context);
+    virtual bool CheckMinFee(CTxExecuteContext &context, uint64_t minFee);
 
     static bool AddInvolvedKeyIds(vector<CUserID> uids, CCacheWrapper &cw, set<CKeyID> &keyIds);
 };

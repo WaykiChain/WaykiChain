@@ -78,14 +78,10 @@ bool CLuaContractDeployTx::CheckTx(CTxExecuteContext &context) {
         }
     }
 
-    CAccount account;
-    if (!cw.accountCache.GetAccount(txUid, account))
-        return state.DoS(100, ERRORMSG("CLuaContractDeployTx::CheckTx, get account failed"),
-                         REJECT_INVALID, "bad-getaccount");
-
-    if (!account.HasOwnerPubKey())
-        return state.DoS(100, ERRORMSG("CLuaContractDeployTx::CheckTx, account unregistered"), REJECT_INVALID,
-                         "bad-account-unregistered");
+    if (!sp_tx_account->HasOwnerPubKey()) {
+        return state.DoS(100, ERRORMSG("account unregistered! txUid=%s", txUid.ToString()), REJECT_INVALID,
+                         "account-unregistered");
+    }
 
     return true;
 }
@@ -173,15 +169,12 @@ bool CLuaContractInvokeTx::ExecuteTx(CTxExecuteContext &context) {
     if (!GetFuelLimit(*this, context, fuelLimit))
         return false;
 
-    CAccount appAccount;
-    if (!cw.accountCache.GetAccount(app_uid, appAccount)) {
-        return state.DoS(100, ERRORMSG("CLuaContractInvokeTx::ExecuteTx, get account info failed by regid:%s",
-                        app_uid.get<CRegID>().ToString()), READ_ACCOUNT_FAIL, "bad-read-accountdb");
-    }
+    auto spAppAccount = GetAccount(context, app_uid, "app_uid");
+    if (!spAppAccount) return false;
 
     if (coin_amount > 0 && !sp_tx_account->OperateBalance(SYMB::WICC, BalanceOpType::SUB_FREE, coin_amount,
-                                ReceiptType::LUAVM_TRANSFER_ACTUAL_COINS, receipts, &appAccount))
-        return state.DoS(100, ERRORMSG("CLuaContractInvokeTx::ExecuteTx, txAccount has insufficient funds"),
+                                ReceiptType::LUAVM_TRANSFER_ACTUAL_COINS, receipts, spAppAccount.get()))
+        return state.DoS(100, ERRORMSG("txAccount has insufficient funds"),
                          UPDATE_ACCOUNT_FAIL, "operate-minus-account-failed");
 
     CUniversalContract contract;
@@ -201,7 +194,7 @@ bool CLuaContractInvokeTx::ExecuteTx(CTxExecuteContext &context) {
     luaContext.transfer_symbol   = SYMB::WICC;
     luaContext.transfer_amount   = coin_amount;
     luaContext.p_tx_user_account = sp_tx_account.get();
-    luaContext.p_app_account     = &appAccount;
+    luaContext.p_app_account     = spAppAccount.get();
     luaContext.p_contract        = &contract;
     luaContext.p_arguments       = &arguments;
 
@@ -214,10 +207,6 @@ bool CLuaContractInvokeTx::ExecuteTx(CTxExecuteContext &context) {
     LogPrint(BCLog::LUAVM, "execute contract elapse: %lld, txid=%s\n", GetTimeMillis() - llTime, GetHash().GetHex());
 
     container::Append(receipts, vmRunEnv.GetReceipts());
-
-    if (!cw.accountCache.SetAccount(app_uid, appAccount))
-        return state.DoS(100, ERRORMSG("CLuaContractInvokeTx::ExecuteTx, save account error, kyeId=%s",
-                        appAccount.keyid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-save-account");
     return true;
 }
 
@@ -271,15 +260,9 @@ bool CUniversalContractDeployR2Tx::CheckTx(CTxExecuteContext &context) {
                         strprintf("fee-too-small-in-fee/kb: %llu < %llu", llFees, minFee));
     }
 
-    CAccount account;
-    if (!cw.accountCache.GetAccount(txUid, account)) {
-        return state.DoS(100, ERRORMSG("CUniversalContractDeployR2Tx::CheckTx, get account failed"),
-                         REJECT_INVALID, "bad-getaccount");
-    }
-
-    if (!account.HasOwnerPubKey()) {
-        return state.DoS(100, ERRORMSG("CUniversalContractDeployR2Tx::CheckTx, account unregistered"),
-            REJECT_INVALID, "bad-account-unregistered");
+    if (!sp_tx_account->HasOwnerPubKey()) {
+        return state.DoS(100, ERRORMSG("account unregistered! txUid=%s", txUid.ToString()), REJECT_INVALID,
+                         "account-unregistered");
     }
 
     return true;
@@ -310,17 +293,14 @@ bool CUniversalContractDeployR2Tx::ExecuteTx(CTxExecuteContext &context) {
     // If fees paid by WUSD, send the fuel to risk reserve pool.
     if (fee_symbol == SYMB::WUSD) {
         uint64_t fuel = GetFuelFee(cw, context.height, context.fuel_rate);
-        CAccount fcoinGenesisAccount;
-        cw.accountCache.GetFcoinGenesisAccount(fcoinGenesisAccount);
-        if (!fcoinGenesisAccount.OperateBalance(SYMB::WUSD, BalanceOpType::ADD_FREE, fuel,
+        auto spFcoinAccount = GetAccount(context, SysCfg().GetFcoinGenesisRegId(), "fcoin");
+        if (!spFcoinAccount) return false;
+
+        if (!spFcoinAccount->OperateBalance(SYMB::WUSD, BalanceOpType::ADD_FREE, fuel,
                                                 ReceiptType::CONTRACT_FUEL_TO_RISK_RESERVE, receipts)) {
-            return state.DoS(100, ERRORMSG("CUniversalContractDeployR2Tx::ExecuteTx, operate balance failed"),
+            return state.DoS(100, ERRORMSG("operate balance failed"),
                              UPDATE_ACCOUNT_FAIL, "operate-scoins-genesis-account-failed");
         }
-
-        if (!cw.accountCache.SetAccount(fcoinGenesisAccount.keyid, fcoinGenesisAccount))
-            return state.DoS(100, ERRORMSG("CUniversalContractDeployR2Tx::ExecuteTx, write fcoin genesis account info error!"),
-                             UPDATE_ACCOUNT_FAIL, "bad-write-accountdb");
     }
 
     return true;
@@ -395,14 +375,11 @@ bool CUniversalContractInvokeR2Tx::ExecuteTx(CTxExecuteContext &context) {
     if (!GetFuelLimit(*this, context, fuelLimit))
         return false;
 
-    CAccount appAccount;
-    if (!cw.accountCache.GetAccount(app_uid, appAccount)) {
-        return state.DoS(100, ERRORMSG("get account info failed by regid:%s",
-                        app_uid.get<CRegID>().ToString()), READ_ACCOUNT_FAIL, "bad-read-accountdb");
-    }
+    auto spAppAccount = GetAccount(context, app_uid, "app_uid");
+    if (!spAppAccount) return false;
 
     if (!sp_tx_account->OperateBalance(coin_symbol, BalanceOpType::SUB_FREE, coin_amount,
-                                  ReceiptType::LUAVM_TRANSFER_ACTUAL_COINS, receipts, &appAccount))
+                                  ReceiptType::LUAVM_TRANSFER_ACTUAL_COINS, receipts, spAppAccount.get()))
         return state.DoS(100, ERRORMSG("txAccount has insufficient funds"),
                          UPDATE_ACCOUNT_FAIL, "operate-minus-account-failed");
 
@@ -423,7 +400,7 @@ bool CUniversalContractInvokeR2Tx::ExecuteTx(CTxExecuteContext &context) {
     luaContext.transfer_symbol   = coin_symbol;
     luaContext.transfer_amount   = coin_amount;
     luaContext.p_tx_user_account = sp_tx_account.get();
-    luaContext.p_app_account     = &appAccount;
+    luaContext.p_app_account     = spAppAccount.get();
     luaContext.p_contract        = &contract;
     luaContext.p_arguments       = &arguments;
 
@@ -440,23 +417,15 @@ bool CUniversalContractInvokeR2Tx::ExecuteTx(CTxExecuteContext &context) {
     // If fees paid by WUSD, send the fuel to risk reserve pool.
     if (fee_symbol == SYMB::WUSD) {
         uint64_t fuel = GetFuelFee(cw, context.height, context.fuel_rate);
-        CAccount fcoinGenesisAccount;
-        cw.accountCache.GetFcoinGenesisAccount(fcoinGenesisAccount);
+        auto spFcoinAccount = GetAccount(context, SysCfg().GetFcoinGenesisRegId(), "fcoin");
+        if (!spFcoinAccount) return false;
 
-        if (!fcoinGenesisAccount.OperateBalance(SYMB::WUSD, BalanceOpType::ADD_FREE, fuel,
+        if (!spFcoinAccount->OperateBalance(SYMB::WUSD, BalanceOpType::ADD_FREE, fuel,
                                                 ReceiptType::CONTRACT_FUEL_TO_RISK_RESERVE, receipts)) {
             return state.DoS(100, ERRORMSG("operate balance failed"),
                              UPDATE_ACCOUNT_FAIL, "operate-scoins-genesis-account-failed");
         }
-
-        if (!cw.accountCache.SetAccount(fcoinGenesisAccount.keyid, fcoinGenesisAccount))
-            return state.DoS(100, ERRORMSG("write fcoin genesis account info error!"),
-                             UPDATE_ACCOUNT_FAIL, "bad-write-accountdb");
     }
-
-    if (!cw.accountCache.SetAccount(app_uid, appAccount))
-        return state.DoS(100, ERRORMSG("save account error, kyeId=%s",
-                        appAccount.keyid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-save-account");
 
     return true;
 }
@@ -539,14 +508,14 @@ void CUniversalContractTx::validate_contracts(CTxExecuteContext& context) {
         //wasm::name contract_action   = wasm::name(i.action);
         if (is_native_contract(contract_name.value)) continue;
 
-        CAccount contract;
-        CHAIN_ASSERT( database.accountCache.GetAccount(CRegID(i.contract), contract),
+        auto spContract = GetAccount(database, CRegID(i.contract));
+        CHAIN_ASSERT( spContract,
                       wasm_chain::account_access_exception,
                       "contract '%s' does not exist",
                       contract_name.to_string() )
 
         CUniversalContract contract_store;
-        CHAIN_ASSERT( database.contractCache.GetContract(contract.regid, contract_store),
+        CHAIN_ASSERT( database.contractCache.GetContract(spContract->regid, contract_store),
                       wasm_chain::account_access_exception,
                       "cannot get contract with regid '%s'",
                       contract_name.to_string() )
@@ -590,9 +559,7 @@ CUniversalContractTx::get_accounts_from_signatures(CCacheWrapper& database, std:
 
     map <UnsignedCharArray, uint64_t> signatures_duplicate_check;
 
-    CAccount payer;
-    CHAIN_ASSERT( database.accountCache.GetAccount(txUid, payer), wasm_chain::account_access_exception,
-                  "get payer failed, txUid '%s'", txUid.ToString())
+    auto spPayer = sp_tx_account;
 
     for (auto s : signatures) {
         signatures_duplicate_check[s.signature] = s.account;
@@ -603,19 +570,19 @@ CUniversalContractTx::get_accounts_from_signatures(CCacheWrapper& database, std:
             continue;
         }
 
-        CHAIN_ASSERT( payer.regid.GetIntValue() != s.account,
+        CHAIN_ASSERT( spPayer->regid.GetIntValue() != s.account,
                       wasm_chain::tx_duplicate_sig,
-                      "duplicate signatures from payer '%s'", payer.regid.ToString())
+                      "duplicate signatures from payer '%s'", spPayer->regid.ToString())
 
-        CAccount account;
-        CHAIN_ASSERT( database.accountCache.GetAccount(CRegID(s.account), account),
+        auto spAccount = GetAccount(database, CRegID(s.account));
+        CHAIN_ASSERT( spAccount,
                       wasm_chain::account_access_exception, "%s",
                       "can not get account from regid '%s'", wasm::name(s.account).to_string() )
 
-        CHAIN_ASSERT( account.owner_pubkey.Verify(signature_hash, s.signature),
+        CHAIN_ASSERT( spAccount->owner_pubkey.Verify(signature_hash, s.signature),
                       wasm_chain::unsatisfied_authorization,
                       "can not verify signature '%s bye public key '%s' and hash '%s' ",
-                      to_hex(s.signature), account.owner_pubkey.ToString(), signature_hash.ToString() )
+                      to_hex(s.signature), spAccount->owner_pubkey.ToString(), signature_hash.ToString() )
 
         authorization_account = wasm::name(s.account).value;
         add_signature_to_cache(s.signature, authorization_account);
@@ -628,7 +595,7 @@ CUniversalContractTx::get_accounts_from_signatures(CCacheWrapper& database, std:
                   "duplicate signature included")
 
     //append payer
-    authorization_accounts.push_back(payer.regid.GetIntValue());
+    authorization_accounts.push_back(spPayer->regid.GetIntValue());
 
 }
 
