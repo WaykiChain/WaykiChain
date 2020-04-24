@@ -82,10 +82,10 @@ namespace wasm {
     std::vector <uint8_t> wasm_context::get_code(const uint64_t& account) {
 
         vector <uint8_t>   code;
-        CAccount           contract;
         CUniversalContract contract_store;
-        if (database.accountCache.GetAccount(CRegID(account), contract) &&
-            database.contractCache.GetContract(contract.regid, contract_store)) {
+        auto spContractAcct = control_trx.GetAccount(database, CRegID(account));
+        if (spContractAcct &&
+            database.contractCache.GetContract(spContractAcct->regid, contract_store)) {
             code = vector <uint8_t>(contract_store.code.begin(), contract_store.code.end());
         }
         return code;

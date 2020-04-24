@@ -73,36 +73,36 @@ namespace wasm {
         bool        get_system_asset_price(uint64_t base, uint64_t quote, std::vector<char>& price);
 
         bool set_data( const uint64_t& contract, const string& k, const string& v ) {
-            CAccount   contract_account;
             wasm::name contract_name = wasm::name(contract);
-            CHAIN_ASSERT( database.accountCache.GetAccount(CRegID(contract), contract_account),
+            auto spContractAcct = control_trx.GetAccount(database, CRegID(contract));
+            CHAIN_ASSERT( spContractAcct,
                           account_access_exception,
                           "contract '%s' does not exist",
                           contract_name.to_string().c_str())
 
-            return database.contractCache.SetContractData(contract_account.regid, k, v);
+            return database.contractCache.SetContractData(spContractAcct->regid, k, v);
         }
 
         bool get_data( const uint64_t& contract, const string& k, string &v ) {
-            CAccount   contract_account;
             wasm::name contract_name = wasm::name(contract);
-            CHAIN_ASSERT( database.accountCache.GetAccount(CRegID(contract), contract_account),
+            auto spContractAcct = control_trx.GetAccount(database, CRegID(contract));
+            CHAIN_ASSERT( spContractAcct,
                           account_access_exception,
                           "contract '%s' does not exist",
                           contract_name.to_string().c_str())
 
-            return database.contractCache.GetContractData(contract_account.regid, k, v);
+            return database.contractCache.GetContractData(spContractAcct->regid, k, v);
         }
 
         bool erase_data( const uint64_t& contract, const string& k ) {
-            CAccount   contract_account;
             wasm::name contract_name = wasm::name(contract);
-            CHAIN_ASSERT( database.accountCache.GetAccount(CRegID(contract), contract_account),
+            auto spContractAcct = control_trx.GetAccount(database, CRegID(contract));
+            CHAIN_ASSERT( spContractAcct,
                           account_access_exception,
                           "contract '%s' does not exist",
                           contract_name.to_string().c_str())
 
-            return database.contractCache.EraseContractData(contract_account.regid, k);
+            return database.contractCache.EraseContractData(spContractAcct->regid, k);
         }
 
         std::vector<uint64_t> get_active_producers();
