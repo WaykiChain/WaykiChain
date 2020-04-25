@@ -74,7 +74,7 @@ bool CAssetDbCache::CheckDexBaseSymbol(const TokenSymbol &baseSymbol) {
         return ERRORMSG("dex base_symbol=%s not exist", baseSymbol);
 
     if (!baseAsset.HasPerms(AssetPermType::PERM_DEX_BASE))
-        return ERRORMSG("dex base_symbol=%s not have PERM_DEX_BASE", baseSymbol);
+        return ERRORMSG("dex base_symbol=%s has no PERM_DEX_BASE", baseSymbol);
 
     return true;
 }

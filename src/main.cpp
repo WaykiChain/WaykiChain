@@ -2180,8 +2180,7 @@ bool ProcessBlock(CValidationState &state, CNode *pFrom, CBlock *pBlock, CDiskBl
     uint256 blockHash    = pBlock->GetHash();
     uint32_t blockHeight = pBlock->GetHeight();
     if (mapBlockIndex.count(blockHash))
-        return state.Invalid(ERRORMSG("[%u] block(%s) exists", blockHeight, blockHash.ToString()), 0,
-                             "duplicate");
+        return state.Invalid(ERRORMSG("[%u] block(%s) exists", blockHeight, blockHash.ToString()), 0, "duplicate");
 
     if (mapOrphanBlocks.count(blockHash))
         return state.Invalid(ERRORMSG("[%u] (orphan) block(%s) exists", blockHeight, blockHash.ToString()), 0, "duplicate");
