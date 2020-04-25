@@ -46,6 +46,8 @@ bool CAssetDbCache::CheckAsset(const TokenSymbol &symbol, const uint64_t permsSu
     if (permsSum == 0)
         return true;
 
+    LogPrint(BCLog::DEBUG, "Asset of symbol=%s to check perms: %llu vs actual %llu\n", symbol, permsSum, asset.perms_sum);
+
     return asset.HasPerms(permsSum);
 }
 
