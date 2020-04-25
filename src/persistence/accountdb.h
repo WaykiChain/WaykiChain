@@ -54,6 +54,8 @@ public:
     bool EraseAccount(const CKeyID &keyId);
     bool EraseAccount(const CUserID &userId);
 
+    bool NewRegId(const CRegID &regid, const CKeyID &keyId);
+
     bool BatchWrite(const map<CKeyID, CAccount> &mapAccounts,
                     const map<CRegID, CKeyID> &mapKeyIds,
                     const uint256 &blockHash);
