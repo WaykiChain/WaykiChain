@@ -1162,7 +1162,7 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
     // Verify total fuel fee
     if (totalFuelFee != block.GetFuelFee())
         return state.DoS(100, ERRORMSG("[%d] block fuel fee mismatch error (actual fuel fee=%lld vs block fuel fee=%lld)",
-                                        block.GetHeight(), block.GetFuelFee()));
+                                        block.GetHeight(), totalFuelFee, block.GetFuelFee()));
 
     // Verify miner account
     CAccount delegateAccount;
