@@ -6,9 +6,6 @@
 #include "contract.h"
 #include "config/const.h"
 
-///////////////////////////////////////////////////////////////////////////////
-// class CLuaContract
-
 bool CLuaContract::IsValid() {
     if (code.size() > MAX_CONTRACT_CODE_SIZE)
         return false;

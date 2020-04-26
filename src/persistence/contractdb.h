@@ -32,6 +32,9 @@ struct CDiskTxPos;
 
 typedef dbk::CDBTailKey<MAX_CONTRACT_KEY_SIZE> CDBContractKey;
 
+/* LuaVM/WASM, maintainer regid, contract */
+typedef tuple<uint8_t, CRegIDKey, CUniversalContract> UniversalContractStore;
+
 /*  CCompositeKVCache     prefixType                       key                       value         variable           */
 /*  -------------------- --------------------         ----------------------------  ---------   --------------------- */
     // pair<contractRegId, contractKey> -> contractData
@@ -81,9 +84,9 @@ public:
     bool GetContractAccount(const CRegID &contractRegId, const string &accountKey, CAppUserAccount &appAccOut);
     bool SetContractAccount(const CRegID &contractRegId, const CAppUserAccount &appAccIn);
 
-    bool GetContract(const CRegID &contractRegId, CUniversalContract &contract);
-    bool GetContracts(map<CRegIDKey, CUniversalContract> &contracts);
-    bool SaveContract(const CRegID &contractRegId, const CUniversalContract &contract);
+    bool GetContract(const CRegID &contractRegId, UniversalContractStore &contract);
+    bool GetContracts(map<CRegIDKey, UniversalContractStore> &contracts);
+    bool SaveContract(const CRegID &contractRegId, const UniversalContractStore &contract);
     bool HasContract(const CRegID &contractRegId);
     bool EraseContract(const CRegID &contractRegId);
 
@@ -126,15 +129,17 @@ public:
 /*       type               prefixType               key                     value                 variable               */
 /*  ----------------   -------------------------   -----------------------  ------------------   ------------------------ */
     /////////// ContractDB
-    // contract $RegIdKey -> Contract
-    CCompositeKVCache< dbk::CONTRACT_DEF,         CRegIDKey,                   CUniversalContract >   contractCache;
+    // contract $RegIdKey -> UniversalContractStore
+    CCompositeKVCache< dbk::CONTRACT_DEF,         CRegIDKey,                  UniversalContractStore >   contractCache;
 
     // pair<contractRegId, contractKey> -> contractData
     DBContractDataCache contractDataCache;
+
     // pair<contractRegId, accountKey> -> appUserAccount
-    CCompositeKVCache< dbk::CONTRACT_ACCOUNT,     pair<CRegIDKey, string>,     CAppUserAccount >      contractAccountCache;
+    CCompositeKVCache< dbk::CONTRACT_ACCOUNT,     pair<CRegIDKey, string>,     CAppUserAccount >           contractAccountCache;
+
     // txid -> contract_traces
-    CCompositeKVCache< dbk::CONTRACT_TRACES,     uint256,                  string >      contractTracesCache;
+    CCompositeKVCache< dbk::CONTRACT_TRACES,     uint256,                      string >                    contractTracesCache;
 };
 
 #endif  // PERSIST_CONTRACTDB_H

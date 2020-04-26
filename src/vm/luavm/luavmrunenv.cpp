@@ -27,7 +27,7 @@ vector<shared_ptr<CAppUserAccount>>& CLuaVMRunEnv::GetRawAppUserAccount() { retu
 
 CLuaVMRunEnv::~CLuaVMRunEnv() {}
 
-std::shared_ptr<string>  CLuaVMRunEnv::ExecuteContract(CLuaVMContext *pContextIn, uint64_t& fuel) {
+bool CLuaVMRunEnv::ExecuteContract(CLuaVMContext *pContextIn, uint64_t& fuel, string &errMsg) {
     p_context = pContextIn;
 
     assert(p_context->p_arguments->size() <= MAX_CONTRACT_ARGUMENT_SIZE);
@@ -36,40 +36,48 @@ std::shared_ptr<string>  CLuaVMRunEnv::ExecuteContract(CLuaVMContext *pContextIn
     pLua = std::make_shared<CLuaVM>(p_context->p_contract->code, *p_context->p_arguments);
 
     LogPrint(BCLog::LUAVM, "prepare to execute tx. txid=%s, fuelLimit=%llu\n",
-             p_context->p_base_tx->GetHash().GetHex(), p_context->fuel_limit);
+                            p_context->p_base_tx->GetHash().GetHex(), p_context->fuel_limit);
 
     tuple<uint64_t, string> ret = pLua.get()->Run(p_context->fuel_limit, this);
 
     int64_t fuelRet = std::get<0>(ret);
     if (0 == fuelRet) {
-        return make_shared<string>("VmScript run Failed");
+        errMsg = "VmScript run Failed";
+        return false;
     } else if (-1 == fuelRet) {
-        return make_shared<string>(std::get<1>(ret));
+        errMsg = std::get<1>(ret);
+        return false;
     } else {
         fuel = fuelRet;
     }
 
-    LogPrint(BCLog::LUAVM, "txid:%s, used_fuel=%ld\n", p_context->p_base_tx->ToString(p_context->p_cw->accountCache), fuel);
+    LogPrint(BCLog::LUAVM, "txid:%s, used_fuel=%ld\n",
+                            p_context->p_base_tx->ToString(p_context->p_cw->accountCache), fuel);
 
     if (!CheckOperate()) {
-        return make_shared<string>("VmScript CheckOperate Failed");
+        errMsg = "VmScript CheckOperate Failed";
+        return false;
     }
 
     if (!OperateAccount(vmOperateOutput)) {
-        return make_shared<string>("VmScript OperateAccount Failed");
+        errMsg = "VmScript OperateAccount Failed";
+        return false;
     }
 
     LogPrint(BCLog::LUAVM, "isCheckAccount: %d\n", isCheckAccount);
+
     // CheckAppAcctOperate only support to check when the transfer symbol is WICC
     if (isCheckAccount && p_context->transfer_symbol == SYMB::WICC && !CheckAppAcctOperate()) {
-        return make_shared<string>("VmScript CheckAppAcct Failed");
+        errMsg = "VmScript CheckAppAcct Failed";
+        return false;
     }
 
     if (!OperateAppAccount(mapAppFundOperate)) {
-        return make_shared<string>("OperateAppAccount Failed");
+        errMsg = "OperateAppAccount Failed";
+        return false;
     }
 
-    return nullptr;
+    return true;
 }
 
 UnsignedCharArray CLuaVMRunEnv::GetAccountID(const CVmOperate& value) {

@@ -1935,7 +1935,7 @@ bool CheckBlock(const CBlock &block, CValidationState &state, CCacheWrapper &cw,
 
     // Check merkle root
     if (fCheckMerkleRoot && block.GetMerkleRootHash() != block.vMerkleTree.back())
-        return state.DoS(100, ERRORMSG("[%d] merkleRootHash mismatch: in-block (%s) vs computed (%s)",
+        return state.DoS(100, ERRORMSG("[%d] merkleRootHash mismatch: in-block: #%s vs computed: #%s",
                         block.GetHeight(), block.GetMerkleRootHash().ToString(), block.vMerkleTree.back().ToString()),
                         REJECT_INVALID, "bad-merkle-root", true);
 
@@ -2192,7 +2192,7 @@ bool ProcessBlock(CValidationState &state, CNode *pFrom, CBlock *pBlock, CDiskBl
         LogPrint(BCLog::INFO, "[%d] CheckBlock elapse time: %lld ms\n", chainActive.Height(),
                  GetTimeMillis() - llBeginCheckBlockTime);
 
-        return ERRORMSG("block hash:%s CheckBlock FAILED", pBlock->GetHash().GetHex());
+        return ERRORMSG("[%d] CheckBlock FAILED: block#%s", chainActive.Height(), pBlock->GetHash().GetHex());
     }
 
     // If we don't already have its previous block, shunt it off to holding area until we get it

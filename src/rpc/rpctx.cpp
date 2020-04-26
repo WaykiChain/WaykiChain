@@ -348,7 +348,7 @@ Value submitucontractdeploytx(const Array& params, bool fHelp) {
 
     const CUserID& txUid  = RPC_PARAM::GetUserId(params[0]);
     string contractScript = RPC_PARAM::GetLuaContractScript(params[1]); // TODO: support universal contract script
-    ComboMoney cmFee      = RPC_PARAM::GetFee(params, 2, UCONTRACT_DEPLOY_R2_TX);
+    ComboMoney cmFee      = RPC_PARAM::GetFee(params, 2, UCONTRACT_DEPLOY_TX);
     int32_t validHegiht   = params.size() > 3 ? params[3].get_int() : chainActive.Height();
     string memo           = params.size() > 4 ? params[4].get_str() : "";
 
@@ -361,7 +361,7 @@ Value submitucontractdeploytx(const Array& params, bool fHelp) {
     CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, txUid);
     RPC_PARAM::CheckAccountBalance(account, cmFee.symbol, SUB_FREE, cmFee.GetAmountInSawi());
 
-    CUniversalContractDeployR2Tx tx;
+    CUniversalContractDeployTx tx;
     tx.txUid        = txUid;
     tx.contract     = CUniversalContract(contractScript, memo);
     tx.fee_symbol   = cmFee.symbol;
@@ -419,15 +419,15 @@ Value submitucontractcalltx(const Array& params, bool fHelp) {
     }
 
     ComboMoney cmCoin   = RPC_PARAM::GetComboMoney(params[3], SYMB::WICC);
-    ComboMoney cmFee    = RPC_PARAM::GetFee(params, 4, UCONTRACT_INVOKE_R2_TX);
+    ComboMoney cmFee    = RPC_PARAM::GetFee(params, 4, UCONTRACT_INVOKE_TX);
     int32_t validHegiht = (params.size() > 5) ? params[5].get_int() : chainActive.Height();
 
     CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, txUid);
     RPC_PARAM::CheckAccountBalance(account, cmCoin.symbol, SUB_FREE, cmCoin.GetAmountInSawi());
     RPC_PARAM::CheckAccountBalance(account, cmFee.symbol, SUB_FREE, cmFee.GetAmountInSawi());
 
-    CUniversalContractInvokeR2Tx tx;
-    tx.nTxType      = UCONTRACT_INVOKE_R2_TX;
+    CUniversalContractInvokeTx tx;
+    tx.nTxType      = UCONTRACT_INVOKE_TX;
     tx.txUid        = txUid;
     tx.app_uid      = appUid;
     tx.coin_symbol  = cmCoin.symbol;
@@ -707,7 +707,7 @@ Value listcontracts(const Array& params, bool fHelp) {
 
     bool showDetail = params[0].get_bool();
 
-    map<CRegIDKey, CUniversalContract> contracts;
+    map<CRegIDKey, UniversalContractStore> contracts;
     if (!pCdMan->pContractCache->GetContracts(contracts)) {
         throw JSONRPCError(RPC_DATABASE_ERROR, "Failed to acquire contracts from db.");
     }
@@ -716,7 +716,7 @@ Value listcontracts(const Array& params, bool fHelp) {
     Array contractArray;
     for (const auto &item : contracts) {
         Object contractObject;
-        const CUniversalContract &contract = item.second;
+        auto &contract = get<2>(item.second);
         contractObject.push_back(Pair("contract_regid", item.first.regid.ToString()));
         contractObject.push_back(Pair("memo",           contract.memo));
 
@@ -753,10 +753,11 @@ Value getcontractinfo(const Array& params, bool fHelp) {
         throw JSONRPCError(RPC_INVALID_PARAMS, "Invalid contract regid.");
     }
 
-    CUniversalContract contract;
-    if (!pCdMan->pContractCache->GetContract(regid, contract)) {
+    UniversalContractStore contractStore;
+    if (!pCdMan->pContractCache->GetContract(regid, contractStore)) {
         throw JSONRPCError(RPC_DATABASE_ERROR, "Failed to acquire contract from db.");
     }
+    auto contract = get<2>(contractStore);
 
     Object obj;
     obj.push_back(Pair("contract_regid",    regid.ToString()));

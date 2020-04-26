@@ -182,7 +182,7 @@ class wasm_context : public wasm_context_interface {
         void require_auth (const uint64_t& account ) const {}
         void require_auth2(const uint64_t& account, const uint64_t& permission ) const {}
         bool has_authorization( const uint64_t& account ) const {return true;}
-        uint64_t pending_block_time() { return 0;      }
+        uint64_t pending_block_time() { return 0; }
         string get_txid() { return ""; }
         void     exit() { wasmif.exit(); }
         bool get_system_asset_price(uint64_t base, uint64_t quote, std::vector<char>& price) { return false;};
@@ -213,7 +213,7 @@ class wasm_context : public wasm_context_interface {
 
         CTxCord                     trx_cord;
         inline_transaction&         trx;
-        CUniversalTx&       control_trx;
+        CUniversalTx&               control_trx;
         CCacheWrapper&              cache;
         CValidationState&           state;
 

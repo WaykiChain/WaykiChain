@@ -23,11 +23,12 @@ static auto make(Api& api) {
 
         std::vector<char> abi;
         if (!get_native_contract_abi(account, abi)) {
-            CUniversalContract contract_store;
+            UniversalContractStore contract_store;
             CAccount           contract_account;
             if (api->accountCache.GetAccount(CRegID(account), contract_account)
                 && api->contractCache.GetContract(contract_account.regid, contract_store)){
-                abi.insert(abi.end(), contract_store.abi.begin(), contract_store.abi.end());
+                auto contract = get<2>(contract_store);
+                abi.insert(abi.end(), contract.abi.begin(), contract.abi.end());
             }
         }
         return abi;
@@ -205,5 +206,3 @@ static inline void to_variant(const wasm::transaction_trace &t, json_spirit::Val
 
 
 } //wasm
-
-

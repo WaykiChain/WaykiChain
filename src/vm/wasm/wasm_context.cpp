@@ -1,4 +1,4 @@
-#include "wasm/wasm_context.hpp"
+#include "wasm_context.hpp"
 //#include "wasm/wasm_native_contract.hpp"
 #include "wasm/types/name.hpp"
 #include "wasm/wasm_constants.hpp"
@@ -82,12 +82,13 @@ namespace wasm {
     std::vector <uint8_t> wasm_context::get_code(const uint64_t& account) {
 
         vector <uint8_t>   code;
-        CUniversalContract contract_store;
+        UniversalContractStore contract_store;
         auto spContractAcct = control_trx.GetAccount(database, CRegID(account));
-        if (spContractAcct &&
-            database.contractCache.GetContract(spContractAcct->regid, contract_store)) {
-            code = vector <uint8_t>(contract_store.code.begin(), contract_store.code.end());
+        if (spContractAcct && database.contractCache.GetContract(spContractAcct->regid, contract_store)) {
+            auto contract = get<2>(contract_store);
+            code = vector <uint8_t>(contract.code.begin(), contract.code.end());
         }
+
         return code;
     }
 

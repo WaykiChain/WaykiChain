@@ -34,15 +34,15 @@ bool CContractDBCache::SetContractAccount(const CRegID &contractRegId, const CAp
 }
 
 /************************ contract in cache ******************************/
-bool CContractDBCache::GetContract(const CRegID &contractRegId, CUniversalContract &contract) {
+bool CContractDBCache::GetContract(const CRegID &contractRegId, UniversalContractStore &contract) {
     return contractCache.GetData(CRegIDKey(contractRegId), contract);
 }
 
-bool CContractDBCache::GetContracts(map<CRegIDKey, CUniversalContract> &contracts) {
+bool CContractDBCache::GetContracts(map<CRegIDKey, UniversalContractStore> &contracts) {
     return contractCache.GetAllElements(contracts);
 }
 
-bool CContractDBCache::SaveContract(const CRegID &contractRegId, const CUniversalContract &contract) {
+bool CContractDBCache::SaveContract(const CRegID &contractRegId, const UniversalContractStore &contract) {
     return contractCache.SetData(CRegIDKey(contractRegId), contract);
 }
 
@@ -54,7 +54,7 @@ bool CContractDBCache::EraseContract(const CRegID &contractRegId) {
     return contractCache.EraseData(CRegIDKey(contractRegId));
 }
 
-/************************ contract data ******************************/
+/************************ contract managed APP data ******************************/
 bool CContractDBCache::GetContractData(const CRegID &contractRegId, const string &contractKey, string &contractData) {
     auto key = std::make_pair(CRegIDKey(contractRegId), contractKey);
     return contractDataCache.GetData(key, contractData);
@@ -98,7 +98,6 @@ uint32_t CContractDBCache::GetCacheSize() const {
         contractDataCache.GetCacheSize() +
         contractTracesCache.GetCacheSize();
 }
-
 
 shared_ptr<CDBContractDataIterator> CContractDBCache::CreateContractDataIterator(const CRegID &contractRegid,
         const string &contractKeyPrefix) {

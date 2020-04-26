@@ -107,8 +107,8 @@ std::shared_ptr<CBaseTx> genContractCalltx(json_spirit::Value param_json) {
     int32_t height = AmountToRawValue(str_height);
 
 
-    std::shared_ptr<CUniversalContractInvokeR2Tx> pBaseTx = std::make_shared<CUniversalContractInvokeR2Tx>();
-    pBaseTx->nTxType      = UCONTRACT_INVOKE_R2_TX;
+    std::shared_ptr<CUniversalContractInvokeTx> pBaseTx = std::make_shared<CUniversalContractInvokeTx>();
+    pBaseTx->nTxType      = UCONTRACT_INVOKE_TX;
     pBaseTx->txUid        = sendUserId;
     pBaseTx->app_uid      = contractRegId;
     pBaseTx->coin_symbol  = amount.symbol;
@@ -186,9 +186,10 @@ std::shared_ptr<CBaseTx> genWasmContractCalltx(json_spirit::Value param_json) {
         wasm::regid contract = wasm::regid(str_contract.get_str());
         if(!wasm::get_native_contract_abi(contract.value, abi)){
             CAccount           contract;
-            CUniversalContract contract_store;
+            UniversalContractStore contract_store;
             db_contract->GetContract(contract.regid, contract_store);
-            abi = std::vector<char>(contract_store.abi.begin(), contract_store.abi.end());
+            CUniversalContract ucontract = get<2>(contract_store);
+            abi = std::vector<char>(ucontract.abi.begin(), ucontract.abi.end());
         }
         auto action = wasm::name(str_action.get_str());
 

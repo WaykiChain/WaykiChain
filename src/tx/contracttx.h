@@ -17,7 +17,12 @@
 using std::chrono::microseconds;
 using std::chrono::system_clock;
 
-/**#################### LuaVM Contract Deploy & Invoke Class Definitions ##############################**/
+
+/**
+ * @@Deprecated after R1
+ *
+ *  replaced by CUniversalTx
+ */
 class CLuaContractDeployTx : public CBaseTx {
 public:
     CLuaContract contract;  // contract script content
@@ -87,14 +92,18 @@ public:
     virtual bool ExecuteTx(CTxExecuteContext &context);
 };
 
-/**#################### **Deprecated** R2 Contract Deploy & Invoke Class Definitions ##############################**/
-class CUniversalContractDeployR2Tx : public CBaseTx {
+/**
+ * @@Deprecated after R2
+ *
+ *  replaced by CUniversalTx
+ */
+class CUniversalContractDeployTx : public CBaseTx {
 public:
     CUniversalContract contract;  // contract script content
 
 public:
-    CUniversalContractDeployR2Tx(): CBaseTx(UCONTRACT_DEPLOY_R2_TX) {}
-    ~CUniversalContractDeployR2Tx() {}
+    CUniversalContractDeployTx(): CBaseTx(UCONTRACT_DEPLOY_TX) {}
+    ~CUniversalContractDeployTx() {}
 
     IMPLEMENT_SERIALIZE(
         READWRITE(VARINT(this->nVersion));
@@ -114,7 +123,7 @@ public:
            << VARINT(llFees) << fee_symbol << contract;
     }
 
-    virtual std::shared_ptr<CBaseTx> GetNewInstance() const { return std::make_shared<CUniversalContractDeployR2Tx>(*this); }
+    virtual std::shared_ptr<CBaseTx> GetNewInstance() const { return std::make_shared<CUniversalContractDeployTx>(*this); }
     virtual uint64_t GetFuelFee(CCacheWrapper &cw, int32_t height, uint32_t fuelRate);
     virtual string ToString(CAccountDBCache &accountView);
     virtual Object ToJson(const CAccountDBCache &accountView) const;
@@ -122,7 +131,7 @@ public:
     virtual bool CheckTx(CTxExecuteContext &context);
     virtual bool ExecuteTx(CTxExecuteContext &context);
 };
-class CUniversalContractInvokeR2Tx : public CBaseTx {
+class CUniversalContractInvokeTx : public CBaseTx {
 public:
     mutable CUserID app_uid;  // app regid
     string arguments;         // arguments to invoke a contract method
@@ -130,8 +139,8 @@ public:
     uint64_t coin_amount;  // transfer amount to contract account
 
 public:
-    CUniversalContractInvokeR2Tx() : CBaseTx(UCONTRACT_INVOKE_R2_TX) {}
-    ~CUniversalContractInvokeR2Tx() {}
+    CUniversalContractInvokeTx() : CBaseTx(UCONTRACT_INVOKE_TX) {}
+    ~CUniversalContractInvokeTx() {}
 
     IMPLEMENT_SERIALIZE(
         READWRITE(VARINT(this->nVersion));
@@ -154,7 +163,7 @@ public:
            << arguments << VARINT(llFees) << fee_symbol << coin_symbol << VARINT(coin_amount);
     }
 
-    virtual std::shared_ptr<CBaseTx> GetNewInstance() const { return std::make_shared<CUniversalContractInvokeR2Tx>(*this); }
+    virtual std::shared_ptr<CBaseTx> GetNewInstance() const { return std::make_shared<CUniversalContractInvokeTx>(*this); }
     virtual string ToString(CAccountDBCache &accountView);
     virtual Object ToJson(const CAccountDBCache &accountView) const;
 
@@ -162,26 +171,29 @@ public:
     virtual bool ExecuteTx(CTxExecuteContext &context);
 };
 
-/**#################### Unified System/User Contract Class Definition ##############################**/
+/**
+ * Universal Trasnsaction Definition
+ *     for both non-contract & contract tx containing possible many inline transactions
+ **/
 class CUniversalTx : public CBaseTx {
 public:
     vector<wasm::inline_transaction> inline_transactions;
     vector<wasm::signature_pair>     signatures;
 
 public:
-    uint64_t                      run_cost;
-    uint64_t                      pending_block_time;
-    uint64_t                      recipients_size;
-    system_clock::time_point      pseudo_start;
-    std::chrono::microseconds     billed_time              = chrono::microseconds(0);
-    std::chrono::milliseconds     max_transaction_duration = std::chrono::milliseconds(wasm::max_wasm_execute_time_infinite);
-    TxExecuteContextType          context_type             = TxExecuteContextType::CONNECT_BLOCK;
+    uint64_t                    run_cost;
+    uint64_t                    pending_block_time;
+    uint64_t                    recipients_size;
+    system_clock::time_point    pseudo_start;
+    std::chrono::microseconds   billed_time              = chrono::microseconds(0);
+    std::chrono::milliseconds   max_transaction_duration = std::chrono::milliseconds(wasm::max_wasm_execute_time_infinite);
+    TxExecuteContextType        context_type             = TxExecuteContextType::CONNECT_BLOCK;
 
-    void                      pause_billing_timer();
-    void                      resume_billing_timer();
-    std::chrono::milliseconds get_max_transaction_duration() { return max_transaction_duration; }
-    void                      set_signature(const uint64_t& account, const vector<uint8_t>& signature);
-    void                      set_signature(const wasm::signature_pair& signature);
+    void                        pause_billing_timer();
+    void                        resume_billing_timer();
+    std::chrono::milliseconds   get_max_transaction_duration() { return max_transaction_duration; }
+    void                        set_signature(const uint64_t& account, const vector<uint8_t>& signature);
+    void                        set_signature(const wasm::signature_pair& signature);
 
 public:
     CUniversalTx(const CBaseTx *pBaseTx): CBaseTx(UNIVERSAL_TX) {

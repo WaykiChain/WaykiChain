@@ -26,12 +26,12 @@ bool CAssetDbCache::HasAsset(const TokenSymbol &tokenSymbol) {
 
 bool CAssetDbCache::CheckAsset(const TokenSymbol &symbol, CAsset &asset) {
     if (symbol.size() < 3 || symbol.size() > MAX_TOKEN_SYMBOL_LEN) {
-        LogPrint(BCLog::INFO, "[WARN] Invalid format of symbol=%s\n", symbol);
+        LogPrint(BCLog::INFO, "[WARN] Invalid symobl format: %s\n", symbol);
         return false;
     }
 
     if (!GetAsset(symbol, asset)) {
-        LogPrint(BCLog::INFO, "[WARN] Asset of symbol=%s does not exist\n", symbol);
+        LogPrint(BCLog::INFO, "[WARN] Asset(%s) does not exist\n", symbol);
         return false;
     }
 
@@ -46,7 +46,7 @@ bool CAssetDbCache::CheckAsset(const TokenSymbol &symbol, const uint64_t permsSu
     if (permsSum == 0)
         return true;
 
-    LogPrint(BCLog::DEBUG, "Asset of symbol=%s to check perms: %llu vs actual %llu\n", symbol, permsSum, asset.perms_sum);
+    LogPrint(BCLog::DEBUG, "Asset(%s) to check perms: %llu vs actual %llu\n", symbol, permsSum, asset.perms_sum);
 
     return asset.HasPerms(permsSum);
 }

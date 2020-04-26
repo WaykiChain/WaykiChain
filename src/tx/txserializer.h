@@ -73,10 +73,10 @@ void CBaseTx::SerializePtr(Stream& os, const std::shared_ptr<CBaseTx> &pBaseTx, 
             ::Serialize(os, (const CCoinMintTx&)tx, serType, version); break;
         case UCOIN_BLOCK_REWARD_TX:
             ::Serialize(os, (const CUCoinBlockRewardTx&)tx, serType, version); break;
-        case UCONTRACT_DEPLOY_R2_TX:
-            ::Serialize(os, (const CUniversalContractDeployR2Tx&)tx, serType, version); break;
-        case UCONTRACT_INVOKE_R2_TX:
-            ::Serialize(os, (const CUniversalContractInvokeR2Tx&)tx, serType, version); break;
+        case UCONTRACT_DEPLOY_TX:
+            ::Serialize(os, (const CUniversalContractDeployTx&)tx, serType, version); break;
+        case UCONTRACT_INVOKE_TX:
+            ::Serialize(os, (const CUniversalContractInvokeTx&)tx, serType, version); break;
         case PRICE_FEED_TX:
             ::Serialize(os, (const CPriceFeedTx&)tx, serType, version); break;
         case PRICE_MEDIAN_TX:
@@ -212,14 +212,14 @@ void CBaseTx::UnserializePtr(Stream& is, std::shared_ptr<CBaseTx> &pBaseTx, int 
             ::Unserialize(is, *((CUCoinBlockRewardTx *)(pBaseTx.get())), serType, version);
             break;
         }
-        case UCONTRACT_DEPLOY_R2_TX: {
-            pBaseTx = std::make_shared<CUniversalContractDeployR2Tx>();
-            ::Unserialize(is, *((CUniversalContractDeployR2Tx *)(pBaseTx.get())), serType, version);
+        case UCONTRACT_DEPLOY_TX: {
+            pBaseTx = std::make_shared<CUniversalContractDeployTx>();
+            ::Unserialize(is, *((CUniversalContractDeployTx *)(pBaseTx.get())), serType, version);
             break;
         }
-        case UCONTRACT_INVOKE_R2_TX: {
-            pBaseTx = std::make_shared<CUniversalContractInvokeR2Tx>();
-            ::Unserialize(is, *((CUniversalContractInvokeR2Tx *)(pBaseTx.get())), serType, version);
+        case UCONTRACT_INVOKE_TX: {
+            pBaseTx = std::make_shared<CUniversalContractInvokeTx>();
+            ::Unserialize(is, *((CUniversalContractInvokeTx *)(pBaseTx.get())), serType, version);
             break;
         }
         case PRICE_FEED_TX: {

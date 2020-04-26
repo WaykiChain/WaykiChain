@@ -16,12 +16,19 @@
 
 using namespace std;
 
+enum VMType : uint8_t {
+    NULL_VM     = 0,
+    LUA_VM      = 1,
+    WASM_VM     = 2,
+    EVM         = 3
+};
+
 /**
- *  @@Deprecated
- *
  *  lua contract - for blockchain tx serialization/deserialization purpose
  *      - This is a backward compability implentation,
  *      - Only universal contract tx will be allowed after the software fork height
+ *
+ *   Persisted thru committing CUniversalContract data structure
  */
 class CLuaContract {
 public:
@@ -65,26 +72,16 @@ public:
     bool IsValid();
 };
 
-/** ###################################### Universal Contract ######################################*/
-enum VMType : uint8_t {
-    NULL_VM     = 0,
-    LUA_VM      = 1,
-    WASM_VM     = 2,
-    EVM         = 3
-};
-
 /**
+ *   Support both Lua and WASM based contract
  *
- * Used for both blockchain tx (new tx only) and levelDB Persistence (both old & new tx)
- *   serialization/deserialization purposes
+ *   Used in blockchain deploy/invoke tx (new tx only)
  *
- *   shall support both Lua and WASM
  */
 class CUniversalContract  {
 public:
     VMType vm_type;
     bool upgradable;    //!< if true, the contract can be upgraded otherwise cannot anyhow.
-    CRegID maintainer;  //!< when upgradable, the maintenaner can update contract code & abi etc.
     string code;        //!< Contract code
     string memo;        //!< Contract description
     string abi;         //!< ABI for contract invocation
@@ -98,16 +95,9 @@ public:
     CUniversalContract(const string &codeIn, const string &memoIn, const string &abiIn)
         : vm_type(LUA_VM), upgradable(true), code(codeIn), memo(memoIn), abi(abiIn) {}
 
-    CUniversalContract(const bool upgradableIn, const string &codeIn, const string &memoIn, const string &abiIn)
-        : vm_type(LUA_VM), upgradable(upgradableIn), code(codeIn), memo(memoIn), abi(abiIn) {}
-
     CUniversalContract(VMType vmTypeIn, bool upgradableIn, const string &codeIn, const string &memoIn,
                        const string &abiIn)
         : vm_type(vmTypeIn), upgradable(upgradableIn), code(codeIn), memo(memoIn), abi(abiIn) {}
-
-    CUniversalContract(VMType vmTypeIn, bool upgradableIn, CRegID &maintainerIn, const string &codeIn, const string &memoIn,
-                       const string &abiIn)
-        : vm_type(vmTypeIn), upgradable(upgradableIn), maintainer(maintainerIn), code(codeIn), memo(memoIn), abi(abiIn) {}
 
 public:
     inline uint32_t GetContractSize() const { return GetSerializeSize(SER_DISK, CLIENT_VERSION); }
@@ -124,7 +114,6 @@ public:
     IMPLEMENT_SERIALIZE(
         READWRITE((uint8_t &) vm_type);
         READWRITE(upgradable);
-        READWRITE(maintainer);
         READWRITE(code);
         READWRITE(memo);
         READWRITE(abi);
@@ -135,7 +124,6 @@ public:
     string ToString() const {
         return  strprintf("vm_type=%d", vm_type) + ", " +
                 strprintf("upgradable=%d", upgradable) + ", " +
-                strprintf("maintainer=%s", maintainer.ToString()) + ", " +
                 strprintf("code=%s", code) + ", " +
                 strprintf("memo=%s", memo) + ", " +
                 strprintf("abi=%d", abi);
