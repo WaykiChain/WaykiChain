@@ -1931,12 +1931,11 @@ bool CheckBlock(const CBlock &block, CValidationState &state, CCacheWrapper &cw,
                          "bad-price-median-tx-number");
 
     if (uniqueTxSet.size() != block.vptx.size())
-        return state.DoS(100, ERRORMSG("duplicate transaction"), REJECT_INVALID, "bad-tx-duplicated",
-                        true);
+        return state.DoS(100, ERRORMSG("duplicated trx"), REJECT_INVALID, "bad-tx-duplicated", true);
 
     // Check merkle root
     if (fCheckMerkleRoot && block.GetMerkleRootHash() != block.vMerkleTree.back())
-        return state.DoS(100, ERRORMSG("merkleRootHash mismatch, height: %u, merkleRootHash(in block: %s vs calculate: %s)",
+        return state.DoS(100, ERRORMSG("[%d] merkleRootHash mismatch: in-block (%s) vs computed (%s)",
                         block.GetHeight(), block.GetMerkleRootHash().ToString(), block.vMerkleTree.back().ToString()),
                         REJECT_INVALID, "bad-merkle-root", true);
 
