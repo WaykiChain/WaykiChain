@@ -1105,7 +1105,7 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
     pos.nTxOffset += ::GetSerializeSize(block.vptx[0], SER_DISK, CLIENT_VERSION);
 
     // Re-compute reward values and total fuel
-    uint64_t totalFuelFee                 = 0;
+    uint64_t totalFuelFee     = 0;
     map<TokenSymbol, uint64_t> rewards = {{SYMB::WICC, 0}, {SYMB::WUSD, 0}};  // Only allow WICC/WUSD as fees type.
 
     if (block.vptx.size() > 1) {
@@ -1113,7 +1113,7 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
         int32_t curHeight     = mapBlockIndex[cw.blockCache.GetBestBlockHash()]->height;
         int32_t validHeight   = SysCfg().GetTxCacheHeight();
         uint32_t fuelRate     = block.GetFuelRate();
-        uint64_t totalFuel = 0;
+        uint64_t totalFuel    = 0;
 
         for (int32_t index = 1; index < (int32_t)block.vptx.size(); ++index) {
             std::shared_ptr<CBaseTx> &pBaseTx = block.vptx[index];
@@ -1145,6 +1145,8 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
 
             auto fuelFee = pBaseTx->GetFuelFee(cw, block.GetHeight(), block.GetFuelRate());
             totalFuelFee += fuelFee;
+            LogPrint(BCLog::DEBUG, "tx (%s) fuel: %llu, total fuel: %llu, fuel rate: %llu\n", 
+                        GetTxType(pBaseTx->nTxType), fuelFee, totalFuelFee, block.GetFuelRate());
 
             auto fees_symbol = std::get<0>(pBaseTx->GetFees());
             assert(fees_symbol == SYMB::WICC || fees_symbol == SYMB::WUSD);  // Only allow WICC/WUSD as fees type.
@@ -1153,9 +1155,6 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
             rewards[fees_symbol] += (fees - fuelFee);
 
             pos.nTxOffset += ::GetSerializeSize(pBaseTx, SER_DISK, CLIENT_VERSION);
-
-            // LogPrint(BCLog::DEBUG, "total fuel fee:%d, tx fuel fee:%d fuel:%d fuelRate:%d txid:%s\n", totalFuelFee,
-            //          fuel, pBaseTx->fuel, fuelRate, pBaseTx->GetHash().GetHex());
         }
     }
 

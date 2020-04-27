@@ -258,13 +258,13 @@ tuple<uint64_t, string> CLuaVM::Run(uint64_t fuelLimit, CLuaVMRunEnv *pVmRunEnv)
     // 1.创建Lua运行环境
     std::unique_ptr<lua_State, decltype(&lua_close)> lua_state_ptr(luaL_newstate(), &lua_close);
     if (!lua_state_ptr) {
-        LogPrint(BCLog::LUAVM, "CLuaVM::Run luaL_newstate() failed\n");
+        LogPrint(BCLog::LUAVM, "luaL_newstate() failed\n");
         return std::make_tuple(-1, string("CLuaVM::Run luaL_newstate() failed\n"));
     }
     lua_State *lua_state = lua_state_ptr.get();
 
     if (!lua_StartBurner(lua_state, pVmRunEnv, fuelLimit, pVmRunEnv->GetBurnVersion())) {
-        LogPrint(BCLog::LUAVM, "CLuaVM::Run lua_StartBurner() failed\n");
+        LogPrint(BCLog::LUAVM, "lua_StartBurner() failed\n");
         return std::make_tuple(-1, string("CLuaVM::Run lua_StartBurner() failed\n"));
     }
 
@@ -335,5 +335,5 @@ tuple<uint64_t, string> CLuaVM::Run(uint64_t fuelLimit, CLuaVMRunEnv *pVmRunEnv)
         return std::make_tuple(-1, string("CLuaVM::Run burned-out\n"));
     }
 
-    return std::make_tuple(burnedFuel, string("script runs ok"));
+    return std::make_tuple(burnedFuel, string("Lua scripts runs ok"));
 }

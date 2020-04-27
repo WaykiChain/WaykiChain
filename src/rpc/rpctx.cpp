@@ -353,10 +353,10 @@ Value submitucontractdeploytx(const Array& params, bool fHelp) {
     string memo           = params.size() > 4 ? params[4].get_str() : "";
 
     if (!txUid.is<CRegID>())
-        throw JSONRPCError(RPC_INVALID_PARAMETER, "Regid does not exist or immature");
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "RegID not exist or immature");
 
     if (memo.size() > MAX_CONTRACT_MEMO_SIZE)
-        throw JSONRPCError(RPC_INVALID_PARAMETER, "Contract memo is too large");
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "Contract memo size too large");
 
     CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, txUid);
     RPC_PARAM::CheckAccountBalance(account, cmFee.symbol, SUB_FREE, cmFee.GetAmountInSawi());
@@ -366,7 +366,7 @@ Value submitucontractdeploytx(const Array& params, bool fHelp) {
     tx.contract     = CUniversalContract(contractScript, memo);
     tx.fee_symbol   = cmFee.symbol;
     tx.llFees       = cmFee.GetAmountInSawi();
-    tx.fuel     = tx.contract.GetContractSize();
+    tx.fuel         = tx.contract.GetContractSize();
     tx.valid_height = validHegiht;
 
     return SubmitTx(account.keyid, tx);

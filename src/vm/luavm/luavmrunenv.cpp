@@ -51,8 +51,7 @@ bool CLuaVMRunEnv::ExecuteContract(CLuaVMContext *pContextIn, uint64_t& fuel, st
         fuel = fuelRet;
     }
 
-    LogPrint(BCLog::LUAVM, "txid:%s, used_fuel=%ld\n",
-                            p_context->p_base_tx->ToString(p_context->p_cw->accountCache), fuel);
+    LogPrint(BCLog::LUAVM, "{%s} used_fuel=%ld\n", p_context->p_base_tx->ToString(p_context->p_cw->accountCache), fuel);
 
     if (!CheckOperate()) {
         errMsg = "VmScript CheckOperate Failed";
@@ -338,16 +337,13 @@ bool CLuaVMRunEnv::TransferAccountAsset(lua_State *L, const vector<AssetTransfer
         shared_ptr<CAccount> spToAccount = GetAccount(toUid);
         if (!spToAccount) {
             if (!toUid.is<CKeyID>()) {
-                LogPrint(BCLog::LUAVM, "[ERR]%s(), get to_account failed! to_uid=%s\n", __func__,
-                    transfer.toUid.ToDebugString());
+                LogPrint(BCLog::LUAVM, "[ERR] get to_uid=%s's account failed! \n", transfer.toUid.ToDebugString());
                 ret = false;
                 break;
             }
             // create new user
             spToAccount = p_context->p_base_tx->NewAccount(*p_context->p_cw, toUid.get<CKeyID>());
-
-            LogPrint(BCLog::LUAVM, "create new user! to_uid=%s\n",
-                transfer.toUid.ToDebugString());
+            LogPrint(BCLog::LUAVM, "create new user! to_uid=%s\n", transfer.toUid.ToDebugString());
         }
 
         if (!spFromAccount->OperateBalance(transfer.tokenType, SUB_FREE, transfer.tokenAmount,

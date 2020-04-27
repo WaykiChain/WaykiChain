@@ -30,11 +30,11 @@
 static bool GetFuelLimit(CBaseTx &tx, CTxExecuteContext &context, uint64_t &fuelLimit) {
     uint64_t fuelRate = context.fuel_rate;
     if (fuelRate == 0)
-        return context.pState->DoS(100, ERRORMSG("GetFuelLimit, fuelRate cannot be 0"), REJECT_INVALID, "invalid-fuel-rate");
+        return context.pState->DoS(100, ERRORMSG("fuelRate cannot be 0"), REJECT_INVALID, "invalid-fuel-rate");
 
     uint64_t minFee;
     if (!GetTxMinFee(*context.pCw, tx.nTxType, context.height, tx.fee_symbol, minFee))
-        return context.pState->DoS(100, ERRORMSG("GetFuelLimit, get minFee failed"), REJECT_INVALID, "get-min-fee-failed");
+        return context.pState->DoS(100, ERRORMSG("get minFee failed"), REJECT_INVALID, "get-min-fee-failed");
 
     assert(tx.llFees >= minFee);
 
@@ -43,10 +43,8 @@ static bool GetFuelLimit(CBaseTx &tx, CTxExecuteContext &context, uint64_t &fuel
 
     fuelLimit = std::min<uint64_t>((reservedFeesForGas / fuelRate) * 100, MAX_BLOCK_FUEL);
 
-    if (fuelLimit == 0) {
-        return context.pState->DoS(100, ERRORMSG("GetFuelLimit, fuelLimit == 0"), REJECT_INVALID,
-                                   "fuel-limit-equals-zero");
-    }
+    if (fuelLimit == 0)
+        return context.pState->DoS(100, ERRORMSG("fuelLimit == 0"), REJECT_INVALID, "fuel-limit-equals-zero");
 
     return true;
 }
@@ -234,7 +232,7 @@ Object CLuaContractInvokeTx::ToJson(const CAccountDBCache &accountCache) const {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// class UCONTRACT_DEPLOY_TX
+// class CUniversalContractDeployTx
 
 bool CUniversalContractDeployTx::CheckTx(CTxExecuteContext &context) {
     IMPLEMENT_DEFINE_CW_STATE;
@@ -383,8 +381,8 @@ bool CUniversalContractInvokeTx::ExecuteTx(CTxExecuteContext &context) {
 
     UniversalContractStore contractStore;
     if (!cw.contractCache.GetContract(app_uid.get<CRegID>(), contractStore))
-        return state.DoS(100, ERRORMSG("read script failed, regId=%s", app_uid.get<CRegID>().ToString()),
-                        READ_ACCOUNT_FAIL, "bad-read-script");
+        return state.DoS(100, ERRORMSG("read contract failed, regId=%s", app_uid.get<CRegID>().ToString()),
+                        READ_ACCOUNT_FAIL, "bad-read-contract");
 
     auto contract = get<2>(contractStore);
 
