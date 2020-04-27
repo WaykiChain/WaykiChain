@@ -295,12 +295,12 @@ bool GetMyPublicIP(CNetAddr& ipRet) {
     if (ipHost.find("/") != std::string::npos) {
         string host = ipHost;
         ipHost = "";
-        return ERRORMSG("GetMyPublicIP() : ipserver (%s) contains /", host);
+        return ERRORMSG("ipserver (%s) contains /", host);
     }
 
     CService addrConnect(ipHost, 80, true);
     if (!addrConnect.IsValid())
-        return ERRORMSG("GetMyPublicIP() : service is unavalable: %s\n", ipHost);
+        return ERRORMSG("service is unavalable: %s\n", ipHost);
 
     stringstream stream;
     stream << "GET" << " " << "/ip" << " " << "HTTP/1.1\r\n";
@@ -311,7 +311,7 @@ bool GetMyPublicIP(CNetAddr& ipRet) {
 
     SOCKET hSocket;
     if (!ConnectSocket(addrConnect, hSocket))
-        return ERRORMSG("GetMyPublicIP() : failed to connect IP server: %s", addrConnect.ToString());
+        return ERRORMSG("failed to connect IP server: %s", addrConnect.ToString());
 
     send(hSocket, request.c_str(), request.length(), MSG_NOSIGNAL);
 
@@ -321,12 +321,12 @@ bool GetMyPublicIP(CNetAddr& ipRet) {
     closesocket(hSocket);
 
     if (strlen(buffer) == 0)
-        return ERRORMSG("GetMyPublicIP() : failed to receive data from server: %s", addrConnect.ToString());
+        return ERRORMSG("failed to receive data from server: %s", addrConnect.ToString());
 
     static const char* const key = "\"ipAddress\":\"";
     char* from                   = strstr(buffer, key);
     if (from == nullptr) {
-        return ERRORMSG("GetMyPublicIP() : invalid message");
+        return ERRORMSG("invalid message");
     }
     from += strlen(key);
     char* to   = strstr(from, "\"");
@@ -334,11 +334,11 @@ bool GetMyPublicIP(CNetAddr& ipRet) {
     publicIp = ip;
     CService ipAddr(publicIp, 0, true);
     if (!ipAddr.IsValid() /* || !ipAddr.IsRoutable() */)
-        return ERRORMSG("GetMyPublicIP() : invalid external ip address: %s", publicIp);
+        return ERRORMSG("invalid public IP: %s", publicIp);
 
     ipRet.SetIP(ipAddr);
 
-    LogPrint(BCLog::INFO, "GetMyPublicIP() : My External IP is: %s\n", publicIp);
+    LogPrint(BCLog::INFO, "My Public IP is: %s\n", publicIp);
 
     return true;
 }
