@@ -358,7 +358,7 @@ static bool CreateNewBlockForPreStableCoinRelease(CCacheWrapper &cwIn, std::uniq
 
             spCW->Flush();
 
-            auto fuelFee        = pBaseTx->GetFuelFee(cwIn, height, fuelRate);
+            auto fuelFee     = pBaseTx->GetFuelFee(cwIn, height, fuelRate);
             auto fees_symbol = std::get<0>(pBaseTx->GetFees());
             auto fees        = std::get<1>(pBaseTx->GetFees());
             assert(fees_symbol == SYMB::WICC);
