@@ -302,14 +302,12 @@ bool CCdpForceLiquidator::Execute() {
 
     cw.cdpCache.GetCdpListByCollateralRatio(cdpCoinPair, forceLiquidateRatio, bcoinPrice, cdpMap);
 
-    LogPrint(BCLog::CDP, "[%d] Tx[%d], globalCollateralRatioFloor=%llu, bcoin_price: %llu, "
-            "forceLiquidateRatio: %llu, cdpMap: %llu\n", context.height, context.index,
+    LogPrint(BCLog::CDP, "[%d] globalCollateralRatioFloor=%llu, bcoin_price: %llu, "
+            "forceLiquidateRatio: %llu, cdpMap: %llu\n",
             globalCollateralRatioFloor, bcoinPrice, forceLiquidateRatio, cdpMap.size());
 
     // 3. force settle each cdp
-    if (cdpMap.size() == 0) {
-        return true;
-    }
+    if (cdpMap.size() == 0) return true;
 
     {
         // TODO: remove me.
