@@ -352,13 +352,13 @@ void ThreadGetMyPublicIP() {
 
 bool PostNodeInfo() {
      if (ipHost == "")
-        return ERRORMSG("PostNodeInfo() : ipserver uninitialized");
+        return ERRORMSG("ipserver uninitialized");
 
     string content  = GetSystemInfo();
 
     CService addrConnect(ipHost, 80, true);
     if (!addrConnect.IsValid())
-        return ERRORMSG("PostNodeInfo() : service is unavalable: %s\n", ipHost);
+        return ERRORMSG("service is unavalable: %s\n", ipHost);
 
     stringstream stream;
     stream << "POST" << " " << "/info" << " " << "HTTP/1.1\r\n";
@@ -371,7 +371,7 @@ bool PostNodeInfo() {
 
     SOCKET hSocket;
     if (!ConnectSocket(addrConnect, hSocket))
-        return ERRORMSG("PostNodeInfo() : failed to connect to server: %s", addrConnect.ToString());
+        return ERRORMSG("failed to connect to server: %s", addrConnect.ToString());
 
     send(hSocket, request.c_str(), request.length(), MSG_NOSIGNAL);
     closesocket(hSocket);
@@ -396,7 +396,6 @@ void ThreadPostNodeInfo() {
 }
 
 void AddressCurrentlyConnected(const CService& addr) { addrman.Connected(addr); }
-
 
 
 CNode* FindNode(const CNetAddr& ip) {

@@ -88,7 +88,7 @@ bool CBlockPriceMedianTx::ExecuteTx(CTxExecuteContext &context) {
 
     PriceDetailMap priceDetails;
     if (!cw.ppCache.CalcMedianPriceDetails(cw, context.height, priceDetails))
-        return state.DoS(100, ERRORMSG("CBlockPriceMedianTx::ExecuteTx, calc block median price points failed"),
+        return state.DoS(100, ERRORMSG("calc block median price points failed"),
                          READ_PRICE_POINT_FAIL, "calc-median-prices-failed");
 
     if (!EqualToCalculatedPrices(priceDetails)) {
@@ -97,7 +97,7 @@ bool CBlockPriceMedianTx::ExecuteTx(CTxExecuteContext &context) {
             str += strprintf("{coin_pair=%s, price:%llu},", CoinPairToString(item.first), item.second.price);
         }
 
-        LogPrint(BCLog::ERROR, "CBlockPriceMedianTx::ExecuteTx, calc from cache, height=%d, price map={%s}\n",
+        LogPrint(BCLog::ERROR, "calc from cache, height=%d, price map={%s}\n",
                 context.height, str);
 
         str.clear();
@@ -105,15 +105,15 @@ bool CBlockPriceMedianTx::ExecuteTx(CTxExecuteContext &context) {
             str += strprintf("{coin_pair=%s, price=%llu}", CoinPairToString(item.first), item.second);
         }
 
-        LogPrint(BCLog::ERROR, "CBlockPriceMedianTx::ExecuteTx, from median tx, height: %d, price map: %s\n",
+        LogPrint(BCLog::ERROR, "from median tx, height: %d, price map: %s\n",
                 context.height, str);
 
-        return state.DoS(100, ERRORMSG("CBlockPriceMedianTx::ExecuteTx, invalid median price points"), REJECT_INVALID,
+        return state.DoS(100, ERRORMSG("invalid median price points"), REJECT_INVALID,
                          "bad-median-price-points");
     }
 
     if (!cw.priceFeedCache.SetMedianPrices(priceDetails))
-        return state.DoS(100, ERRORMSG("CBlockPriceMedianTx::ExecuteTx, save median prices to db failed"), REJECT_INVALID,
+        return state.DoS(100, ERRORMSG("save median prices to db failed"), REJECT_INVALID,
                          "save-median-prices-failed");
 
     if (!ForceLiquidateCdps(context, priceDetails))
@@ -303,7 +303,7 @@ bool CCdpForceLiquidator::Execute() {
     cw.cdpCache.GetCdpListByCollateralRatio(cdpCoinPair, forceLiquidateRatio, bcoinPrice, cdpMap);
 
     LogPrint(BCLog::CDP, "[%d] globalCollateralRatioFloor=%llu, bcoin_price: %llu, "
-            "forceLiquidateRatio: %llu, cdpMap: %llu\n",
+            "forceLiquidateRatio: %llu, cdpMap: %llu\n", context.height,
             globalCollateralRatioFloor, bcoinPrice, forceLiquidateRatio, cdpMap.size());
 
     // 3. force settle each cdp
