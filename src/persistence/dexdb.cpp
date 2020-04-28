@@ -169,7 +169,7 @@ private:
         const CFixedUInt32 &curHeight = std::get<0>(key);
         if ( curHeight < begin_height || curHeight > end_height)
             return false;
-        value = map_it->second;
+        value = *map_it->second;
         return true;
     }
 };
@@ -326,7 +326,7 @@ private:
         key = map_it->first;
         if (std::get<0>(key) != height || DEX_DB::GetGenerateType(key) != SYSTEM_GEN_ORDER)
             return false;
-        value = map_it->second;
+        value = *map_it->second;
         return true;
     }
 };

@@ -289,22 +289,12 @@ public:
         return db.Exists(keyStr);
     }
 
-    template<typename KeyType, typename ValueType>
-    void BatchWrite(const dbk::PrefixType prefixType, const map<KeyType, ValueType> &mapData) {
-        CLevelDBBatch batch;
-        for (auto item : mapData) {
-            string key = dbk::GenDbKey(prefixType, item.first);
-            if (db_util::IsEmpty(item.second)) {
-                batch.Erase(key);
-            } else {
-                batch.Write(key, item.second);
-            }
-        }
+    inline void WriteBatch(CLevelDBBatch &batch) {
         db.WriteBatch(batch, true);
     }
 
     template<typename ValueType>
-    void BatchWrite(const dbk::PrefixType prefixType, ValueType &value) {
+    void WriteBatch(const dbk::PrefixType prefixType, ValueType &value) {
         CLevelDBBatch batch;
         const string prefix = dbk::GetKeyPrefix(prefixType);
 
@@ -334,8 +324,8 @@ public:
     typedef __KeyType   KeyType;
     typedef __ValueType ValueType;
     typedef std::shared_ptr<__ValueType> ValueSPtr;
-    typedef typename std::map<KeyType, ValueType> Map;
-    typedef typename std::map<KeyType, ValueType>::iterator Iterator;
+    typedef typename std::map<KeyType, ValueSPtr> Map;
+    typedef typename std::map<KeyType, ValueSPtr>::iterator Iterator;
 
 public:
     /**
@@ -375,8 +365,8 @@ public:
             return false;
         }
         auto it = GetDataIt(key);
-        if (it != mapData.end() && !db_util::IsEmpty(it->second)) {
-            value = it->second;
+        if (it != mapData.end() && !db_util::IsEmpty(*it->second)) {
+            value = *it->second;
             return true;
         }
         return false;
@@ -392,9 +382,9 @@ public:
             AddOpLog(key, *pEmptyValue, &value);
             AddDataToMap(key, value);
         } else {
-            AddOpLog(key, it->second, &value);
-            UpdateDataSize(it->second, value);
-            it->second = value;
+            AddOpLog(key, *it->second, &value);
+            UpdateDataSize(*it->second, value);
+            *it->second = value;
         }
         return true;
     }
@@ -404,7 +394,7 @@ public:
             return false;
         }
         auto it = GetDataIt(key);
-        return it != mapData.end() && !db_util::IsEmpty(it->second);
+        return it != mapData.end() && !db_util::IsEmpty(*it->second);
     }
 
     bool EraseData(const KeyType &key) {
@@ -412,11 +402,11 @@ public:
             return false;
         }
         Iterator it = GetDataIt(key);
-        if (it != mapData.end() && !db_util::IsEmpty(it->second)) {
-            DecDataSize(it->second);
-            AddOpLog(key, it->second, nullptr);
-            db_util::SetEmpty(it->second);
-            IncDataSize(it->second);
+        if (it != mapData.end() && !db_util::IsEmpty(*it->second)) {
+            DecDataSize(*it->second);
+            AddOpLog(key, *it->second, nullptr);
+            db_util::SetEmpty(*it->second);
+            IncDataSize(*it->second);
         }
         return true;
     }
@@ -431,11 +421,21 @@ public:
         if (pBase != nullptr) {
             assert(pDbAccess == nullptr);
             for (auto it : mapData) {
-                pBase->mapData[it.first] = it.second;
+                SetData(it.first, *it.second);
             }
         } else if (pDbAccess != nullptr) {
             assert(pBase == nullptr);
-            pDbAccess->BatchWrite<KeyType, ValueType>(PREFIX_TYPE, mapData);
+            // pDbAccess->BatchWrite<KeyType, ValueType>(PREFIX_TYPE, mapData);
+            CLevelDBBatch batch;
+            for (auto item : mapData) {
+                string key = dbk::GenDbKey(PREFIX_TYPE, item.first);
+                if (db_util::IsEmpty(*item.second)) {
+                    batch.Erase(key);
+                } else {
+                    batch.Write(key, *item.second);
+                }
+            }
+            pDbAccess->WriteBatch(batch);
         }
 
         Clear();
@@ -447,8 +447,8 @@ public:
         dbOpLog.Get(key, value);
         auto it = mapData.find(key);
         if (it != mapData.end()) {
-            UpdateDataSize(it->second, value);
-            it->second = value;
+            UpdateDataSize(*it->second, value);
+            *it->second = value;
         } else {
             AddDataToMap(key, value);
         }
@@ -476,7 +476,7 @@ public:
 
     CCompositeKVCache<PREFIX_TYPE, KeyType, ValueType>* GetBasePtr() { return pBase; }
 
-    map<KeyType, ValueType>& GetMapData() { return mapData; };
+    map<KeyType, ValueSPtr>& GetMapData() { return mapData; };
 private:
     Iterator GetDataIt(const KeyType &key) const {
         Iterator it = mapData.find(key);
@@ -487,13 +487,13 @@ private:
             auto baseIt = pBase->GetDataIt(key);
             if (baseIt != pBase->mapData.end()) {
                 // the found key-value add to current mapData
-                return AddDataToMap(key, baseIt->second);
+                return AddDataToMap(key, *baseIt->second);
             }
         } else if (pDbAccess != NULL) {
             // TODO: need to save the empty value to mapData for search performance?
             auto pDbValue = db_util::MakeEmptyValue<ValueType>();
             if (pDbAccess->GetData(PREFIX_TYPE, key, *pDbValue)) {
-                return AddDataToMap(key, *pDbValue);
+                return AddDataToMap(key, pDbValue);
             }
         }
 
@@ -501,10 +501,15 @@ private:
     }
 
     inline Iterator AddDataToMap(const KeyType &keyIn, const ValueType &valueIn) const {
-        auto newRet = mapData.emplace(keyIn, valueIn);
+        auto spNewValue = make_shared<ValueType>(valueIn);
+        return AddDataToMap(keyIn, spNewValue);
+    }
+
+    inline Iterator AddDataToMap(const KeyType &keyIn, ValueSPtr &spNewValue) const {
+        auto newRet = mapData.emplace(keyIn, spNewValue);
         if (!newRet.second)
             throw runtime_error(strprintf("%s :  %s, alloc new cache item failed", __FUNCTION__, __LINE__));
-        IncDataSize(keyIn, valueIn);
+        IncDataSize(keyIn, *spNewValue);
         return newRet.first;
     }
 
@@ -558,7 +563,7 @@ private:
 private:
     mutable CCompositeKVCache<PREFIX_TYPE, KeyType, ValueType> *pBase = nullptr;
     CDBAccess *pDbAccess = nullptr;
-    mutable map<KeyType, ValueType> mapData;
+    mutable map<KeyType, ValueSPtr> mapData;
     CDBOpLogMap *pDbOpLogMap = nullptr;
     bool is_calc_size = false;
     mutable uint32_t size = 0;
@@ -665,7 +670,7 @@ public:
                 pBase->ptrData = ptrData;
             } else if (pDbAccess != nullptr) {
                 assert(pBase == nullptr);
-                pDbAccess->BatchWrite(PREFIX_TYPE, *ptrData);
+                pDbAccess->WriteBatch(PREFIX_TYPE, *ptrData);
             }
             ptrData = nullptr;
         }

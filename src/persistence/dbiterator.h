@@ -141,7 +141,7 @@ private:
         this->is_valid = false;
         if (map_it == this->db_cache.GetMapData().end())  return false;
         *this->sp_key = map_it->first;
-        *this->sp_value = map_it->second;
+        *this->sp_value = *map_it->second;
         this->is_valid = true;
         return true;
     }
