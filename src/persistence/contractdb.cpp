@@ -38,10 +38,6 @@ bool CContractDBCache::GetContract(const CRegID &contractRegId, UniversalContrac
     return contractCache.GetData(CRegIDKey(contractRegId), contract);
 }
 
-bool CContractDBCache::GetContracts(map<CRegIDKey, UniversalContractStore> &contracts) {
-    return contractCache.GetAllElements(contracts);
-}
-
 bool CContractDBCache::SaveContract(const CRegID &contractRegId, const UniversalContractStore &contract) {
     return contractCache.SetData(CRegIDKey(contractRegId), contract);
 }

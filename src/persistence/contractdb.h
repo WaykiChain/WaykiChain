@@ -85,7 +85,6 @@ public:
     bool SetContractAccount(const CRegID &contractRegId, const CAppUserAccount &appAccIn);
 
     bool GetContract(const CRegID &contractRegId, UniversalContractStore &contract);
-    bool GetContracts(map<CRegIDKey, UniversalContractStore> &contracts);
     bool SaveContract(const CRegID &contractRegId, const UniversalContractStore &contract);
     bool HasContract(const CRegID &contractRegId);
     bool EraseContract(const CRegID &contractRegId);

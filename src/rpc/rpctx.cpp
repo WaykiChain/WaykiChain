@@ -707,13 +707,7 @@ Value listcontracts(const Array& params, bool fHelp) {
 
     bool showDetail = params[0].get_bool();
 
-    map<CRegIDKey, UniversalContractStore> contracts;
-    if (!pCdMan->pContractCache->GetContracts(contracts)) {
-        throw JSONRPCError(RPC_DATABASE_ERROR, "Failed to acquire contracts from db.");
-    }
-
     auto dbIt = MakeDbIterator(pCdMan->pContractCache->contractCache);
-
     Object obj;
     Array contractArray;
     for (dbIt->First(); dbIt->IsValid(); dbIt->Next()) {
