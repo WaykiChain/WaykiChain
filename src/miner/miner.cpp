@@ -562,8 +562,14 @@ static bool CreateNewBlockForStableCoinRelease(int64_t startMiningMs, CCacheWrap
 }
 
 bool CheckWork(CBlock *pBlock) {
-    // Print block information
-    pBlock->Print();
+
+
+    if (GetFeatureForkVersion(pBlock->GetHeight()) > MAJOR_VER_R1) {
+        const auto& priceMap = pBlock->GetBlockMedianPrice();
+        if (priceMap.size() == 0)
+            return ERRORMSG("medianpricetx not found in block");
+    }
+
 
     if (pBlock->GetPrevBlockHash() != chainActive.Tip()->GetBlockHash())
         return ERRORMSG("generated block is stale");
