@@ -148,8 +148,12 @@ bool CDelegateDBCache::GetCandidateVotes(const CRegID &regId, vector<CCandidateR
     return regId2VoteCache.GetData(regId, candidateVotes);
 }
 
-bool CDelegateDBCache::GetVoterList(map<CRegIDKey, vector<CCandidateReceivedVote>> &regId2Vote) {
-    return regId2VoteCache.GetAllElements(regId2Vote);
+bool CDelegateDBCache::GetVoterList(map<CRegIDKey, vector<CCandidateReceivedVote>> &voters) {
+    auto dbIt = MakeDbIterator(regId2VoteCache);
+    for (dbIt->First(); dbIt->IsValid(); dbIt->Next()) {
+        voters[dbIt->GetKey()] = dbIt->GetValue();
+    }
+    return true;
 }
 
 bool CDelegateDBCache::Flush() {
