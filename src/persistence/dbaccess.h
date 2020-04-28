@@ -51,7 +51,7 @@ namespace db_util {
     template <typename T> bool  IsEmpty(const std::shared_ptr<T>& val) {
         return val == nullptr || (*val).IsEmpty();
     }
-    template <typename T> void SetEmpty(shared_ptr<T>& val) {
+    template <typename T> void SetEmpty(std::shared_ptr<T>& val) {
         if(val == nullptr){
             val = make_shared<T>();
         }
@@ -452,6 +452,7 @@ public:
 public:
     typedef __KeyType   KeyType;
     typedef __ValueType ValueType;
+    typedef std::shared_ptr<__ValueType> ValueSPtr;
     typedef typename std::map<KeyType, ValueType> Map;
     typedef typename std::map<KeyType, ValueType>::iterator Iterator;
 

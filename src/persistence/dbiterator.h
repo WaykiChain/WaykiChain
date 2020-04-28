@@ -308,6 +308,12 @@ protected:
     shared_ptr<IteratorImpl> sp_it_Impl;
 };
 
+
+template<typename CacheType>
+std::shared_ptr<CDbIterator<CacheType>> MakeDbIterator(CacheType &cache) {
+    return std::make_shared<CDbIterator<CacheType>>(cache);
+}
+
 struct CommonPrefixMatcher {
     // empty prefix, will match all keys
     template<typename KeyType>

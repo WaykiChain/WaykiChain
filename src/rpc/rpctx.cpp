@@ -712,12 +712,15 @@ Value listcontracts(const Array& params, bool fHelp) {
         throw JSONRPCError(RPC_DATABASE_ERROR, "Failed to acquire contracts from db.");
     }
 
+    auto dbIt = MakeDbIterator(pCdMan->pContractCache->contractCache);
+
     Object obj;
     Array contractArray;
-    for (const auto &item : contracts) {
+    for (dbIt->First(); dbIt->IsValid(); dbIt->Next()) {
         Object contractObject;
-        auto &contract = get<2>(item.second);
-        contractObject.push_back(Pair("contract_regid", item.first.regid.ToString()));
+        const auto &regidKey = dbIt->GetKey();
+        const CUniversalContract &contract = get<2>(dbIt->GetValue());
+        contractObject.push_back(Pair("contract_regid", regidKey.ToString()));
         contractObject.push_back(Pair("memo",           contract.memo));
 
         if (showDetail) {
@@ -730,7 +733,7 @@ Value listcontracts(const Array& params, bool fHelp) {
         contractArray.push_back(contractObject);
     }
 
-    obj.push_back(Pair("count",     contracts.size()));
+    obj.push_back(Pair("count",     contractArray.size()));
     obj.push_back(Pair("contracts", contractArray));
 
     return obj;
