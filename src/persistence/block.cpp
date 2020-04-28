@@ -96,7 +96,7 @@ const PriceMap& CBlock::GetBlockMedianPrice() const {
 
     LogPrint(BCLog::ERROR, "GetBlockMedianPrice() : failed to acquire median price, height: %u, hash: %s\n", GetHeight(),
              GetHash().GetHex());
-    assert(false && "block has NO price median tx");
+    //assert(false && "block has NO price median tx");
     return EMPTY_PRICE_MAP;
 }
 
