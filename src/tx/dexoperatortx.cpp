@@ -142,10 +142,14 @@ bool CDEXOperatorRegisterTx::ExecuteTx(CTxExecuteContext &context) {
 
     DexOpIdValueSet dexIdSet;
     for (auto &item : data.order_open_dexop_list) {
+        if (!cw.dexCache.HaveDexOperator(item.get())) {
+            return state.DoS(100, ERRORMSG("operator item=%s not exist",
+                db_util::ToString(item)), REJECT_INVALID, "operator-not-exist");
+        }
         auto ret = dexIdSet.insert(item);
         if (!ret.second) {
             return state.DoS(100, ERRORMSG("duplicated item=%s in  order_open_dexop_list",
-                db_util::ToString(item)), REJECT_INVALID, "duplicated-item-in-shared-dexop-list");
+                db_util::ToString(item)), REJECT_INVALID, "duplicated-item-of-dexop-list");
         }
     }
 
@@ -268,21 +272,21 @@ bool CDEXOperatorUpdateData::Check(CBaseTx &tx, CCacheWrapper &cw, string& errms
     }
 
     if (field == ORDER_OPEN_DEXOP_LIST) {
-       auto dexlist = get<DexOpIdValueList>();
-       for (auto dexOpId: dexlist) {
-           if (!cw.dexCache.HaveDexOperator(dexOpId.get())) {
-                errmsg = strprintf("dex(id=%d) is not exist!!", dexOpId.get());
-                errcode = "invalid-dexid";
+        const auto &dexlist = get<DexOpIdValueList>();
+        DexOpIdValueSet dexIdSet;
+        for (auto dexOpId : dexlist) {
+            if (dexOpId.get() == dexId) {
+                errmsg  = strprintf("dexid=%d is self", dexOpId.get());
+                errcode = "self-dexid-error";
                 return false;
-           }
-           if( dexOpId.get() == dexId) {
-               errmsg = "the open dexop list can't contains self";
-               errcode = "self-dexid-error";
-               return false;
-           }
-       }
+            }
+            if (!cw.dexCache.HaveDexOperator(dexOpId.get())) {
+                errmsg  = strprintf("dex(id=%d) not exist!!", dexOpId.get());
+                errcode = "dexid-not-exist";
+                return false;
+            }
+        }
     }
-
 
     return true;
 
@@ -326,7 +330,7 @@ bool CDEXOperatorUpdateData::UpdateToDexOperator(DexOperatorDetail& detail,CCach
             detail.order_open_mode = get<dex::OpenMode>();
             break;
         case ORDER_OPEN_DEXOP_LIST:{
-            auto dexIdList = get<DexOpIdValueList>();
+            const auto &dexIdList = get<DexOpIdValueList>();
             DexOpIdValueSet dexIdSet;
             for (auto dexId: dexIdList) {
                 dexIdSet.insert(dexId);
