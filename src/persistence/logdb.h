@@ -11,6 +11,7 @@
 #include "commons/serialize.h"
 #include "dbaccess.h"
 #include "dbconf.h"
+#include "commons/leb128.h"
 
 #include <map>
 #include <set>
@@ -28,7 +29,6 @@ public:
 public:
     bool SetExecuteFail(const int32_t blockHeight, const uint256 txid, const uint8_t errorCode,
                         const string &errorMessage);
-    bool GetExecuteFail(const int32_t blockHeight, vector<std::tuple<uint256, uint8_t, string> > &result);
 
     void Flush();
 
@@ -45,7 +45,7 @@ public:
 /*  CCompositeKVCache    prefixType             key                 value                        variable      */
 /*  -------------------- --------------------- ------------------  ---------------------------  -------------- */
     // [prefix]{height}{txid} --> {error code, error message}
-    CCompositeKVCache<dbk::TX_EXECUTE_FAIL,    string,            std::pair<uint8_t, string> > executeFailCache;
+    CCompositeKVCache<dbk::TX_EXECUTE_FAIL,    pair<CFixedUInt32, uint256>,    std::pair<uint8_t, string> > executeFailCache;
 };
 
 #endif // PERSIST_LOGDB_H

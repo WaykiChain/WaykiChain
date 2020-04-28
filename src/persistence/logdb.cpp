@@ -10,27 +10,8 @@ bool CLogDBCache::SetExecuteFail(const int32_t blockHeight, const uint256 txid, 
                                  const string &errorMessage) {
     if (!SysCfg().IsLogFailures())
         return true;
-    return executeFailCache.SetData(std::to_string(blockHeight) + "_" + txid.GetHex(),
+    return executeFailCache.SetData(make_pair(CFixedUInt32(blockHeight), txid),
                                     std::make_pair(errorCode, errorMessage));
-}
-
-bool CLogDBCache::GetExecuteFail(const int32_t blockHeight, vector<std::tuple<uint256, uint8_t, string> > &result) {
-    if (!SysCfg().IsLogFailures())
-        return true;
-
-    map<string, std::pair<uint8_t, string> > elements;
-    if (!executeFailCache.GetAllElements(std::to_string(blockHeight) + "_", elements)) {
-        return false;
-    }
-
-    size_t prefixLen = string(std::to_string(blockHeight) + "_").size();
-    for (const auto &item : elements) {
-        result.emplace_back(uint256S(item.first.substr(prefixLen)) /* txid */,
-                            std::get<0>(item.second) /* error code */,
-                            std::get<1>(item.second) /* error message */);
-    }
-
-    return true;
 }
 
 void CLogDBCache::Flush() { executeFailCache.Flush(); }

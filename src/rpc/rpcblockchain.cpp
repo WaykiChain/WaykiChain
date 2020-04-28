@@ -717,19 +717,18 @@ Value getblockfailures(const Array& params, bool fHelp) {
     if (height < 0 || height > chainActive.Height())
         throw JSONRPCError(RPC_INVALID_PARAMETER, "Block height out of range.");
 
-    vector<std::tuple<uint256, uint8_t, string>> results;
-    if (!pCdMan->pLogCache->GetExecuteFail(height, results)) {
-        throw JSONRPCError(RPC_INTERNAL_ERROR, "Failed to get log failures.");
-    }
+    auto dbIt = MakeDbIterator(pCdMan->pLogCache->executeFailCache);
 
     Object obj;
     Array failures;
     Object failure;
 
-    for (const auto &item : results) {
-        failure.push_back(Pair("txid",          std::get<0>(item).GetHex()));
-        failure.push_back(Pair("error_code",    std::get<1>(item)));
-        failure.push_back(Pair("error_message", std::get<2>(item)));
+    for (dbIt->First(); dbIt->IsValid(); dbIt->Next()) {
+
+    //CCompositeKVCache<dbk::TX_EXECUTE_FAIL,   string,            std::pair<uint8_t, string> > executeFailCache;
+        failure.push_back(Pair("txid",          dbIt->GetKey().second.GetHex()));
+        failure.push_back(Pair("error_code",    dbIt->GetValue().first));
+        failure.push_back(Pair("error_message", dbIt->GetValue().second));
 
         failures.push_back(failure);
     }
