@@ -123,7 +123,7 @@ list<CUserCDP> CCdpDBCache::GetCdpListByCollateralRatio(const CCdpCoinPair &cdpC
         }
         cdpList.push_back(dbIt->GetValue());
     }
-    return cdpList;
+    return std::move(cdpList);
 }
 
 CCdpGlobalData CCdpDBCache::GetCdpGlobalData(const CCdpCoinPair &cdpCoinPair) const {
