@@ -343,6 +343,7 @@ bool CLuaVMRunEnv::TransferAccountAsset(lua_State *L, const vector<AssetTransfer
             }
             // create new user
             spToAccount = p_context->p_base_tx->NewAccount(*p_context->p_cw, toUid.get<CKeyID>());
+            isNewAccount = true;
             LogPrint(BCLog::LUAVM, "create new user! to_uid=%s\n", transfer.toUid.ToDebugString());
         }
 
