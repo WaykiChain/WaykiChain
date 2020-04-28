@@ -45,6 +45,10 @@ enum AssetPermType : uint64_t {
 };
 
 const uint64_t kAssetAllPerms = uint64_t(-1); // == 0xFFFFFFFFFFFFFFFF enable all perms
+const uint64_t kAssetDefaultPerms = AssetPermType::PERM_TRANSFER | AssetPermType::PERM_DEX_BASE;
+const uint64_t kWiccPerms = kAssetAllPerms;
+const uint64_t kWusdPerms = PERM_TRANSFER + PERM_DEX_BASE + PERM_DEX_QUOTE;
+const uint64_t kWgrtPerms = PERM_TRANSFER + PERM_PRICE_FEED + PERM_DEX_QUOTE + PERM_DEX_BASE;
 
 static const unordered_map<uint64_t, string> kAssetPermTitleMap = {
     {   PERM_TRANSFER,      "PERM_TRANSFER"     },
@@ -75,16 +79,16 @@ enum TotalSupplyOpType:uint8_t {
 
 class CAsset {
 public:
-    TokenSymbol asset_symbol;       //asset symbol, E.g WICC | WUSD
-    TokenName   asset_name;         //asset long name, E.g WaykiChain coin
-    AssetType   asset_type;         //asset type
-    uint64_t    perms_sum = 0;      //a sum of asset perms
-    CUserID     owner_uid;          //creator or owner user id of the asset, null for NIA/DIA/MPA
-    uint64_t    total_supply;       //boosted by 10^8 for the decimal part, max is 90 billion.
-    bool        mintable;           //whether this token can be minted in the future.
+    TokenSymbol asset_symbol;                     // asset symbol, E.g WICC | WUSD
+    TokenName asset_name;                         // asset long name, E.g WaykiChain coin
+    AssetType asset_type = AssetType::NULL_ASSET; // asset type
+    uint64_t perms_sum   = kAssetDefaultPerms;    // a sum of asset perms
+    CUserID owner_uid;                            // creator or owner user id of the asset, null for NIA/DIA/MPA
+    uint64_t total_supply = 0;                    // boosted by 10^8 for the decimal part, max is 90 billion.
+    bool mintable         = false;                // whether this token can be minted in the future.
 
 public:
-    CAsset(): asset_type(AssetType::NULL_ASSET), perms_sum(AssetPermType::PERM_TRANSFER + AssetPermType::PERM_DEX_BASE) {}
+    CAsset() {}
 
     CAsset(const TokenSymbol& assetSymbol, const TokenName& assetName, const AssetType AssetType, uint64_t assetPermsSum,
            const CUserID& ownerUid, uint64_t totalSupply, bool mintableIn)

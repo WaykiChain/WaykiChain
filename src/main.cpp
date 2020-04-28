@@ -801,13 +801,9 @@ static bool FindUndoPos(CValidationState &state, int32_t nFile, CDiskBlockPos &p
 }
 
 static bool PersistNativeAsset(CCacheWrapper& cw) {
-    uint64_t wiccPerms = kAssetAllPerms;
-    uint64_t wusdPerms = PERM_TRANSFER + PERM_DEX_BASE + PERM_DEX_QUOTE;
-    uint64_t wgrtPerms = PERM_TRANSFER + PERM_PRICE_FEED + PERM_DEX_QUOTE + PERM_DEX_BASE;
-
-    CAsset wicc(SYMB::WICC, SYMB::WICC, AssetType::NIA, wiccPerms, CNullID(), INITIAL_BASE_COIN_AMOUNT * COIN, false);
-    CAsset wusd(SYMB::WUSD, SYMB::WUSD, AssetType::MPA, wusdPerms, CNullID(), 0, true);
-    CAsset wgrt(SYMB::WGRT, SYMB::WGRT, AssetType::NIA, wgrtPerms, CNullID(), FUND_COIN_GENESIS_TOTAL_RELEASE_AMOUNT * COIN, true);
+    CAsset wicc(SYMB::WICC, SYMB::WICC, AssetType::NIA, kWiccPerms, CNullID(), INITIAL_BASE_COIN_AMOUNT * COIN, false);
+    CAsset wusd(SYMB::WUSD, SYMB::WUSD, AssetType::MPA, kWusdPerms, CNullID(), 0, true);
+    CAsset wgrt(SYMB::WGRT, SYMB::WGRT, AssetType::NIA, kWgrtPerms, CNullID(), FUND_COIN_GENESIS_TOTAL_RELEASE_AMOUNT * COIN, true);
 
     return  cw.assetCache.SetAsset(wicc) &&
             cw.assetCache.SetAsset(wusd) &&
@@ -1145,7 +1141,7 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
 
             auto fuelFee = pBaseTx->GetFuelFee(cw, block.GetHeight(), block.GetFuelRate());
             totalFuelFee += fuelFee;
-            LogPrint(BCLog::DEBUG, "tx (%s) fuel: %llu, total fuel: %llu, fuel rate: %llu\n", 
+            LogPrint(BCLog::DEBUG, "tx (%s) fuel: %llu, total fuel: %llu, fuel rate: %llu\n",
                         GetTxType(pBaseTx->nTxType), fuelFee, totalFuelFee, block.GetFuelRate());
 
             auto fees_symbol = std::get<0>(pBaseTx->GetFees());

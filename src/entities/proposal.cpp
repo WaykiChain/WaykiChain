@@ -719,7 +719,7 @@ bool  CGovAxcCoinProposal::ExecuteProposal(CTxExecuteContext& context, CBaseTx& 
 
 
         //Persist with Owner's RegID to save space than other User ID types
-        CAsset savedAsset(GenSelfChainCoinSymbol(), GenSelfChainCoinSymbol(), AssetType::DIA, AssetPermType::PERM_DEX_BASE,
+        CAsset savedAsset(GenSelfChainCoinSymbol(), GenSelfChainCoinSymbol(), AssetType::DIA, kAssetDefaultPerms,
                           CNullID(), 0, false);
 
         if (!cw.assetCache.SetAsset(savedAsset))

@@ -156,7 +156,7 @@ bool CUserIssueAssetTx::ExecuteTx(CTxExecuteContext &context) {
     }
 
     //Persist with Owner's RegID to save space than other User ID types
-    CAsset savedAsset(asset.asset_symbol, asset.asset_name, AssetType::UIA, AssetPermType::PERM_DEX_BASE,
+    CAsset savedAsset(asset.asset_symbol, asset.asset_name, AssetType::UIA, kAssetDefaultPerms,
                     spOwnerAccount->regid, asset.total_supply, asset.mintable);
 
     if (!cw.assetCache.SetAsset(savedAsset))
