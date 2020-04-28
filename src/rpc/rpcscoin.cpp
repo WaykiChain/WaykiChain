@@ -333,8 +333,7 @@ Object GetCdpInfoJson(const CCdpCoinPair &cdpCoinPair, uint64_t price) {
         throw JSONRPCError(RPC_INTERNAL_ERROR, "Acquire cdp force liquidate ratio error");
     }
 
-    CCdpRatioIndexCache::Map forceLiquidateCdps;
-    pCdMan->pCdpCache->GetCdpListByCollateralRatio(cdpCoinPair, forceLiquidateRatio, price, forceLiquidateCdps);
+    const auto &cdpList = pCdMan->pCdpCache->GetCdpListByCollateralRatio(cdpCoinPair, forceLiquidateRatio, price);
 
     Object obj;
 
@@ -354,8 +353,8 @@ Object GetCdpInfoJson(const CCdpCoinPair &cdpCoinPair, uint64_t price) {
     obj.push_back(Pair("global_collateral_ratio_floor",         (double)globalCollateralRatioFloor / RATIO_BOOST * 100));
     obj.push_back(Pair("global_collateral_ratio_floor_reached", globalCollateralRatioFloorReached));
 
-    obj.push_back(Pair("force_liquidate_ratio",                 (double)forceLiquidateRatio / RATIO_BOOST * 100));
-    obj.push_back(Pair("force_liquidate_cdp_amount",            (uint32_t) forceLiquidateCdps.size()));
+    obj.push_back(Pair("forced_liquidate_ratio",                 (double)forceLiquidateRatio / RATIO_BOOST * 100));
+    obj.push_back(Pair("forced_liquidate_cdp_count",            (uint32_t) cdpList.size()));
     return obj;
 }
 

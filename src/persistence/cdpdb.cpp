@@ -109,15 +109,21 @@ bool CCdpDBCache::EraseCdpIndexData(const CUserCDP &userCdp) {
     return true;
 }
 
-bool CCdpDBCache::GetCdpListByCollateralRatio(const CCdpCoinPair &cdpCoinPair,
-        const uint64_t collateralRatio, const uint64_t bcoinMedianPrice,
-        CCdpRatioIndexCache::Map &userCdps) {
+list<CUserCDP> CCdpDBCache::GetCdpListByCollateralRatio(const CCdpCoinPair &cdpCoinPair,
+        const uint64_t collateralRatio, const uint64_t bcoinMedianPrice) {
+
     double ratio = (double(collateralRatio) / RATIO_BOOST) / (double(bcoinMedianPrice) / PRICE_BOOST);
     assert(uint64_t(ratio * CDP_BASE_RATIO_BOOST) < UINT64_MAX);
-    uint64_t ratioBoost = uint64_t(ratio * CDP_BASE_RATIO_BOOST) + 1;
-    CCdpRatioIndexCache::KeyType endKey(cdpCoinPair, ratioBoost, 0, uint256());
-
-    return cdp_ratio_index_cache.GetAllElements(endKey, userCdps);
+    uint64_t ratioBoost = uint64_t(ratio * CDP_BASE_RATIO_BOOST);
+    list<CUserCDP> cdpList;
+    auto dbIt = MakeDbIterator(cdp_ratio_index_cache);
+    for (dbIt->First(); dbIt->IsValid(); dbIt->Next()) {
+        if (std::get<1>(dbIt->GetKey()).value >= ratioBoost) {
+            break;
+        }
+        cdpList.push_back(dbIt->GetValue());
+    }
+    return cdpList;
 }
 
 CCdpGlobalData CCdpDBCache::GetCdpGlobalData(const CCdpCoinPair &cdpCoinPair) const {

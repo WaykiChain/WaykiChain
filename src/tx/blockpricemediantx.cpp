@@ -71,7 +71,7 @@ private:
     uint256 GenOrderId(const CUserCDP &cdp, TokenSymbol assetSymbol);
 
 
-    bool ForceLiquidateCDPCompat(CCdpRatioIndexCache::Map &cdps, ReceiptList &receipts);
+    bool ForceLiquidateCDPCompat(const list<CUserCDP> &cdpList, ReceiptList &receipts);
 
     uint256 GenOrderIdCompat(const uint256 &txid, uint32_t index);
 };
@@ -292,7 +292,6 @@ bool CCdpForceLiquidator::Execute() {
     }
 
     // 2. get all CDPs to be force settled
-    CCdpRatioIndexCache::Map cdpMap;
     uint64_t forceLiquidateRatio = 0;
     if (!cw.sysParamCache.GetCdpParam(cdpCoinPair, CdpParamType::CDP_FORCE_LIQUIDATE_RATIO, forceLiquidateRatio)) {
         return state.DoS(100, ERRORMSG("read force liquidate ratio param error! cdpCoinPair=%s",
@@ -300,21 +299,21 @@ bool CCdpForceLiquidator::Execute() {
                 READ_SYS_PARAM_FAIL, "read-force-liquidate-ratio-error");
     }
 
-    cw.cdpCache.GetCdpListByCollateralRatio(cdpCoinPair, forceLiquidateRatio, bcoinPrice, cdpMap);
+    const auto &cdpList = cw.cdpCache.GetCdpListByCollateralRatio(cdpCoinPair, forceLiquidateRatio, bcoinPrice);
 
     LogPrint(BCLog::CDP, "[%d] globalCollateralRatioFloor=%llu, bcoin_price: %llu, "
-            "forceLiquidateRatio: %llu, cdpMap: %llu\n", context.height,
-            globalCollateralRatioFloor, bcoinPrice, forceLiquidateRatio, cdpMap.size());
+            "forceLiquidateRatio: %llu, cdp_count: %llu\n", context.height,
+            globalCollateralRatioFloor, bcoinPrice, forceLiquidateRatio, cdpList.size());
 
     // 3. force settle each cdp
-    if (cdpMap.size() == 0) return true;
+    if (cdpList.size() == 0) return true;
 
     {
         // TODO: remove me.
         // print all force liquidating cdps
-        LogPrint(BCLog::CDP, "have %llu cdps to force settle, in detail:\n", cdpMap.size());
-        for (const auto &cdpKey : cdpMap) {
-            LogPrint(BCLog::CDP, "%s\n", cdpKey.second.ToString());
+        LogPrint(BCLog::CDP, "have %llu cdps to force settle, in detail:\n", cdpList.size());
+        for (const auto &cdp : cdpList) {
+            LogPrint(BCLog::CDP, "%s\n", cdp.ToString());
         }
     }
 
@@ -322,11 +321,10 @@ bool CCdpForceLiquidator::Execute() {
     if (netType == TEST_NET && context.height < 1800000  && cdpCoinPair == CDP_COIN_PAIR_WICC_WUSD) {
         // soft fork to compat old data of testnet
         // TODO: remove me if reset testnet.
-        return ForceLiquidateCDPCompat(cdpMap, receipts);
+        return ForceLiquidateCDPCompat(cdpList, receipts);
     }
 
-    for (auto &cdpItem : cdpMap) {
-        auto &cdp = cdpItem.second;
+    for (const auto &cdp : cdpList) {
         liquidated_count++;
         if (liquidated_count > liquidated_limit_count) {
             LogPrint(BCLog::CDP, "force liquidate cdp count=%u reach the max liquidated limit count=%u! cdp_coin_pair={%s}\n",
@@ -461,21 +459,15 @@ uint256 CCdpForceLiquidator::GenOrderId(const CUserCDP &cdp, TokenSymbol assetSy
 }
 
 
-bool CCdpForceLiquidator::ForceLiquidateCDPCompat(CCdpRatioIndexCache::Map &cdps, ReceiptList &receipts) {
+bool CCdpForceLiquidator::ForceLiquidateCDPCompat(const list<CUserCDP> &cdpList, ReceiptList &receipts) {
 
     CCacheWrapper &cw = *context.pCw; CValidationState &state = *context.pState;
     const uint256 &txid = tx.GetHash();
     uint64_t bcoinPrice = cdp_cdoin_pair_detail.bcoin_price;
 
-    // sort by CUserCDP::operator<()
-    set<CUserCDP> cdpSet;
-    for (auto &cdpPair : cdps) {
-        cdpSet.insert(cdpPair.second);
-    }
-
     uint64_t currRiskReserveScoins = fcoinGenesisAccount.GetToken(SYMB::WUSD).free_amount;
     uint32_t orderIndex            = 0;
-    for (auto &cdp : cdpSet) {
+    for (auto &cdp : cdpList) {
         const auto &cdpCoinPair = cdp.GetCoinPair();
         liquidated_count++;
         if (liquidated_count > liquidated_limit_count) {

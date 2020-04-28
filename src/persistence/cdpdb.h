@@ -55,8 +55,8 @@ public:
     bool GetCDPList(const CRegID &regId, vector<CUserCDP> &cdpList);
     bool GetCDP(const uint256 cdpid, CUserCDP &cdp);
 
-    bool GetCdpListByCollateralRatio(const CCdpCoinPair &cdpCoinPair, const uint64_t collateralRatio,
-            const uint64_t bcoinMedianPrice, CCdpRatioIndexCache::Map &userCdps);
+    list<CUserCDP> GetCdpListByCollateralRatio(const CCdpCoinPair &cdpCoinPair, const uint64_t collateralRatio,
+            const uint64_t bcoinMedianPrice);
 
 
     shared_ptr<CDBCdpHeightIndexIt> CreateCdpHeightIndexIt() {
