@@ -44,11 +44,11 @@ public:
     uint32_t liquidated_count = 0;
 public:
     CCdpForceLiquidator(CBlockPriceMedianTx &txIn, CTxExecuteContext &contextIn,
-                        vector<CReceipt> &receiptsIn, CAccount &fcoinGenesisAccountIn,
+                        vector<CReceipt> &receiptsIn, CAccount &fcoinAccountIn,
                         const CCdpCoinPairDetail &cdpCdoinPairDetailIn, uint64_t fcoindUsdPriceIn,
                         uint32_t &liquidatedLimitCountIn)
         : tx(txIn), context(contextIn), receipts(receiptsIn),
-          fcoinGenesisAccount(fcoinGenesisAccountIn), cdp_cdoin_pair_detail(cdpCdoinPairDetailIn),
+          fcoinAccount(fcoinAccountIn), cdp_cdoin_pair_detail(cdpCdoinPairDetailIn),
           fcoin_usd_price(fcoindUsdPriceIn),
           liquidated_limit_count(liquidatedLimitCountIn) {}
 
@@ -59,7 +59,7 @@ private:
     CBlockPriceMedianTx &tx;
     CTxExecuteContext &context;
     vector<CReceipt> &receipts;
-    CAccount &fcoinGenesisAccount;
+    CAccount &fcoinAccount;
     const CCdpCoinPairDetail &cdp_cdoin_pair_detail;
     uint64_t fcoin_usd_price = 0;
     uint32_t liquidated_limit_count = 0;
@@ -147,11 +147,8 @@ bool CBlockPriceMedianTx::ForceLiquidateCdps(CTxExecuteContext &context, PriceDe
 
     uint64_t fcoinUsdPrice = fcoinIt->second.price;
 
-    CAccount fcoinGenesisAccount;
-    if (!cw.accountCache.GetFcoinGenesisAccount(fcoinGenesisAccount)) {
-        return state.DoS(100, ERRORMSG("get fcoin genesis account failed"), REJECT_INVALID,
-                         "save-median-prices-failed");
-    }
+    auto spFcoinAccount = GetAccount(context, SysCfg().GetFcoinGenesisRegId(), "fcoin");
+    if (!spFcoinAccount) return false;
 
     set<CCdpCoinPairDetail> cdpCoinPairSet;
 
@@ -198,7 +195,7 @@ bool CBlockPriceMedianTx::ForceLiquidateCdps(CTxExecuteContext &context, PriceDe
 
     uint32_t liquidatedLimitCount = CDP_FORCE_LIQUIDATE_MAX_COUNT;
     for (const auto& cdpCoinPairDetail : cdpCoinPairSet) {
-        CCdpForceLiquidator forceLiquidator(*this, context, receipts, fcoinGenesisAccount,
+        CCdpForceLiquidator forceLiquidator(*this, context, receipts, *spFcoinAccount,
                                             cdpCoinPairDetail, fcoinUsdPrice, liquidatedLimitCount);
         if (!forceLiquidator.Execute())
             return false; // the forceLiquidator.Execute() has processed the error
@@ -207,10 +204,6 @@ bool CBlockPriceMedianTx::ForceLiquidateCdps(CTxExecuteContext &context, PriceDe
         }
         liquidatedLimitCount -= forceLiquidator.liquidated_count;
     }
-
-    if (!cw.accountCache.SetAccount(fcoinGenesisAccount.keyid, fcoinGenesisAccount))
-        return state.DoS(100, ERRORMSG("save fcoin genesis account failed! addr=%s",
-                        fcoinGenesisAccount.keyid.ToAddress()), REJECT_INVALID, "set-tx-receipt-failed");
 
     return true;
 }
@@ -269,9 +262,6 @@ Object CBlockPriceMedianTx::ToJson(const CAccountDBCache &accountCache) const {
 bool CCdpForceLiquidator::Execute() {
 
     CCacheWrapper &cw = *context.pCw; CValidationState &state = *context.pState;
-
-    CAccount fcoinGenesisAccount;
-    cw.accountCache.GetFcoinGenesisAccount(fcoinGenesisAccount);
 
     const CCdpCoinPair &cdpCoinPair = cdp_cdoin_pair_detail.coin_pair;
     uint64_t bcoinPrice = cdp_cdoin_pair_detail.bcoin_price;
@@ -332,7 +322,7 @@ bool CCdpForceLiquidator::Execute() {
             break;
         }
 
-        uint64_t currRiskReserveScoins = fcoinGenesisAccount.GetToken(SYMB::WUSD).free_amount;
+        uint64_t currRiskReserveScoins = fcoinAccount.GetToken(SYMB::WUSD).free_amount;
         if (currRiskReserveScoins < cdp.total_owed_scoins) {
             LogPrint(BCLog::CDP, "currRiskReserveScoins(%lu) < cdp.total_owed_scoins(%lu) !!\n",
                     currRiskReserveScoins, cdp.total_owed_scoins);
@@ -348,7 +338,7 @@ bool CCdpForceLiquidator::Execute() {
 
         // a) get scoins from risk reserve pool for closeout
         ReceiptType code = ReceiptType::CDP_TOTAL_CLOSEOUT_SCOIN_FROM_RESERVE;
-        fcoinGenesisAccount.OperateBalance(SYMB::WUSD, BalanceOpType::SUB_FREE, cdp.total_owed_scoins, code, receipts);
+        fcoinAccount.OperateBalance(SYMB::WUSD, BalanceOpType::SUB_FREE, cdp.total_owed_scoins, code, receipts);
 
         // b) sell bcoins for risk reserve pool
         // b.1) clean up cdp owner's pledged_amount
@@ -422,14 +412,14 @@ bool CCdpForceLiquidator::SellAssetToRiskRevervePool(const CUserCDP &cdp, const 
     ReceiptList &receipts) {
 
     ReceiptType code = ReceiptType::CDP_TOTAL_ASSET_TO_RESERVE;
-    if (!fcoinGenesisAccount.OperateBalance(assetSymbol, BalanceOpType::ADD_FREE, amount, code, receipts)) {
+    if (!fcoinAccount.OperateBalance(assetSymbol, BalanceOpType::ADD_FREE, amount, code, receipts)) {
         return context.pState->DoS(100, ERRORMSG("add account balance failed"),
                             UPDATE_ACCOUNT_FAIL, "operate-fcoin-genesis-account-failed");
     }
 
     // freeze account asset for selling
     code = ReceiptType::CDP_TOTAL_ASSET_TO_RESERVE;
-    if (!fcoinGenesisAccount.OperateBalance(assetSymbol, BalanceOpType::FREEZE, amount, code, receipts)) {
+    if (!fcoinAccount.OperateBalance(assetSymbol, BalanceOpType::FREEZE, amount, code, receipts)) {
         return context.pState->DoS(100, ERRORMSG("account has insufficient funds"),
                             UPDATE_ACCOUNT_FAIL, "account-insufficient");
     }
@@ -470,7 +460,7 @@ bool CCdpForceLiquidator::ForceLiquidateCDPCompat(const list<CUserCDP> &cdpList,
         cdpSet.insert(cdp);
     }
 
-    uint64_t currRiskReserveScoins = fcoinGenesisAccount.GetToken(SYMB::WUSD).free_amount;
+    uint64_t currRiskReserveScoins = fcoinAccount.GetToken(SYMB::WUSD).free_amount;
     uint32_t orderIndex            = 0;
     for (auto &cdp : cdpSet) {
         const auto &cdpCoinPair = cdp.GetCoinPair();
@@ -492,14 +482,14 @@ bool CCdpForceLiquidator::ForceLiquidateCDPCompat(const list<CUserCDP> &cdpList,
 
         // a) sell WICC for WUSD to return to risk reserve pool
         // send bcoin from cdp to fcoin genesis account
-        if (!fcoinGenesisAccount.OperateBalance(SYMB::WICC, BalanceOpType::ADD_FREE, cdp.total_staked_bcoins,
+        if (!fcoinAccount.OperateBalance(SYMB::WICC, BalanceOpType::ADD_FREE, cdp.total_staked_bcoins,
                                                 ReceiptType::CDP_TOTAL_ASSET_TO_RESERVE, receipts)) {
             return state.DoS(100, ERRORMSG("operate balance failed"),
                                 UPDATE_ACCOUNT_FAIL, "operate-fcoin-genesis-account-failed");
         }
 
         // should freeze user's asset for selling
-        if (!fcoinGenesisAccount.OperateBalance(SYMB::WICC, BalanceOpType::FREEZE, cdp.total_staked_bcoins,
+        if (!fcoinAccount.OperateBalance(SYMB::WICC, BalanceOpType::FREEZE, cdp.total_staked_bcoins,
                                                 ReceiptType::CDP_TOTAL_ASSET_TO_RESERVE, receipts)) {
             return state.DoS(100, ERRORMSG("account has insufficient funds"),
                                 UPDATE_ACCOUNT_FAIL, "operate-fcoin-genesis-account-failed");
@@ -528,14 +518,14 @@ bool CCdpForceLiquidator::ForceLiquidateCDPCompat(const list<CUserCDP> &cdpList,
             assert(fcoin_usd_price != 0);
             uint64_t fcoinsToInflate = uint64_t(double(fcoinsValueToInflate) * PRICE_BOOST / fcoin_usd_price);
             // inflate fcoin to fcoin genesis account
-            if (!fcoinGenesisAccount.OperateBalance(SYMB::WGRT, BalanceOpType::ADD_FREE, fcoinsToInflate,
+            if (!fcoinAccount.OperateBalance(SYMB::WGRT, BalanceOpType::ADD_FREE, fcoinsToInflate,
                                                     ReceiptType::CDP_TOTAL_INFLATE_FCOIN_TO_RESERVE, receipts)) {
                 return state.DoS(100, ERRORMSG("operate balance failed"),
                                     UPDATE_ACCOUNT_FAIL, "operate-fcoin-genesis-account-failed");
             }
 
             // should freeze user's asset for selling
-            if (!fcoinGenesisAccount.OperateBalance(SYMB::WGRT, BalanceOpType::FREEZE, fcoinsToInflate,
+            if (!fcoinAccount.OperateBalance(SYMB::WGRT, BalanceOpType::FREEZE, fcoinsToInflate,
                                                     ReceiptType::CDP_TOTAL_INFLATE_FCOIN_TO_RESERVE, receipts)) {
                 return state.DoS(100, ERRORMSG("account has insufficient funds"),
                                     UPDATE_ACCOUNT_FAIL, "operate-fcoin-genesis-account-failed");
@@ -575,10 +565,10 @@ bool CCdpForceLiquidator::ForceLiquidateCDPCompat(const list<CUserCDP> &cdpList,
     }
 
     // 4. operate fcoin genesis account
-    uint64_t prevScoins = fcoinGenesisAccount.GetToken(SYMB::WUSD).free_amount;
+    uint64_t prevScoins = fcoinAccount.GetToken(SYMB::WUSD).free_amount;
     assert(prevScoins >= currRiskReserveScoins);
 
-    if (!fcoinGenesisAccount.OperateBalance(SYMB::WUSD, SUB_FREE, prevScoins - currRiskReserveScoins,
+    if (!fcoinAccount.OperateBalance(SYMB::WUSD, SUB_FREE, prevScoins - currRiskReserveScoins,
                                             ReceiptType::CDP_TOTAL_INFLATE_FCOIN_TO_RESERVE, receipts)) {
         return state.DoS(100, ERRORMSG("opeate fcoin genesis account failed"),
                             UPDATE_ACCOUNT_FAIL, "operate-fcoin-genesis-account-failed");

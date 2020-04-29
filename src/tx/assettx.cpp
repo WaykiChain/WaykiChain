@@ -58,22 +58,16 @@ static bool ProcessAssetFee(CBaseTx &tx, CTxExecuteContext &context, const strin
     uint64_t riskFee       = assetFee * assetRiskFeeRatio / RATIO_BOOST;
     uint64_t minerTotalFee = assetFee - riskFee;
 
-    CAccount fcoinGenesisAccount;
-    if (!cw.accountCache.GetFcoinGenesisAccount(fcoinGenesisAccount))
-        return state.DoS(100, ERRORMSG("ProcessAssetFee, get risk reserve account failed"),
-                        READ_ACCOUNT_FAIL, "get-account-failed");
+    auto spFcoinAccount = tx.GetAccount(context, SysCfg().GetFcoinGenesisRegId(), "fcoin");
+    if (!spFcoinAccount) return false;
 
     ReceiptType code = (action == ASSET_ACTION_ISSUE) ? ReceiptType::ASSET_ISSUED_FEE_TO_RESERVE :
                                                         ReceiptType::ASSET_UPDATED_FEE_TO_RESERVE;
 
-    if (!fcoinGenesisAccount.OperateBalance(SYMB::WICC, BalanceOpType::ADD_FREE, riskFee, code, tx.receipts)) {
+    if (!spFcoinAccount->OperateBalance(SYMB::WICC, BalanceOpType::ADD_FREE, riskFee, code, tx.receipts)) {
         return state.DoS(100, ERRORMSG("ProcessAssetFee, operate balance failed! add %s asset fee=%llu to risk reserve account error",
             action, riskFee), UPDATE_ACCOUNT_FAIL, "update-account-failed");
     }
-
-    if (!cw.accountCache.SetAccount(fcoinGenesisAccount.keyid, fcoinGenesisAccount))
-        return state.DoS(100, ERRORMSG("ProcessAssetFee, write fcoin genesis account info error, regid=%s",
-            fcoinGenesisAccount.regid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
 
     VoteDelegateVector delegates;
     if (!cw.delegateCache.GetActiveDelegates(delegates)) {

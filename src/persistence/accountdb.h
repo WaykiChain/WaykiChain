@@ -36,8 +36,6 @@ public:
     ~CAccountDBCache() {}
 
 public:
-    bool GetFcoinGenesisAccount(CAccount &fcoinGenesisAccount) const;
-
     bool GetAccount(const CKeyID &keyId,    CAccount &account) const;
     bool GetAccount(const CRegID &regId,    CAccount &account) const;
     bool GetAccount(const CUserID &uid,     CAccount &account) const;
