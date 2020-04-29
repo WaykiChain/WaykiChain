@@ -89,8 +89,12 @@ bool CLuaContractDeployTx::ExecuteTx(CTxExecuteContext &context) {
     // create script account
     CAccount contractAccount;
     CRegID contractRegId(context.height, context.index);
-    contractAccount.keyid  = Hash160(contractRegId.GetRegIdRaw());
-    contractAccount.regid  = contractRegId;
+    CKeyID keyid = Hash160(contractRegId.GetRegIdRaw());
+
+    auto spContractAccount = NewAccount(cw, keyid);
+    if (!RegisterAccount(context, nullptr/*pPubkey*/, *spContractAccount)) // generate new regid for the account
+        return false;
+    assert(spContractAccount->regid  == contractRegId);
 
     // save new script content
     auto contractStore = std::make_tuple(VMType::LUA_VM, CRegIDKey(sp_tx_account->regid),
@@ -98,10 +102,6 @@ bool CLuaContractDeployTx::ExecuteTx(CTxExecuteContext &context) {
 
     if (!cw.contractCache.SaveContract(contractRegId, contractStore))
         return state.DoS(100, ERRORMSG("save code for contract id %s error",
-                        contractRegId.ToString()), UPDATE_ACCOUNT_FAIL, "bad-save-scriptdb");
-
-    if (!cw.accountCache.SaveAccount(contractAccount))
-        return state.DoS(100, ERRORMSG("create new account script id %s script info error",
                         contractRegId.ToString()), UPDATE_ACCOUNT_FAIL, "bad-save-scriptdb");
 
     fuel = contract.GetContractSize();
@@ -269,19 +269,18 @@ bool CUniversalContractDeployTx::ExecuteTx(CTxExecuteContext &context) {
     CValidationState &state = *context.pState;
 
     // create script account
-    CAccount contractAccount;
     CRegID contractRegId(context.height, context.index);
-    contractAccount.keyid  = Hash160(contractRegId.GetRegIdRaw());
-    contractAccount.regid  = contractRegId;
+    CKeyID keyid = Hash160(contractRegId.GetRegIdRaw());
+
+    auto spContractAccount = NewAccount(cw, keyid);
+    if (!RegisterAccount(context, nullptr/*pPubkey*/, *spContractAccount)) // generate new regid for the account
+        return false;
+    assert(spContractAccount->regid  == contractRegId);
 
     // save new script content
     auto contractStore = std::make_tuple(contract.vm_type, CRegIDKey(sp_tx_account->regid), contract);
     if (!cw.contractCache.SaveContract(contractRegId, contractStore))
         return state.DoS(100, ERRORMSG("save code for contract id %s error",
-                        contractRegId.ToString()), UPDATE_ACCOUNT_FAIL, "bad-save-scriptdb");
-
-    if (!cw.accountCache.SaveAccount(contractAccount))
-        return state.DoS(100, ERRORMSG("create new account script id %s script info error",
                         contractRegId.ToString()), UPDATE_ACCOUNT_FAIL, "bad-save-scriptdb");
 
     fuel = contract.GetContractSize();
