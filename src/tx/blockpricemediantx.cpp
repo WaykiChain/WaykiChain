@@ -464,10 +464,15 @@ bool CCdpForceLiquidator::ForceLiquidateCDPCompat(const list<CUserCDP> &cdpList,
     CCacheWrapper &cw = *context.pCw; CValidationState &state = *context.pState;
     const uint256 &txid = tx.GetHash();
     uint64_t bcoinPrice = cdp_cdoin_pair_detail.bcoin_price;
+    // sort by CUserCDP::operator<()
+    set<CUserCDP> cdpSet;
+    for (auto &cdp : cdpList) {
+        cdpSet.insert(cdp);
+    }
 
     uint64_t currRiskReserveScoins = fcoinGenesisAccount.GetToken(SYMB::WUSD).free_amount;
     uint32_t orderIndex            = 0;
-    for (auto &cdp : cdpList) {
+    for (auto &cdp : cdpSet) {
         const auto &cdpCoinPair = cdp.GetCoinPair();
         liquidated_count++;
         if (liquidated_count > liquidated_limit_count) {
