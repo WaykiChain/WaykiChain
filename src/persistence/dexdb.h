@@ -53,41 +53,6 @@ namespace DEX_DB {
     void BlockOrdersToJson(const BlockOrders &orderList, Object &obj);
 };
 
-class CDEXOrdersGetter {
-public:
-    uint32_t    begin_height    = 0;        // the begin block height of returned orders
-    uint32_t    end_height      = 0;        // the end block height of returned orders
-    bool        has_more        = false;    // has more orders in db
-    DEXBlockOrdersCache::KeyType  last_key;       // the key of last position to get more orders
-    DEX_DB::BlockOrders orders;             // the returned orders
-private:
-    DEXBlockOrdersCache &db_cache;
-    CDBAccess &db_access;
-public:
-    CDEXOrdersGetter(DEXBlockOrdersCache &dbCache)
-        : db_cache(dbCache), db_access(*dbCache.GetDbAccessPtr()) {
-    }
-
-    bool Execute(uint32_t fromHeight, uint32_t toHeight, uint32_t maxCount, const DEXBlockOrdersCache::KeyType &lastPosInfo);
-    void ToJson(Object &obj);
-};
-
-
-class CDEXSysOrdersGetter {
-public:
-    DEX_DB::BlockOrders orders; // exec result
-private:
-    DEXBlockOrdersCache &db_cache;
-    CDBAccess &db_access;
-public:
-    CDEXSysOrdersGetter(DEXBlockOrdersCache &dbCache)
-        : db_cache(dbCache), db_access(*dbCache.GetDbAccessPtr()) {
-    }
-    bool Execute(uint32_t height);
-
-    void ToJson(Object &obj);
-};
-
 class CDexDBCache {
 public:
     CDexDBCache() {}
@@ -154,17 +119,6 @@ public:
         operator_owner_map_cache.RegisterUndoFunc(undoDataFuncMap);
         operator_last_id_cache.RegisterUndoFunc(undoDataFuncMap);
     }
-
-    shared_ptr<CDEXOrdersGetter> CreateOrdersGetter() {
-        assert(blockOrdersCache.GetBasePtr() == nullptr && "only support top level cache");
-        return make_shared<CDEXOrdersGetter>(blockOrdersCache);
-    }
-
-    shared_ptr<CDEXSysOrdersGetter> CreateSysOrdersGetter() {
-        assert(blockOrdersCache.GetBasePtr() == nullptr && "only support top level cache");
-        return make_shared<CDEXSysOrdersGetter>(blockOrdersCache);
-    }
-
 
 private:
     DEXBlockOrdersCache::KeyType MakeBlockOrderKey(const uint256 &orderid, const dex::CDEXOrderDetail &activeOrder) {

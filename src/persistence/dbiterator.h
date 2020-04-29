@@ -433,4 +433,9 @@ public:
     }
 };
 
+template<typename CacheType, typename PrefixElement>
+shared_ptr<CDBPrefixIterator<CacheType, PrefixElement, CommonPrefixMatcher>> MakeDbPrefixIterator(CacheType &cache, const PrefixElement &prefixElement){
+    return make_shared<CDBPrefixIterator<CacheType, PrefixElement, CommonPrefixMatcher>>(cache, prefixElement);
+}
+
 #endif //PERSIST_DB_ITERATOR_H

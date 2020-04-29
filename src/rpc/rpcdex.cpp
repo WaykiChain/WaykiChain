@@ -812,15 +812,18 @@ extern Value listdexsysorders(const Array& params, bool fHelp) {
     if (height < 0 || height > tipHeight) {
         throw JSONRPCError(RPC_INVALID_PARAMS, strprintf("height=%d must >= 0 and <= tip_height=%d", height, tipHeight));
     }
-
-    auto pGetter = pCdMan->pDexCache->CreateSysOrdersGetter();
-    if (!pGetter->Execute(height)) {
-        throw JSONRPCError(RPC_INVALID_PARAMS, strprintf("get system-generated orders error! height=%d", height));
+    Array array;
+    auto dbIt = MakeDbPrefixIterator(pCdMan->pDexCache->blockOrdersCache, make_pair(CFixedUInt32(height), (uint8_t)SYSTEM_GEN_ORDER));
+    for (dbIt->First(); dbIt->IsValid(); dbIt->Next()) {
+        Object objItem;
+        DEX_DB::OrderToJson(std::get<2>(dbIt->GetKey()), dbIt->GetValue(), objItem);
+        array.push_back(objItem);
     }
 
     Object obj;
     obj.push_back(Pair("height", height));
-    pGetter->ToJson(obj);
+    obj.push_back(Pair("count", (int64_t)array.size()));
+    obj.push_back(Pair("orders", array));
 
     return obj;
 }
@@ -887,24 +890,49 @@ extern Value listdexorders(const Array& params, bool fHelp) {
                                          beginHeight, endHeight));
     }
 
-    auto pGetter = pCdMan->pDexCache->CreateOrdersGetter();
-    if (!pGetter->Execute(beginHeight, endHeight, maxCount, lastKey)) {
-        throw JSONRPCError(RPC_INVALID_PARAMS, strprintf("get all active orders error! begin_height=%d, end_height=%d",
-            beginHeight, endHeight));
+    Array array;
+    auto dbIt = MakeDbIterator(pCdMan->pDexCache->blockOrdersCache);
+    if (db_util::IsEmpty(lastKey)) {
+        lastKey = DEXBlockOrdersCache::KeyType(CFixedUInt32(beginHeight), 0, uint256());
     }
 
+    int64_t orderBeginHeight = 0, orderEndHeight = 0;
+    bool hasMore = false;
     string newLastPosInfo;
-    if (pGetter->has_more) {
-        auto err = DEX_DB::MakeLastPos(pGetter->last_key, newLastPosInfo);
-        if (err)
-            throw JSONRPCError(RPC_INVALID_PARAMS, strprintf("Make new last_pos_info error! %s", *err));
+    for (dbIt->SeekUpper(&lastKey); dbIt->IsValid(); dbIt->Next()) {
+        const CDEXOrderDetail &order = dbIt->GetValue();
+        int64_t orderHeight = order.tx_cord.GetHeight();
+        if (orderHeight < beginHeight || orderHeight > endHeight) {
+            break;
+        }
+        if (array.size() == 0) {
+            orderBeginHeight = orderHeight;
+        }
+
+        orderEndHeight = orderHeight;
+        Object objItem;
+        DEX_DB::OrderToJson(std::get<2>(dbIt->GetKey()), dbIt->GetValue(), objItem);
+        array.push_back(objItem);
+        if (array.size() >= (uint32_t)maxCount) {
+            dbIt->Next();
+            if (dbIt->IsValid()) {
+                hasMore = true;
+                auto err = DEX_DB::MakeLastPos(dbIt->GetKey(), newLastPosInfo);
+                if (err)
+                    throw JSONRPCError(RPC_INVALID_PARAMS, strprintf("Make new last_pos_info error! %s", *err));
+            }
+            break;
+        }
     }
+
     Object obj;
-    obj.push_back(Pair("begin_height", (int64_t)pGetter->begin_height));
-    obj.push_back(Pair("end_height", (int64_t)pGetter->end_height));
-    obj.push_back(Pair("has_more", pGetter->has_more));
+    obj.push_back(Pair("begin_height",orderBeginHeight));
+    obj.push_back(Pair("end_height", orderEndHeight));
+    obj.push_back(Pair("has_more", hasMore));
     obj.push_back(Pair("last_pos_info", HexStr(newLastPosInfo)));
-    pGetter->ToJson(obj);
+    obj.push_back(Pair("count", (int64_t)array.size()));
+    obj.push_back(Pair("orders", array));
+
     return obj;
 }
 
