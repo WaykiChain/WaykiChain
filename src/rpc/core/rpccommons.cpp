@@ -233,7 +233,7 @@ Object GetTxDetailJSON(const CBlockHeader& header,const shared_ptr<CBaseTx> pBas
 
     string trace;
     auto database = std::make_shared<CCacheWrapper>(pCdMan);
-    auto resolver = make_resolver(database);
+    auto resolver = make_resolver(*database);
     if(database->contractCache.GetContractTraces(txid, trace)){
 
         json_spirit::Value value_json;

@@ -568,7 +568,7 @@ Value wasm_gettxtrace( const Array &params, bool fHelp ) {
 
     try{
         auto database  = std::make_shared<CCacheWrapper>(pCdMan);
-        auto resolver  = make_resolver(database);
+        auto resolver  = make_resolver(*database);
         auto trx_id    = uint256S(params[0].get_str());
 
         string  trace_string;

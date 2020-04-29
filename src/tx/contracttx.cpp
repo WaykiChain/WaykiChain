@@ -758,7 +758,6 @@ bool CUniversalTx::ExecuteTx(CTxExecuteContext &context) {
         //set fuel for block fuel sum
         fuel = run_cost;
 
-        auto database = std::make_shared<CCacheWrapper>(context.pCw);
         auto resolver = make_resolver(database);
 
         json_spirit::Value value_json;
