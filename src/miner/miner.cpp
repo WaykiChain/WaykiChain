@@ -564,9 +564,20 @@ static bool CreateNewBlockForStableCoinRelease(int64_t startMiningMs, CCacheWrap
 bool CheckWork(CBlock *pBlock) {
 
 
+
     if (GetFeatureForkVersion(pBlock->GetHeight()) > MAJOR_VER_R1) {
-        const auto& priceMap = pBlock->GetBlockMedianPrice();
-        if (priceMap.size() == 0)
+        bool hasMedianPriceTx = false;
+        for (size_t index = 1; index < pBlock->vptx.size(); ++ index) {
+            if (pBlock->vptx[index]->IsPriceFeedTx())
+                continue;
+
+            if (pBlock->vptx[index]->IsPriceMedianTx()){
+                hasMedianPriceTx = true;
+                break;
+            }
+
+        }
+        if (!hasMedianPriceTx)
             return ERRORMSG("medianpricetx not found in block");
     }
 
