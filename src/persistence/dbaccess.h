@@ -421,7 +421,7 @@ public:
         if (pBase != nullptr) {
             assert(pDbAccess == nullptr);
             for (auto it : mapData) {
-                SetData(it.first, *it.second);
+                pBase->SetData(it.first, *it.second);
             }
         } else if (pDbAccess != nullptr) {
             assert(pBase == nullptr);
