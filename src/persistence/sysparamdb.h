@@ -177,18 +177,6 @@ public:
         CCdpInterestParamChangeMap changeMap;
         cdp_interest_param_changes_cache.GetData(coinPair, changeMap);
 
-        if(changeMap.empty()) { //have no changes
-            changes.push_back({
-                                      beginHeight,
-                                      endHeight, // will be set later
-                                      GetCdpParamDefaultValue(CDP_INTEREST_PARAM_A),
-                                      GetCdpParamDefaultValue(CDP_INTEREST_PARAM_B)
-                              });
-            return true;
-        }
-
-
-
         auto it = changeMap.begin();
         auto beginChangeIt = changeMap.end();
         // Find out which change the beginHeight should belong to
