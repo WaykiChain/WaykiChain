@@ -103,6 +103,7 @@ namespace wasm {
 				UniversalContractStore contractStore;
 				CUniversalContract contract;
 				uint64_t maintainer = maintainer_regid.value;
+
 				if (contract_regid.value == 0) {  //first-time deployment
 					contract_regid = wasm::regid(context.trx_cord.GetIntValue());
 					CHAIN_ASSERT( !db_contract.GetContract(CRegID(contract_regid.value), contractStore),

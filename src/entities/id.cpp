@@ -99,8 +99,8 @@ void CRegID::Clear() {
 }
 
 string CRegID::ToString() const {
-    if (IsEmpty())
-        return string("");
+    // if (IsEmpty())
+    //     return string("");
 
     return strprintf("%d-%d", height, index);
 }
