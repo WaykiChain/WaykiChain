@@ -989,6 +989,10 @@ Value getcdpparam(const Array& params, bool fHelp) {
     if (vCoinPair.size() != 2)
         throw JSONRPCError(RPC_INVALID_PARAMETER, "ill-formatted CDP coin-pair: " + strBCoinScoin);
 
+    if(!pCdMan->pAssetCache->HasAsset(vCoinPair[0]) || !pCdMan->pAssetCache->HasAsset(vCoinPair[0]) ) {
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "invalid CDP coin-pair::" + strBCoinScoin);
+    }
+
     CCdpCoinPair coinPair = CCdpCoinPair(vCoinPair[0], vCoinPair[1]);
 
     if (params.size() == 2) {
