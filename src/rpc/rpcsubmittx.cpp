@@ -91,7 +91,6 @@ void read_file_limit(const string& path, string& data, uint64_t max_size){
 
 //TODO: to be extended for LuaVM
 void read_and_validate_code(const string& path, string& code, VMType &type) {
-
     read_file_limit(path, code, MAX_WASM_CONTRACT_CODE_BYTES);
 
     vector <uint8_t> c;
@@ -156,32 +155,34 @@ Value submitsetcodetx( const Array &params, bool fHelp ) {
 
         CUniversalTx tx;
         {
-            CAccount payer;
             string code, abi;
             VMType vm;
-            auto              payer_regid = wasm::regid(params[0].get_str());
-            read_and_validate_code(                     params[1].get_str(), code, vm);
-            read_and_validate_abi (                     params[2].get_str(), abi);
-            auto              contract    = RPC_PARAM::GetRegId(params, 3, "0-0").GetIntValue();
-            const ComboMoney& fee         = RPC_PARAM::GetFee(params, 4, TxType::UNIVERSAL_TX);
+            auto payer_regid        = CRegID(params[0].get_str());
+            read_and_validate_code(          params[1].get_str(), code, vm);
+            read_and_validate_abi (          params[2].get_str(), abi);
+            auto contract_regid     = RPC_PARAM::GetRegId(params, 3, CRegID(0, 0));
+            auto fee                = RPC_PARAM::GetFee(params, 4, TxType::UNIVERSAL_TX);
 
-            CHAIN_ASSERT( database->GetAccount(CRegID(payer_regid.value), payer),
+            CAccount payer_account;
+            CHAIN_ASSERT( database->GetAccount(payer_regid, payer_account),
                           wasm_chain::account_access_exception,
                           "payer '%s' does not exist ",
-                          payer_regid.to_string().c_str())
+                          payer_regid.ToString())
 
-            RPC_PARAM::CheckAccountBalance(payer, fee.symbol, SUB_FREE, fee.GetAmountInSawi());
-
+            RPC_PARAM::CheckAccountBalance(payer_account, fee.symbol, SUB_FREE, fee.GetAmountInSawi());
+            auto payer      = wasm::regid(payer_regid.GetIntValue());
+            auto contract   = wasm::regid(contract_regid.GetIntValue());
             tx.nTxType      = UNIVERSAL_TX;
-            tx.txUid        = payer.regid;
+            tx.txUid        = CUserID(payer_regid);
             tx.fee_symbol   = fee.symbol;
             tx.llFees       = fee.GetAmountInSawi();
             tx.valid_height = chainActive.Tip()->height;
-            tx.inline_transactions.push_back({wasmio, wasm::N(setcode), std::vector<permission>{{payer_regid.value, wasmio_owner}},
-                                             wasm::pack(std::tuple(contract, payer_regid, vm, code, abi, ""))});
+
+            tx.inline_transactions.push_back({wasmio, wasm::N(setcode), std::vector<permission>{{payer.value, wasmio_owner}},
+                                             wasm::pack(std::tuple(contract, payer, vm, code, abi, ""))});
 
             //tx.signatures.push_back({payer_regid.value, vector<uint8_t>()});
-            CHAIN_ASSERT( wallet->Sign(payer.keyid, tx.GetHash(), tx.signature),
+            CHAIN_ASSERT( wallet->Sign(payer_account.keyid, tx.GetHash(), tx.signature),
                           wasm_chain::wallet_sign_exception, "wallet sign error")
 
             //tx.set_signature({payer_regid.value, tx.signature});

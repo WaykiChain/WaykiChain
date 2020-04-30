@@ -15,9 +15,10 @@ namespace wasm { namespace rpc{
         Result:
         "txhash":            (string)
         Examples:
-        > ./coind submitsetcodetx 0-2 0-2 /tmp/token.wasm /tmp/token.abi
+        > ./coind submitsetcodetx 0-2 /tmp/token.wasm /tmp/token.abi
+        > ./coind submitsetcodetx 0-2 /tmp/token.wasm /tmp/token.abi 0-3
         As json rpc call
-        > curl --user myusername -d '{"jsonrpc": "1.0", "id":"curltest", "method":"submitsetcodetx", "params":["0-2", "0-2", "/tmp/token.wasm", "/tmp/token.abi"]}' -H 'Content-Type: application/json;' http://127.0.0.1:8332
+        > curl --user myusername -d '{"jsonrpc": "1.0", "id":"curltest", "method":"submitsetcodetx", "params":["0-2", "/tmp/token.wasm", "/tmp/token.abi"]}' -H 'Content-Type: application/json;' http://127.0.0.1:8332
     )=====";
 
     const char *submit_setcoder_tx_rpc_help_message = R"=====(
