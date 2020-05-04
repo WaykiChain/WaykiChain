@@ -7,3 +7,5 @@
 [submodule "src/external/softfloat"]
 	path = src/external/softfloat
 	url = https://github.com/eosio/berkeley-softfloat-3
+	ignore = dirty
+
