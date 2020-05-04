@@ -96,7 +96,7 @@ namespace dbk {
         DEFINE( REGID_KEYID,          "rkey",   ACCOUNT )       /* rkey{$RegID} --> $KeyId */ \
         DEFINE( KEYID_ACCOUNT,        "idac",   ACCOUNT )       /* idac{$KeyID} --> $CAccount */ \
         /**** contract db                                                                      */ \
-        DEFINE( CONTRACT_DEF,         "ucon",   CONTRACT )      /* ucon{$ContractRegId} --> $UniversalContractStore */ \
+        DEFINE( CONTRACT_DEF,         "ucon",   CONTRACT )      /* ucon{$ContractRegId} --> $CUniversalContractStore */ \
         DEFINE( CONTRACT_DATA,        "cdat",   CONTRACT )      /* cdat{$RegId}{$DataKey} --> $Data */ \
         DEFINE( CONTRACT_ACCOUNT,     "cacc",   CONTRACT )      /* cacc{$ContractRegId}{$AccUserId} --> appUserAccount */ \
         DEFINE( CONTRACT_TRACES,      "ctrs",   CONTRACT )      /* [prefix]{$txid} --> contract_traces */ \

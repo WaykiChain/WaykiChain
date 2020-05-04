@@ -32,8 +32,17 @@ struct CDiskTxPos;
 
 typedef dbk::CDBTailKey<MAX_CONTRACT_KEY_SIZE> CDBContractKey;
 
-/* LuaVM/WASM, maintainer regid, contract */
-typedef tuple<uint8_t, CRegIDKey, CUniversalContract> UniversalContractStore;
+struct CUniversalContractStore {
+    VMType vm_type;
+    CRegID maintainer;
+    CUniversalContract contract;
+
+    IMPLEMENT_SERIALIZE(
+        READWRITE((uint8_t&) vm_type);
+        READWRITE(maintainer);
+        READWRITE(contract);
+    )
+};
 
 /*  CCompositeKVCache     prefixType                       key                       value         variable           */
 /*  -------------------- --------------------         ----------------------------  ---------   --------------------- */
@@ -84,8 +93,8 @@ public:
     bool GetContractAccount(const CRegID &contractRegId, const string &accountKey, CAppUserAccount &appAccOut);
     bool SetContractAccount(const CRegID &contractRegId, const CAppUserAccount &appAccIn);
 
-    bool GetContract(const CRegID &contractRegId, UniversalContractStore &contract);
-    bool SaveContract(const CRegID &contractRegId, const UniversalContractStore &contract);
+    bool GetContract(const CRegID &contractRegId, CUniversalContractStore &contractStore);
+    bool SaveContract(const CRegID &contractRegId, const CUniversalContractStore &contractStore);
     bool HasContract(const CRegID &contractRegId);
     bool EraseContract(const CRegID &contractRegId);
 
@@ -128,8 +137,8 @@ public:
 /*       type               prefixType               key                     value                 variable               */
 /*  ----------------   -------------------------   -----------------------  ------------------   ------------------------ */
     /////////// ContractDB
-    // contract $RegIdKey -> UniversalContractStore
-    CCompositeKVCache< dbk::CONTRACT_DEF,         CRegIDKey,                  UniversalContractStore >   contractCache;
+    // contract $RegIdKey -> CUniversalContractStore
+    CCompositeKVCache< dbk::CONTRACT_DEF,         CRegIDKey,                  CUniversalContractStore >   contractCache;
 
     // pair<contractRegId, contractKey> -> contractData
     DBContractDataCache contractDataCache;

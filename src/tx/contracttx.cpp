@@ -150,7 +150,7 @@ bool CLuaContractInvokeTx::CheckTx(CTxExecuteContext &context) {
     if ((txUid.is<CPubKey>()) && !txUid.get<CPubKey>().IsFullyValid())
         return state.DoS(100, ERRORMSG("public key is invalid"), REJECT_INVALID, "bad-publickey");
 
-    UniversalContractStore contractStore;
+    CUniversalContractStore contractStore;
     if (!cw.contractCache.GetContract(app_uid.get<CRegID>(), contractStore))
         return state.DoS(100, ERRORMSG("read script failed, regId=%s",
                         app_uid.get<CRegID>().ToString()), REJECT_INVALID, "bad-read-script");
@@ -174,12 +174,12 @@ bool CLuaContractInvokeTx::ExecuteTx(CTxExecuteContext &context) {
         return state.DoS(100, ERRORMSG("txAccount has insufficient funds"),
                          UPDATE_ACCOUNT_FAIL, "operate-minus-account-failed");
 
-    UniversalContractStore contractStore;
+    CUniversalContractStore contractStore;
     if (!cw.contractCache.GetContract(app_uid.get<CRegID>(), contractStore))
         return state.DoS(100, ERRORMSG("read script failed, regId=%s",
                         app_uid.get<CRegID>().ToString()), READ_ACCOUNT_FAIL, "bad-read-script");
 
-    auto contract = get<2>(contractStore);
+    auto contract = contractStore.contract;
 
     CLuaVMRunEnv vmRunEnv;
     CLuaVMContext luaContext;
@@ -354,7 +354,7 @@ bool CUniversalContractInvokeTx::CheckTx(CTxExecuteContext &context) {
                                 REJECT_INVALID, "invalid-coin-symbol");
     }
 
-    UniversalContractStore contractStore;
+    CUniversalContractStore contractStore;
     if (!cw.contractCache.GetContract(app_uid.get<CRegID>(), contractStore))
         return state.DoS(100, ERRORMSG("read script failed, regId=%s",
                         app_uid.get<CRegID>().ToString()), REJECT_INVALID, "bad-read-script");
@@ -378,12 +378,12 @@ bool CUniversalContractInvokeTx::ExecuteTx(CTxExecuteContext &context) {
         return state.DoS(100, ERRORMSG("txAccount has insufficient funds"),
                          UPDATE_ACCOUNT_FAIL, "operate-minus-account-failed");
 
-    UniversalContractStore contractStore;
+    CUniversalContractStore contractStore;
     if (!cw.contractCache.GetContract(app_uid.get<CRegID>(), contractStore))
         return state.DoS(100, ERRORMSG("read contract failed, regId=%s", app_uid.get<CRegID>().ToString()),
                         READ_ACCOUNT_FAIL, "bad-read-contract");
 
-    auto contract = get<2>(contractStore);
+    auto contract = contractStore.contract;
 
     CLuaVMRunEnv vmRunEnv;
     CLuaVMContext luaContext;
@@ -511,13 +511,13 @@ void CUniversalTx::validate_contracts(CTxExecuteContext& context) {
                       "contract '%s' does not exist",
                       contract_name.to_string() )
 
-        UniversalContractStore contract_store;
+        CUniversalContractStore contract_store;
         CHAIN_ASSERT( database.contractCache.GetContract(spContract->regid, contract_store),
                       wasm_chain::account_access_exception,
                       "cannot get contract with regid '%s'",
                       contract_name.to_string() )
 
-        auto contract = get<2>(contract_store);
+        auto contract = contract_store.contract;
         CHAIN_ASSERT( contract.code.size() > 0 && contract.abi.size() > 0,
                       wasm_chain::account_access_exception,
                       "contract '%s' abi or code  does not exist",

@@ -750,11 +750,11 @@ Value getcontractinfo(const Array& params, bool fHelp) {
         throw JSONRPCError(RPC_INVALID_PARAMS, "Invalid contract regid.");
     }
 
-    UniversalContractStore contractStore;
+    CUniversalContractStore contractStore;
     if (!pCdMan->pContractCache->GetContract(regid, contractStore)) {
         throw JSONRPCError(RPC_DATABASE_ERROR, "Failed to acquire contract from db.");
     }
-    auto contract = get<2>(contractStore);
+    auto contract = contractStore.contract;
 
     Object obj;
     obj.push_back(Pair("contract_regid",    regid.ToString()));

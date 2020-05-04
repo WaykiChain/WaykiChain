@@ -100,7 +100,7 @@ namespace wasm {
 		        auto abi            			= std::get<4>(set_code_data);
 		        auto memo           			= std::get<5>(set_code_data);
 
-				UniversalContractStore contractStore;
+				CUniversalContractStore contractStore;
 				CUniversalContract contract;
 				uint64_t maintainer = maintainer_regid.value;
 
@@ -119,7 +119,7 @@ namespace wasm {
 		                      	wasm::regid(contract_regid).to_string());
 
 					//must be current maintainer to perform code upgrade
-					auto currMaintainer = get<1>(contractStore).regid.GetIntValue();
+					auto currMaintainer = contractStore.maintainer.GetIntValue();
 					CHAIN_ASSERT( maintainer == currMaintainer,
 								wasm_chain::account_access_exception,
 		                      	"maintainer mismatch: given: %llu vs. curr: %llu",
@@ -132,7 +132,8 @@ namespace wasm {
 				contract.abi  	 				= abi;
 				contract.memo 	 				= memo;
 
-    			contractStore = std::make_tuple(vm_type, CRegIDKey(CRegID(maintainer)), contract);
+    			contractStore.maintainer 		= maintainer;
+				contractStore.contract 			= contract;
 		        CHAIN_ASSERT( db_contract.SaveContract(CRegID(contract_regid.value), contractStore),
 		                      wasm_chain::account_access_exception,
 		                      "save contract '%s' error",
@@ -155,7 +156,7 @@ namespace wasm {
 		        regid contract_regid 	= std::get<0>(set_code_data);
 				regid maintainer_regid 	= std::get<1>(set_code_data);
 
-				UniversalContractStore contractStore;
+				CUniversalContractStore contractStore;
 
 				CHAIN_ASSERT( db_contract.GetContract(CRegID(contract_regid.value), contractStore),
 							  wasm_chain::native_contract_assert_exception,
@@ -163,15 +164,12 @@ namespace wasm {
 		                      wasm::regid(contract_regid).to_string())
 
 				//must be current maintainer to set a new maintainer
-				auto currMaintainer = std::get<1>(contractStore).regid.GetIntValue();
+				auto currMaintainer = contractStore.maintainer.GetIntValue();
 				context.require_auth(currMaintainer);
 
 				//set new maintainer
-				auto vmType = get<0>(contractStore);
-				auto ucontract = get<2>(contractStore);
-				auto regidKey = CRegIDKey(CRegID(maintainer_regid.value));
-				auto newContractStore = std::make_tuple(vmType, regidKey, ucontract);
-		        CHAIN_ASSERT( db_contract.SaveContract(CRegID(contract_regid.value), newContractStore),
+				contractStore.maintainer = maintainer_regid;
+		        CHAIN_ASSERT( db_contract.SaveContract(CRegID(contract_regid.value), contractStore),
 		                      wasm_chain::native_contract_assert_exception,
 		                      "save contract '%s' error",
 		                      wasm::regid(contract_regid).to_string())

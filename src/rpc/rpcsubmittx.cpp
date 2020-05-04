@@ -120,7 +120,7 @@ void get_contract( CAccountDBCache*    db_account,
                    CContractDBCache*   db_contract,
                    const wasm::regid&  contract_regid,
                    CAccount&           contract,
-                   UniversalContractStore& contract_store ){
+                   CUniversalContractStore& contract_store ){
 
     CHAIN_ASSERT( db_account->GetAccount(CRegID(contract_regid.value), contract),
                   wasm_chain::account_access_exception,
@@ -132,7 +132,7 @@ void get_contract( CAccountDBCache*    db_account,
                   "cannot get contract '%s'",
                   contract_regid.to_string())
 
-    auto ucontract = get<2>(contract_store);
+    auto ucontract = contract_store.contract;
     CHAIN_ASSERT( ucontract.vm_type == VMType::WASM_VM,
                   wasm_chain::vm_type_mismatch, "vm type must be wasm VM")
     CHAIN_ASSERT( ucontract.abi.size() > 0,
@@ -306,9 +306,9 @@ Value submittx( const Array &params, bool fHelp ) {
         wasm::regid       contract_regid = wasm::regid(params[1].get_str());
         if (!get_native_contract_abi(contract_regid.value, abi)) {
             CAccount           contract;
-            UniversalContractStore contract_store;
+            CUniversalContractStore contract_store;
             get_contract(db_account, db_contract, contract_regid, contract, contract_store);
-            auto ucontract = get<2>(contract_store);
+            auto ucontract = contract_store.contract;
             abi = std::vector<char>(ucontract.abi.begin(), ucontract.abi.end());
         }
 
@@ -380,9 +380,9 @@ Value wasm_gettable( const Array &params, bool fHelp ) {
                     "cannot get table from native contract '%s'", contract_regid.to_string() )
 
         CAccount contract;
-        UniversalContractStore contract_store;
+        CUniversalContractStore contract_store;
         get_contract(db_account, db_contract, contract_regid, contract, contract_store);
-        auto ucontract = get<2>(contract_store);
+        auto ucontract = contract_store.contract;
         std::vector<char> abi = std::vector<char>(ucontract.abi.begin(), ucontract.abi.end());
 
         uint64_t numbers = default_query_rows;
@@ -442,10 +442,10 @@ Value wasm_json2bin( const Array &params, bool fHelp ) {
 
         std::vector<char>  abi;
         CAccount           contract;
-        UniversalContractStore contract_store;
+        CUniversalContractStore contract_store;
         if(!get_native_contract_abi(contract_regid.value, abi)){
             get_contract(db_account, db_contract, contract_regid, contract, contract_store );
-            auto ucontract = get<2>(contract_store);
+            auto ucontract = contract_store.contract;
             abi = std::vector<char>(ucontract.abi.begin(), ucontract.abi.end());
         }
 
@@ -478,10 +478,10 @@ Value wasm_bin2json( const Array &params, bool fHelp ) {
 
         std::vector<char>  abi;
         CAccount           contract;
-        UniversalContractStore contract_store;
+        CUniversalContractStore contract_store;
         if(!get_native_contract_abi(contract_regid.value, abi)){
             get_contract(db_account, db_contract, contract_regid, contract, contract_store);
-            auto ucontract = get<2>(contract_store);
+            auto ucontract = contract_store.contract;
             abi = std::vector<char>(ucontract.abi.begin(), ucontract.abi.end());
         }
 
@@ -517,10 +517,10 @@ Value wasm_getcode( const Array &params, bool fHelp ) {
 
 
         CAccount           contract;
-        UniversalContractStore contract_store;
+        CUniversalContractStore contract_store;
         get_contract(db_account, db_contract, contract_regid, contract, contract_store);
 
-        auto ucontract = get<2>(contract_store);
+        auto ucontract = contract_store.contract;
         json_spirit::Object object_return;
         object_return.push_back(Pair("code", wasm::to_hex(ucontract.code,"")));
         return object_return;
@@ -544,10 +544,10 @@ Value wasm_getabi( const Array &params, bool fHelp ) {
 
         vector<char>       abi;
         CAccount           contract;
-        UniversalContractStore contract_store;
+        CUniversalContractStore contract_store;
         if(!get_native_contract_abi(contract_regid.value, abi)){
             get_contract(db_account, db_contract, contract_regid, contract, contract_store);
-            auto ucontract = get<2>(contract_store);
+            auto ucontract = contract_store.contract;
             abi = std::vector<char>(ucontract.abi.begin(), ucontract.abi.end());
         }
 

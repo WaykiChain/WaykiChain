@@ -186,9 +186,9 @@ std::shared_ptr<CBaseTx> genWasmContractCalltx(json_spirit::Value param_json) {
         wasm::regid contract = wasm::regid(str_contract.get_str());
         if(!wasm::get_native_contract_abi(contract.value, abi)){
             CAccount           contract;
-            UniversalContractStore contract_store;
+            CUniversalContractStore contract_store;
             db_contract->GetContract(contract.regid, contract_store);
-            CUniversalContract ucontract = get<2>(contract_store);
+            CUniversalContract ucontract = contract_store.contract;
             abi = std::vector<char>(ucontract.abi.begin(), ucontract.abi.end());
         }
         auto action = wasm::name(str_action.get_str());
