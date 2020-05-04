@@ -56,7 +56,9 @@ struct CDiskTxPos : public CDiskBlockPos {
 
     IMPLEMENT_SERIALIZE(
         READWRITE(*(CDiskBlockPos *)this);
-        READWRITE(VARINT(nTxOffset));)
+        READWRITE(VARINT(nTxOffset));
+        READWRITE(tx_cord);
+    )
 
     CDiskTxPos(const CDiskBlockPos &blockIn, uint32_t nTxOffsetIn, const CTxCord &txCordIn) :
         CDiskBlockPos(blockIn.nFile, blockIn.nPos), nTxOffset(nTxOffsetIn), tx_cord(txCordIn) {

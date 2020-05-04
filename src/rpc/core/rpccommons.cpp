@@ -209,7 +209,7 @@ string RegIDToAddress(CUserID &userId) {
     return "cannot get address from given RegId";
 }
 
-Object GetTxDetailJSON(const CBlockHeader& header,const shared_ptr<CBaseTx> pBaseTx) {
+Object GetTxDetailJSON(const CBlockHeader& header,const shared_ptr<CBaseTx> pBaseTx, const CTxCord &txCord) {
     Object obj;
     auto txid = pBaseTx->GetHash();
     //obj = pBaseTx->IsMultiSignSupport()?pBaseTx->ToJsonMultiSign(*database):pBaseTx->ToJson(*pCdMan->pAccountCache);
@@ -219,6 +219,7 @@ Object GetTxDetailJSON(const CBlockHeader& header,const shared_ptr<CBaseTx> pBas
     obj.push_back(Pair("confirmed_height",  (int32_t)header.GetHeight()));
     obj.push_back(Pair("confirmed_time",    (int32_t)header.GetTime()));
     obj.push_back(Pair("block_hash",        header.GetHash().GetHex()));
+    obj.push_back(Pair("tx_cord", txCord.ToString()));
 
     if (SysCfg().IsGenReceipt()) {
         vector<CReceipt> receipts;
@@ -262,8 +263,7 @@ Object GetTxDetailJSON(const uint256& txid) {
                     file >> header;
                     fseek(file, postx.nTxOffset, SEEK_CUR);
                     file >> pBaseTx;
-                    obj = GetTxDetailJSON(header, pBaseTx);
-                    obj.push_back(Pair("tx_cord", postx.tx_cord.ToString()));
+                    obj = GetTxDetailJSON(header, pBaseTx, postx.tx_cord);
                 } catch (std::exception &e) {
                     throw runtime_error(strprintf("%s : Deserialize or I/O error - %s", __func__, e.what()).c_str());
                 }
@@ -296,6 +296,7 @@ Object GetTxDetailJSON(const uint256& txid) {
                 obj.push_back(Pair("confirmed_height",  chainActive.Height()));
                 obj.push_back(Pair("confirmed_time",    (int32_t)genesisblock.GetTime()));
                 obj.push_back(Pair("block_hash",        genesisblock.GetHash().GetHex()));
+                obj.push_back(Pair("tx_cord", CTxCord(0, i).ToString()));
 
                 CDataStream ds(SER_DISK, CLIENT_VERSION);
                 ds << genesisblock.vptx[i];
@@ -306,7 +307,6 @@ Object GetTxDetailJSON(const uint256& txid) {
                 }
                 obj.push_back(Pair("rawtx", HexStr(ds.begin(), ds.end())));
                 obj.push_back(Pair("confirmations",     chainActive.Height()));
-                obj.push_back(Pair("tx_cord", CTxCord(0, i).ToString()));
 
                 return obj;
             }

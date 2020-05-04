@@ -257,8 +257,8 @@ Value getblock(const Array& params, bool fHelp) {
 
     if(fListTxs) {
         Array arr;
-        for(auto tx: block.vptx) {
-            arr.push_back(GetTxDetailJSON(block, tx));
+        for (size_t i = 0; i < block.vptx.size(); i++) {
+            arr.push_back(GetTxDetailJSON(block, block.vptx[i], CTxCord(block.GetHeight(), i)));
         }
         o.push_back(Pair("tx_details", arr));
     }
