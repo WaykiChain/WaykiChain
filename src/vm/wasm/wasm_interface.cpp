@@ -585,6 +585,11 @@ namespace wasm {
             return copy_len;
         }
 
+
+       uint64_t get_maintainer(const uint64_t& contract) {
+            return pWasmContext->get_maintainer(contract)
+       }
+
         uint32_t get_txid(void *data, uint32_t data_len) {
 
             // TxID txid = pWasmContext->get_txid();
@@ -968,6 +973,7 @@ namespace wasm {
     REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, has_authorization,    has_auth)
     REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, get_active_producers,   get_active_producers)
     REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, get_txid,               get_txid)
+    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, get_maintainer,         get_maintainer)
     REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, get_system_asset_price, get_system_asset_price)
 
     REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, __ashlti3, __ashlti3)

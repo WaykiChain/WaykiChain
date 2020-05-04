@@ -92,6 +92,17 @@ namespace wasm {
         return code;
     }
 
+    int64_t wasm_context::get_maintainer(const uint64_t& contract) {
+
+        CRegID   maintainer;
+        CUniversalContractStore contract_store;
+        auto spContractAcct = control_trx.GetAccount(database, CRegID(contract));
+        if (spContractAcct && database.contractCache.GetContract(spContractAcct->regid, contract_store)) {
+            maintainer = contract_store.maintainer;
+        }
+        return maintainer.GetIntValue();
+    }
+
     void wasm_context::initialize() {
 
         static bool wasm_interface_inited = false;

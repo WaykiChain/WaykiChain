@@ -69,6 +69,7 @@ namespace wasm {
         bool        has_authorization(const uint64_t& account) const;
         uint64_t    pending_block_time() { return control_trx.pending_block_time; }
         string      get_txid()  { return control_trx.GetHash().ToString();}
+        uint64_t    get_maintainer(const uint64_t& contract);
         void        exit    ()  { wasmif.exit(); }
         bool        get_system_asset_price(uint64_t base, uint64_t quote, std::vector<char>& price);
 
