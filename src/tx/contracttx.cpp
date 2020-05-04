@@ -526,7 +526,7 @@ void CUniversalTx::validate_contracts(CTxExecuteContext& context) {
                       "cannot get contract with regid '%s'",
                       contract_name.to_string() )
 
-        CHAIN_ASSERT( contract_store.code.size() > 0 && contract_store.abi.size() > 0,
+        CHAIN_ASSERT( contract_store.contract.code.size() > 0 && contract_store.contract.abi.size() > 0,
                       wasm_chain::account_access_exception,
                       "contract '%s' abi or code  does not exist",
                       contract_name.to_string() )
