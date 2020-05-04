@@ -594,9 +594,6 @@ public:
         }
     }
 
-    bool IsSubscribed(uint32_t nChannel);
-    void Subscribe(uint32_t nChannel, uint32_t nHops = 0);
-    void CancelSubscribe(uint32_t nChannel);
     void CloseSocketDisconnect();
     void Cleanup();
     void SocketSendData();
@@ -614,7 +611,6 @@ public:
     // dangerous, because it can cause a network split
     // between nodes running old code and nodes running
     // new code.
-    static void ClearBanned();  // needed for unit testing
     static bool IsBanned(CNetAddr ip);
     static bool Ban(const CNetAddr& ip);
     void copyStats(CNodeStats& stats);
