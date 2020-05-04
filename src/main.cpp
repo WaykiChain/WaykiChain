@@ -1096,7 +1096,7 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
     std::vector<pair<uint256, CDiskTxPos> > vPos;
     vPos.reserve(block.vptx.size());
 
-    CDiskTxPos pos(pIndex->GetBlockPos(), GetSizeOfCompactSize(block.vptx.size()));
+    CDiskTxPos pos(pIndex->GetBlockPos(), GetSizeOfCompactSize(block.vptx.size()), CTxCord(pIndex->height, 0));
     CDiskTxPos rewardPos = pos;
     pos.nTxOffset += ::GetSerializeSize(block.vptx[0], SER_DISK, CLIENT_VERSION);
 
@@ -1132,6 +1132,7 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
                                  pBaseTx->GetHash().GetHex(), pBaseTx->ToString(cw.accountCache)), REJECT_INVALID, "tx-execute-failed");
             }
 
+            pos.tx_cord = CTxCord(pIndex->height, index);
             vPos.push_back(make_pair(pBaseTx->GetHash(), pos));
 
             totalFuel += pBaseTx->fuel;

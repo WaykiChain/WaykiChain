@@ -8,6 +8,7 @@
 
 #include "commons/util/util.h"
 #include "commons/serialize.h"
+#include "entities/id.h"
 
 struct CDiskBlockPos {
     int32_t nFile;
@@ -51,13 +52,14 @@ struct CDiskBlockPos {
 
 struct CDiskTxPos : public CDiskBlockPos {
     uint32_t nTxOffset;  // after header
+    CTxCord  tx_cord;
 
     IMPLEMENT_SERIALIZE(
         READWRITE(*(CDiskBlockPos *)this);
         READWRITE(VARINT(nTxOffset));)
 
-    CDiskTxPos(const CDiskBlockPos &blockIn, uint32_t nTxOffsetIn) :
-        CDiskBlockPos(blockIn.nFile, blockIn.nPos), nTxOffset(nTxOffsetIn) {
+    CDiskTxPos(const CDiskBlockPos &blockIn, uint32_t nTxOffsetIn, const CTxCord &txCordIn) :
+        CDiskBlockPos(blockIn.nFile, blockIn.nPos), nTxOffset(nTxOffsetIn), tx_cord(txCordIn) {
     }
 
     CDiskTxPos() {
