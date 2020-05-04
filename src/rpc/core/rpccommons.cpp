@@ -263,6 +263,7 @@ Object GetTxDetailJSON(const uint256& txid) {
                     fseek(file, postx.nTxOffset, SEEK_CUR);
                     file >> pBaseTx;
                     obj = GetTxDetailJSON(header, pBaseTx);
+                    obj.push_back(Pair("tx_cord", postx.tx_cord.ToString()));
                 } catch (std::exception &e) {
                     throw runtime_error(strprintf("%s : Deserialize or I/O error - %s", __func__, e.what()).c_str());
                 }
@@ -305,6 +306,7 @@ Object GetTxDetailJSON(const uint256& txid) {
                 }
                 obj.push_back(Pair("rawtx", HexStr(ds.begin(), ds.end())));
                 obj.push_back(Pair("confirmations",     chainActive.Height()));
+                obj.push_back(Pair("tx_cord", CTxCord(0, i).ToString()));
 
                 return obj;
             }
