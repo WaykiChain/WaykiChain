@@ -132,10 +132,9 @@ void get_contract( CAccountDBCache*    db_account,
                   "cannot get contract '%s'",
                   contract_regid.to_string())
 
-    auto ucontract = contract_store.contract;
-    CHAIN_ASSERT( ucontract.vm_type == VMType::WASM_VM,
+    CHAIN_ASSERT( contract_store.vm_type == VMType::WASM_VM,
                   wasm_chain::vm_type_mismatch, "vm type must be wasm VM")
-    CHAIN_ASSERT( ucontract.abi.size() > 0,
+    CHAIN_ASSERT( contract_store.abi.size() > 0,
                   wasm_chain::abi_not_found_exception, "contract abi not found")
     //JSON_RPC_ASSERT(ucontract.code.size() > 0,                                 RPC_WALLET_ERROR,  "contract lose code")
 }
@@ -308,8 +307,7 @@ Value submittx( const Array &params, bool fHelp ) {
             CAccount           contract;
             CUniversalContractStore contract_store;
             get_contract(db_account, db_contract, contract_regid, contract, contract_store);
-            auto ucontract = contract_store.contract;
-            abi = std::vector<char>(ucontract.abi.begin(), ucontract.abi.end());
+            abi = std::vector<char>(contract_store.abi.begin(), contract_store.abi.end());
         }
 
         CHAIN_ASSERT( wallet != NULL, wasm_chain::wallet_not_available_exception, "wallet error" )
@@ -382,8 +380,7 @@ Value wasm_gettable( const Array &params, bool fHelp ) {
         CAccount contract;
         CUniversalContractStore contract_store;
         get_contract(db_account, db_contract, contract_regid, contract, contract_store);
-        auto ucontract = contract_store.contract;
-        std::vector<char> abi = std::vector<char>(ucontract.abi.begin(), ucontract.abi.end());
+        std::vector<char> abi = std::vector<char>(contract_store.abi.begin(), contract_store.abi.end());
 
         uint64_t numbers = default_query_rows;
         if (params.size() > 2) numbers = std::atoi(params[2].get_str().data());
@@ -445,8 +442,7 @@ Value wasm_json2bin( const Array &params, bool fHelp ) {
         CUniversalContractStore contract_store;
         if(!get_native_contract_abi(contract_regid.value, abi)){
             get_contract(db_account, db_contract, contract_regid, contract, contract_store );
-            auto ucontract = contract_store.contract;
-            abi = std::vector<char>(ucontract.abi.begin(), ucontract.abi.end());
+            abi = std::vector<char>(contract_store.abi.begin(), contract_store.abi.end());
         }
 
         string arguments = params[2].get_str();
@@ -481,8 +477,7 @@ Value wasm_bin2json( const Array &params, bool fHelp ) {
         CUniversalContractStore contract_store;
         if(!get_native_contract_abi(contract_regid.value, abi)){
             get_contract(db_account, db_contract, contract_regid, contract, contract_store);
-            auto ucontract = contract_store.contract;
-            abi = std::vector<char>(ucontract.abi.begin(), ucontract.abi.end());
+            abi = std::vector<char>(contract_store.abi.begin(), contract_store.abi.end());
         }
 
         string arguments = from_hex(params[2].get_str());
@@ -520,9 +515,8 @@ Value wasm_getcode( const Array &params, bool fHelp ) {
         CUniversalContractStore contract_store;
         get_contract(db_account, db_contract, contract_regid, contract, contract_store);
 
-        auto ucontract = contract_store.contract;
         json_spirit::Object object_return;
-        object_return.push_back(Pair("code", wasm::to_hex(ucontract.code,"")));
+        object_return.push_back(Pair("code", wasm::to_hex(contract_store.code, "")));
         return object_return;
 
     } JSON_RPC_CAPTURE_AND_RETHROW;
@@ -547,8 +541,7 @@ Value wasm_getabi( const Array &params, bool fHelp ) {
         CUniversalContractStore contract_store;
         if(!get_native_contract_abi(contract_regid.value, abi)){
             get_contract(db_account, db_contract, contract_regid, contract, contract_store);
-            auto ucontract = contract_store.contract;
-            abi = std::vector<char>(ucontract.abi.begin(), ucontract.abi.end());
+            abi = std::vector<char>(contract_store.abi.begin(), contract_store.abi.end());
         }
 
         json_spirit::Object object_return;

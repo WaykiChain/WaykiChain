@@ -36,7 +36,7 @@ public:
     uint64_t transfer_amount       = 0;  // amount of tx user transfer to contract account
     shared_ptr<CAccount> sp_tx_account    = nullptr;
     shared_ptr<CAccount> sp_app_account        = nullptr;
-    CUniversalContract* p_contract = nullptr;
+    CUniversalContractStore* p_contract = nullptr;
     string* p_arguments            = nullptr;
 };
 

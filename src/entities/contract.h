@@ -130,4 +130,45 @@ public:
     }
 };
 
+class CUniversalContractStore  {
+public:
+    VMType vm_type;
+    CRegID maintainer;
+    bool upgradable;    //!< if true, the contract can be upgraded otherwise cannot anyhow.
+    string code;        //!< Contract code
+    string memo;        //!< Contract description
+    string abi;         //!< ABI for contract invocation
+
+public:
+    inline uint32_t GetContractSize() const { return GetSerializeSize(SER_DISK, CLIENT_VERSION); }
+
+    bool IsEmpty() const { return vm_type == VMType::NULL_VM && maintainer.IsEmpty() && code.empty() && memo.empty() && abi.empty(); }
+
+    void SetEmpty() {
+        vm_type = VMType::NULL_VM;
+        maintainer.SetEmpty();
+        code.clear();
+        memo.clear();
+        abi.clear();
+    }
+
+    IMPLEMENT_SERIALIZE(
+        READWRITE((uint8_t &) vm_type);
+        READWRITE(maintainer);
+        READWRITE(upgradable);
+        READWRITE(code);
+        READWRITE(memo);
+        READWRITE(abi);
+    )
+
+    string ToString() const {
+        return  strprintf("vm_type=%d", vm_type) + ", " +
+                strprintf("maintainer=%d", maintainer.ToString()) + ", " +
+                strprintf("upgradable=%d", upgradable) + ", " +
+                strprintf("code=%s", code) + ", " +
+                strprintf("memo=%s", memo) + ", " +
+                strprintf("abi=%d", abi);
+    }
+};
+
 #endif  // ENTITIES_CONTRACT_H

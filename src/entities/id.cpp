@@ -22,8 +22,7 @@ CRegID::CRegID(const uint32_t heightIn, const uint16_t indexIn) {
     index  = indexIn;
 }
 CRegID::CRegID(const uint64_t& regIdIntValue) {
-    height = regIdIntValue >> 20;
-    index  = regIdIntValue & 0xFFFFF;
+    Set(regIdIntValue);
 }
 
 bool IsDigitalString(const string str){
@@ -70,6 +69,11 @@ bool CRegID::SetRegID(const vector<uint8_t> &vIn) {
     ds >> height;
     ds >> index;
     return true;
+}
+
+void CRegID::Set(uint64_t regIdIntValue) {
+    height = regIdIntValue >> 20;
+    index  = regIdIntValue & 0xFFFFF;
 }
 
 bool CRegID::GetKeyId(const string &str, CKeyID &keyId) {

@@ -97,8 +97,14 @@ bool CLuaContractDeployTx::ExecuteTx(CTxExecuteContext &context) {
     assert(spContractAccount->regid  == contractRegId);
 
     // save new script content
-    auto contractStore = std::make_tuple(VMType::LUA_VM, CRegIDKey(sp_tx_account->regid),
-                                    CUniversalContract(contract.code, contract.memo));
+    CUniversalContractStore contractStore = {
+        VMType::LUA_VM,
+        sp_tx_account->regid,   // maintainer
+        false,
+        contract.code,
+        contract.memo,
+        ""                      // abi
+    };
 
     if (!cw.contractCache.SaveContract(contractRegId, contractStore))
         return state.DoS(100, ERRORMSG("save code for contract id %s error",
@@ -179,8 +185,6 @@ bool CLuaContractInvokeTx::ExecuteTx(CTxExecuteContext &context) {
         return state.DoS(100, ERRORMSG("read script failed, regId=%s",
                         app_uid.get<CRegID>().ToString()), READ_ACCOUNT_FAIL, "bad-read-script");
 
-    auto contract = contractStore.contract;
-
     CLuaVMRunEnv vmRunEnv;
     CLuaVMContext luaContext;
 
@@ -194,7 +198,7 @@ bool CLuaContractInvokeTx::ExecuteTx(CTxExecuteContext &context) {
     luaContext.transfer_amount   = coin_amount;
     luaContext.sp_tx_account     = sp_tx_account;
     luaContext.sp_app_account    = spAppAccount;
-    luaContext.p_contract        = &contract;
+    luaContext.p_contract        = &contractStore;
     luaContext.p_arguments       = &arguments;
 
     int64_t llTime = GetTimeMillis();
@@ -278,7 +282,14 @@ bool CUniversalContractDeployTx::ExecuteTx(CTxExecuteContext &context) {
     assert(spContractAccount->regid  == contractRegId);
 
     // save new script content
-    auto contractStore = std::make_tuple(contract.vm_type, CRegIDKey(sp_tx_account->regid), contract);
+    CUniversalContractStore contractStore = {
+        contract.vm_type,
+        sp_tx_account->regid,   // maintainer
+        contract.upgradable,
+        contract.code,
+        contract.memo,
+        contract.abi           // abi
+    };
     if (!cw.contractCache.SaveContract(contractRegId, contractStore))
         return state.DoS(100, ERRORMSG("save code for contract id %s error",
                         contractRegId.ToString()), UPDATE_ACCOUNT_FAIL, "bad-save-scriptdb");
@@ -383,8 +394,6 @@ bool CUniversalContractInvokeTx::ExecuteTx(CTxExecuteContext &context) {
         return state.DoS(100, ERRORMSG("read contract failed, regId=%s", app_uid.get<CRegID>().ToString()),
                         READ_ACCOUNT_FAIL, "bad-read-contract");
 
-    auto contract = contractStore.contract;
-
     CLuaVMRunEnv vmRunEnv;
     CLuaVMContext luaContext;
 
@@ -398,7 +407,7 @@ bool CUniversalContractInvokeTx::ExecuteTx(CTxExecuteContext &context) {
     luaContext.transfer_amount   = coin_amount;
     luaContext.sp_tx_account     = sp_tx_account;
     luaContext.sp_app_account    = spAppAccount;
-    luaContext.p_contract        = &contract;
+    luaContext.p_contract        = &contractStore;
     luaContext.p_arguments       = &arguments;
 
     int64_t llTime = GetTimeMillis();
@@ -517,8 +526,7 @@ void CUniversalTx::validate_contracts(CTxExecuteContext& context) {
                       "cannot get contract with regid '%s'",
                       contract_name.to_string() )
 
-        auto contract = contract_store.contract;
-        CHAIN_ASSERT( contract.code.size() > 0 && contract.abi.size() > 0,
+        CHAIN_ASSERT( contract_store.code.size() > 0 && contract_store.abi.size() > 0,
                       wasm_chain::account_access_exception,
                       "contract '%s' abi or code  does not exist",
                       contract_name.to_string() )

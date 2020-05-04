@@ -713,7 +713,7 @@ Value listcontracts(const Array& params, bool fHelp) {
     for (dbIt->First(); dbIt->IsValid(); dbIt->Next()) {
         Object contractObject;
         const auto &regidKey = dbIt->GetKey();
-        const CUniversalContract &contract = get<2>(dbIt->GetValue());
+        const CUniversalContractStore &contract = dbIt->GetValue();
         contractObject.push_back(Pair("contract_regid", regidKey.ToString()));
         contractObject.push_back(Pair("memo",           contract.memo));
 
@@ -754,15 +754,14 @@ Value getcontractinfo(const Array& params, bool fHelp) {
     if (!pCdMan->pContractCache->GetContract(regid, contractStore)) {
         throw JSONRPCError(RPC_DATABASE_ERROR, "Failed to acquire contract from db.");
     }
-    auto contract = contractStore.contract;
 
     Object obj;
     obj.push_back(Pair("contract_regid",    regid.ToString()));
-    obj.push_back(Pair("vm_type",           contract.vm_type));
-    obj.push_back(Pair("upgradable",        contract.upgradable));
-    obj.push_back(Pair("code",              HexStr(contract.code)));
-    obj.push_back(Pair("memo",              contract.memo));
-    obj.push_back(Pair("abi",               contract.abi));
+    obj.push_back(Pair("vm_type",           contractStore.vm_type));
+    obj.push_back(Pair("upgradable",        contractStore.upgradable));
+    obj.push_back(Pair("code",              HexStr(contractStore.code)));
+    obj.push_back(Pair("memo",              contractStore.memo));
+    obj.push_back(Pair("abi",               contractStore.abi));
 
     return obj;
 }
