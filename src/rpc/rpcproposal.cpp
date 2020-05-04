@@ -111,7 +111,7 @@ Value submitparamgovernproposal(const Array& params, bool fHelp){
                 "\nArguments:\n"
                 "1.\"addr\":             (string,     required) the tx submitor's address\n"
                 "2.\"param_name\":       (string,     required) the name of param, the param list can be found in document \n"
-                "3.\"param_value\":      (numberic,   required) the param value that will be updated to \n"
+                "3.\"param_value\":      (string,   required) the param value that will be updated to \n"
                 "4.\"fee\":              (combomoney, optional) the tx fee \n"
                 "\nExamples:\n"
                 + HelpExampleCli("submitparamgovernproposal", "0-1 ASSET_ISSUE_FEE  10000 WICC:1:WI")
@@ -127,7 +127,16 @@ Value submitparamgovernproposal(const Array& params, bool fHelp){
 
     const CUserID& txUid = RPC_PARAM::GetUserId(params[0], true);
     string paramName = params[1].get_str();
-    uint64_t paramValue = RPC_PARAM::GetUint64(params[2]);
+    string paramValueStr = params[2].get_str();
+    uint64_t paramValue;
+    if(paramName == "AXC_SWAP_GATEWAY_REGID" || paramName == "DEX_MATCH_SVC_REGID") {
+        paramValue = CRegID(paramValueStr).GetIntValue();
+    } else {
+        int64_t iValue = std::atoll(paramValueStr.c_str());
+        if(iValue < 0)
+            throw JSONRPCError(RPC_INVALID_PARAMETER, "the param value must >= 0");
+        paramValue = (uint64_t)iValue;
+    }
     ComboMoney fee          = RPC_PARAM::GetFee(params, 3, PROPOSAL_REQUEST_TX);
     int32_t validHeight  = chainActive.Height();
     CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, txUid);
