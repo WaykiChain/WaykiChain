@@ -92,7 +92,7 @@ namespace wasm {
         return code;
     }
 
-    int64_t wasm_context::get_maintainer(const uint64_t& contract) {
+    uint64_t wasm_context::get_maintainer(const uint64_t& contract) {
 
         CRegID   maintainer;
         CUniversalContractStore contract_store;
