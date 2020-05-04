@@ -62,3 +62,4 @@ src/m4/ltversion.m4
 CMakeLists.txt
 cmake-build-debug
 .idea
+src/external/softfloat

@@ -72,8 +72,7 @@ struct CDiskTxPos : public CDiskBlockPos {
     void SetEmpty() { SetNull(); }
 
     string ToString() const {
-        return  CDiskBlockPos::ToString() + ", " +
-                strprintf("tx_offset=%d", nTxOffset);
+        return strprintf("%s, tx_offset=%d", CDiskBlockPos::ToString(), nTxOffset);
     }
 };
 
