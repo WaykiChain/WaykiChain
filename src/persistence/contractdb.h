@@ -32,18 +32,6 @@ struct CDiskTxPos;
 
 typedef dbk::CDBTailKey<MAX_CONTRACT_KEY_SIZE> CDBContractKey;
 
-struct CUniversalContractStore {
-    VMType vm_type;
-    CRegID maintainer;
-    CUniversalContract contract;
-
-    IMPLEMENT_SERIALIZE(
-        READWRITE((uint8_t&) vm_type);
-        READWRITE(maintainer);
-        READWRITE(contract);
-    )
-};
-
 /*  CCompositeKVCache     prefixType                       key                       value         variable           */
 /*  -------------------- --------------------         ----------------------------  ---------   --------------------- */
     // pair<contractRegId, contractKey> -> contractData

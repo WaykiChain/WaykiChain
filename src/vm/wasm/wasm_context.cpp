@@ -85,8 +85,7 @@ namespace wasm {
         CUniversalContractStore contract_store;
         auto spContractAcct = control_trx.GetAccount(database, CRegID(account));
         if (spContractAcct && database.contractCache.GetContract(spContractAcct->regid, contract_store)) {
-            auto contract = contract_store.contract;
-            code = vector <uint8_t>(contract.code.begin(), contract.code.end());
+            code = vector <uint8_t>(contract_store.code.begin(), contract_store.code.end());
         }
 
         return code;

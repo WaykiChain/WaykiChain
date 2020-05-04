@@ -101,17 +101,17 @@ namespace wasm {
 		        auto memo           			= std::get<5>(set_code_data);
 
 				CUniversalContractStore contractStore;
-				CUniversalContract contract;
 				uint64_t maintainer = maintainer_regid.value;
 
 				if (contract_regid.value == 0) {  //first-time deployment
 					contract_regid = wasm::regid(context.trx_cord.GetIntValue());
-					CHAIN_ASSERT( !db_contract.GetContract(CRegID(contract_regid.value), contractStore),
+					CHAIN_ASSERT( !db_contract.HasContract(CRegID(contract_regid.value)),
 				 			  	wasm_chain::account_access_exception,
 		                      	"contract '%s' exists error",
 		                      	wasm::regid(contract_regid).to_string());
 
-					contract.vm_type = (VMType) vm_type;
+					contractStore.vm_type = (VMType) vm_type;
+					contractStore.upgradable = true;
 				} else {					//upgrade contract
 					CHAIN_ASSERT( db_contract.GetContract(CRegID(contract_regid.value), contractStore),
 				 			  	wasm_chain::account_access_exception,
@@ -128,12 +128,11 @@ namespace wasm {
 					context.require_auth(currMaintainer);
 				}
 
-				contract.code 	 				= code;
-				contract.abi  	 				= abi;
-				contract.memo 	 				= memo;
+    			contractStore.maintainer 			= maintainer;
+				contractStore.code 	 				= code;
+				contractStore.abi  	 				= abi;
+				contractStore.memo 	 				= memo;
 
-    			contractStore.maintainer 		= maintainer;
-				contractStore.contract 			= contract;
 		        CHAIN_ASSERT( db_contract.SaveContract(CRegID(contract_regid.value), contractStore),
 		                      wasm_chain::account_access_exception,
 		                      "save contract '%s' error",
@@ -168,7 +167,7 @@ namespace wasm {
 				context.require_auth(currMaintainer);
 
 				//set new maintainer
-				contractStore.maintainer = maintainer_regid;
+				contractStore.maintainer.Set(maintainer_regid.value);
 		        CHAIN_ASSERT( db_contract.SaveContract(CRegID(contract_regid.value), contractStore),
 		                      wasm_chain::native_contract_assert_exception,
 		                      "save contract '%s' error",
