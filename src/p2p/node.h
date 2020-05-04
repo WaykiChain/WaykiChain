@@ -614,7 +614,7 @@ public:
     static bool IsBanned(CNetAddr ip);
     static bool Ban(const CNetAddr& ip);
     void copyStats(CNodeStats& stats);
-
+    static void ClearBanned();  // needed for unit testing
     // Network stats
     static void RecordBytesRecv(uint64_t bytes);
     static void RecordBytesSent(uint64_t bytes);
