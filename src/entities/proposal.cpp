@@ -749,7 +749,7 @@ bool CGovAssetIssueProposal::CheckProposal(CTxExecuteContext& context, CBaseTx& 
     auto spOwnerAccount = tx.GetAccount(context, owner_uid, "owner");
     if (!spOwnerAccount) return false;
 
-    if (!cw.assetCache.HasAsset(asset_symbol))
+    if (cw.assetCache.HasAsset(asset_symbol))
         return state.DoS(100, ERRORMSG("CGovAssetIssueProposal::CheckProposal, asset_symbol is exist"), REJECT_INVALID,
                          "asset-exist");
 
