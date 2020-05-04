@@ -43,12 +43,19 @@ bool CGovSysParamProposal::ExecuteProposal(CTxExecuteContext& context, CBaseTx& 
     CCacheWrapper &cw = *context.pCw;
 
     for( auto pa: param_values){
-        auto itr = SysParamTable.find(SysParamType(pa.first));
+        auto paramType = SysParamType(pa.first);
+        auto itr = SysParamTable.find(paramType);
         if (itr == SysParamTable.end())
             return false;
 
-        if (!cw.sysParamCache.SetParam(SysParamType(pa.first), pa.second))
+        if (!cw.sysParamCache.SetParam(paramType, pa.second))
             return false;
+
+        if (paramType == SysParamType::BP_DELEGATE_VOTE_MIN &&
+                !cw.delegateCache.SetLastVoteHeight(context.height)) {
+            return false;
+        }
+
     }
 
     return true;
