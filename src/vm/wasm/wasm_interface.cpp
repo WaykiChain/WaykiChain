@@ -587,7 +587,7 @@ namespace wasm {
 
 
        uint64_t get_maintainer(const uint64_t& contract) {
-            return pWasmContext->get_maintainer(contract)
+            return pWasmContext->get_maintainer(contract);
        }
 
         uint32_t get_txid(void *data, uint32_t data_len) {
