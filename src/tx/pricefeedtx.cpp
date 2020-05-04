@@ -76,7 +76,7 @@ bool CPriceFeedTx::ExecuteTx(CTxExecuteContext &context) {
     }
 
     CAccountToken accountToken = sp_tx_account->GetToken(SYMB::WICC);
-    if (accountToken.staked_amount < stakedAmountMin * COIN) // must stake enough bcoins to be a price feeder
+    if (accountToken.staked_amount < stakedAmountMin) // must stake enough bcoins to be a price feeder
         return state.DoS(100, ERRORMSG("Staked Bcoins insufficient(%llu vs %llu) by txUid %s account error",
                         accountToken.voted_amount, stakedAmountMin, txUid.ToString()),
                         PRICE_FEED_FAIL, "account-staked-boins-insufficient");

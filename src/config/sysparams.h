@@ -69,7 +69,7 @@ struct SysParamTypeHash {
 
 static const unordered_map<SysParamType, std::tuple< uint64_t,string >, SysParamTypeHash> SysParamTable = {
     { MEDIAN_PRICE_SLIDE_WINDOW_BLOCKCOUNT,     make_tuple( 11,         "MEDIAN_PRICE_SLIDE_WINDOW_BLOCKCOUNT")    },
-    { PRICE_FEED_BCOIN_STAKE_AMOUNT_MIN,        make_tuple( 210000,     "PRICE_FEED_BCOIN_STAKE_AMOUNT_MIN")       },  // 1%: min 210K bcoins staked to be a price feeder for miner
+    { PRICE_FEED_BCOIN_STAKE_AMOUNT_MIN,        make_tuple( 210000 * COIN, "PRICE_FEED_BCOIN_STAKE_AMOUNT_MIN")       },  // 1%: min 210K bcoins staked to be a price feeder for miner
     { PRICE_FEED_CONTINUOUS_DEVIATE_TIMES_MAX,  make_tuple( 10,         "PRICE_FEED_CONTINUOUS_DEVIATE_TIMES_MAX") },  // after 10 times continuous deviate limit penetration all deposit be deducted
     // { PRICE_FEED_DEVIATE_RATIO_MAX,             make_tuple( 3000,         "PRICE_FEED_DEVIATE_RATIO_MAX")            },  // must be < 30% * 10000, otherwise penalized
     // { PRICE_FEED_DEVIATE_PENALTY,               make_tuple( 1000,         "PRICE_FEED_DEVIATE_PENALTY")              },  // deduct 1000 staked bcoins as penalty
@@ -84,7 +84,7 @@ static const unordered_map<SysParamType, std::tuple< uint64_t,string >, SysParam
     { ASSET_RISK_FEE_RATIO,                     make_tuple( 4000,        "ASSET_RISK_FEE_RATIO")                    },
     { DEX_OPERATOR_RISK_FEE_RATIO,              make_tuple( 4000,        "DEX_OPERATOR_RISK_FEE_RATIO")             },
     { AXC_SWAP_FEE_RATIO,                       make_tuple( 20,          "AXC_SWAP_FEE_RATIO")                      },  // 0.2%, boosted by 10000
-    { BP_DELEGATE_VOTE_MIN,                     make_tuple( 21000,       "BP_DELEGATE_VOTE_MIN")                    },  // 21000 sawi, the min votes of delegate to be bp
+    { BP_DELEGATE_VOTE_MIN,                     make_tuple( 21000* COIN, "BP_DELEGATE_VOTE_MIN")                    },  // 21000 wi, the min votes of delegate to be bp
     { AXC_SWAP_GATEWAY_REGID,                   make_tuple( 8,           "AXC_SWAP_GATEWAY_REGID")                  },
     { DEX_MATCH_SVC_REGID,                      make_tuple( 0,           "DEX_MATCH_SVC_REGID")                     }
 };
