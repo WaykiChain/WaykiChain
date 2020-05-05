@@ -20,17 +20,17 @@ using namespace std;
 
 #define RANGE(MIN,MAX) make_pair(MIN, MAX)
 
-static const uint32_t PRICE_BOOST          = 100000000;
-static const uint32_t CDP_BASE_RATIO_BOOST = 100000000;
+static const uint64_t PRICE_BOOST          = 100000000;
+static const uint64_t CDP_BASE_RATIO_BOOST = 100000000;
 
 static const uint64_t FUND_COIN_GENESIS_TOTAL_RELEASE_AMOUNT   = 20160000000;  // 96% * 21 billion
-static const uint32_t FUND_COIN_GENESIS_INITIAL_RESERVE_AMOUNT = 1000000;      // 1 m WUSD
+static const uint64_t FUND_COIN_GENESIS_INITIAL_RESERVE_AMOUNT = 1000000;      // 1 m WUSD
 
 static const uint64_t FCOIN_VOTEMINE_EPOCH_FROM = 1665886560;  // Sun Oct 16 2022 10:16:00 GMT+0800
 static const uint64_t FCOIN_VOTEMINE_EPOCH_TO   = 1792116960;  // Fri Oct 16 2026 10:16:00 GMT+0800
 
-static const uint32_t CDP_FORCE_LIQUIDATE_MAX_COUNT = 1000;  // depends on TPS
-static const uint32_t CDP_SETTLE_INTEREST_MAX_COUNT = 100;
+static const uint64_t CDP_FORCE_LIQUIDATE_MAX_COUNT = 1000;  // depends on TPS
+static const uint64_t CDP_SETTLE_INTEREST_MAX_COUNT = 100;
 
 static const uint64_t CDP_SYSORDER_PENALTY_FEE_MIN = 10;
 
@@ -42,7 +42,7 @@ static const uint64_t MIN_DEX_ORDER_AMOUNT  = 0.1 * COIN;  // min amount of dex 
 static const uint64_t MAX_SETTLE_ITEM_COUNT = 10000;       // max count of dex settle item limit.
 
 
-static const uint64_t DEX_OPERATOR_FEE_RATIO_MAX = 50 * PRICE_BOOST;
+static const uint64_t DEX_OPERATOR_FEE_RATIO_MAX = 0.5 * PRICE_BOOST; // 50%
 static const uint64_t DEX_PRICE_MAX = 1000000 * PRICE_BOOST;
 static const uint64_t MIN_STAKED_WICC_FOR_STEP_FEE = 1000;
 
