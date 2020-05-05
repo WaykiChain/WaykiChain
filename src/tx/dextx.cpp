@@ -862,7 +862,7 @@ namespace dex {
 
         // 12.2. transfer deal asset fee from buyer to buy operator
         if (!spBuyOrderAccount->OperateBalance(buyOrder.asset_symbol, SUB_FREE, dealAssetFee,
-                                              ReceiptType::DEX_OPERATOR_REG_UPDATE_FEE_FROM_OPERATOR, receipts,
+                                              ReceiptType::DEX_ASSET_FEE_TO_OPERATOR, receipts,
                                               spBuyOpAccount.get())) {
             return state.DoS(100, ERRORMSG("%s, transfer deal asset fee from buyer to buy operator failed!"
                 " deal_info={%s}, asset_symbol=%s, asset_fee=%llu, buy_match_regid=%s",
