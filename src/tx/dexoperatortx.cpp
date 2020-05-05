@@ -35,7 +35,7 @@ static bool ProcessDexOperatorFee(CBaseTx &tx, CTxExecuteContext& context, const
     }
 
     if (!tx.sp_tx_account->OperateBalance(SYMB::WICC, BalanceOpType::SUB_FREE, exchangeFee,
-                                ReceiptType::DEX_OPERATOR_REG_FEE_FROM_OPERATOR, tx.receipts))
+                                ReceiptType::DEX_OPERATOR_REG_UPDATE_FEE_FROM_OPERATOR, tx.receipts))
         return state.DoS(100, ERRORMSG("tx account insufficient funds for operator %s fee! fee=%llu, tx_addr=%s",
                         action, exchangeFee, tx.sp_tx_account->keyid.ToAddress()),
                         UPDATE_ACCOUNT_FAIL, "insufficent-funds");
