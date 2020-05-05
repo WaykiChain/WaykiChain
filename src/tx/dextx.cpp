@@ -1014,11 +1014,7 @@ namespace dex {
                 takerSide = OrderSide::ORDER_SELL;
             }
         } else { // buyOrder.order_type == sellOrder.order_type
-            if (buyOrder.tx_cord < sellOrder.tx_cord) {
-                takerSide = OrderSide::ORDER_BUY;
-            } else {
-                takerSide = OrderSide::ORDER_SELL;
-            }
+            takerSide = (buyOrder.tx_cord < sellOrder.tx_cord) ? OrderSide::ORDER_SELL : OrderSide::ORDER_BUY;
         }
         return takerSide;
     }
