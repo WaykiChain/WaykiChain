@@ -36,7 +36,7 @@ static bool ProcessAssetFee(CBaseTx &tx, CTxExecuteContext &context, const strin
     uint64_t assetFee = 0;
     if (action == ASSET_ACTION_ISSUE) {
         if (!cw.sysParamCache.GetParam(ASSET_ISSUE_FEE, assetFee))
-            return state.DoS(100, ERRORMSG("ProcessAssetFee, read param ASSET_ACTION_ISSUE error"),
+            return state.DoS(100, ERRORMSG("ProcessAssetFee, read param ASSET_ISSUE_FEE error"),
                             REJECT_INVALID, "read-sysparam-error");
     } else {
         assert(action == ASSET_ACTION_UPDATE);

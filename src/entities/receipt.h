@@ -72,6 +72,7 @@ static CUserID nullId;
     DEFINE(DEX_OPERATOR_UPDATED_FEE_TO_RESERVE, 521, "dex operator updated fee to risk reserve") \
     DEFINE(DEX_OPERATOR_REG_FEE_TO_MINER,       522, "dex operator registered fee to miner") \
     DEFINE(DEX_OPERATOR_UPDATED_FEE_TO_MINER,   523, "dex operator updated fee to miner") \
+    DEFINE(DEX_OPERATOR_REG_UPDATE_FEE_FROM_OPERATOR,  524, "dex operator registered/updated fee from operator") \
     /**** contract */ \
     DEFINE(CONTRACT_FUEL_TO_RISK_RESERVE,       601, "contract fuel to risk reserve") \
     DEFINE(CONTRACT_TOKEN_OPERATE_ADD,          602, "add operate on contract-managed tokens") \
