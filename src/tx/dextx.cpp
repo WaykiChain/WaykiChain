@@ -1049,8 +1049,8 @@ namespace dex {
 
     bool CDealItemExecuter::CalcWusdFrictionFee(uint64_t amount, uint64_t &frictionFee) {
             uint64_t frictionFeeRatio;
-            if (!context.pCw->sysParamCache.GetParam(TRANSFER_SCOIN_FRICTION_FEE_RATIO, frictionFeeRatio))
-                return context.pState->DoS(100, ERRORMSG("%s, read TRANSFER_SCOIN_FRICTION_FEE_RATIO error", DEAL_ITEM_TITLE),
+            if (!context.pCw->sysParamCache.GetParam(DEX_SCOIN_FRICTION_FEE_RATIO, frictionFeeRatio))
+                return context.pState->DoS(100, ERRORMSG("%s, read DEX_SCOIN_FRICTION_FEE_RATIO error", DEAL_ITEM_TITLE),
                                 READ_SYS_PARAM_FAIL, "bad-read-sysparamdb");
         if (!CalcAmountByRatio(amount, frictionFeeRatio, RATIO_BOOST, frictionFee))
             return context.pState->DoS(100, ERRORMSG("%s, the calc_friction_fee overflow! amount=%llu, "
