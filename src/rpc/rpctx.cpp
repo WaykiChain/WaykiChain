@@ -321,10 +321,10 @@ Value submitdelegatevotetx(const Array& params, bool fHelp) {
 Value submitucontractdeploytx(const Array& params, bool fHelp) {
     if (fHelp || params.size() < 3 || params.size() > 5) {
         throw runtime_error(
-            "submitucontractdeploytx \"addr\" \"filepath\" \"symbol:fee:unit\" [\"height\"] [\"contract_memo\"]\n"
+            "submitucontractdeploytx \"sender\" \"filepath\" \"symbol:fee:unit\" [\"height\"] [\"contract_memo\"]\n"
             "\ncreate a transaction of registering a universal contract\n"
             "\nArguments:\n"
-            "1.\"addr\":            (string, required) contract owner address from this wallet\n"
+            "1.\"sender\":          (string, required) contract owner address from this wallet\n"
             "2.\"filepath\":        (string, required) the file path of the app script\n"
             "3.\"symbol:fee:unit\": (symbol:amount:unit, required) fee paid to miner, default is WICC:100000000:sawi\n"
             "4.\"height\":          (numeric, optional) valid height, when not specified, the tip block height in "
@@ -815,10 +815,10 @@ Value reloadtxcache(const Array& params, bool fHelp) {
 Value getcontractdata(const Array& params, bool fHelp) {
     if (fHelp || (params.size() != 2 && params.size() != 3)) {
         throw runtime_error(
-            "getcontractdata \"contract regid\" \"key\" [hexadecimal]\n"
+            "getcontractdata \"contract_regid\" \"key\" [hexadecimal]\n"
             "\nget contract data with key\n"
             "\nArguments:\n"
-            "1.\"contract regid\":      (string, required) contract regid\n"
+            "1.\"contract_regid\":      (string, required) contract regid\n"
             "2.\"key\":                 (string, required)\n"
             "3.\"hexadecimal format\":  (boolean, optional) in hexadecimal if true, otherwise in plaintext, default to "
             "false\n"
@@ -1021,7 +1021,7 @@ Value signtxraw(const Array& params, bool fHelp) {
             "\nsignature transaction\n"
             "\nArguments:\n"
             "1.\"str\": (string, required) Hex-format string, no longer than 65K in binary bytes\n"
-            "2.\"addr\": (string, required) A json array of WICC addresses\n"
+            "2.\"sginaturor_addr\": (string, required) A json array of WICC addresses\n"
             "[\n"
             "  \"address\"  (string) WICC address\n"
             "  ...,\n"
@@ -1125,7 +1125,7 @@ Value decodetxraw(const Array& params, bool fHelp) {
             "decodetxraw \"hexstring\"\n"
             "\ndecode transaction\n"
             "\nArguments:\n"
-            "1.\"str\": (string, required) hexstring\n"
+            "1.\"rawtx\": (string, required) hexstring\n"
             "\nExamples:\n" +
             HelpExampleCli("decodetxraw",
                            "\"03015f020001025a0164cd10004630440220664de5ec373f44d2756a23d5267ab25f2"
@@ -1152,10 +1152,10 @@ Value decodetxraw(const Array& params, bool fHelp) {
 Value getcontractaccountinfo(const Array& params, bool fHelp) {
     if (fHelp || (params.size() != 2 && params.size() != 3)) {
         throw runtime_error(
-            "getcontractaccountinfo \"contract regid\" \"account address or regid\""
+            "getcontractaccountinfo \"contract_regid\" \"account address or regid\""
             "\nget contract account info\n"
             "\nArguments:\n"
-            "1.\"contract regid\":              (string, required) contract regid\n"
+            "1.\"contract_regid\":              (string, required) contract regid\n"
             "2.\"account address or regid\":    (string, required) contract account address or its regid\n"
             "3.\"minconf\"                      (numeric, optional, default=1) Only include contract transactions "
             "confirmed\n"
@@ -1308,7 +1308,7 @@ Value listdelegates(const Array& params, bool fHelp) {
             "listdelegates \n"
             "\nreturns the specified number delegates by reversed order voting number.\n"
             "\nArguments:\n"
-            "1. number           (number, optional) the number of the delegates, default to all delegates.\n"
+            "1. count:           (number, optional) the count of the delegates, default to all delegates.\n"
             "\nResult:\n"
             "\nExamples:\n" +
             HelpExampleCli("listdelegates", "11") + "\nAs json rpc call\n" + HelpExampleRpc("listdelegates", "11"));

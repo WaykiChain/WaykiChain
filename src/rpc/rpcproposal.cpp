@@ -106,10 +106,10 @@ Value submitparamgovernproposal(const Array& params, bool fHelp){
     if(fHelp || params.size() < 3 || params.size() > 4){
 
         throw runtime_error(
-                "submitparamgovernproposal \"addr\" \"param_name\" \"param_value\" [\"fee\"]\n"
+                "submitparamgovernproposal \"sender\" \"param_name\" \"param_value\" [\"fee\"]\n"
                 "create proposal about system param govern\n"
                 "\nArguments:\n"
-                "1.\"addr\":             (string,     required) the tx submitor's address\n"
+                "1.\"sender\":           (string,     required) the tx sender's address\n"
                 "2.\"param_name\":       (string,     required) the name of param, the param list can be found in document \n"
                 "3.\"param_value\":      (string,   required) the param value that will be updated to \n"
                 "4.\"fee\":              (combomoney, optional) the tx fee \n"
@@ -171,10 +171,10 @@ Value submitcdpparamgovernproposal(const Array& params, bool fHelp){
     if(fHelp || params.size() < 5 || params.size() > 6){
 
         throw runtime_error(
-                "submitcdpparamgovernproposal \"addr\" \"param_name\" \"param_value\" \"bcoin_symbol\" \"scoin_symbol\" [\"fee\"]\n"
+                "submitcdpparamgovernproposal \"sender\" \"param_name\" \"param_value\" \"bcoin_symbol\" \"scoin_symbol\" [\"fee\"]\n"
                 "create proposal about cdp  param govern\n"
                 "\nArguments:\n"
-                "1.\"addr\":             (string,     required) the tx submitor's address\n"
+                "1.\"sender\":           (string,     required) the tx sender's address\n"
                 "2.\"param_name\":       (string,     required) the name of param, the param list can be found in document \n"
                 "3.\"param_value\":      (numberic,   required) the param value that will be updated to \n"
                 "4.\"bcoin_symbol\":     (string,     required) the base coin symbol\n"
@@ -230,10 +230,10 @@ Value submitgovernorupdateproposal(const Array& params , bool fHelp) {
     if(fHelp || params.size() < 3 || params.size() > 4){
 
         throw runtime_error(
-                "submitgovernorupdateproposal \"addr\" \"governor_uid\" \"operate_type\" [\"fee\"]\n"
+                "submitgovernorupdateproposal \"sender\" \"governor_uid\" \"operate_type\" [\"fee\"]\n"
                 "create proposal about  add/remove a governor \n"
                 "\nArguments:\n"
-                "1.\"addr\":             (string,     required) the tx submitor's address\n"
+                "1.\"sender\":           (string,     required) the tx sender's address\n"
                 "2.\"governor_uid\":     (string,     required) the governor's uid\n"
                 "3.\"operate_type\":     (numberic,   required) the operate type \n"
                 "                         1 stand for add\n"
@@ -316,10 +316,10 @@ Value submitaccountpermproposal(const Array& params , bool fHelp) {
     if(fHelp || params.size() < 3 || params.size() > 4){
 
         throw runtime_error(
-                "submitaccountpermproposal \"addr\" \"account_uid\" \"proposed_perms_sum\" [\"fee\"]\n"
+                "submitaccountpermproposal \"sender\" \"account_uid\" \"proposed_perms_sum\" [\"fee\"]\n"
                 "create proposal about  updating account's permits \n"
                 "\nArguments:\n"
-                "1.\"addr\":               (string,     required) the tx submitor's address\n"
+                "1.\"sender\":             (string,     required) the tx sender's address\n"
                 "2.\"account_uid\":        (string,     required) the account uid that need to update\n"
                 "3.\"proposed_perms_sum\": (jsonArray,  required) the proposed perms update iterm\n"
                 "                          [\n"
@@ -372,10 +372,10 @@ Value submitassetpermproposal(const Array& params , bool fHelp) {
     if(fHelp || params.size() < 3 || params.size() > 4){
 
         throw runtime_error(
-                "submitassetpermproposal \"addr\" \"asset_symbol\" \"proposed_perms_sum\" [\"fee\"]\n"
+                "submitassetpermproposal \"sender\" \"asset_symbol\" \"proposed_perms_sum\" [\"fee\"]\n"
                 "create proposal about  updating asset permits \n"
                 "\nArguments:\n"
-                "1.\"addr\":               (string,     required) the tx submitor's address\n"
+                "1.\"sender\":             (string,     required) the tx sender's address\n"
                 "2.\"asset_symbol\":       (string,     required) the asset that need to update\n"
                 "3.\"proposed_perms_sum\": (jsonArray,  required) the proposed perms update iterm\n"
                 "                          [\n"
@@ -428,12 +428,12 @@ Value submitassetpermproposal(const Array& params , bool fHelp) {
 Value submitfeedcoinpairproposal(const Array& params, bool fHelp) {
     if(fHelp || params.size() < 3 || params.size() > 4) {
         throw runtime_error(
-                "submitfeedcoinpairproposal \"addr\" \"base_symbol\" \"quote_symbol\" \"operate_type\" [\"fee\"]\n"
+                "submitfeedcoinpairproposal \"sender\" \"base_symbol\" \"quote_symbol\" \"operate_type\" [\"fee\"]\n"
                 "request proposal about add/remove feed price coin pair \n"
                 "\nArguments:\n"
-                "1.\"addr\":             (string,     required) the tx submitor's address\n"
+                "1.\"sender\":           (string,     required) the tx sender's address\n"
                 "2.\"base_symbol\":      (string,     required) the base symbol\n"
-                "3.\"quote_symbol\":      (string,     required) the quote symbol\n"
+                "3.\"quote_symbol\":     (string,     required) the quote symbol\n"
                 "4.\"op_type\":          (numberic,   required) the operate type \n"
                 "                         1 stand for add\n"
                 "                         2 stand for remove\n"
@@ -475,10 +475,10 @@ Value submitaxccoinproposal(const Array& params, bool fHelp) {
 
     if(fHelp || params.size() < 4 || params.size() > 5){
         throw runtime_error(
-                "submitaxccoinproposal \"addr\" \"peer_coin_symbol\" \"peer_chain_type\" \"operate_type\" [\"fee\"]\n"
+                "submitaxccoinproposal \"sender\" \"peer_coin_symbol\" \"peer_chain_type\" \"operate_type\" [\"fee\"]\n"
                 "create a proposal about add or delete a swap coin\n"
                 "\nArguments:\n"
-                "1.\"addr\":             (string,     required) the tx submitor's address\n"
+                "1.\"sender\":           (string,     required) the tx sender's address\n"
                 "2.\"peer_coin_symbol\": (string,     required) the peer chain coin symbol\n"
                 "3.\"peer_chain_type\":  (numberic,   required) the peer chain type\n"
                 "                          1 stand for BITCOIN\n"
@@ -529,10 +529,10 @@ Value submitdexswitchproposal(const Array& params, bool fHelp) {
     if(fHelp || params.size() < 3 || params.size() > 4){
 
         throw runtime_error(
-                "submitdexswitchproposal \"addr\" \"dexid\" \"operate_type\" [\"fee\"]\n"
+                "submitdexswitchproposal \"sender\" \"dexid\" \"operate_type\" [\"fee\"]\n"
                 "create proposal about enable/disable dexoperator\n"
                 "\nArguments:\n"
-                "1.\"addr\":             (string,     required) the tx submitor's address\n"
+                "1.\"sender\":           (string,     required) the tx sender's address\n"
                 "2.\"dexid\":            (numberic,   required) the dexoperator's id\n"
                 "3.\"operate_type\":     (numberic,   required) the operate type \n"
                 "                          1 stand for enable\n"
@@ -573,10 +573,10 @@ Value submitproposalapprovaltx(const Array& params, bool fHelp){
 
     if(fHelp || params.size() < 2 || params.size() > 4){
         throw runtime_error(
-                "submitproposalapprovaltx \"addr\" \"proposalid\" [\"fee\"] [\"axc_out_signature\"]\n"
+                "submitproposalapprovaltx \"sender\" \"proposalid\" [\"fee\"] [\"axc_out_signature\"]\n"
                 "approval a proposal\n"
                 "\nArguments:\n"
-                "1.\"addr\":             (string,   required) the tx submitor's address\n"
+                "1.\"sender\":           (string,   required) the tx submitor's address\n"
                 "2.\"proposalid\":       (string,   required) the proposal's id\n"
                 "3.\"fee\":              (combomoney, optional) the tx fee \n"
                 "4.\"axc_out_signature   (string, optional) the axc out proposal peer chain signature，is "
@@ -622,10 +622,10 @@ Value submitproposalapprovaltx(const Array& params, bool fHelp){
 Value submittotalbpssizeupdateproposal(const Array& params,bool fHelp) {
     if(fHelp || params.size() < 3 || params.size() > 4){
         throw runtime_error(
-                "submittotalbpssizeupdateproposal \"addr\" \"total_bps_size\" \"effective_height\"  [\"fee\"]\n"
+                "submittotalbpssizeupdateproposal \"sender\" \"total_bps_size\" \"effective_height\"  [\"fee\"]\n"
                 "create proposal about update total delegate(bp) count\n"
                 "\nArguments:\n"
-                "1.\"addr\":                (string,     required) the tx submitor's address\n"
+                "1.\"sender\":              (string,     required) the tx sender's address\n"
                 "2.\"total_bps_size\":      (numberic,   required) the count of block producer(miner) range is [1,255] \n"
                 "3.\"effective_height\":    (numberic,   required) the effective height of the totalbpssize  \n"
                 "4.\"fee\":                 (combomoney, optional) the tx fee \n"
@@ -669,10 +669,10 @@ Value submitminerfeeproposal(const Array& params, bool fHelp) {
     if(fHelp || params.size() < 3 || params.size() > 4){
 
         throw runtime_error(
-                "submitminerfeeproposal \"addr\" \"tx_type\" \"fee_info\"  [\"fee\"]\n"
+                "submitminerfeeproposal \"sender\" \"tx_type\" \"fee_info\"  [\"fee\"]\n"
                 "create proposal about updating the min miner fee\n"
                 "\nArguments:\n"
-                "1.\"addr\":             (string,     required) the tx submitor's address\n"
+                "1.\"sender\":           (string,     required) the tx sender's address\n"
                 "2.\"tx_type\":          (numberic,   required) the tx type you can get the list by command \"listmintxfees\" \n"
                 "3.\"fee_info\":         (combomoney, required) the miner fee symbol,amount,unit, example:WICC:10000:SAWI \n"
                 "4.\"fee\":              (combomoney, optional) the tx fee \n"
@@ -718,11 +718,11 @@ Value submitaxcinproposal(const Array& params, bool fHelp) {
     if(fHelp || params.size() < 6 || params.size() > 7){
 
         throw runtime_error(
-                "submitaxcinproposal \"addr\" \"peer_chain_type\" \"peer_chain_token_symbol\" \"self_chain_token_symbol\" \"peer_chain_addr\""
+                "submitaxcinproposal \"sender\" \"peer_chain_type\" \"peer_chain_token_symbol\" \"self_chain_token_symbol\" \"peer_chain_addr\""
                 " \"peer_chain_txid\" \"self_chain_uid\" \"swap_amount\" [\"fee\"]\n"
                 "create proposal about transfer coin from other chain to waykichain \n"
                 "\nArguments:\n"
-                "1.\"addr\":                        (string, required) the tx submitor's address\n"
+                "1.\"sender\":                      (string, required) the tx sender's address\n"
                 "2.\"peer_chain_token_symbol\":     (string, required) the coin symbol that swap from, such as BTC,ETH,EOS \n"
                 "3.\"peer_chain_addr\":             (string, required) initiator's address at peer chain \n"
                 "4.\"peer_chain_txid\":             (string, required) a proof from the peer chain (non-HTLC version), such as wisvisof932wq392wospal230ewopdsxl\n"
@@ -768,10 +768,10 @@ Value submitaxcoutproposal(const Array& params, bool fHelp) {
     if(fHelp || params.size() < 4 || params.size() > 5){
 
         throw runtime_error(
-                "submitaxcoutproposal \"addr\" \"self_chain_token_symbol\" \"peer_chain_addr\" \"swap_amount\" [\"fee\"]\n"
+                "submitaxcoutproposal \"sender\" \"self_chain_token_symbol\" \"peer_chain_addr\" \"swap_amount\" [\"fee\"]\n"
                 "create proposal about transfer coins from waykichain to other chain\n"
                 "\nArguments:\n"
-                "1.\"addr\":                    (string,   required) the tx submitor's address\n"
+                "1.\"sender\":                  (string,   required) the tx sender's address\n"
                 "2.\"self_chain_token_symbol\": (string, required) the coin symbol that swap out, such as WBTC,WETC,WEOS \n"
                 "3.\"peer_chain_addr\":         (string, optional) initiator's address at peer chain \n"
                 "4.\"swap_amount\":             (numberic,   required) the coin amount that swap out \n"
@@ -816,18 +816,18 @@ Value submitdiaissueproposal(const Array& params, bool fHelp) {
     if(fHelp || params.size() < 4 || params.size() > 5){
 
         throw runtime_error(
-                "submitdiaissueproposal \"addr\"  \"asset_symbol\" \"owner_uid\" \"total_supply\" [\"fee\"]\n"
+                "submitdiaissueproposal \"sender\"  \"asset_symbol\" \"owner_uid\" \"total_supply\" [\"fee\"]\n"
                 "issue a dia asset\n"
                 "\nArguments:\n"
-                "1.\"addr\":                    (string,   required) the tx submitor's address\n"
+                "1.\"sender\":                  (string,   required) the tx sender's address\n"
                 "2.\"asset_symbol\":            (string,   required) the dia asset symbol \n"
                 "3.\"owner_uid\":               (string,   required) the asset's owner uid \n"
                 "4.\"total_supply\":            (numberic, required) the total supply amount of this asset, the unit is \"sa\" \n"
                 "5.\"fee\":                     (combomoney, optional) the tx fee \n"
                 "\nExamples:\n"
-                + HelpExampleCli("submitdiaissueproposal", "0-1 0-1 BTCC 100000000000000000")
+                + HelpExampleCli("submitdiaissueproposal", "0-1  BTCC 0-1 100000000000000000")
                 + "\nAs json rpc call\n"
-                + HelpExampleRpc("submitdiaissueproposal", R"("0-1", "0-1", "BTCC", 10000000000000000)")
+                + HelpExampleRpc("submitdiaissueproposal", R"("0-1", "BTCC", "0-1", 10000000000000000)")
 
         );
 
@@ -863,10 +863,10 @@ Value submitdiaissueproposal(const Array& params, bool fHelp) {
 Value submitcointransferproposal( const Array& params, bool fHelp) {
     if(fHelp || params.size() < 4 || params.size() > 5){
         throw runtime_error(
-                "submitcointransferproposal $tx_uid $from_uid $to_uid $transfer_amount [$fee]\n"
+                "submitcointransferproposal $sender $from_uid $to_uid $transfer_amount [$fee]\n"
                 "create proposal about trans coin from an account to another account\n"
                 "\nArguments:\n"
-                "1.$tx_uid:                (string,     required) the submitor's address\n"
+                "1.$sender:                (string,     required) the sender's address\n"
                 "2.$from_uid:              (string,     required) the address that transfer from\n"
                 "3.$to_uid:                (string,     required) the address that tranfer to \n"
                 "4.$transfer_amount:       (combomoney, required) the tansfer amount\n"

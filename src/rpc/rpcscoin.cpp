@@ -22,10 +22,10 @@
 Value submitpricefeedtx(const Array& params, bool fHelp) {
     if (fHelp || params.size() < 2 || params.size() > 3) {
         throw runtime_error(
-            "submitpricefeedtx {price_feeds_json} [\"symbol:fee:unit\"]\n"
+            "submitpricefeedtx \"sender\" {price_feeds_json} [\"symbol:fee:unit\"]\n"
             "\nsubmit a Price Feed Tx.\n"
             "\nArguments:\n"
-            "1. \"address\" :                   (string, required) Price Feeder's address\n"
+            "1. \"sender\" :                    (string, required) Price Feeder's address\n"
             "2. \"pricefeeds\":                 (string, required) A json array of pricefeeds\n"
             " [\n"
             "   {\n"
@@ -132,10 +132,10 @@ namespace RPC_PARAM {
 Value submitcoinstaketx(const Array& params, bool fHelp) {
     if (fHelp || params.size() < 2 || params.size() > 4) {
         throw runtime_error(
-            "submitcoinstaketx \"addr\" \"coins_to_stake\" [\"action\"] [\"symbol:fee:unit\"]\n"
+            "submitcoinstaketx \"sender\" \"coins_to_stake\" [\"action\"] [\"symbol:fee:unit\"]\n"
             "\nstake coins\n"
             "\nArguments:\n"
-            "1.\"addr\":             (string, required)\n"
+            "1.\"sender\":           (string, required) the tx sender's address\n"
             "2. \"coins_to_stake\":  (symbol:amount:unit, required) coins to stake or unstake to the account,"
             " default symbol=WICC, default unit=sawi\n"
             "3. \"action\":          (string, optional) action for staking coins, must be (STAKE | UNSTAKE), default is STAKE\n"
@@ -169,10 +169,10 @@ Value submitcoinstaketx(const Array& params, bool fHelp) {
 Value submitcdpstaketx(const Array& params, bool fHelp) {
     if (fHelp || params.size() < 3 || params.size() > 6) {
         throw runtime_error(
-            "submitcdpstaketx \"addr\" stake_combo_money mint_combo_money [\"cdp_id\"] [symbol:fee:unit]\n"
+            "submitcdpstaketx \"sender\" stake_combo_money mint_combo_money [\"cdp_id\"] [symbol:fee:unit]\n"
             "\nsubmit a CDP Staking Tx.\n"
             "\nArguments:\n"
-            "1. \"addr\":               (string, required) CDP Staker's account address\n"
+            "1. \"sender\":             (string, required) CDP Staker's account address\n"
             "2. \"stake_combo_money\":  (symbol:amount:unit, required) Combo Money to stake into the CDP,"
             " default symbol=WICC, default unit=sawi\n"
             "3. \"mint_combo_money\":   (symbol:amount:unit, required), Combo Money to mint from the CDP,"
@@ -230,10 +230,10 @@ Value submitcdpstaketx(const Array& params, bool fHelp) {
 Value submitcdpredeemtx(const Array& params, bool fHelp) {
     if (fHelp || params.size() < 4 || params.size() > 5) {
         throw runtime_error(
-            "submitcdpredeemtx \"addr\" \"cdp_id\" repay_amount redeem_amount [\"symbol:fee:unit\"]\n"
+            "submitcdpredeemtx \"sender\" \"cdp_id\" repay_amount redeem_amount [\"symbol:fee:unit\"]\n"
             "\nsubmit a CDP Redemption Tx\n"
             "\nArguments:\n"
-            "1. \"addr\" :              (string, required) CDP redemptor's address\n"
+            "1. \"sender\" :            (string, required) CDP redemptor's address\n"
             "2. \"cdp_id\":             (string, required) ID of existing CDP (tx hash of the first CDP Stake Tx)\n"
             "3. \"repay_amount\":       (numeric, required) scoins (E.g. WUSD) to repay into the CDP, boosted by 10^8\n"
             "4. \"redeem_amount\":      (numeric, required) bcoins (E.g. WICC) to redeem from the CDP, boosted by 10^8\n"
@@ -270,10 +270,10 @@ Value submitcdpredeemtx(const Array& params, bool fHelp) {
 Value submitcdpliquidatetx(const Array& params, bool fHelp) {
     if (fHelp || params.size() < 3 || params.size() > 4) {
         throw runtime_error(
-            "submitcdpliquidatetx \"addr\" \"cdp_id\" liquidate_amount [symbol:fee:unit]\n"
+            "submitcdpliquidatetx \"sender\" \"cdp_id\" liquidate_amount [symbol:fee:unit]\n"
             "\nsubmit a CDP Liquidation Tx\n"
             "\nArguments:\n"
-            "1. \"addr\" :              (string, required) CDP liquidator's address\n"
+            "1. \"sender\" :            (string, required) CDP liquidator's address\n"
             "2. \"cdp_id\":             (string, required) ID of existing CDP (tx hash of the first CDP Stake Tx)\n"
             "3. \"liquidate_amount\":   (numeric, required) WUSD coins to repay to CDP, boosted by 10^8 (penalty fees "
             "deducted separately from sender account)\n"
@@ -448,10 +448,10 @@ Value getscoininfo(const Array& params, bool fHelp){
 Value getusercdp(const Array& params, bool fHelp){
     if (fHelp || params.size() < 1 || params.size() > 2) {
         throw runtime_error(
-            "getusercdp \"addr\"\n"
+            "getusercdp \"cdp_owner_addr\"\n"
             "\nget account's cdp.\n"
             "\nArguments:\n"
-            "1.\"addr\": (string, required) CDP owner's account addr\n"
+            "1.\"cdp_owner_addr\": (string, required) CDP owner's account addr\n"
             "\nResult:\n"
             "\nExamples:\n"
             + HelpExampleCli("getusercdp", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\"\n")
@@ -560,11 +560,11 @@ Value getclosedcdp(const Array& params, bool fHelp) {
 Value submitassetissuetx(const Array& params, bool fHelp) {
     if (fHelp || params.size() < 6 || params.size() > 7) {
         throw runtime_error(
-            "submitassetissuetx \"addr\" \"asset_symbol\" \"asset_owner_addr\" \"asset_name\" total_supply mintable [symbol:fee:unit]\n"
+            "submitassetissuetx \"sender\" \"asset_symbol\" \"asset_owner_addr\" \"asset_name\" total_supply mintable [symbol:fee:unit]\n"
             "\nsubmit an asset issue tx.\n"
             "\nthe tx creator must have enough WICC for issued fee(550 WICC).\n"
             "\nArguments:\n"
-            "1.\"addr\":            (string, required) tx owner address\n"
+            "1.\"sender\":          (string, required) tx sender's address\n"
             "2.\"asset_symbol\":    (string, required) asset symbol, must be composed of 6 or 7 capital letters [A-Z]\n"
             "3.\"asset_owner_addr\":(string, required) asset owner address, can be same as tx owner address\n"
             "4.\"asset_name\":      (string, required) asset long name, E.g WaykiChain coin\n"
@@ -625,11 +625,11 @@ Value submitassetissuetx(const Array& params, bool fHelp) {
 Value submitassetupdatetx(const Array& params, bool fHelp) {
     if (fHelp || params.size() < 4 || params.size() > 5) {
         throw runtime_error(
-            "submitassetupdatetx \"addr\" \"asset_symbol\" \"update_type\" \"update_value\" [symbol:fee:unit]\n"
+            "submitassetupdatetx \"sender\" \"asset_symbol\" \"update_type\" \"update_value\" [symbol:fee:unit]\n"
             "\nsubmit an asset update tx.\n"
             "\nthe tx creator must have enough WICC for asset update fee(200 WICC).\n"
             "\nArguments:\n"
-            "1.\"addr\":            (string, required) tx owner address\n"
+            "1.\"sender\":          (string, required) the tx sender's address\n"
             "2.\"asset_symbol\":    (string, required) asset symbol, must be composed of 6 or 7 capital letters [A-Z]\n"
             "3.\"update_type\":     (string, required) asset update type, can be (owner_addr, name, mint_amount)\n"
             "4.\"update_value\":    (string, required) update the value specified by update_type, value format see the submitassetissuetx\n"

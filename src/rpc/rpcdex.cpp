@@ -282,18 +282,18 @@ static void CheckMemoEmptyBeforeV3(const string &memo, int32_t height) {
 Value submitdexbuylimitordertx(const Array& params, bool fHelp) {
     if (fHelp || params.size() < 4 || params.size() > 8) {
         throw runtime_error(
-            "submitdexbuylimitordertx \"addr\" \"coin_symbol\" \"symbol:asset_amount:unit\"  price"
+            "submitdexbuylimitordertx \"sender\" \"coin_symbol\" \"symbol:asset_amount:unit\"  price"
                 " [dex_id] [symbol:fee:unit] \"[memo]\"\n"
             "\nsubmit a dex buy limit price order tx.\n"
             "\nArguments:\n"
-            "1.\"addr\": (string required) order owner address\n"
-            "2.\"coin_symbol\": (string required) coin type to pay\n"
-            "3.\"symbol:asset_amount:unit\",(string:numeric:string,required) the target amount to buy \n "
+            "1.\"sender\":                     (string required) the tx sender's address\n"
+            "2.\"coin_symbol\":                (string required) coin type to pay\n"
+            "3.\"symbol:asset_amount:unit\":   (string:numeric:string,required) the target amount to buy \n "
             "   default symbol is WICC, default unit is sawi.\n"
-            "4.\"price\": (numeric, required) bidding price willing to buy\n"
-            "5.\"dex_id\": (numeric, optional) Decentralized Exchange(DEX) ID, default is 0\n"
-            "6.\"symbol:fee:unit\":(string:numeric:string, optional) fee paid for miner, default is WICC:10000:sawi\n"
-            "7.\"memo\": (string, optional) memo\n"
+            "4.\"price\":                      (numeric, required) bidding price willing to buy\n"
+            "5.\"dex_id\":                     (numeric, optional) Decentralized Exchange(DEX) ID, default is 0\n"
+            "6.\"symbol:fee:unit\":            (string:numeric:string, optional) fee paid for miner, default is WICC:10000:sawi\n"
+            "7.\"memo\":                       (string, optional) memo\n"
             "\nResult:\n"
             "\"txid\" (string) The transaction id.\n"
             "\nExamples:\n"
@@ -346,10 +346,10 @@ Value submitdexbuylimitordertx(const Array& params, bool fHelp) {
 Value submitdexselllimitordertx(const Array& params, bool fHelp) {
     if (fHelp || params.size() < 4 || params.size() > 8) {
         throw runtime_error(
-            "submitdexselllimitordertx \"addr\" \"coin_symbol\" \"asset\" price"
+            "submitdexselllimitordertx \"sender\" \"coin_symbol\" \"asset\" price"
                 " [dex_id] [symbol:fee:unit] \"[memo]\"\n"
             "\nArguments:\n"
-            "1.\"addr\": (string required) order owner address\n"
+            "1.\"sender\":                     (string required) the tx sender's address\n"
             "2.\"coin_symbol\": (string required) coin type to pay\n"
             "3.\"asset_symbol:asset_amount:unit\",(comboMoney,required) the target amount to sell. "
             "   default symbol is WICC, default unit is sawi.\n"
@@ -409,17 +409,17 @@ Value submitdexselllimitordertx(const Array& params, bool fHelp) {
 Value submitdexbuymarketordertx(const Array& params, bool fHelp) {
      if (fHelp || params.size() < 3 || params.size() > 7) {
         throw runtime_error(
-            "submitdexbuymarketordertx \"addr\" \"coin_symbol\" coin_amount \"asset_symbol\" "
+            "submitdexbuymarketordertx \"sender\" \"coin_symbol\" coin_amount \"asset_symbol\" "
                 " [dex_id] [symbol:fee:unit] \"[memo]\"\n"
             "\nsubmit a dex buy market price order tx.\n"
             "\nArguments:\n"
-            "1.\"addr\": (string required) order owner address\n"
-            "2.\"coin_symbol:coin_amount:unit\",(comboMoney,required) the target coin amount for buying asset \n "
-            "   default symbol is WUSD, default unit is sawi.\n"
-            "3.\"asset_symbol\": (string required), asset type to buy\n"
-            "4.\"dex_id\": (numeric, optional) Decentralized Exchange(DEX) ID, default is 0\n"
-            "5.\"symbol:fee:unit\":(string:numeric:string, optional) fee paid for miner, default is WICC:10000:sawi\n"
-            "6.\"memo\": (string, optional) memo\n"
+            "1.\"sender\":                         (string required) the tx sender's address\n"
+            "2.\"coin_symbol:coin_amount:unit\":   (comboMoney,required) the target coin amount for buying asset \n "
+            "                                       default symbol is WUSD, default unit is sawi.\n"
+            "3.\"asset_symbol\":                   (string required), asset type to buy\n"
+            "4.\"dex_id\":                         (numeric, optional) Decentralized Exchange(DEX) ID, default is 0\n"
+            "5.\"symbol:fee:unit\":                (string:numeric:string, optional) fee paid for miner, default is WICC:10000:sawi\n"
+            "6.\"memo\":                           (string, optional) memo\n"
             "\nResult:\n"
             "\"txid\" (string) The transaction id.\n"
             "\nExamples:\n"
@@ -470,17 +470,17 @@ Value submitdexbuymarketordertx(const Array& params, bool fHelp) {
 Value submitdexsellmarketordertx(const Array& params, bool fHelp) {
     if (fHelp || params.size() < 3 || params.size() > 7) {
         throw runtime_error(
-            "submitdexsellmarketordertx \"addr\" \"coin_symbol\" \"asset_symbol\" asset_amount "
+            "submitdexsellmarketordertx \"sender\" \"coin_symbol\" \"asset_symbol\" asset_amount "
                 " [dex_id] [symbol:fee:unit] \"[memo]\"\n"
             "\nsubmit a dex sell market price order tx.\n"
             "\nArguments:\n"
-            "1.\"addr\": (string required) order owner address\n"
-            "2.\"coin_symbol\": (string required) coin type to pay\n"
-            "3.\"asset_symbol:asset_amount:unit\",(comboMoney,required) the target amount to sell, "
-                                                  "default symbol is WICC, default unit is sawi.\n"
-            "4.\"dex_id\": (numeric, optional) Decentralized Exchange(DEX) ID, default is 0\n"
-            "5.\"symbol:fee:unit\":(string:numeric:string, optional) fee paid for miner, default is WICC:10000:sawi\n"
-            "6.\"memo\": (string, optional) memo\n"
+            "1.\"sender\":                           (string required) the tx sender's address\n"
+            "2.\"coin_symbol\":                      (string required) coin type to pay\n"
+            "3.\"asset_symbol:asset_amount:unit\":   (comboMoney,required) the target amount to sell, "
+                                                     "default symbol is WICC, default unit is sawi.\n"
+            "4.\"dex_id\":                           (numeric, optional) Decentralized Exchange(DEX) ID, default is 0\n"
+            "5.\"symbol:fee:unit\":                  (string:numeric:string, optional) fee paid for miner, default is WICC:10000:sawi\n"
+            "6.\"memo\":                             (string, optional) memo\n"
             "\nResult:\n"
             "\"txid\" (string) The transaction id.\n"
             "\nExamples:\n"
@@ -532,12 +532,12 @@ Value submitdexsellmarketordertx(const Array& params, bool fHelp) {
 Value gendexoperatorordertx(const Array& params, bool fHelp) {
     if (fHelp || params.size() < 10 || params.size() > 13) {
         throw runtime_error(
-            "gendexoperatorordertx \"addr\" \"order_type\" \"order_side\" \"symbol:coins:unit\" \"symbol:assets:unit\""
+            "gendexoperatorordertx \"sender\" \"order_type\" \"order_side\" \"symbol:coins:unit\" \"symbol:assets:unit\""
                 " price dex_id \"open_mode\" taker_fee_ratio maker_fee_ratio \"[symbol:fee:unit]\""
                 " \"[symbol:operator_tx_fee:unit]\" \"[memo]\"\n"
             "\ngenerator an operator dex order tx, support operator config, and must be signed by operator before sumiting.\n"
             "\nArguments:\n"
-            "1.\"addr\": (string required) order owner address\n"
+            "1.\"sender\":                           (string required) the tx sender's address\n"
             "2.\"order_type\": (string required) order type, must be in (LIMIT_PRICE, MARKET_PRICE)\n"
             "3.\"order_side\": (string required) order side, must be in (BUY, SELL)\n"
             "4.\"symbol:coins:unit\": (string:numeric:string, required) the coins(money) of order, coins=0 if not market buy order, \n"
@@ -657,10 +657,10 @@ Value gendexoperatorordertx(const Array& params, bool fHelp) {
 Value submitdexcancelordertx(const Array& params, bool fHelp) {
     if (fHelp || params.size() < 2 || params.size() > 3) {
         throw runtime_error(
-            "submitdexcancelordertx \"addr\" \"txid\" [symbol:fee:unit]\n"
+            "submitdexcancelordertx \"sender\" \"txid\" [symbol:fee:unit]\n"
             "\nsubmit a dex cancel order tx.\n"
             "\nArguments:\n"
-            "1.\"addr\": (string required) order owner address\n"
+            "1.\"sender\":                           (string required) the tx sender's address\n"
             "2.\"txid\": (string required) order tx want to cancel\n"
             "3.\"symbol:fee:unit\":(string:numeric:string, optional) fee paid for miner, default is WICC:10000:sawi\n"
             "\nResult:\n"
@@ -695,10 +695,10 @@ Value submitdexcancelordertx(const Array& params, bool fHelp) {
 Value submitdexsettletx(const Array& params, bool fHelp) {
      if (fHelp || params.size() < 2 || params.size() > 3) {
         throw runtime_error(
-            "submitdexsettletx \"addr\" \"deal_items\" [symbol:fee:unit]\n"
+            "submitdexsettletx \"sender\" \"deal_items\" [symbol:fee:unit]\n"
             "\nsubmit a dex settle tx.\n"
             "\nArguments:\n"
-            "1.\"addr\": (string required) settle owner address\n"
+            "1.\"sender\":                           (string required) the tx sender's address\n"
             "2.\"deal_items\": (string required) deal items in json format\n"
             " [\n"
             "   {\n"
@@ -953,16 +953,16 @@ Value submitdexoperatorregtx(const Array& params, bool fHelp){
 
     if (fHelp || params.size() < 9  || params.size() > 11){
         throw runtime_error(
-            "submitdexoperatorregtx  \"addr\" \"owner_uid\" \"fee_receiver_uid\" \"dex_name\" \"portal_url\" "
+            "submitdexoperatorregtx  \"sender\" \"owner_uid\" \"fee_receiver_uid\" \"dex_name\" \"portal_url\" "
             "\"open_mode\" maker_fee_ratio taker_fee_ratio [\"fees\"] [\"memo\"]\n"
             "\nregister a dex operator\n"
             "\nArguments:\n"
-            "1.\"addr\":            (string, required) the dex creator's address\n"
+            "1.\"sender\":          (string required) the tx sender's address\n"
             "2.\"owner_uid\":       (string, required) the dexoperator 's owner account \n"
             "3.\"fee_receiver_uid\":(string, required) the dexoperator 's fee receiver account \n"
             "4.\"dex_name\":        (string, required) dex operator's name \n"
             "5.\"portal_url\":      (string, required) the dex operator's website url \n"
-            "6.\"open_mode\":     (string, required) indicate the order is PUBLIC or PRIVATE\n"
+            "6.\"open_mode\":       (string, required) indicate the order is PUBLIC or PRIVATE\n"
             "7.\"maker_fee_ratio\": (number, required) range is 0 ~ 50000000, 50000000 stand for 50% \n"
             "8.\"taker_fee_ratio\": (number, required) range is 0 ~ 50000000, 50000000 stand for 50% \n"
             "9.\"order_open_dexop_list\": (array of number, required) order open dexop list, max size is 500\n"
@@ -1010,10 +1010,10 @@ Value submitdexopupdatetx(const Array& params, bool fHelp){
 
     if(fHelp ||params.size()< 4 || params.size() > 5 ){
         throw runtime_error(
-                "submitdexopupdatetx  \"tx_uid\" \"dex_id\" \"update_field\" \"value\" \"fee\" \n"
+                "submitdexopupdatetx  \"sender\" \"dex_id\" \"update_field\" \"value\" \"fee\" \n"
                 "\n register a dex operator\n"
                 "\nArguments:\n"
-                "1.\"tx_uid\":          (string, required) the tx sender, must be the dexoperaor's owner regid\n"
+                "1.\"sender\":          (string, required) the tx sender, must be the dexoperaor's owner regid\n"
                 "2.\"dex_id\":          (number, required) dex operator's id \n"
                 "3.\"update_field\":    (nuber, required) the dexoperator field to update\n"
                 "                       1: owner_regid (string) the dexoperator 's owner account\n"
@@ -1174,10 +1174,10 @@ extern Value getdexoperatorbyowner(const Array& params, bool fHelp) {
 extern Value getdexorderfee(const Array& params, bool fHelp) {
      if (fHelp || params.size() < 2 || params.size() > 3) {
         throw runtime_error(
-            "getdexorderfee \"addr\" \"tx_type\" [\"fee_symbol\"]\n"
+            "getdexorderfee \"account_addr\" \"tx_type\" [\"fee_symbol\"]\n"
             "\nget dex order fee by account.\n"
             "\nArguments:\n"
-            "1.\"addr\":    (string, required) account address\n"
+            "1.\"account_addr\":    (string, required) account address\n"
             "2.\"tx_type\": (string, required) tx type, support:\n"
             "                DEX_LIMIT_BUY_ORDER_TX,\n"
             "                DEX_LIMIT_SELL_ORDER_TX,\n"

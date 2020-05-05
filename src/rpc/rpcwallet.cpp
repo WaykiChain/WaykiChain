@@ -235,11 +235,11 @@ Value createmulsig(const Array& params, bool fHelp) {
 
 Value signmessage(const Array& params, bool fHelp) {
     if (fHelp || params.size() != 2) {
-        throw runtime_error("signmessage \"address\" \"message\"\n"
+        throw runtime_error("signmessage \"signee\" \"message\"\n"
             "\nSign a message by the private key of the given address"
             + HelpRequiringPassphrase() + "\n"
             "\nArguments:\n"
-            "1. \"address\"         (string, required) The coin address associated with the private key to sign.\n"
+            "1. \"signee\"          (string, required) The coin address associated with the private key to sign.\n"
             "2. \"message\"         (string, required) The message to create a signature of.\n"
             "\nResult:\n"
             "\"signature\"          (string) The signature of the message encoded in base 64\n"
@@ -282,11 +282,11 @@ Value signmessage(const Array& params, bool fHelp) {
 Value submitsendtx(const Array& params, bool fHelp) {
     if (fHelp || (params.size() < 3 && params.size() > 5))
         throw runtime_error(
-                "submitsendtx \"from\" \"to\" \"symbol:coin:unit\" [\"symbol:fee:unit\"] [\"memo\"]\n"
+                "submitsendtx \"sender\" \"to\" \"symbol:coin:unit\" [\"symbol:fee:unit\"] [\"memo\"]\n"
                 "\nSend coins to a given address.\n" +
                 HelpRequiringPassphrase() +
                 "\nArguments:\n"
-                "1.\"from\":                (string, required) The address where coins are sent from\n"
+                "1.\"sender\":              (string, required) The address where coins are sent from\n"
                 "2.\"to\":                  (string, required) The address where coins are received\n"
                 "3.\"symbol:coin:unit\":    (symbol:amount:unit, required) transferred coins\n"
                 "4.\"symbol:fee:unit\":     (symbol:amount:unit, optional) fee paid to miner, default is WICC:10000:sawi\n"

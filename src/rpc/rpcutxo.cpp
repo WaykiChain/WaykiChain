@@ -30,11 +30,11 @@ static void CheckUtxoCondDirection(const vector<shared_ptr<CUtxoCond>>& vCond, U
 Value genutxomultisignature(const Array& params, bool fHelp) {
     if (fHelp || params.size() != 2) {
         throw runtime_error(
-                "genutxomultisignature \"addr\" \"utxo_content_hash\" \n"
+                "genutxomultisignature \"sender\" \"utxo_content_hash\" \n"
                 "\nGenerate a UTXO MultiSign Singature.\n" +
                 HelpRequiringPassphrase() +
                 "\nArguments:\n"
-                "1.\"addr\":                (string, required) the addr of signee\n"
+                "1.\"sender\":              (string, required) the addr of signee\n"
                 "2.\"utxo_content_hash\":   (string, required) The utxo content hash\n"
                 "\nResult:\n"
                 "\"signature\"              (string) signature hex.\n"
@@ -199,16 +199,16 @@ Value submitpasswordprooftx(const Array& params, bool fHelp) {
 
     if(fHelp || params.size() < 4 || params.size() > 5) {
         throw runtime_error(
-                "submitpasswordprooftx \"addr\" \"utxo_txid\" \"utxo_vout_index\" \"password\" \"pre_utxo_tx_uid\" [\"fee\"] \n"
+                "submitpasswordprooftx \"sender\" \"utxo_txid\" \"utxo_vout_index\" \"password\" \"pre_utxo_tx_uid\" [\"fee\"] \n"
                 "\nSubmit a password proof tx.\n" +
                 HelpRequiringPassphrase() +
                 "\nArguments:\n"
-                "1.\"addr\":                (string, required) the addr submit this tx\n"
-                "2.\"prev_utxo_txid\":       (string, required) The utxo txid you want to spend\n"
+                "1.\"sender\":               (string, required) the addr submit this tx\n"
+                "2.\"prev_utxo_txid\"        (string, required) The utxo txid you want to spend\n"
                 "3.\"prev_utxo_vout_index\": (string, required) The index of utxo output \n"
-                "4.\"password\":            (symbol:amount:unit, required) password\n"
-                "5.\"pre_utxo_tx_uid\"      (string, required) the txUid of prev utxotx that provide prevOutput\n "
-                "6.\"symbol:fee:unit\":     (symbol:amount:unit, optinal) fee paid to miner\n"
+                "4.\"password\":             (symbol:amount:unit, required) password\n"
+                "5.\"pre_utxo_tx_uid\"       (string, required) the txUid of prev utxotx that provide prevOutput\n "
+                "6.\"symbol:fee:unit\":      (symbol:amount:unit, optinal) fee paid to miner\n"
                 "\nResult:\n"
                 "\"txid\"                   (string) The transaction id.\n"
                 "\nExamples:\n" +
@@ -247,11 +247,11 @@ Value submitutxotransfertx(const Array& params, bool fHelp) {
 
     if(fHelp || params.size() <4 || params.size() > 6) {
         throw runtime_error(
-                "submitutxotransfertx \"addr\" \"coin_symbol\" \"vins\" \"vouts\" \"symbol:fee:unit\" \"memo\" \n"
+                "submitutxotransfertx \"sender\" \"coin_symbol\" \"vins\" \"vouts\" \"symbol:fee:unit\" \"memo\" \n"
                 "\nSubmit utxo tx.\n" +
                 HelpRequiringPassphrase() +
                 "\nArguments:\n"
-                "1.\"addr\":              (string, required) the addr submit this tx\n"
+                "1.\"sender\":            (string, required) the addr submit this tx\n"
                 "2.\"coin_symbol\":       (string, required) The utxo transfer coin symbole\n"
                 "3.\"vins\":              (string(json), required) The utxo inputs \n"
                 "4.\"vouts\":             (string(json), required) the utxo outputs \n"
