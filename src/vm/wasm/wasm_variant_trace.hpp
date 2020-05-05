@@ -25,7 +25,7 @@ static auto make(Api& api) {
         if (!get_native_contract_abi(account, abi)) {
             CUniversalContractStore contract_store;
             if (api.contractCache.GetContract(CRegID(account), contract_store)){
-                abi.insert(abi.end(), contract_store.contract.abi.begin(), contract_store.contract.abi.end());
+                abi.insert(abi.end(), contract_store.abi.begin(), contract_store.abi.end());
             }
         }
         return abi;
