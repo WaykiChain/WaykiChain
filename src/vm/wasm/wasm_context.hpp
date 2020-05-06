@@ -75,32 +75,32 @@ namespace wasm {
 
         bool set_data( const uint64_t& contract, const string& k, const string& v ) {
             CUniversalContractStore contractStore;
-            CHAIN_ASSERT( database.contractCache.GetContract(CRegID(contract.value), contractStore),
+            CHAIN_ASSERT( database.contractCache.GetContract(CRegID(contract), contractStore),
                           contract_exception,
                           "contract '%s' does not exist",
-                          contract.to_string())
+                          wasm::regid(contract).to_string())
 
-            return database.contractCache.SetContractData(CRegID(contract.value), k, v);
+            return database.contractCache.SetContractData(CRegID(contract), k, v);
         }
 
         bool get_data( const uint64_t& contract, const string& k, string &v ) {
             CUniversalContractStore contractStore;
-            CHAIN_ASSERT( database.contractCache.GetContract(CRegID(contract.value), contractStore),
+            CHAIN_ASSERT( database.contractCache.GetContract(CRegID(contract), contractStore),
                           contract_exception,
                           "contract '%s' does not exist",
-                          contract.to_string())
+                          wasm::regid(contract).to_string())
 
-            return database.contractCache.GetContractData(CRegID(contract.value), k, v);
+            return database.contractCache.GetContractData(CRegID(contract), k, v);
         }
 
         bool erase_data( const uint64_t& contract, const string& k ) {
             CUniversalContractStore contractStore;
-            CHAIN_ASSERT( database.contractCache.GetContract(CRegID(contract.value), contractStore),
+            CHAIN_ASSERT( database.contractCache.GetContract(CRegID(contract), contractStore),
                           contract_exception,
                           "contract '%s' does not exist",
-                          contract.to_string())
+                          wasm::regid(contract).to_string())
 
-            return database.contractCache.EraseContractData(CRegID(contract.value), k);
+            return database.contractCache.EraseContractData(CRegID(contract), k);
         }
 
         std::vector<uint64_t> get_active_producers();
