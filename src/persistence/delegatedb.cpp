@@ -39,7 +39,7 @@ bool CDelegateDBCache::GetTopVoteDelegates(uint32_t delegateNum, uint64_t BpMinV
         if (isR3Fork && vote < BpMinVote) {
             LogPrint(BCLog::INFO, "[WARN] the %lluTH delegate vote=%llu less than %llu!"
                      " dest_delegate_num=%d\n",
-                     topVoteDelegates.size(), BpMinVote, delegateNum);
+                     topVoteDelegates.size(), spIt->GetVote(), BpMinVote, delegateNum);
             break;
         }
         topVoteDelegates.emplace_back(spIt->GetRegId(), spIt->GetVote());
