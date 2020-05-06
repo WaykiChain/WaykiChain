@@ -122,11 +122,6 @@ void get_contract( CAccountDBCache*    db_account,
                    CAccount&           contract,
                    CUniversalContractStore& contract_store ){
 
-    CHAIN_ASSERT( db_account->GetAccount(CRegID(contract_regid.value), contract),
-                  wasm_chain::account_access_exception,
-                  "contract '%s' does not exist",
-                  contract_regid.to_string())
-    //JSON_RPC_ASSERT(db_contract->HasContract(contract.regid),                RPC_WALLET_ERROR,  strprintf("Cannot get contract %s", contract_name.to_string().c_str()))
     CHAIN_ASSERT( db_contract->GetContract(contract.regid, contract_store),
                   wasm_chain::account_access_exception,
                   "cannot get contract '%s'",
@@ -134,6 +129,7 @@ void get_contract( CAccountDBCache*    db_account,
 
     CHAIN_ASSERT( contract_store.vm_type == VMType::WASM_VM,
                   wasm_chain::vm_type_mismatch, "vm type must be wasm VM")
+
     CHAIN_ASSERT( contract_store.abi.size() > 0,
                   wasm_chain::abi_not_found_exception, "contract abi not found")
     //JSON_RPC_ASSERT(ucontract.code.size() > 0,                                 RPC_WALLET_ERROR,  "contract lose code")
