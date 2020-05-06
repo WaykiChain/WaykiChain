@@ -508,28 +508,21 @@ void CUniversalTx::validate_contracts(CTxExecuteContext& context) {
 
     auto &database = *context.pCw;
 
-    for (auto i: inline_transactions) {
+    for (auto inline_trx: inline_transactions) {
 
-        wasm::name contract_name = wasm::name(i.contract);
-        //wasm::name contract_action   = wasm::name(i.action);
-        if (is_native_contract(contract_name.value)) continue;
-
-        auto spContract = GetAccount(database, CRegID(i.contract));
-        CHAIN_ASSERT( spContract,
-                      wasm_chain::account_access_exception,
-                      "contract '%s' does not exist",
-                      contract_name.to_string() )
+        auto contract = wasm::name(inline_trx.contract);
+        if (is_native_contract(contract.value)) continue;
 
         CUniversalContractStore contract_store;
-        CHAIN_ASSERT( database.contractCache.GetContract(spContract->regid, contract_store),
+        CHAIN_ASSERT( database.contractCache.GetContract(CRegID(contract.value) contract_store),
                       wasm_chain::account_access_exception,
                       "cannot get contract with regid '%s'",
-                      contract_name.to_string() )
+                      contract.to_string() )
 
         CHAIN_ASSERT( contract_store.code.size() > 0 && contract_store.abi.size() > 0,
                       wasm_chain::account_access_exception,
                       "contract '%s' abi or code  does not exist",
-                      contract_name.to_string() )
+                      contract.to_string() )
 
     }
 

@@ -106,7 +106,7 @@ namespace wasm {
 				if (contract_regid.value == 0) {  //first-time deployment
 					contract_regid = wasm::regid(context.trx_cord.GetIntValue());
 					CHAIN_ASSERT( !db_contract.HasContract(CRegID(contract_regid.value)),
-				 			  	wasm_chain::account_access_exception,
+				 			  	wasm_chain::contract_exception,
 		                      	"contract '%s' exists error",
 		                      	wasm::regid(contract_regid).to_string());
 
@@ -114,14 +114,14 @@ namespace wasm {
 					contractStore.upgradable = true;
 				} else {					//upgrade contract
 					CHAIN_ASSERT( db_contract.GetContract(CRegID(contract_regid.value), contractStore),
-				 			  	wasm_chain::account_access_exception,
+				 			  	wasm_chain::contract_exception,
 		                      	"contract '%s' not exist error",
 		                      	wasm::regid(contract_regid).to_string());
 
 					//must be current maintainer to perform code upgrade
 					auto currMaintainer = contractStore.maintainer.GetIntValue();
 					CHAIN_ASSERT( maintainer == currMaintainer,
-								wasm_chain::account_access_exception,
+								wasm_chain::contract_exception,
 		                      	"maintainer mismatch: given: %llu vs. curr: %llu",
 							  	maintainer, currMaintainer);
 
@@ -134,7 +134,7 @@ namespace wasm {
 				contractStore.memo 	 				= memo;
 
 		        CHAIN_ASSERT( db_contract.SaveContract(CRegID(contract_regid.value), contractStore),
-		                      wasm_chain::account_access_exception,
+		                      wasm_chain::contract_exception,
 		                      "save contract '%s' error",
 		                      wasm::regid(contract_regid).to_string())
 
