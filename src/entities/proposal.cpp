@@ -68,8 +68,15 @@ bool CGovBpMcListProposal::CheckProposal(CTxExecuteContext& context, CBaseTx& tx
         return state.DoS(100, ERRORMSG("CProposalRequestTx::CheckTx, operate type is illegal!"), REJECT_INVALID,
                          "operate_type-illegal");
 
+    if (!gov_bp_regid.IsMature(context.height)) {
+        return state.DoS(100, ERRORMSG("CProposalRequestTx::CheckTx, regid (%s) is not matured!", gov_bp_regid.ToString()), REJECT_INVALID,
+                         "regid-not-found");
+    }
+
     auto spGovBpAccount = tx.GetAccount(context, gov_bp_regid, "gov_bp");
-    if (!spGovBpAccount) return false;
+    if (!spGovBpAccount)
+        return state.DoS(100, ERRORMSG("CProposalRequestTx::CheckTx, found not a account that regid is %s!", gov_bp_regid.ToString()), REJECT_INVALID,
+                         "regid-not-found");
 
     if (op_type == ProposalOperateType::DISABLE && !cw.sysGovernCache.CheckIsGovernor(gov_bp_regid))
         return state.DoS(100, ERRORMSG("CProposalRequestTx::CheckTx, regid(%s) is not a governor!", gov_bp_regid.ToString()), REJECT_INVALID,
