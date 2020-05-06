@@ -514,7 +514,7 @@ void CUniversalTx::validate_contracts(CTxExecuteContext& context) {
         if (is_native_contract(contract.value)) continue;
 
         CUniversalContractStore contract_store;
-        CHAIN_ASSERT( database.contractCache.GetContract(CRegID(contract.value) contract_store),
+        CHAIN_ASSERT( database.contractCache.GetContract(CRegID(contract.value), contract_store),
                       wasm_chain::account_access_exception,
                       "cannot get contract with regid '%s'",
                       contract.to_string() )

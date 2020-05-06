@@ -108,7 +108,7 @@ namespace wasm {
 					CHAIN_ASSERT( !db_contract.HasContract(CRegID(contract_regid.value)),
 				 			  	wasm_chain::contract_exception,
 		                      	"contract '%s' exists error",
-		                      	wasm::regid(contract_regid).to_string());
+		                      	wasm::regid(contract_regid).to_string())
 
 					contractStore.vm_type = (VMType) vm_type;
 					contractStore.upgradable = true;
@@ -116,7 +116,7 @@ namespace wasm {
 					CHAIN_ASSERT( db_contract.GetContract(CRegID(contract_regid.value), contractStore),
 				 			  	wasm_chain::contract_exception,
 		                      	"contract '%s' not exist error",
-		                      	wasm::regid(contract_regid).to_string());
+		                      	wasm::regid(contract_regid).to_string())
 
 					//must be current maintainer to perform code upgrade
 					auto currMaintainer = contractStore.maintainer.GetIntValue();
