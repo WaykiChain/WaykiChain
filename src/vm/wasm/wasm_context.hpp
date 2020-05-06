@@ -75,7 +75,7 @@ namespace wasm {
 
         bool set_data( const uint64_t& contract, const string& k, const string& v ) {
             CUniversalContractStore contractStore;
-            CHAIN_ASSERT( database.contractCache.GetContract(CRegID(contract.value), contractStore)),
+            CHAIN_ASSERT( database.contractCache.GetContract(CRegID(contract.value), contractStore),
                           contract_exception,
                           "contract '%s' does not exist",
                           contract.to_string())
@@ -85,7 +85,7 @@ namespace wasm {
 
         bool get_data( const uint64_t& contract, const string& k, string &v ) {
             CUniversalContractStore contractStore;
-            CHAIN_ASSERT( database.contractCache.GetContract(CRegID(contract.value), contractStore)),
+            CHAIN_ASSERT( database.contractCache.GetContract(CRegID(contract.value), contractStore),
                           contract_exception,
                           "contract '%s' does not exist",
                           contract.to_string())
