@@ -86,11 +86,12 @@ namespace dex {
     }
 
     struct COrderOperatorParams {
-        OpenMode open_mode   = OpenMode::PUBLIC;//!< order public mode
+        OpenMode open_mode   = OpenMode::PRIVATE;//!< order open mode
         uint64_t maker_fee_ratio = 0; //!< match fee ratio
         uint64_t taker_fee_ratio = 0; //!< taker fee ratio
 
         IMPLEMENT_SERIALIZE(
+            READWRITE_ENUM(open_mode, uint8_t);
             READWRITE(VARINT(maker_fee_ratio));
             READWRITE(VARINT(taker_fee_ratio));
         )
