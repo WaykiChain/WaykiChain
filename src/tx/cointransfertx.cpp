@@ -183,7 +183,7 @@ bool CCoinTransferTx::ExecuteTx(CTxExecuteContext &context) {
         }
         // register account, must be only one dest
         if ( transfers.size() == 1 && toUid.is<CPubKey>() && !spDestAccount->IsRegistered()) {
-            if (!RegisterAccount(context, &toUid.get<CPubKey>(), *sp_tx_account)) // generate new regid for the account
+            if (!RegisterAccount(context, &toUid.get<CPubKey>(), *spDestAccount)) // generate new regid for the account
                 return false;
         }
 
