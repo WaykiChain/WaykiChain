@@ -382,7 +382,7 @@ Value wasm_gettable( const Array &params, bool fHelp ) {
         string search_key(key_prefix.data(),key_prefix.size());
         string start_key = (params.size() > 3) ? from_hex(params[3].get_str()) : "";
 
-        auto pContractDataIt = db_contract->CreateContractDataIterator(contract.regid, search_key);
+        auto pContractDataIt = db_contract->CreateContractDataIterator(CRegID(contract_regid.value), search_key);
         // JSON_RPC_ASSERT(pContractDataIt, RPC_INVALID_PARAMS,
         //                 "cannot get table from contract '%s'", contract_regid.to_string())
         CHAIN_ASSERT( pContractDataIt, wasm_chain::table_not_found,
