@@ -253,7 +253,7 @@ Value submitgovernorupdateproposal(const Array& params , bool fHelp) {
     const CUserID& txUid = RPC_PARAM::GetUserId(params[0], true);
     CUserID governorId = RPC_PARAM::GetUserId(params[1]);
     if(!governorId.is<CRegID>())
-        throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("the price governor(%s) must be registered(have regid)",
+        throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("the governor(%s) must be registered(have regid) and regid must be matured",
                                                             governorId.ToString() ));
     uint64_t operateType = RPC_PARAM::GetUint64(params[2]);
     ComboMoney fee          = RPC_PARAM::GetFee(params, 3, PROPOSAL_REQUEST_TX);

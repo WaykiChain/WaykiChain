@@ -383,7 +383,7 @@ bool CGovDexOpProposal::CheckProposal(CTxExecuteContext& context, CBaseTx& tx) {
 
     if (dexid == 0)
         return state.DoS(100,ERRORMSG("the No.0 dex operator can't be disable"),
-                REJECT_INVALID, "operator0-can't-disable");
+                REJECT_INVALID, "operator0-can't-be-switched");
 
     if (operate_type != ProposalOperateType::ENABLE && operate_type != ProposalOperateType::DISABLE)
         return state.DoS(100, ERRORMSG("CProposalRequestTx::CheckTx, operate type error!"), REJECT_INVALID,
