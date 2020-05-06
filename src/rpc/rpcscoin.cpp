@@ -31,7 +31,7 @@ Value submitpricefeedtx(const Array& params, bool fHelp) {
             "   {\n"
             "      \"coin\": \"WICC|WGRT\",     (string, required) The coin type\n"
             "      \"currency\": \"USD|CNY\"    (string, required) The currency type\n"
-            "      \"price\":                   (number, required) The price (boosted by 10^4) \n"
+            "      \"price\":                   (number, required) The price,unit is 'sawi' (boosted by 10^8) \n"
             "   }\n"
             "       ,...\n"
             " ]\n"
