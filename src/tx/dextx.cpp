@@ -201,6 +201,7 @@ namespace dex {
                 strprintf("price=%llu", price) + ", " +
                 strprintf("dex_id=%u", dex_id) + ", " +
                 strprintf("has_operator_config=%d", has_operator_config) + ", " +
+                strprintf("open_mode=%llu", kOpenModeHelper.GetName(open_mode)) + ", " +
                 strprintf("operator_taker_fee_ratio=%llu", taker_fee_ratio) + ", " +
                 strprintf("operator_maker_fee_ratio=%llu", maker_fee_ratio) + ", " +
                 strprintf("operator_uid=%s", operator_uid.ToDebugString()) + ", " +
@@ -222,6 +223,7 @@ namespace dex {
         if (has_operator_config) {
             CKeyID operatorKeyid;
             accountCache.GetKeyId(operator_uid, operatorKeyid);
+            result.push_back(Pair("open_mode",          kOpenModeHelper.GetName(open_mode)));
             result.push_back(Pair("taker_fee_ratio",    taker_fee_ratio));
             result.push_back(Pair("maker_fee_ratio",    maker_fee_ratio));
             result.push_back(Pair("operator_uid",       operator_uid.ToString()));
