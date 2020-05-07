@@ -243,6 +243,7 @@ Object CAccountDBCache::GetAccountDBStats() {
     uint64_t bcoinsStates[5] = {0};
     uint64_t scoinsStates[5] = {0};
     uint64_t fcoinsStates[5] = {0};
+    uint64_t totalReceivedVotes = 0;
 
     map<CKeyID, CAccount> items;
     CDbIterator it(accountCache);
@@ -275,6 +276,7 @@ Object CAccountDBCache::GetAccountDBStats() {
         totalBCoins += wicc.free_amount + wicc.voted_amount + wicc.frozen_amount + wicc.staked_amount + wicc.pledged_amount;
         totalSCoins += wusd.free_amount + wusd.voted_amount + wusd.frozen_amount + wusd.staked_amount + wusd.pledged_amount;
         totalFCoins += wgrt.free_amount + wgrt.voted_amount + wgrt.frozen_amount + wgrt.staked_amount + wgrt.pledged_amount;
+        totalReceivedVotes += account.received_votes;
     }
 
     Object obj_wicc;
@@ -305,6 +307,7 @@ Object CAccountDBCache::GetAccountDBStats() {
     obj.push_back(Pair("WICC",          obj_wicc));
     obj.push_back(Pair("WUSD",          obj_wusd));
     obj.push_back(Pair("WGRT",          obj_wgrt));
+    obj.push_back(Pair("total_received_votes",  totalReceivedVotes));
     obj.push_back(Pair("total_regids",  totalRegIds));
 
     return obj;
