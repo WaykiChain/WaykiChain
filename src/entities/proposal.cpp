@@ -70,7 +70,7 @@ bool CGovBpMcListProposal::CheckProposal(CTxExecuteContext& context, CBaseTx& tx
 
     if (!gov_bp_regid.IsMature(context.height)) {
         return state.DoS(100, ERRORMSG("CProposalRequestTx::CheckTx, regid (%s) is not matured!", gov_bp_regid.ToString()), REJECT_INVALID,
-                         "regid-not-found");
+                         "regid-not-matured");
     }
 
     auto spGovBpAccount = tx.GetAccount(context, gov_bp_regid, "gov_bp");
@@ -182,7 +182,7 @@ bool CGovCoinTransferProposal::CheckProposal(CTxExecuteContext& context, CBaseTx
 
     if(tx.nTxType == TxType::PROPOSAL_REQUEST_TX && tx.sp_tx_account->IsSelfUid(from_uid)) {
         return state.DoS(100, ERRORMSG("CGovCoinTransferProposal::CheckProposal, can't"
-                                       " create this proposal that from_uid is same as txUid"), REJECT_DUST, "invalid-coin-amount");
+                                       " create this proposal that from_uid is same as txUid"), REJECT_DUST, "tx_uid-can't-be-from_uid");
     }
 
     if (amount < DUST_AMOUNT_THRESHOLD)
