@@ -20,7 +20,6 @@
 #include "tx/tx.h"
 #include "tx/coinminttx.h"
 #include "wallet/wallet.h"
-#include "persistence/blockundo.h"
 
 using namespace json_spirit;
 using namespace std;
@@ -735,91 +734,6 @@ Value getblockfailures(const Array& params, bool fHelp) {
 
     obj.push_back(Pair("block_height",  height));
     obj.push_back(Pair("failures",      failures));
-
-    return obj;
-}
-
-
-Value getblockundo(const Array& params, bool fHelp) {
-    if (fHelp || params.size() < 1 || params.size() > 2) {
-        throw runtime_error(
-            "getblockundo \"hash or height\"\n"
-            "\nIf verbose is false, returns a string that is serialized, hex-encoded data for block 'hash'.\n"
-            "If verbose is true, returns an Object with information about block <hash>.\n"
-            "\nArguments:\n"
-            "1.\"hash or height\"   (string or numeric, required) string for the block hash, or numeric for the block "
-                                                                  "height\n"
-
-            "\nResult: block undo object\n"
-            "\nExamples:\n" +
-            HelpExampleCli("getblockundo", "\"d640d051704155b1fd3ec8d0331497448c259b0ab0499e109da7ae2bc7423bc2\"") +
-            "\nAs json rpc\n" +
-            HelpExampleRpc("getblockundo", "\"d640d051704155b1fd3ec8d0331497448c259b0ab0499e109da7ae2bc7423bc2\""));
-    }
-
-    // RPCTypeCheck(params, boost::assign::list_of(str_type)(bool_type)); disable this to allow either string or int argument
-
-    std::string strHash;
-    if (int_type == params[0].type()) {
-        int height = params[0].get_int();
-        if (height < 0 || height > chainActive.Height())
-            throw JSONRPCError(RPC_INVALID_PARAMETER, "Block height out of range.");
-
-        CBlockIndex* pBlockIndex = chainActive[height];
-        strHash                  = pBlockIndex->GetBlockHash().GetHex();
-    } else {
-        strHash = params[0].get_str();
-    }
-    uint256 hash(uint256S(strHash));
-
-    auto mapIt = mapBlockIndex.find(hash);
-    if (mapIt == mapBlockIndex.end())
-        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Block not found");
-
-    CBlockIndex* pBlockIndex = mapIt->second;
-
-    CBlockUndo blockUndo;
-    CDiskBlockPos pos = pBlockIndex->GetUndoPos();
-    if (pos.IsNull())
-        throw JSONRPCError(RPC_INTERNAL_ERROR, strprintf("no undo data available! block=%d:%s",
-            pBlockIndex->height, pBlockIndex->GetBlockHash().ToString()));
-
-    if (!blockUndo.ReadFromDisk(pos, pBlockIndex->pprev->GetBlockHash()))
-        throw JSONRPCError(RPC_INTERNAL_ERROR, strprintf("read undo data failed! block=%d:%s",
-            pBlockIndex->height, pBlockIndex->GetBlockHash().ToString()));
-
-    Object obj;
-    obj.push_back(Pair("block_height",  pBlockIndex->height));
-    obj.push_back(Pair("block_hash",  pBlockIndex->pprev->GetBlockHash().ToString()));
-    obj.push_back(Pair("count", (int64_t)blockUndo.vtxundo.size()));
-    Array txArray;
-    for (size_t i = 0; i < blockUndo.vtxundo.size(); i++) {
-        CTxUndo txUndo = blockUndo.vtxundo[i];
-        Object txObj;
-        txObj.push_back(Pair("index", (int64_t)i));
-        txObj.push_back(Pair("tx_hash",  txUndo.txid.ToString()));
-        Array categoryArray;
-        for (auto opLogPair : txUndo.dbOpLogMap.GetMap()) {
-            const CDbOpLogs &opLogs = opLogPair.second;
-            Object categoryObj;
-            auto prefixType = dbk::ParseKeyPrefixType(opLogPair.first);
-            categoryObj.push_back(Pair("db_prefix", opLogPair.first));
-            categoryObj.push_back(Pair("db_prefix_memo", dbk::GetKeyPrefixMemo(prefixType)));
-            categoryObj.push_back(Pair("log_count", (int64_t)opLogs.size()));
-            Array dbLogArray;
-            for (const CDbOpLog &opLog : opLogs) {
-                Object dbLogObj;
-                dbLogObj.push_back(Pair("key",  HexStr(opLog.GetKey())));
-                dbLogObj.push_back(Pair("value",  HexStr(opLog.GetValue())));
-                dbLogArray.push_back(dbLogObj);
-            }
-            categoryObj.push_back(Pair("db_logs", dbLogArray));
-            categoryArray.push_back(categoryObj);
-        }
-        txObj.push_back(Pair("category", categoryArray));
-        txArray.push_back(txObj);
-    }
-    obj.push_back(Pair("tx_undos", txArray));
 
     return obj;
 }
