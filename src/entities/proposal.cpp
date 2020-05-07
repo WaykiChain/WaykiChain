@@ -201,18 +201,25 @@ bool CGovCoinTransferProposal::ExecuteProposal(CTxExecuteContext& context, CBase
     auto spSrcAccount = tx.GetAccount(context, from_uid, "from");
     if (!spSrcAccount) return false;
 
-    auto spDesAccount = tx.GetAccount(cw, to_uid);
-    if (!spDesAccount) {
-        if (!to_uid.is<CKeyID>()) { // first involved in transaction
-            return context.pState->DoS(100, ERRORMSG("%s, to account not exist, uid=%s",
-                    tx.GetTxTypeName(), to_uid.ToString()), REJECT_INVALID, "account-not-exist");
+    auto spDestAccount = tx.GetAccount(cw, to_uid);
+    if (!spDestAccount) {
+        if (to_uid.is<CKeyID>()) {
+            spDestAccount = tx.NewAccount(cw, to_uid.get<CKeyID>());
+        } else if (to_uid.is<CPubKey>()) {
+            const auto& pubkey = to_uid.get<CPubKey>();
+            spDestAccount = tx.NewAccount(cw, pubkey.GetKeyId());
+        } else {
+            return state.DoS(100, ERRORMSG("CGovCoinTransferProposal, to account of transfer not exist, uid=%s",
+                             to_uid.ToString()),
+                             READ_ACCOUNT_FAIL, "account-not-exist");
         }
-        auto spDesAccount = tx.NewAccount(cw, to_uid.get<CKeyID>());
     }
 
-    if (!spSrcAccount->OperateBalance(token, BalanceOpType::SUB_FREE, amount, ReceiptType::TRANSFER_PROPOSAL, tx.receipts, spDesAccount.get()))
+
+    if (!spSrcAccount->OperateBalance(token, BalanceOpType::SUB_FREE, amount, ReceiptType::TRANSFER_PROPOSAL, tx.receipts, spDestAccount.get()))
         return state.DoS(100, ERRORMSG("CGovCoinTransferProposal::ExecuteProposal, account has insufficient funds"),
                          UPDATE_ACCOUNT_FAIL, "operate-minus-account-failed");
+
     return true;
 }
 

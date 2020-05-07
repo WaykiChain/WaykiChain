@@ -158,7 +158,7 @@ public:
             return false;
         }
 
-        uint32_t symbolSizeMin = 3;
+        uint32_t symbolSizeMin = 2;
         uint32_t symbolSizeMax = 5;
         if (assetType == AssetType::UIA) {
             symbolSizeMin = 6;
@@ -174,7 +174,7 @@ public:
 
         bool valid = false;
         for (auto ch : assetSymbol) {
-            valid = (ch >= '0' && ch <= '9') || (ch >= 'A' && ch <= 'Z');
+            valid = (ch >= '0' && ch <= '9') || (ch >= 'A' && ch <= 'Z') || (ch >= 'a' && ch <= 'z');
 
             if (assetType == AssetType::UIA)
                 valid = valid || (ch == '#' || ch == '.' || ch == '@' || ch == '_');
