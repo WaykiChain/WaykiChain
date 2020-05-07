@@ -99,13 +99,14 @@ public:
         return true;
     }
 
-    std::vector <uint8_t> GetCode(const uint64_t account) {
+    bool GetCode(const uint64_t contract, std::vector <uint8_t> &code) {
         string key("code");
         string value;
-        GetContractData(account, key, value);
+        if (!GetContractData(contract, key, value))
+            return false;
 
-        std::vector <uint8_t> code(value.begin(), value.end());
-        return code;
+        code = std::vector(value.begin(), value.end());
+        return true;
     }
 
     void print() {
@@ -155,8 +156,7 @@ class wasm_context : public wasm_context_interface {
         };
 
     public:
-        std::vector <uint8_t> get_code( const uint64_t& account );
-        std::string get_abi( uint64_t account );
+        bool get_code( const uint64_t& contract, std::vector <uint8_t> &code);
         void execute_one( inline_transaction_trace &trace );
         void initialize();
         void execute( inline_transaction_trace &trace );

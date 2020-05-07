@@ -350,12 +350,12 @@ bool CUniversalTx::ExecuteTx(CTxExecuteContext &context) {
     return true;
 }
 
-void CUniversalTx::execute_inline_transaction(wasm::inline_transaction_trace& trace,
-                                                 wasm::inline_transaction&       trx,
-                                                 uint64_t                        receiver,
-                                                 CCacheWrapper&                  database,
-                                                 vector <CReceipt>&              receipts,
-                                                 uint32_t                        recurse_depth) {
+void CUniversalTx::execute_inline_transaction(  wasm::inline_transaction_trace&     trace,
+                                                wasm::inline_transaction&           trx,
+                                                uint64_t                            receiver,
+                                                CCacheWrapper&                      database,
+                                                vector <CReceipt>&                  receipts,
+                                                uint32_t                            recurse_depth) {
 
     wasm_context wasm_execute_context(*this, trx, database, receipts, mining, recurse_depth);
 

@@ -38,11 +38,11 @@ namespace wasm {
         };
 
     public:
-        void                  initialize();
-        void                  execute(inline_transaction_trace &trace);
-        void                  execute_one(inline_transaction_trace &trace);
-        bool                  has_permission_from_inline_transaction(const permission &p);
-        std::vector <uint8_t> get_code(const uint64_t& account);
+        void initialize();
+        void execute(inline_transaction_trace &trace);
+        void execute_one(inline_transaction_trace &trace);
+        bool has_permission_from_inline_transaction(const permission &p);
+        bool get_code(const uint64_t& contract, std::vector <uint8_t> &code);
 // Console methods:
     public:
         void                      reset_console();
@@ -53,7 +53,7 @@ namespace wasm {
     public:
 
         void        execute_inline   (const inline_transaction& t);
-        void        notify_recipient(const uint64_t& recipient  );
+        void        notify_recipient (const uint64_t& recipient  );
         bool        has_recipient    (const uint64_t& account    ) const;
 
         uint64_t    receiver() { return _receiver;    }

@@ -92,8 +92,8 @@ namespace wasm {
         inline_transactions.push_back(t);
     }
 
-    std::vector <uint8_t> wasm_context::get_code(const uint64_t& account ) {
-       return cache.GetCode(account);
+    bool wasm_context::get_code(const uint64_t& contract, std::vector <uint8_t> &code) {
+       return cache.GetCode(contract, code);
     }
 
     void wasm_context::initialize() {
@@ -141,8 +141,8 @@ namespace wasm {
         trace.receiver = _receiver;
 
         try {
-            vector <uint8_t> code = get_code(_receiver);
-            if (code.size() > 0)
+            vector <uint8_t> code;
+            if (get_code(_receiver, code) && code.size() > 0)
                 wasmif.execute(code, this);
         }
         CHAIN_RETHROW_EXCEPTIONS( wasm_exception, "pending console output: %s", _pending_console_output.str() )

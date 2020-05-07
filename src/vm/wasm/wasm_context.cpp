@@ -79,16 +79,13 @@ namespace wasm {
         inline_transactions.push_back(t);
     }
 
-    std::vector <uint8_t> wasm_context::get_code(const uint64_t& account) {
-
-        vector <uint8_t>   code;
+    bool wasm_context::get_code(const uint64_t& contract, std::vector <uint8_t> &code) {
         CUniversalContractStore contract_store;
-        auto spContractAcct = control_trx.GetAccount(database, CRegID(account));
-        if (spContractAcct && database.contractCache.GetContract(spContractAcct->regid, contract_store)) {
-            code = vector <uint8_t>(contract_store.code.begin(), contract_store.code.end());
-        }
+        if (!database.contractCache.GetContract(CRegID(contract), contract_store))
+            return false;
 
-        return code;
+        code = vector <uint8_t>(contract_store.code.begin(), contract_store.code.end());
+        return true;
     }
 
     uint64_t wasm_context::get_maintainer(const uint64_t& contract) {
@@ -122,7 +119,9 @@ namespace wasm {
             _receiver = notified[i];
 
             trace.inline_traces.emplace_back();
+            LogPrint(BCLog::WASM, "execute_one starts: %d...\n", i);
             execute_one(trace.inline_traces.back());
+            LogPrint(BCLog::WASM, "execute_one finishes...\n");
         }
 
         CHAIN_ASSERT( recurse_depth < wasm::max_inline_transaction_depth,
@@ -153,13 +152,16 @@ namespace wasm {
             if (native) {
                 (*native)(*this, trx.action);
             } else {
-                vector <uint8_t> code = get_code(_receiver);
-                if (code.size() > 0) {
+                vector <uint8_t> code;
+                if (get_code(_receiver, code) && code.size() > 0) {
                     wasmif.execute(code, this);
                 }
             }
         }  catch (wasm_chain::exception &e) {
-            string console_output = (_pending_console_output.str().size() == 0)?string(""):string(", console: ") + _pending_console_output.str();
+            string console_output = (_pending_console_output.str().size() == 0) ?
+                                        string("") :
+                                        string(", console: ") + _pending_console_output.str();
+
             CHAIN_RETHROW_EXECPTION( e, log_level::warn,
                                      "[%s, %s]->%s%s",
                                      regid(contract()).to_string(),
@@ -167,7 +169,10 @@ namespace wasm {
                                      regid(receiver()).to_string(),
                                      console_output );
         } catch (...) {
-            string console_output = (_pending_console_output.str().size() == 0)?string(""):string(", console: ") + _pending_console_output.str();
+            string console_output = (_pending_console_output.str().size() == 0) ?
+                                        string("") :
+                                        string(", console: ") + _pending_console_output.str();
+
             CHAIN_THROW( wasm_chain::chain_exception,
                          "[%s, %s]->%s%s",
                          regid(contract()).to_string(),
