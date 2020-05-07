@@ -586,7 +586,7 @@ namespace wasm {
         }
 
 
-       uint64_t get_maintainer(const uint64_t& contract) {
+       uint64_t get_maintainer(uint64_t contract) {
             return pWasmContext->get_maintainer(contract);
        }
 
