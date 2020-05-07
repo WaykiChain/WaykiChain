@@ -806,6 +806,15 @@ bool CGovAssetIssueProposal::ExecuteProposal(CTxExecuteContext& context, CBaseTx
         return state.DoS(100, ERRORMSG("CGovAssetIssueProposal::ExecuteProposal,save asset error"), REJECT_INVALID,
                          "asset-write-error");
     }
-
+    auto spOwnerAccount = tx.GetAccount(context, owner_uid, "owner");
+    if (!spOwnerAccount) {
+        return state.DoS(100, ERRORMSG("fail to find owner account, owner_id = %s",
+                                       owner_uid.ToDebugString()), UPDATE_ACCOUNT_FAIL, "account-not-found");
+    }
+    if (!spOwnerAccount->OperateBalance(asset.asset_symbol, BalanceOpType::ADD_FREE, asset.total_supply,
+                                        ReceiptType::ASSET_MINT_NEW_AMOUNT, tx.receipts)) {
+        return state.DoS(100, ERRORMSG("fail to add total_supply to issued account! total_supply=%llu, txUid=%s",
+                                       asset.total_supply, owner_uid.ToDebugString()), UPDATE_ACCOUNT_FAIL, "insufficent-funds");
+    }
     return true;
 }

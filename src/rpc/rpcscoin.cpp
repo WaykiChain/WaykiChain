@@ -50,7 +50,7 @@ Value submitpricefeedtx(const Array& params, bool fHelp) {
 
     EnsureWalletIsUnlocked();
 
-    const CUserID &feedUid = RPC_PARAM::GetUserId(params[0].get_str());
+    const CUserID &feedUid = RPC_PARAM::GetUserId(params[0].get_str(),true);
 
     if (!feedUid.is<CRegID>())
         throw JSONRPCError(RPC_INVALID_PARAMETER, "Regid not exist or immature");
@@ -582,7 +582,7 @@ Value submitassetissuetx(const Array& params, bool fHelp) {
 
     EnsureWalletIsUnlocked();
 
-    const CUserID& uid             = RPC_PARAM::GetUserId(params[0]);
+    const CUserID& uid             = RPC_PARAM::GetUserId(params[0],true);
     const TokenSymbol& assetSymbol = RPC_PARAM::GetAssetIssueSymbol(params[1]);
     const CUserID& assetOwnerUid   = RPC_PARAM::GetUserId(params[2]);
     const TokenName& assetName     = RPC_PARAM::GetAssetName(params[3]);
@@ -645,7 +645,7 @@ Value submitassetupdatetx(const Array& params, bool fHelp) {
 
     EnsureWalletIsUnlocked();
 
-    const CUserID& uid             = RPC_PARAM::GetUserId(params[0]);
+    const CUserID& uid             = RPC_PARAM::GetUserId(params[0], true);
     const TokenSymbol& assetSymbol = RPC_PARAM::GetAssetIssueSymbol(params[1]);
     const string &updateTypeStr = params[2].get_str();
     const Value &jsonUpdateValue = params[3].get_str();

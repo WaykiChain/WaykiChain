@@ -174,10 +174,13 @@ public:
 
         bool valid = false;
         for (auto ch : assetSymbol) {
-            valid = (ch >= '0' && ch <= '9') || (ch >= 'A' && ch <= 'Z') || (ch >= 'a' && ch <= 'z');
+            valid = (ch >= '0' && ch <= '9') || (ch >= 'A' && ch <= 'Z');
 
             if (assetType == AssetType::UIA)
                 valid = valid || (ch == '#' || ch == '.' || ch == '@' || ch == '_');
+            if (assetType == AssetType::DIA) {
+                valid = valid || (ch >= 'a' && ch <= 'z');
+            }
 
             if (!valid) {
                 errMsg = strprintf("Invalid char in symbol: %d", ch);

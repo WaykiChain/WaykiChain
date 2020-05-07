@@ -619,7 +619,7 @@ struct CGovAxcOutProposal: CProposal {
 
 /**
  * special UIA asset create proposal:
- *  support 3~5-char long symboled UIA. E.g. xBTC, xETH
+ *  support 2~5-char long symboled UIA. E.g. xBTC, xETH
  */
 struct CGovAssetIssueProposal: CProposal {
     TokenSymbol asset_symbol;

@@ -266,10 +266,16 @@ Object CUserUpdateAssetTx::ToJson(const CAccountDBCache &accountCache) const {
 }
 
 bool CUserUpdateAssetTx::CheckTx(CTxExecuteContext &context) {
-    CValidationState &state = *context.pState;
+
+    IMPLEMENT_DEFINE_CW_STATE
 
     string errMsg = "";
-    if (!CAsset::CheckSymbol(AssetType::UIA, asset_symbol, errMsg))
+
+    CAsset asset;
+    if (!cw.assetCache.GetAsset(asset_symbol, asset))
+        return state.DoS(100, ERRORMSG("get asset by symbol=%s failed", asset_symbol), REJECT_INVALID, "get-asset-failed");
+
+    if (!CAsset::CheckSymbol(asset.asset_type, asset_symbol, errMsg))
         return state.DoS(100, ERRORMSG("asset_symbol error: %s", errMsg), REJECT_INVALID, "invalid-asset-symbol");
 
     switch (update_data.GetType()) {
