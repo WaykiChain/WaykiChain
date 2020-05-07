@@ -178,7 +178,7 @@ bool CGovMinerFeeProposal::ExecuteProposal(CTxExecuteContext& context, CBaseTx& 
 }
 
 bool CGovCoinTransferProposal::CheckProposal(CTxExecuteContext& context, CBaseTx& tx) {
-    CValidationState &state = *context.pState;
+   IMPLEMENT_DEFINE_CW_STATE
 
     if(tx.nTxType == TxType::PROPOSAL_REQUEST_TX && tx.sp_tx_account->IsSelfUid(from_uid)) {
         return state.DoS(100, ERRORMSG("CGovCoinTransferProposal::CheckProposal, can't"
@@ -191,6 +191,24 @@ bool CGovCoinTransferProposal::CheckProposal(CTxExecuteContext& context, CBaseTx
 
     auto spSrcAccount = tx.GetAccount(context, from_uid, "from");
     if (!spSrcAccount) return false;
+
+
+    auto spDestAccount = tx.GetAccount(cw, to_uid);
+    if (!spDestAccount) {
+        if (to_uid.is<CKeyID>()) {
+            spDestAccount = tx.NewAccount(cw, to_uid.get<CKeyID>());
+        } else if (to_uid.is<CPubKey>()) {
+            const auto& pubkey = to_uid.get<CPubKey>();
+            spDestAccount = tx.NewAccount(cw, pubkey.GetKeyId());
+        } else {
+            return state.DoS(100, ERRORMSG("CGovCoinTransferProposal, to account of transfer not exist, uid=%s",
+                                           to_uid.ToString()),
+                             READ_ACCOUNT_FAIL, "account-not-exist");
+        }
+    }
+
+    if(!spDestAccount) return false;
+
 
     return true;
 }
