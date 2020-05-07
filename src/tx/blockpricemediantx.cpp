@@ -125,6 +125,7 @@ bool CBlockPriceMedianTx::ExecuteTx(CTxExecuteContext &context) {
 bool CBlockPriceMedianTx::ForceLiquidateCdps(CTxExecuteContext &context, PriceDetailMap &priceDetails) {
     CCacheWrapper &cw = *context.pCw;  CValidationState &state = *context.pState;
 
+    FeatureForkVersionEnum version = GetFeatureForkVersion(validHeight);
     auto fcoinIt = priceDetails.find(kFcoinPriceCoinPair);
     if (fcoinIt == priceDetails.end() || fcoinIt->second.price == 0) {
         LogPrint(BCLog::CDP, "price of fcoin(%s) is 0, ignore\n", CoinPairToString(kFcoinPriceCoinPair));
@@ -175,7 +176,7 @@ bool CBlockPriceMedianTx::ForceLiquidateCdps(CTxExecuteContext &context, PriceDe
             continue;
         }
 
-        if (!item.second.IsActive(context.height, priceTimeoutBlocks)) {
+        if (version >= MAJOR_VER_R3 && !item.second.IsActive(context.height, priceTimeoutBlocks)) {
             LogPrint(BCLog::CDP,
                     "price of coin_pair(%s) is inactive, ignore, "
                     "last_update_height=%u, cur_height=%u\n",
