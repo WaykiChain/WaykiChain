@@ -8,8 +8,8 @@
 
 
 #include "commons/serialize.h"
-#include "tx/tx.h"
-
+#include "tx/accountpermscleartx.h"
+#include "tx/assettx.h"
 #include "tx/accountregtx.h"
 #include "tx/blockpricemediantx.h"
 #include "tx/blockrewardtx.h"
@@ -23,13 +23,11 @@
 #include "tx/coinstaketx.h"
 #include "tx/pricefeedtx.h"
 #include "tx/tx.h"
-#include "tx/assettx.h"
 #include "tx/dexoperatortx.h"
 #include "tx/proposaltx.h"
-#include "tx/accountpermscleartx.h"
+#include "tx/universaltx.h"
 
 using namespace std;
-
 
 template<typename Stream>
 void CBaseTx::SerializePtr(Stream& os, const std::shared_ptr<CBaseTx> &pBaseTx, int serType, int version) {

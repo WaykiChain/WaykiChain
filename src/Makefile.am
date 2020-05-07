@@ -199,6 +199,7 @@ coin_CORE_H = \
   tx/txmempool.h \
   tx/txserializer.h \
   tx/proposaltx.h \
+  tx/universaltx.h \
   sync.h \
   threadsafety.h \
   tinyformat.h \
@@ -390,6 +391,7 @@ libcoin_server_a_SOURCES = \
   tx/pricefeedtx.cpp \
   tx/tx.cpp \
   tx/txmempool.cpp \
+  tx/universaltx.cpp \
   logging.cpp \
   $(VMLUA_H) \
   $(VM_CPP) \

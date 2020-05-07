@@ -294,6 +294,9 @@ Value submittx( const Array &params, bool fHelp ) {
         auto db_contract = pCdMan->pContractCache;
         auto wallet      = pWalletMain;
 
+        CHAIN_ASSERT( wallet != NULL, wasm_chain::wallet_not_available_exception, "wallet error" )
+        EnsureWalletIsUnlocked();
+
         //get abi
         std::vector<char> abi;
         wasm::regid       contract_regid = wasm::regid(params[1].get_str());
@@ -303,8 +306,6 @@ Value submittx( const Array &params, bool fHelp ) {
             abi = std::vector<char>(contract_store.abi.begin(), contract_store.abi.end());
         }
 
-        CHAIN_ASSERT( wallet != NULL, wasm_chain::wallet_not_available_exception, "wallet error" )
-        EnsureWalletIsUnlocked();
         CUniversalTx tx;
         {
             CAccount payer;
