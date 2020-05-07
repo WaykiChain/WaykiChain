@@ -299,7 +299,7 @@ Object CAccountDBCache::GetAccountDBStats() {
     obj_wgrt.push_back(Pair("frozen_amount",    JsonValueFromAmount(fcoinsStates[2])));
     obj_wgrt.push_back(Pair("staked_amount",    JsonValueFromAmount(fcoinsStates[3])));
     obj_wgrt.push_back(Pair("pledged_amount",   JsonValueFromAmount(fcoinsStates[4])));
-    obj_wusd.push_back(Pair("total_amount",     JsonValueFromAmount(totalFCoins)));
+    obj_wgrt.push_back(Pair("total_amount",     JsonValueFromAmount(totalFCoins)));
 
     Object obj;
     obj.push_back(Pair("WICC",          obj_wicc));
