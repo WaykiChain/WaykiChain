@@ -106,8 +106,7 @@ namespace wasm {
 				CRegID contractRegId = CRegID(contract_regid.value);
 
 				if (contract_regid.value == 0) {  //first-time deployment
-					contract_regid = wasm::regid(context.trx_cord.GetIntValue());
-					contractRegId = CRegID(contract_regid.value);
+					contractRegId = context.trx_cord;
 
 					CHAIN_ASSERT( !db_contract.HasContract(contractRegId),
 				 			  	wasm_chain::contract_exception,
@@ -121,7 +120,7 @@ namespace wasm {
 					auto keyid = Hash160(contractRegId.GetRegIdRaw());
 					auto spContractAccount = context.control_trx.NewAccount(context.database, keyid);
 					spContractAccount->regid = contractRegId;
-					CHAIN_ASSERT( !db_account.NewRegId(spContractAccount->regid, spContractAccount->keyid),
+					CHAIN_ASSERT( db_account.NewRegId(spContractAccount->regid, spContractAccount->keyid),
 								wasm_chain::contract_exception,
 								"contract registers account (%s) error",
 								contractRegId.ToString())
