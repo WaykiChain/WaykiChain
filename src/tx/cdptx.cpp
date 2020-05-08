@@ -107,37 +107,6 @@ namespace cdp_util {
         return true;
     }
 
-    bool SellInterestForFcoins(CBaseTx &tx, const CUserCDP &cdp, CTxExecuteContext &context,
-                               const uint64_t scoinsInterest, vector<CReceipt> &receipts) {
-        if (scoinsInterest == 0)
-            return true;
-
-        CCacheWrapper &cw = *context.pCw;
-        CValidationState &state = *context.pState;
-        auto spFcoinAccount = tx.GetAccount(context, SysCfg().GetFcoinGenesisRegId(), "fcoin");
-        if (!spFcoinAccount) return false;
-        // send interest to fcoin genesis account
-        if (!spFcoinAccount->OperateBalance(SYMB::WUSD, BalanceOpType::ADD_FREE, scoinsInterest,
-                                                ReceiptType::CDP_INTEREST_BUY_DEFLATE_FCOINS, receipts)) {
-            return state.DoS(100, ERRORMSG("%s, operate fcoin genesis account failed", TX_OBJ_ERR_TITLE(tx)),
-                            UPDATE_ACCOUNT_FAIL, "operate-fcoin-genesis-account-failed");
-        }
-
-        // should freeze genesis account's coin for buying the asset
-        if (!spFcoinAccount->OperateBalance(SYMB::WUSD, BalanceOpType::FREEZE, scoinsInterest,
-                                                ReceiptType::CDP_INTEREST_BUY_DEFLATE_FCOINS, receipts)) {
-            return state.DoS(100, ERRORMSG("%s, fcoin genesis account has insufficient funds", TX_OBJ_ERR_TITLE(tx)),
-                            UPDATE_ACCOUNT_FAIL, "fcoin-genesis-account-insufficient");
-        }
-
-        auto pSysBuyMarketOrder = dex::CSysOrder::CreateBuyMarketOrder(
-            context.GetTxCord(), cdp.scoin_symbol, SYMB::WGRT, scoinsInterest);
-        if (!cw.dexCache.CreateActiveOrder(tx.GetHash(), *pSysBuyMarketOrder)) {
-            return state.DoS(100, ERRORMSG("%s, create system buy order failed", TX_OBJ_ERR_TITLE(tx)),
-                            CREATE_SYS_ORDER_FAILED, "create-sys-order-failed");
-        }
-        return true;
-    }
 }
 
 static uint64_t CalcCollateralRatio(uint64_t assetAmount, uint64_t scoinAmount, uint64_t price) {
@@ -365,13 +334,8 @@ bool CCDPStakeTx::ExecuteTx(CTxExecuteContext &context) {
                              REJECT_INVALID, "CDP-collateral-ratio-toosmall");
         }
 
-        if (!SellInterestForFcoins(context, cdp, scoinsInterestToRepay))
-            return false;
-
-        if (!sp_tx_account->OperateBalance(scoin_symbol, BalanceOpType::SUB_FREE, scoinsInterestToRepay, ReceiptType::CDP_REPAY_INTEREST, receipts))
-            return state.DoS(100, ERRORMSG("scoins balance < scoinsInterestToRepay: %llu",
-                            scoinsInterestToRepay), UPDATE_ACCOUNT_FAIL,
-                            strprintf("deduct-interest(%llu)-error", scoinsInterestToRepay));
+        if (!cdp_util::SellInterestForFcoins(*this, context, cdp, *sp_tx_account, GetHash(), scoinsInterestToRepay, receipts))
+            return false; // error has been processed
 
         // settle cdp state & persist
         cdp.AddStake(context.height, assetAmount, scoins_to_mint);
@@ -416,43 +380,6 @@ Object CCDPStakeTx::ToJson(const CAccountDBCache &accountCache) const {
     result.push_back(Pair("scoins_to_mint",     scoins_to_mint));
 
     return result;
-}
-
-bool CCDPStakeTx::SellInterestForFcoins(CTxExecuteContext &context, const CUserCDP &cdp,
-                                        const uint64_t scoinsInterestToRepay) {
-    if (scoinsInterestToRepay == 0)
-        return true;
-
-    CCacheWrapper &cw = *context.pCw;
-    CValidationState &state = *context.pState;
-
-    auto spFcoinAccount = GetAccount(context, SysCfg().GetFcoinGenesisRegId(), "fcoin");
-    if (!spFcoinAccount) return false;
-    // send interest to fcoin genesis account
-    if (!spFcoinAccount->OperateBalance(SYMB::WUSD, BalanceOpType::ADD_FREE, scoinsInterestToRepay,
-                                            ReceiptType::CDP_REPAY_INTEREST_TO_FUND, receipts)) {
-        return state.DoS(100, ERRORMSG("operate balance failed"),
-                        UPDATE_ACCOUNT_FAIL, "operate-fcoin-genesis-account-failed");
-    }
-
-    // should freeze user's coin for buying the asset
-    if (!spFcoinAccount->OperateBalance(SYMB::WUSD, BalanceOpType::FREEZE, scoinsInterestToRepay,
-                                            ReceiptType::CDP_REPAY_INTEREST_TO_FUND, receipts)) {
-        return state.DoS(100, ERRORMSG("account has insufficient funds"),
-                        UPDATE_ACCOUNT_FAIL, "operate-fcoin-genesis-account-failed");
-    }
-
-    auto pSysBuyMarketOrder = dex::CSysOrder::CreateBuyMarketOrder(context.GetTxCord(), cdp.scoin_symbol,
-        SYMB::WGRT, scoinsInterestToRepay);
-    if (!cw.dexCache.CreateActiveOrder(GetHash(), *pSysBuyMarketOrder)) {
-        return state.DoS(100, ERRORMSG("create system buy order failed"),
-                        CREATE_SYS_ORDER_FAILED, "create-sys-order-failed");
-    }
-    assert(!spFcoinAccount->regid.IsEmpty());
-    receipts.emplace_back(ReceiptType::CDP_INTEREST_BUY_DEFLATE_FCOINS, BalanceOpType::FREEZE,
-                        txUid, spFcoinAccount->regid, cdp.scoin_symbol, scoinsInterestToRepay);
-
-    return true;
 }
 
 /************************************<< CCDPRedeemTx >>***********************************************/
@@ -521,16 +448,8 @@ bool CCDPRedeemTx::ExecuteTx(CTxExecuteContext &context) {
         return false;
     }
 
-    if (!sp_tx_account->OperateBalance(cdp.scoin_symbol, BalanceOpType::SUB_FREE, scoinsInterestToRepay,
-                                ReceiptType::CDP_REPAY_INTEREST, receipts)) {
-        return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, Deduct interest error!"),
-                        REJECT_INVALID, "deduct-interest-error");
-    }
-
-    if (!SellInterestForFcoins(context, cdp, scoinsInterestToRepay)) {
-        return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, SellInterestForFcoins error!"),
-                        REJECT_INVALID, "sell-interest-for-fcoins-error");
-    }
+    if (!cdp_util::SellInterestForFcoins(*this, context, cdp, *sp_tx_account, GetHash(), scoinsInterestToRepay, receipts))
+        return false; // error has been processed
 
     uint64_t startingCdpCollateralRatio;
     if (!ReadCdpParam(*this, context, cdpCoinPair, CDP_START_COLLATERAL_RATIO, startingCdpCollateralRatio))
@@ -639,39 +558,6 @@ Object CCDPRedeemTx::ToJson(const CAccountDBCache &accountCache) const {
     result.push_back(Pair("assets_to_redeem",   cdp_util::ToJson(assets_to_redeem)));
 
     return result;
-}
-
-bool CCDPRedeemTx::SellInterestForFcoins(CTxExecuteContext &context, const CUserCDP &cdp,
-                                         const uint64_t scoinsInterestToRepay) {
-    if (scoinsInterestToRepay == 0) return true;
-
-    CCacheWrapper &cw = *context.pCw; CValidationState &state = *context.pState;
-
-    auto spFcoinAccount = GetAccount(context, SysCfg().GetFcoinGenesisRegId(), "fcoin");
-    if (!spFcoinAccount) return false;
-    // send interest to fcoin genesis account
-    if (!spFcoinAccount->OperateBalance(SYMB::WUSD, BalanceOpType::ADD_FREE, scoinsInterestToRepay,
-                                            ReceiptType::CDP_INTEREST_BUY_DEFLATE_FCOINS, receipts)) {
-        return state.DoS(100, ERRORMSG("operate balance failed"),
-                        UPDATE_ACCOUNT_FAIL, "operate-fcoin-genesis-account-failed");
-    }
-
-    // should freeze user's coin for buying the asset
-    if (!spFcoinAccount->OperateBalance(SYMB::WUSD, BalanceOpType::FREEZE, scoinsInterestToRepay,
-                                            ReceiptType::CDP_INTEREST_BUY_DEFLATE_FCOINS, receipts)) {
-        return state.DoS(100, ERRORMSG("account has insufficient funds"),
-                        UPDATE_ACCOUNT_FAIL, "operate-fcoin-genesis-account-failed");
-    }
-
-    auto pSysBuyMarketOrder = dex::CSysOrder::CreateBuyMarketOrder(
-        context.GetTxCord(), cdp.scoin_symbol, SYMB::WGRT, scoinsInterestToRepay);
-
-    if (!cw.dexCache.CreateActiveOrder(GetHash(), *pSysBuyMarketOrder)) {
-        return state.DoS(100, ERRORMSG("create system buy order failed"),
-                        CREATE_SYS_ORDER_FAILED, "create-sys-order-failed");
-    }
-
-    return true;
 }
 
  /************************************<< CdpLiquidateTx >>***********************************************/

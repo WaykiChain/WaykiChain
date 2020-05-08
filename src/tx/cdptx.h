@@ -69,11 +69,6 @@ public:
 
     virtual bool CheckTx(CTxExecuteContext &context);
     virtual bool ExecuteTx(CTxExecuteContext &context);
-
-private:
-    bool SellInterestForFcoins(CTxExecuteContext &context, const CUserCDP &cdp,
-                               const uint64_t scoinsInterestToRepay);
-
 private:
     TxID cdp_txid;                      // optional: only required for staking existing CDPs
     CDPStakeAssetMap assets_to_stake;   // asset map to stake, support to stake multi token
@@ -126,10 +121,6 @@ public:
 
     virtual bool CheckTx(CTxExecuteContext &context);
     virtual bool ExecuteTx(CTxExecuteContext &context);
-private:
-    bool SellInterestForFcoins(CTxExecuteContext &context, const CUserCDP &cdp,
-                               const uint64_t scoinsInterestToRepay);
-
 private:
     uint256 cdp_txid;           // CDP cdpTxId
     uint64_t scoins_to_repay;   // stablecoin amount to redeem or burn, including interest
