@@ -192,7 +192,7 @@ bool CCdpDBCache::Flush() {
     cdp_bcoin_cache.Flush();
     user_cdp_cache.Flush();
     cdp_ratio_index_cache.Flush();
-    cdp_ratio_index_cache.Flush();
+    cdp_height_index_cache.Flush();
 
     return true;
 }
