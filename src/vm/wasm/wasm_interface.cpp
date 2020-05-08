@@ -916,26 +916,26 @@ namespace wasm {
     REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, wasm_exit,               wasm_exit)
     REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, wasm_assert,             wasm_assert)
     REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, wasm_assert_code,        wasm_assert_code)
-    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, current_time,            current_
+    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, current_time,            current_time)
     REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, read_action_data,        read_action_data)
     REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, action_data_size,        action_data_size)
-    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, current_receiver,        current_rece
+    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, current_receiver,        current_receiver)
     REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, assert_sha1,             assert_sha1)
     REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, assert_sha256,           assert_sha256)
     REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, assert_sha512,           assert_sha512)
-    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, assert_ripemd160,        assert_ripem
+    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, assert_ripemd160,        assert_ripemd160)
     REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, sha1,                    sha1)
     REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, sha256,                  sha256)
     REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, sha512,                  sha512)
-    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, ripemd160,               ripem
+    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, ripemd160,               ripemd160)
     REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, db_store,                db_store)
     REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, db_remove,               db_remove)
     REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, db_get,                  db_get)
-    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, db_update,               db_up
+    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, db_update,               db_update)
     REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, memcpy,                  memcpy)
     REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, memmove,                 memmove)
     REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, memcmp,                  memcmp)
-    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, memset,                  me
+    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, memset,                  memset)
     REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, printn,                  printn)
     REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, printui,                 printui)
     REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, printi,                  printi)
@@ -946,7 +946,7 @@ namespace wasm {
     REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, printsf,                 printsf)
     REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, printdf,                 printdf)
     REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, printhex,                printhex)
-    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, printqf,                 pri
+    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, printqf,                 printqf)
     REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, is_account,              is_account)
     REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, send_inline,             send_inline)
     REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, require_auth,            require_auth)
