@@ -481,12 +481,20 @@ bool CCdpForceLiquidator::ForceLiquidateCDPCompat(const list<CUserCDP> &cdpList,
             continue;
         }
 
-        // a) sell WICC for WUSD to return to risk reserve pool
-        // send bcoin from cdp to fcoin genesis account
-        if (!fcoinAccount.OperateBalance(SYMB::WICC, BalanceOpType::ADD_FREE, cdp.total_staked_bcoins,
-                                                ReceiptType::CDP_TOTAL_ASSET_TO_RESERVE, receipts)) {
-            return state.DoS(100, ERRORMSG("operate balance failed"),
-                                UPDATE_ACCOUNT_FAIL, "operate-fcoin-genesis-account-failed");
+        auto spCdpOwnerAccount = tx.GetAccount(cw, cdp.owner_regid);
+        if (!spCdpOwnerAccount) return false;
+
+        if (!spCdpOwnerAccount->OperateBalance(cdp.bcoin_symbol, UNPLEDGE, cdp.total_staked_bcoins,
+                                               ReceiptType::CDP_TOTAL_ASSET_TO_RESERVE, receipts)) {
+            return state.DoS(100, ERRORMSG("unpledge bcoins failed! cdp={%s}", cdp.ToString()),
+                    UPDATE_ACCOUNT_FAIL, "unpledge-bcoins-failed");
+        }
+
+        if (!spCdpOwnerAccount->OperateBalance(cdp.bcoin_symbol, SUB_FREE, cdp.total_staked_bcoins,
+                                               ReceiptType::CDP_TOTAL_ASSET_TO_RESERVE, receipts,
+                                               &fcoinAccount)) {
+            return state.DoS(100, ERRORMSG("transfer forced-liquidate assets to risk reserve failed! cdp={%s}",
+                    cdp.ToString()), UPDATE_ACCOUNT_FAIL, "transfer-forced-liquidate-assets-failed");
         }
 
         // should freeze user's asset for selling
