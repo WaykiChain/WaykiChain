@@ -318,21 +318,16 @@ Value submitsendtx(const Array& params, bool fHelp) {
     CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, sendUserId);
     CAccount destAccount;
     if(recvUserId.is<CKeyID>()) {
-        if (pCdMan->pAccountCache->GetAccount(recvUserId, destAccount)) {
-            if (!destAccount.IsRegistered()) {
-                CUserID tempRecvId =  RPC_PARAM::GetUserId(params[1],true);
-                if(tempRecvId.is<CPubKey>()){
-                    recvUserId = tempRecvId;
-                }
-            }
-        }
-        else {
+
+
+        bool accountFound = pCdMan->pAccountCache->GetAccount(recvUserId, destAccount);
+
+        if(!accountFound || !destAccount.IsRegistered()){
             if(pWalletMain->HasKey(recvUserId.get<CKeyID>())) {
                 CKey k;
                 pWalletMain->GetKey(recvUserId.get<CKeyID>(),k,false);
                 recvUserId = k.GetPubKey();
             }
-
         }
     }
 
