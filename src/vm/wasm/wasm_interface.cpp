@@ -969,10 +969,10 @@ namespace wasm {
     REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, __umodti3,               __umodti3)
     REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, __addtf3,                __addtf3)
 
-    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, __subtf3, _              _subtf3)
-    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, __multf3, _              _multf3)
-    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, __divtf3, _              _divtf3)
-    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, __negtf2, _              _negtf2)
+    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, __subtf3,                __subtf3)
+    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, __multf3,                __multf3)
+    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, __divtf3,                __divtf3)
+    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, __negtf2,                __negtf2)
 
     REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, __extendsftf2,           __extendsftf2)
     REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, __extenddftf2,           __extenddftf2)
