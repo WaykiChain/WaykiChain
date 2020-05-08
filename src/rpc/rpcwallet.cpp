@@ -316,6 +316,27 @@ Value submitsendtx(const Array& params, bool fHelp) {
         throw JSONRPCError(RPC_INVALID_PARAMETER, "Coins is zero!");
 
     CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, sendUserId);
+    CAccount destAccount;
+    if(recvUserId.is<CKeyID>()) {
+        if (pCdMan->pAccountCache->GetAccount(recvUserId, destAccount)) {
+            if (!destAccount.IsRegistered()) {
+                CUserID tempRecvId =  RPC_PARAM::GetUserId(params[1],true);
+                if(tempRecvId.is<CPubKey>()){
+                    recvUserId = tempRecvId;
+                }
+            }
+        }
+        else {
+            if(pWalletMain->HasKey(recvUserId.get<CKeyID>())) {
+                CKey k;
+                pWalletMain->GetKey(recvUserId.get<CKeyID>(),k,false);
+                recvUserId = k.GetPubKey();
+            }
+
+        }
+    }
+
+
     RPC_PARAM::CheckAccountBalance(account, cmCoin.symbol, SUB_FREE, cmCoin.GetAmountInSawi());
     RPC_PARAM::CheckAccountBalance(account, cmFee.symbol, SUB_FREE, cmFee.GetAmountInSawi());
 

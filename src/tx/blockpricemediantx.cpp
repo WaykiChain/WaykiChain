@@ -125,7 +125,7 @@ bool CBlockPriceMedianTx::ExecuteTx(CTxExecuteContext &context) {
 bool CBlockPriceMedianTx::ForceLiquidateCdps(CTxExecuteContext &context, PriceDetailMap &priceDetails) {
     CCacheWrapper &cw = *context.pCw;  CValidationState &state = *context.pState;
 
-    FeatureForkVersionEnum version = GetFeatureForkVersion(validHeight);
+    FeatureForkVersionEnum version = GetFeatureForkVersion(valid_height);
     auto fcoinIt = priceDetails.find(kFcoinPriceCoinPair);
     if (fcoinIt == priceDetails.end() || fcoinIt->second.price == 0) {
         LogPrint(BCLog::CDP, "price of fcoin(%s) is 0, ignore\n", CoinPairToString(kFcoinPriceCoinPair));
