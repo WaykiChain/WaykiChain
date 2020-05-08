@@ -93,7 +93,7 @@ public:
     }
 
     bool IsActive(HeightType curHeight, HeightType priceTimeoutBlocks) const {
-        if (curHeight > SysCfg().GetVer3ForkHeight())
+        if (GetFeatureForkVersion(curHeight) >= MAJOR_VER_R3)
             return curHeight <= last_feed_height + priceTimeoutBlocks;
 
         return true;
