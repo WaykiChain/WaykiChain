@@ -88,7 +88,8 @@ namespace wasm {
 		       		           wasm::regid(native_module_id).to_string(),
 		                       wasm::regid(context._receiver).to_string());
 
-		        auto &db_contract   			= context.database.contractCache;
+		        auto &db_account   				= context.database.accountCache;
+				auto &db_contract   			= context.database.contractCache;
 
 		        auto set_code_data  			= wasm::unpack<std::tuple<regid, regid, uint8_t,
 													string, string, string>>(context.trx.data);
@@ -112,7 +113,16 @@ namespace wasm {
 
 					contractStore.vm_type = (VMType) vm_type;
 					contractStore.upgradable = true;
-				} else {					//upgrade contract
+
+					auto keyid = Hash160(contract_regid.GetRegIdRaw());
+					auto spContractAccount = context.control_tx.NewAccount(context.database, keyid);
+					spContractAccount->regid = contract_regid;
+					CHAIN_ASSERT( !db_account.NewRegId(spContractAccount->regid, spContractAccount->keyid),
+								wasm_chain::contract_exception,
+								"contract registers account (%s) error",
+								wasm::regid(contract_regid).to_string())
+
+ 				} else {					//upgrade contract
 					CHAIN_ASSERT( db_contract.GetContract(CRegID(contract_regid.value), contractStore),
 				 			  	wasm_chain::contract_exception,
 		                      	"contract '%s' not exist error",
