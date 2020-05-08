@@ -119,7 +119,7 @@ namespace wasm {
 
 					// create a new contract account
 					auto keyid = Hash160(contractRegId.GetRegIdRaw());
-					auto spContractAccount = context.control_tx.NewAccount(context.database, keyid);
+					auto spContractAccount = context.control_trx.NewAccount(context.database, keyid);
 					spContractAccount->regid = contractRegId;
 					CHAIN_ASSERT( !db_account.NewRegId(spContractAccount->regid, spContractAccount->keyid),
 								wasm_chain::contract_exception,
