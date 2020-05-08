@@ -592,12 +592,8 @@ namespace wasm {
 
         uint32_t get_txid(void *data) {
             TxID txid = pWasmContext->get_txid();
-            string str_txid = txid.ToString();
-            uint32_t len = str_txid.size();
-            CHECK_WASM_DATA_SIZE(len,  "data")
-            std::memcpy(data, str_txid.c_str(), len);
-
-            return len;
+            std::memcpy(data, txid.begin(), 32);
+            return 32;
         }
 
         uint32_t get_system_asset_price(uint64_t base_symble, uint64_t quote_symble, void* data, uint32_t data_len ) {
@@ -916,109 +912,102 @@ namespace wasm {
 
     };
 
-    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, abort,            abort)
-    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, wasm_exit,        wasm_exit)
-    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, wasm_assert,      wasm_assert)
-    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, wasm_assert_code, wasm_assert_code)
-    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, current_time,     current_time)
+    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, abort,                   abort)
+    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, wasm_exit,               wasm_exit)
+    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, wasm_assert,             wasm_assert)
+    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, wasm_assert_code,        wasm_assert_code)
+    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, current_time,            current_
+    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, read_action_data,        read_action_data)
+    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, action_data_size,        action_data_size)
+    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, current_receiver,        current_rece
+    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, assert_sha1,             assert_sha1)
+    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, assert_sha256,           assert_sha256)
+    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, assert_sha512,           assert_sha512)
+    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, assert_ripemd160,        assert_ripem
+    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, sha1,                    sha1)
+    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, sha256,                  sha256)
+    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, sha512,                  sha512)
+    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, ripemd160,               ripem
+    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, db_store,                db_store)
+    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, db_remove,               db_remove)
+    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, db_get,                  db_get)
+    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, db_update,               db_up
+    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, memcpy,                  memcpy)
+    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, memmove,                 memmove)
+    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, memcmp,                  memcmp)
+    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, memset,                  me
+    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, printn,                  printn)
+    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, printui,                 printui)
+    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, printi,                  printi)
+    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, prints,                  prints)
+    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, prints_l,                prints_l)
+    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, printi128,               printi128)
+    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, printui128,              printui128)
+    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, printsf,                 printsf)
+    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, printdf,                 printdf)
+    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, printhex,                printhex)
+    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, printqf,                 pri
+    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, is_account,              is_account)
+    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, send_inline,             send_inline)
+    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, require_auth,            require_auth)
+    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, notify_recipient,        notify_recipient)
+    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, has_authorization,       has_auth)
+    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, get_active_producers,    get_active_producers)
+    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, get_txid,                get_txid)
+    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, get_maintainer,          get_maintainer)
+    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, get_system_asset_price,  get_system_asset_price)
 
-    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, read_action_data, read_action_data)
-    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, action_data_size, action_data_size)
-    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, current_receiver, current_receiver)
+    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, __ashlti3,               __ashlti3)
+    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, __ashrti3,               __ashrti3)
+    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, __lshlti3,               __lshlti3)
+    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, __lshrti3,               __lshrti3)
+    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, __divti3,                __divti3)
 
-    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, assert_sha1,      assert_sha1)
-    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, assert_sha256,    assert_sha256)
-    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, assert_sha512,    assert_sha512)
-    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, assert_ripemd160, assert_ripemd160)
+    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, __udivti3,               __udivti3)
+    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, __multi3,                __multi3)
+    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, __modti3,                __modti3)
+    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, __umodti3,               __umodti3)
+    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, __addtf3,                __addtf3)
 
-    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, sha1,      sha1)
-    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, sha256,    sha256)
-    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, sha512,    sha512)
-    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, ripemd160, ripemd160)
+    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, __subtf3, _              _subtf3)
+    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, __multf3, _              _multf3)
+    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, __divtf3, _              _divtf3)
+    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, __negtf2, _              _negtf2)
 
-    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, db_store,  db_store)
-    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, db_remove, db_remove)
-    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, db_get,    db_get)
-    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, db_update, db_update)
+    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, __extendsftf2,           __extendsftf2)
+    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, __extenddftf2,           __extenddftf2)
+    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, __trunctfdf2,            __trunctfdf2)
+    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, __trunctfsf2,            __trunctfsf2)
+    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, __fixtfsi,               __fixtfsi)
+    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, __fixtfdi,               __fixtfdi)
 
-    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, memcpy,  memcpy)
-    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, memmove, memmove)
-    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, memcmp,  memcmp)
-    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, memset,  memset)
+    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, __fixtfti,               __fixtfti)
+    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, __fixunstfsi,            __fixunstfsi)
+    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, __fixunstfdi,            __fixunstfdi)
+    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, __fixunstfti,            __fixunstfti)
+    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, __fixsfti,               __fixsfti)
 
-    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, printn,     printn)
-    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, printui,    printui)
-    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, printi,     printi)
-    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, prints,     prints)
-    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, prints_l,   prints_l)
-    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, printi128,  printi128)
-    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, printui128, printui128)
-    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, printsf,    printsf)
-    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, printdf,    printdf)
-    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, printhex,   printhex)
-    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, printqf,    printqf)
+    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, __fixdfti,               __fixdfti)
+    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, __fixunssfti,            __fixunssfti)
+    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, __fixunsdfti,            __fixunsdfti)
+    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, __floatsidf,             __floatsidf)
+    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, __floatsitf,             __floatsitf)
 
-    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, is_account,   is_account)
-    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, send_inline,  send_inline)
-    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, require_auth, require_auth)
-    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, notify_recipient,    notify_recipient)
-    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, has_authorization,    has_auth)
-    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, get_active_producers,   get_active_producers)
-    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, get_txid,               get_txid)
-    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, get_maintainer,         get_maintainer)
-    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, get_system_asset_price, get_system_asset_price)
+    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, __floatditf,             __floatditf)
+    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, __floatunsitf,           __floatunsitf)
+    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, __floatunditf,           __floatunditf)
+    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, __floattidf,             __floattidf)
+    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, __floatuntidf,           __floatuntidf)
 
-    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, __ashlti3, __ashlti3)
-    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, __ashrti3, __ashrti3)
-    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, __lshlti3, __lshlti3)
-    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, __lshrti3, __lshrti3)
-    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, __divti3,  __divti3)
+    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, __eqtf2,                 __eqtf2)
+    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, __netf2,                 __netf2)
+    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, __getf2,                 __getf2)
+    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, __gttf2,                 __gttf2)
+    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, __letf2,                 __letf2)
 
-    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, __udivti3, __udivti3)
-    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, __multi3,  __multi3)
-    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, __modti3,  __modti3)
-    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, __umodti3, __umodti3)
-    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, __addtf3,  __addtf3)
-
-    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, __subtf3, __subtf3)
-    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, __multf3, __multf3)
-    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, __divtf3, __divtf3)
-    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, __negtf2, __negtf2)
-
-    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, __extendsftf2, __extendsftf2)
-    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, __extenddftf2, __extenddftf2)
-    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, __trunctfdf2,  __trunctfdf2)
-    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, __trunctfsf2,  __trunctfsf2)
-    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, __fixtfsi,     __fixtfsi)
-    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, __fixtfdi,     __fixtfdi)
-
-    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, __fixtfti,    __fixtfti)
-    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, __fixunstfsi, __fixunstfsi)
-    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, __fixunstfdi, __fixunstfdi)
-    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, __fixunstfti, __fixunstfti)
-    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, __fixsfti,    __fixsfti)
-
-    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, __fixdfti,    __fixdfti)
-    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, __fixunssfti, __fixunssfti)
-    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, __fixunsdfti, __fixunsdfti)
-    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, __floatsidf,  __floatsidf)
-    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, __floatsitf,  __floatsitf)
-
-    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, __floatditf,   __floatditf)
-    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, __floatunsitf, __floatunsitf)
-    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, __floatunditf, __floatunditf)
-    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, __floattidf,   __floattidf)
-    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, __floatuntidf, __floatuntidf)
-
-    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, __eqtf2, __eqtf2)
-    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, __netf2, __netf2)
-    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, __getf2, __getf2)
-    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, __gttf2, __gttf2)
-    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, __letf2, __letf2)
-
-    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, __lttf2,    __lttf2)
-    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, __cmptf2,   __cmptf2)
-    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, __unordtf2, __unordtf2)
+    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, __lttf2,                 __lttf2)
+    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, __cmptf2,                __cmptf2)
+    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, __unordtf2,              __unordtf2)
 
 }//wasm
 
