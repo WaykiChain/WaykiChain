@@ -103,30 +103,34 @@ namespace wasm {
 
 				CUniversalContractStore contractStore;
 				uint64_t maintainer = maintainer_regid.value;
+				CRegID contractRegId = CRegID(contract_regid.value);
 
 				if (contract_regid.value == 0) {  //first-time deployment
 					contract_regid = wasm::regid(context.trx_cord.GetIntValue());
-					CHAIN_ASSERT( !db_contract.HasContract(CRegID(contract_regid.value)),
+					contractRegId = CRegID(contract_regid.value);
+
+					CHAIN_ASSERT( !db_contract.HasContract(contractRegId),
 				 			  	wasm_chain::contract_exception,
 		                      	"contract '%s' exists error",
-		                      	wasm::regid(contract_regid).to_string())
+		                      	contractRegId.ToString())
 
 					contractStore.vm_type = (VMType) vm_type;
 					contractStore.upgradable = true;
 
-					auto keyid = Hash160(contract_regid.GetRegIdRaw());
+					// create a new contract account
+					auto keyid = Hash160(contractRegId.GetRegIdRaw());
 					auto spContractAccount = context.control_tx.NewAccount(context.database, keyid);
-					spContractAccount->regid = contract_regid;
+					spContractAccount->regid = contractRegId;
 					CHAIN_ASSERT( !db_account.NewRegId(spContractAccount->regid, spContractAccount->keyid),
 								wasm_chain::contract_exception,
 								"contract registers account (%s) error",
-								wasm::regid(contract_regid).to_string())
+								contractRegId.ToString())
 
  				} else {					//upgrade contract
-					CHAIN_ASSERT( db_contract.GetContract(CRegID(contract_regid.value), contractStore),
+					CHAIN_ASSERT( db_contract.GetContract(contractRegId, contractStore),
 				 			  	wasm_chain::contract_exception,
 		                      	"contract '%s' not exist error",
-		                      	wasm::regid(contract_regid).to_string())
+		                      	contractRegId.ToString())
 
 					//must be current maintainer to perform code upgrade
 					auto currMaintainer = contractStore.maintainer.GetIntValue();
@@ -143,10 +147,10 @@ namespace wasm {
 				contractStore.abi  	 				= abi;
 				contractStore.memo 	 				= memo;
 
-		        CHAIN_ASSERT( db_contract.SaveContract(CRegID(contract_regid.value), contractStore),
+		        CHAIN_ASSERT( db_contract.SaveContract(contractRegId, contractStore),
 		                      wasm_chain::contract_exception,
 		                      "save contract '%s' error",
-		                      wasm::regid(contract_regid).to_string())
+		                      contractRegId.ToString())
 
 		    }
 
