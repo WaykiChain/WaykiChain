@@ -810,6 +810,10 @@ void static ThreadBlockProducing(CWallet *pWallet, int32_t targetHeight) {
                 continue;
             }
 
+            if (!spMiner->account.CheckPerms(AccountPermType::PERM_MINE_BLOCK)) {
+                continue;
+            }
+
             mining     = true;
             {
                 LOCK(cs_main);
