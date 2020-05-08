@@ -27,7 +27,7 @@ static bool GetBcoinMedianPrice(CBaseTx &tx, CTxExecuteContext &context, const C
         uint64_t &bcoinPrice) {
     const TokenSymbol &quoteSymbol = GetQuoteSymbolByCdpScoin(cdpCoinPair.scoin_symbol);
     if (quoteSymbol.empty()) {
-        return context.pState->DoS(100, ERRORMSG("get price quote by cdp scoin=%s failed!",
+        return context.pState->DoS(100, ERRORMSG("%s, get price quote by cdp scoin=%s failed!",
                 TX_OBJ_ERR_TITLE(tx), cdpCoinPair.scoin_symbol),
                 REJECT_INVALID, "get-price-quote-by-cdp-scoin-failed");
     }
@@ -840,7 +840,7 @@ bool CCDPLiquidateTx::ProcessPenaltyFees(CTxExecuteContext &context, const CUser
     // send penalty fees into risk reserve directly
     if (!spFcoinAccount->OperateBalance(cdp.scoin_symbol, BalanceOpType::ADD_FREE, scoinPenaltyFees,
                                             ReceiptType::CDP_PENALTY_TO_RESERVE, receipts)) {
-        return state.DoS(100, ERRORMSG("CCDPLiquidateTx::ExecuteTx, add scoins to fcoin genesis account failed"),
+        return state.DoS(100, ERRORMSG("%s, add scoins to fcoin genesis account failed", TX_ERR_TITLE),
                             UPDATE_ACCOUNT_FAIL, "add-scoins-to-fcoin-genesis-account-failed");
     }
     FeatureForkVersionEnum version = GetFeatureForkVersion(context.height);
@@ -854,13 +854,13 @@ bool CCDPLiquidateTx::ProcessPenaltyFees(CTxExecuteContext &context, const CUser
         // should freeze user's coin for buying the asset
         if (!spFcoinAccount->OperateBalance(cdp.scoin_symbol, BalanceOpType::FREEZE, leftScoinPenalty,
                                                 ReceiptType::CDP_PENALTY_BUY_DEFLATE_FCOINS, receipts)) {
-            return state.DoS(100, ERRORMSG("CdpLiquidateTx::ProcessPenaltyFees, account has insufficient funds"),
+            return state.DoS(100, ERRORMSG("%s, account has insufficient funds", TX_ERR_TITLE),
                             UPDATE_ACCOUNT_FAIL, "operate-fcoin-genesis-account-failed");
         }
 
         auto pSysBuyMarketOrder = dex::CSysOrder::CreateBuyMarketOrder(txCord, cdp.scoin_symbol, SYMB::WGRT, leftScoinPenalty);
         if (!cw.dexCache.CreateActiveOrder(GetHash(), *pSysBuyMarketOrder)) {
-            return state.DoS(100, ERRORMSG("CdpLiquidateTx::ProcessPenaltyFees, create system buy order failed"),
+            return state.DoS(100, ERRORMSG("%s, create system buy order failed", TX_ERR_TITLE),
                             CREATE_SYS_ORDER_FAILED, "create-sys-order-failed");
         }
     }
