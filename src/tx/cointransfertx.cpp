@@ -81,9 +81,15 @@ bool CCoinTransferTx::CheckTx(CTxExecuteContext &context) {
         if (transfers[i].to_uid.IsEmpty())
             return state.DoS(100, ERRORMSG("to_uid can not be empty"), REJECT_INVALID, "invalid-toUid");
 
-        if (!cw.assetCache.CheckAsset(transfers[i].coin_symbol, AssetPermType::PERM_TRANSFER))
+        CAsset asset;
+        if (!cw.assetCache.GetAsset(transfers[i].coin_symbol, asset))
             return state.DoS(100, ERRORMSG("transfers[%d], invalid coin_symbol=%s", i,
                             transfers[i].coin_symbol), REJECT_INVALID, "invalid-coin-symbol");
+
+        if(!asset.HasPerms(AssetPermType::PERM_TRANSFER)) {
+            return state.DoS(100, ERRORMSG("transfers[%d], lack perm, perm_name=PERM_TRANSFER, coin_symbol=%s", i,
+                                           transfers[i].coin_symbol), REJECT_INVALID, "lack_PERM_TRANSFER");
+        }
 
         if (transfers[i].coin_amount < DUST_AMOUNT_THRESHOLD)
             return state.DoS(100, ERRORMSG("transfers[%d], dust amount, %llu < %llu",
@@ -119,7 +125,6 @@ bool CCoinTransferTx::ExecuteTx(CTxExecuteContext &context) {
         const auto &transfer = transfers[i];
         const CUserID &toUid = transfer.to_uid;
         uint64_t actualCoinsToSend = transfer.coin_amount;
-
         // process WUSD transaction risk-reverse fees
         if (transfer.coin_symbol == SYMB::WUSD) {  // if transferring WUSD, must pay friction fees to the risk reserve
             uint64_t frictionFeeRatio;

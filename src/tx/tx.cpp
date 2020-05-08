@@ -79,13 +79,8 @@ bool CBaseTx::IsValidHeight(int32_t nCurrHeight, int32_t nTxCacheHeight) const {
     if (BLOCK_REWARD_TX == nTxType || UCOIN_BLOCK_REWARD_TX == nTxType || PRICE_MEDIAN_TX == nTxType)
         return true;
 
-    if (valid_height > nCurrHeight + nTxCacheHeight / 2)
-        return false;
-
-    if (valid_height < nCurrHeight - nTxCacheHeight / 2)
-        return false;
-
-    return true;
+    auto halfRange = nTxCacheHeight / 2;
+    return (valid_height <= nCurrHeight + halfRange) && (valid_height >= nCurrHeight - halfRange);
 }
 
 uint64_t CBaseTx::GetFuelFee(CCacheWrapper &cw, int32_t height, uint32_t fuelRate) {

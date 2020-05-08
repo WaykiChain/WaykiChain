@@ -25,7 +25,7 @@ bool CAssetDbCache::HasAsset(const TokenSymbol &tokenSymbol) {
 }
 
 bool CAssetDbCache::CheckAsset(const TokenSymbol &symbol, CAsset &asset) {
-    if (symbol.size() < 3 || symbol.size() > MAX_TOKEN_SYMBOL_LEN) {
+    if (symbol.size() < MIN_TOKEN_SYMBOL_LEN || symbol.size() > MAX_TOKEN_SYMBOL_LEN) {
         LogPrint(BCLog::INFO, "[WARN] Invalid symobl format: %s\n", symbol);
         return false;
     }
