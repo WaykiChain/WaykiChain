@@ -837,37 +837,23 @@ bool CCDPLiquidateTx::ProcessPenaltyFees(CTxExecuteContext &context, const CUser
 
     auto spFcoinAccount = GetAccount(context, SysCfg().GetFcoinGenesisRegId(), "fcoin");
     if (!spFcoinAccount) return false;
-
+    // send penalty fees into risk reserve directly
+    if (!spFcoinAccount->OperateBalance(cdp.scoin_symbol, BalanceOpType::ADD_FREE, scoinPenaltyFees,
+                                            ReceiptType::CDP_PENALTY_TO_RESERVE, receipts)) {
+        return state.DoS(100, ERRORMSG("CCDPLiquidateTx::ExecuteTx, add scoins to fcoin genesis account failed"),
+                            UPDATE_ACCOUNT_FAIL, "add-scoins-to-fcoin-genesis-account-failed");
+    }
     FeatureForkVersionEnum version = GetFeatureForkVersion(context.height);
     if (version < FeatureForkVersionEnum::MAJOR_VER_R3 && scoinPenaltyFees <= CDP_SYSORDER_PENALTY_FEE_MIN) {
-        // send penalty fees into risk reserve directly
-        if (!spFcoinAccount->OperateBalance(cdp.scoin_symbol, BalanceOpType::ADD_FREE, scoinPenaltyFees,
-                                                ReceiptType::CDP_PENALTY_TO_RESERVE, receipts)) {
-            return state.DoS(100, ERRORMSG("CCDPLiquidateTx::ExecuteTx, add scoins to fcoin genesis account failed"),
-                             UPDATE_ACCOUNT_FAIL, "add-scoins-to-fcoin-genesis-account-failed");
-        }
+        // not buy the fcoins
+        return true;
     } else {
         uint64_t halfScoinsPenalty = scoinPenaltyFees / 2;
         uint64_t leftScoinPenalty  = scoinPenaltyFees - halfScoinsPenalty;  // handle odd amount
 
-        // 1) save 50% penalty fees into risk reserve
-        if (!spFcoinAccount->OperateBalance(cdp.scoin_symbol, BalanceOpType::ADD_FREE, halfScoinsPenalty,
-                                                ReceiptType::CDP_PENALTY_TO_RESERVE, receipts)) {
-            return state.DoS(100, ERRORMSG("CCDPLiquidateTx::ExecuteTx, add scoins to fcoin genesis account failed"),
-                             UPDATE_ACCOUNT_FAIL, "add-scoins-to-fcoin-genesis-account-failed");
-        }
-
-        // 2) sell 50% penalty fees for Fcoins and burn
-        // send half scoin penalty to fcoin genesis account
-        if (!spFcoinAccount->OperateBalance(cdp.scoin_symbol, BalanceOpType::ADD_FREE, leftScoinPenalty,
-                                                ReceiptType::CDP_PENALTY_TO_RESERVE, receipts)) {
-            return state.DoS(100, ERRORMSG("CCDPLiquidateTx::ExecuteTx, add scoins to fcoin genesis account failed"),
-                             UPDATE_ACCOUNT_FAIL, "add-scoins-to-fcoin-genesis-account-failed");
-        }
-
         // should freeze user's coin for buying the asset
         if (!spFcoinAccount->OperateBalance(cdp.scoin_symbol, BalanceOpType::FREEZE, leftScoinPenalty,
-                                                ReceiptType::CDP_PENALTY_TO_RESERVE, receipts)) {
+                                                ReceiptType::CDP_PENALTY_BUY_DEFLATE_FCOINS, receipts)) {
             return state.DoS(100, ERRORMSG("CdpLiquidateTx::ProcessPenaltyFees, account has insufficient funds"),
                             UPDATE_ACCOUNT_FAIL, "operate-fcoin-genesis-account-failed");
         }
@@ -877,10 +863,6 @@ bool CCDPLiquidateTx::ProcessPenaltyFees(CTxExecuteContext &context, const CUser
             return state.DoS(100, ERRORMSG("CdpLiquidateTx::ProcessPenaltyFees, create system buy order failed"),
                             CREATE_SYS_ORDER_FAILED, "create-sys-order-failed");
         }
-
-        CUserID fcoinGenesisUid(spFcoinAccount->regid);
-        receipts.emplace_back(ReceiptType::CDP_PENALTY_TO_RESERVE, BalanceOpType::FREEZE, nullId, fcoinGenesisUid, cdp.scoin_symbol, halfScoinsPenalty);
-        receipts.emplace_back(ReceiptType::CDP_PENALTY_BUY_DEFLATE_FCOINS, BalanceOpType::FREEZE, nullId, fcoinGenesisUid, cdp.scoin_symbol, leftScoinPenalty);
     }
 
     return true;
