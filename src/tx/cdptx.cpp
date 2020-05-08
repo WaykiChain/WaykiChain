@@ -74,7 +74,8 @@ namespace cdp_util {
     }
 
     bool SellInterestForFcoins(CBaseTx &tx, CTxExecuteContext &context, const CUserCDP &cdp,
-                               const uint64_t scoinsInterest, vector<CReceipt> &receipts) {
+                               const uint256 &orderId, const uint64_t scoinsInterest,
+                               vector<CReceipt> &receipts) {
         if (scoinsInterest == 0)
             return true;
 
@@ -96,17 +97,15 @@ namespace cdp_util {
                             UPDATE_ACCOUNT_FAIL, "fcoin-genesis-account-insufficient");
         }
 
-        CTxCord txCord(context.height, context.index);
-        auto pSysBuyMarketOrder = dex::CSysOrder::CreateBuyMarketOrder(txCord, cdp.scoin_symbol,
-                                                                    SYMB::WGRT, scoinsInterest);
+        auto pSysBuyMarketOrder = dex::CSysOrder::CreateBuyMarketOrder(
+            context.GetTxCord(), cdp.scoin_symbol, SYMB::WGRT, scoinsInterest);
 
-        if (!cw.dexCache.CreateActiveOrder(tx.GetHash(), *pSysBuyMarketOrder)) {
+        if (!cw.dexCache.CreateActiveOrder(orderId, *pSysBuyMarketOrder)) {
             return state.DoS(100, ERRORMSG("%s, create system buy order failed", TX_OBJ_ERR_TITLE(tx)),
                             CREATE_SYS_ORDER_FAILED, "create-sys-order-failed");
         }
         return true;
     }
-
 
     bool SellInterestForFcoins(CBaseTx &tx, const CUserCDP &cdp, CTxExecuteContext &context,
                                const uint64_t scoinsInterest, vector<CReceipt> &receipts) {
@@ -1022,6 +1021,7 @@ bool CCDPInterestForceSettleTx::ExecuteTx(CTxExecuteContext &context) {
     CCacheWrapper &cw = *context.pCw; CValidationState &state = *context.pState;
 
     set<uint256> cdpidSet; // for check duplication
+    const auto &txid = GetHash();
     for (auto cdpid : cdp_list) {
         // check duplication
         auto retIt = cdpidSet.emplace(cdpid);
@@ -1059,7 +1059,10 @@ bool CCDPInterestForceSettleTx::ExecuteTx(CTxExecuteContext &context) {
         sp_tx_account->OperateBalance(cdp.scoin_symbol, BalanceOpType::ADD_FREE, mintScoinForInterest,
                                 ReceiptType::CDP_MINTED_SCOIN_TO_OWNER, receipts);
 
-        if (!cdp_util::SellInterestForFcoins(*this, context, cdp, mintScoinForInterest, receipts))
+        CHashWriter hashWriter(SER_GETHASH, 0);
+        hashWriter << txid << cdpid;
+        uint256 orderId = hashWriter.GetHash();
+        if (!cdp_util::SellInterestForFcoins(*this, context, cdp, orderId, mintScoinForInterest, receipts))
             return false; // error msg has been processed
 
         if (!sp_tx_account->OperateBalance(cdp.scoin_symbol, BalanceOpType::SUB_FREE,
