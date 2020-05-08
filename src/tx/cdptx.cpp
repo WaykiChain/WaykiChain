@@ -73,7 +73,7 @@ namespace cdp_util {
         return (curHeight > lastHeight) && ((curHeight - lastHeight) >= cycleBlocks);
     }
 
-    bool SellInterestForFcoins(CBaseTx &tx, CTxExecuteContext &context, const CUserCDP &cdp,
+    bool SellInterestForFcoins(CBaseTx &tx, CTxExecuteContext &context, const CUserCDP &cdp, CAccount &cdpAccount,
                                const uint256 &orderId, const uint64_t scoinsInterest,
                                vector<CReceipt> &receipts) {
         if (scoinsInterest == 0)
@@ -83,12 +83,12 @@ namespace cdp_util {
         auto spFcoinAccount = tx.GetAccount(context, SysCfg().GetFcoinGenesisRegId(), "fcoin");
         if (!spFcoinAccount) return false;
 
-        // send interest to fcoin genesis account
-        if (!spFcoinAccount->OperateBalance(SYMB::WUSD, BalanceOpType::ADD_FREE, scoinsInterest,
-                                                ReceiptType::CDP_INTEREST_BUY_DEFLATE_FCOINS, receipts)) {
-            return state.DoS(100, ERRORMSG("%s, operate fcoin genesis account failed", TX_OBJ_ERR_TITLE(tx)),
-                            UPDATE_ACCOUNT_FAIL, "operate-fcoin-genesis-account-failed");
-        }
+        if (!cdpAccount.OperateBalance(cdp.scoin_symbol, BalanceOpType::SUB_FREE,
+                                      scoinsInterest, ReceiptType::CDP_REPAY_INTEREST_TO_FUND,
+                                      receipts, spFcoinAccount.get()))
+            return state.DoS(100, ERRORMSG("cdp=%s scoins balance < scoinsInterestToRepay: %llu",
+                    cdp.cdpid.ToString(), scoinsInterest), UPDATE_ACCOUNT_FAIL,
+                    strprintf("deduct-interest(%llu)-error", scoinsInterest));
 
         // should freeze genesis account's coin for buying the asset
         if (!spFcoinAccount->OperateBalance(SYMB::WUSD, BalanceOpType::FREEZE, scoinsInterest,
@@ -1056,21 +1056,14 @@ bool CCDPInterestForceSettleTx::ExecuteTx(CTxExecuteContext &context) {
             return false;
         }
 
-        sp_tx_account->OperateBalance(cdp.scoin_symbol, BalanceOpType::ADD_FREE, mintScoinForInterest,
+        spCdpOwnerAccount->OperateBalance(cdp.scoin_symbol, BalanceOpType::ADD_FREE, mintScoinForInterest,
                                 ReceiptType::CDP_MINTED_SCOIN_TO_OWNER, receipts);
 
         CHashWriter hashWriter(SER_GETHASH, 0);
         hashWriter << txid << cdpid;
         uint256 orderId = hashWriter.GetHash();
-        if (!cdp_util::SellInterestForFcoins(*this, context, cdp, orderId, mintScoinForInterest, receipts))
+        if (!cdp_util::SellInterestForFcoins(*this, context, cdp, *spCdpOwnerAccount, orderId, mintScoinForInterest, receipts))
             return false; // error msg has been processed
-
-        if (!sp_tx_account->OperateBalance(cdp.scoin_symbol, BalanceOpType::SUB_FREE,
-                                      mintScoinForInterest, ReceiptType::CDP_REPAY_INTEREST,
-                                      receipts))
-            return state.DoS(100, ERRORMSG("scoins balance < scoinsInterestToRepay: %llu",
-                            mintScoinForInterest), UPDATE_ACCOUNT_FAIL,
-                            strprintf("deduct-interest(%llu)-error", mintScoinForInterest));
 
         // settle cdp state & persist
         cdp.AddStake(context.height, 0, mintScoinForInterest);
