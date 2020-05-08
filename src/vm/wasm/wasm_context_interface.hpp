@@ -37,8 +37,8 @@ namespace wasm {
         virtual bool has_authorization( const uint64_t& account ) const = 0;// { return true; }
         virtual void require_auth2    ( const uint64_t& account, const uint64_t& permission ) const = 0;// {}
         virtual uint64_t pending_block_time() = 0;//{ return 0; }
-        virtual string   get_txid() = 0;//{ return 0; }
-        virtual uint64_t   get_maintainer(const uint64_t& contract) = 0;//{ return 0; }
+        virtual TxID        get_txid() = 0;
+        virtual uint64_t    get_maintainer(const uint64_t& contract) = 0;//{ return 0; }
         virtual void exit      () = 0;//{}
         virtual bool get_system_asset_price(uint64_t base, uint64_t quote, std::vector<char>& price) = 0;
 

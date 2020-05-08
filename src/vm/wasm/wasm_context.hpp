@@ -68,7 +68,7 @@ namespace wasm {
         void        require_auth2(const uint64_t& account, const uint64_t& permission) const {}
         bool        has_authorization(const uint64_t& account) const;
         uint64_t    pending_block_time() { return control_trx.pending_block_time; }
-        string      get_txid()  { return control_trx.GetHash().ToString();}
+        TxID        get_txid()  { return control_trx.GetHash(); }
         uint64_t    get_maintainer(const uint64_t& contract);
         void        exit    ()  { wasmif.exit(); }
         bool        get_system_asset_price(uint64_t base, uint64_t quote, std::vector<char>& price);
@@ -124,18 +124,18 @@ namespace wasm {
         void                      resume_billing_timer()  { control_trx.resume_billing_timer(); };
 
     public:
-        CTxCord&                   trx_cord;
-        inline_transaction&        trx;
-        CUniversalTx&      control_trx;
-        CCacheWrapper&             database;
-        vector<CReceipt>&          receipts;
-        uint32_t                   recurse_depth;
-        vector<uint64_t>           notified;
-        vector<inline_transaction> inline_transactions;
+        CTxCord&                    trx_cord;
+        inline_transaction&         trx;
+        CUniversalTx&               control_trx;
+        CCacheWrapper&              database;
+        vector<CReceipt>&           receipts;
+        uint32_t                    recurse_depth;
+        vector<uint64_t>            notified;
+        vector<inline_transaction>  inline_transactions;
 
-        wasm::wasm_interface       wasmif;
-        vm::wasm_allocator         wasm_alloc;
-        uint64_t                   _receiver;
+        wasm::wasm_interface        wasmif;
+        vm::wasm_allocator          wasm_alloc;
+        uint64_t                    _receiver;
 
     private:
         std::ostringstream         _pending_console_output;

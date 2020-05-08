@@ -586,26 +586,18 @@ namespace wasm {
         }
 
 
-       uint64_t get_maintainer(uint64_t contract) {
+        uint64_t get_maintainer(uint64_t contract) {
             return pWasmContext->get_maintainer(contract);
-       }
+        }
 
-        uint32_t get_txid(void *data, uint32_t data_len) {
+        uint32_t get_txid(void *data) {
+            TxID txid = pWasmContext->get_txid();
+            string str_txid = txid.ToString();
+            uint32_t len = str_txid.size();
+            CHECK_WASM_DATA_SIZE(len,  "data")
+            std::memcpy(data, str_txid.c_str(), len);
 
-            // TxID txid = pWasmContext->get_txid();
-            // std::string strtxid = txid.ToString();
-            std::string txid = pWasmContext->get_txid();
-
-            size_t len = txid.size();
-            if (data_len == 0) return len;
-
-            auto copy_len = std::min( static_cast<size_t>(data_len), len );
-
-            //CHECK_WASM_IN_MEMORY(data, copy_len);
-            CHECK_WASM_DATA_SIZE(copy_len,  "data");
-
-            std::memcpy(data, txid.c_str(), copy_len);
-            return copy_len;
+            return len;
         }
 
         uint32_t get_system_asset_price(uint64_t base_symble, uint64_t quote_symble, void* data, uint32_t data_len ) {
