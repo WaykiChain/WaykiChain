@@ -120,8 +120,6 @@ namespace wasm {
     }
 
     static inline void to_variant( const wasm::hash256 &t, wasm::variant &v ) {
-        WASM_TRACE("%s", t.to_string());
-
         v = wasm::variant(t.to_string());
     }
 
@@ -389,7 +387,6 @@ namespace wasm {
 
     static inline void from_variant( const wasm::variant &v, wasm::hash256 &t ) {
         if (v.type() == json_spirit::str_type) {
-            WASM_TRACE("%s", v.get_str());
             t = wasm::hash256(v.get_str());
             return;
         }

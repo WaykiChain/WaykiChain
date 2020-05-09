@@ -46,11 +46,6 @@ namespace wasm {
                     uint8_t t = l | h << 4;
                     value[i] = t;
                 }
-
-
-                WASM_TRACE("%s", to_string());
-
-
             }
 
             std::string to_string() const {
