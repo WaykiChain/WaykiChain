@@ -279,6 +279,16 @@ bool CGovAssetPermProposal::CheckProposal(CTxExecuteContext& context, CBaseTx& t
     if (proposed_perms_sum == 0)
         return state.DoS(100, ERRORMSG("CGovAssetPermProposal::CheckTx, proposed perms is invalid: %llu",
                                        proposed_perms_sum), REJECT_INVALID, "asset-perms-invalid");
+
+    auto oldHasCdpBcoinPerm = asset.HasPerms(AssetPermType::PERM_CDP_BCOIN);
+    auto newHasCdpBcoinPerm = AssetHasPerms(proposed_perms_sum, AssetPermType::PERM_CDP_BCOIN);
+
+    if(oldHasCdpBcoinPerm != newHasCdpBcoinPerm) {
+        if (asset_symbol == SYMB::WGRT || kCdpScoinSymbolSet.count(asset_symbol) > 0 || kCdpBcoinSymbolSet.count(asset_symbol) > 0)
+            return state.DoS(100, ERRORMSG("asset=%s is a scoin, can not change bcoin perm", asset_symbol),
+                             REJECT_INVALID, "change-bcoin-perm-error");
+    }
+
     return true;
 
 }
@@ -299,9 +309,7 @@ bool CGovAssetPermProposal::ExecuteProposal(CTxExecuteContext& context, CBaseTx&
 
     bool newCdpBcoinPerm = asset.HasPerms(AssetPermType::PERM_CDP_BCOIN);
     if (newCdpBcoinPerm != oldCdpBcoinPerm) {
-        if (asset_symbol == SYMB::WGRT || kCdpScoinSymbolSet.count(asset_symbol) > 0 || kCdpBcoinSymbolSet.count(asset_symbol) > 0)
-            return state.DoS(100, ERRORMSG("asset=%s is a scoin, can not change bcoin perm", asset_symbol),
-                REJECT_INVALID, "change-bcoin-perm-error");
+
         CdpBcoinStatus status = newCdpBcoinPerm ? CdpBcoinStatus::STAKE_ON : CdpBcoinStatus::STAKE_OFF;
         if (!cw.cdpCache.SetCdpBcoin(asset_symbol, {status, context.GetTxCord()}))
             return state.DoS(100, ERRORMSG("Save bcoin status failed! symbol=%s", asset_symbol),
