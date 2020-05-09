@@ -303,7 +303,7 @@ bool CGovAssetPermProposal::ExecuteProposal(CTxExecuteContext& context, CBaseTx&
             return state.DoS(100, ERRORMSG("asset=%s is a scoin, can not change bcoin perm", asset_symbol),
                 REJECT_INVALID, "change-bcoin-perm-error");
         CdpBcoinStatus status = newCdpBcoinPerm ? CdpBcoinStatus::STAKE_ON : CdpBcoinStatus::STAKE_OFF;
-        if (cw.cdpCache.SetCdpBcoin(asset_symbol, {status, context.GetTxCord()}))
+        if (!cw.cdpCache.SetCdpBcoin(asset_symbol, {status, context.GetTxCord()}))
             return state.DoS(100, ERRORMSG("Save bcoin status failed! symbol=%s", asset_symbol),
                 REJECT_INVALID, "save-bcoin-status-failed");
 
