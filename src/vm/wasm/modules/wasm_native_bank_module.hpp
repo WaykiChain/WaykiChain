@@ -118,7 +118,6 @@ namespace wasm {
 		                      wasm::regid(bank_native_module_id).to_string(),
 		                      wasm::name(context._receiver).to_string());
 
-		        auto &db_account                = context.database.accountCache;
 		        context.control_trx.run_cost   += context.trx.GetSerializeSize(SER_DISK, CLIENT_VERSION) * store_fuel_fee_per_byte;
 
 		        auto transfer_data = wasm::unpack<std::tuple <uint64_t, uint64_t, wasm::asset, string >>(context.trx.data);
@@ -127,7 +126,7 @@ namespace wasm {
 		        auto quantity                    = std::get<2>(transfer_data);
 		        auto memo                        = std::get<3>(transfer_data);
 
-		        //WASM_TRACE("%s", quantity.to_string().c_str() )
+
 
 				context.require_auth(from); //from auth
 
@@ -156,6 +155,9 @@ namespace wasm {
 								wasm_chain::asset_type_exception,
 								"asset (%s) not found from d/b",
 								symbol )
+
+				WASM_TRACE("transfer from: %s, to: %s, quantity: %s",
+							spFromAccount->regid.ToString(), spToAccount->regid.ToString(), quantity.to_string().c_str() )
 
 				transfer_balance( *spFromAccount, *spToAccount, quantity, context );
 
