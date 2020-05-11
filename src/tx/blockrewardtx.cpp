@@ -12,7 +12,7 @@
 bool CBlockRewardTx::CheckTx(CTxExecuteContext &context) { return true; }
 
 bool CBlockRewardTx::ExecuteTx(CTxExecuteContext &context) {
-    IMPLEMENT_DEFINE_CW_STATE;
+    CValidationState &state = *context.pState;
 
     if (0 == context.index) {
         // When the reward transaction is immature, should NOT update account's balances.
