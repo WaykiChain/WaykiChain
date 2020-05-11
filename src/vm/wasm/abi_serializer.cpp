@@ -129,7 +129,6 @@ namespace wasm {
             structs[st.name] = st;
         }
 
-        wasm::abi_traverse_context ctx2(max_serialization_time);
         for (const auto &td : abi.types) {
             CHAIN_ASSERT( _is_type(td.type, ctx), wasm_chain::invalid_type_inside_abi, "Invalid type '%s'",
                           td.type);
