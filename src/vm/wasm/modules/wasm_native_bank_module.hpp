@@ -156,10 +156,10 @@ namespace wasm {
 								"asset (%s) not found from d/b",
 								symbol )
 
+				transfer_balance( *spFromAccount, *spToAccount, quantity, context );
+
 				WASM_TRACE("transfer from: %s, to: %s, quantity: %s",
 							spFromAccount->regid.ToString(), spToAccount->regid.ToString(), quantity.to_string().c_str() )
-
-				transfer_balance( *spFromAccount, *spToAccount, quantity, context );
 
 		        context.notify_recipient(from);
 		        context.notify_recipient(to);

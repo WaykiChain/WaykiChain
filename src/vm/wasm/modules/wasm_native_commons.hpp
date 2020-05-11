@@ -19,15 +19,6 @@ namespace wasm {
                                               wasm_chain::account_access_exception,
                                               "Account %s balance overdrawn",
                                               fromAccount.regid.ToString())
-
-      WASM_TRACE("finish transfer_balance, amount=%llu, symbol=%s, fromAccountRegId=%s",
-                          quantity.amount, symbol, fromAccount.regid.ToString());
-
-      // if ( fromAccount.keyid != context.control_trx.sp_tx_account->keyid )
-      //   CHAIN_ASSERT( context.database.accountCache.SetAccount(fromAccount.keyid, fromAccount), account_access_exception, "Save fromAccount error")
-
-      // if ( !toAccount.IsEmpty() && toAccount.keyid != context.control_trx.sp_tx_account->keyid )
-      //   CHAIN_ASSERT( context.database.accountCache.SetAccount(toAccount.keyid, toAccount), account_access_exception, "Save toAccount error")
   }
 
   //only asset owner can invoke this op
