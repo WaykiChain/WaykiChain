@@ -532,7 +532,6 @@ namespace dex {
         CDEXSettleTx &tx;
         CTxExecuteContext &context;
         shared_ptr<CAccount> &pTxAccount;
-        map<CRegID, shared_ptr<CAccount>> &accountMap;
         vector<CReceipt> &receipts;
 
         // found data
@@ -550,10 +549,9 @@ namespace dex {
 
         CDealItemExecuter(DealItem &dealItemIn, uint32_t idxIn, CDEXSettleTx &txIn,
                           CTxExecuteContext &contextIn, shared_ptr<CAccount> &pTxAccountIn,
-                          map<CRegID, shared_ptr<CAccount>> &accountMapIn,
                           vector<CReceipt> &receiptsIn)
             : dealItem(dealItemIn), idx(idxIn), tx(txIn), context(contextIn),
-              pTxAccount(pTxAccountIn), accountMap(accountMapIn), receipts(receiptsIn) {}
+              pTxAccount(pTxAccountIn), receipts(receiptsIn) {}
 
         bool Execute();
 
@@ -1176,27 +1174,11 @@ namespace dex {
     }
 
     bool CDEXSettleTx::ExecuteTx(CTxExecuteContext &context) {
-        IMPLEMENT_DEFINE_CW_STATE;
-
-        map<CRegID, std::shared_ptr<CAccount>> accountMap = {
-            {sp_tx_account->regid, sp_tx_account}
-        };
 
         for (size_t idx = 0; idx < dealItems.size(); idx++) {
-            CDealItemExecuter dealItemExec(dealItems[idx], idx, *this, context, sp_tx_account, accountMap, receipts);
+            CDealItemExecuter dealItemExec(dealItems[idx], idx, *this, context, sp_tx_account, receipts);
             if (!dealItemExec.Execute()) {
                 return false;
-            }
-        }
-
-        // save accounts, include tx account
-        for (auto accountItem : accountMap) {
-            auto pAccount = accountItem.second;
-            if (!sp_tx_account->IsSelfUid(pAccount->regid)) {
-                if (!cw.accountCache.SetAccount(pAccount->keyid, *pAccount))
-                    return state.DoS(100, ERRORMSG("%s, set account info error! regid=%s, addr=%s",
-                        TX_ERR_TITLE, pAccount->regid.ToString(), pAccount->keyid.ToAddress()),
-                        WRITE_ACCOUNT_FAIL, "bad-write-accountdb");
             }
         }
 
