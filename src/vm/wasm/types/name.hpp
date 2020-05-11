@@ -88,7 +88,7 @@ namespace wasm {
          * @param str - The string value which validated then converted to unit64_t
          *
          */
-        //constexpr explicit name( std::string_view str )
+        // dot change to '_'
         explicit name( std::string_view str )
                 : value(0) {
             try {
@@ -100,21 +100,23 @@ namespace wasm {
                     return;
                 }
 
-                uint8_t dot = 0;
+                //uint8_t dot = 0;
                 auto n = std::min((uint32_t) str.size(), (uint32_t) 12u);
                 for (decltype(n) i = 0; i < n; ++i) {
                     value <<= 5;
                     value |= char_to_value(str[i]);
-                    if(str[i] == '.'){
-                        check( ++dot <= 1, "the amount of dot can not be > 1");
-                    }
+                    //if(str[i] == '.'){
+                    // if(str[i] == '_'){
+                    //     check( ++dot <= 1, "the amount of dot can not be > 1");
+                    // }
                 }
                 value <<= (4 + 5 * (12 - n));
                 if (str.size() == 13) {
                     uint64_t v = char_to_value(str[12]);
-                    if(str[12] == '.'){
-                        check( ++dot <= 1, "the amount of dot can not be > 1");
-                    }
+                    //if(str[12] == '.'){
+                    // if(str[12] == '_'){
+                    //     check( ++dot <= 1, "the amount of dot can not be > 1");
+                    // }
 
                     if (v > 0x0Full) {
                         check(false, "thirteenth character in name cannot be a letter that comes after j");
@@ -132,7 +134,8 @@ namespace wasm {
          *  @return constexpr char - Converted value
          */
         static constexpr uint8_t char_to_value( char c ) {
-            if (c == '.'){
+            //if (c == '.'){
+            if (c == '_'){
                 return 0;
             }
             else if (c >= '1' && c <= '5'){
@@ -142,7 +145,7 @@ namespace wasm {
                 return (c - 'a') + 6;
             }
             else{
-                check( false, "character is not in allowed character set for names, the character must be '.' 1~5' 'a-z'" );
+                check( false, "character is not in allowed character set for names, the character must be '_' 1~5' 'a-z'" );
                 //check( false, "character is not in allowed character set for names" );
             }
 
@@ -229,7 +232,7 @@ namespace wasm {
          *  @post If the Appropriate Size Precondition is satisfied, the range [begin, returned pointer) contains the string representation of the %name.
          */
         char *write_as_string( char *begin, char *end ) const {
-            static const char *charmap = ".12345abcdefghijklmnopqrstuvwxyz";
+            static const char *charmap = "_12345abcdefghijklmnopqrstuvwxyz";
             constexpr uint64_t mask = 0xF800000000000000ull;
 
             if ((begin + 13) < begin || (begin + 13) > end) return begin;
