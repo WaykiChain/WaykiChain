@@ -357,14 +357,6 @@ bool CLuaVMRunEnv::TransferAccountAsset(lua_State *L, const vector<AssetTransfer
             break;
         }
 
-        if (spToAccount && !p_context->p_cw->accountCache.SetAccount(spToAccount->keyid, *spToAccount)) {
-            LogPrint(BCLog::LUAVM,
-                     "[ERR]CLuaVMRunEnv::TransferAccountAsset(), save to_account failed, to_uid=%s\n",
-                     transfer.toUid.ToString(), (int)transfer.isContractAccount);
-            ret = false;
-            break;
-        }
-
         if (isNewAccount) {
             LUA_BurnAccount(L, FUEL_ACCOUNT_NEW, BURN_VER_R2);
 
