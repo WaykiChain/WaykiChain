@@ -39,6 +39,11 @@ bool CAccount::OperateBalance(const TokenSymbol &tokenSymbol, const BalanceOpTyp
 
     CReceipt receipt(receiptType, opType);
 
+    if (pOtherAccount != nullptr && this != pOtherAccount && this->keyid == pOtherAccount->keyid) {
+        return ERRORMSG("account this != pOtherAccount, but the keyid is same, addr=%s",
+                    this->keyid.ToAddress());
+    }
+
     switch (opType) {
         case ADD_FREE: {
             accountToken.free_amount += value;
