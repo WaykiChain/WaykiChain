@@ -156,8 +156,9 @@ bool CAccount::OperateBalance(const TokenSymbol &tokenSymbol, const BalanceOpTyp
                 return ERRORMSG("free_amount insufficient(%llu vs %llu) of %s",
                                 accountToken.free_amount, value, tokenSymbol);
 
+            accountToken.frozen_amount -= value; // must operate the subtract first, because maybe this==pOtherAccount
+
             CAccountToken peerToken = pOtherAccount->GetToken(tokenSymbol);
-            accountToken.frozen_amount -= value;
             peerToken.free_amount += value;
             pOtherAccount->SetToken(tokenSymbol, peerToken);
             toUid = CUserID(pOtherAccount->keyid);
