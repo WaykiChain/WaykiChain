@@ -8,7 +8,7 @@ namespace wasm {
       string symbol     = quantity.symbol.code().to_string();
       uint8_t precision = quantity.symbol.precision();
       CHAIN_ASSERT( precision == 8,
-                    account_access_exception,
+                    wasm_chain::account_access_exception,
                     "The precision of system coin %s must be %d",
                     symbol, 8)
 
@@ -20,11 +20,14 @@ namespace wasm {
                                               "Account %s balance overdrawn",
                                               fromAccount.regid.ToString())
 
-      if ( fromAccount.keyid != context.control_trx.sp_tx_account->keyid )
-        CHAIN_ASSERT( context.database.accountCache.SetAccount(fromAccount.keyid, fromAccount), account_access_exception, "Save fromAccount error")
+      WASM_TRACE("finish transfer_balance, amount=%llu, symbol=%s, fromAccountRegId=%s",
+                          quantity.amount, symbol, fromAccount.regid.ToString());
 
-      if ( !toAccount.IsEmpty() && toAccount.keyid != context.control_trx.sp_tx_account->keyid )
-        CHAIN_ASSERT( context.database.accountCache.SetAccount(toAccount.keyid, toAccount), account_access_exception, "Save toAccount error")
+      // if ( fromAccount.keyid != context.control_trx.sp_tx_account->keyid )
+      //   CHAIN_ASSERT( context.database.accountCache.SetAccount(fromAccount.keyid, fromAccount), account_access_exception, "Save fromAccount error")
+
+      // if ( !toAccount.IsEmpty() && toAccount.keyid != context.control_trx.sp_tx_account->keyid )
+      //   CHAIN_ASSERT( context.database.accountCache.SetAccount(toAccount.keyid, toAccount), account_access_exception, "Save toAccount error")
   }
 
   //only asset owner can invoke this op

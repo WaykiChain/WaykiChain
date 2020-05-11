@@ -118,7 +118,6 @@ namespace wasm {
 		                      wasm::regid(bank_native_module_id).to_string(),
 		                      wasm::name(context._receiver).to_string());
 
-		        auto &db_account                = context.database.accountCache;
 		        context.control_trx.run_cost   += context.trx.GetSerializeSize(SER_DISK, CLIENT_VERSION) * store_fuel_fee_per_byte;
 
 		        auto transfer_data = wasm::unpack<std::tuple <uint64_t, uint64_t, wasm::asset, string >>(context.trx.data);
@@ -127,7 +126,7 @@ namespace wasm {
 		        auto quantity                    = std::get<2>(transfer_data);
 		        auto memo                        = std::get<3>(transfer_data);
 
-		        //WASM_TRACE("%s", quantity.to_string().c_str() )
+
 
 				context.require_auth(from); //from auth
 
@@ -137,36 +136,30 @@ namespace wasm {
 		        CHAIN_ASSERT(quantity.amount > 0,    wasm_chain::native_contract_assert_exception, "must transfer positive quantity");
 		        CHAIN_ASSERT(memo.size()  <= 256,    wasm_chain::native_contract_assert_exception, "memo has more than 256 bytes");
 
-				CAccount fromAccount; //may not be txAccount since one trx can have multiple signed/authorized transfers (from->to)
-		        CHAIN_ASSERT( db_account.GetAccount(CRegID(from), fromAccount),
+				//may not be txAccount since one trx can have multiple signed/authorized transfers (from->to)
+				auto spFromAccount = context.control_trx.GetAccount(context.database, CRegID(from));
+		        CHAIN_ASSERT( 	spFromAccount,
 								wasm_chain::account_access_exception,
 								"from account '%s' does not exist",
 								wasm::regid(from).to_string())
 
-				CAccount toAccount;
-		        CHAIN_ASSERT( db_account.GetAccount(CRegID(to), toAccount),
+				auto spToAccount = context.control_trx.GetAccount(context.database, CRegID(to));
+		        CHAIN_ASSERT( 	spToAccount,
 								wasm_chain::account_access_exception,
 								"to account '%s' does not exist",
 								wasm::regid(to).to_string())
 
-				transfer_balance( fromAccount, toAccount, quantity, context );
-
 				CAsset asset;
 				string symbol = quantity.symbol.code().to_string();
-      			CHAIN_ASSERT( context.database.assetCache.GetAsset(symbol, asset),
-                    wasm_chain::asset_type_exception,
-                    "asset (%s) not found from d/b",
-                    symbol );
-				if (!asset.owner_uid.IsEmpty()) {
-					CAccount assetOwnerAccount;
-					CHAIN_ASSERT( db_account.GetAccount(asset.owner_uid, assetOwnerAccount),
-						wasm_chain::account_access_exception,
-						"asset owner (%s) not found from d/b",
-						asset.owner_uid.ToString() );
-					auto owner = assetOwnerAccount.regid.GetIntValue();
+      			CHAIN_ASSERT( 	context.database.assetCache.GetAsset(symbol, asset),
+								wasm_chain::asset_type_exception,
+								"asset (%s) not found from d/b",
+								symbol )
 
-					context.notify_recipient(owner); // to cater for asset owner centralized control need
-				}
+				WASM_TRACE("transfer from: %s, to: %s, quantity: %s",
+							spFromAccount->regid.ToString(), spToAccount->regid.ToString(), quantity.to_string().c_str() )
+
+				transfer_balance( *spFromAccount, *spToAccount, quantity, context );
 
 		        context.notify_recipient(from);
 		        context.notify_recipient(to);
