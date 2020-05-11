@@ -9,6 +9,7 @@
 #include "wasm/types/name.hpp"
 #include "wasm/types/asset.hpp"
 #include "wasm/types/regid.hpp"
+#include "wasm/types/hash256.hpp"
 #include "commons/json/json_spirit.h"
 #include "commons/json/json_spirit_value.h"
 //#include "wasm/exceptions.hpp"
@@ -115,6 +116,10 @@ namespace wasm {
     }
 
     static inline void to_variant( const wasm::regid &t, wasm::variant &v ) {
+        v = wasm::variant(t.to_string());
+    }
+
+    static inline void to_variant( const wasm::hash256 &t, wasm::variant &v ) {
         v = wasm::variant(t.to_string());
     }
 
@@ -379,6 +384,15 @@ namespace wasm {
         }
         CHAIN_THROW(wasm_chain::abi_parse_exception, "abi parse fail:%s", "json variant must be a string")
     }
+
+    static inline void from_variant( const wasm::variant &v, wasm::hash256 &t ) {
+        if (v.type() == json_spirit::str_type) {
+            t = wasm::hash256(v.get_str());
+            return;
+        }
+        CHAIN_THROW(wasm_chain::abi_parse_exception, "abi parse fail:%s", "json variant must be a string")
+    }
+
 
     static inline void from_variant( const wasm::variant &v, wasm::bytes &t ) {
         if (v.type() == json_spirit::str_type) {

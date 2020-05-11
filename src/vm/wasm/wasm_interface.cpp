@@ -546,7 +546,7 @@ namespace wasm {
             CHAIN_ASSERT( is_account(recipient),
                           wasm_chain::account_access_exception,
                           "can not send a receipt to a non-exist account '%s'",
-                          wasm::name(recipient).to_string());
+                          wasm::regid(recipient).to_string());
 
             pWasmContext->notify_recipient(recipient);
 
@@ -593,6 +593,7 @@ namespace wasm {
         uint32_t get_txid(void *data) {
             TxID txid = pWasmContext->get_txid();
             std::memcpy(data, txid.begin(), 32);
+
             return 32;
         }
 

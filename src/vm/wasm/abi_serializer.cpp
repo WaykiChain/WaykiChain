@@ -108,6 +108,7 @@ namespace wasm {
         built_in_types.emplace("checksum160",           pack_unpack<checksum160_type>());
         built_in_types.emplace("checksum256",           pack_unpack<checksum256_type>());
         built_in_types.emplace("checksum512",           pack_unpack<checksum512_type>());
+        built_in_types.emplace("hash256",               pack_unpack<hash256>());
 
         built_in_types.emplace("symbol",                pack_unpack<symbol>());
         built_in_types.emplace("symbol_code",           pack_unpack<symbol_code>());
@@ -560,7 +561,7 @@ namespace wasm {
     void abi_traverse_context::check_deadline() const {
         CHAIN_ASSERT( system_clock::now() < deadline, 
                       wasm_chain::abi_serialization_deadline_exception,
-                      "Serialization time limit %ldms exceeded", 
+                      "Serialization time limit %ldus exceeded", 
                       max_serialization_time_us.count());
     }
 
