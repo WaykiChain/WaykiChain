@@ -26,10 +26,6 @@ bool CBlockRewardTx::ExecuteTx(CTxExecuteContext &context) {
         return ERRORMSG("CBlockRewardTx::ExecuteTx, invalid index");
     }
 
-    if (!cw.accountCache.SetAccount(CUserID(sp_tx_account->keyid), *sp_tx_account))
-        return state.DoS(100, ERRORMSG("CBlockRewardTx::ExecuteTx, write secure account info error"),
-                         UPDATE_ACCOUNT_FAIL, "bad-save-accountdb");
-
     return true;
 }
 
