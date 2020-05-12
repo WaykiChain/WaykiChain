@@ -643,23 +643,25 @@ bool InvalidateBlock(CValidationState &state, CBlockIndex *pIndex) {
     return true;
 }
 
-bool ReconsiderBlock(CValidationState &state, CBlockIndex *pIndex) {
+bool ReconsiderBlock(CValidationState &state, CBlockIndex *pIndex, bool children) {
     AssertLockHeld(cs_main);
 
     // Remove the invalidity flag from this block and all its descendants.
     map<uint256, CBlockIndex *>::const_iterator it = mapBlockIndex.begin();
     int32_t height                                    = pIndex->height;
-    while (it != mapBlockIndex.end()) {
-        if (it->second->nStatus & BLOCK_FAILED_MASK && it->second->GetAncestor(height) == pIndex) {
-            it->second->nStatus &= ~BLOCK_FAILED_MASK;
-            pCdMan->pBlockIndexDb->WriteBlockIndex(CDiskBlockIndex(it->second));
-            setBlockIndexValid.insert(it->second);
-            if (it->second == pIndexBestInvalid) {
-                // Reset invalid block marker if it was pointing to one of those.
-                pIndexBestInvalid = nullptr;
+    if (children) {
+        while (it != mapBlockIndex.end()) {
+            if (it->second->nStatus & BLOCK_FAILED_MASK && it->second->GetAncestor(height) == pIndex) {
+                it->second->nStatus &= ~BLOCK_FAILED_MASK;
+                pCdMan->pBlockIndexDb->WriteBlockIndex(CDiskBlockIndex(it->second));
+                setBlockIndexValid.insert(it->second);
+                if (it->second == pIndexBestInvalid) {
+                    // Reset invalid block marker if it was pointing to one of those.
+                    pIndexBestInvalid = nullptr;
+                }
             }
+            it++;
         }
-        it++;
     }
 
     // Remove the invalidity flag from all ancestors too.

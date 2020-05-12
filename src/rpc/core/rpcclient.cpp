@@ -260,7 +260,9 @@ Array RPCConvertValues(const string &strMethod, const vector<string> &strParams)
 
     if (strMethod == "submitaxcinproposal"   && n > 5) ConvertTo<int64_t>(params[5]);
 
-    if (strMethod == "submitaxcoutproposal"   && n > 3) ConvertTo<int64_t>(params[3]);
+    if (strMethod == "submitaxcoutproposal"     && n > 3) ConvertTo<int64_t>(params[3]);
+
+    if (strMethod == "reconsiderblock"          && n > 1) ConvertTo<bool>(params[1]);
 
 
 

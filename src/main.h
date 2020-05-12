@@ -260,6 +260,6 @@ void UpdateTime(CBlockHeader &block, const CBlockIndex *pIndexPrev);
 bool ActivateBestChain(CValidationState &state, CBlockIndex* pNewIndex = nullptr);
 
 /** Remove invalidity status from a block and its descendants. */
-bool ReconsiderBlock(CValidationState &state, CBlockIndex *pIndex);
+bool ReconsiderBlock(CValidationState &state, CBlockIndex *pIndex, bool children);
 
 #endif

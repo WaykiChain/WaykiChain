@@ -372,19 +372,21 @@ Value invalidateblock(const Array& params, bool fHelp) {
 }
 
 Value reconsiderblock(const Array& params, bool fHelp) {
-    if (fHelp || params.size() != 1) {
+    if (fHelp || params.size() < 1 || params.size() > 2) {
         throw runtime_error(
-            "reconsiderblock \"hash\"\n"
+            "reconsiderblock \"hash\" [children]\n"
             "\nRemoves invalidity status of a block and its descendants, reconsider them for activation.\n"
             "This can be used to undo the effects of invalidateblock.\n"
             "\nArguments:\n"
             "1. hash   (string, required) the hash of the block to reconsider\n"
+            "2. children (bool, optional) reconsider all children of the block, default is false"
             "\nResult:\n"
             "\nExamples:\n"
-            + HelpExampleRpc("reconsiderblock", "\"hash\""));
+            + HelpExampleRpc("reconsiderblock", "\"hash\" false"));
     }
 
     std::string strHash = params[0].get_str();
+    bool children = params.size() > 1 ? params[1].get_bool() : false;
     uint256 hash(uint256S(strHash));
     CValidationState state;
 
@@ -394,7 +396,7 @@ Value reconsiderblock(const Array& params, bool fHelp) {
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Block not found");
 
         CBlockIndex* pBlockIndex = mapBlockIndex[hash];
-        ReconsiderBlock(state, pBlockIndex);
+        ReconsiderBlock(state, pBlockIndex, children);
     }
 
     if (state.IsValid()) {
