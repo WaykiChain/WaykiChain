@@ -992,7 +992,7 @@ namespace dex {
                                     UPDATE_ACCOUNT_FAIL, "operate-fcoin-genesis-account-failed");
                 }
                 CHashWriter hashWriter(SER_GETHASH, 0);
-                hashWriter << tx.GetHash() << SYMB::WUSD << VARINT(idx);
+                hashWriter << tx.GetHash() << SYMB::WUSD << CFixedUInt32(idx);
                 uint256 orderId = hashWriter.GetHash();
                 auto pSysBuyMarketOrder = dex::CSysOrder::CreateBuyMarketOrder(context.GetTxCord(), SYMB::WUSD, SYMB::WGRT, buyScoins);
                 if (!cw.dexCache.CreateActiveOrder(orderId, *pSysBuyMarketOrder)) {

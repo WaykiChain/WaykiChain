@@ -162,7 +162,7 @@ bool CCoinTransferTx::ExecuteTx(CTxExecuteContext &context) {
                                         UPDATE_ACCOUNT_FAIL, "operate-fcoin-genesis-account-failed");
                     }
                     CHashWriter hashWriter(SER_GETHASH, 0);
-                    hashWriter << GetHash() << SYMB::WUSD << VARINT(i);
+                    hashWriter << GetHash() << SYMB::WUSD << CFixedUInt32(i);
                     uint256 orderId = hashWriter.GetHash();
                     auto pSysBuyMarketOrder = dex::CSysOrder::CreateBuyMarketOrder(context.GetTxCord(), SYMB::WUSD, SYMB::WGRT, buyScoins);
                     if (!cw.dexCache.CreateActiveOrder(orderId, *pSysBuyMarketOrder)) {
