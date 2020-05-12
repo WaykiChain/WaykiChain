@@ -558,8 +558,7 @@ namespace dex {
         COrderOperatorParams GetOrderOperatorParams(CDEXOrderDetail &order, DexOperatorDetail &operatorDetail);
 
         bool CheckOrderOpenMode();
-        bool CheckTotalTradingFees(uint64_t dealAmount, uint64_t frictionFee, uint64_t dealFee,
-                                   const char *name);
+        bool CheckDealFee(uint64_t &receivedAmount, uint64_t fee, const char *name);
 
         bool GetDealOrder(const uint256 &orderId, const OrderSide orderSide,
                           CDEXOrderDetail &dealOrder);
@@ -803,44 +802,33 @@ namespace dex {
             sellResidualAmount = limitAssetAmount - sellOrder.total_deal_asset_amount;
         }
 
-        FeatureForkVersionEnum version = GetFeatureForkVersion(context.height);
+        uint64_t buyReceivedCoins = dealItem.dealAssetAmount;
+        uint64_t sellReceivedAssets = dealItem.dealCoinAmount;
 
-        // 8. calc WUSD friction fee
-        uint64_t frictionCoinFee = 0;
-        uint64_t frictionAssetFee = 0;
-        if (version >= FeatureForkVersionEnum::MAJOR_VER_R3) {
-            if (buyOrder.coin_symbol == SYMB::WUSD) {
-                if (!CalcWusdFrictionFee(dealItem.dealCoinAmount, frictionCoinFee)) return false;
-            } else if (sellOrder.asset_symbol == SYMB::WUSD) {
-                if (!CalcWusdFrictionFee(dealItem.dealAssetAmount, frictionCoinFee)) return false;
-            }
-        }
-
-        // 9. calc deal fees for dex operator
-        // 9.1. calc deal asset fee payed by buyer for buy operator
+        // 8. calc deal fees for dex operator
+        // 8.1. calc deal asset fee payed by buyer for buy operator
         uint64_t dealAssetFee = 0;
         if (!CalcDealFee(dealItem.buyOrderId, buyOrder, buyOrderOperatorParams, takerSide,
                           dealItem.dealAssetAmount, dealAssetFee))
             return false;
-        // 9.2. calc deal coin fee payed by seller for sell operator
+        if (!CheckDealFee(sellReceivedAssets, dealAssetFee, "deal_asset")) return false;
+        // 8.2. calc deal coin fee payed by seller for sell operator
         uint64_t dealCoinFee = 0;
         if (!CalcDealFee(dealItem.sellOrderId, sellOrder, sellOrderOperatorParams, takerSide,
                           dealItem.dealCoinAmount, dealCoinFee))
             return false;
+        if (!CheckDealFee(buyReceivedCoins, dealCoinFee, "deal_coin")) return false;
 
-        // 10. check total trading fees
-        if (!CheckTotalTradingFees(dealItem.dealCoinAmount, frictionCoinFee, dealCoinFee, "coin")) return false;
-        if (!CheckTotalTradingFees(dealItem.dealAssetAmount, frictionAssetFee, dealAssetFee, "asset")) return false;
 
-        // 11. Deal for the coins and assets
-        // 11.1 buyer's coins -> seller
+        // 9. Deal for the coins and assets
+        // 9.1 buyer's coins -> seller
         if (!spBuyOrderAccount->OperateBalance(buyOrder.coin_symbol, DEX_DEAL, dealItem.dealCoinAmount,
                                               ReceiptType::DEX_COIN_TO_SELLER, receipts, spSellOrderAccount.get())) {
             return state.DoS(100, ERRORMSG("%s, deal buyer's coins failed! deal_info={%s}, coin_symbol=%s",
                     DEAL_ITEM_TITLE, dealItem.ToString(), buyOrder.coin_symbol),
                     REJECT_INVALID, "deal-buyer-coins-failed");
         }
-        // 11.2 seller's assets -> buyer
+        // 9.2 seller's assets -> buyer
         if (!spSellOrderAccount->OperateBalance(sellOrder.asset_symbol, DEX_DEAL, dealItem.dealAssetAmount,
                                               ReceiptType::DEX_ASSET_TO_BUYER, receipts, spBuyOrderAccount.get())) {
             return state.DoS(100, ERRORMSG("%s, deal seller's assets failed! deal_info={%s}, asset_symbol=%s",
@@ -848,8 +836,8 @@ namespace dex {
                     REJECT_INVALID, "deal-seller-assets-failed");
         }
 
-        // 12. transfer the deal fee of coins and assets to dex operators
-        // 12.1. transfer deal coin fee from seller to sell operator
+        // 10. transfer the deal fee of coins and assets to dex operators
+        // 10.1. transfer deal coin fee from seller to sell operator
         if (!spSellOrderAccount->OperateBalance(sellOrder.coin_symbol, SUB_FREE, dealCoinFee,
                                                ReceiptType::DEX_COIN_FEE_TO_OPERATOR, receipts,
                                                spSellOpAccount.get())) {
@@ -860,7 +848,7 @@ namespace dex {
                     REJECT_INVALID, "transfer-deal-coin-fee-failed");
         }
 
-        // 12.2. transfer deal asset fee from buyer to buy operator
+        // 10.2. transfer deal asset fee from buyer to buy operator
         if (!spBuyOrderAccount->OperateBalance(buyOrder.asset_symbol, SUB_FREE, dealAssetFee,
                                               ReceiptType::DEX_ASSET_FEE_TO_OPERATOR, receipts,
                                               spBuyOpAccount.get())) {
@@ -870,16 +858,23 @@ namespace dex {
                 REJECT_INVALID, "transfer-deal-asset-fee-failed");
         }
 
-        // 13. process WUSD friction fee payed for risk-reserve
+        // 11. process WUSD friction fee payed for risk-reserve
+        FeatureForkVersionEnum version = GetFeatureForkVersion(context.height);
         if (version >= FeatureForkVersionEnum::MAJOR_VER_R3) {
-            if (sellOrder.asset_symbol == SYMB::WUSD) {
+            if (sellOrder.coin_symbol == SYMB::WUSD) { // the seller received coins
+                uint64_t frictionCoinFee = 0;
+                if (!CalcWusdFrictionFee(dealItem.dealCoinAmount, frictionCoinFee)) return false;
+                if (!CheckDealFee(buyReceivedCoins, frictionCoinFee, "friction_coin")) return false;
                 if (!ProcessWusdFrictionFee(*spSellOrderAccount, dealItem.dealCoinAmount, frictionCoinFee)) return false;
-            } else if (buyOrder.coin_symbol == SYMB::WUSD) {
+            } else if (buyOrder.asset_symbol == SYMB::WUSD) { // the buyer received assets
+                uint64_t frictionAssetFee = 0;
+                if (!CalcWusdFrictionFee(dealItem.dealAssetAmount, frictionAssetFee)) return false;
+                if (!CheckDealFee(sellReceivedAssets, frictionAssetFee, "friction_asset")) return false;
                 if (!ProcessWusdFrictionFee(*spBuyOrderAccount, dealItem.dealAssetAmount, frictionAssetFee)) return false;
             }
         }
 
-        // 14. check order fullfiled or save residual amount
+        // 12. check order fullfiled or save residual amount
         if (buyResidualAmount == 0) { // buy order fulfilled
             if (buyOrder.order_type == ORDER_LIMIT_PRICE) {
                 if (buyOrder.coin_amount > buyOrder.total_deal_coin_amount) {
@@ -976,13 +971,11 @@ namespace dex {
         return true;
     }
 
-    bool CDealItemExecuter::CheckTotalTradingFees(uint64_t dealAmount, uint64_t frictionFee,
-                                                  uint64_t dealFee, const char *name) {
-        if (dealAmount < frictionFee + dealFee) {
-            return context.pState->DoS(100, ERRORMSG("%s, total %s fees of dealItem is too large! deal_info={%s}, "
-                    "frictionCoinFee=%llu, dealCoinFee=%llu",
-                    DEAL_ITEM_TITLE, name, dealItem.ToString(), frictionFee, dealFee),
-                    REJECT_INVALID, "deal-buyer-coins-failed");
+    bool CDealItemExecuter::CheckDealFee(uint64_t &receivedAmount, uint64_t fee, const char *name) {
+        if (receivedAmount < fee) {
+            return context.pState->DoS(100, ERRORMSG("%s, the %s fee=%llu too large! deal_info={%s}",
+                    DEAL_ITEM_TITLE, name, fee, dealItem.ToString()),
+                    REJECT_INVALID, "deal-fee-too-large");
         }
         return true;
     }
@@ -1048,10 +1041,10 @@ namespace dex {
     }
 
     bool CDealItemExecuter::CalcWusdFrictionFee(uint64_t amount, uint64_t &frictionFee) {
-            uint64_t frictionFeeRatio;
-            if (!context.pCw->sysParamCache.GetParam(DEX_SCOIN_FRICTION_FEE_RATIO, frictionFeeRatio))
-                return context.pState->DoS(100, ERRORMSG("%s, read DEX_SCOIN_FRICTION_FEE_RATIO error", DEAL_ITEM_TITLE),
-                                READ_SYS_PARAM_FAIL, "bad-read-sysparamdb");
+        uint64_t frictionFeeRatio;
+        if (!context.pCw->sysParamCache.GetParam(DEX_SCOIN_FRICTION_FEE_RATIO, frictionFeeRatio))
+            return context.pState->DoS(100, ERRORMSG("%s, read DEX_SCOIN_FRICTION_FEE_RATIO error", DEAL_ITEM_TITLE),
+                            READ_SYS_PARAM_FAIL, "bad-read-sysparamdb");
         if (!CalcAmountByRatio(amount, frictionFeeRatio, RATIO_BOOST, frictionFee))
             return context.pState->DoS(100, ERRORMSG("%s, the calc_friction_fee overflow! amount=%llu, "
                 "fee_ratio=%llu", DEAL_ITEM_TITLE,  amount, frictionFeeRatio),
