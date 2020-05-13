@@ -61,22 +61,22 @@ namespace wasm {
 
 		        abi.structs.push_back({"mint", "",
 					{
-						{"to", 	"regid"	  }, //asset owner
-						{"quantity", "asset"  }
+						{"to", 			"regid"	}, //mint & issue assets to the holder
+						{"quantity", 	"asset" }
 					}
 				});
 				abi.structs.push_back({"burn", "",
 					{
-						{"from", 	"regid"	  }, //asset owner
-						{"quantity", "asset"  }
+						{"from", 		"regid"	}, //confiscate assets from the holder & burn
+						{"quantity",	"asset"	}
 					}
 				});
 				abi.structs.push_back({"transfer", "",
 					{
-						{"from",     "regid"  },
-						{"to",       "regid"  },
-						{"quantity", "asset"  },
-						{"memo",     "string" }
+						{"from",     	"regid"  },
+						{"to",       	"regid"  },
+						{"quantity", 	"asset"  },
+						{"memo",     	"string" }
 					}
 		        });
 
