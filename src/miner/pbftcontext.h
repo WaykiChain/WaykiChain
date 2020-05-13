@@ -42,47 +42,51 @@ public:
     }
 
     bool IsBroadcastedBlock(uint256 blockHash) {
+        LOCK(cs_pbftmessage);
         return broadcastedBlockHashSet.count(blockHash) > 0;
     }
 
     bool SaveBroadcastedBlock(uint256 blockHash) {
+        LOCK(cs_pbftmessage);
         broadcastedBlockHashSet.insert(blockHash);
         return true;
     }
 
     bool IsKnown(const MsgType msg) {
+        LOCK(cs_pbftmessage);
         return messageKnown.count(msg) != 0;
     }
 
     bool AddMessageKnown(const MsgType msg) {
-            LOCK(cs_pbftmessage);
-            messageKnown.insert(msg);
-            return true;
+        LOCK(cs_pbftmessage);
+        messageKnown.insert(msg);
+        return true;
     }
 
     int  SaveMessageByBlock(const uint256 blockHash,const MsgType& msg) {
 
-            LOCK(cs_pbftmessage);
-            auto it = blockMessagesMap.find(blockHash);
-            if (it == blockMessagesMap.end()) {
-                    set<MsgType> messages;
-                    messages.insert(msg);
-                    blockMessagesMap.insert(std::make_pair(blockHash, messages));
-                    return 1;
-            } else {
-                    set<MsgType> v = blockMessagesMap[blockHash];
-                    v.insert(msg);
-                    blockMessagesMap.update(it, v);
-                    return v.size();
-            }
+        LOCK(cs_pbftmessage);
+        auto it = blockMessagesMap.find(blockHash);
+        if (it == blockMessagesMap.end()) {
+                set<MsgType> messages;
+                messages.insert(msg);
+                blockMessagesMap.insert(std::make_pair(blockHash, messages));
+                return 1;
+        } else {
+                set<MsgType> v = blockMessagesMap[blockHash];
+                v.insert(msg);
+                blockMessagesMap.update(it, v);
+                return v.size();
+        }
     }
 
     bool GetMessagesByBlockHash(const uint256 hash, set<MsgType>& msgs) {
-            auto it = blockMessagesMap.find(hash);
-            if (it == blockMessagesMap.end())
-                return false;
-            msgs = it->second;
-            return true;
+        LOCK(cs_pbftmessage);
+        auto it = blockMessagesMap.find(hash);
+        if (it == blockMessagesMap.end())
+            return false;
+        msgs = it->second;
+        return true;
     }
 
 };

@@ -29,11 +29,13 @@ uint32_t GetFinalBlockMinerCount(const uint256& preHash = uint256()) {
 }
 
 CBlockIndex* CPBFTMan::GetLocalFinIndex(){
+    LOCK(cs_finblock);
     return localFinIndex ? localFinIndex : chainActive[0];
 }
 
 
 CBlockIndex* CPBFTMan::GetGlobalFinIndex(){
+    LOCK(cs_finblock);
     return globalFinIndex ? globalFinIndex : chainActive[0];
 }
 
@@ -355,7 +357,7 @@ bool BroadcastBlockConfirm(const CBlockIndex* block) {
     if(!SysCfg().GetBoolArg("-genblock", false))
         return false;
 
-    //当矿工的区块落后较大时不发送确认消息， 防止消息过多，淹没网络
+
     if(GetTime() - block->GetBlockTime() > 60)
         return false;
 
