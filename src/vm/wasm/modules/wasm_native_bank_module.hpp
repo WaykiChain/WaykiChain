@@ -61,13 +61,13 @@ namespace wasm {
 
 		        abi.structs.push_back({"mint", "",
 					{
-						{"owner", 	"regid"	  }, //asset owner
+						{"to", 	"regid"	  }, //asset owner
 						{"quantity", "asset"  }
 					}
 				});
 				abi.structs.push_back({"burn", "",
 					{
-						{"owner", 	"regid"	  }, //asset owner
+						{"from", 	"regid"	  }, //asset owner
 						{"quantity", "asset"  }
 					}
 				});
@@ -94,7 +94,7 @@ namespace wasm {
 							  wasm_chain::native_contract_assert_exception,
 							  "expect contract '%s', but get '%s'",
 							  wasm::regid(bank_native_module_id).to_string(),
-							  wasm::name(context._receiver).to_string());
+							  wasm::regid(context._receiver).to_string());
 
 				mint_burn_balance(context, true);
 			}
@@ -105,7 +105,7 @@ namespace wasm {
 							  wasm_chain::native_contract_assert_exception,
 							  "expect contract '%s', but get '%s'",
 							  wasm::regid(bank_native_module_id).to_string(),
-							  wasm::name(context._receiver).to_string());
+							  wasm::regid(context._receiver).to_string());
 
 				mint_burn_balance(context, false);
 			}
@@ -116,7 +116,7 @@ namespace wasm {
 		                      wasm_chain::native_contract_assert_exception,
 		                      "expect contract '%s', but get '%s'",
 		                      wasm::regid(bank_native_module_id).to_string(),
-		                      wasm::name(context._receiver).to_string());
+		                      wasm::regid(context._receiver).to_string());
 
 		        context.control_trx.run_cost   += context.trx.GetSerializeSize(SER_DISK, CLIENT_VERSION) * store_fuel_fee_per_byte;
 
@@ -125,8 +125,6 @@ namespace wasm {
 		        auto to                          = std::get<1>(transfer_data);
 		        auto quantity                    = std::get<2>(transfer_data);
 		        auto memo                        = std::get<3>(transfer_data);
-
-
 
 				context.require_auth(from); //from auth
 
