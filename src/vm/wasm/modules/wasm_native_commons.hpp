@@ -58,6 +58,13 @@ namespace wasm {
         asset.total_supply += quantity.amount;
 
       } else {            //burn operation
+        //only asset owner can invoke this op!!!
+        //     assets to be burnt must be first transferred to asset owner
+        CHAIN_ASSERT( target_regid == spOwnerAcct->regid.GetIntValue(),
+                      wasm_chain::native_contract_assert_exception,
+                      "given asset owner (%s) diff from asset owner(%s) from d/b",
+                      CRegID(target_regid).ToString(), spOwnerAcct->regid.ToString() );
+
         CHAIN_ASSERT( target->OperateBalance(symbol, BalanceOpType::SUB_FREE, quantity.amount, ReceiptType::WASM_BURN_COINS, context.control_trx.receipts),
                       wasm_chain::account_access_exception,
                       "Asset Owner (%s) balance overburnt",
