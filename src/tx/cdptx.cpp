@@ -310,16 +310,19 @@ bool CCDPStakeTx::ExecuteTx(CTxExecuteContext &context) {
             return false;
         }
 
-        uint64_t ownerScoins = sp_tx_account->GetToken(scoin_symbol).free_amount;
-        uint64_t mintScoinForInterest = 0;
-        if (scoinsInterestToRepay > ownerScoins) {
-            mintScoinForInterest = scoinsInterestToRepay - ownerScoins;
-            sp_tx_account->OperateBalance(scoin_symbol, BalanceOpType::ADD_FREE, mintScoinForInterest,
-                                   ReceiptType::CDP_MINTED_SCOIN_TO_OWNER, receipts);
-            LogPrint(BCLog::CDP, "Mint scoins=%llu for interest!\n", mintScoinForInterest);
+        FeatureForkVersionEnum version = GetFeatureForkVersion(context.height);
+        if (version >= FeatureForkVersionEnum::MAJOR_VER_R3) {
+            uint64_t ownerScoins = sp_tx_account->GetToken(scoin_symbol).free_amount;
+            uint64_t mintScoinForInterest = 0;
+            if (scoinsInterestToRepay > ownerScoins) {
+                mintScoinForInterest = scoinsInterestToRepay - ownerScoins;
+                sp_tx_account->OperateBalance(scoin_symbol, BalanceOpType::ADD_FREE, mintScoinForInterest,
+                                    ReceiptType::CDP_MINTED_SCOIN_TO_OWNER, receipts);
+                LogPrint(BCLog::CDP, "Mint scoins=%llu for interest!\n", mintScoinForInterest);
+            }
+            newMintScoins += mintScoinForInterest;
         }
 
-        newMintScoins                   = scoins_to_mint + mintScoinForInterest;
         uint64_t totalBcoinsToStake     = cdp.total_staked_bcoins + assetAmount;
         uint64_t totalScoinsToOwe       = cdp.total_owed_scoins + newMintScoins;
         uint64_t partialCollateralRatio = CalcCollateralRatio(assetAmount, newMintScoins, bcoinMedianPrice);
