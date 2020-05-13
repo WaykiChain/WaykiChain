@@ -61,13 +61,13 @@ namespace wasm {
 
 		        abi.structs.push_back({"mint", "",
 					{
-						{"to", 			"regid"	}, //mint & issue assets to the holder
+						{"to", 			"regid"	}, //mint & issue assets to the target holder
 						{"quantity", 	"asset" }
 					}
 				});
 				abi.structs.push_back({"burn", "",
 					{
-						{"from", 		"regid"	}, //confiscate assets from the holder & burn
+						{"owner", 		"regid"	}, //only asset owner can burn assets hold by the owner
 						{"quantity",	"asset"	}
 					}
 				});

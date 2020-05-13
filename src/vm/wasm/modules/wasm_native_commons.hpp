@@ -27,7 +27,7 @@ namespace wasm {
       context.control_trx.run_cost += context.trx.GetSerializeSize(SER_DISK, CLIENT_VERSION) * store_fuel_fee_per_byte;
       auto transfer_data  = wasm::unpack<std::tuple<uint64_t, wasm::asset>>(context.trx.data);
 
-      auto target_regid   = std::get<0>(transfer_data);
+      auto target         = std::get<0>(transfer_data);
       auto quantity       = std::get<1>(transfer_data);
 
       CHAIN_ASSERT(quantity.is_valid(),    wasm_chain::native_contract_assert_exception, "invalid quantity");
@@ -40,51 +40,52 @@ namespace wasm {
                     "asset (%s) not found from d/b",
                     symbol );
 
-      auto spOwnerAcct    = context.control_trx.GetAccount(context.database, asset.owner_uid);
-      CHAIN_ASSERT( spOwnerAcct,
+      auto spAssetOwnerAcct = context.control_trx.GetAccount(context.database, asset.owner_uid);
+      CHAIN_ASSERT( spAssetOwnerAcct,
                     wasm_chain::account_access_exception,
                     "asset owner (%s) not found from d/b",
                     asset.owner_uid.ToString() );
-      context.require_auth(spOwnerAcct->regid.GetIntValue()); //mint or burn op must be sanctioned by asset owner
+      context.require_auth(spAssetOwnerAcct->regid.GetIntValue()); //mint or burn op must be sanctioned by asset owner
 
-      auto target         = context.control_trx.GetAccount(context.database, CRegID(target_regid));
+      auto spTargetAcct   = context.control_trx.GetAccount(context.database, CRegID(target));
 
       if (isMintOperate) { //mint operation
-        CHAIN_ASSERT( target->OperateBalance(symbol, BalanceOpType::ADD_FREE, quantity.amount, ReceiptType::WASM_MINT_COINS, context.control_trx.receipts),
+        CHAIN_ASSERT( spTargetAcct->OperateBalance(symbol, BalanceOpType::ADD_FREE, quantity.amount,
+                                                  ReceiptType::WASM_MINT_COINS, context.control_trx.receipts),
                       wasm_chain::account_access_exception,
                       "Asset Owner (%s) balance overminted",
-                      target->regid.ToString())
+                      spTargetAcct->regid.ToString())
 
         asset.total_supply += quantity.amount;
+
+        context.notify_recipient(target);
 
       } else {            //burn operation
         //only asset owner can invoke this op!!!
         //     assets to be burnt must be first transferred to asset owner
-        CHAIN_ASSERT( target_regid == spOwnerAcct->regid.GetIntValue(),
+        CHAIN_ASSERT( target == spAssetOwnerAcct->regid.GetIntValue(),
                       wasm_chain::native_contract_assert_exception,
                       "given asset owner (%s) diff from asset owner(%s) from d/b",
-                      CRegID(target_regid).ToString(), spOwnerAcct->regid.ToString() );
-
-        CHAIN_ASSERT( target->OperateBalance(symbol, BalanceOpType::SUB_FREE, quantity.amount, ReceiptType::WASM_BURN_COINS, context.control_trx.receipts),
-                      wasm_chain::account_access_exception,
-                      "Asset Owner (%s) balance overburnt",
-                      target->regid.ToString())
+                      CRegID(target).ToString(), spAssetOwnerAcct->regid.ToString() );
 
         CHAIN_ASSERT( asset.total_supply >= quantity.amount,
                       wasm_chain::native_contract_assert_exception,
                       "Asset total supply (%lld) < burn amount (%lld)",
                       asset.total_supply, quantity.amount)
 
+        CHAIN_ASSERT( spTargetAcct->OperateBalance(symbol, BalanceOpType::SUB_FREE, quantity.amount,
+                                                    ReceiptType::WASM_BURN_COINS, context.control_trx.receipts),
+                      wasm_chain::account_access_exception,
+                      "Asset Owner (%s) balance overburnt",
+                      spTargetAcct->regid.ToString())
+
         asset.total_supply -= quantity.amount;
 
       }
 
-      context.notify_recipient(target_regid);
       CHAIN_ASSERT( context.database.assetCache.SetAsset(asset),
                       wasm_chain::asset_type_exception,
                       "Update Asset (%s) failure",
                       symbol)
-
-  }
-
+    }
 }
