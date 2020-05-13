@@ -788,7 +788,7 @@ bool CGovAssetIssueProposal::CheckProposal(CTxExecuteContext& context, CBaseTx& 
                          "bad-symbol");
     }
 
-    if (total_supply == 0 || total_supply > MAX_ASSET_TOTAL_SUPPLY)
+    if ( total_supply > MAX_ASSET_TOTAL_SUPPLY)
         return state.DoS(100, ERRORMSG("CUserIssueAssetTx::CheckTx, asset total_supply=%llu can not == 0 or > %llu",
                                        total_supply, MAX_ASSET_TOTAL_SUPPLY), REJECT_INVALID, "invalid-total-supply");
 
