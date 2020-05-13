@@ -773,7 +773,8 @@ namespace dex {
 
         // 11. process WUSD friction fee payed for risk-reserve
         FeatureForkVersionEnum version = GetFeatureForkVersion(context.height);
-        if (version >= FeatureForkVersionEnum::MAJOR_VER_R3) {
+        if (   (sellOrder.generate_type != SYSTEM_GEN_ORDER && buyOrder.generate_type != SYSTEM_GEN_ORDER) &&
+                version >= FeatureForkVersionEnum::MAJOR_VER_R3) {
             if (sellOrder.coin_symbol == SYMB::WUSD) { // the seller received coins
                 uint64_t frictionCoinFee = 0;
                 if (!CalcWusdFrictionFee(dealItem.dealCoinAmount, frictionCoinFee)) return false;
