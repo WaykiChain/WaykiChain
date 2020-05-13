@@ -27,7 +27,7 @@ namespace wasm {
       context.control_trx.run_cost += context.trx.GetSerializeSize(SER_DISK, CLIENT_VERSION) * store_fuel_fee_per_byte;
 
       auto transfer_data = wasm::unpack<std::tuple<uint64_t, wasm::asset>>(context.trx.data);
-      auto to            = std::get<0>(transfer_data);
+      auto account       = std::get<0>(transfer_data);
       auto quantity      = std::get<1>(transfer_data);
 
       CHAIN_ASSERT(quantity.is_valid(),    wasm_chain::native_contract_assert_exception, "invalid quantity");
@@ -49,7 +49,7 @@ namespace wasm {
                     asset.owner_uid.ToString() );
       context.require_auth(spOwnerAcct->regid.GetIntValue());
 
-      auto to_account  = context.control_trx.GetAccount(context.database, CRegID(to));
+      auto target_account  = context.control_trx.GetAccount(context.database, CRegID(account));
 
       // CHAIN_ASSERT( owner == spOwnerAcct->regid.GetIntValue(),
       //               wasm_chain::native_contract_assert_exception,
@@ -57,18 +57,18 @@ namespace wasm {
       //               CRegID(owner).ToString(), spOwnerAcct->regid.ToString() );
 
       if (isMintOperate) { //mint operation
-        CHAIN_ASSERT( to_account->OperateBalance(symbol, BalanceOpType::ADD_FREE, quantity.amount, ReceiptType::WASM_MINT_COINS, context.control_trx.receipts),
+        CHAIN_ASSERT( target_account->OperateBalance(symbol, BalanceOpType::ADD_FREE, quantity.amount, ReceiptType::WASM_MINT_COINS, context.control_trx.receipts),
                       wasm_chain::account_access_exception,
                       "Asset Owner (%s) balance overminted",
-                      to_account->regid.ToString())
+                      target_account->regid.ToString())
 
         asset.total_supply += quantity.amount;
 
       } else {            //burn operation
-        CHAIN_ASSERT( to_account->OperateBalance(symbol, BalanceOpType::SUB_FREE, quantity.amount, ReceiptType::WASM_BURN_COINS, context.control_trx.receipts),
+        CHAIN_ASSERT( target_account->OperateBalance(symbol, BalanceOpType::SUB_FREE, quantity.amount, ReceiptType::WASM_BURN_COINS, context.control_trx.receipts),
                       wasm_chain::account_access_exception,
                       "Asset Owner (%s) balance overburnt",
-                      to_account->regid.ToString())
+                      target_account->regid.ToString())
 
         CHAIN_ASSERT( asset.total_supply >= quantity.amount,
                       wasm_chain::native_contract_assert_exception,
@@ -79,7 +79,7 @@ namespace wasm {
 
       }
 
-      context.notify_recipient(to);
+      context.notify_recipient(account);
       CHAIN_ASSERT( context.database.assetCache.SetAsset(asset),
                       wasm_chain::asset_type_exception,
                       "Update Asset (%s) failure",
