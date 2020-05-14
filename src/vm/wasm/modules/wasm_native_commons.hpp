@@ -84,7 +84,7 @@ namespace wasm {
       }
 
       CHAIN_ASSERT( context.database.assetCache.SetAsset(asset),
-                      wasm_chain::asset_type_exception,
+                      wasm_chain::native_contract_assert_exception,
                       "Update Asset (%s) failure",
                       symbol)
     }

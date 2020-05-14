@@ -43,6 +43,8 @@ namespace wasm {
         void execute_one(inline_transaction_trace &trace);
         bool has_permission_from_inline_transaction(const permission &p);
         bool get_code(const uint64_t& contract, std::vector <uint8_t> &code);
+        uint64_t get_runcost();
+
 // Console methods:
     public:
         void                      reset_console();
@@ -72,7 +74,6 @@ namespace wasm {
         uint64_t    get_maintainer(const uint64_t& contract);
         void        exit    ()  { wasmif.exit(); }
         bool        get_system_asset_price(uint64_t base, uint64_t quote, std::vector<char>& price);
-        bool        set_asset_owner(const TokenSymbol asset_symbol, const uint64_t& new_owner);
 
         bool set_data( const uint64_t& contract, const string& k, const string& v ) {
             CUniversalContractStore contractStore;

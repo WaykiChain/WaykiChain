@@ -160,7 +160,7 @@ class wasm_context : public wasm_context_interface {
         void execute_one( inline_transaction_trace &trace );
         void initialize();
         void execute( inline_transaction_trace &trace );
-        inline uint64_t get_runcost() { return trx.GetSerializeSize(SER_DISK, CLIENT_VERSION) * store_fuel_fee_per_byte; }
+        uint64_t get_runcost();
 
 // Console methods:
     public:
@@ -187,7 +187,6 @@ class wasm_context : public wasm_context_interface {
         TxID get_txid() { return TxID(); }
         void     exit() { wasmif.exit(); }
         bool get_system_asset_price(uint64_t base, uint64_t quote, std::vector<char>& price) { return false; };
-        bool set_asset_owner   ( const TokenSymbol asset_symbol, const uint64_t& new_owner ) { return false; };
 
         bool set_data  ( const uint64_t& contract, const string& k, const string& v )  { return cache.SetContractData(contract, k, v); }
         bool get_data  ( const uint64_t& contract, const string& k, string &v ) { return cache.GetContractData(contract, k, v); }

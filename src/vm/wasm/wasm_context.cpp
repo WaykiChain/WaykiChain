@@ -88,6 +88,10 @@ namespace wasm {
         return true;
     }
 
+    uint64_t wasm_context::get_runcost() {
+        return trx.GetSerializeSize(SER_DISK, CLIENT_VERSION) * store_fuel_fee_per_byte;
+    }
+
     uint64_t wasm_context::get_maintainer(const uint64_t& contract) {
         CRegID   maintainer;
         CUniversalContractStore contract_store;
@@ -281,35 +285,6 @@ namespace wasm {
 
         asset asset_price(price_amount, base_symbol);
         price = wasm::pack<asset>(asset_price);
-        return true;
-    }
-
-    bool wasm_context::set_asset_owner(const TokenSymbol asset_symbol, const uint64_t& new_owner) {
-        CAsset asset;
-        CHAIN_ASSERT( database.assetCache.GetAsset(asset_symbol, asset),
-                    wasm_chain::asset_type_exception,
-					"asset (%s) not found from d/b",
-					asset_symbol )
-
-        CHAIN_ASSERT( _receiver == asset.owner_regid.GetIntValue(),
-                    wasm_chain::account_exception,
-                    "(%s) not current asset owner error",
-                    _receiver.to_string());
-
-        auto ownerRegId = CRegID(new_owner);
-        CAccount ownerAcct;
-        CHAIN_ASSERT( database.accountCache.GetAccount(ownerRegId, ownerAcct),
-                    wasm_chain::account_access_exception,
-                    "new owner (regid = %s) not exist",
-                    ownerRegId.ToString())
-
-        asset.owner_uid = ownerRegId;
-
-        CHAIN_ASSERT( database.assetCache.SetAsset(asset),
-                    wasm_chain::level_db_update_fail,
-                    "set asset (%s) failed",
-                    asset_symbol )
-
         return true;
     }
 

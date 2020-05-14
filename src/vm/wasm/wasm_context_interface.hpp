@@ -41,7 +41,6 @@ namespace wasm {
         virtual uint64_t    get_maintainer(const uint64_t& contract) = 0;//{ return 0; }
         virtual void exit      () = 0;//{}
         virtual bool get_system_asset_price(uint64_t base, uint64_t quote, std::vector<char>& price) = 0;
-        virtual bool set_asset_owner   ( const TokenSymbol asset_symbol, const uint64_t& new_owner ) const = 0;//{ return true; }
 
         virtual bool set_data  ( const uint64_t& contract, const string& k, const string& v ) = 0;//{ return 0; }
         virtual bool get_data  ( const uint64_t& contract, const string& k, string &v       ) = 0;//{ return 0; }

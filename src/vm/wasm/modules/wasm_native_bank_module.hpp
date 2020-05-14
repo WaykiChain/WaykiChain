@@ -76,8 +76,9 @@ namespace wasm {
 				});
 				abi.structs.push_back({"update", "",
 					{
-						{"owner", 			"regid"	},
-						{"name",			"string"},
+						{"symbol",			"symbol"}, //target asset symbol to update
+						{"owner?", 			"regid"	},
+						{"name?",			"string"},
 						{"total_supply?",	"uint64_t"}
 					}
 				});
@@ -90,9 +91,10 @@ namespace wasm {
 					}
 		        });
 
-				abi.actions.emplace_back( "mint", "mint", "" );
-				abi.actions.emplace_back( "burn", "burn", "" );
-		        abi.actions.emplace_back( "transfer", "transfer", "" );
+				abi.actions.emplace_back( "mint", 		"mint", 	"" );
+				abi.actions.emplace_back( "burn", 		"burn", 	"" );
+				abi.actions.emplace_back( "update", 	"update", 	"" );
+		        abi.actions.emplace_back( "transfer", 	"transfer", "" );
 
 		        auto abi_bytes = wasm::pack<wasm::abi_def>(abi);
 		        return abi_bytes;
@@ -100,52 +102,95 @@ namespace wasm {
 
 			static void mint(wasm_context &context) {
 
-				CHAIN_ASSERT( context._receiver == bank_native_module_id,
-							  wasm_chain::native_contract_assert_exception,
-							  "expect contract '%s', but get '%s'",
-							  wasm::regid(bank_native_module_id).to_string(),
-							  wasm::regid(context._receiver).to_string());
+				CHAIN_ASSERT(	context._receiver == bank_native_module_id,
+							 	wasm_chain::native_contract_assert_exception,
+							 	"expect contract '%s', but get '%s'",
+							 	wasm::regid(bank_native_module_id).to_string(),
+							 	wasm::regid(context._receiver).to_string());
 
 				mint_burn_balance(context, true);
 			}
 
 			static void burn(wasm_context &context) {
 
-				CHAIN_ASSERT( context._receiver == bank_native_module_id,
-							  wasm_chain::native_contract_assert_exception,
-							  "expect contract '%s', but get '%s'",
-							  wasm::regid(bank_native_module_id).to_string(),
-							  wasm::regid(context._receiver).to_string());
+				CHAIN_ASSERT( 	context._receiver == bank_native_module_id,
+							  	wasm_chain::native_contract_assert_exception,
+							  	"expect contract '%s', but get '%s'",
+							  	wasm::regid(bank_native_module_id).to_string(),
+							  	wasm::regid(context._receiver).to_string());
 
 				mint_burn_balance(context, false);
 			}
 
 			static void update(wasm_context &context) {
 
-		        CHAIN_ASSERT( context._receiver == bank_native_module_id,
-		                      wasm_chain::native_contract_assert_exception,
-		                      "expect contract '%s', but get '%s'",
-		                      wasm::regid(bank_native_module_id).to_string(),
-		                      wasm::regid(context._receiver).to_string());
+		        CHAIN_ASSERT( 	context._receiver == bank_native_module_id,
+		                      	wasm_chain::native_contract_assert_exception,
+		                      	"expect contract '%s', but get '%s'",
+		                      	wasm::regid(bank_native_module_id).to_string(),
+		                      	wasm::regid(context._receiver).to_string());
 
 		        context.control_trx.run_cost   += context.get_runcost();
 
-		        auto transfer_data = wasm::unpack<std::tuple <uint64_t, uint64_t, wasm::asset, string >>(context.trx.data);
-		        auto from                        = std::get<0>(transfer_data);
-		        auto to                          = std::get<1>(transfer_data);
-		        auto quantity                    = std::get<2>(transfer_data);
-		        auto memo                        = std::get<3>(transfer_data);
+		        auto params = wasm::unpack< std::tuple <
+								wasm::symbol,
+								std::optional<wasm::regid>,
+								std::optional<string>,
+								std::optional<uint64_t>> >(context.trx.data);
 
-				context.require_auth(from); //from auth
+				auto symbol							= std::get<0>(params);
+		        auto new_owner                      = std::get<1>(params);
+		        auto new_name                       = std::get<2>(params);
+		        auto new_total_supply               = std::get<3>(params);
+
+				CAsset asset;
+				CHAIN_ASSERT( 	context.database.assetCache.GetAsset(symbol.code().to_string(), asset),
+								wasm_chain::asset_type_exception,
+								"asset (%s) not found from d/b",
+								symbol.to_string() )
+
+				context.require_auth( asset.owner_regid.GetIntValue() );
+
+				bool to_update = false;
+
+				if (new_owner) {
+		        	CHAIN_ASSERT( context.control_trx.GetAccount(context.database, CRegID(new_owner->value)),
+								wasm_chain::account_access_exception,
+								"new_owner account '%s' does not exist",
+								wasm::regid(new_owner->value).to_string() )
+
+					to_update 			= true;
+					asset.owner_regid  	= CRegID(new_owner->value);
+				}
+
+ 				if (new_name) {
+					to_update 			= true;
+					asset.asset_name	= *new_name;
+				}
+
+				if (new_total_supply) {
+					to_update 			= true;
+					asset.total_supply  = *new_total_supply;
+				}
+
+				CHAIN_ASSERT( 	to_update,
+								wasm_chain::native_contract_assert_exception,
+                      			"none field found for update")
+
+				CHAIN_ASSERT( 	context.database.assetCache.SetAsset(asset),
+								wasm_chain::level_db_update_fail,
+                      			"Update Asset (%s) failure",
+                      			symbol.to_string() )
+
 			}
 
 		    static void tansfer(wasm_context &context) {
 
-		        CHAIN_ASSERT( context._receiver == bank_native_module_id,
-		                      wasm_chain::native_contract_assert_exception,
-		                      "expect contract '%s', but get '%s'",
-		                      wasm::regid(bank_native_module_id).to_string(),
-		                      wasm::regid(context._receiver).to_string());
+		        CHAIN_ASSERT( 	context._receiver == bank_native_module_id,
+		                      	wasm_chain::native_contract_assert_exception,
+		                      	"expect contract '%s', but get '%s'",
+		                      	wasm::regid(bank_native_module_id).to_string(),
+		                      	wasm::regid(context._receiver).to_string());
 
 		        context.control_trx.run_cost   += context.get_runcost();
 

@@ -87,13 +87,16 @@ namespace wasm {
         _pending_console_output.setf(std::ios::scientific, std::ios::floatfield);
     }
 
-
     void wasm_context::execute_inline( const inline_transaction& t ) {
         inline_transactions.push_back(t);
     }
 
     bool wasm_context::get_code(const uint64_t& contract, std::vector <uint8_t> &code) {
        return cache.GetCode(contract, code);
+    }
+
+    uint64_t wasm_context::get_runcost() {
+        return trx.GetSerializeSize(SER_DISK, CLIENT_VERSION) * store_fuel_fee_per_byte;
     }
 
     void wasm_context::initialize() {
