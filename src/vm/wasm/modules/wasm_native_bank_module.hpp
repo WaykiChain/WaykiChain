@@ -32,9 +32,6 @@ namespace wasm {
 	    public:
 		  	static void act_handler(wasm_context &context, uint64_t action){
 		        switch (action) {
-		            case N(transfer):	//transfer coins or assets
-		                 tansfer(context);
-		                 return;
 					case N(mint):		//mint new assets
 					     mint(context);
 						 return;
@@ -44,6 +41,9 @@ namespace wasm {
 					case N(update):		//update asset profile like owner regid
 						 update(context);
 						 return;
+					 case N(transfer):	//transfer coins or assets
+		                 tansfer(context);
+		                 return;
 		            default:
 		                 break;
 		        }
@@ -79,7 +79,6 @@ namespace wasm {
 						{"symbol",			"symbol"}, //target asset symbol to update
 						{"owner?", 			"regid"	},
 						{"name?",			"string"},
-						{"total_supply?",	"uint64_t"}
 					}
 				});
 				abi.structs.push_back({"transfer", "",
@@ -135,13 +134,11 @@ namespace wasm {
 		        auto params = wasm::unpack< std::tuple <
 								wasm::symbol,
 								std::optional<wasm::regid>,
-								std::optional<string>,
-								std::optional<uint64_t>> >(context.trx.data);
+								std::optional<string> >>(context.trx.data);
 
 				auto symbol							= std::get<0>(params);
 		        auto new_owner                      = std::get<1>(params);
 		        auto new_name                       = std::get<2>(params);
-		        auto new_total_supply               = std::get<3>(params);
 
 				CAsset asset;
 				CHAIN_ASSERT( 	context.database.assetCache.GetAsset(symbol.code().to_string(), asset),
@@ -166,11 +163,6 @@ namespace wasm {
  				if (new_name) {
 					to_update 			= true;
 					asset.asset_name	= *new_name;
-				}
-
-				if (new_total_supply) {
-					to_update 			= true;
-					asset.total_supply  = *new_total_supply;
 				}
 
 				CHAIN_ASSERT( 	to_update,
