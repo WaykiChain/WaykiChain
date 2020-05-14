@@ -803,9 +803,9 @@ static bool FindUndoPos(CValidationState &state, int32_t nFile, CDiskBlockPos &p
 }
 
 static bool PersistNativeAsset(CCacheWrapper& cw) {
-    CAsset wicc(SYMB::WICC, SYMB::WICC, AssetType::NIA, kWiccPerms, CNullID(), INITIAL_BASE_COIN_AMOUNT * COIN, false);
-    CAsset wusd(SYMB::WUSD, SYMB::WUSD, AssetType::MPA, kWusdPerms, CNullID(), 0, true);
-    CAsset wgrt(SYMB::WGRT, SYMB::WGRT, AssetType::NIA, kWgrtPerms, CNullID(), FUND_COIN_GENESIS_TOTAL_RELEASE_AMOUNT * COIN, true);
+    CAsset wicc(SYMB::WICC, SYMB::WICC, AssetType::NIA, kWiccPerms, CRegID(), INITIAL_BASE_COIN_AMOUNT * COIN, false);
+    CAsset wusd(SYMB::WUSD, SYMB::WUSD, AssetType::MPA, kWusdPerms, CRegID(), 0, true);
+    CAsset wgrt(SYMB::WGRT, SYMB::WGRT, AssetType::NIA, kWgrtPerms, CRegID(), FUND_COIN_GENESIS_TOTAL_RELEASE_AMOUNT * COIN, true);
 
     return  cw.assetCache.SetAsset(wicc) &&
             cw.assetCache.SetAsset(wusd) &&

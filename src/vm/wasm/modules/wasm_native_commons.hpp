@@ -40,11 +40,11 @@ namespace wasm {
                     "asset (%s) not found from d/b",
                     symbol );
 
-      auto spAssetOwnerAcct = context.control_trx.GetAccount(context.database, asset.owner_uid);
+      auto spAssetOwnerAcct = context.control_trx.GetAccount(context.database, asset.owner_regid);
       CHAIN_ASSERT( spAssetOwnerAcct,
                     wasm_chain::account_access_exception,
                     "asset owner (%s) not found from d/b",
-                    asset.owner_uid.ToString() );
+                    asset.owner_regid.ToString() );
       context.require_auth(spAssetOwnerAcct->regid.GetIntValue()); //mint or burn op must be sanctioned by asset owner
 
       auto spTargetAcct   = context.control_trx.GetAccount(context.database, CRegID(target));

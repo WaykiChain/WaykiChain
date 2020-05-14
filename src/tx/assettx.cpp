@@ -323,8 +323,8 @@ bool CUserUpdateAssetTx::ExecuteTx(CTxExecuteContext &context) {
     if (!cw.assetCache.GetAsset(asset_symbol, asset))
         return state.DoS(100, ERRORMSG("get asset by symbol=%s failed", asset_symbol), REJECT_INVALID, "get-asset-failed");
 
-    if (!sp_tx_account->IsSelfUid(asset.owner_uid))
-        return state.DoS(100, ERRORMSG("uid mismatch: txUid=%s, old_asset_uid=%s", txUid.ToDebugString(), asset.owner_uid.ToString()),
+    if (!sp_tx_account->IsSelfUid(asset.owner_regid))
+        return state.DoS(100, ERRORMSG("uid mismatch: txUid=%s, old_asset_uid=%s", txUid.ToDebugString(), asset.owner_regid.ToString()),
                         REJECT_INVALID, "asset-uid-mismatch");
 
     switch (update_data.GetType()) {
@@ -345,7 +345,7 @@ bool CUserUpdateAssetTx::ExecuteTx(CTxExecuteContext &context) {
                 return state.DoS(100, ERRORMSG("new uid(%s)'s regid is not mature!", newOwnerUid.ToDebugString()),
                                                 REJECT_INVALID, "account-not-mature");
 
-            asset.owner_uid = spNewOwnerAccount->regid;
+            asset.owner_regid = spNewOwnerAccount->regid;
             break;
         }
         case CUserUpdateAsset::NAME: {

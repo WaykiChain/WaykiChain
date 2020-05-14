@@ -766,7 +766,7 @@ bool  CGovAxcCoinProposal::ExecuteProposal(CTxExecuteContext& context, CBaseTx& 
 
         //Persist with Owner's RegID to save space than other User ID types
         CAsset savedAsset(GenSelfChainCoinSymbol(), GenSelfChainCoinSymbol(), AssetType::DIA, kAssetDefaultPerms,
-                          CNullID(), 0, false);
+                          CRegID(), 0, false);
 
         if (!cw.assetCache.SetAsset(savedAsset))
             return state.DoS(100, ERRORMSG("CGovAxcCoinProposal::CGovAxcCoinProposal, save asset failed! peer_chain_coin_symbol=%s",
@@ -792,7 +792,7 @@ bool CGovAssetIssueProposal::CheckProposal(CTxExecuteContext& context, CBaseTx& 
         return state.DoS(100, ERRORMSG("CUserIssueAssetTx::CheckTx, asset total_supply=%llu can not == 0 or > %llu",
                                        total_supply, MAX_ASSET_TOTAL_SUPPLY), REJECT_INVALID, "invalid-total-supply");
 
-    auto spOwnerAccount = tx.GetAccount(context, owner_uid, "owner");
+    auto spOwnerAccount = tx.GetAccount(context, owner_regid, "owner");
     if (!spOwnerAccount) return false;
 
     if (cw.assetCache.HasAsset(asset_symbol))
@@ -807,21 +807,21 @@ bool CGovAssetIssueProposal::ExecuteProposal(CTxExecuteContext& context, CBaseTx
 
     IMPLEMENT_DEFINE_CW_STATE
 
-    CAsset asset(asset_symbol, asset_symbol, AssetType::DIA, kAssetDefaultPerms, owner_uid, total_supply, true);
+    CAsset asset(asset_symbol, asset_symbol, AssetType::DIA, kAssetDefaultPerms, owner_regid, total_supply, true);
 
     if (!cw.assetCache.SetAsset(asset)) {
         return state.DoS(100, ERRORMSG("CGovAssetIssueProposal::ExecuteProposal,save asset error"), REJECT_INVALID,
                          "asset-write-error");
     }
-    auto spOwnerAccount = tx.GetAccount(context, owner_uid, "owner");
+    auto spOwnerAccount = tx.GetAccount(context, owner_regid, "owner");
     if (!spOwnerAccount) {
         return state.DoS(100, ERRORMSG("fail to find owner account, owner_id = %s",
-                                       owner_uid.ToDebugString()), UPDATE_ACCOUNT_FAIL, "account-not-found");
+                                       owner_regid.ToString()), UPDATE_ACCOUNT_FAIL, "account-not-found");
     }
     if (!spOwnerAccount->OperateBalance(asset.asset_symbol, BalanceOpType::ADD_FREE, asset.total_supply,
                                         ReceiptType::ASSET_MINT_NEW_AMOUNT, tx.receipts)) {
         return state.DoS(100, ERRORMSG("fail to add total_supply to issued account! total_supply=%llu, txUid=%s",
-                                       asset.total_supply, owner_uid.ToDebugString()), UPDATE_ACCOUNT_FAIL, "insufficent-funds");
+                                       asset.total_supply, owner_regid.ToString()), UPDATE_ACCOUNT_FAIL, "insufficent-funds");
     }
     return true;
 }

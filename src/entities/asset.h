@@ -83,7 +83,7 @@ public:
     TokenName asset_name;                         // asset long name, E.g WaykiChain coin
     AssetType asset_type = AssetType::NULL_ASSET; // asset type
     uint64_t perms_sum   = kAssetDefaultPerms;    // a sum of asset perms
-    CUserID owner_uid;                            // creator or owner user id of the asset, null for NIA/DIA/MPA
+    CRegID owner_regid;                            // creator or owner regid of the asset, null for NIA/DIA/MPA
     uint64_t total_supply = 0;                    // boosted by 10^8 for the decimal part, max is 90 billion.
     bool mintable         = false;                // whether this token can be minted in the future.
 
@@ -91,16 +91,16 @@ public:
     CAsset() {}
 
     CAsset(const TokenSymbol& assetSymbol, const TokenName& assetName, const AssetType AssetType, uint64_t assetPermsSum,
-           const CUserID& ownerUid, uint64_t totalSupply, bool mintableIn)
+           const CRegID& ownerRegid, uint64_t totalSupply, bool mintableIn)
         : asset_symbol(assetSymbol), asset_name(assetName), asset_type(AssetType), perms_sum(assetPermsSum),
-        owner_uid(ownerUid), total_supply(totalSupply), mintable(mintableIn) {};
+          owner_regid(ownerRegid), total_supply(totalSupply), mintable(mintableIn) {};
 
     IMPLEMENT_SERIALIZE(
         READWRITE(asset_symbol);
         READWRITE(asset_name);
         READWRITE((uint8_t &) asset_type);
         READWRITE(VARINT(perms_sum));
-        READWRITE(owner_uid);
+        READWRITE(owner_regid);
         READWRITE(VARINT(total_supply));
         READWRITE(mintable);
     )
@@ -127,14 +127,14 @@ public:
         asset_name.clear();
         asset_type = AssetType::NULL_ASSET;
         perms_sum = 0;
-        owner_uid.SetEmpty();
+        owner_regid.SetEmpty();
         total_supply = 0;
         mintable = false;
     }
 
     string ToString() const {
         return strprintf("asset_symbol=%s, asset_name=%s, asset_type=%d, perms_sum=%llu, owner_uid=%s, total_supply=%llu, mintable=%d",
-                asset_symbol, asset_name, asset_type, perms_sum, owner_uid.ToString(), total_supply, mintable);
+                asset_symbol, asset_name, asset_type, perms_sum, owner_regid.ToString(), total_supply, mintable);
     }
 
     Object ToJsonObj() const {
@@ -146,7 +146,7 @@ public:
         o.push_back(Pair("asset_name",    asset_name));
         o.push_back(Pair("asset_type",    asset_type));
         o.push_back(Pair("perms_sum",     permString));
-        o.push_back(Pair("owner_uid",     owner_uid.ToString()));
+        o.push_back(Pair("owner_regid",   owner_regid.ToString()));
         o.push_back(Pair("total_supply",  total_supply));
         o.push_back(Pair("mintable",      mintable));
         return o;

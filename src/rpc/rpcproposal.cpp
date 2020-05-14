@@ -839,14 +839,18 @@ Value submitdiaissueproposal(const Array& params, bool fHelp) {
     const CUserID& ownerUid = RPC_PARAM::GetUserId(params[2]);
     uint64_t totalSupply = RPC_PARAM::GetUint64(params[3]);
     ComboMoney fee          = RPC_PARAM::GetFee(params, 4, PROPOSAL_REQUEST_TX);
-
+    if(!ownerUid.is<CRegID>()) {
+        throw JSONRPCError(100, "asset owner must has regid and regid is matured");
+    }
     int32_t validHeight  = chainActive.Height();
     CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, txUid);
     RPC_PARAM::CheckAccountBalance(account, fee.symbol, SUB_FREE, fee.GetAmountInSawi());
 
     CAccount ownerAccount = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, ownerUid);
 
-    CGovAssetIssueProposal proposal(assetSymbol, totalSupply, ownerUid);
+
+
+    CGovAssetIssueProposal proposal(assetSymbol, totalSupply, ownerUid.get<CRegID>());
 
     CProposalRequestTx tx;
     tx.txUid        = txUid;

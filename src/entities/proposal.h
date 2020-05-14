@@ -624,28 +624,28 @@ struct CGovAxcOutProposal: CProposal {
 struct CGovAssetIssueProposal: CProposal {
     TokenSymbol asset_symbol;
     uint64_t    total_supply;
-    CUserID     owner_uid;
+    CRegID     owner_regid;
 
     CGovAssetIssueProposal(): CProposal(ProposalType::GOV_ASSET_ISSUE) {}
     CGovAssetIssueProposal(TokenSymbol& assetSymbol, uint64_t& totalSupply,
-                        const CUserID &ownerUid): CProposal(ProposalType::GOV_ASSET_ISSUE),
+                        const CRegID &ownerRegid): CProposal(ProposalType::GOV_ASSET_ISSUE),
                                             asset_symbol(assetSymbol),
                                             total_supply(totalSupply),
-                                            owner_uid(ownerUid) {}
+                                            owner_regid(ownerRegid) {}
 
     IMPLEMENT_SERIALIZE(
             READWRITE(VARINT(expiry_block_height));
             READWRITE(approval_min_count);
             READWRITE(asset_symbol);
             READWRITE(total_supply);
-            READWRITE(owner_uid);
+            READWRITE(owner_regid);
     );
 
     Object ToJson() override {
         Object obj = CProposal::ToJson();
         obj.push_back(Pair("asset_symbol", asset_symbol));
-        if(!owner_uid.is<CNullID>())
-            obj.push_back(Pair("owner_uid", owner_uid.ToString()));
+        if(!owner_regid.IsEmpty())
+            obj.push_back(Pair("owner_uid", owner_regid.ToString()));
         obj.push_back(Pair("total_supply", total_supply));
         return obj;
     }
