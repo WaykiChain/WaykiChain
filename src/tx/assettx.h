@@ -10,24 +10,24 @@
 
 struct CUserIssuedAsset {
     TokenSymbol asset_symbol;       //asset symbol, E.g WICC | WUSD
-    CUserID     owner_uid;          //creator or owner user id of the asset
+    CRegID      owner_regid;          //creator or owner user id of the asset
     TokenName   asset_name;         //asset long name, E.g WaykiChain coin
     uint64_t    total_supply;       //boosted by 10^8 for the decimal part, max is 90 billion.
     bool        mintable;           //whether this token can be minted in the future.
 
     CUserIssuedAsset(): total_supply(0), mintable(false) {}
 
-    CUserIssuedAsset(const TokenSymbol& assetSymbol, const CUserID& ownerUid, const TokenName& assetName,
+    CUserIssuedAsset(const TokenSymbol& assetSymbol, const CRegID& ownerRegid, const TokenName& assetName,
                     uint64_t totalSupply, bool mintableIn) :
             asset_symbol(assetSymbol),
-            owner_uid(ownerUid),
+            owner_regid(ownerRegid),
             asset_name(assetName),
             total_supply(totalSupply),
             mintable(mintableIn) {};
 
     IMPLEMENT_SERIALIZE(
         READWRITE(asset_symbol);
-        READWRITE(owner_uid);
+        READWRITE(owner_regid);
         READWRITE(asset_name);
         READWRITE(mintable);
         READWRITE(VARINT(total_supply));
@@ -35,8 +35,8 @@ struct CUserIssuedAsset {
     )
 
     string ToString() const {
-        return strprintf("asset_symbol=%s, asset_name=%s, owner_uid=%s, total_supply=%llu, mintable=%d",
-                        asset_symbol, asset_name, owner_uid.ToString(), total_supply, mintable);
+        return strprintf("asset_symbol=%s, asset_name=%s, owner_regid=%s, total_supply=%llu, mintable=%d",
+                        asset_symbol, asset_name, owner_regid.ToString(), total_supply, mintable);
     }
 };
 
@@ -96,12 +96,12 @@ public:
 public:
     enum UpdateType: uint8_t {
         UPDATE_NONE = 0,
-        OWNER_UID = 1,
+        OWNER_REGID = 1,
         NAME = 2,
         MINT_AMOUNT = 3,
     };
     typedef boost::variant<CNullData,
-        CUserID, // owner_uid
+        CRegID, // owner_regid
         string,  // name
         uint64_t // mint_amount
     > ValueType;
@@ -116,7 +116,7 @@ public:
 public:
     CUserUpdateAsset(): type(UPDATE_NONE), value(CNullData()) {}
 
-    void Set(const CUserID &ownerUid);
+    void Set(const CRegID &ownerRegid);
 
     void Set(const string &name);
 
@@ -137,7 +137,7 @@ public:
 
     inline unsigned int GetSerializeSize(int serializedType, int nVersion) const {
         switch (type) {
-            case OWNER_UID:     return sizeof(uint8_t) + get<CUserID>().GetSerializeSize(serializedType, nVersion);
+            case OWNER_REGID:     return sizeof(uint8_t) + get<CRegID>().GetSerializeSize(serializedType, nVersion);
             case NAME:          return sizeof(uint8_t) + ::GetSerializeSize(get<string>(), serializedType, nVersion);
             case MINT_AMOUNT:   return sizeof(uint8_t) + ::GetSerializeSize(VARINT(get<uint64_t>()), serializedType, nVersion);
             default: break;
@@ -149,7 +149,7 @@ public:
     void Serialize(Stream &s, int serializedType, int nVersion) const {
         s << (uint8_t)type;
         switch (type) {
-            case OWNER_UID:     s << get<CUserID>(); break;
+            case OWNER_REGID:     s << get<CRegID>(); break;
             case NAME:          s << get<string>(); break;
             case MINT_AMOUNT:   s << VARINT(get<uint64_t>()); break;
             default: {
@@ -163,8 +163,8 @@ public:
     void Unserialize(Stream &s, int serializedType, int nVersion) {
         s >> ((uint8_t&)type);
         switch (type) {
-            case OWNER_UID: {
-                CUserID uid;
+            case OWNER_REGID: {
+                CRegID uid;
                 s >> uid;
                 value = uid;
                 break;

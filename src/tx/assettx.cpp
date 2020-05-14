@@ -16,10 +16,10 @@ static const string ASSET_ACTION_UPDATE = "update";
 Object AssetToJson(const CAccountDBCache &accountCache, const CUserIssuedAsset &asset) {
     Object result;
     CKeyID ownerKeyid;
-    accountCache.GetKeyId(asset.owner_uid, ownerKeyid);
+    accountCache.GetKeyId(asset.owner_regid, ownerKeyid);
     result.push_back(Pair("asset_symbol",   asset.asset_symbol));
     result.push_back(Pair("asset_name",     asset.asset_name));
-    result.push_back(Pair("owner_uid",      asset.owner_uid.ToString()));
+    result.push_back(Pair("owner_regid",    asset.owner_regid.ToString()));
     result.push_back(Pair("owner_addr",     ownerKeyid.ToAddress()));
     result.push_back(Pair("total_supply",   asset.total_supply));
     result.push_back(Pair("mintable",       asset.mintable));
@@ -113,8 +113,8 @@ bool CUserIssueAssetTx::CheckTx(CTxExecuteContext &context) {
         return state.DoS(100, ERRORMSG("asset total_supply=%llu can not == 0 or > %llu", asset.total_supply, MAX_ASSET_TOTAL_SUPPLY),
                                         REJECT_INVALID, "invalid-total-supply");
 
-    if (!asset.owner_uid.is<CRegID>())
-        return state.DoS(100, ERRORMSG("asset owner_uid must be regid"), REJECT_INVALID, "owner-uid-type-error");
+    if (asset.owner_regid.IsEmpty())
+        return state.DoS(100, ERRORMSG("asset owner_regid must not be empty"), REJECT_INVALID, "owner-value-error");
 
     if ((txUid.is<CPubKey>()) && !txUid.get<CPubKey>().IsFullyValid())
         return state.DoS(100, ERRORMSG("public key is invalid"), REJECT_INVALID, "bad-publickey");
@@ -132,12 +132,12 @@ bool CUserIssueAssetTx::ExecuteTx(CTxExecuteContext &context) {
         return state.DoS(100, ERRORMSG("the asset has been issued! symbol=%s",
             asset.asset_symbol), REJECT_INVALID, "asset-existed-error");
 
-    auto spOwnerAccount = GetAccount(context, asset.owner_uid, "asset_owner");
+    auto spOwnerAccount = GetAccount(context, asset.owner_regid, "asset_owner");
     if (!spOwnerAccount) return false;
 
     if (spOwnerAccount->regid.IsEmpty() || !spOwnerAccount->regid.IsMature(context.height)) {
         return state.DoS(100, ERRORMSG("owner regid=%s account is unregistered or immature",
-                asset.owner_uid.get<CRegID>().ToString()),
+                asset.owner_regid.ToString()),
                 REJECT_INVALID, "owner-account-unregistered-or-immature");
     }
 
@@ -161,9 +161,9 @@ bool CUserIssueAssetTx::ExecuteTx(CTxExecuteContext &context) {
 
 string CUserIssueAssetTx::ToString(CAccountDBCache &accountCache) {
     return strprintf("txType=%s, hash=%s, ver=%d, txUid=%s, llFees=%ld, valid_height=%d, "
-        "owner_uid=%s, asset_symbol=%s, asset_name=%s, total_supply=%llu, mintable=%d",
+        "owner_regid=%s, asset_symbol=%s, asset_name=%s, total_supply=%llu, mintable=%d",
         GetTxType(nTxType), GetHash().ToString(), nVersion, txUid.ToDebugString(), llFees, valid_height,
-        asset.owner_uid.ToDebugString(), asset.asset_symbol, asset.asset_name, asset.total_supply, asset.mintable);
+        asset.owner_regid.ToString(), asset.asset_symbol, asset.asset_name, asset.total_supply, asset.mintable);
 }
 
 Object CUserIssueAssetTx::ToJson(const CAccountDBCache &accountCache) const {
@@ -176,13 +176,13 @@ Object CUserIssueAssetTx::ToJson(const CAccountDBCache &accountCache) const {
 // class CUserUpdateAsset
 
 static const EnumTypeMap<CUserUpdateAsset::UpdateType, string> ASSET_UPDATE_TYPE_NAMES = {
-    {CUserUpdateAsset::OWNER_UID,   "owner_uid"},
+    {CUserUpdateAsset::OWNER_REGID,   "owner_regid"},
     {CUserUpdateAsset::NAME,        "name"},
     {CUserUpdateAsset::MINT_AMOUNT, "mint_amount"}
 };
 
 static const unordered_map<string, CUserUpdateAsset::UpdateType> ASSET_UPDATE_PARSE_MAP = {
-    {"owner_addr",  CUserUpdateAsset::OWNER_UID},
+    {"owner_addr",  CUserUpdateAsset::OWNER_REGID},
     {"name",        CUserUpdateAsset::NAME},
     {"mint_amount", CUserUpdateAsset::MINT_AMOUNT}
 };
@@ -202,9 +202,9 @@ const string& CUserUpdateAsset::GetUpdateTypeName(UpdateType type) {
     if (it != ASSET_UPDATE_TYPE_NAMES.end()) return it->second;
     return EMPTY_STRING;
 }
-void CUserUpdateAsset::Set(const CUserID &ownerUid) {
-    type = OWNER_UID;
-    value = ownerUid;
+void CUserUpdateAsset::Set(const CRegID &ownerRegid) {
+    type = OWNER_REGID;
+    value = ownerRegid;
 }
 
 void CUserUpdateAsset::Set(const string &name) {
@@ -219,7 +219,7 @@ void CUserUpdateAsset::Set(const uint64_t &mintAmount) {
 string CUserUpdateAsset::ValueToString() const {
     string s;
     switch (type) {
-        case OWNER_UID:     s += get<CUserID>().ToString(); break;
+        case OWNER_REGID:     s += get<CRegID>().ToString(); break;
         case NAME:          s += get<string>(); break;
         case MINT_AMOUNT:   s += std::to_string(get<uint64_t>()); break;
         default: break;
@@ -237,9 +237,9 @@ Object CUserUpdateAsset::ToJson(const CAccountDBCache &accountCache) const {
     Object result;
     result.push_back(Pair("update_type",   GetUpdateTypeName(type)));
     result.push_back(Pair("update_value",  ValueToString()));
-    if (type == OWNER_UID) {
+    if (type == OWNER_REGID) {
         CKeyID ownerKeyid;
-        accountCache.GetKeyId(get<CUserID>(), ownerKeyid);
+        accountCache.GetKeyId(get<CRegID>(), ownerKeyid);
         result.push_back(Pair("owner_addr",   ownerKeyid.ToAddress()));
     }
     return result;
@@ -279,10 +279,10 @@ bool CUserUpdateAssetTx::CheckTx(CTxExecuteContext &context) {
         return state.DoS(100, ERRORMSG("asset_symbol error: %s", errMsg), REJECT_INVALID, "invalid-asset-symbol");
 
     switch (update_data.GetType()) {
-        case CUserUpdateAsset::OWNER_UID: {
-            const CUserID &newOwnerUid = update_data.get<CUserID>();
-            if (!newOwnerUid.is<CRegID>())
-                return state.DoS(100, ERRORMSG("the new asset owner_uid must be regid"), REJECT_INVALID, "owner-uid-type-error");
+        case CUserUpdateAsset::OWNER_REGID: {
+            const CRegID &newOwnerUid = update_data.get<CRegID>();
+            if (newOwnerUid.IsEmpty())
+                return state.DoS(100, ERRORMSG("the new asset owner_uid must be regid and not be null"), REJECT_INVALID, "owner-regid-error");
 
             break;
         }
@@ -328,10 +328,10 @@ bool CUserUpdateAssetTx::ExecuteTx(CTxExecuteContext &context) {
                         REJECT_INVALID, "asset-uid-mismatch");
 
     switch (update_data.GetType()) {
-        case CUserUpdateAsset::OWNER_UID: {
-            const CUserID &newOwnerUid = update_data.get<CUserID>();
+        case CUserUpdateAsset::OWNER_REGID: {
+            const CUserID &newOwnerUid = update_data.get<CRegID>();
             if (sp_tx_account->IsSelfUid(newOwnerUid))
-                return state.DoS(100, ERRORMSG("new_owner_uid=%s is from the same owner account",
+                return state.DoS(100, ERRORMSG("new_owner_regid=%s is from the same owner account",
                     newOwnerUid.ToDebugString()), REJECT_INVALID, "invalid-new-asset-owner-uid");
 
             auto spNewOwnerAccount = GetAccount(context, newOwnerUid, "asset_owner");

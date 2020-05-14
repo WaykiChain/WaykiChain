@@ -133,7 +133,7 @@ public:
     }
 
     string ToString() const {
-        return strprintf("asset_symbol=%s, asset_name=%s, asset_type=%d, perms_sum=%llu, owner_uid=%s, total_supply=%llu, mintable=%d",
+        return strprintf("asset_symbol=%s, asset_name=%s, asset_type=%d, perms_sum=%llu, owner_regid=%s, total_supply=%llu, mintable=%d",
                 asset_symbol, asset_name, asset_type, perms_sum, owner_regid.ToString(), total_supply, mintable);
     }
 

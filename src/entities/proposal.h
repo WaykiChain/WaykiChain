@@ -645,7 +645,7 @@ struct CGovAssetIssueProposal: CProposal {
         Object obj = CProposal::ToJson();
         obj.push_back(Pair("asset_symbol", asset_symbol));
         if(!owner_regid.IsEmpty())
-            obj.push_back(Pair("owner_uid", owner_regid.ToString()));
+            obj.push_back(Pair("owner_regid", owner_regid.ToString()));
         obj.push_back(Pair("total_supply", total_supply));
         return obj;
     }
