@@ -77,7 +77,7 @@ public:
     uint64_t frozen_amount;     // for coins held in DEX buy/sell orders
     uint64_t staked_amount;     // for staking
     uint64_t voted_amount;      // for voting
-    uint64_t pledged_amount;    //for CDP collateral amount
+    uint64_t pledged_amount;    // for CDP collateral amount
 
 public:
     CAccountToken() : free_amount(0), frozen_amount(0), staked_amount(0), voted_amount(0), pledged_amount(0) {}

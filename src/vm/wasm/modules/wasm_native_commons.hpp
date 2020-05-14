@@ -24,7 +24,7 @@ namespace wasm {
 
   inline void mint_burn_balance(wasm_context &context, bool isMintOperate) {
 
-      context.control_trx.run_cost += context.trx.GetSerializeSize(SER_DISK, CLIENT_VERSION) * store_fuel_fee_per_byte;
+      context.control_trx.run_cost += context.get_runcost();
       auto transfer_data  = wasm::unpack<std::tuple<uint64_t, wasm::asset>>(context.trx.data);
 
       auto target         = std::get<0>(transfer_data);

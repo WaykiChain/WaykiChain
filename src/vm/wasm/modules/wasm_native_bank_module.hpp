@@ -31,15 +31,18 @@ namespace wasm {
 
 	    public:
 		  	static void act_handler(wasm_context &context, uint64_t action){
-		        switch (action){
-		            case N(transfer):
+		        switch (action) {
+		            case N(transfer):	//transfer coins or assets
 		                 tansfer(context);
 		                 return;
-					case N(mint):
+					case N(mint):		//mint new assets
 					     mint(context);
 						 return;
-					case N(burn):
+					case N(burn):		//burn assets
 					     burn(context);
+						 return;
+					case N(update):		//update asset profile like owner regid
+						 update(context);
 						 return;
 		            default:
 		                 break;
@@ -69,6 +72,13 @@ namespace wasm {
 					{
 						{"owner", 		"regid"	}, //only asset owner can burn assets hold by the owner
 						{"quantity",	"asset"	}
+					}
+				});
+				abi.structs.push_back({"update", "",
+					{
+						{"owner", 			"regid"	},
+						{"name",			"string"},
+						{"total_supply?",	"uint64_t"}
 					}
 				});
 				abi.structs.push_back({"transfer", "",
@@ -110,6 +120,25 @@ namespace wasm {
 				mint_burn_balance(context, false);
 			}
 
+			static void update(wasm_context &context) {
+
+		        CHAIN_ASSERT( context._receiver == bank_native_module_id,
+		                      wasm_chain::native_contract_assert_exception,
+		                      "expect contract '%s', but get '%s'",
+		                      wasm::regid(bank_native_module_id).to_string(),
+		                      wasm::regid(context._receiver).to_string());
+
+		        context.control_trx.run_cost   += context.get_runcost();
+
+		        auto transfer_data = wasm::unpack<std::tuple <uint64_t, uint64_t, wasm::asset, string >>(context.trx.data);
+		        auto from                        = std::get<0>(transfer_data);
+		        auto to                          = std::get<1>(transfer_data);
+		        auto quantity                    = std::get<2>(transfer_data);
+		        auto memo                        = std::get<3>(transfer_data);
+
+				context.require_auth(from); //from auth
+			}
+
 		    static void tansfer(wasm_context &context) {
 
 		        CHAIN_ASSERT( context._receiver == bank_native_module_id,
@@ -118,7 +147,7 @@ namespace wasm {
 		                      wasm::regid(bank_native_module_id).to_string(),
 		                      wasm::regid(context._receiver).to_string());
 
-		        context.control_trx.run_cost   += context.trx.GetSerializeSize(SER_DISK, CLIENT_VERSION) * store_fuel_fee_per_byte;
+		        context.control_trx.run_cost   += context.get_runcost();
 
 		        auto transfer_data = wasm::unpack<std::tuple <uint64_t, uint64_t, wasm::asset, string >>(context.trx.data);
 		        auto from                        = std::get<0>(transfer_data);

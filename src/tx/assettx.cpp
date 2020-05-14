@@ -11,7 +11,7 @@
 #include "persistence/assetdb.h"
 
 static const string ASSET_ACTION_ISSUE = "issue";
-static const string ASSET_ACTION_UPDATE = "update";
+// static const string ASSET_ACTION_UPDATE = "update";
 
 Object AssetToJson(const CAccountDBCache &accountCache, const CUserIssuedAsset &asset) {
     Object result;
@@ -175,212 +175,212 @@ Object CUserIssueAssetTx::ToJson(const CAccountDBCache &accountCache) const {
 ///////////////////////////////////////////////////////////////////////////////
 // class CUserUpdateAsset
 
-static const EnumTypeMap<CUserUpdateAsset::UpdateType, string> ASSET_UPDATE_TYPE_NAMES = {
-    {CUserUpdateAsset::OWNER_UID,   "owner_uid"},
-    {CUserUpdateAsset::NAME,        "name"},
-    {CUserUpdateAsset::MINT_AMOUNT, "mint_amount"}
-};
+// static const EnumTypeMap<CUserUpdateAsset::UpdateType, string> ASSET_UPDATE_TYPE_NAMES = {
+//     {CUserUpdateAsset::OWNER_REGID,     "owner_regid"},
+//     {CUserUpdateAsset::NAME,            "name"},
+//     {CUserUpdateAsset::MINT_AMOUNT,     "mint_amount"}
+// };
 
-static const unordered_map<string, CUserUpdateAsset::UpdateType> ASSET_UPDATE_PARSE_MAP = {
-    {"owner_addr",  CUserUpdateAsset::OWNER_UID},
-    {"name",        CUserUpdateAsset::NAME},
-    {"mint_amount", CUserUpdateAsset::MINT_AMOUNT}
-};
+// static const unordered_map<string, CUserUpdateAsset::UpdateType> ASSET_UPDATE_PARSE_MAP = {
+//     {"owner_addr",  CUserUpdateAsset::OWNER_UID},
+//     {"name",        CUserUpdateAsset::NAME},
+//     {"mint_amount", CUserUpdateAsset::MINT_AMOUNT}
+// };
 
-shared_ptr<CUserUpdateAsset::UpdateType> CUserUpdateAsset::ParseUpdateType(const string& str) {
-    if (!str.empty()) {
-        auto it = ASSET_UPDATE_PARSE_MAP.find(str);
-        if (it != ASSET_UPDATE_PARSE_MAP.end()) {
-            return make_shared<UpdateType>(it->second);
-        }
-    }
-    return nullptr;
-}
+// shared_ptr<CUserUpdateAsset::UpdateType> CUserUpdateAsset::ParseUpdateType(const string& str) {
+//     if (!str.empty()) {
+//         auto it = ASSET_UPDATE_PARSE_MAP.find(str);
+//         if (it != ASSET_UPDATE_PARSE_MAP.end()) {
+//             return make_shared<UpdateType>(it->second);
+//         }
+//     }
+//     return nullptr;
+// }
 
-const string& CUserUpdateAsset::GetUpdateTypeName(UpdateType type) {
-    auto it = ASSET_UPDATE_TYPE_NAMES.find(type);
-    if (it != ASSET_UPDATE_TYPE_NAMES.end()) return it->second;
-    return EMPTY_STRING;
-}
-void CUserUpdateAsset::Set(const CUserID &ownerUid) {
-    type = OWNER_UID;
-    value = ownerUid;
-}
+// const string& CUserUpdateAsset::GetUpdateTypeName(UpdateType type) {
+//     auto it = ASSET_UPDATE_TYPE_NAMES.find(type);
+//     if (it != ASSET_UPDATE_TYPE_NAMES.end()) return it->second;
+//     return EMPTY_STRING;
+// }
+// void CUserUpdateAsset::Set(const CUserID &ownerUid) {
+//     type = OWNER_UID;
+//     value = ownerUid;
+// }
 
-void CUserUpdateAsset::Set(const string &name) {
-    type = NAME;
-    value = name;
-}
-void CUserUpdateAsset::Set(const uint64_t &mintAmount) {
-    type = MINT_AMOUNT;
-    value = mintAmount;
-}
+// void CUserUpdateAsset::Set(const string &name) {
+//     type = NAME;
+//     value = name;
+// }
+// void CUserUpdateAsset::Set(const uint64_t &mintAmount) {
+//     type = MINT_AMOUNT;
+//     value = mintAmount;
+// }
 
-string CUserUpdateAsset::ValueToString() const {
-    string s;
-    switch (type) {
-        case OWNER_UID:     s += get<CUserID>().ToString(); break;
-        case NAME:          s += get<string>(); break;
-        case MINT_AMOUNT:   s += std::to_string(get<uint64_t>()); break;
-        default: break;
-    }
-    return s;
-}
+// string CUserUpdateAsset::ValueToString() const {
+//     string s;
+//     switch (type) {
+//         case OWNER_UID:     s += get<CUserID>().ToString(); break;
+//         case NAME:          s += get<string>(); break;
+//         case MINT_AMOUNT:   s += std::to_string(get<uint64_t>()); break;
+//         default: break;
+//     }
+//     return s;
+// }
 
-string CUserUpdateAsset::ToString(const CAccountDBCache &accountCache) const {
-    string s = "update_type=" + GetUpdateTypeName(type);
-    s += ", update_value=" + ValueToString();
-    return s;
-}
+// string CUserUpdateAsset::ToString(const CAccountDBCache &accountCache) const {
+//     string s = "update_type=" + GetUpdateTypeName(type);
+//     s += ", update_value=" + ValueToString();
+//     return s;
+// }
 
-Object CUserUpdateAsset::ToJson(const CAccountDBCache &accountCache) const {
-    Object result;
-    result.push_back(Pair("update_type",   GetUpdateTypeName(type)));
-    result.push_back(Pair("update_value",  ValueToString()));
-    if (type == OWNER_UID) {
-        CKeyID ownerKeyid;
-        accountCache.GetKeyId(get<CUserID>(), ownerKeyid);
-        result.push_back(Pair("owner_addr",   ownerKeyid.ToAddress()));
-    }
-    return result;
-}
+// Object CUserUpdateAsset::ToJson(const CAccountDBCache &accountCache) const {
+//     Object result;
+//     result.push_back(Pair("update_type",   GetUpdateTypeName(type)));
+//     result.push_back(Pair("update_value",  ValueToString()));
+//     if (type == OWNER_UID) {
+//         CKeyID ownerKeyid;
+//         accountCache.GetKeyId(get<CUserID>(), ownerKeyid);
+//         result.push_back(Pair("owner_addr",   ownerKeyid.ToAddress()));
+//     }
+//     return result;
+// }
 
 ///////////////////////////////////////////////////////////////////////////////
 // class CUserUpdateAssetTx
 
-string CUserUpdateAssetTx::ToString(CAccountDBCache &accountCache) {
-    return strprintf(
-        "txType=%s, hash=%s, ver=%d, txUid=%s, fee_symbol=%s, llFees=%ld, valid_height=%d, asset_symbol=%s, "
-        "update_data=%s",
-        GetTxType(nTxType), GetHash().ToString(), nVersion, fee_symbol, txUid.ToDebugString(), llFees, valid_height,
-        asset_symbol, update_data.ToString(accountCache));
-}
+// string CUserUpdateAssetTx::ToString(CAccountDBCache &accountCache) {
+//     return strprintf(
+//         "txType=%s, hash=%s, ver=%d, txUid=%s, fee_symbol=%s, llFees=%ld, valid_height=%d, asset_symbol=%s, "
+//         "update_data=%s",
+//         GetTxType(nTxType), GetHash().ToString(), nVersion, fee_symbol, txUid.ToDebugString(), llFees, valid_height,
+//         asset_symbol, update_data.ToString(accountCache));
+// }
 
-Object CUserUpdateAssetTx::ToJson(const CAccountDBCache &accountCache) const {
-    Object result = CBaseTx::ToJson(accountCache);
+// Object CUserUpdateAssetTx::ToJson(const CAccountDBCache &accountCache) const {
+//     Object result = CBaseTx::ToJson(accountCache);
 
-    result.push_back(Pair("asset_symbol",   asset_symbol));
-    container::Append(result, update_data.ToJson(accountCache));
+//     result.push_back(Pair("asset_symbol",   asset_symbol));
+//     container::Append(result, update_data.ToJson(accountCache));
 
-    return result;
-}
+//     return result;
+// }
 
-bool CUserUpdateAssetTx::CheckTx(CTxExecuteContext &context) {
+// bool CUserUpdateAssetTx::CheckTx(CTxExecuteContext &context) {
 
-    IMPLEMENT_DEFINE_CW_STATE
+//     IMPLEMENT_DEFINE_CW_STATE
 
-    string errMsg = "";
+//     string errMsg = "";
 
-    CAsset asset;
-    if (!cw.assetCache.GetAsset(asset_symbol, asset))
-        return state.DoS(100, ERRORMSG("get asset by symbol=%s failed", asset_symbol), REJECT_INVALID, "get-asset-failed");
+//     CAsset asset;
+//     if (!cw.assetCache.GetAsset(asset_symbol, asset))
+//         return state.DoS(100, ERRORMSG("get asset by symbol=%s failed", asset_symbol), REJECT_INVALID, "get-asset-failed");
 
-    if (!CAsset::CheckSymbol(asset.asset_type, asset_symbol, errMsg))
-        return state.DoS(100, ERRORMSG("asset_symbol error: %s", errMsg), REJECT_INVALID, "invalid-asset-symbol");
+//     if (!CAsset::CheckSymbol(asset.asset_type, asset_symbol, errMsg))
+//         return state.DoS(100, ERRORMSG("asset_symbol error: %s", errMsg), REJECT_INVALID, "invalid-asset-symbol");
 
-    switch (update_data.GetType()) {
-        case CUserUpdateAsset::OWNER_UID: {
-            const CUserID &newOwnerUid = update_data.get<CUserID>();
-            if (!newOwnerUid.is<CRegID>())
-                return state.DoS(100, ERRORMSG("the new asset owner_uid must be regid"), REJECT_INVALID, "owner-uid-type-error");
+//     switch (update_data.GetType()) {
+//         case CUserUpdateAsset::OWNER_UID: {
+//             const CUserID &newOwnerUid = update_data.get<CUserID>();
+//             if (!newOwnerUid.is<CRegID>())
+//                 return state.DoS(100, ERRORMSG("the new asset owner_uid must be regid"), REJECT_INVALID, "owner-uid-type-error");
 
-            break;
-        }
-        case CUserUpdateAsset::NAME: {
-            const string &name = update_data.get<string>();
-            if (name.empty() || name.size() > MAX_ASSET_NAME_LEN)
-                return state.DoS(100, ERRORMSG("asset name is empty or len=%d greater than %d",
-                                name.size(), MAX_ASSET_NAME_LEN), REJECT_INVALID, "invalid-asset-name");
+//             break;
+//         }
+//         case CUserUpdateAsset::NAME: {
+//             const string &name = update_data.get<string>();
+//             if (name.empty() || name.size() > MAX_ASSET_NAME_LEN)
+//                 return state.DoS(100, ERRORMSG("asset name is empty or len=%d greater than %d",
+//                                 name.size(), MAX_ASSET_NAME_LEN), REJECT_INVALID, "invalid-asset-name");
 
-            break;
-        }
-        case CUserUpdateAsset::MINT_AMOUNT: {
-            uint64_t mintAmount = update_data.get<uint64_t>();
-            if (mintAmount == 0 || mintAmount > MAX_ASSET_TOTAL_SUPPLY)
-                return state.DoS(100, ERRORMSG("asset mint_amount=%llu is 0 or greater than %llu",
-                                mintAmount, MAX_ASSET_TOTAL_SUPPLY), REJECT_INVALID, "invalid-mint-amount");
+//             break;
+//         }
+//         case CUserUpdateAsset::MINT_AMOUNT: {
+//             uint64_t mintAmount = update_data.get<uint64_t>();
+//             if (mintAmount == 0 || mintAmount > MAX_ASSET_TOTAL_SUPPLY)
+//                 return state.DoS(100, ERRORMSG("asset mint_amount=%llu is 0 or greater than %llu",
+//                                 mintAmount, MAX_ASSET_TOTAL_SUPPLY), REJECT_INVALID, "invalid-mint-amount");
 
-            break;
-        }
-        default: {
-            return state.DoS(100, ERRORMSG("unsupported updated_type=%d",
-                            update_data.GetType()), REJECT_INVALID, "invalid-update-type");
-        }
-    }
+//             break;
+//         }
+//         default: {
+//             return state.DoS(100, ERRORMSG("unsupported updated_type=%d",
+//                             update_data.GetType()), REJECT_INVALID, "invalid-update-type");
+//         }
+//     }
 
-    if (!sp_tx_account->IsRegistered() || !txUid.get<CRegID>().IsMature(context.height))
-        return state.DoS(100, ERRORMSG("account unregistered or immature"),
-                         REJECT_INVALID, "account-unregistered-or-immature");
+//     if (!sp_tx_account->IsRegistered() || !txUid.get<CRegID>().IsMature(context.height))
+//         return state.DoS(100, ERRORMSG("account unregistered or immature"),
+//                          REJECT_INVALID, "account-unregistered-or-immature");
 
-    return true;
-}
+//     return true;
+// }
 
 
-bool CUserUpdateAssetTx::ExecuteTx(CTxExecuteContext &context) {
-    IMPLEMENT_DEFINE_CW_STATE;
+// bool CUserUpdateAssetTx::ExecuteTx(CTxExecuteContext &context) {
+//     IMPLEMENT_DEFINE_CW_STATE;
 
-    CAsset asset;
-    if (!cw.assetCache.GetAsset(asset_symbol, asset))
-        return state.DoS(100, ERRORMSG("get asset by symbol=%s failed", asset_symbol), REJECT_INVALID, "get-asset-failed");
+//     CAsset asset;
+//     if (!cw.assetCache.GetAsset(asset_symbol, asset))
+//         return state.DoS(100, ERRORMSG("get asset by symbol=%s failed", asset_symbol), REJECT_INVALID, "get-asset-failed");
 
-    if (!sp_tx_account->IsSelfUid(asset.owner_regid))
-        return state.DoS(100, ERRORMSG("uid mismatch: txUid=%s, old_asset_uid=%s", txUid.ToDebugString(), asset.owner_regid.ToString()),
-                        REJECT_INVALID, "asset-uid-mismatch");
+//     if (!sp_tx_account->IsSelfUid(asset.owner_regid))
+//         return state.DoS(100, ERRORMSG("uid mismatch: txUid=%s, old_asset_uid=%s", txUid.ToDebugString(), asset.owner_regid.ToString()),
+//                         REJECT_INVALID, "asset-uid-mismatch");
 
-    switch (update_data.GetType()) {
-        case CUserUpdateAsset::OWNER_UID: {
-            const CUserID &newOwnerUid = update_data.get<CUserID>();
-            if (sp_tx_account->IsSelfUid(newOwnerUid))
-                return state.DoS(100, ERRORMSG("new_owner_uid=%s is from the same owner account",
-                    newOwnerUid.ToDebugString()), REJECT_INVALID, "invalid-new-asset-owner-uid");
+//     switch (update_data.GetType()) {
+//         case CUserUpdateAsset::OWNER_UID: {
+//             const CUserID &newOwnerUid = update_data.get<CUserID>();
+//             if (sp_tx_account->IsSelfUid(newOwnerUid))
+//                 return state.DoS(100, ERRORMSG("new_owner_uid=%s is from the same owner account",
+//                     newOwnerUid.ToDebugString()), REJECT_INVALID, "invalid-new-asset-owner-uid");
 
-            auto spNewOwnerAccount = GetAccount(context, newOwnerUid, "asset_owner");
-            if (!spNewOwnerAccount) return false;
+//             auto spNewOwnerAccount = GetAccount(context, newOwnerUid, "asset_owner");
+//             if (!spNewOwnerAccount) return false;
 
-            if (!spNewOwnerAccount->IsRegistered())
-                return state.DoS(100, ERRORMSG("new uid(%s)'s account not registered! ", newOwnerUid.ToDebugString()),
-                                                REJECT_INVALID, "account-not-registered");
+//             if (!spNewOwnerAccount->IsRegistered())
+//                 return state.DoS(100, ERRORMSG("new uid(%s)'s account not registered! ", newOwnerUid.ToDebugString()),
+//                                                 REJECT_INVALID, "account-not-registered");
 
-            if (!spNewOwnerAccount->regid.IsMature(context.height))
-                return state.DoS(100, ERRORMSG("new uid(%s)'s regid is not mature!", newOwnerUid.ToDebugString()),
-                                                REJECT_INVALID, "account-not-mature");
+//             if (!spNewOwnerAccount->regid.IsMature(context.height))
+//                 return state.DoS(100, ERRORMSG("new uid(%s)'s regid is not mature!", newOwnerUid.ToDebugString()),
+//                                                 REJECT_INVALID, "account-not-mature");
 
-            asset.owner_regid = spNewOwnerAccount->regid;
-            break;
-        }
-        case CUserUpdateAsset::NAME: {
-            asset.asset_name = update_data.get<string>();
-            break;
-        }
-        case CUserUpdateAsset::MINT_AMOUNT: {
-            if (!asset.mintable)
-                return state.DoS(100, ERRORMSG("the asset is not mintable"),
-                                 REJECT_INVALID, "asset-not-mintable");
+//             asset.owner_regid = spNewOwnerAccount->regid;
+//             break;
+//         }
+//         case CUserUpdateAsset::NAME: {
+//             asset.asset_name = update_data.get<string>();
+//             break;
+//         }
+//         case CUserUpdateAsset::MINT_AMOUNT: {
+//             if (!asset.mintable)
+//                 return state.DoS(100, ERRORMSG("the asset is not mintable"),
+//                                  REJECT_INVALID, "asset-not-mintable");
 
-            uint64_t mintAmount = update_data.get<uint64_t>();
-            uint64_t newTotalSupply = asset.total_supply + mintAmount;
-            if (newTotalSupply > MAX_ASSET_TOTAL_SUPPLY || newTotalSupply < asset.total_supply) {
-                return state.DoS(100, ERRORMSG("the new mintAmount=%llu + total_supply=%s greater than %llu,",
-                            mintAmount, asset.total_supply, MAX_ASSET_TOTAL_SUPPLY), REJECT_INVALID, "invalid-mint-amount");
-            }
+//             uint64_t mintAmount = update_data.get<uint64_t>();
+//             uint64_t newTotalSupply = asset.total_supply + mintAmount;
+//             if (newTotalSupply > MAX_ASSET_TOTAL_SUPPLY || newTotalSupply < asset.total_supply) {
+//                 return state.DoS(100, ERRORMSG("the new mintAmount=%llu + total_supply=%s greater than %llu,",
+//                             mintAmount, asset.total_supply, MAX_ASSET_TOTAL_SUPPLY), REJECT_INVALID, "invalid-mint-amount");
+//             }
 
-            if (!sp_tx_account->OperateBalance(asset_symbol, BalanceOpType::ADD_FREE, mintAmount,
-                                        ReceiptType::ASSET_MINT_NEW_AMOUNT, receipts)) {
-                return state.DoS(100, ERRORMSG("add mintAmount to asset owner account failed, txUid=%s, mintAmount=%llu",
-                                txUid.ToDebugString(), mintAmount), UPDATE_ACCOUNT_FAIL, "account-add-free-failed");
-            }
+//             if (!sp_tx_account->OperateBalance(asset_symbol, BalanceOpType::ADD_FREE, mintAmount,
+//                                         ReceiptType::ASSET_MINT_NEW_AMOUNT, receipts)) {
+//                 return state.DoS(100, ERRORMSG("add mintAmount to asset owner account failed, txUid=%s, mintAmount=%llu",
+//                                 txUid.ToDebugString(), mintAmount), UPDATE_ACCOUNT_FAIL, "account-add-free-failed");
+//             }
 
-            asset.total_supply = newTotalSupply;
-            break;
-        }
-        default: assert(false);
-    }
+//             asset.total_supply = newTotalSupply;
+//             break;
+//         }
+//         default: assert(false);
+//     }
 
-    if (!ProcessAssetFee(*this, context, ASSET_ACTION_UPDATE))
-        return false;
+//     if (!ProcessAssetFee(*this, context, ASSET_ACTION_UPDATE))
+//         return false;
 
-    if (!cw.assetCache.SetAsset(asset))
-        return state.DoS(100, ERRORMSG("save asset failed", txUid.ToDebugString()), UPDATE_ACCOUNT_FAIL, "save-asset-failed");
+//     if (!cw.assetCache.SetAsset(asset))
+//         return state.DoS(100, ERRORMSG("save asset failed", txUid.ToDebugString()), UPDATE_ACCOUNT_FAIL, "save-asset-failed");
 
-    return true;
-}
+//     return true;
+// }
