@@ -617,7 +617,7 @@ Value submitassetissuetx(const Array& params, bool fHelp) {
             pOwnerRegid->ToString()));
     }
 
-    CUserIssuedAsset asset(assetSymbol, *pOwnerRegid, assetName, (uint64_t)totalSupply, mintable);
+    CUserIssuedAsset asset(assetSymbol, CUserID(*pOwnerRegid), assetName, (uint64_t)totalSupply, mintable);
     CUserIssueAssetTx tx(uid, validHeight, cmFee.symbol, cmFee.GetAmountInSawi(), asset);
     return SubmitTx(account.keyid, tx);
 }
@@ -656,14 +656,14 @@ Value submitassetupdatetx(const Array& params, bool fHelp) {
 
     CUserUpdateAsset updateData;
     switch(*pUpdateType) {
-        case CUserUpdateAsset::OWNER_REGID: {
+        case CUserUpdateAsset::OWNER_UID: {
             const string &valueStr = jsonUpdateValue.get_str();
             auto pNewOwnerUid = CUserID::ParseUserId(valueStr);
-            if (!pNewOwnerUid || !pNewOwnerUid->is<CRegID>() || pNewOwnerUid->IsEmpty()) {
-                throw JSONRPCError(RPC_INVALID_PARAMS, strprintf("Invalid UserID format of owner_regid=%s",
+            if (!pNewOwnerUid) {
+                throw JSONRPCError(RPC_INVALID_PARAMS, strprintf("Invalid UserID format of owner_uid=%s",
                     valueStr));
             }
-            updateData.Set(pNewOwnerUid->get<CRegID>());
+            updateData.Set(*pNewOwnerUid);
             break;
         }
         case CUserUpdateAsset::NAME: {
@@ -717,20 +717,20 @@ Value submitassetupdatetx(const Array& params, bool fHelp) {
 
     int32_t validHeight = chainActive.Height();
 
-    if (*pUpdateType == CUserUpdateAsset::OWNER_REGID) {
-        CRegID &ownerRegid = updateData.get<CRegID>();
-        if (account.IsSelfUid(ownerRegid))
-            return JSONRPCError(RPC_INVALID_PARAMS, strprintf("the new owner regid=%s is belong to old owner account",
-                                                              ownerRegid.ToString()));
+    if (*pUpdateType == CUserUpdateAsset::OWNER_UID) {
+        CUserID &ownerUid = updateData.get<CUserID>();
+        if (account.IsSelfUid(ownerUid))
+            return JSONRPCError(RPC_INVALID_PARAMS, strprintf("the new owner uid=%s is belong to old owner account",
+                    ownerUid.ToDebugString()));
 
-        CAccount newAccount = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, ownerRegid);
+        CAccount newAccount = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, ownerUid);
         if (!newAccount.IsRegistered())
-            return JSONRPCError(RPC_INVALID_PARAMS, strprintf("the new owner account is not registered! new regid=%s",
-                                                              ownerRegid.ToString()));
+            return JSONRPCError(RPC_INVALID_PARAMS, strprintf("the new owner account is not registered! new uid=%s",
+                    ownerUid.ToDebugString()));
         if (!newAccount.regid.IsMature(validHeight))
             return JSONRPCError(RPC_INVALID_PARAMS, strprintf("the new owner regid is not matured! new uid=%s",
-                                                              ownerRegid.ToString()));
-        ownerRegid = newAccount.regid;
+                ownerUid.ToDebugString()));
+        ownerUid = newAccount.regid;
     }
 
     CUserUpdateAssetTx tx(uid, validHeight, cmFee.symbol, cmFee.GetAmountInSawi(), assetSymbol, updateData);
