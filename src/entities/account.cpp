@@ -418,33 +418,33 @@ bool CAccount::ProcessCandidateVotes(const vector<CCandidateVote> &candidateVote
                 uint64_t currVotes = itVote->GetVotedBcoins();
 
                 if (!IsBcoinWithinRange(vote.GetVotedBcoins()))
-                    return ERRORMSG("ProcessCandidateVotes() : oper fund value exceeds maximum ");
+                    return ERRORMSG("oper fund value exceeds maximum ");
 
                 itVote->SetVotedBcoins(currVotes + vote.GetVotedBcoins());
 
                 if (!IsBcoinWithinRange(itVote->GetVotedBcoins()))
-                    return ERRORMSG("ProcessCandidateVotes() : fund value exceeds maximum");
+                    return ERRORMSG("fund value exceeds maximum");
 
             } else {  // new vote
                 if (candidateVotesInOut.size() == IniCfg().GetMaxVoteCandidateNum()) {
-                    return ERRORMSG("ProcessCandidateVotes() : MaxVoteCandidateNum reached. Must revoke old votes 1st.");
+                    return ERRORMSG("MaxVoteCandidateNum reached. Must revoke old votes 1st.");
                 }
 
                 candidateVotesInOut.push_back(vote);
             }
         } else if (MINUS_BCOIN == voteType) {
             // if (currHeight - last_vote_height < 100) {
-            //     return ERRORMSG("ProcessCandidateVotes() : last vote not cooled down yet: lastVoteHeigh=%d",
+            //     return ERRORMSG("last vote not cooled down yet: lastVoteHeigh=%d",
             //                     last_vote_height);
             // }
             if  (itVote != candidateVotesInOut.end()) { //existing vote
                 uint64_t currVotes = itVote->GetVotedBcoins();
 
                 if (!IsBcoinWithinRange(vote.GetVotedBcoins()))
-                    return ERRORMSG("ProcessCandidateVotes() : oper fund value exceeds maximum ");
+                    return ERRORMSG("oper fund value exceeds maximum ");
 
                 if (itVote->GetVotedBcoins() < vote.GetVotedBcoins())
-                    return ERRORMSG("ProcessCandidateVotes() : oper fund value exceeds delegate fund value");
+                    return ERRORMSG("oper fund value exceeds delegate fund value");
 
                 itVote->SetVotedBcoins(currVotes - vote.GetVotedBcoins());
 
@@ -452,10 +452,10 @@ bool CAccount::ProcessCandidateVotes(const vector<CCandidateVote> &candidateVote
                     candidateVotesInOut.erase(itVote);
 
             } else {
-                return ERRORMSG("ProcessCandidateVotes() : revocation votes not exist");
+                return ERRORMSG("revocation votes not exist");
             }
         } else {
-            return ERRORMSG("ProcessCandidateVotes() : operType: %d invalid", voteType);
+            return ERRORMSG("operType: %d invalid", voteType);
         }
     }
 
@@ -479,19 +479,17 @@ bool CAccount::ProcessCandidateVotes(const vector<CCandidateVote> &candidateVote
     if (newTotalVotes > lastTotalVotes) {
         uint64_t addedVotes = newTotalVotes - lastTotalVotes;
         if (!OperateBalance(SYMB::WICC, BalanceOpType::VOTE, addedVotes, ReceiptType::DELEGATE_ADD_VOTE, receipts)) {
-            return ERRORMSG(
-                        "ProcessCandidateVotes() : delegate votes exceeds account bcoins when voting! "
-                        "newTotalVotes=%llu, lastTotalVotes=%llu, freeAmount=%llu",
-                        newTotalVotes, lastTotalVotes, GetToken(SYMB::WICC).free_amount);
+            return ERRORMSG("delegate votes exceeds account bcoins when voting! "
+                            "newTotalVotes=%llu, lastTotalVotes=%llu, freeAmount=%llu",
+                            newTotalVotes, lastTotalVotes, GetToken(SYMB::WICC).free_amount);
         }
 
     } else if (newTotalVotes < lastTotalVotes) {
         uint64_t subVotes = lastTotalVotes - newTotalVotes;
         if (!OperateBalance(SYMB::WICC, BalanceOpType::UNVOTE, subVotes, ReceiptType::DELEGATE_SUB_VOTE, receipts)) {
-            return ERRORMSG(
-                "ProcessCandidateVotes() : delegate votes insufficient to unvote! "
-                "newTotalVotes=%llu, lastTotalVotes=%llu, freeAmount=%llu",
-                newTotalVotes, lastTotalVotes, GetToken(SYMB::WICC).free_amount);
+            return ERRORMSG("delegate votes insufficient to unvote! "
+                            "newTotalVotes=%llu, lastTotalVotes=%llu, freeAmount=%llu",
+                            newTotalVotes, lastTotalVotes, GetToken(SYMB::WICC).free_amount);
         }
     } // else newTotalVotes == lastTotalVotes // do nothing
 
@@ -503,7 +501,7 @@ bool CAccount::ProcessCandidateVotes(const vector<CCandidateVote> &candidateVote
         if (fcoinAmountToInflate > 0) {
             if (!OperateBalance(SYMB::WGRT, BalanceOpType::ADD_FREE, fcoinAmountToInflate,
                                  ReceiptType::DELEGATE_VOTE_INTEREST, receipts)) {
-                return ERRORMSG("ProcessCandidateVotes() : add fcoins to inflate failed");
+                return ERRORMSG("add fcoins to inflate failed");
             }
         }
 
@@ -517,7 +515,7 @@ bool CAccount::ProcessCandidateVotes(const vector<CCandidateVote> &candidateVote
 
         if (!OperateBalance(SYMB::WICC, BalanceOpType::ADD_FREE, bcoinAmountToInflate,
                             ReceiptType::DELEGATE_VOTE_INTEREST, receipts)) {
-            return ERRORMSG("ProcessCandidateVotes() : add bcoins to inflate failed");
+            return ERRORMSG("add bcoins to inflate failed");
         }
 
         LogPrint(BCLog::PROFIT, "Account(%s) received vote staking interest amount (bcoins): %llu\n",
