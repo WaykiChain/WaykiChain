@@ -715,8 +715,10 @@ namespace dex {
             sellResidualAmount = limitAssetAmount - sellOrder.total_deal_asset_amount;
         }
 
-        uint64_t buyReceivedCoins = dealItem.dealAssetAmount;
-        uint64_t sellReceivedAssets = dealItem.dealCoinAmount;
+        // the buyer receive assets
+        uint64_t buyerReceivedAssets = dealItem.dealAssetAmount;
+        // the seller receive coins
+        uint64_t sellerReceivedCoins = dealItem.dealCoinAmount;
 
         // 8. calc deal fees for dex operator
         // 8.1. calc deal asset fee payed by buyer for buy operator
@@ -724,13 +726,13 @@ namespace dex {
         if (!CalcDealFee(dealItem.buyOrderId, buyOrder, buyOrderOperatorParams, takerSide,
                           dealItem.dealAssetAmount, dealAssetFee))
             return false;
-        if (!CheckDealFee(sellReceivedAssets, dealAssetFee, "deal_asset")) return false;
+        if (!CheckDealFee(buyerReceivedAssets, dealAssetFee, "deal_asset")) return false;
         // 8.2. calc deal coin fee payed by seller for sell operator
         uint64_t dealCoinFee = 0;
         if (!CalcDealFee(dealItem.sellOrderId, sellOrder, sellOrderOperatorParams, takerSide,
                           dealItem.dealCoinAmount, dealCoinFee))
             return false;
-        if (!CheckDealFee(buyReceivedCoins, dealCoinFee, "deal_coin")) return false;
+        if (!CheckDealFee(sellerReceivedCoins, dealCoinFee, "deal_coin")) return false;
 
 
         // 9. Deal for the coins and assets
@@ -778,12 +780,12 @@ namespace dex {
             if (sellOrder.coin_symbol == SYMB::WUSD) { // the seller received coins
                 uint64_t frictionCoinFee = 0;
                 if (!CalcWusdFrictionFee(dealItem.dealCoinAmount, frictionCoinFee)) return false;
-                if (!CheckDealFee(buyReceivedCoins, frictionCoinFee, "friction_coin")) return false;
+                if (!CheckDealFee(sellerReceivedCoins, frictionCoinFee, "friction_coin")) return false;
                 if (!ProcessWusdFrictionFee(*spSellOrderAccount, dealItem.dealCoinAmount, frictionCoinFee)) return false;
             } else if (buyOrder.asset_symbol == SYMB::WUSD) { // the buyer received assets
                 uint64_t frictionAssetFee = 0;
                 if (!CalcWusdFrictionFee(dealItem.dealAssetAmount, frictionAssetFee)) return false;
-                if (!CheckDealFee(sellReceivedAssets, frictionAssetFee, "friction_asset")) return false;
+                if (!CheckDealFee(buyerReceivedAssets, frictionAssetFee, "friction_asset")) return false;
                 if (!ProcessWusdFrictionFee(*spBuyOrderAccount, dealItem.dealAssetAmount, frictionAssetFee)) return false;
             }
         }
