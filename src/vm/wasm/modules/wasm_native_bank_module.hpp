@@ -32,16 +32,19 @@ namespace wasm {
 	    public:
 		  	static void act_handler(wasm_context &context, uint64_t action){
 		        switch (action) {
-					case N(mint):		//mint new assets
+					case N(issue):		//issue a new asset
 					     mint(context);
 						 return;
-					case N(burn):		//burn assets
+					case N(mint):		//mint new asset tokens
+					     mint(context);
+						 return;
+					case N(burn):		//burn asset tokens
 					     burn(context);
 						 return;
 					case N(update):		//update asset profile like owner regid
 						 update(context);
 						 return;
-					 case N(transfer):	//transfer coins or assets
+					 case N(transfer):	//transfer asset tokens
 		                 tansfer(context);
 		                 return;
 		            default:
@@ -62,34 +65,44 @@ namespace wasm {
 		            abi.version = "wasm::abi/1.0";
 		        }
 
+				abi.structs.push_back({"issue", "",
+					{
+						{"symbol",			"symbol"	}, //target asset symbol to issue
+						{"owner", 			"regid"		},
+						{"name",			"string"	},
+						{"total_supply",	"uint64_t"	},
+						{"mintable",		"bool"		}
+					}
+				});
 		        abi.structs.push_back({"mint", "",
 					{
-						{"to", 			"regid"	}, //mint & issue assets to the target holder
-						{"quantity", 	"asset" }
+						{"to", 				"regid"		}, //mint & issue assets to the target holder
+						{"quantity", 		"asset" 	}
 					}
 				});
 				abi.structs.push_back({"burn", "",
 					{
-						{"owner", 		"regid"	}, //only asset owner can burn assets hold by the owner
-						{"quantity",	"asset"	}
+						{"owner", 			"regid"		}, //only asset owner can burn assets hold by the owner
+						{"quantity",		"asset"		}
 					}
 				});
 				abi.structs.push_back({"update", "",
 					{
-						{"symbol",			"symbol"}, //target asset symbol to update
-						{"owner?", 			"regid"	},
-						{"name?",			"string"},
+						{"symbol",			"symbol"	}, //target asset symbol to update
+						{"owner?", 			"regid"		},
+						{"name?",			"string"	},
 					}
 				});
 				abi.structs.push_back({"transfer", "",
 					{
-						{"from",     	"regid"  },
-						{"to",       	"regid"  },
-						{"quantity", 	"asset"  },
-						{"memo",     	"string" }
+						{"from",     		"regid"  	},
+						{"to",       		"regid"  	},
+						{"quantity", 		"asset"  	},
+						{"memo",     		"string" 	}
 					}
 		        });
 
+				abi.actions.emplace_back( "issue", 		"issue", 	"" );
 				abi.actions.emplace_back( "mint", 		"mint", 	"" );
 				abi.actions.emplace_back( "burn", 		"burn", 	"" );
 				abi.actions.emplace_back( "update", 	"update", 	"" );
@@ -98,6 +111,55 @@ namespace wasm {
 		        auto abi_bytes = wasm::pack<wasm::abi_def>(abi);
 		        return abi_bytes;
 		    }
+
+			static void issue(wasm_context &context) {
+
+				CHAIN_ASSERT(	context._receiver == bank_native_module_id,
+							 	wasm_chain::native_contract_assert_exception,
+							 	"expect contract '%s', but get '%s'",
+							 	wasm::regid(bank_native_module_id).to_string(),
+							 	wasm::regid(context._receiver).to_string());
+
+				context.control_trx.run_cost   += context.get_runcost();
+
+		        auto params = wasm::unpack< std::tuple <
+												wasm::symbol,
+												wasm::regid,
+												string,
+												uint64_t,
+												bool >>(context.trx.data);
+
+				auto symbol				= std::get<0>(params);
+		        auto owner              = std::get<1>(params);
+		        auto name               = std::get<2>(params);
+				auto total_supply		= std::get<3>(params);
+				auto mintable			= std::get<4>(params);
+
+				CAsset asset;
+				CHAIN_ASSERT( 	!context.database.assetCache.GetAsset(symbol.code().to_string(), asset),
+								wasm_chain::asset_type_exception,
+								"asset (%s) already issued",
+								symbol.to_string() )
+
+				context.require_auth( owner.value );
+
+				CHAIN_ASSERT( 	context.control_trx.GetAccount(context.database, CRegID(owner.value)),
+								wasm_chain::account_access_exception,
+								"owner account '%s' not exist",
+								wasm::regid(owner.value).to_string() )
+
+				asset.asset_symbol	= symbol.code().to_string();
+				asset.asset_name	= name;
+				asset.asset_type	= AssetType::UIA;
+				asset.owner_regid  	= CRegID(owner.value);
+				asset.total_supply  = total_supply;
+				asset.mintable		= mintable;
+
+				CHAIN_ASSERT( 	context.database.assetCache.SetAsset(asset),
+								wasm_chain::level_db_update_fail,
+                      			"Update Asset (%s) failure",
+                      			symbol.to_string() )
+			}
 
 			static void mint(wasm_context &context) {
 

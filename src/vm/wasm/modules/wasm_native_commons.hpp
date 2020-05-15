@@ -38,13 +38,19 @@ namespace wasm {
       CHAIN_ASSERT( context.database.assetCache.GetAsset(symbol, asset),
                     wasm_chain::asset_type_exception,
                     "asset (%s) not found from d/b",
-                    symbol );
+                    symbol )
+
+      CHAIN_ASSERT( asset.mintable,
+                    wasm_chain::asset_type_exception,
+                    "asset (%s) not mintable!",
+                    symbol )
 
       auto spAssetOwnerAcct = context.control_trx.GetAccount(context.database, asset.owner_regid);
       CHAIN_ASSERT( spAssetOwnerAcct,
                     wasm_chain::account_access_exception,
                     "asset owner (%s) not found from d/b",
-                    asset.owner_regid.ToString() );
+                    asset.owner_regid.ToString() )
+
       context.require_auth(spAssetOwnerAcct->regid.GetIntValue()); //mint or burn op must be sanctioned by asset owner
 
       auto spTargetAcct   = context.control_trx.GetAccount(context.database, CRegID(target));
