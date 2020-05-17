@@ -155,17 +155,17 @@ Value dumpprivkey(const Array& params, bool fHelp) {
     if (!pWalletMain->GetKey(keyid, vchSecret))
         throw JSONRPCError(RPC_WALLET_ERROR, "Private key for uid " + params[0].get_str() + " is not known.");
 
+    Object ret;
+    ret.push_back(Pair("privkey", CCoinSecret(vchSecret).ToString()));
+
     CKey minerkey;
 	pWalletMain->GetKey(keyid, minerkey, true);
-    Object reply;
-    	reply.push_back(Pair("privkey", CCoinSecret(vchSecret).ToString()));
-
     if (minerkey.IsValid() && minerkey.ToString() != vchSecret.ToString())
-    	reply.push_back(Pair("minerkey", CCoinSecret(minerkey).ToString()));
+    	ret.push_back(Pair("minerkey", CCoinSecret(minerkey).ToString()));
     else
-    	reply.push_back(Pair("minerkey", "null"));
+    	ret.push_back(Pair("minerkey", "null"));
 
-    return reply;
+    return ret;
 }
 
 // TODO: enable rescan wallet.
