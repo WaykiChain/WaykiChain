@@ -114,12 +114,9 @@ string CKeyCombi::ToString() const {
     return str;
 }
 
-bool CKeyCombi::GetCKey(CKey& keyOut, bool isMiner) const {
-    if (isMiner) {
-        keyOut = mMinerCkey;
-    } else {
-        keyOut = mMainCkey;
-    }
+bool CKeyCombi::GetCKey(CKey& keyOut, bool fMiner) const {
+    keyOut = fMiner ? mMinerCkey : mMainCkey;
+    
     return keyOut.IsValid();
 }
 

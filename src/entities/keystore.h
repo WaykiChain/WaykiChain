@@ -121,14 +121,13 @@ public:
         }
     }
 
-    bool GetKey(const CKeyID &address, CKey &keyOut, bool isMine = false) const {
-        {
-            LOCK(cs_KeyStore);
-            KeyMap::const_iterator mi = mapKeys.find(address);
-            if (mi != mapKeys.end()) {
-                return mi->second.GetCKey(keyOut, isMine);
-            }
-        }
+    bool GetKey(const CKeyID &keyid, CKey &keyOut, bool fMiner = false) const {
+        LOCK(cs_KeyStore);
+
+        KeyMap::const_iterator mi = mapKeys.find(keyid);
+        if (mi != mapKeys.end())
+            return mi->second.GetCKey(keyOut, fMiner);
+
         return false;
     }
 
