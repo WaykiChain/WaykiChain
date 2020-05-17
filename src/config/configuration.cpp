@@ -239,8 +239,9 @@ uint8_t G_CONFIG_TABLE::MessageMagicNumber[3][MESSAGE_START_SIZE] {
 
 // Address Prefix
 vector<uint8_t> G_CONFIG_TABLE::AddrPrefix[2][MAX_BASE58_TYPES] = {
-    { {73}, {51}, {153}, {0x4c, 0x1d, 0x3d, 0x5f}, {0x4c, 0x23, 0x3f, 0x4b}, {0} },
-    { {135}, {88}, {210}, {0x7d, 0x57, 0x3a, 0x2c}, {0x7d, 0x5c, 0x5A, 0x26}, {0} }
+    //pubkey,   script, seckey, ext_pub_key,                ext_sec_key
+    { {73},     {51},   {153},  {0x4c, 0x1d, 0x3d, 0x5f},   {0x4c, 0x23, 0x3f, 0x4b}, {0} }, //mainnet
+    { {135},    {88},   {210},  {0x7d, 0x57, 0x3a, 0x2c},   {0x7d, 0x5c, 0x5A, 0x26}, {0} } //testnet/regtest
 };
 
 // Default P2P Port
