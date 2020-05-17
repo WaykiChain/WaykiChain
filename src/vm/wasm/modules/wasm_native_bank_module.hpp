@@ -33,7 +33,7 @@ namespace wasm {
 		  	static void act_handler(wasm_context &context, uint64_t action){
 		        switch (action) {
 					case N(issue):		//issue a new asset
-					     mint(context);
+					     issue(context);
 						 return;
 					case N(mint):		//mint new asset tokens
 					     mint(context);
