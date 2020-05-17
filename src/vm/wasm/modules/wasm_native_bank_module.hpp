@@ -70,8 +70,8 @@ namespace wasm {
 						{"symbol",			"symbol"	}, //target asset symbol to issue
 						{"owner", 			"regid"		},
 						{"name",			"string"	},
-						{"total_supply",	"uint64_t"	},
-						{"mintable",		"bool"		}
+						{"total_supply",	"uint64"	},
+						{"mintable?",		"bool"		}
 					}
 				});
 		        abi.structs.push_back({"mint", "",
@@ -127,7 +127,7 @@ namespace wasm {
 												wasm::regid,
 												string,
 												uint64_t,
-												bool >>(context.trx.data);
+												optional<bool> >>(context.trx.data);
 
 				auto symbol				= std::get<0>(params);
 		        auto owner              = std::get<1>(params);
@@ -153,7 +153,7 @@ namespace wasm {
 				asset.asset_type	= AssetType::UIA;
 				asset.owner_regid  	= CRegID(owner.value);
 				asset.total_supply  = total_supply;
-				asset.mintable		= mintable;
+				asset.mintable		= (mintable) ? *mintable : true;
 
 				CHAIN_ASSERT( 	context.database.assetCache.SetAsset(asset),
 								wasm_chain::level_db_update_fail,
