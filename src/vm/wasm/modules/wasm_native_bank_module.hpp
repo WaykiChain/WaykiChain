@@ -135,8 +135,17 @@ namespace wasm {
 				auto total_supply		= std::get<3>(params);
 				auto mintable			= std::get<4>(params);
 
-				CAsset asset;
-				CHAIN_ASSERT( 	!context.database.assetCache.GetAsset(symbol.code().to_string(), asset),
+				CHAIN_ASSERT( 	symbol.is_valid(),
+								wasm_chain::asset_type_exception,
+								"invalid asset symbol=%s", symbol.to_string())
+
+				string msg = "";
+				const auto &sym = symbol.code().to_string();
+				CHAIN_ASSERT( 	symbol.is_valid() && CAsset::CheckSymbol(AssetType::UIA, sym, msg),
+								wasm_chain::asset_type_exception,
+								"invalid UIA symbol=%s, %s", sym, msg)
+
+				CHAIN_ASSERT( 	!context.database.assetCache.HasAsset(sym),
 								wasm_chain::asset_type_exception,
 								"asset (%s) already issued",
 								symbol.to_string() )
@@ -148,6 +157,7 @@ namespace wasm {
 								"owner account '%s' not exist",
 								wasm::regid(owner.value).to_string() )
 
+				CAsset asset;
 				asset.asset_symbol	= symbol.code().to_string();
 				asset.asset_name	= name;
 				asset.asset_type	= AssetType::UIA;
