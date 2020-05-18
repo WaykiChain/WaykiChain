@@ -158,7 +158,7 @@ std::shared_ptr<CBaseTx> genParamGovernProposal(json_spirit::Value param_json) {
 }
 
 
-std::shared_ptr<CBaseTx> genWasmContractCalltx(json_spirit::Value param_json) {
+std::shared_ptr<CBaseTx> genWasmContractCallTx(json_spirit::Value param_json) {
     const Value& str_from = JSON::GetObjectFieldValue(param_json, "sender");
     auto authorizer_name   = wasm::regid(str_from.get_str());
     const Value& str_fee = JSON::GetObjectFieldValue(param_json, "fee");
@@ -177,19 +177,20 @@ std::shared_ptr<CBaseTx> genWasmContractCalltx(json_spirit::Value param_json) {
     pBaseTx->llFees       = fee.GetAmountInSawi();
 
     Array json_transactions = JSON::GetObjectFieldValue(param_json, "transactions").get_array();
-    for (auto json_transaction: json_transactions) {
-        const Value& str_contract = JSON::GetObjectFieldValue(json_transaction, "contract");
-        const Value& str_action = JSON::GetObjectFieldValue(json_transaction, "action");
-        const Value& str_data= JSON::GetObjectFieldValue(json_transaction, "data");
+    for (auto& json_transaction : json_transactions) {
+        const Value& str_contract   = JSON::GetObjectFieldValue(json_transaction, "contract");
+        const Value& str_action     = JSON::GetObjectFieldValue(json_transaction, "action");
+        const Value& str_data       = JSON::GetObjectFieldValue(json_transaction, "data");
 
         std::vector<char> abi;
         wasm::regid contract = wasm::regid(str_contract.get_str());
-        if(!wasm::get_native_contract_abi(contract.value, abi)){
-            CAccount           contract;
+        if (!wasm::get_native_contract_abi(contract.value, abi)) {
+            CAccount                contract;
             CUniversalContractStore contract_store;
             db_contract->GetContract(contract.regid, contract_store);
             abi = std::vector<char>(contract_store.abi.begin(), contract_store.abi.end());
         }
+
         auto action = wasm::name(str_action.get_str());
 
         std::vector<char> action_data = wasm::abi_serializer::pack(
@@ -207,9 +208,9 @@ std::shared_ptr<CBaseTx> genWasmContractCalltx(json_spirit::Value param_json) {
     }
 
     Value json_signs;
-    if(JSON::GetObjectFieldValue(param_json, "signs", json_signs)) {
+    if (JSON::GetObjectFieldValue(param_json, "signs", json_signs)) {
         Array sign_arr = json_signs.get_array();
-        for (auto sign: sign_arr) {
+        for (auto& sign : sign_arr) {
             const Value& str_auth = JSON::GetObjectFieldValue(sign, "auth");
             auto auth = wasm::regid(str_auth.get_str());
             const Value& str_sign = JSON::GetObjectFieldValue(sign, "sign");
@@ -282,7 +283,7 @@ unordered_map <string, std::shared_ptr<CBaseTx> (*)(json_spirit::Value)> nameToF
     { "submitsendtx",                &genSendTx                 },
     { "submitaccountpermscleartx",   &genAccountPermsClearTx    },
     { "submitucontractcalltx",       &genContractCalltx         },
-    { "submitwasmcontractcalltx",    &genWasmContractCalltx     },
+    { "submitwasmcontractcalltx",    &genWasmContractCallTx     },
     { "submitdelegatevotetx",    &genDelegateVotetx     }
 };
 
