@@ -12,6 +12,7 @@
 #include "entities/account.h"
 #include "entities/receipt.h"
 
+extern bool ProcessAssetFee(CBaseTx &tx, CCacheWrapper &cw, CAccount *pSrcAccount, const string &action, string &errMsg);
 
 namespace wasm {
 
@@ -151,11 +152,15 @@ namespace wasm {
 								symbol.to_string() )
 
 				context.require_auth( owner.value );
-
-				CHAIN_ASSERT( 	context.control_trx.GetAccount(context.database, CRegID(owner.value)),
+				auto sp_account = context.control_trx.GetAccount(context.database, CRegID(owner.value));
+				CHAIN_ASSERT( 	sp_account,
 								wasm_chain::account_access_exception,
 								"owner account '%s' not exist",
 								wasm::regid(owner.value).to_string() )
+
+				CHAIN_ASSERT(   ProcessAssetFee(context.control_trx, context.database, sp_account.get(), "issue", msg),
+								wasm_chain::account_access_exception,
+								"process asset fee error: %s", msg )
 
 				CAsset asset;
 				asset.asset_symbol	= symbol.code().to_string();
@@ -219,6 +224,17 @@ namespace wasm {
 								symbol.to_string() )
 
 				context.require_auth( asset.owner_regid.GetIntValue() );
+
+				auto sp_account = context.control_trx.GetAccount(context.database, asset.owner_regid);
+				CHAIN_ASSERT( 	sp_account,
+								wasm_chain::account_access_exception,
+								"owner account '%s' not exist",
+								asset.owner_regid.ToString() )
+
+				string msg;
+				CHAIN_ASSERT(   ProcessAssetFee(context.control_trx, context.database, sp_account.get(), "update", msg),
+								wasm_chain::account_access_exception,
+								"process asset fee error: %s", msg )
 
 				bool to_update = false;
 
