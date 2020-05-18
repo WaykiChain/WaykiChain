@@ -49,7 +49,7 @@ Object AssetToJson(const CAccountDBCache &accountCache, const CUserIssuedAsset &
 class CUserIssueAssetTx: public CBaseTx {
 public:
     CUserIssuedAsset  asset;          // UIA asset
-    
+
 public:
     CUserIssueAssetTx() : CBaseTx(ASSET_ISSUE_TX) {};
 
@@ -202,7 +202,7 @@ class CUserUpdateAssetTx: public CBaseTx {
 public:
     TokenSymbol asset_symbol;       // symbol of asset that needs to be updated
     CUserUpdateAsset update_data;   // update data(type, value)
-    
+
 public:
     CUserUpdateAssetTx() : CBaseTx(UIA_UPDATE_TX) {}
 
@@ -241,5 +241,7 @@ public:
     virtual bool ExecuteTx(CTxExecuteContext &context);
 
 };
+
+extern bool ProcessAssetFee(CBaseTx &tx, CCacheWrapper &cw, CAccount *pSrcAccount, const string &action, string &errMsg);
 
 #endif //TX_ASSET_H

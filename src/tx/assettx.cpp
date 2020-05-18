@@ -30,66 +30,69 @@ Object AssetToJson(const CAccountDBCache &accountCache, const CAsset &asset){
     return asset.ToJsonObj();
 }
 
-static bool ProcessAssetFee(CBaseTx &tx, CTxExecuteContext &context, const string &action) {
-    IMPLEMENT_DEFINE_CW_STATE;
+extern bool ProcessAssetFee(CBaseTx &tx, CCacheWrapper &cw, CAccount *pSrcAccount,
+                            const string &action, vector<CReceipt> &receipts, string &errMsg) {
 
     uint64_t assetFee = 0;
     if (action == ASSET_ACTION_ISSUE) {
-        if (!cw.sysParamCache.GetParam(ASSET_ISSUE_FEE, assetFee))
-            return state.DoS(100, ERRORMSG("ProcessAssetFee, read param ASSET_ISSUE_FEE error"),
-                            REJECT_INVALID, "read-sysparam-error");
-
+        if (!cw.sysParamCache.GetParam(ASSET_ISSUE_FEE, assetFee)) {
+            errMsg = "read param ASSET_ISSUE_FEE failed";
+            return false;
+        }
     } else {
         assert(action == ASSET_ACTION_UPDATE);
-        if (!cw.sysParamCache.GetParam(ASSET_UPDATE_FEE, assetFee))
-            return state.DoS(100, ERRORMSG("ProcessAssetFee, read param ASSET_UPDATE_FEE error"),
-                            REJECT_INVALID, "read-sysparam-error");
+        if (!cw.sysParamCache.GetParam(ASSET_UPDATE_FEE, assetFee)) {
+            errMsg = "read param ASSET_UPDATE_FEE failed";
+            return false;
+        }
     }
-
-    if (!tx.sp_tx_account->OperateBalance(SYMB::WICC, BalanceOpType::SUB_FREE, assetFee, ReceiptType::TRANSFER_ACTUAL_COINS, tx.receipts))
-        return state.DoS(100, ERRORMSG("ProcessAssetFee, insufficient funds in account for %s asset fee=%llu, tx_regid=%s",
-                        action, assetFee, tx.sp_tx_account->regid.ToString()), UPDATE_ACCOUNT_FAIL, "insufficent-funds");
 
     uint64_t assetRiskFeeRatio;
     if(!cw.sysParamCache.GetParam(SysParamType::ASSET_RISK_FEE_RATIO, assetRiskFeeRatio)) {
-        return state.DoS(100, ERRORMSG("ProcessAssetFee, get assetRiskFeeRatio error"),
-                READ_SYS_PARAM_FAIL, "read-db-error");
+        errMsg = "get assetRiskFeeRatio failed";
+        return false;
     }
 
     uint64_t riskFee       = assetFee * assetRiskFeeRatio / RATIO_BOOST;
     uint64_t minerTotalFee = assetFee - riskFee;
 
-    auto spFcoinAccount = tx.GetAccount(context, SysCfg().GetFcoinGenesisRegId(), "fcoin");
-    if (!spFcoinAccount) return false;
+    auto spFcoinAccount = tx.GetAccount(cw, SysCfg().GetFcoinGenesisRegId());
+    if (!spFcoinAccount) {
+        errMsg = "get fcoin account failed";
+        return false;
+    }
 
     ReceiptType code = (action == ASSET_ACTION_ISSUE) ? ReceiptType::ASSET_ISSUED_FEE_TO_RESERVE :
                                                         ReceiptType::ASSET_UPDATED_FEE_TO_RESERVE;
 
-    if (!spFcoinAccount->OperateBalance(SYMB::WICC, BalanceOpType::ADD_FREE, riskFee, code, tx.receipts)) {
-        return state.DoS(100, ERRORMSG("ProcessAssetFee, operate balance failed! add %s asset fee=%llu to risk reserve account error",
-            action, riskFee), UPDATE_ACCOUNT_FAIL, "update-account-failed");
+    if (!pSrcAccount->OperateBalance(SYMB::WICC, BalanceOpType::SUB_FREE, riskFee, code, receipts, spFcoinAccount.get())) {
+        errMsg = strprintf("account=%s insufficient for asset fee to risk reserve", pSrcAccount->regid.ToString());
+        return false;
     }
 
     VoteDelegateVector delegates;
     if (!cw.delegateCache.GetActiveDelegates(delegates)) {
-        return state.DoS(100, ERRORMSG("ProcessAssetFee, GetActiveDelegates failed"),
-            REJECT_INVALID, "get-delegates-failed");
+        errMsg = "GetActiveDelegates failed";
+        return false;
     }
     assert(delegates.size() != 0 );
 
     for (size_t i = 0; i < delegates.size(); i++) {
         const CRegID &delegateRegid = delegates[i].regid;
-        auto spDelegateAccount = tx.GetAccount(context, delegateRegid, "delegate");
-        if (!spDelegateAccount) return false;
+        auto spDelegateAccount = tx.GetAccount(cw, delegateRegid);
+        if (!spDelegateAccount) {
+            errMsg = strprintf("get delegate account=%s failed", delegateRegid.ToString());
+            return false;
+        }
 
         uint64_t minerUpdatedFee = minerTotalFee / delegates.size();
         if (i == 0) minerUpdatedFee += minerTotalFee % delegates.size(); // give the dust amount to topmost miner
 
         ReceiptType code = (action == ASSET_ACTION_ISSUE) ? ReceiptType::ASSET_ISSUED_FEE_TO_MINER :
                                                             ReceiptType::ASSET_UPDATED_FEE_TO_MINER;
-        if (!spDelegateAccount->OperateBalance(SYMB::WICC, BalanceOpType::ADD_FREE, minerUpdatedFee, code, tx.receipts)) {
-            return state.DoS(100, ERRORMSG("ProcessAssetFee, add %s asset fee to miner failed, miner regid=%s",
-                action, delegateRegid.ToString()), UPDATE_ACCOUNT_FAIL, "operate-account-failed");
+        if (!pSrcAccount->OperateBalance(SYMB::WICC, BalanceOpType::SUB_FREE, minerUpdatedFee, code, receipts, spDelegateAccount.get())) {
+            errMsg = strprintf("account=%s insufficient for asset fee to miner", pSrcAccount->regid.ToString());
+            return false;
         }
     }
 
@@ -142,7 +145,11 @@ bool CUserIssueAssetTx::ExecuteTx(CTxExecuteContext &context) {
                 REJECT_INVALID, "owner-account-unregistered-or-immature");
     }
 
-    if (!ProcessAssetFee(*this, context, ASSET_ACTION_ISSUE)) return false;
+    string errMsg;
+    if (!ProcessAssetFee(*this, cw, sp_tx_account.get(), ASSET_ACTION_ISSUE, receipts, errMsg)) {
+        return state.DoS(100, ERRORMSG("process asset fee error: %s", errMsg),
+                REJECT_INVALID, "process-asset-fee-failed");
+    }
 
     if (!spOwnerAccount->OperateBalance(asset.asset_symbol, BalanceOpType::ADD_FREE, asset.total_supply,
                                         ReceiptType::ASSET_MINT_NEW_AMOUNT, receipts)) {
@@ -377,8 +384,11 @@ bool CUserUpdateAssetTx::ExecuteTx(CTxExecuteContext &context) {
         default: assert(false);
     }
 
-    if (!ProcessAssetFee(*this, context, ASSET_ACTION_UPDATE))
-        return false;
+    string errMsg;
+    if (!ProcessAssetFee(*this, cw, sp_tx_account.get(), ASSET_ACTION_ISSUE, receipts, errMsg)) {
+        return state.DoS(100, ERRORMSG("process asset fee error: %s", errMsg),
+                REJECT_INVALID, "process-asset-fee-failed");
+    }
 
     if (!cw.assetCache.SetAsset(asset))
         return state.DoS(100, ERRORMSG("save asset failed", txUid.ToDebugString()), UPDATE_ACCOUNT_FAIL, "save-asset-failed");
