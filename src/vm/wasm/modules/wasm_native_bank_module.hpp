@@ -73,7 +73,7 @@ namespace wasm {
 						{"owner", 			"regid"		},
 						{"name",			"string"	},
 						{"total_supply",	"uint64"	},
-						{"mintable?",		"bool"		}
+						{"mintable",		"bool?"		}
 					}
 				});
 		        abi.structs.push_back({"mint", "",
