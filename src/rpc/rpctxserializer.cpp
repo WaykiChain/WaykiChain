@@ -245,7 +245,7 @@ std::shared_ptr<CBaseTx> genWasmContractCallTx(json_spirit::Value param_json) {
         }
     }
     return pBaseTx;
-}`
+}
 
 std::shared_ptr<CBaseTx> genDelegateVotetx(json_spirit::Value param_json) {
     const Value& str_from = JSON::GetObjectFieldValue(param_json, "sender");
