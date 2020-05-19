@@ -45,6 +45,25 @@ using namespace json_spirit;
 using namespace boost::assign;
 using std::chrono::microseconds;
 
+
+static void load_contract(CContractDBCache*        db_contract,
+                   const wasm::regid&       contract_regid,
+                   CUniversalContractStore& contract_store ){
+
+    CHAIN_ASSERT( db_contract->GetContract(CRegID(contract_regid.value), contract_store),
+                  wasm_chain::contract_exception,
+                  "cannot get contract '%s'",
+                  contract_regid.to_string())
+
+    CHAIN_ASSERT( contract_store.vm_type == VMType::WASM_VM,
+                  wasm_chain::vm_type_mismatch, "vm type must be wasm VM")
+
+    CHAIN_ASSERT( contract_store.abi.size() > 0,
+                  wasm_chain::abi_not_found_exception, "contract abi not found")
+    //JSON_RPC_ASSERT(ucontract.code.size() > 0,                                 RPC_WALLET_ERROR,  "contract lose code")
+}
+
+
 std::shared_ptr<CBaseTx> genSendTx(json_spirit::Value param_json) {
 
     const Value& str_from = JSON::GetObjectFieldValue(param_json, "sender");
@@ -175,19 +194,26 @@ std::shared_ptr<CBaseTx> genWasmContractCallTx(json_spirit::Value param_json) {
     pBaseTx->valid_height = height;
     pBaseTx->fee_symbol   = fee.symbol;
     pBaseTx->llFees       = fee.GetAmountInSawi();
-
     Array json_transactions = JSON::GetObjectFieldValue(param_json, "transactions").get_array();
     for (auto& json_transaction : json_transactions) {
         const Value& str_contract   = JSON::GetObjectFieldValue(json_transaction, "contract");
         const Value& str_action     = JSON::GetObjectFieldValue(json_transaction, "action");
         const Value& str_data       = JSON::GetObjectFieldValue(json_transaction, "data");
 
-        std::vector<char> abi;
-        wasm::regid contract = wasm::regid(str_contract.get_str());
-        if (!wasm::get_native_contract_abi(contract.value, abi)) {
-            CAccount                contract;
+       // std::vector<char> abi;
+
+     /*   wasm::regid       contract_regid = wasm::regid(params[1].get_str());
+        if (!get_native_contract_abi(contract_regid.value, abi)) {
             CUniversalContractStore contract_store;
-            db_contract->GetContract(contract.regid, contract_store);
+            load_contract(db_contract, contract_regid, contract_store);
+            abi = std::vector<char>(contract_store.abi.begin(), contract_store.abi.end());
+        }
+     */
+        std::vector<char> abi;
+        wasm::regid contract_regid = wasm::regid(str_contract.get_str());
+        if (!wasm::get_native_contract_abi(contract_regid.value, abi)) {
+            CUniversalContractStore contract_store;
+            load_contract(db_contract, contract_regid, contract_store);
             abi = std::vector<char>(contract_store.abi.begin(), contract_store.abi.end());
         }
 
@@ -200,7 +226,7 @@ std::shared_ptr<CBaseTx> genWasmContractCallTx(json_spirit::Value param_json) {
                 wasm::max_serialization_time);
 
         pBaseTx->inline_transactions.push_back({
-                contract.value,
+                contract_regid.value,
                 action.value,
                 std::vector<wasm::permission>{{authorizer_name.value, wasm::wasmio_owner}},
                 action_data
@@ -219,7 +245,7 @@ std::shared_ptr<CBaseTx> genWasmContractCallTx(json_spirit::Value param_json) {
         }
     }
     return pBaseTx;
-}
+}`
 
 std::shared_ptr<CBaseTx> genDelegateVotetx(json_spirit::Value param_json) {
     const Value& str_from = JSON::GetObjectFieldValue(param_json, "sender");
