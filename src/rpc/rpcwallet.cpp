@@ -257,10 +257,9 @@ Value signmessage(const Array& params, bool fHelp) {
 
     EnsureWalletIsUnlocked();
 
-    string strAddress = params[0].get_str();
+    const CKeyID &keyId = RPC_PARAM::GetKeyId(params[0]);
     string strMessage = params[1].get_str();
 
-    CKeyID keyId(strAddress);
     if (keyId.IsEmpty())
         throw JSONRPCError(RPC_TYPE_ERROR, "Invalid address");
 
