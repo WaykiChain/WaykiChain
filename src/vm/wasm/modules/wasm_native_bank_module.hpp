@@ -12,7 +12,8 @@
 #include "entities/account.h"
 #include "entities/receipt.h"
 
-extern bool ProcessAssetFee(CBaseTx &tx, CCacheWrapper &cw, CAccount *pSrcAccount, const string &action, string &errMsg);
+extern bool ProcessAssetFee(CBaseTx &tx, CCacheWrapper &cw, CAccount *pSrcAccount,
+                            const string &action, vector<CReceipt> &receipts, string &errMsg);
 
 namespace wasm {
 
@@ -158,7 +159,7 @@ namespace wasm {
 								"owner account '%s' not exist",
 								wasm::regid(owner.value).to_string() )
 
-				CHAIN_ASSERT(   ProcessAssetFee(context.control_trx, context.database, sp_account.get(), "issue", msg),
+				CHAIN_ASSERT(   ProcessAssetFee(context.control_trx, context.database, sp_account.get(), "issue", context.receipts, msg),
 								wasm_chain::account_access_exception,
 								"process asset fee error: %s", msg )
 
@@ -232,7 +233,7 @@ namespace wasm {
 								asset.owner_regid.ToString() )
 
 				string msg;
-				CHAIN_ASSERT(   ProcessAssetFee(context.control_trx, context.database, sp_account.get(), "update", msg),
+				CHAIN_ASSERT(   ProcessAssetFee(context.control_trx, context.database, sp_account.get(), "update", context.receipts, msg),
 								wasm_chain::account_access_exception,
 								"process asset fee error: %s", msg )
 

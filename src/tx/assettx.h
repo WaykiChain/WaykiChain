@@ -242,6 +242,7 @@ public:
 
 };
 
-extern bool ProcessAssetFee(CBaseTx &tx, CCacheWrapper &cw, CAccount *pSrcAccount, const string &action, string &errMsg);
+extern bool ProcessAssetFee(CBaseTx &tx, CCacheWrapper &cw, CAccount *pSrcAccount,
+                            const string &action, vector<CReceipt> &receipts, string &errMsg);
 
 #endif //TX_ASSET_H
