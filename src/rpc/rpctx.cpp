@@ -35,6 +35,20 @@ using namespace boost;
 using namespace boost::assign;
 using namespace json_spirit;
 
+namespace RPC_PARAM {
+    vector<uint8_t> GetSignature(const Value &jsonValue) {
+        vector<uint8_t> signature;
+
+        string binStr, errStr;
+        if (!ParseHex(jsonValue.get_str(), binStr, errStr))
+            throw JSONRPCError(RPC_INVALID_PARAMS, strprintf("invalid signature! %s", errStr));
+        if (binStr.size() == 0 || binStr.size() > 100) {
+            throw JSONRPCError(RPC_INVALID_PARAMS, strprintf("Invalid signature size=%d, hex=%s", binStr.size(), jsonValue.get_str()));
+        }
+        return vector<uint8_t>(binStr.begin(), binStr.end());
+    }
+}
+
 Value gettxdetail(const Array& params, bool fHelp) {
     if (fHelp || params.size() != 1)
         throw runtime_error(
@@ -897,12 +911,20 @@ Value saveblocktofile(const Array& params, bool fHelp) {
 }
 
 Value submittxraw(const Array& params, bool fHelp) {
-    if (fHelp || params.size() != 1) {
+    if (fHelp || params.size() < 1 || params.size() > 2) {
         throw runtime_error(
-            "submittxraw \"rawtx\" \n"
+            "submittxraw \"rawtx\" [\"signatures\"]\n"
             "\nsubmit raw transaction (hex format)\n"
             "\nArguments:\n"
-            "1.\"rawtx\":   (string, required) The raw signed transaction\n"
+            "1. \"rawtx\":   (string, required) The raw signed transaction\n"
+            "2. \"signatures\"    (array, optional) A json array of signature info\n"
+            " [\n"
+            "   {\n"
+            "      \"addr\": \"address\" (string, required) address of the signature\n"
+            "      \"signature\": \"hex str\" (string, required) signature, hex format\n"
+            "   }\n"
+            "       ,...\n"
+            " ]\n"
             "\nExamples:\n" +
             HelpExampleCli("submittxraw",
                            "\"0b01848908020001145e3550cfae2422dce90a778b0954409b1c6ccc3a045749434382dbea93000457494343c"
@@ -924,6 +946,72 @@ Value submittxraw(const Array& params, bool fHelp) {
 
     std::shared_ptr<CBaseTx> tx;
     stream >> tx;
+
+    if (params.size() > 1) {
+        Array sigArray = params[1].get_array();
+        ComboMoney fee = RPC_PARAM::GetFee(params, 2, DEX_TRADE_SETTLE_TX);
+        // user signature map
+        // {keyid} -> {CAccount, vector<uint8_t> signature}
+        map<CKeyID, pair<CAccount, vector<uint8_t>>> userSignatures;
+
+        for (auto sigItemObj : sigArray) {
+            const Value& addrObj      = JSON::GetObjectFieldValue(sigItemObj, "addr");
+            auto uid            = RPC_PARAM::ParseUserIdByAddr(addrObj);
+            const Value& signatureObj     = JSON::GetObjectFieldValue(sigItemObj, "signature");
+            auto signature           = RPC_PARAM::GetSignature(signatureObj);
+            auto account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, uid);
+            auto ret = userSignatures.emplace(account.keyid, make_pair(account, signature));
+            if (!ret.second) {
+                throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("duplicated signature of user addr=%s, regid=%s",
+                    account.keyid.ToAddress(), account.regid.ToString()));
+            }
+        }
+
+        if (!tx->txUid.IsEmpty()) {
+            CKeyID txKeyid = RPC_PARAM::GetUserKeyId(tx->txUid);
+            auto it = userSignatures.find(txKeyid);
+            if (it != userSignatures.end()) {
+                tx->signature = it->second.second;
+                userSignatures.erase(it);
+            }
+        }
+
+        if (tx->nTxType == UNIVERSAL_TX) {
+            map<uint64_t, wasm::signature_pair> addingMap;
+            CUniversalTx &universalTx = dynamic_cast<CUniversalTx&>(*tx);
+            // add the existed signatures in tx
+            for (auto &item : universalTx.signatures) {
+                addingMap[item.account] = item;
+            }
+            // add new signautures
+            for (auto &item : userSignatures) {
+                auto &account = item.second.first;
+                if (account.IsSelfUid(tx->txUid)) {
+                    continue; // ignore the tx uid signature
+                }
+                if (account.regid.IsEmpty()) {
+                    throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("account=%s must have regid for signature of %s",
+                        account.keyid.ToAddress(), "UNIVERSAL_TX"));
+                }
+                uint64_t regidValue = account.regid.GetIntValue();
+                addingMap[regidValue] = {regidValue, item.second.second};
+            }
+            // write sigatures to tx
+            for (auto &item : addingMap) {
+                universalTx.signatures.push_back(item.second);
+            }
+        } else if (tx->nTxType == DEX_OPERATOR_ORDER_TX) {
+            dex::CDEXOperatorOrderTx &opOrderTx = dynamic_cast<dex::CDEXOperatorOrderTx&>(*tx);
+            if (opOrderTx.has_operator_config && !opOrderTx.operator_uid.IsEmpty()) {
+                CKeyID opKeyid = RPC_PARAM::GetUserKeyId(opOrderTx.operator_uid);
+                auto it = userSignatures.find(opKeyid);
+                if (it != userSignatures.end()) {
+                    opOrderTx.operator_signature = it->second.second;
+                }
+            }
+        }
+        // ignore the other signatures
+    }
 
     string retMsg;
     if (!pWalletMain->CommitTx((CBaseTx *) tx.get(), retMsg))

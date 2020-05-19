@@ -159,6 +159,8 @@ Array RPCConvertValues(const string &strMethod, const vector<string> &strParams)
     /********************************************************************************************************************/
     if (strMethod == "getcontractdata"        && n > 2) ConvertTo<bool>(params[2]);
 
+    if (strMethod == "submittxraw"            && n > 1) ConvertTo<Array>(params[1]);
+
     if (strMethod == "listtx"                 && n > 0) ConvertTo<int32_t>(params[0]);
     if (strMethod == "listtx"                 && n > 1) ConvertTo<int32_t>(params[1]);
     if (strMethod == "listdelegates"          && n > 0) ConvertTo<int32_t>(params[0]);
