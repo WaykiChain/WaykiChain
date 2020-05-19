@@ -997,6 +997,7 @@ Value submittxraw(const Array& params, bool fHelp) {
                 addingMap[regidValue] = {regidValue, item.second.second};
             }
             // write sigatures to tx
+            universalTx.signatures.clear();
             for (auto &item : addingMap) {
                 universalTx.signatures.push_back(item.second);
             }
@@ -1048,59 +1049,14 @@ Value droptxfrommempool(const Array& params, bool fHelp) {
     return Object();
 }
 
-class CTxMultiSigner {
-public:
-    struct SigningItem {
-        CUserID           uid;
-        UnsignedCharArray *pSignature;
-    };
-
-    struct Signedtem {
-        CKeyID keyid;
-        string addr_str;
-        UnsignedCharArray *pSignature;
-    };
-
-private:
-    CBaseTx &tx;
-    map<CKeyID, string> &user_map;
-public:
-    vector<Signedtem> signed_list;
-
-    CTxMultiSigner(CBaseTx &txIn, map<CKeyID, string> &userMapIn)
-        : tx(txIn), user_map(userMapIn) {}
-
-    void Sign(vector<SigningItem> &signingList) {
-
-        vector<CKeyID> signingKeyids(signingList.size());
-        for (size_t i = 0; i < signingList.size(); i++) {
-            signingKeyids[i] = RPC_PARAM::GetUserKeyId(signingList[i].uid);
-        }
-
-        for (auto& userItem : user_map) {
-            bool found = false;
-            for (size_t i = 0; i < signingList.size(); i++) {
-                if (signingKeyids[i] == userItem.first) {
-                    signed_list.push_back({signingKeyids[i], userItem.second, signingList[i].pSignature});
-                    found = true;
-                }
-            }
-            if (!found) {
-                throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("the user address=%s is not in the signing list",
-                    userItem.second));
-            }
-        }
-
-        const uint256 &txHash = tx.GetHash();
-        for (auto signedItem : signed_list) {
-            if (!pWalletMain->Sign(signedItem.keyid, txHash,
-                                    *signedItem.pSignature)) {
-                throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("Sign failed! addr=%s",
-                    signedItem.keyid.ToString()));
-            }
-        }
+static vector<uint8_t> SignTxHash(const CKeyID &keyId, const uint256 &hash) {
+    vector<uint8_t> signature;
+    if (!pWalletMain->Sign(keyId, hash, signature)) {
+        throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("Sign tx hash failed! addr=%s",
+            keyId.ToAddress()));
     }
-};
+    return signature;
+}
 
 Value signtxraw(const Array& params, bool fHelp) {
     if (fHelp || params.size() != 2) {
@@ -1140,62 +1096,91 @@ Value signtxraw(const Array& params, bool fHelp) {
         return Value::null;
     }
 
+    if (pBaseTx->IsRelayForbidden()) {
+        throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("Unsupport to sign tx=%s", pBaseTx->GetTxTypeName()));
+    }
+
     const Array& addresses = params[1].get_array();
-    if (pBaseTx.get()->nTxType != DEX_OPERATOR_ORDER_TX &&
-        addresses.size() != 1) {
-        throw JSONRPCError(RPC_INVALID_PARAMETER, "To many addresses provided");
-    }
 
-    map<CKeyID, string> users;
+    // user signature map
+    // {keyid} -> {CAccount, vector<uint8_t> signature}
+    map<CKeyID, pair<CAccount, vector<uint8_t>>> userSignatures;
+
     for (const auto &addr : addresses) {
-        CUserID uid = RPC_PARAM::ParseUserIdByAddr(addr);
-        CKeyID keyid = RPC_PARAM::GetUserKeyId(uid);
-        users.emplace(keyid, addr.get_str());
+        auto uid            = RPC_PARAM::ParseUserIdByAddr(addr);
+        auto account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, uid);
+        auto ret = userSignatures.emplace(account.keyid, make_pair(account, vector<uint8_t>()));
+        if (!ret.second) {
+            throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("duplicated signing user addr=%s, regid=%s",
+                account.keyid.ToAddress(), account.regid.ToString()));
+        }
     }
 
-    if (users.empty()) {
-        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "No valid address provided");
+    auto txid = pBaseTx->GetHash();
+
+    if (!pBaseTx->txUid.IsEmpty()) {
+        CKeyID txKeyid = RPC_PARAM::GetUserKeyId(pBaseTx->txUid);
+        auto it = userSignatures.find(txKeyid);
+        if (it != userSignatures.end()) {
+            pBaseTx->signature = SignTxHash(txKeyid, txid);
+            it->second.second = pBaseTx->signature;
+        }
     }
 
-    CTxMultiSigner signer(*pBaseTx, users);
-    switch (pBaseTx.get()->nTxType) {
-        case BLOCK_REWARD_TX:
-        case UCOIN_MINT_TX:
-        case UCOIN_BLOCK_REWARD_TX: {
-            throw JSONRPCError(RPC_INVALID_PARAMETER, "Reward transation is forbidden");
+    if (pBaseTx->nTxType == UNIVERSAL_TX) {
+        map<uint64_t, wasm::signature_pair> addingMap;
+        CUniversalTx &universalTx = dynamic_cast<CUniversalTx&>(*pBaseTx);
+        // add the existed signatures in tx
+        for (auto &item : universalTx.signatures) {
+            addingMap[item.account] = item;
         }
-        // case UCOIN_TRANSFER_MTX: {
-        //     CMulsigTx *pTx = dynamic_cast<CMulsigTx*>(pBaseTx.get());
-        //     vector<CTxMultiSigner::SigningItem> signingList;
-        //     for (auto& item : pTx->signaturePairs) {
-        //         signingList.push_back({CUserID(item.regid), &item.signature});
-        //     }
-        //     signer.Sign(signingList);
-        //     break;
-        // }
-        case DEX_OPERATOR_ORDER_TX: {
-            dex::CDEXOperatorOrderTx *pTx = dynamic_cast<dex::CDEXOperatorOrderTx*>(pBaseTx.get());
-            vector<CTxMultiSigner::SigningItem> signingList = {
-                {pTx->txUid, &pTx->signature},
-                {pTx->operator_uid, &pTx->operator_signature},
-            };
-            signer.Sign(signingList);
-            break;
+        // sign new signautures
+        for (auto &item : userSignatures) {
+            auto &account = item.second.first;
+            if (account.IsSelfUid(pBaseTx->txUid)) {
+                continue; // ignore the tx uid signature
+            }
+            if (account.regid.IsEmpty()) {
+                throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("account=%s must have regid for signature of %s",
+                    account.keyid.ToAddress(), "UNIVERSAL_TX"));
+            }
+            auto &signature = item.second.second;
+            signature = SignTxHash(item.first, txid);
+            uint64_t regidValue = account.regid.GetIntValue();
+            addingMap[regidValue] = {regidValue, signature};
         }
-        default: {
-            vector<CTxMultiSigner::SigningItem> signingList = {
-                {pBaseTx->txUid, &pBaseTx->signature}
-            };
-            signer.Sign(signingList);
+        // write sigatures to tx
+        universalTx.signatures.clear();
+        for (auto &item : addingMap) {
+            universalTx.signatures.push_back(item.second);
+        }
+    } else if (pBaseTx->nTxType == DEX_OPERATOR_ORDER_TX) {
+        dex::CDEXOperatorOrderTx &opOrderTx = dynamic_cast<dex::CDEXOperatorOrderTx&>(*pBaseTx);
+        if (opOrderTx.has_operator_config && !opOrderTx.operator_uid.IsEmpty()) {
+            CKeyID opKeyid = RPC_PARAM::GetUserKeyId(opOrderTx.operator_uid);
+            auto it = userSignatures.find(opKeyid);
+            if (it != userSignatures.end()) {
+                opOrderTx.operator_signature = SignTxHash(opKeyid, txid);
+                it->second.second = opOrderTx.operator_signature;
+            }
         }
     }
 
     Array signatureArray;
-    for (auto item : signer.signed_list) {
+    for (auto item : userSignatures) {
         Object itemObj;
-        itemObj.push_back(Pair("addr", item.addr_str));
-        itemObj.push_back(Pair("signature", HexStr(*item.pSignature)));
-        signatureArray.push_back(itemObj);
+        auto &account = item.second.first;
+        auto &signature = item.second.second;
+        if (!signature.empty()) {
+            itemObj.push_back(Pair("addr", account.keyid.ToAddress()));
+            itemObj.push_back(Pair("regid", account.regid.ToString()));
+            itemObj.push_back(Pair("signature", HexStr(item.second.second)));
+            signatureArray.push_back(itemObj);
+        }
+    }
+
+    if (userSignatures.empty()) {
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "No account was signed successfully");
     }
 
     CDataStream ds(SER_DISK, CLIENT_VERSION);
@@ -1203,6 +1188,7 @@ Value signtxraw(const Array& params, bool fHelp) {
 
     Object obj;
     obj.push_back(Pair("rawtx", HexStr(ds.begin(), ds.end())));
+    obj.push_back(Pair("signed_count", (int64_t)signatureArray.size()));
     obj.push_back(Pair("signed_list", signatureArray));
     return obj;
 }
