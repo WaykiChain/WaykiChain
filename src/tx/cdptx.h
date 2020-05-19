@@ -85,11 +85,11 @@ public:
     CCDPRedeemTx() : CBaseTx(CDP_REDEEM_TX) {}
 
     CCDPRedeemTx(const CUserID &txUidIn, const ComboMoney &cmFeeIn, int32_t validHeightIn,
-                 uint256 cdpTxId, uint64_t scoinsToRepay, uint64_t bcoinsToRedeem)
+                 uint256 cdpTxId, uint64_t scoinsToRepay, const TokenSymbol &bcoinSymbol, uint64_t bcoinsToRedeem)
         : CBaseTx(CDP_REDEEM_TX, txUidIn, validHeightIn, cmFeeIn.symbol, cmFeeIn.GetAmountInSawi()),
           cdp_txid(cdpTxId),
           scoins_to_repay(scoinsToRepay),
-          assets_to_redeem( { {SYMB::WICC, bcoinsToRedeem} }) {}
+          assets_to_redeem( { {bcoinSymbol, bcoinsToRedeem} }) {}
 
     ~CCDPRedeemTx() {}
 

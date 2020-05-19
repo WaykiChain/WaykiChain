@@ -263,7 +263,12 @@ Value submitcdpredeemtx(const Array& params, bool fHelp) {
 
     CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, cdpUid);
 
-    CCDPRedeemTx tx(cdpUid, cmFee, validHeight, cdpTxId, repayAmount, redeemAmount);
+    CUserCDP cdp;
+    if (!pCdMan->pCdpCache->GetCDP(cdpTxId, cdp)) {
+        throw JSONRPCError(RPC_INVALID_PARAMS, strprintf("CDP (%s) does not exist!", cdpTxId.GetHex()));
+    }
+
+    CCDPRedeemTx tx(cdpUid, cmFee, validHeight, cdpTxId, repayAmount, cdp.bcoin_symbol, redeemAmount);
     return SubmitTx(account.keyid, tx);
 }
 
