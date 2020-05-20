@@ -235,11 +235,6 @@ bool CBaseTx::CheckTxFeeSufficient(CCacheWrapper &cw, const TokenSymbol &feeSymb
     return llFees >= minFee;
 }
 
-// Transactions should check the signature size before verifying signature
-bool CBaseTx::CheckSignatureSize(const vector<unsigned char> &signature) const {
-    return signature.size() > 0 && signature.size() < MAX_SIGNATURE_SIZE;
-}
-
 Object CBaseTx::ToJson(const CAccountDBCache &accountCache) const {
     Object result;
     CKeyID srcKeyId;
@@ -389,10 +384,6 @@ bool CBaseTx::CheckTxAvailableFromVer(CTxExecuteContext &context, FeatureForkVer
 }
 
 bool CBaseTx::VerifySignature(CTxExecuteContext &context, const CPubKey &pubkey) {
-    if (!CheckSignatureSize(signature))
-        return context.pState->DoS(100, ERRORMSG("%s, tx signature size invalid", BASE_TX_TITLE), REJECT_INVALID,
-                         "bad-tx-sig-size");
-
     uint256 sighash = GetHash();
     if (!::VerifySignature(sighash, signature, pubkey))
         return context.pState->DoS(100, ERRORMSG("%s, tx signature error", BASE_TX_TITLE), REJECT_INVALID, "bad-tx-signature");

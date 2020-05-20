@@ -240,6 +240,10 @@ bool IsStandardTx(CBaseTx *pBaseTx, string &reason) {
 }
 
 bool VerifySignature(const uint256 &sigHash, const std::vector<uint8_t> &signature, const CPubKey &pubKey) {
+    if (signature.size() == 0 && signature.size() >= MAX_SIGNATURE_SIZE) {
+        return false;
+    }
+
     if (signatureCache.Get(sigHash, signature, pubKey))
         return true;
 

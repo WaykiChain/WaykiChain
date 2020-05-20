@@ -244,7 +244,6 @@ protected:
     void ClearMemData();
     bool CheckTxFeeSufficient(CCacheWrapper &cw, const TokenSymbol &feeSymbol,
                               const uint64_t llFees, const int32_t height) const;
-    bool CheckSignatureSize(const vector<unsigned char> &signature) const;
     bool CheckFee(CTxExecuteContext &context);
     virtual bool CheckMinFee(CTxExecuteContext &context, uint64_t minFee);
 

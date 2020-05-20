@@ -350,10 +350,6 @@ namespace dex {
                     TX_ERR_TITLE, operator_uid.ToString()),
                     REJECT_INVALID, "tx-uid-same-as-operator");
 
-            if (!CheckSignatureSize(operator_signature)) {
-                return context.pState->DoS(100, ERRORMSG("%s, operator signature size=%d invalid",
-                    TX_ERR_TITLE, operator_signature.size()), REJECT_INVALID, "bad-operator-sig-size");
-            }
             uint256 sighash = GetHash();
             if (!::VerifySignature(sighash, operator_signature, operatorAccount.owner_pubkey)) {
                 return context.pState->DoS(100, ERRORMSG("%s, check operator signature error",
