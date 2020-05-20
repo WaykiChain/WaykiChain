@@ -145,6 +145,11 @@ CUniversalTx::get_accounts_from_signatures(CCacheWrapper& database, std::vector 
                       wasm_chain::account_access_exception, "%s",
                       "can not get account from regid '%s'", wasm::name(s.account).to_string() )
 
+        CHAIN_ASSERT( spAccount->owner_pubkey.IsValid(),
+                      wasm_chain::account_access_exception, "%s",
+                      "pubkey of account=%s is invalid", wasm::name(s.account).to_string() )
+
+
         CHAIN_ASSERT( spAccount->owner_pubkey.Verify(signature_hash, s.signature),
                       wasm_chain::unsatisfied_authorization,
                       "can not verify signature '%s bye public key '%s' and hash '%s' ",
