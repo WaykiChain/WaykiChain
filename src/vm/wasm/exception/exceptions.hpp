@@ -120,6 +120,8 @@ namespace wasm_chain {
                                     3010015, "Key type is not a currently activated type" )
       CHAIN_DECLARE_DERIVED_EXCEPTION( unactivated_signature_type,        chain_type_exception,
                                     3010016, "Signature type is not a currently activated type" )
+      CHAIN_DECLARE_DERIVED_EXCEPTION( asset_total_supply_exception,      chain_type_exception,
+                                    3010017, "Invalid total supply" )
 
 
    CHAIN_DECLARE_DERIVED_EXCEPTION( fork_database_exception, chain_exception,

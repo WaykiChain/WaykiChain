@@ -153,21 +153,32 @@ namespace wasm {
 								symbol.to_string() )
 
 				context.require_auth( owner.value );
-				auto sp_account = context.control_trx.GetAccount(context.database, CRegID(owner.value));
+				auto owner_regid = CRegID(owner.value);
+				auto sp_account = context.control_trx.GetAccount(context.database, owner_regid);
 				CHAIN_ASSERT( 	sp_account,
 								wasm_chain::account_access_exception,
 								"owner account '%s' not exist",
-								wasm::regid(owner.value).to_string() )
+								owner_regid.ToString() )
 
 				CHAIN_ASSERT(   ProcessAssetFee(context.control_trx, context.database, sp_account.get(), "issue", context.receipts, msg),
 								wasm_chain::account_access_exception,
 								"process asset fee error: %s", msg )
 
+
+    			CHAIN_ASSERT(   total_supply <= MAX_ASSET_TOTAL_SUPPLY,
+								wasm_chain::asset_total_supply_exception,
+								"total supply is too large than %llu", MAX_ASSET_TOTAL_SUPPLY );
+
+				CHAIN_ASSERT(   sp_account->OperateBalance(sym, BalanceOpType::ADD_FREE, total_supply,
+                                		ReceiptType::ASSET_MINT_NEW_AMOUNT, context.receipts),
+								wasm_chain::account_access_exception,
+								"add total supply to issuer=%s error", owner_regid.ToString() )
+
 				CAsset asset;
-				asset.asset_symbol	= symbol.code().to_string();
+				asset.asset_symbol	= sym;
 				asset.asset_name	= name;
 				asset.asset_type	= AssetType::UIA;
-				asset.owner_regid  	= CRegID(owner.value);
+				asset.owner_regid  	= owner_regid;
 				asset.total_supply  = total_supply;
 				asset.mintable		= (mintable) ? *mintable : true;
 
