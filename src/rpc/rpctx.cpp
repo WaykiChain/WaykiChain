@@ -1097,85 +1097,43 @@ Value signtxraw(const Array& params, bool fHelp) {
 
     const Array& addresses = params[1].get_array();
 
-    // user signature map
-    // {keyid} -> {CAccount, vector<uint8_t> signature}
-    map<CKeyID, pair<CAccount, vector<uint8_t>>> userSignatures;
-
-    for (const auto &addr : addresses) {
-        auto uid            = RPC_PARAM::ParseUserIdByAddr(addr);
-        auto account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, uid);
-        auto ret = userSignatures.emplace(account.keyid, make_pair(account, vector<uint8_t>()));
-        if (!ret.second) {
-            throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("duplicated signing user addr=%s, regid=%s",
-                account.keyid.ToAddress(), account.regid.ToString()));
-        }
+    if (addresses.empty()) {
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "address list is empty()");
     }
 
+    // TxSignatureMap {keyid -> {account, pSignature} }
+    TxSignatureMap txSignatureMap = GetTxSignatureMap(*pBaseTx, *pCdMan->pAccountCache);
+    set<CKeyID> signedUser;
     auto txid = pBaseTx->GetHash();
 
-    if (!pBaseTx->txUid.IsEmpty()) {
-        CKeyID txKeyid = RPC_PARAM::GetUserKeyId(pBaseTx->txUid);
-        auto it = userSignatures.find(txKeyid);
-        if (it != userSignatures.end()) {
-            pBaseTx->signature = SignTxHash(txKeyid, txid);
-            it->second.second = pBaseTx->signature;
-        }
-    }
-
-    if (pBaseTx->nTxType == UNIVERSAL_TX) {
-        map<uint64_t, wasm::signature_pair> addingMap;
-        CUniversalTx &universalTx = dynamic_cast<CUniversalTx&>(*pBaseTx);
-        // add the existed signatures in tx
-        for (auto &item : universalTx.signatures) {
-            addingMap[item.account] = item;
-        }
-        // sign new signautures
-        for (auto &item : userSignatures) {
-            auto &account = item.second.first;
-            if (account.IsSelfUid(pBaseTx->txUid)) {
-                continue; // ignore the tx uid signature
-            }
-            if (account.regid.IsEmpty()) {
-                throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("account=%s must have regid for signature of %s",
-                    account.keyid.ToAddress(), "UNIVERSAL_TX"));
-            }
-            auto &signature = item.second.second;
-            signature = SignTxHash(item.first, txid);
-            uint64_t regidValue = account.regid.GetIntValue();
-            addingMap[regidValue] = {regidValue, signature};
-        }
-        // write sigatures to tx
-        universalTx.signatures.clear();
-        for (auto &item : addingMap) {
-            universalTx.signatures.push_back(item.second);
-        }
-    } else if (pBaseTx->nTxType == DEX_OPERATOR_ORDER_TX) {
-        dex::CDEXOperatorOrderTx &opOrderTx = dynamic_cast<dex::CDEXOperatorOrderTx&>(*pBaseTx);
-        if (opOrderTx.has_operator_config && !opOrderTx.operator_uid.IsEmpty()) {
-            CKeyID opKeyid = RPC_PARAM::GetUserKeyId(opOrderTx.operator_uid);
-            auto it = userSignatures.find(opKeyid);
-            if (it != userSignatures.end()) {
-                opOrderTx.operator_signature = SignTxHash(opKeyid, txid);
-                it->second.second = opOrderTx.operator_signature;
-            }
-        }
-    }
-
     Array signatureArray;
-    for (auto item : userSignatures) {
-        Object itemObj;
-        auto &account = item.second.first;
-        auto &signature = item.second.second;
-        if (!signature.empty()) {
-            itemObj.push_back(Pair("addr", account.keyid.ToAddress()));
-            itemObj.push_back(Pair("regid", account.regid.ToString()));
-            itemObj.push_back(Pair("signature", HexStr(item.second.second)));
-            signatureArray.push_back(itemObj);
-        }
-    }
+    for (const auto &addrObj : addresses) {
+        auto uid            = RPC_PARAM::ParseUserIdByAddr(addrObj);
+        auto keyid = RPC_PARAM::GetUserKeyId(uid);
 
-    if (userSignatures.empty()) {
-        throw JSONRPCError(RPC_INVALID_PARAMETER, "No account was signed successfully");
+        auto it = txSignatureMap.find(keyid);
+        if (it == txSignatureMap.end()) {
+            throw JSONRPCError(
+                RPC_INVALID_PARAMETER,
+                strprintf("The signature of the user=%s is not required in tx",
+                            addrObj.get_str()));
+        }
+        auto &account = it->second.first;
+
+        auto ret = signedUser.insert(keyid);
+        if (!ret.second) {
+            throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("duplicated signature of user, addr=%s, regid=%s",
+                account.keyid.ToAddress(), account.regid.ToString()));
+        }
+
+        auto &signatureDest = *it->second.second;
+        signatureDest = SignTxHash(keyid, txid);
+
+        Object itemObj;
+        itemObj.push_back(Pair("addr", account.keyid.ToAddress()));
+        itemObj.push_back(Pair("regid", account.regid.ToString()));
+        itemObj.push_back(Pair("signature", HexStr(signatureDest)));
+        signatureArray.push_back(itemObj);
     }
 
     CDataStream ds(SER_DISK, CLIENT_VERSION);
