@@ -88,8 +88,8 @@ namespace wasm_chain {
     CHAIN_DECLARE_DERIVED_EXCEPTION( chain_type_exception, chain_exception,
                                   3010000, "chain type exception" )
 
-      CHAIN_DECLARE_DERIVED_EXCEPTION( name_type_exception,               chain_type_exception,
-                                    3010001, "Invalid name" )
+      CHAIN_DECLARE_DERIVED_EXCEPTION( regid_type_exception,               chain_type_exception,
+                                    3010001, "Invalid regid" )
       CHAIN_DECLARE_DERIVED_EXCEPTION( public_key_type_exception,         chain_type_exception,
                                     3010002, "Invalid public key" )
       CHAIN_DECLARE_DERIVED_EXCEPTION( private_key_type_exception,        chain_type_exception,

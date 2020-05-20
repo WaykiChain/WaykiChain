@@ -149,7 +149,7 @@ namespace wasm {
 
 				auto owner_regid = CRegID(owner.value);
 				CHAIN_ASSERT( 	!owner_regid.IsEmpty(),
-								wasm_chain::asset_name_exception,
+								wasm_chain::regid_type_exception,
 								"invalid owner_regid=%s", owner_regid.ToString() )
 
 				CHAIN_ASSERT( 	name.size() <= MAX_ASSET_NAME_LEN,

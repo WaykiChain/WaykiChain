@@ -30,6 +30,8 @@ namespace wasm {
       auto target         = std::get<0>(transfer_data);
       auto quantity       = std::get<1>(transfer_data);
 
+      auto target_regid = CRegID(target);
+      CHAIN_ASSERT(!target_regid.IsEmpty(), wasm_chain::regid_type_exception, "invalid target regid=%s", target_regid.ToString());
       CHAIN_ASSERT(quantity.is_valid(),    wasm_chain::native_contract_assert_exception, "invalid quantity");
       CHAIN_ASSERT(quantity.amount > 0,    wasm_chain::native_contract_assert_exception, "must transfer positive quantity");
 
@@ -45,16 +47,19 @@ namespace wasm {
                     "asset (%s) not mintable!",
                     symbol )
 
-
       auto spAssetOwnerAcct = context.control_trx.GetAccount(context.database, asset.owner_regid);
       CHAIN_ASSERT( spAssetOwnerAcct,
                     wasm_chain::account_access_exception,
-                    "asset owner (%s) not found from db",
+                    "asset owner account (%s) not found from db",
                     asset.owner_regid.ToString() )
 
       context.require_auth(spAssetOwnerAcct->regid.GetIntValue()); //mint or burn op must be sanctioned by asset owner
 
-      auto spTargetAcct   = context.control_trx.GetAccount(context.database, CRegID(target));
+      auto spTargetAcct   = context.control_trx.GetAccount(context.database, target_regid);
+      CHAIN_ASSERT( spTargetAcct,
+                    wasm_chain::account_access_exception,
+                    "target account (%s) not found from db",
+                    target_regid.ToString() )
 
       if (isMintOperate) { //mint operation
 
