@@ -45,10 +45,11 @@ namespace wasm {
                     "asset (%s) not mintable!",
                     symbol )
 
+
       auto spAssetOwnerAcct = context.control_trx.GetAccount(context.database, asset.owner_regid);
       CHAIN_ASSERT( spAssetOwnerAcct,
                     wasm_chain::account_access_exception,
-                    "asset owner (%s) not found from d/b",
+                    "asset owner (%s) not found from db",
                     asset.owner_regid.ToString() )
 
       context.require_auth(spAssetOwnerAcct->regid.GetIntValue()); //mint or burn op must be sanctioned by asset owner
@@ -56,13 +57,22 @@ namespace wasm {
       auto spTargetAcct   = context.control_trx.GetAccount(context.database, CRegID(target));
 
       if (isMintOperate) { //mint operation
+
+      uint64_t new_total_supply = asset.total_supply + quantity.amount;
+      CHAIN_ASSERT(new_total_supply <= MAX_ASSET_TOTAL_SUPPLY &&
+                        new_total_supply >= asset.total_supply, // to prevent overflow
+                    wasm_chain::asset_total_supply_exception,
+                    "new total supply is too large than %llu after mint %llu",
+                    MAX_ASSET_TOTAL_SUPPLY, quantity.amount);
+
         CHAIN_ASSERT( spTargetAcct->OperateBalance(symbol, BalanceOpType::ADD_FREE, quantity.amount,
                                                   ReceiptType::WASM_MINT_COINS, context.control_trx.receipts),
                       wasm_chain::account_access_exception,
                       "Asset Owner (%s) balance overminted",
                       spTargetAcct->regid.ToString())
 
-        asset.total_supply += quantity.amount;
+        asset.total_supply = new_total_supply;
+
 
         context.notify_recipient(target);
 
