@@ -147,6 +147,11 @@ namespace wasm {
 								wasm_chain::asset_type_exception,
 								"invalid UIA symbol=%s, %s", sym, msg)
 
+				auto owner_regid = CRegID(owner.value);
+				CHAIN_ASSERT( 	!owner_regid.IsEmpty(),
+								wasm_chain::asset_name_exception,
+								"invalid owner_regid=%s", owner_regid.ToString() )
+
 				CHAIN_ASSERT( 	name.size() <= MAX_ASSET_NAME_LEN,
 								wasm_chain::asset_name_exception,
 								"size=%s of asset name is too large than %llu", name.size(), MAX_ASSET_NAME_LEN)
@@ -157,7 +162,6 @@ namespace wasm {
 								symbol.to_string() )
 
 				context.require_auth( owner.value );
-				auto owner_regid = CRegID(owner.value);
 				auto sp_account = context.control_trx.GetAccount(context.database, owner_regid);
 				CHAIN_ASSERT( 	sp_account,
 								wasm_chain::account_access_exception,
