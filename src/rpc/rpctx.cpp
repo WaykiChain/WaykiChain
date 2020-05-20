@@ -1014,7 +1014,15 @@ Value submittxraw(const Array& params, bool fHelp) {
         throw JSONRPCError(RPC_WALLET_ERROR, "Submittxraw error: " + retMsg);
 
     Object obj;
-    obj.push_back( Pair("txid", retMsg) );
+    obj.push_back( Pair("txid", pBaseTx->GetHash().ToString()) );
+    if (pBaseTx->nTxType == UNIVERSAL_TX) {
+        Value  detailObj;
+        if (json_spirit::read(retMsg, detailObj)) {
+            obj.push_back( Pair("detail", detailObj) );
+        } else {
+            obj.push_back( Pair("detail_msg", retMsg) );
+        }
+    }
     return obj;
 }
 
