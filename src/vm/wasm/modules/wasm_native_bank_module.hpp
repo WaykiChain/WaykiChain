@@ -91,8 +91,8 @@ namespace wasm {
 				abi.structs.push_back({"update", "",
 					{
 						{"symbol",			"symbol"	}, //target asset symbol to update
-						{"owner?", 			"regid"		},
-						{"name?",			"string"	},
+						{"owner", 			"regid?"		},
+						{"name",			"string?"	},
 					}
 				});
 				abi.structs.push_back({"transfer", "",
@@ -152,9 +152,7 @@ namespace wasm {
 								wasm_chain::regid_type_exception,
 								"invalid owner_regid=%s", owner_regid.ToString() )
 
-				CHAIN_ASSERT( 	name.size() <= MAX_ASSET_NAME_LEN,
-								wasm_chain::asset_name_exception,
-								"size=%s of asset name is too large than %llu", name.size(), MAX_ASSET_NAME_LEN)
+				CHAIN_CHECK_ASSET_NAME(name, "asset name")
 
 				CHAIN_ASSERT( 	!context.database.assetCache.HasAsset(sym),
 								wasm_chain::asset_type_exception,
@@ -259,16 +257,20 @@ namespace wasm {
 				bool to_update = false;
 
 				if (new_owner) {
-		        	CHAIN_ASSERT( context.control_trx.GetAccount(context.database, CRegID(new_owner->value)),
+					auto new_owner_regid = CRegID(new_owner->value);
+					CHAIN_CHECK_REGID(new_owner_regid, "new owner regid")
+		        	CHAIN_ASSERT( context.control_trx.GetAccount(context.database, new_owner_regid),
 								wasm_chain::account_access_exception,
 								"new_owner account '%s' does not exist",
 								wasm::regid(new_owner->value).to_string() )
 
 					to_update 			= true;
-					asset.owner_regid  	= CRegID(new_owner->value);
+					asset.owner_regid  	= new_owner_regid;
 				}
 
  				if (new_name) {
+
+					CHAIN_CHECK_ASSET_NAME(new_name.value(), "new asset name")
 					to_update 			= true;
 					asset.asset_name	= *new_name;
 				}

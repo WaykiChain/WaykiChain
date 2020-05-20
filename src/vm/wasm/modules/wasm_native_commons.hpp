@@ -3,22 +3,29 @@
 
 namespace wasm {
 
-  inline void transfer_balance(CAccount& fromAccount, CAccount& toAccount, const wasm::asset& quantity, wasm_context &context) {
+#define CHAIN_CHECK_REGID(regid, title)                                                             \
+    CHAIN_ASSERT(!regid.IsEmpty(), wasm_chain::regid_type_exception, "invalid %s=%s", title,  \
+                 regid.ToString())
 
-      string symbol     = quantity.symbol.code().to_string();
-      uint8_t precision = quantity.symbol.precision();
-      CHAIN_ASSERT( precision == 8,
-                    wasm_chain::account_access_exception,
-                    "The precision of system coin %s must be %d",
-                    symbol, 8)
+#define CHAIN_CHECK_ASSET_NAME(name, title)                                                        \
+    CHAIN_ASSERT(name.size() <= MAX_ASSET_NAME_LEN, wasm_chain::asset_name_exception,              \
+                 "size=%s of %s is too large than %llu", name.size(), title, MAX_ASSET_NAME_LEN)
 
-      CAccount *pToAccount = toAccount.IsEmpty() ? nullptr : &toAccount;
+inline void transfer_balance(CAccount &fromAccount, CAccount &toAccount,
+                             const wasm::asset &quantity, wasm_context &context) {
 
-      CHAIN_ASSERT( fromAccount.OperateBalance(symbol, BalanceOpType::SUB_FREE, quantity.amount,
-                                              ReceiptType::WASM_TRANSFER_ACTUAL_COINS, context.control_trx.receipts, pToAccount),
-                                              wasm_chain::account_access_exception,
-                                              "Account %s balance overdrawn",
-                                              fromAccount.regid.ToString())
+    string symbol     = quantity.symbol.code().to_string();
+    uint8_t precision = quantity.symbol.precision();
+    CHAIN_ASSERT(precision == 8, wasm_chain::account_access_exception,
+                 "The precision of system coin %s must be %d", symbol, 8)
+
+    CAccount *pToAccount = toAccount.IsEmpty() ? nullptr : &toAccount;
+
+    CHAIN_ASSERT(fromAccount.OperateBalance(symbol, BalanceOpType::SUB_FREE, quantity.amount,
+                                            ReceiptType::WASM_TRANSFER_ACTUAL_COINS,
+                                            context.control_trx.receipts, pToAccount),
+                 wasm_chain::account_access_exception, "Account %s balance overdrawn",
+                 fromAccount.regid.ToString())
   }
 
 
