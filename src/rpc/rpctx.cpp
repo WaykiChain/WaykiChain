@@ -49,6 +49,39 @@ namespace RPC_PARAM {
     }
 }
 
+
+// TxSignatureMap {keyid -> {account, pSignature} }
+typedef map<CKeyID, pair<CAccount, vector<uint8_t>*> > TxSignatureMap;
+
+TxSignatureMap GetTxSignatureMap(CBaseTx &tx, CAccountDBCache &accountCache) {
+
+    if (tx.IsRelayForbidden()) {
+        return {};
+    }
+
+    TxSignatureMap txSignatureMap;
+    auto AddTxSignature = [&](const CUserID &uid, vector<uint8_t>* pSignature) {
+        if (!uid.IsEmpty()) {
+            auto account =  RPC_PARAM::GetUserAccount(accountCache, uid);
+            txSignatureMap.emplace(account.keyid, make_pair(account, pSignature));
+        }
+    };
+
+    AddTxSignature(tx.txUid, &tx.signature);
+
+    if(tx.nTxType == UNIVERSAL_TX) {
+        CUniversalTx &universalTx = dynamic_cast<CUniversalTx&>(tx);
+        for (auto &item : universalTx.signatures) {
+            AddTxSignature(CRegID(item.account), &item.signature);
+        }
+    } else if (tx.nTxType == DEX_OPERATOR_ORDER_TX) {
+        dex::CDEXOperatorOrderTx &opOrderTx = dynamic_cast<dex::CDEXOperatorOrderTx&>(tx);
+        if (opOrderTx.has_operator_config)
+            AddTxSignature(opOrderTx.operator_uid, &opOrderTx.operator_signature);
+    }
+    return txSignatureMap;
+}
+
 Value gettxdetail(const Array& params, bool fHelp) {
     if (fHelp || params.size() != 1)
         throw runtime_error(
@@ -944,78 +977,40 @@ Value submittxraw(const Array& params, bool fHelp) {
 
     CDataStream stream(vch, SER_DISK, CLIENT_VERSION);
 
-    std::shared_ptr<CBaseTx> tx;
-    stream >> tx;
+    std::shared_ptr<CBaseTx> pBaseTx;
+    stream >> pBaseTx;
 
     if (params.size() > 1) {
         Array sigArray = params[1].get_array();
-        ComboMoney fee = RPC_PARAM::GetFee(params, 2, DEX_TRADE_SETTLE_TX);
-        // user signature map
-        // {keyid} -> {CAccount, vector<uint8_t> signature}
-        map<CKeyID, pair<CAccount, vector<uint8_t>>> userSignatures;
+        // TxSignatureMap {keyid -> {account, pSignature} }
+        TxSignatureMap txSignatureMap = GetTxSignatureMap(*pBaseTx, *pCdMan->pAccountCache);
+        set<CKeyID> signedUser;
 
         for (auto sigItemObj : sigArray) {
             const Value& addrObj      = JSON::GetObjectFieldValue(sigItemObj, "addr");
             auto uid            = RPC_PARAM::ParseUserIdByAddr(addrObj);
             const Value& signatureObj     = JSON::GetObjectFieldValue(sigItemObj, "signature");
             auto signature           = RPC_PARAM::GetSignature(signatureObj);
-            auto account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, uid);
-            auto ret = userSignatures.emplace(account.keyid, make_pair(account, signature));
+            auto keyid = RPC_PARAM::GetUserKeyId(uid);
+            auto it = txSignatureMap.find(keyid);
+            if (it == txSignatureMap.end()) {
+                throw JSONRPCError(
+                    RPC_INVALID_PARAMETER,
+                    strprintf("The signature of the user=%s is not required in tx",
+                              addrObj.get_str()));
+            }
+            auto ret = signedUser.insert(keyid);
             if (!ret.second) {
-                throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("duplicated signature of user addr=%s, regid=%s",
-                    account.keyid.ToAddress(), account.regid.ToString()));
+                throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("duplicated signature of user=%s",
+                    addrObj.get_str()));
             }
+            auto &signatureDest = *it->second.second;
+            signatureDest = signature;
         }
-
-        if (!tx->txUid.IsEmpty()) {
-            CKeyID txKeyid = RPC_PARAM::GetUserKeyId(tx->txUid);
-            auto it = userSignatures.find(txKeyid);
-            if (it != userSignatures.end()) {
-                tx->signature = it->second.second;
-                userSignatures.erase(it);
-            }
-        }
-
-        if (tx->nTxType == UNIVERSAL_TX) {
-            map<uint64_t, wasm::signature_pair> addingMap;
-            CUniversalTx &universalTx = dynamic_cast<CUniversalTx&>(*tx);
-            // add the existed signatures in tx
-            for (auto &item : universalTx.signatures) {
-                addingMap[item.account] = item;
-            }
-            // add new signautures
-            for (auto &item : userSignatures) {
-                auto &account = item.second.first;
-                if (account.IsSelfUid(tx->txUid)) {
-                    continue; // ignore the tx uid signature
-                }
-                if (account.regid.IsEmpty()) {
-                    throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("account=%s must have regid for signature of %s",
-                        account.keyid.ToAddress(), "UNIVERSAL_TX"));
-                }
-                uint64_t regidValue = account.regid.GetIntValue();
-                addingMap[regidValue] = {regidValue, item.second.second};
-            }
-            // write sigatures to tx
-            universalTx.signatures.clear();
-            for (auto &item : addingMap) {
-                universalTx.signatures.push_back(item.second);
-            }
-        } else if (tx->nTxType == DEX_OPERATOR_ORDER_TX) {
-            dex::CDEXOperatorOrderTx &opOrderTx = dynamic_cast<dex::CDEXOperatorOrderTx&>(*tx);
-            if (opOrderTx.has_operator_config && !opOrderTx.operator_uid.IsEmpty()) {
-                CKeyID opKeyid = RPC_PARAM::GetUserKeyId(opOrderTx.operator_uid);
-                auto it = userSignatures.find(opKeyid);
-                if (it != userSignatures.end()) {
-                    opOrderTx.operator_signature = it->second.second;
-                }
-            }
-        }
-        // ignore the other signatures
     }
 
     string retMsg;
-    if (!pWalletMain->CommitTx((CBaseTx *) tx.get(), retMsg))
+    if (!pWalletMain->CommitTx((CBaseTx *) pBaseTx.get(), retMsg))
         throw JSONRPCError(RPC_WALLET_ERROR, "Submittxraw error: " + retMsg);
 
     Object obj;
