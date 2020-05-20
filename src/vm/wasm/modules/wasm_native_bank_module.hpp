@@ -147,6 +147,10 @@ namespace wasm {
 								wasm_chain::asset_type_exception,
 								"invalid UIA symbol=%s, %s", sym, msg)
 
+				CHAIN_ASSERT( 	name.size() <= MAX_ASSET_NAME_LEN,
+								wasm_chain::asset_name_exception,
+								"size=%s of asset name is too large than %llu", name.size(), MAX_ASSET_NAME_LEN)
+
 				CHAIN_ASSERT( 	!context.database.assetCache.HasAsset(sym),
 								wasm_chain::asset_type_exception,
 								"asset (%s) already issued",

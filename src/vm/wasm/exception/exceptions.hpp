@@ -120,9 +120,6 @@ namespace wasm_chain {
                                     3010015, "Key type is not a currently activated type" )
       CHAIN_DECLARE_DERIVED_EXCEPTION( unactivated_signature_type,        chain_type_exception,
                                     3010016, "Signature type is not a currently activated type" )
-      CHAIN_DECLARE_DERIVED_EXCEPTION( asset_total_supply_exception,      chain_type_exception,
-                                    3010017, "Invalid total supply" )
-
 
    CHAIN_DECLARE_DERIVED_EXCEPTION( fork_database_exception, chain_exception,
                                  3020000, "Fork database exception" )
@@ -591,5 +588,13 @@ namespace wasm_chain {
                                     3290001, "File read exception" )
       CHAIN_DECLARE_DERIVED_EXCEPTION( file_write_exception, file_exception,
                                     3290002, "File write exception" )
+
+////////////////////////////////////////////////////////////////////////////////
+// native bank
+
+      CHAIN_DECLARE_DERIVED_EXCEPTION( asset_name_exception,      chain_type_exception,
+                                    3300001, "Invalid asset name" )
+      CHAIN_DECLARE_DERIVED_EXCEPTION( asset_total_supply_exception,      chain_type_exception,
+                                    3300001, "Invalid asset total supply" )
 
 } //chain
