@@ -335,15 +335,20 @@ namespace dex {
                 return false;
 
             if (!operator_uid.is<CRegID>())
-                return context.pState->DoS(100, ERRORMSG("%s(), dex operator uid must be regid, operator_uid=%s",
-                    TX_ERR_TITLE, operator_uid.ToDebugString()),
+                return context.pState->DoS(100, ERRORMSG("%s, dex operator uid must be regid, operator_uid=%s",
+                    TX_ERR_TITLE, operator_uid.ToString()),
                     REJECT_INVALID, "operator-uid-not-regid");
 
             const CRegID &operator_regid = operator_uid.get<CRegID>();
             if (operator_regid != operatorDetail.fee_receiver_regid)
-                return context.pState->DoS(100, ERRORMSG("%s(), the dex operator uid is wrong, operator_uid=%s",
-                    TX_ERR_TITLE, operator_uid.ToDebugString()),
+                return context.pState->DoS(100, ERRORMSG("%s, the dex operator uid is wrong, operator_uid=%s",
+                    TX_ERR_TITLE, operator_uid.ToString()),
                     REJECT_INVALID, "operator-uid-wrong");
+
+            if (sp_tx_account->IsSelfUid(operator_regid))
+                return context.pState->DoS(100, ERRORMSG("%s, the tx account is same as operator account, operator_uid=%s",
+                    TX_ERR_TITLE, operator_uid.ToString()),
+                    REJECT_INVALID, "tx-uid-same-as-operator");
 
             if (!CheckSignatureSize(operator_signature)) {
                 return context.pState->DoS(100, ERRORMSG("%s, operator signature size=%d invalid",
