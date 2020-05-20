@@ -3,13 +3,25 @@
 
 namespace wasm {
 
-#define CHAIN_CHECK_REGID(regid, title)                                                             \
-    CHAIN_ASSERT(!regid.IsEmpty(), wasm_chain::regid_type_exception, "invalid %s=%s", title,  \
+#define CHAIN_CHECK_REGID(regid, title)                                                            \
+    CHAIN_ASSERT(!regid.IsEmpty(), wasm_chain::regid_type_exception, "invalid %s=%s", title,       \
                  regid.ToString())
 
 #define CHAIN_CHECK_ASSET_NAME(name, title)                                                        \
     CHAIN_ASSERT(name.size() <= MAX_ASSET_NAME_LEN, wasm_chain::asset_name_exception,              \
                  "size=%s of %s is too large than %llu", name.size(), title, MAX_ASSET_NAME_LEN)
+
+#define CHAIN_CHECK_UIA_SYMBOL(symbol, title)                                                      \
+    {                                                                                              \
+        CHAIN_ASSERT(symbol.is_valid(), wasm_chain::asset_type_exception, "invalid %s=%s", title,  \
+                     symbol.to_string())                                                           \
+        CHAIN_ASSERT(symbol.precision() == 8, wasm_chain::asset_type_exception,                    \
+                     "the precision of %s=%s must be 8", title, symbol.to_string())                \
+        string msg;                                                                                \
+        CHAIN_ASSERT(CAsset::CheckSymbol(AssetType::UIA, symbol.code().to_string(), msg),          \
+                     wasm_chain::asset_type_exception, "invalid UIA symbol=%s, %s",                \
+                     symbol.to_string(), msg)                                                      \
+    }
 
 inline void transfer_balance(CAccount &fromAccount, CAccount &toAccount,
                              const wasm::asset &quantity, wasm_context &context) {

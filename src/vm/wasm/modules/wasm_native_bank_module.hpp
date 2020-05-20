@@ -137,9 +137,7 @@ namespace wasm {
 				auto total_supply		= std::get<3>(params);
 				auto mintable			= std::get<4>(params);
 
-				CHAIN_ASSERT( 	symbol.is_valid(),
-								wasm_chain::asset_type_exception,
-								"invalid asset symbol=%s", symbol.to_string())
+				CHAIN_CHECK_UIA_SYMBOL( symbol, "asset symbol")
 
 				string msg = "";
 				const auto &sym = symbol.code().to_string();
@@ -235,6 +233,7 @@ namespace wasm {
 		        auto new_owner                      = std::get<1>(params);
 		        auto new_name                       = std::get<2>(params);
 
+				CHAIN_CHECK_UIA_SYMBOL( symbol, "asset symbol")
 				CAsset asset;
 				CHAIN_ASSERT( 	context.database.assetCache.GetAsset(symbol.code().to_string(), asset),
 								wasm_chain::asset_type_exception,
