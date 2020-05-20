@@ -28,27 +28,6 @@
 ///////////////////////////////////////////////////////////////////////////////
 // class CUniversalTx
 
-map <UnsignedCharArray, uint64_t> &get_signatures_cache() {
-    //fixme:this map should be in maxsize to protect memory
-    static map <UnsignedCharArray, uint64_t> signatures_cache;
-    return signatures_cache;
-}
-
-inline void add_signature_to_cache(const UnsignedCharArray& signature, const uint64_t& account) {
-    get_signatures_cache()[signature] = account;
-}
-
-inline bool get_signature_from_cache(const UnsignedCharArray& signature, uint64_t& account) {
-
-    auto itr = get_signatures_cache().find(signature);
-    if (itr != get_signatures_cache().end()) {
-        account = itr->second;
-        return true;
-    }
-    return false;
-
-}
-
 void CUniversalTx::pause_billing_timer() {
 
     if (billed_time > chrono::microseconds(0)) {
@@ -138,13 +117,7 @@ CUniversalTx::get_accounts_from_signatures(CCacheWrapper& database, std::vector 
                     wasm_chain::tx_duplicate_sig,
                     "duplicated signature of account regid=%s", regid.ToString())
 
-        uint64_t authorization_account;
-        if (get_signature_from_cache(s.signature, authorization_account)) {
-            authorization_accounts.push_back(authorization_account);
-            continue;
-        }
-
-        CHAIN_ASSERT( spPayer->regid.GetIntValue() != s.account,
+        CHAIN_ASSERT( spPayer->regid != regid,
                       wasm_chain::tx_duplicate_sig,
                       "duplicate signatures from payer '%s'", spPayer->regid.ToString())
 
@@ -158,14 +131,12 @@ CUniversalTx::get_accounts_from_signatures(CCacheWrapper& database, std::vector 
                       "pubkey of account=%s is invalid", wasm::name(s.account).to_string() )
 
 
-        CHAIN_ASSERT( spAccount->owner_pubkey.Verify(signature_hash, s.signature),
+        CHAIN_ASSERT( ::VerifySignature(signature_hash, s.signature, spAccount->owner_pubkey),
                       wasm_chain::unsatisfied_authorization,
                       "can not verify signature '%s bye public key '%s' and hash '%s' ",
                       to_hex(s.signature), spAccount->owner_pubkey.ToString(), signature_hash.ToString() )
 
-        authorization_account = wasm::name(s.account).value;
-        add_signature_to_cache(s.signature, authorization_account);
-        authorization_accounts.push_back(authorization_account);
+        authorization_accounts.push_back(s.account);
 
     }
 
