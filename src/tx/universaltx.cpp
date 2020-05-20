@@ -123,12 +123,20 @@ CUniversalTx::get_accounts_from_signatures(CCacheWrapper& database, std::vector 
 
     TxID signature_hash = GetHash();
 
-    map <UnsignedCharArray, uint64_t> signatures_duplicate_check;
+    set<uint64_t> signed_users;
 
     auto spPayer = sp_tx_account;
 
     for (auto s : signatures) {
-        signatures_duplicate_check[s.signature] = s.account;
+        CRegID regid(s.account);
+        CHAIN_ASSERT( !regid.IsEmpty(),
+                    wasm_chain::account_access_exception,
+                    "invalid account regid=%s", regid.ToString())
+
+        auto setRet = signed_users.insert(s.account);
+        CHAIN_ASSERT( setRet.second,
+                    wasm_chain::tx_duplicate_sig,
+                    "duplicated signature of account regid=%s", regid.ToString())
 
         uint64_t authorization_account;
         if (get_signature_from_cache(s.signature, authorization_account)) {
@@ -160,10 +168,6 @@ CUniversalTx::get_accounts_from_signatures(CCacheWrapper& database, std::vector 
         authorization_accounts.push_back(authorization_account);
 
     }
-
-    CHAIN_ASSERT( signatures_duplicate_check.size() == authorization_accounts.size(),
-                  wasm_chain::tx_duplicate_sig,
-                  "duplicate signature included")
 
     //append payer
     authorization_accounts.push_back(spPayer->regid.GetIntValue());
