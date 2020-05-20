@@ -517,9 +517,6 @@ Value wasm_getabi( const Array &params, bool fHelp ) {
         auto db_contract    = pCdMan->pContractCache;
         auto contract_regid = wasm::regid(params[0].get_str());
 
-        CHAIN_ASSERT( !is_native_contract(contract_regid.value), wasm_chain::native_contract_access_exception,
-                      "cannot get abi from native contract '%s'", contract_regid.to_string() )
-
         vector<char>       abi;
         CUniversalContractStore contract_store;
         if(!get_native_contract_abi(contract_regid.value, abi)){
