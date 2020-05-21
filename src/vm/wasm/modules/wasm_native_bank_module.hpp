@@ -246,6 +246,8 @@ namespace wasm {
 								"asset (%s) not found from d/b",
 								symbol.to_string() )
 
+				CHAIN_ASSERT(!asset.owner_regid.IsEmpty(), wasm_chain::asset_type_exception, "asset owner is empty")
+
 				context.require_auth( asset.owner_regid.GetIntValue() );
 
 				auto sp_account = context.control_trx.GetAccount(context.database, asset.owner_regid);
