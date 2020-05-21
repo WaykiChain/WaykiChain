@@ -308,7 +308,6 @@ namespace wasm {
 				CHAIN_ASSERT(from != to,             wasm_chain::native_contract_assert_exception, "cannot transfer to self");
 		        CHAIN_ASSERT(quantity.is_valid(),    wasm_chain::native_contract_assert_exception, "invalid quantity");
 		        CHAIN_ASSERT(quantity.amount > 0,    wasm_chain::native_contract_assert_exception, "must transfer positive quantity");
-				CHAIN_CHECK_MEMO(memo, "memo");
 
 				if (memo) CHAIN_CHECK_MEMO(memo.value(), "memo");
 
