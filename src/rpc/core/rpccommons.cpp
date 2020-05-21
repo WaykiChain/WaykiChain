@@ -752,7 +752,12 @@ Value RPC_PARAM::GetWasmContractArgs(const Value &jsonValue) {
         return jsonValue;
     } else if (valueType == json_spirit::str_type) {
         json_spirit::Value newValue;
-        json_spirit::read_string_or_throw(jsonValue.get_str(), newValue);
+        try {
+            json_spirit::read_string_or_throw(jsonValue.get_str(), newValue);
+        } catch (json_spirit::Error_position &e) {
+            throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("Parse json of contract data error! line[%d:%d] %s",
+                    e.line_, e.column_, e.reason_));
+        }
         auto newValueType = newValue.type();
         if (newValueType == json_spirit::obj_type || newValueType == json_spirit::array_type) {
             return newValue;
