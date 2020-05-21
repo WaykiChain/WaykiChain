@@ -104,7 +104,7 @@ namespace wasm {
 						{"from",     		"regid"  	},
 						{"to",       		"regid"  	},
 						{"quantity", 		"asset"  	},
-						{"memo",     		"string" 	}
+						{"memo",     		"string?" 	}
 					}
 		        });
 
@@ -302,7 +302,9 @@ namespace wasm {
 
 		        context.control_trx.run_cost   += context.get_runcost();
 
-		        auto transfer_data = wasm::unpack<std::tuple <uint64_t, uint64_t, wasm::asset, string >>(context.trx.data);
+		        auto transfer_data = wasm::unpack<std::tuple <uint64_t, uint64_t,
+										wasm::asset, optional<string> >>(context.trx.data);
+
 		        auto from                        = std::get<0>(transfer_data);
 		        auto to                          = std::get<1>(transfer_data);
 		        auto quantity                    = std::get<2>(transfer_data);
@@ -315,6 +317,8 @@ namespace wasm {
 		        CHAIN_ASSERT(quantity.is_valid(),    wasm_chain::native_contract_assert_exception, "invalid quantity");
 		        CHAIN_ASSERT(quantity.amount > 0,    wasm_chain::native_contract_assert_exception, "must transfer positive quantity");
 		        CHAIN_ASSERT(memo.size()  <= 256,    wasm_chain::native_contract_assert_exception, "memo has more than 256 bytes");
+
+				if (memo) CHAIN_CHECK_MEMO(memo.value(), "memo");
 
 				//may not be txAccount since one trx can have multiple signed/authorized transfers (from->to)
 				auto spFromAccount = context.control_trx.GetAccount(context.database, CRegID(from));
