@@ -73,26 +73,30 @@ namespace wasm {
 						{"owner", 			"regid"		},
 						{"name",			"string"	},
 						{"total_supply",	"uint64"	},
-						{"mintable",		"bool?"		}
+						{"mintable",		"bool?"		},
+						{"memo",     		"string?" 	}
 					}
 				});
 		        abi.structs.push_back({"mint", "",
 					{
 						{"to", 				"regid"		}, //mint & issue assets to the target holder
-						{"quantity", 		"asset" 	}
+						{"quantity", 		"asset" 	},
+						{"memo",     		"string?" 	}
 					}
 				});
 				abi.structs.push_back({"burn", "",
 					{
 						{"owner", 			"regid"		}, //only asset owner can burn assets hold by the owner
-						{"quantity",		"asset"		}
+						{"quantity",		"asset"		},
+						{"memo",     		"string?" 	}
 					}
 				});
 				abi.structs.push_back({"update", "",
 					{
 						{"symbol",			"symbol"	}, //target asset symbol to update
-						{"owner", 			"regid?"		},
+						{"owner", 			"regid?"	},
 						{"name",			"string?"	},
+						{"memo",     		"string?" 	}
 					}
 				});
 				abi.structs.push_back({"transfer", "",
@@ -129,13 +133,15 @@ namespace wasm {
 												wasm::regid,
 												string,
 												uint64_t,
-												optional<bool> >>(context.trx.data);
+												optional<bool>,
+												optional<string> >>(context.trx.data);
 
 				auto symbol				= std::get<0>(params);
 		        auto owner              = std::get<1>(params);
 		        auto name               = std::get<2>(params);
 				auto total_supply		= std::get<3>(params);
 				auto mintable			= std::get<4>(params);
+				auto memo				= std::get<5>(params);
 
 				CHAIN_CHECK_UIA_SYMBOL( symbol, "asset symbol")
 
@@ -174,6 +180,7 @@ namespace wasm {
                                 		ReceiptType::ASSET_MINT_NEW_AMOUNT, context.receipts),
 								wasm_chain::account_access_exception,
 								"add total supply to issuer=%s error", owner_regid.ToString() )
+				if (memo) CHAIN_CHECK_MEMO(memo.value(), "memo");
 
 				CAsset asset;
 				asset.asset_symbol	= sym;
@@ -224,11 +231,13 @@ namespace wasm {
 		        auto params = wasm::unpack< std::tuple <
 								wasm::symbol,
 								std::optional<wasm::regid>,
-								std::optional<string> >>(context.trx.data);
+								std::optional<string>,
+								optional<string> >>(context.trx.data);
 
 				auto symbol							= std::get<0>(params);
 		        auto new_owner                      = std::get<1>(params);
 		        auto new_name                       = std::get<2>(params);
+				auto memo							= std::get<3>(params);
 
 				CHAIN_CHECK_UIA_SYMBOL( symbol, "asset symbol")
 				CAsset asset;
@@ -265,11 +274,12 @@ namespace wasm {
 				}
 
  				if (new_name) {
-
 					CHAIN_CHECK_ASSET_NAME(new_name.value(), "new asset name")
 					to_update 			= true;
 					asset.asset_name	= *new_name;
 				}
+
+				if (memo) CHAIN_CHECK_MEMO(memo.value(), "memo");
 
 				CHAIN_ASSERT( 	to_update,
 								wasm_chain::native_contract_assert_exception,

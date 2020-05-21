@@ -23,6 +23,10 @@ namespace wasm {
                      symbol.to_string(), msg)                                                      \
     }
 
+#define CHAIN_CHECK_MEMO(memo, title)                                                              \
+    CHAIN_ASSERT(memo.size() <= 256, wasm_chain::native_contract_assert_exception,                 \
+                 "%s has more than 256 bytes", title);
+
 inline void transfer_balance(CAccount &fromAccount, CAccount &toAccount,
                              const wasm::asset &quantity, wasm_context &context) {
 
@@ -44,10 +48,11 @@ inline void transfer_balance(CAccount &fromAccount, CAccount &toAccount,
   inline void mint_burn_balance(wasm_context &context, bool isMintOperate) {
 
       context.control_trx.run_cost += context.get_runcost();
-      auto transfer_data  = wasm::unpack<std::tuple<uint64_t, wasm::asset>>(context.trx.data);
+      auto transfer_data  = wasm::unpack<std::tuple<uint64_t, wasm::asset, optional<string> >>(context.trx.data);
 
       auto target         = std::get<0>(transfer_data);
       auto quantity       = std::get<1>(transfer_data);
+	  auto memo			  = std::get<2>(transfer_data);
 
       auto target_regid = CRegID(target);
       CHAIN_ASSERT(!target_regid.IsEmpty(), wasm_chain::regid_type_exception, "invalid target regid=%s", target_regid.ToString());
@@ -122,6 +127,7 @@ inline void transfer_balance(CAccount &fromAccount, CAccount &toAccount,
         asset.total_supply -= quantity.amount;
 
       }
+	  if (memo) CHAIN_CHECK_MEMO(memo.value(), "memo");
 
       CHAIN_ASSERT( context.database.assetCache.SetAsset(asset),
                       wasm_chain::native_contract_assert_exception,
