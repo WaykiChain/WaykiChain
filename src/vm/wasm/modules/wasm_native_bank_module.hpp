@@ -246,7 +246,7 @@ namespace wasm {
 								"asset (%s) not found from d/b",
 								symbol.to_string() )
 
-				CHAIN_ASSERT(!asset.owner_regid.IsEmpty(), wasm_chain::asset_type_exception, "asset owner is empty")
+				CHAIN_ASSERT(!asset.owner_regid.IsEmpty(), wasm_chain::asset_type_exception, "the asset not have owner")
 
 				context.require_auth( asset.owner_regid.GetIntValue() );
 
