@@ -227,7 +227,7 @@ namespace wasm {
 								wasm::symbol,
 								std::optional<wasm::regid>,
 								std::optional<string>,
-								optional<string> >>(context.trx.data);
+								std::optional<string> >>(context.trx.data);
 
 				auto symbol							= std::get<0>(params);
 		        auto new_owner                      = std::get<1>(params);
