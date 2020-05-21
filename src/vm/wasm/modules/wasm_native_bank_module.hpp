@@ -311,25 +311,28 @@ namespace wasm {
 		        auto memo                        = std::get<3>(transfer_data);
 
 				context.require_auth(from); //from auth
+				auto from_regid = CRegID(from);
+				auto to_regid = CRegID(to);
 
+				CHAIN_CHECK_REGID(from_regid, "from regid")
+				CHAIN_CHECK_REGID(to_regid, "to regid")
 				CHAIN_ASSERT(from != to,             wasm_chain::native_contract_assert_exception, "cannot transfer to self");
-		        CHAIN_ASSERT(context.is_account(to), wasm_chain::native_contract_assert_exception, "to account '%s' does not exist", wasm::name(to).to_string() );
 		        CHAIN_ASSERT(quantity.is_valid(),    wasm_chain::native_contract_assert_exception, "invalid quantity");
 		        CHAIN_ASSERT(quantity.amount > 0,    wasm_chain::native_contract_assert_exception, "must transfer positive quantity");
-		        CHAIN_ASSERT(memo.size()  <= 256,    wasm_chain::native_contract_assert_exception, "memo has more than 256 bytes");
+				CHAIN_CHECK_MEMO(memo, "memo");
 
 				//may not be txAccount since one trx can have multiple signed/authorized transfers (from->to)
-				auto spFromAccount = context.control_trx.GetAccount(context.database, CRegID(from));
+				auto spFromAccount = context.control_trx.GetAccount(context.database, from_regid);
 		        CHAIN_ASSERT( 	spFromAccount,
 								wasm_chain::account_access_exception,
 								"from account '%s' does not exist",
-								wasm::regid(from).to_string())
+								from_regid.ToString())
 
-				auto spToAccount = context.control_trx.GetAccount(context.database, CRegID(to));
+				auto spToAccount = context.control_trx.GetAccount(context.database, to_regid);
 		        CHAIN_ASSERT( 	spToAccount,
 								wasm_chain::account_access_exception,
 								"to account '%s' does not exist",
-								wasm::regid(to).to_string())
+								to_regid.ToString())
 
 				CAsset asset;
 				string symbol = quantity.symbol.code().to_string();
