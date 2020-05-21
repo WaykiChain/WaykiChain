@@ -60,7 +60,7 @@ namespace wasm {
                                  microseconds max_serialization_time ) const;
         void variant_to_binary( const type_name &type, const json_spirit::Value &var, wasm::datastream<char *> &ds,
                                 microseconds max_serialization_time ) const;
-        
+
         typedef std::function<json_spirit::Value(wasm::datastream<const char *> & , bool, bool)> unpack_function;
         typedef std::function<void( const json_spirit::Value &, wasm::datastream<char *> &, bool, bool )> pack_function;
         void add_specialized_unpack_pack( const string &name,
@@ -79,7 +79,7 @@ namespace wasm {
                 wasm::abi_serializer abis(def, max_serialization_time);
 
                 json_spirit::Value data_v;
-                json_spirit::read_string(params, data_v);
+                json_spirit::read_string_or_throw(params, data_v);
 
                 string action_type = abis.get_action_type(action);
                 if(action_type == string()){

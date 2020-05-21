@@ -92,6 +92,8 @@ namespace RPC_PARAM {
     bool ParseHex(const string &hexStr, string &binStrOut, string &errStrOut);
 
     TxType ParseTxType(const Value &jsonValue);
+
+    Value GetWasmContractArgs(const Value &jsonValue);
 }
 
 /*

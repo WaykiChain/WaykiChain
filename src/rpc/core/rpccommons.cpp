@@ -744,3 +744,20 @@ TxType RPC_PARAM::ParseTxType(const Value &jsonValue) {
         throw JSONRPCError(REJECT_INVALID, strprintf("unsupport tx_type=%s", jsonValue.get_str()));
     return ret;
 }
+
+Value RPC_PARAM::GetWasmContractArgs(const Value &jsonValue) {
+    auto valueType = jsonValue.type();
+
+    if (valueType == json_spirit::obj_type || valueType == json_spirit::array_type) {
+        return jsonValue;
+    } else if (valueType == json_spirit::str_type) {
+        json_spirit::Value newValue;
+        json_spirit::read_string_or_throw(jsonValue.get_str(), newValue);
+        auto newValueType = newValue.type();
+        if (newValueType == json_spirit::obj_type || newValueType == json_spirit::array_type) {
+            return newValue;
+        }
+    }
+    throw JSONRPCError(RPC_INVALID_PARAMETER, "The contract action args type must be object or array,"
+                                              " or string of object or array");
+}
