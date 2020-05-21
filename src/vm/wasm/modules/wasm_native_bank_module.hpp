@@ -141,9 +141,6 @@ namespace wasm {
 
 				string msg = "";
 				const auto &sym = symbol.code().to_string();
-				CHAIN_ASSERT( 	symbol.is_valid() && CAsset::CheckSymbol(AssetType::UIA, sym, msg),
-								wasm_chain::asset_type_exception,
-								"invalid UIA symbol=%s, %s", sym, msg)
 
 				auto owner_regid = CRegID(owner.value);
 				CHAIN_ASSERT( 	!owner_regid.IsEmpty(),

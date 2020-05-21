@@ -34,7 +34,7 @@ namespace wasm {
         if( c >= '0' && c <= '9' ) return true;
         if( c >= 'A' && c <= 'Z' ) return true;
         if( c >= 'a' && c <= 'z' ) return true;
-        if( c == '-' ) return true;
+        if( c == '_' ) return true;
         if( c == '@' ) return true;
         if( c == '.' ) return true;
         if( c == '#' ) return true;
@@ -56,12 +56,12 @@ namespace wasm {
             for (uint32_t i = 0; i < len; ++i) {
                 // All characters must be upper case alphabets
                 //WASM_ASSERT (str[i] >= 'A' && str[i] <= 'Z', symbol_type_exception, "%s", "invalid character in symbol name");
-                check (valid_character_in_symbol_name(str[i]),  "invalid character in symbol name, the character must be '0~9' 'A~Z' '-' '.' '#' '@'");
+                check (valid_character_in_symbol_name(str[i]),  "invalid character in symbol name, the character must be '0~9' 'A~Z' '_' '.' '#' '@'");
                 result |= (uint64_t(str[i]) << (8 * (i + 1)));
             }
             result |= uint64_t(precision);
             return result;
-        } 
+        }
 
         CHAIN_CAPTURE_AND_RETHROW( "symbol convert error: %s", str )
     }
@@ -116,7 +116,7 @@ namespace wasm {
                 //     check( false, "only uppercase letters allowed in symbol_code string" );
                 //     return;
                 // }
-                check (valid_character_in_symbol_name(*itr), "invalid character in symbol name, the character must be '0~9' 'A~Z' '-' '.' '#' '@'");
+                check (valid_character_in_symbol_name(*itr), strprintf("invalid char=%c in symbol", *itr));
                 value <<= 8;
                 value |= *itr;
             }
@@ -289,7 +289,7 @@ namespace wasm {
     public:
 
         static constexpr uint8_t max_precision = 18;
-        
+
         /**
          * Default constructor, construct a new symbol
          *
@@ -316,7 +316,7 @@ namespace wasm {
          *
          */
         constexpr symbol( symbol_code sc, uint8_t precision )
-                : value((sc.raw() << 8) | static_cast<uint64_t>(precision)) {                    
+                : value((sc.raw() << 8) | static_cast<uint64_t>(precision)) {
                     CHAIN_ASSERT( precision <= max_precision, symbol_type_exception, "precision '%d' should be <= 18", precision);
                 }
         /**
@@ -401,7 +401,7 @@ namespace wasm {
                 string name_part = s.substr(comma_pos + 1);
                 CHAIN_ASSERT( p <= max_precision, symbol_type_exception, "precision '%d' should be <= 18", p);
                 return symbol(string_to_symbol(p, name_part.c_str()));
-            } 
+            }
 
             CHAIN_CAPTURE_AND_RETHROW( "symbol convert error:'%s'", from.c_str() )
         }
