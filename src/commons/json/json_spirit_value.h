@@ -26,7 +26,7 @@ namespace json_spirit
     enum Value_type{ obj_type, array_type, str_type, bool_type, int_type, real_type, null_type };
     static const char* Value_type_name[]={"obj", "array", "str", "bool", "int", "real", "null"};
 
-    const char* get_value_type_name(const Value_type &value_type) {
+    inline const char* get_value_type_name(const Value_type &value_type) {
         if (value_type >= 0 && value_type <= json_spirit::Value_type::null_type) {
             return json_spirit::Value_type_name[value_type];
         }
