@@ -11,16 +11,24 @@ namespace wasm {
     CHAIN_ASSERT(name.size() <= MAX_ASSET_NAME_LEN, wasm_chain::asset_name_exception,              \
                  "size=%s of %s is too large than %llu", name.size(), title, MAX_ASSET_NAME_LEN)
 
+#define CHAIN_CHECK_SYMBOL_PRECISION(symbol, title)                                                \
+    CHAIN_ASSERT(symbol.precision() == 8, wasm_chain::asset_type_exception,                        \
+                 "the precision of %s=%s must be 8", title, symbol.to_string())
+
 #define CHAIN_CHECK_UIA_SYMBOL(symbol, title)                                                      \
+    {                                                                                              \
+        string msg;                                                                                \
+        CHAIN_ASSERT(CAsset::CheckSymbol(AssetType::UIA, symbol.code().to_string(), msg),          \
+                     wasm_chain::asset_type_exception, "invalid %s=%s, %s", title,                 \
+                     symbol.to_string(), msg)                                                      \
+        CHAIN_CHECK_SYMBOL_PRECISION(symbol, title)                                                \
+    }
+
+#define CHAIN_CHECK_SYMBOL(symbol, title)                                                          \
     {                                                                                              \
         CHAIN_ASSERT(symbol.is_valid(), wasm_chain::asset_type_exception, "invalid %s=%s", title,  \
                      symbol.to_string())                                                           \
-        CHAIN_ASSERT(symbol.precision() == 8, wasm_chain::asset_type_exception,                    \
-                     "the precision of %s=%s must be 8", title, symbol.to_string())                \
-        string msg;                                                                                \
-        CHAIN_ASSERT(CAsset::CheckSymbol(AssetType::UIA, symbol.code().to_string(), msg),          \
-                     wasm_chain::asset_type_exception, "invalid UIA symbol=%s, %s",                \
-                     symbol.to_string(), msg)                                                      \
+        CHAIN_CHECK_SYMBOL_PRECISION(symbol, title)                                                \
     }
 
 #define CHAIN_CHECK_MEMO(memo, title)                                                              \
