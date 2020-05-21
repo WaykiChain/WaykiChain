@@ -35,6 +35,23 @@ namespace wasm {
     CHAIN_ASSERT(memo.size() <= 256, wasm_chain::native_contract_assert_exception,                 \
                  "%s has more than 256 bytes", title);
 
+#define CHAIN_CHECK_ASSET_HAS_OWNER(asset, title)                                                  \
+    CHAIN_ASSERT(!asset.owner_regid.IsEmpty(), wasm_chain::asset_type_exception,                   \
+                 "the %s '%s' not have owner", title, asset.asset_symbol)
+
+inline shared_ptr<CAccount> get_account(wasm_context &context, const CRegID &regid, const char *err_title) {
+    auto sp_account = context.control_trx.GetAccount(context.database, regid);
+    CHAIN_ASSERT(sp_account, wasm_chain::account_access_exception, "%s '%s' does not exist",
+                 err_title, regid.ToString())
+    return sp_account;
+}
+
+inline void check_account_exist(wasm_context &context, const CRegID &regid, const char *err_title) {
+    CHAIN_ASSERT(context.control_trx.GetAccount(context.database, regid),
+                 wasm_chain::account_access_exception, "%s '%s' does not exist", err_title,
+                 regid.ToString())
+}
+
 inline void transfer_balance(CAccount &fromAccount, CAccount &toAccount,
                              const wasm::asset &quantity, wasm_context &context) {
 
@@ -63,7 +80,7 @@ inline void transfer_balance(CAccount &fromAccount, CAccount &toAccount,
 	  auto memo			  = std::get<2>(transfer_data);
 
       auto target_regid = CRegID(target);
-      CHAIN_ASSERT(!target_regid.IsEmpty(), wasm_chain::regid_type_exception, "invalid target regid=%s", target_regid.ToString());
+	  CHAIN_CHECK_REGID(target_regid, "target regid")
       CHAIN_ASSERT(quantity.is_valid(),    wasm_chain::native_contract_assert_exception, "invalid quantity");
       CHAIN_ASSERT(quantity.amount > 0,    wasm_chain::native_contract_assert_exception, "must transfer positive quantity");
 
@@ -71,7 +88,7 @@ inline void transfer_balance(CAccount &fromAccount, CAccount &toAccount,
       string symbol       = quantity.symbol.code().to_string();
       CHAIN_ASSERT( context.database.assetCache.GetAsset(symbol, asset),
                     wasm_chain::asset_type_exception,
-                    "asset (%s) not found from d/b",
+                    "asset (%s) does not exist",
                     symbol )
 
       CHAIN_ASSERT( asset.mintable,
@@ -79,19 +96,12 @@ inline void transfer_balance(CAccount &fromAccount, CAccount &toAccount,
                     "asset (%s) not mintable!",
                     symbol )
 
-      auto spAssetOwnerAcct = context.control_trx.GetAccount(context.database, asset.owner_regid);
-      CHAIN_ASSERT( spAssetOwnerAcct,
-                    wasm_chain::account_access_exception,
-                    "asset owner account (%s) not found from db",
-                    asset.owner_regid.ToString() )
+	  CHAIN_CHECK_ASSET_HAS_OWNER(asset, "asset");
+	  auto spAssetOwnerAcct = get_account(context, asset.owner_regid, "asset owner account");
 
       context.require_auth(spAssetOwnerAcct->regid.GetIntValue()); //mint or burn op must be sanctioned by asset owner
 
-      auto spTargetAcct   = context.control_trx.GetAccount(context.database, target_regid);
-      CHAIN_ASSERT( spTargetAcct,
-                    wasm_chain::account_access_exception,
-                    "target account (%s) not found from db",
-                    target_regid.ToString() )
+	  auto spTargetAcct = get_account(context, target_regid, "target account");
 
       if (isMintOperate) { //mint operation
 
@@ -116,7 +126,7 @@ inline void transfer_balance(CAccount &fromAccount, CAccount &toAccount,
       } else {            //burn operation
         //only asset owner can invoke this op!!!
         //     assets to be burnt must be first transferred to asset owner
-        CHAIN_ASSERT( target == spAssetOwnerAcct->regid.GetIntValue(),
+        CHAIN_ASSERT( target_regid == spAssetOwnerAcct->regid,
                       wasm_chain::native_contract_assert_exception,
                       "given asset owner (%s) diff from asset owner(%s) from d/b",
                       CRegID(target).ToString(), spAssetOwnerAcct->regid.ToString() );

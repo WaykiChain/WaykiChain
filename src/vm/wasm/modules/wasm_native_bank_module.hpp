@@ -149,9 +149,7 @@ namespace wasm {
 				const auto &sym = symbol.code().to_string();
 
 				auto owner_regid = CRegID(owner.value);
-				CHAIN_ASSERT( 	!owner_regid.IsEmpty(),
-								wasm_chain::regid_type_exception,
-								"invalid owner_regid=%s", owner_regid.ToString() )
+				CHAIN_CHECK_REGID(owner_regid, "owner account")
 
 				CHAIN_CHECK_ASSET_NAME(name, "asset name")
 
@@ -161,11 +159,8 @@ namespace wasm {
 								symbol.to_string() )
 
 				context.require_auth( owner.value );
-				auto sp_account = context.control_trx.GetAccount(context.database, owner_regid);
-				CHAIN_ASSERT( 	sp_account,
-								wasm_chain::account_access_exception,
-								"owner account '%s' not exist",
-								owner_regid.ToString() )
+
+				auto sp_account = get_account(context, owner_regid, "owner account");
 
 				CHAIN_ASSERT(   ProcessAssetFee(context.control_trx, context.database, sp_account.get(), "issue", context.receipts, msg),
 								wasm_chain::account_access_exception,
@@ -243,18 +238,14 @@ namespace wasm {
 				CAsset asset;
 				CHAIN_ASSERT( 	context.database.assetCache.GetAsset(symbol.code().to_string(), asset),
 								wasm_chain::asset_type_exception,
-								"asset (%s) not found from d/b",
+								"asset (%s) does not exist",
 								symbol.to_string() )
 
-				CHAIN_ASSERT(!asset.owner_regid.IsEmpty(), wasm_chain::asset_type_exception, "the asset not have owner")
+				CHAIN_CHECK_ASSET_HAS_OWNER(asset, "asset");
 
 				context.require_auth( asset.owner_regid.GetIntValue() );
 
-				auto sp_account = context.control_trx.GetAccount(context.database, asset.owner_regid);
-				CHAIN_ASSERT( 	sp_account,
-								wasm_chain::account_access_exception,
-								"owner account '%s' not exist",
-								asset.owner_regid.ToString() )
+				auto sp_account = get_account(context, asset.owner_regid, "owner account");
 
 				string msg;
 				CHAIN_ASSERT(   ProcessAssetFee(context.control_trx, context.database, sp_account.get(), "update", context.receipts, msg),
@@ -266,11 +257,7 @@ namespace wasm {
 				if (new_owner) {
 					auto new_owner_regid = CRegID(new_owner->value);
 					CHAIN_CHECK_REGID(new_owner_regid, "new owner regid")
-		        	CHAIN_ASSERT( context.control_trx.GetAccount(context.database, new_owner_regid),
-								wasm_chain::account_access_exception,
-								"new_owner account '%s' does not exist",
-								wasm::regid(new_owner->value).to_string() )
-
+					check_account_exist(context, new_owner_regid, "new owner account");
 					to_update 			= true;
 					asset.owner_regid  	= new_owner_regid;
 				}
@@ -322,24 +309,14 @@ namespace wasm {
 				CHAIN_CHECK_MEMO(memo, "memo");
 
 				//may not be txAccount since one trx can have multiple signed/authorized transfers (from->to)
-				auto spFromAccount = context.control_trx.GetAccount(context.database, from_regid);
-		        CHAIN_ASSERT( 	spFromAccount,
-								wasm_chain::account_access_exception,
-								"from account '%s' does not exist",
-								from_regid.ToString())
-
-				auto spToAccount = context.control_trx.GetAccount(context.database, to_regid);
-		        CHAIN_ASSERT( 	spToAccount,
-								wasm_chain::account_access_exception,
-								"to account '%s' does not exist",
-								to_regid.ToString())
+				auto spFromAccount = get_account(context, from_regid, "from account");
+				auto spToAccount = get_account(context, to_regid, "to account");
 
 				CAsset asset;
 				string symbol = quantity.symbol.code().to_string();
       			CHAIN_ASSERT( 	context.database.assetCache.GetAsset(symbol, asset),
 								wasm_chain::asset_type_exception,
-								"asset (%s) not found from d/b",
-								symbol )
+								"asset (%s) does not exist", symbol )
 
 				transfer_balance( *spFromAccount, *spToAccount, quantity, context );
 
