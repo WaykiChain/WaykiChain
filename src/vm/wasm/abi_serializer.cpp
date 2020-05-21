@@ -118,7 +118,7 @@ namespace wasm {
     void abi_serializer::set_abi( const abi_def &abi, const microseconds &max_serialization_time ) {
         wasm::abi_traverse_context ctx(max_serialization_time);
 
-        CHAIN_ASSERT( boost::starts_with(abi.version, "wasm::abi/1."), wasm_chain::unsupported_abi_version_exception, 
+        CHAIN_ASSERT( boost::starts_with(abi.version, "wasm::abi/1."), wasm_chain::unsupported_abi_version_exception,
                       "ABI has an unsupported version");
         typedefs.clear();
         structs.clear();
@@ -148,11 +148,11 @@ namespace wasm {
          *  The ABI vector may contain duplicates which would make it
          *  an invalid ABI
          */
-        CHAIN_ASSERT( typedefs.size() == abi.types.size(),  wasm_chain::duplicate_abi_type_def_exception, 
+        CHAIN_ASSERT( typedefs.size() == abi.types.size(),  wasm_chain::duplicate_abi_type_def_exception,
                       "Duplicate type definition detected");
-        CHAIN_ASSERT( structs.size() == abi.structs.size(), wasm_chain::duplicate_abi_struct_def_exception, 
+        CHAIN_ASSERT( structs.size() == abi.structs.size(), wasm_chain::duplicate_abi_struct_def_exception,
                       "Duplicate struct definition detected");
-        CHAIN_ASSERT( actions.size() == abi.actions.size(), wasm_chain::duplicate_abi_action_def_exception, 
+        CHAIN_ASSERT( actions.size() == abi.actions.size(), wasm_chain::duplicate_abi_action_def_exception,
                       "Duplicate action definition detected");
         CHAIN_ASSERT( tables.size() == abi.tables.size(),   wasm_chain::duplicate_abi_table_def_exception,
                       "Duplicate table definition detected");
@@ -171,8 +171,8 @@ namespace wasm {
 
     int abi_serializer::get_integer_size( const type_name &type ) const {
         string stype = type;
-        CHAIN_ASSERT( is_integer(type), 
-                      wasm_chain::invalid_type_inside_abi, 
+        CHAIN_ASSERT( is_integer(type),
+                      wasm_chain::invalid_type_inside_abi,
                       "'%s' is not an integer type",
                       stype.data());
 
@@ -230,7 +230,7 @@ namespace wasm {
     const struct_def &abi_serializer::get_struct( const type_name &type ) const {
         auto itr = structs.find(resolve_type(type));
 
-        CHAIN_ASSERT( itr != structs.end(), 
+        CHAIN_ASSERT( itr != structs.end(),
                       wasm_chain::invalid_type_inside_abi,
                       "Unknown struct '%s'",
                       type.data());
@@ -270,8 +270,8 @@ namespace wasm {
             try {
                 ds >> size;
             }CHAIN_RETHROW_EXCEPTIONS(wasm_chain::unpack_exception, "Unable to unpack size of array '%s' ", rtype)
-            
-            CHAIN_ASSERT( size < max_abi_array_size, 
+
+            CHAIN_ASSERT( size < max_abi_array_size,
                           wasm_chain::array_size_exceeds_exception,
                           "Array size %u must be smaller than max %d", size.value,
                           max_abi_array_size);
@@ -338,7 +338,7 @@ namespace wasm {
         }
 
         if(!is_optional){
-            CHAIN_THROW( wasm_chain::pack_exception, 
+            CHAIN_THROW( wasm_chain::pack_exception,
                          "Missing field '%s' in input object while processing struct '%s'",
                          field, s);
         }
@@ -420,7 +420,7 @@ namespace wasm {
                 }
 
             } else {
-                CHAIN_THROW( wasm_chain::invalid_type_inside_abi, 
+                CHAIN_THROW( wasm_chain::invalid_type_inside_abi,
                              "Unknown type '%s', The type should be built-in , array or struct", type);
             }
         }
@@ -433,8 +433,8 @@ namespace wasm {
         ctx.check_deadline();
 
         if (!_is_type(type, ctx)) {
-            bytes b;
-            return b;
+            CHAIN_THROW( wasm_chain::invalid_type_inside_abi,
+                            "Unknown type '%s', The type should be built-in , array or struct", type);
         }
 
         bytes temp(1024 * 1024);
@@ -558,9 +558,9 @@ namespace wasm {
     }
 
     void abi_traverse_context::check_deadline() const {
-        CHAIN_ASSERT( system_clock::now() < deadline, 
+        CHAIN_ASSERT( system_clock::now() < deadline,
                       wasm_chain::abi_serialization_deadline_exception,
-                      "Serialization time limit %ldus exceeded", 
+                      "Serialization time limit %ldus exceeded",
                       max_serialization_time_us.count());
     }
 
