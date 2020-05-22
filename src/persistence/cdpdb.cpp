@@ -116,7 +116,7 @@ list<CUserCDP> CCdpDBCache::GetCdpListByCollateralRatio(const CCdpCoinPair &cdpC
     assert(uint64_t(ratio * CDP_BASE_RATIO_BOOST) < UINT64_MAX);
     uint64_t ratioBoost = uint64_t(ratio * CDP_BASE_RATIO_BOOST);
     list<CUserCDP> cdpList;
-    auto dbIt = MakeDbIterator(cdp_ratio_index_cache);
+    auto dbIt = MakeDbPrefixIterator(cdp_ratio_index_cache, cdpCoinPair);
     for (dbIt->First(); dbIt->IsValid(); dbIt->Next()) {
         if (std::get<1>(dbIt->GetKey()).value > ratioBoost) {
             break;
