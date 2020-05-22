@@ -25,7 +25,7 @@ using namespace dex;
 
 class CCdpCoinPairDetail {
 public:
-    const CCdpCoinPair &coin_pair;
+    CCdpCoinPair coin_pair;
     bool is_price_active = false;
     bool is_staked_perm = false;
     uint64_t bcoin_price = 0;
