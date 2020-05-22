@@ -145,38 +145,6 @@ namespace dex {
         void ToJson(json_spirit::Object &obj) const;
     };
 
-
-    // for all active order db: orderId -> CDEXActiveOrder
-    struct CDEXActiveOrder {
-        OrderGenerateType generate_type     = EMPTY_ORDER;  //!< generate type
-        CTxCord  tx_cord                   = CTxCord();    //!< related tx cord
-        uint64_t total_deal_coin_amount    = 0;            //!< total deal coin amount
-        uint64_t total_deal_asset_amount   = 0;            //!< total deal asset amount
-
-        CDEXActiveOrder() {}
-
-        CDEXActiveOrder(OrderGenerateType generateType, const CTxCord &txCord):
-            generate_type(generateType), tx_cord(txCord)
-        {}
-
-        IMPLEMENT_SERIALIZE(
-            READWRITE((uint8_t&)generate_type);
-            READWRITE(tx_cord);
-            READWRITE(VARINT(total_deal_coin_amount));
-            READWRITE(VARINT(total_deal_asset_amount));
-        )
-
-        bool IsEmpty() const {
-            return generate_type == EMPTY_ORDER;
-        }
-        void SetEmpty() {
-            generate_type  = EMPTY_ORDER;
-            total_deal_coin_amount    = 0;
-            total_deal_asset_amount   = 0;
-            tx_cord.SetEmpty();
-        }
-    };
-
     // order txid -> sys order data
     // order txid:
     //   (1) CCDPStakeTx, create sys buy market order for WGRT by WUSD when alter CDP and the interest is WUSD
