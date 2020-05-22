@@ -203,6 +203,7 @@ extern Value submitgovernorupdateproposal(const Array& params, bool fHelp);
 extern Value submitproposalapprovaltx(const Array& params, bool fHelp);
 extern Value submitaxccoinproposal(const Array& params, bool fHelp);
 extern Value submitdiaissueproposal(const Array& params, bool fHelp);
+extern Value submitcancelorderproposal(const Array& params, bool fHelp);
 
 extern Value getcdpparam(const Array& params, bool fHelp);
 extern Value getproposal(const Array& params, bool fHelp);
