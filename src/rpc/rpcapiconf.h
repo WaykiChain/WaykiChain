@@ -154,7 +154,7 @@ static const CRPCCommand vRPCCommands[] =
     { "gettotalbpssize",                &gettotalbpssize,                   true,       false,      false   },
     { "getfeedcoinpairs",               &getfeedcoinpairs,                  true,       false,      false   },
         /* for asset */
-    { "submitassetissuetx",             &submitassetissuetx,                false,      false,      false   },
+    // { "submitassetissuetx",             &submitassetissuetx,                false,      false,      false   },
     // { "submitassetupdatetx",            &submitassetupdatetx,               false,      false,      false   },
     { "getassetinfo",                   &getassetinfo,                      true,       false,      false   },
     { "listassets",                     &listassets,                        true,       false,      false   },
