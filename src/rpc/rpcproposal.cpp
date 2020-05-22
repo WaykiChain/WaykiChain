@@ -946,7 +946,6 @@ Value submitcancelorderproposal(const Array& params, bool fHelp) {
     const CUserID& txUid = RPC_PARAM::GetUserId(params[0], true);
     const uint256& orderId   = RPC_PARAM::GetTxid(params[1], "order_id");
     ComboMoney txFee          = RPC_PARAM::GetFee(params, 2, PROPOSAL_REQUEST_TX);
-    auto [txFee, minTxFeeAmount]   = RPC_PARAM::ParseTxFee(params, 2, DEX_CANCEL_ORDER_TX);
 
     // check active order tx
     RPC_PARAM::CheckActiveOrderExisted(*pCdMan->pDexCache, orderId);
@@ -955,14 +954,12 @@ Value submitcancelorderproposal(const Array& params, bool fHelp) {
     CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, txUid);
     RPC_PARAM::CheckAccountBalance(account, txFee.symbol, SUB_FREE, txFee.GetAmountInSawi());
 
-    CAccount ownerAccount = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, orderId);
-
     CProposalRequestTx tx;
     tx.txUid        = txUid;
     tx.llFees       = txFee.GetAmountInSawi();
     tx.fee_symbol    = txFee.symbol;
     tx.valid_height = validHeight;
-    tx.proposal.sp_proposal = std::make_shared<CGovAssetIssueProposal>(orderId);
+    tx.proposal.sp_proposal = std::make_shared<CGovCancelOrderProposal>(orderId);
 
     return SubmitTx(account.keyid, tx);
 
