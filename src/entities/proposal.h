@@ -45,7 +45,8 @@ enum ProposalType: uint8_t {
     GOV_AXC_IN          = 12, // atomic-cross-chain swap in
     GOV_AXC_OUT         = 13, // atomic-cross-chain swap out
     GOV_AXC_COIN        = 14,
-    GOV_ASSET_ISSUE     = 15
+    GOV_ASSET_ISSUE     = 15,
+    GOV_CANCEL_ORDER    = 16
 };
 
 enum ProposalOperateType: uint8_t {
@@ -664,6 +665,39 @@ struct CGovAssetIssueProposal: CProposal {
 
 };
 
+/**
+ * support canceling other user's order by order_id
+ */
+struct CGovCancelOrderProposal: CProposal {
+    uint256 order_id;
+
+    CGovCancelOrderProposal() : CProposal(ProposalType::GOV_CANCEL_ORDER) {}
+    CGovCancelOrderProposal(const uint256 &orderIdIn)
+        : CProposal(ProposalType::GOV_CANCEL_ORDER), order_id(orderIdIn) {}
+
+    IMPLEMENT_SERIALIZE(
+            READWRITE(VARINT(expiry_block_height));
+            READWRITE(approval_min_count);
+            READWRITE(order_id);
+    );
+
+    Object ToJson() override {
+        Object obj = CProposal::ToJson();
+        obj.push_back(Pair("order_id", order_id.ToString()));
+        return obj;
+    }
+
+    std::string ToString() override {
+        std::string baseString = CProposal::ToString();
+        return strprintf("%s, order_id=%s", baseString, order_id.ToString());
+    }
+
+    shared_ptr<CProposal> GetNewInstance() override { return make_shared<CGovCancelOrderProposal>(*this); };
+
+    bool CheckProposal(CTxExecuteContext& context, CBaseTx& tx) override;
+    bool ExecuteProposal(CTxExecuteContext& context, CBaseTx& tx) override;
+};
+
 struct CProposalStorageBean {
     shared_ptr<CProposal> sp_proposal = nullptr;
 
@@ -742,6 +776,9 @@ struct CProposalStorageBean {
 
             case GOV_ASSET_ISSUE:
                 ::Serialize(os, *((CGovAssetIssueProposal  *) (sp_proposal.get())), nType, nVersion);
+                break;
+            case GOV_CANCEL_ORDER:
+                ::Serialize(os, *((CGovCancelOrderProposal  *) (sp_proposal.get())), nType, nVersion);
                 break;
 
             default:
@@ -839,10 +876,15 @@ struct CProposalStorageBean {
                 break;
             }
 
-
             case GOV_ASSET_ISSUE: {
                 sp_proposal = std:: make_shared<CGovAssetIssueProposal>();
                 ::Unserialize(is,  *((CGovAssetIssueProposal *)(sp_proposal.get())), nType, nVersion);
+                break;
+            }
+
+            case GOV_CANCEL_ORDER: {
+                sp_proposal = std:: make_shared<CGovCancelOrderProposal>();
+                ::Unserialize(is,  *((CGovCancelOrderProposal *)(sp_proposal.get())), nType, nVersion);
                 break;
             }
 
