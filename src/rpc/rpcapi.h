@@ -66,7 +66,7 @@ extern Value getscoininfo(const Array& params, bool fHelp);
 extern Value getcdpinfo(const Array& params, bool fHelp);
 extern Value getusercdp(const Array& params, bool fHelp);
 
-extern Value submitassetissuetx(const Array& params, bool fHelp);
+// extern Value submitassetissuetx(const Array& params, bool fHelp);
 // extern Value submitassetupdatetx(const Array& params, bool fHelp);
 
 extern Value getassetinfo(const Array& params, bool fHelp);
