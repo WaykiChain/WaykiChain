@@ -926,16 +926,16 @@ Value submitcancelorderproposal(const Array& params, bool fHelp) {
     if(fHelp || params.size() < 2 || params.size() > 3){
 
         throw runtime_error(
-                "submitdiaissueproposal \"sender\"  \"asset_symbol\" \"owner_uid\" \"total_supply\" [\"fee\"]\n"
+                "submitcancelorderproposal \"sender\"  \"order_id\" [\"fee\"]\n"
                 "issue a dia asset\n"
                 "\nArguments:\n"
                 "1.\"sender\":        (string,  required) the tx sender's address\n"
                 "2.\"order_id\":      (string,  required) the order id to be canceled \n"
                 "5.\"fee\":           (combomoney, optional) the tx fee \n"
                 "\nExamples:\n"
-                + HelpExampleCli("submitdiaissueproposal", "0-1  a28fa923a342e052ee7f91fab2e5cce83c69871b8e56c4b6bbfa2f29762fba89")
+                + HelpExampleCli("submitcancelorderproposal", "0-1  a28fa923a342e052ee7f91fab2e5cce83c69871b8e56c4b6bbfa2f29762fba89")
                 + "\nAs json rpc call\n"
-                + HelpExampleRpc("submitdiaissueproposal", R"("0-1", "a28fa923a342e052ee7f91fab2e5cce83c69871b8e56c4b6bbfa2f29762fba89")")
+                + HelpExampleRpc("submitcancelorderproposal", R"("0-1", "a28fa923a342e052ee7f91fab2e5cce83c69871b8e56c4b6bbfa2f29762fba89")")
 
         );
 
