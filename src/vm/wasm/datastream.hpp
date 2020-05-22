@@ -818,6 +818,28 @@ namespace wasm {
     }
 
 /**
+ *  Deserialize a vector of bool
+ *
+ *  @brief Deserialize a vector of bool
+ *  @param ds - The stream to read
+ *  @param v - The destination for deserialized value
+ *  @tparam DataStream - Type of datastream
+ *  @return DataStream& - Reference to the datastream
+ */
+    template<typename DataStream, std::enable_if_t<_datastream_detail::is_primitive<typename DataStream::wasm>()> * = nullptr>
+    DataStream &operator>>( DataStream &ds, std::vector<bool> &v ) {
+        unsigned_int s;
+        ds >> s;
+        v.resize(s.value);
+        bool tmp;
+        for (size_t i = 0; i < s.value; i++) {
+            ds >> tmp;
+            v[i] = tmp;
+        }
+        return ds;
+    }
+
+/**
  *  Deserialize a vector of char
  *
  *  @brief Deserialize a vector of char
