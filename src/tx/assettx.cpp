@@ -385,7 +385,7 @@ bool CUserUpdateAssetTx::ExecuteTx(CTxExecuteContext &context) {
     }
 
     string errMsg;
-    if (!ProcessAssetFee(*this, cw, sp_tx_account.get(), ASSET_ACTION_ISSUE, receipts, errMsg)) {
+    if (!ProcessAssetFee(*this, cw, sp_tx_account.get(), ASSET_ACTION_UPDATE, receipts, errMsg)) {
         return state.DoS(100, ERRORMSG("process asset fee error: %s", errMsg),
                 REJECT_INVALID, "process-asset-fee-failed");
     }
