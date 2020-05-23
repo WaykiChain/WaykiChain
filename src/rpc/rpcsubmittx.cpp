@@ -172,7 +172,7 @@ Value submitsetcodetx( const Array &params, bool fHelp ) {
             tx.valid_height = chainActive.Tip()->height;
 
             tx.inline_transactions.push_back({wasmio, wasm::N(setcode), std::vector<permission>{{payer.value, wasmio_owner}},
-                                             wasm::pack(std::tuple(contract, payer, vm, code, abi, ""))});
+                                             wasm::pack(std::tuple(contract, payer, (uint8_t)vm, code, abi, ""))});
 
             //tx.signatures.push_back({payer_regid.value, vector<uint8_t>()});
             CHAIN_ASSERT( wallet->Sign(payer_account.keyid, tx.GetHash(), tx.signature),
