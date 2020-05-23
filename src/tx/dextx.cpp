@@ -174,6 +174,8 @@ namespace dex {
                 taker_fee_ratio,
             };
         }
+        orderDetail.order_src.src_type = "user";
+        orderDetail.order_src.src_id = txid;
         // other fields keep as is
 
         if (!cw.dexCache.CreateActiveOrder(txid, orderDetail))
@@ -972,6 +974,7 @@ namespace dex {
     bool CDealItemExecuter::ProcessWusdFrictionFee(CAccount &fromAccount, uint64_t amount, uint64_t frictionFee) {
 
         CCacheWrapper &cw = *context.pCw; CValidationState &state = *context.pState;
+        const auto &txid = tx.GetHash();
         if (frictionFee > 0) {
 
             uint64_t reserveScoins = frictionFee / 2;
@@ -996,9 +999,10 @@ namespace dex {
                                     UPDATE_ACCOUNT_FAIL, "operate-fcoin-genesis-account-failed");
                 }
                 CHashWriter hashWriter(SER_GETHASH, 0);
-                hashWriter << tx.GetHash() << SYMB::WUSD << CFixedUInt32(idx);
-                uint256 orderId = hashWriter.GetHash();
-                auto pSysBuyMarketOrder = dex::CSysOrder::CreateBuyMarketOrder(context.GetTxCord(), SYMB::WUSD, SYMB::WGRT, buyScoins);
+                hashWriter << txid << SYMB::WUSD << CFixedUInt32(idx);
+                uint256 orderId         = hashWriter.GetHash();
+                auto pSysBuyMarketOrder = dex::CSysOrder::CreateBuyMarketOrder(
+                    context.GetTxCord(), SYMB::WUSD, SYMB::WGRT, buyScoins, {"settle", txid});
                 if (!cw.dexCache.CreateActiveOrder(orderId, *pSysBuyMarketOrder)) {
                     return state.DoS(100, ERRORMSG("create system buy order failed, orderId=%s", orderId.ToString()),
                                     CREATE_SYS_ORDER_FAILED, "create-sys-order-failed");

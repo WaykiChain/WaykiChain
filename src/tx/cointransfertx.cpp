@@ -120,6 +120,7 @@ bool CCoinTransferTx::CheckTx(CTxExecuteContext &context) {
 bool CCoinTransferTx::ExecuteTx(CTxExecuteContext &context) {
     CCacheWrapper &cw       = *context.pCw;
     CValidationState &state = *context.pState;
+    const auto &txid = GetHash();
 
     for (size_t i = 0; i < transfers.size(); i++) {
         const auto &transfer = transfers[i];
@@ -162,9 +163,10 @@ bool CCoinTransferTx::ExecuteTx(CTxExecuteContext &context) {
                                         UPDATE_ACCOUNT_FAIL, "operate-fcoin-genesis-account-failed");
                     }
                     CHashWriter hashWriter(SER_GETHASH, 0);
-                    hashWriter << GetHash() << SYMB::WUSD << CFixedUInt32(i);
+                    hashWriter << txid << SYMB::WUSD << CFixedUInt32(i);
                     uint256 orderId = hashWriter.GetHash();
-                    auto pSysBuyMarketOrder = dex::CSysOrder::CreateBuyMarketOrder(context.GetTxCord(), SYMB::WUSD, SYMB::WGRT, buyScoins);
+                    auto pSysBuyMarketOrder = dex::CSysOrder::CreateBuyMarketOrder(
+                        context.GetTxCord(), SYMB::WUSD, SYMB::WGRT, buyScoins, {"send", txid});
                     if (!cw.dexCache.CreateActiveOrder(orderId, *pSysBuyMarketOrder)) {
                         return state.DoS(100, ERRORMSG("create system buy order failed, orderId=%s", orderId.ToString()),
                                         CREATE_SYS_ORDER_FAILED, "create-sys-order-failed");

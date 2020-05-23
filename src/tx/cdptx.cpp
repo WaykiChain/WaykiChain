@@ -98,7 +98,7 @@ namespace cdp_util {
         }
 
         auto pSysBuyMarketOrder = dex::CSysOrder::CreateBuyMarketOrder(
-            context.GetTxCord(), cdp.scoin_symbol, SYMB::WGRT, scoinsInterest);
+            context.GetTxCord(), cdp.scoin_symbol, SYMB::WGRT, scoinsInterest, {"cdp_interest", cdp.cdpid});
 
         if (!cw.dexCache.CreateActiveOrder(orderId, *pSysBuyMarketOrder)) {
             return state.DoS(100, ERRORMSG("%s, create system buy order failed", TX_OBJ_ERR_TITLE(tx)),
@@ -861,7 +861,8 @@ bool CCDPLiquidateTx::ProcessPenaltyFees(CTxExecuteContext &context, const CUser
                             UPDATE_ACCOUNT_FAIL, "operate-fcoin-genesis-account-failed");
         }
 
-        auto pSysBuyMarketOrder = dex::CSysOrder::CreateBuyMarketOrder(txCord, cdp.scoin_symbol, SYMB::WGRT, leftScoinPenalty);
+        auto pSysBuyMarketOrder = dex::CSysOrder::CreateBuyMarketOrder(
+            txCord, cdp.scoin_symbol, SYMB::WGRT, leftScoinPenalty, {"cdp_penalty", cdp.cdpid});
         if (!cw.dexCache.CreateActiveOrder(GetHash(), *pSysBuyMarketOrder)) {
             return state.DoS(100, ERRORMSG("%s, create system buy order failed", TX_ERR_TITLE),
                             CREATE_SYS_ORDER_FAILED, "create-sys-order-failed");

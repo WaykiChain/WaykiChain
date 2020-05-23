@@ -100,6 +100,11 @@ namespace dex {
         Object ToJson() const;
     };
 
+    struct CDEXOrderSrc {
+        string src_type; //!< src type of order
+        uint256 src_id;  //!< src id, such as txid
+    };
+
     struct CDEXOrderDetail {
         OrderGenerateType generate_type = EMPTY_ORDER;       //!< generate type
         dex::OrderType order_type       = dex::ORDER_LIMIT_PRICE; //!< order type
@@ -115,6 +120,7 @@ namespace dex {
         CRegID user_regid                = CRegID();        //!< user regid
         uint64_t total_deal_coin_amount  = 0;               //!< total deal coin amount
         uint64_t total_deal_asset_amount = 0;               //!< total deal asset amount
+        CDEXOrderSrc    order_src;
 
     public:
         IMPLEMENT_SERIALIZE(
@@ -132,6 +138,8 @@ namespace dex {
             READWRITE(user_regid);
             READWRITE(VARINT(total_deal_coin_amount));
             READWRITE(VARINT(total_deal_asset_amount));
+            READWRITE(order_src.src_type);
+            READWRITE(order_src.src_id);
         )
 
         bool IsEmpty() const {
@@ -155,13 +163,14 @@ namespace dex {
     class CSysOrder {
     public:// create functions
         static shared_ptr<CDEXOrderDetail> CreateBuyMarketOrder(const CTxCord &txCord, const TokenSymbol &coinSymbol,
-            const TokenSymbol &assetSymbol, uint64_t coinAmountIn);
+            const TokenSymbol &assetSymbol, uint64_t coinAmountIn, const CDEXOrderSrc &src);
 
         static shared_ptr<CDEXOrderDetail> CreateSellMarketOrder(const CTxCord &txCord, const TokenSymbol &coinSymbol,
-            const TokenSymbol &assetSymbol, uint64_t assetAmountIn);
+            const TokenSymbol &assetSymbol, uint64_t assetAmountIn, const CDEXOrderSrc &src);
 
         static shared_ptr<CDEXOrderDetail> Create(OrderType orderType, OrderSide orderSide, const CTxCord &txCord,
-            const TokenSymbol &coinSymbol, const TokenSymbol &assetSymbol, uint64_t coiAmountIn, uint64_t assetAmountIn);
+            const TokenSymbol &coinSymbol, const TokenSymbol &assetSymbol, uint64_t coiAmountIn, uint64_t assetAmountIn,
+            const CDEXOrderSrc &src);
     };
 
 }

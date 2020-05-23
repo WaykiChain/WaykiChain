@@ -432,7 +432,7 @@ bool CCdpForceLiquidator::SellAssetToRiskRevervePool(const CUserCDP &cdp,
     }
 
     pOrderOut = dex::CSysOrder::CreateSellMarketOrder(
-        CTxCord(context.height, context.index), coinSymbol, assetSymbol, amount);
+        CTxCord(context.height, context.index), coinSymbol, assetSymbol, amount, {"cdp_asset", cdp.cdpid});
 
     if (!context.pCw->dexCache.CreateActiveOrder(orderId, *pOrderOut)) {
         return context.pState->DoS(100, ERRORMSG("create sys sell market order failed, cdpid=%s, "
