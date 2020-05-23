@@ -324,7 +324,8 @@ bool CUniversalTx::ExecuteTx(CTxExecuteContext &context) {
             trx_current_str = json_spirit::write(trx);
         }
         CHAIN_EXCEPTION_APPEND_LOG( e, log_level::warn, "%s", trx_current_str)
-        return execute_tx_to_return.DoS(100, ERRORMSG(e.what()), e.code(), e.to_detail_string());
+        auto detail_msg = e.to_detail_string();
+        return execute_tx_to_return.DoS(100, ERRORMSG("%s, %s", e.what(), detail_msg), e.code(), detail_msg);
     }
 
     return true;
