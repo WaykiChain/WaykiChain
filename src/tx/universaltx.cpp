@@ -385,7 +385,7 @@ string CUniversalTx::ToString(CAccountDBCache &accountCache) {
             "txType=%s, hash=%s, ver=%d, payer=%s, llFees=%llu, contract=%s, action=%s, arguments=%s, "
             "valid_height=%d",
             GetTxType(nTxType), GetHash().ToString(), nVersion, payer.regid.ToString(), llFees,
-            wasm::name(trx.contract).to_string(), wasm::name(trx.action).to_string(),
+            CRegID(trx.contract).ToString(), wasm::name(trx.action).to_string(),
             HexStr(trx.data), valid_height);
 }
 
