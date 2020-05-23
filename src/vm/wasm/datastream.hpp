@@ -60,7 +60,7 @@ namespace wasm {
          *  @return true
          */
         inline bool read( char *d, size_t s ) {
-            check( size_t(_end - _pos) >= (size_t)s, "read" );
+            check( size_t(_end - _pos) >= (size_t)s, "datastream read out of bounds" );
             memcpy(d, _pos, s);
             _pos += s;
             return true;
@@ -74,7 +74,7 @@ namespace wasm {
          *  @return true
          */
         inline bool write( const char *d, size_t s ) {
-            check( _end - _pos >= (int32_t)s, "write" );
+            check( _end - _pos >= (int32_t)s, "datastream write out of bounds" );
             memcpy((void *) _pos, d, s);
             _pos += s;
             return true;
@@ -88,7 +88,7 @@ namespace wasm {
          *  @return true
          */
         inline bool put( char c ) {
-            check( _pos < _end, "put" );
+            check( _pos < _end, "datastream put out of bounds" );
             *_pos = c;
             ++_pos;
             return true;
@@ -111,7 +111,7 @@ namespace wasm {
          *  @return true
          */
         inline bool get( char &c ) {
-            check( _pos < _end, "get" );
+            check( _pos < _end, "datastream get out of bounds" );
             c = *_pos;
             ++_pos;
             return true;
