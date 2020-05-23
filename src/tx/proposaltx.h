@@ -19,7 +19,7 @@ public:
     CProposalRequestTx(): CBaseTx(PROPOSAL_REQUEST_TX) {}
 
     CProposalRequestTx(const CUserID &txUidIn, int32_t validHeightIn, const TokenSymbol &feeSymbolIn,
-                    uint64_t feesIn, CProposalStorageBean proposalIn ) : 
+                    uint64_t feesIn, CProposalStorageBean proposalIn ) :
                     CBaseTx(PROPOSAL_REQUEST_TX, txUidIn, validHeightIn, feeSymbolIn, feesIn), proposal(proposalIn) {}
 
     ~CProposalRequestTx() {}
@@ -42,7 +42,7 @@ public:
 
     std::shared_ptr<CBaseTx> GetNewInstance() const override { return std::make_shared<CProposalRequestTx>(*this); }
     string ToString(CAccountDBCache &accountCache) override;            // logging usage
-    Object ToJson(const CAccountDBCache &accountCache) const override;  // json-rpc usage
+    Object ToJson(CCacheWrapper &cw) const override;  // json-rpc usage
     bool CheckTx(CTxExecuteContext &context) override;
     bool ExecuteTx(CTxExecuteContext &context) override;
 };
@@ -82,7 +82,7 @@ public:
 
     std::shared_ptr<CBaseTx> GetNewInstance() const override { return std::make_shared<CProposalApprovalTx>(*this); }
     string ToString(CAccountDBCache &accountCache) override;            // logging usage
-    Object ToJson(const CAccountDBCache &accountCache) const override;  // json-rpc usage
+    Object ToJson(CCacheWrapper &cw) const override;  // json-rpc usage
     bool CheckTx(CTxExecuteContext &context) override;
     bool ExecuteTx(CTxExecuteContext &context) override;
 };

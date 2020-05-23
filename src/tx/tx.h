@@ -192,7 +192,7 @@ public:
     virtual void SerializeForHash(CHashWriter &hw) const = 0;
     virtual std::shared_ptr<CBaseTx> GetNewInstance() const           = 0;
     virtual string ToString(CAccountDBCache &accountCache)            = 0;
-    virtual Object ToJson(const CAccountDBCache &accountCache) const;
+    virtual Object ToJson(CCacheWrapper &cw) const;
 
     virtual bool GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds);
 
@@ -269,7 +269,7 @@ struct SingleTransfer {
     )
     string ToString(const CAccountDBCache &accountCache) const;
 
-    Object ToJson(const CAccountDBCache &accountCache) const;
+    Object ToJson(CCacheWrapper &cw) const;
 };
 
 class CSignaturePair {

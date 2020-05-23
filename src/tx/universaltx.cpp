@@ -389,12 +389,12 @@ string CUniversalTx::ToString(CAccountDBCache &accountCache) {
             HexStr(trx.data), valid_height);
 }
 
-Object CUniversalTx::ToJson(const CAccountDBCache &accountCache) const {
+Object CUniversalTx::ToJson(CCacheWrapper &cw) const {
 
     if (inline_transactions.size() == 0) return Object{};
 
     CAccount payer;
-    accountCache.GetAccount(txUid, payer);
+    cw.accountCache.GetAccount(txUid, payer);
 
     Object result;
     result.push_back(Pair("txid",             GetHash().GetHex()));

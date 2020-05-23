@@ -90,8 +90,8 @@ static bool ProcessDexOperatorFee(CBaseTx &tx, CTxExecuteContext& context, const
 
 
 
-Object CDEXOperatorRegisterTx::ToJson(const CAccountDBCache &accountCache) const {
-    Object result = CBaseTx::ToJson(accountCache);
+Object CDEXOperatorRegisterTx::ToJson(CCacheWrapper &cw) const {
+    Object result = CBaseTx::ToJson(cw);
 
     result.push_back(Pair("owner_uid", data.owner_uid.ToString()));
     result.push_back(Pair("fee_receiver_uid", data.fee_receiver_uid.ToString()));
@@ -352,9 +352,9 @@ string CDEXOperatorUpdateTx::ToString(CAccountDBCache &accountCache) {
     return "";
 }
 
-Object CDEXOperatorUpdateTx::ToJson(const CAccountDBCache &accountCache) const {
+Object CDEXOperatorUpdateTx::ToJson(CCacheWrapper &cw) const {
 
-    Object result = CBaseTx::ToJson(accountCache);
+    Object result = CBaseTx::ToJson(cw);
 
     result.push_back(Pair("update_field", update_data.field));
     result.push_back(Pair("update_value", update_data.ValueToString()));

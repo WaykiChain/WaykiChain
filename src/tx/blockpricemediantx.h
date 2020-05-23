@@ -133,7 +133,7 @@ public:
     virtual std::shared_ptr<CBaseTx> GetNewInstance() const { return std::make_shared<CBlockPriceMedianTx>(*this); }
 
     virtual string ToString(CAccountDBCache &accountCache);
-    virtual Object ToJson(const CAccountDBCache &accountCache) const;
+    virtual Object ToJson(CCacheWrapper &cw) const;
 
     bool GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds) { return true; }
 

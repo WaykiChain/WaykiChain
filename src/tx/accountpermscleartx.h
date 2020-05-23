@@ -40,8 +40,8 @@ public:
     string ToString(CAccountDBCache &accountCache) {
         return CBaseTx::ToString(accountCache);
     }
-    Object ToJson(const CAccountDBCache &accountCache) const {
-        return CBaseTx::ToJson(accountCache);
+    Object ToJson(CCacheWrapper &cw) const {
+        return CBaseTx::ToJson(cw);
     }
 
     bool CheckTx(CTxExecuteContext &context);

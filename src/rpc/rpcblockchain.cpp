@@ -254,10 +254,11 @@ Value getblock(const Array& params, bool fHelp) {
     vector<CReceipt> blockReceipts;
     Object o = BlockToJSON(block, pBlockIndex);
 
+    auto pCw = make_shared<CCacheWrapper>(pCdMan);
     if(fListTxs) {
         Array arr;
         for (size_t i = 0; i < block.vptx.size(); i++) {
-            arr.push_back(GetTxDetailJSON(block, block.vptx[i], CTxCord(block.GetHeight(), i)));
+            arr.push_back(GetTxDetailJSON(*pCw, block, block.vptx[i], CTxCord(block.GetHeight(), i)));
         }
         o.push_back(Pair("tx_details", arr));
     }

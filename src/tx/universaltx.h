@@ -74,7 +74,7 @@ public:
     virtual uint64_t                   GetFuelFee(CCacheWrapper &cw, int32_t height, uint32_t fuelRate);
     virtual bool                       GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds);
     virtual string ToString(CAccountDBCache &accountCache);
-    virtual Object ToJson(const CAccountDBCache &accountCache) const;
+    virtual Object ToJson(CCacheWrapper &cw) const;
 
 
     virtual bool CheckTx(CTxExecuteContext &context);

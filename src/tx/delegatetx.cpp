@@ -112,8 +112,8 @@ string CDelegateVoteTx::ToString(CAccountDBCache &accountCache) {
     return str;
 }
 
-Object CDelegateVoteTx::ToJson(const CAccountDBCache &accountCache) const {
-    Object result = CBaseTx::ToJson(accountCache);
+Object CDelegateVoteTx::ToJson(CCacheWrapper &cw) const {
+    Object result = CBaseTx::ToJson(cw);
 
     Array candidateVoteArray;
     for (const auto &vote : candidateVotes) {

@@ -55,9 +55,9 @@ string CProposalRequestTx::ToString(CAccountDBCache &accountCache) {
                      txUid.ToString(), valid_height);
 }          // logging usage
 
-Object CProposalRequestTx::ToJson(const CAccountDBCache &accountCache) const {
+Object CProposalRequestTx::ToJson(CCacheWrapper &cw) const {
 
-    Object result = CBaseTx::ToJson(accountCache);
+    Object result = CBaseTx::ToJson(cw);
     result.push_back(Pair("proposal", proposal.sp_proposal->ToJson()));
 
     return result;
@@ -110,9 +110,9 @@ string CProposalApprovalTx::ToString(CAccountDBCache &accountCache) {
                      txUid.ToString(), valid_height);
 }
 
-Object CProposalApprovalTx::ToJson(const CAccountDBCache &accountCache) const {
+Object CProposalApprovalTx::ToJson(CCacheWrapper &cw) const {
 
-     Object result = CBaseTx::ToJson(accountCache);
+     Object result = CBaseTx::ToJson(cw);
      result.push_back(Pair("proposal_id", proposal_id.ToString()));
      if(axc_signature.size() > 0)
          result.push_back(Pair("axc_signatur", HexStr(axc_signature)));

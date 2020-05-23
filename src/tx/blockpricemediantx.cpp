@@ -241,8 +241,8 @@ string CBlockPriceMedianTx::ToString(CAccountDBCache &accountCache) {
                      valid_height);
 }
 
-Object CBlockPriceMedianTx::ToJson(const CAccountDBCache &accountCache) const {
-    Object result = CBaseTx::ToJson(accountCache);
+Object CBlockPriceMedianTx::ToJson(CCacheWrapper &cw) const {
+    Object result = CBaseTx::ToJson(cw);
 
     Array pricePointArray;
     for (const auto &item : median_prices) {

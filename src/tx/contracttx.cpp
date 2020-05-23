@@ -126,8 +126,8 @@ string CLuaContractDeployTx::ToString(CAccountDBCache &accountCache) {
                      llFees, valid_height);
 }
 
-Object CLuaContractDeployTx::ToJson(const CAccountDBCache &accountCache) const {
-    Object result = CBaseTx::ToJson(accountCache);
+Object CLuaContractDeployTx::ToJson(CCacheWrapper &cw) const {
+    Object result = CBaseTx::ToJson(cw);
 
     result.push_back(Pair("contract_code", HexStr(contract.code)));
     result.push_back(Pair("contract_memo", HexStr(contract.memo)));
@@ -212,11 +212,11 @@ string CLuaContractInvokeTx::ToString(CAccountDBCache &accountCache) {
         HexStr(arguments), valid_height);
 }
 
-Object CLuaContractInvokeTx::ToJson(const CAccountDBCache &accountCache) const {
-    Object result = CBaseTx::ToJson(accountCache);
+Object CLuaContractInvokeTx::ToJson(CCacheWrapper &cw) const {
+    Object result = CBaseTx::ToJson(cw);
 
     CKeyID appKeyId;
-    accountCache.GetKeyId(app_uid, appKeyId);
+    cw.accountCache.GetKeyId(app_uid, appKeyId);
     result.push_back(Pair("to_addr",        appKeyId.ToAddress()));
     result.push_back(Pair("to_uid",         app_uid.ToString()));
     result.push_back(Pair("coin_symbol",    SYMB::WICC));
@@ -322,8 +322,8 @@ string CUniversalContractDeployTx::ToString(CAccountDBCache &accountCache) {
                      fee_symbol, llFees, valid_height);
 }
 
-Object CUniversalContractDeployTx::ToJson(const CAccountDBCache &accountCache) const {
-    Object result = CBaseTx::ToJson(accountCache);
+Object CUniversalContractDeployTx::ToJson(CCacheWrapper &cw) const {
+    Object result = CBaseTx::ToJson(cw);
 
     result.push_back(Pair("vm_type",    contract.vm_type));
     result.push_back(Pair("upgradable", contract.upgradable));
@@ -435,11 +435,11 @@ string CUniversalContractInvokeTx::ToString(CAccountDBCache &accountCache) {
         coin_amount, fee_symbol, llFees, HexStr(arguments), valid_height);
 }
 
-Object CUniversalContractInvokeTx::ToJson(const CAccountDBCache &accountCache) const {
-    Object result = CBaseTx::ToJson(accountCache);
+Object CUniversalContractInvokeTx::ToJson(CCacheWrapper &cw) const {
+    Object result = CBaseTx::ToJson(cw);
 
     CKeyID desKeyId;
-    accountCache.GetKeyId(app_uid, desKeyId);
+    cw.accountCache.GetKeyId(app_uid, desKeyId);
     result.push_back(Pair("to_addr",        desKeyId.ToAddress()));
     result.push_back(Pair("to_uid",         app_uid.ToString()));
     result.push_back(Pair("coin_symbol",    coin_symbol));

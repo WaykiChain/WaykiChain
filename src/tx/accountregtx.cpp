@@ -59,10 +59,10 @@ string CAccountRegisterTx::ToString(CAccountDBCache &accountCache) {
                      txUid.get<CPubKey>().GetKeyId().ToAddress(), valid_height);
 }
 
-Object CAccountRegisterTx::ToJson(const CAccountDBCache &accountCache) const {
+Object CAccountRegisterTx::ToJson(CCacheWrapper &cw) const {
     assert(txUid.is<CPubKey>());
 
-    Object result = CBaseTx::ToJson(accountCache);
+    Object result = CBaseTx::ToJson(cw);
     result.push_back(Pair("pubkey",         txUid.ToString()));
     result.push_back(Pair("miner_pubkey",   miner_uid.ToString()));
 

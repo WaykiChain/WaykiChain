@@ -56,12 +56,12 @@ string CBaseCoinTransferTx::ToString(CAccountDBCache &accountCache) {
         HexStr(memo), valid_height);
 }
 
-Object CBaseCoinTransferTx::ToJson(const CAccountDBCache &accountCache) const {
+Object CBaseCoinTransferTx::ToJson(CCacheWrapper &cw) const {
     SingleTransfer transfer(toUid, SYMB::WICC, coin_amount);
     Array transferArray;
-    transferArray.push_back(transfer.ToJson(accountCache));
+    transferArray.push_back(transfer.ToJson(cw));
 
-    Object result = CBaseTx::ToJson(accountCache);
+    Object result = CBaseTx::ToJson(cw);
     result.push_back(Pair("transfers",   transferArray));
     result.push_back(Pair("memo",        memo));
 
@@ -221,12 +221,12 @@ string CCoinTransferTx::ToString(CAccountDBCache &accountCache) {
         valid_height, transferStr, HexStr(memo));
 }
 
-Object CCoinTransferTx::ToJson(const CAccountDBCache &accountCache) const {
-    Object result = CBaseTx::ToJson(accountCache);
+Object CCoinTransferTx::ToJson(CCacheWrapper &cw) const {
+    Object result = CBaseTx::ToJson(cw);
 
     Array transferArray;
     for (const auto &transfer : transfers) {
-        transferArray.push_back(transfer.ToJson(accountCache));
+        transferArray.push_back(transfer.ToJson(cw));
     }
 
     result.push_back(Pair("transfers",   transferArray));

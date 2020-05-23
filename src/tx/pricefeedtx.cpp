@@ -100,8 +100,8 @@ string CPriceFeedTx::ToString(CAccountDBCache &accountCache) {
                      GetTxType(nTxType), GetHash().ToString(), nVersion, txUid.ToString(), fee_symbol, llFees, str, valid_height);
 }
 
-Object CPriceFeedTx::ToJson(const CAccountDBCache &accountCache) const {
-    Object result = CBaseTx::ToJson(accountCache);
+Object CPriceFeedTx::ToJson(CCacheWrapper &cw) const {
+    Object result = CBaseTx::ToJson(cw);
 
     Array pricePointArray;
     for (const auto &pp : price_points) {

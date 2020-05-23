@@ -37,10 +37,10 @@ string CBlockRewardTx::ToString(CAccountDBCache &accountCache) {
                      GetHash().ToString(), nVersion, txUid.ToString(), keyId.GetHex(), reward_fees);
 }
 
-Object CBlockRewardTx::ToJson(const CAccountDBCache &accountCache) const {
+Object CBlockRewardTx::ToJson(CCacheWrapper &cw) const {
     Object result;
     CKeyID keyId;
-    accountCache.GetKeyId(txUid, keyId);
+    cw.accountCache.GetKeyId(txUid, keyId);
 
     result.push_back(Pair("txid",           GetHash().GetHex()));
     result.push_back(Pair("tx_type",        GetTxType(nTxType)));
@@ -103,10 +103,10 @@ string CUCoinBlockRewardTx::ToString(CAccountDBCache &accountCache) {
                      inflated_bcoins, valid_height);
 }
 
-Object CUCoinBlockRewardTx::ToJson(const CAccountDBCache &accountCache) const {
+Object CUCoinBlockRewardTx::ToJson(CCacheWrapper &cw) const {
     Object result;
     CKeyID keyId;
-    accountCache.GetKeyId(txUid, keyId);
+    cw.accountCache.GetKeyId(txUid, keyId);
 
     Object rewards;
     for (const auto &item : reward_fees) {
