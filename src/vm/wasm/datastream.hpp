@@ -60,7 +60,7 @@ namespace wasm {
          *  @return true
          */
         inline bool read( char *d, size_t s ) {
-            //eosio::check( size_t(_end - _pos) >= (size_t)s, "read" );
+            check( size_t(_end - _pos) >= (size_t)s, "read" );
             memcpy(d, _pos, s);
             _pos += s;
             return true;
@@ -74,7 +74,7 @@ namespace wasm {
          *  @return true
          */
         inline bool write( const char *d, size_t s ) {
-            //eosio::check( _end - _pos >= (int32_t)s, "write" );
+            check( _end - _pos >= (int32_t)s, "write" );
             memcpy((void *) _pos, d, s);
             _pos += s;
             return true;
@@ -88,7 +88,7 @@ namespace wasm {
          *  @return true
          */
         inline bool put( char c ) {
-            //eosio::check( _pos < _end, "put" );
+            check( _pos < _end, "put" );
             *_pos = c;
             ++_pos;
             return true;
@@ -111,7 +111,7 @@ namespace wasm {
          *  @return true
          */
         inline bool get( char &c ) {
-            //eosio::check( _pos < _end, "get" );
+            check( _pos < _end, "get" );
             c = *_pos;
             ++_pos;
             return true;
