@@ -390,6 +390,18 @@ string CUniversalTx::ToString(CAccountDBCache &accountCache) {
             HexStr(trx.data), valid_height);
 }
 
+static bool get_contract_abi(CContractDBCache &contractCache, uint64_t contractId, vector<char> &abi) {
+
+    if(!get_native_contract_abi(contractId, abi)){
+        CUniversalContractStore contract_store;
+        if (!contractCache.GetContract(CRegID(contractId), contract_store)) {
+            return false;
+        }
+        abi.insert(abi.end(), contract_store.abi.begin(), contract_store.abi.end());
+    }
+    return true;
+}
+
 Object CUniversalTx::ToJson(CCacheWrapper &cw) const {
 
     if (inline_transactions.size() == 0) return Object{};
@@ -407,8 +419,24 @@ Object CUniversalTx::ToJson(CCacheWrapper &cw) const {
     result.push_back(Pair("fees",             llFees));
     result.push_back(Pair("valid_height",     valid_height));
 
-    Value inline_transactions_arr;
-    to_variant(inline_transactions, inline_transactions_arr);
+    result.push_back(Pair("inline_transaction_count",     (int64_t)inline_transactions.size()));
+    Array inline_transactions_arr;
+    for (auto &item : inline_transactions) {
+        Value inline_tx_item;
+        to_variant(item, inline_tx_item);
+        auto &obj = inline_tx_item.get_obj();
+        vector<char>  abi;
+        if (get_contract_abi(cw.contractCache, item.contract, abi)) {
+            try {
+                json_spirit::Value value = wasm::abi_serializer::unpack(
+                    abi, wasm::name(item.action).to_string(), item.data, max_serialization_time);
+                obj.push_back(Pair("data_detail", value));
+            } catch(wasm_chain::exception &e){
+                ERRORMSG("unpack contract=%s data error: %s", CRegID(item.contract).ToString(), e.to_detail_string());
+            }
+        }
+        inline_transactions_arr.push_back(inline_tx_item);
+    }
     result.push_back(Pair("inline_transactions", inline_transactions_arr));
 
     Value signature_payer;
