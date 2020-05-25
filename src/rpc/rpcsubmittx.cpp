@@ -170,9 +170,9 @@ Value submitsetcodetx( const Array &params, bool fHelp ) {
             tx.fee_symbol   = fee.symbol;
             tx.llFees       = fee.GetAmountInSawi();
             tx.valid_height = chainActive.Tip()->height;
-
+            string memo = ""; // empty memo
             tx.inline_transactions.push_back({wasmio, wasm::N(setcode), std::vector<permission>{{payer.value, wasmio_owner}},
-                                             wasm::pack(std::tuple(contract, payer, (uint8_t)vm, code, abi, ""))});
+                                             wasm::pack(std::tuple(contract, payer, (uint8_t)vm, code, abi, memo))});
 
             //tx.signatures.push_back({payer_regid.value, vector<uint8_t>()});
             CHAIN_ASSERT( wallet->Sign(payer_account.keyid, tx.GetHash(), tx.signature),
