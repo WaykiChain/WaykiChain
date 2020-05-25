@@ -153,7 +153,7 @@ Value submitsetcodetx( const Array &params, bool fHelp ) {
             auto payer_regid        = CRegID(params[0].get_str());
             read_and_validate_code(          params[1].get_str(), code, vm);
             read_and_validate_abi (          params[2].get_str(), abi);
-            auto contract_regid     = RPC_PARAM::GetRegId(params, 3, CRegID(0, 0));
+            CRegID contract_regid = (params.size() > 3) ? CRegID(params[3].get_str()) : CRegID();
             auto fee                = RPC_PARAM::GetFee(params, 4, TxType::UNIVERSAL_TX);
 
             CAccount payer_account;
