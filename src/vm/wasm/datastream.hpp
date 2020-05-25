@@ -667,12 +667,9 @@ namespace wasm {
  */
     template<typename DataStream, std::enable_if_t<_datastream_detail::is_primitive<typename DataStream::wasm>()> * = nullptr>
     DataStream &operator>>( DataStream &ds, std::string &v ) {
-        std::vector<char> tmp;
-        ds >> tmp;
-        if (tmp.size())
-            v = std::string(tmp.data(), tmp.data() + tmp.size());
-        else
-            v = std::string();
+        unsigned_int s;
+        ds >> s;
+        ds.read(v.data(), v.size());
         return ds;
     }
 
