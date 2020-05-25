@@ -1226,7 +1226,6 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
             }
         }
 
-        // TODO: move the block delegates undo to block_undo
         if (!chain::ProcessBlockDelegates(block, cw, state)) {
             return state.DoS(100, ERRORMSG("[%d] failed to process block delegates! block(%s)",
                 block.GetHeight(), block.GetHash().ToString()));

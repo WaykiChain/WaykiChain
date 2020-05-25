@@ -225,7 +225,6 @@ enum AccountType {
 
 /**
  * account operate produced in contract
- * TODO: rename CVmOperate
  */
 class CVmOperate{
 public:

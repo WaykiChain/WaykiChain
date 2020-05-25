@@ -21,7 +21,6 @@
 #include <utility>
 #include <vector>
 
-class CVmOperate;
 class CKeyID;
 class CRegID;
 class CAccount;
