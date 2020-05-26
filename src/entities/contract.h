@@ -135,21 +135,21 @@ public:
     VMType vm_type;
     CRegID maintainer;
     bool upgradable;    //!< if true, the contract can be upgraded otherwise cannot anyhow.
-    string code;        //!< Contract code
-    string memo;        //!< Contract description
-    string abi;         //!< ABI for contract invocation
+    string code;        //!< Contract Code
+    string abi;         //!< Contract ABI
+    string memo;        //!< Contract Description
 
 public:
     inline uint32_t GetContractSize() const { return GetSerializeSize(SER_DISK, CLIENT_VERSION); }
 
-    bool IsEmpty() const { return vm_type == VMType::NULL_VM && maintainer.IsEmpty() && code.empty() && memo.empty() && abi.empty(); }
+    bool IsEmpty() const { return vm_type == VMType::NULL_VM && maintainer.IsEmpty() && code.empty() && abi.empty() && memo.empty(); }
 
     void SetEmpty() {
         vm_type = VMType::NULL_VM;
         maintainer.SetEmpty();
         code.clear();
-        memo.clear();
         abi.clear();
+        memo.clear();
     }
 
     IMPLEMENT_SERIALIZE(
@@ -157,8 +157,8 @@ public:
         READWRITE(maintainer);
         READWRITE(upgradable);
         READWRITE(code);
-        READWRITE(memo);
         READWRITE(abi);
+        READWRITE(memo);
     )
 
     string ToString() const {
@@ -166,8 +166,8 @@ public:
                 strprintf("maintainer=%d", maintainer.ToString()) + ", " +
                 strprintf("upgradable=%d", upgradable) + ", " +
                 strprintf("code=%s", code) + ", " +
-                strprintf("memo=%s", memo) + ", " +
-                strprintf("abi=%d", abi);
+                strprintf("abi=%s", memo) + ", " +
+                strprintf("memo=%d", abi);
     }
 };
 
