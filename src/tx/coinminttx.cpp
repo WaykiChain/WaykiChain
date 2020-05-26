@@ -55,7 +55,7 @@ string CCoinMintTx::ToString(CAccountDBCache &accountCache) {
                      coin_amount, valid_height);
 }
 
-Object CCoinMintTx::ToJson(const CAccountDBCache &accountCache) const {
+Object CCoinMintTx::ToJson(CCacheWrapper &cw) const {
     assert(txUid.is<CPubKey>() || txUid.is<CNullID>());
     Object result;
     string toAddr = txUid.is<CPubKey>() ? txUid.get<CPubKey>().GetKeyId().ToAddress() : "";

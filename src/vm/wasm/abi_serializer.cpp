@@ -78,7 +78,7 @@ namespace wasm {
 
     void abi_serializer::configure_built_in_types() {
 
-        built_in_types.emplace("bool",                  pack_unpack<uint8_t>());
+        built_in_types.emplace("bool",                  pack_unpack<bool>());
         built_in_types.emplace("int8",                  pack_unpack<int8_t>());
         built_in_types.emplace("uint8",                 pack_unpack<uint8_t>());
         built_in_types.emplace("int16",                 pack_unpack<int16_t>());

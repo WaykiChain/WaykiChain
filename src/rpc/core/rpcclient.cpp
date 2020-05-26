@@ -217,8 +217,8 @@ Array RPCConvertValues(const string &strMethod, const vector<string> &strParams)
 
     if (strMethod == "submitcdpliquidatetx"     && n > 2) ConvertTo<int64_t>(params[2]);
 
-    if (strMethod == "submitassetissuetx"       && n > 4) ConvertTo<int64_t>(params[4]);
-    if (strMethod == "submitassetissuetx"       && n > 5) ConvertTo<bool>(params[5]);
+    // if (strMethod == "submitassetissuetx"       && n > 4) ConvertTo<int64_t>(params[4]);
+    // if (strMethod == "submitassetissuetx"       && n > 5) ConvertTo<bool>(params[5]);
 
     //if (strMethod == "submitparamgovernproposal"   && n > 2) ConvertTo<int64_t>(params[2]);
     //if (strMethod == "submitparamgovernproposal"   && n > 3) ConvertTo<int64_t>(params[3]);

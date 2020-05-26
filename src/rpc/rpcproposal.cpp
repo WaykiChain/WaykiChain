@@ -921,6 +921,50 @@ Value submitcointransferproposal( const Array& params, bool fHelp) {
 
 }
 
+Value submitcancelorderproposal(const Array& params, bool fHelp) {
+
+    if(fHelp || params.size() < 2 || params.size() > 3){
+
+        throw runtime_error(
+                "submitcancelorderproposal \"sender\"  \"order_id\" [\"fee\"]\n"
+                "issue a dia asset\n"
+                "\nArguments:\n"
+                "1.\"sender\":        (string,  required) the tx sender's address\n"
+                "2.\"order_id\":      (string,  required) the order id to be canceled \n"
+                "5.\"fee\":           (combomoney, optional) the tx fee \n"
+                "\nExamples:\n"
+                + HelpExampleCli("submitcancelorderproposal", "0-1  a28fa923a342e052ee7f91fab2e5cce83c69871b8e56c4b6bbfa2f29762fba89")
+                + "\nAs json rpc call\n"
+                + HelpExampleRpc("submitcancelorderproposal", R"("0-1", "a28fa923a342e052ee7f91fab2e5cce83c69871b8e56c4b6bbfa2f29762fba89")")
+
+        );
+
+    }
+
+    EnsureWalletIsUnlocked();
+
+    const CUserID& txUid = RPC_PARAM::GetUserId(params[0], true);
+    const uint256& orderId   = RPC_PARAM::GetTxid(params[1], "order_id");
+    ComboMoney txFee          = RPC_PARAM::GetFee(params, 2, PROPOSAL_REQUEST_TX);
+
+    // check active order tx
+    RPC_PARAM::CheckActiveOrderExisted(*pCdMan->pDexCache, orderId);
+
+    int32_t validHeight  = chainActive.Height();
+    CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, txUid);
+    RPC_PARAM::CheckAccountBalance(account, txFee.symbol, SUB_FREE, txFee.GetAmountInSawi());
+
+    CProposalRequestTx tx;
+    tx.txUid        = txUid;
+    tx.llFees       = txFee.GetAmountInSawi();
+    tx.fee_symbol    = txFee.symbol;
+    tx.valid_height = validHeight;
+    tx.proposal.sp_proposal = std::make_shared<CGovCancelOrderProposal>(orderId);
+
+    return SubmitTx(account.keyid, tx);
+
+}
+
 Value getsysparam(const Array& params, bool fHelp){
     if(fHelp || params.size() > 1){
         throw runtime_error(

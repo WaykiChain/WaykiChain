@@ -111,20 +111,4 @@ inline const string& GetPriceQuoteSymbol(const PriceCoinPair &pricePair) {
     return std::get<0>(pricePair);
 }
 
-/**
- * check price pair.
- * @return err_msg(string) return nullptr or error msg ptr
- *
- */
-inline shared_ptr<string> CheckPricePair(const PriceCoinPair &pricePair) {
-    // TODO: support more price pair
-    if (GetPriceBaseSymbol(pricePair) != SYMB::WICC && GetPriceBaseSymbol(pricePair) != SYMB::WGRT)
-        return make_shared<string>("unsupported base symbol " + GetPriceBaseSymbol(pricePair) + " of price pair");
-
-    if (GetPriceQuoteSymbol(pricePair) != SYMB::USD)
-        return make_shared<string>("unsupported quote symbol " + GetPriceQuoteSymbol(pricePair) + " of price pair");
-
-    return nullptr;
-}
-
 #endif //ENTITIES_PRICE_H

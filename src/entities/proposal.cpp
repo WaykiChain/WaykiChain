@@ -7,6 +7,7 @@
 #include "config/txbase.h"
 #include "config/const.h"
 #include "entities/asset.h"
+#include "entities/dexorder.h"
 #include "entities/proposal.h"
 #include "persistence/cachewrapper.h"
 #include "main.h"
@@ -823,5 +824,65 @@ bool CGovAssetIssueProposal::ExecuteProposal(CTxExecuteContext& context, CBaseTx
         return state.DoS(100, ERRORMSG("fail to add total_supply to issued account! total_supply=%llu, txUid=%s",
                                        asset.total_supply, owner_regid.ToString()), UPDATE_ACCOUNT_FAIL, "insufficent-funds");
     }
+    return true;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// CGovCancelOrderProposal
+bool CGovCancelOrderProposal::CheckProposal(CTxExecuteContext& context, CBaseTx& tx) {
+    CValidationState &state = *context.pState;
+
+    if (order_id.IsEmpty())
+        return state.DoS(100, ERRORMSG("order_id is empty"), REJECT_INVALID,
+                        "invalid-order-id");
+    return true;
+}
+
+bool CGovCancelOrderProposal::ExecuteProposal(CTxExecuteContext& context, CBaseTx& tx) {
+    IMPLEMENT_DEFINE_CW_STATE;
+    using namespace dex;
+
+    CDEXOrderDetail activeOrder;
+    if (!cw.dexCache.GetActiveOrder(order_id, activeOrder)) {
+        return state.DoS(100, ERRORMSG("the order=%s is inactive or not existed", order_id.ToString()),
+                        REJECT_INVALID, "order-inactive");
+    }
+
+    if (activeOrder.generate_type != USER_GEN_ORDER) {
+        return state.DoS(100, ERRORMSG("only support canceling user generated order, order_id=%s", order_id.ToString()),
+                        REJECT_INVALID, "order-not-generated-by-user");
+    }
+
+    auto sp_account = tx.GetAccount(context, activeOrder.user_regid, "order");
+    if (!sp_account) return false; // error has been processed
+
+    // get frozen money
+    TokenSymbol frozenSymbol;
+    uint64_t frozenAmount = 0;
+    ReceiptType code;
+    if (activeOrder.order_side == ORDER_BUY) {
+        frozenSymbol = activeOrder.coin_symbol;
+        frozenAmount = activeOrder.coin_amount - activeOrder.total_deal_coin_amount;
+        code = ReceiptType::DEX_UNFREEZE_COIN_TO_BUYER;
+
+    } else if(activeOrder.order_side == ORDER_SELL) {
+        frozenSymbol = activeOrder.asset_symbol;
+        frozenAmount = activeOrder.asset_amount - activeOrder.total_deal_asset_amount;
+        code = ReceiptType::DEX_UNFREEZE_ASSET_TO_SELLER;
+    } else {
+        return state.DoS(100, ERRORMSG("Order side must be ORDER_BUY|ORDER_SELL, order_id=%s", order_id.ToString()),
+                        REJECT_INVALID, "invalid-order-side");
+    }
+
+    if (!sp_account->OperateBalance(frozenSymbol, UNFREEZE, frozenAmount, code, tx.receipts))
+        return state.DoS(100, ERRORMSG("account=%s has (%llu) insufficient frozen amount to unfreeze(%llu)",
+                order_id.ToString(), frozenAmount, sp_account->GetToken(frozenSymbol).frozen_amount),
+                UPDATE_ACCOUNT_FAIL, "unfreeze-account-failed");
+
+    if (!cw.dexCache.EraseActiveOrder(order_id, activeOrder)) {
+        return state.DoS(100, ERRORMSG("erase active order failed! order_id=%s", order_id.ToString()),
+                        REJECT_INVALID, "order-erase-failed");
+    }
+
     return true;
 }

@@ -93,7 +93,6 @@ bool chain::ProcessBlockDelegates(CBlock &block, CCacheWrapper &cw, CValidationS
 
     // must execute below separately because activateDelegateInterval may be 0
     if (pendingDelegates.state != VoteDelegateState::ACTIVATED) {
-        // TODO: use the aBFT irreversible height to check
         if (block.GetHeight() - pendingDelegates.counted_vote_height >= (uint32_t)activateDelegateInterval) {
             VoteDelegateVector activeDelegates = pendingDelegates.top_vote_delegates;
             if (!cw.delegateCache.SetActiveDelegates(activeDelegates)) {

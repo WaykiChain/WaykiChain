@@ -278,7 +278,6 @@ namespace wasm {
 
         PriceCoinPair price_pair(base_symbol.code().to_string(), quote_symbol.code().to_string());
 
-        //if(CheckPricePair(pricePair) != nullptr) return 0;
         auto &db_pricefeed  = database.priceFeedCache;
         uint64_t price_amount = db_pricefeed.GetMedianPrice(price_pair);
         if (price_amount == 0) return false;

@@ -105,6 +105,7 @@ static const CRPCCommand vRPCCommands[] =
     { "submitcdpparamgovernproposal",   &submitcdpparamgovernproposal,      false,      false,      true    },
     { "submittotalbpssizeupdateproposal",&submittotalbpssizeupdateproposal, false,      false,      true    },
     { "submitcointransferproposal",     &submitcointransferproposal,        false,      false,      true    },
+    { "submitcancelorderproposal",      &submitcancelorderproposal,         false,      false,      true    },
 
     { "submitgovernorupdateproposal",   &submitgovernorupdateproposal,      false,      false,      true    },
     { "submitdexswitchproposal",        &submitdexswitchproposal,           false,      false,      true    },
@@ -154,7 +155,7 @@ static const CRPCCommand vRPCCommands[] =
     { "gettotalbpssize",                &gettotalbpssize,                   true,       false,      false   },
     { "getfeedcoinpairs",               &getfeedcoinpairs,                  true,       false,      false   },
         /* for asset */
-    { "submitassetissuetx",             &submitassetissuetx,                false,      false,      false   },
+    // { "submitassetissuetx",             &submitassetissuetx,                false,      false,      false   },
     // { "submitassetupdatetx",            &submitassetupdatetx,               false,      false,      false   },
     { "getassetinfo",                   &getassetinfo,                      true,       false,      false   },
     { "listassets",                     &listassets,                        true,       false,      false   },

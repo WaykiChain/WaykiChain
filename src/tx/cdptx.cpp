@@ -98,7 +98,7 @@ namespace cdp_util {
         }
 
         auto pSysBuyMarketOrder = dex::CSysOrder::CreateBuyMarketOrder(
-            context.GetTxCord(), cdp.scoin_symbol, SYMB::WGRT, scoinsInterest);
+            context.GetTxCord(), cdp.scoin_symbol, SYMB::WGRT, scoinsInterest, {"cdp_interest", cdp.cdpid});
 
         if (!cw.dexCache.CreateActiveOrder(orderId, *pSysBuyMarketOrder)) {
             return state.DoS(100, ERRORMSG("%s, create system buy order failed", TX_OBJ_ERR_TITLE(tx)),
@@ -370,8 +370,8 @@ string CCDPStakeTx::ToString(CAccountDBCache &accountCache) {
         cdp_txid.ToString(), cdp_util::ToString(assets_to_stake), scoin_symbol, scoins_to_mint);
 }
 
-Object CCDPStakeTx::ToJson(const CAccountDBCache &accountCache) const {
-    Object result = CBaseTx::ToJson(accountCache);
+Object CCDPStakeTx::ToJson(CCacheWrapper &cw) const {
+    Object result = CBaseTx::ToJson(cw);
     TxID cdpId = cdp_txid;
     if (cdpId.IsEmpty()) { // this is new cdp tx
         cdpId = GetHash();
@@ -554,8 +554,8 @@ string CCDPRedeemTx::ToString(CAccountDBCache &accountCache) {
         cdp_txid.ToString(), scoins_to_repay, cdp_util::ToString(assets_to_redeem));
 }
 
-Object CCDPRedeemTx::ToJson(const CAccountDBCache &accountCache) const {
-    Object result = CBaseTx::ToJson(accountCache);
+Object CCDPRedeemTx::ToJson(CCacheWrapper &cw) const {
+    Object result = CBaseTx::ToJson(cw);
     result.push_back(Pair("cdp_txid",           cdp_txid.ToString()));
     result.push_back(Pair("scoins_to_repay",    scoins_to_repay));
     result.push_back(Pair("assets_to_redeem",   cdp_util::ToJson(assets_to_redeem)));
@@ -821,8 +821,8 @@ string CCDPLiquidateTx::ToString(CAccountDBCache &accountCache) {
         cdp_txid.ToString(), liquidate_asset_symbol, scoins_to_liquidate);
 }
 
-Object CCDPLiquidateTx::ToJson(const CAccountDBCache &accountCache) const {
-    Object result = CBaseTx::ToJson(accountCache);
+Object CCDPLiquidateTx::ToJson(CCacheWrapper &cw) const {
+    Object result = CBaseTx::ToJson(cw);
     result.push_back(Pair("cdp_txid",               cdp_txid.ToString()));
     result.push_back(Pair("liquidate_asset_symbol", liquidate_asset_symbol));
     result.push_back(Pair("scoins_to_liquidate",    scoins_to_liquidate));
@@ -861,7 +861,8 @@ bool CCDPLiquidateTx::ProcessPenaltyFees(CTxExecuteContext &context, const CUser
                             UPDATE_ACCOUNT_FAIL, "operate-fcoin-genesis-account-failed");
         }
 
-        auto pSysBuyMarketOrder = dex::CSysOrder::CreateBuyMarketOrder(txCord, cdp.scoin_symbol, SYMB::WGRT, leftScoinPenalty);
+        auto pSysBuyMarketOrder = dex::CSysOrder::CreateBuyMarketOrder(
+            txCord, cdp.scoin_symbol, SYMB::WGRT, leftScoinPenalty, {"cdp_penalty", cdp.cdpid});
         if (!cw.dexCache.CreateActiveOrder(GetHash(), *pSysBuyMarketOrder)) {
             return state.DoS(100, ERRORMSG("%s, create system buy order failed", TX_ERR_TITLE),
                             CREATE_SYS_ORDER_FAILED, "create-sys-order-failed");
@@ -960,12 +961,12 @@ string CCDPInterestForceSettleTx::ToString(CAccountDBCache &accountCache) {
         cdpListStr);
 }
 
-Object CCDPInterestForceSettleTx::ToJson(const CAccountDBCache &accountCache) const {
+Object CCDPInterestForceSettleTx::ToJson(CCacheWrapper &cw) const {
     Array cdpArray;
     for (const auto &cdpid : cdp_list) {
         cdpArray.push_back(cdpid.ToString());
     }
-    Object result = CBaseTx::ToJson(accountCache);
+    Object result = CBaseTx::ToJson(cw);
     result.push_back(Pair("txid",           GetHash().GetHex()));
     result.push_back(Pair("tx_type",        GetTxType(nTxType)));
     result.push_back(Pair("ver",            nVersion));

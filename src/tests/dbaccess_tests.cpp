@@ -40,17 +40,33 @@ struct FDBAccessTests {
 BOOST_FIXTURE_TEST_SUITE(dbaccess_tests, FDBAccessTests)
 //BOOST_AUTO_TEST_SUITE(dbaccess_tests)
 
+
+template<typename KeyType, typename ValueType>
+void WriteBatch(CDBAccess &access, const dbk::PrefixType &prefixType, const map<KeyType, ValueType> &dataMap) {
+    CLevelDBBatch batch;
+    for (auto item : dataMap) {
+        string key = dbk::GenDbKey(prefixType, item.first);
+        if (db_util::IsEmpty(item.second)) {
+            batch.Erase(key);
+        } else {
+            batch.Write(key, item.second);
+        }
+    }
+    access.WriteBatch(batch);
+}
+
 BOOST_AUTO_TEST_CASE(dbaccess_test)
 {
     bool isWipe = true;
     shared_ptr<CDBAccess> pDBAccess = make_shared<CDBAccess>(
         db_dir, DBNameType::ACCOUNT, false, isWipe);
     const dbk::PrefixType prefix = dbk::REGID_KEYID;
-    map<string, string> mapData;
-    mapData["regid-1"] = "keyid-1";
-    mapData["regid-2"] = "keyid-2";
-    mapData["regid-3"] = "keyid-3";
-    pDBAccess->BatchWrite<string, string>(prefix, mapData);
+    map<string, string> dataMap;
+    dataMap["regid-1"] = "keyid-1";
+    dataMap["regid-2"] = "keyid-2";
+    dataMap["regid-3"] = "keyid-3";
+    WriteBatch(*pDBAccess, prefix, dataMap);
+
     string value1;
     BOOST_CHECK(pDBAccess->GetData(prefix, string("regid-1"), value1));
     BOOST_CHECK( value1 == "keyid-1" );
@@ -152,8 +168,9 @@ static uint32_t GetSerSize(const T &t) {
 template <typename CacheType>
 static uint32_t GetCacheSerializeSize(CacheType &cache) {
     uint32_t ret = 0;
-    for (auto item : cache.GetMapData())
-        ret += GetSerSize(item);
+    for (auto item : cache.GetMapData()) {
+        ret += GetSerSize(item.first) + GetSerSize(*item.second);
+    }
     return ret;
 }
 

@@ -56,7 +56,7 @@ namespace dex {
         virtual bool ExecuteTx(CTxExecuteContext &context);
 
         virtual string ToString(CAccountDBCache &accountCache); //logging usage
-        virtual Object ToJson(const CAccountDBCache &accountCache) const; //json-rpc usage
+        virtual Object ToJson(CCacheWrapper &cw) const; //json-rpc usage
     protected:
         virtual bool CheckMinFee(CTxExecuteContext &context, uint64_t minFee);
 
@@ -476,7 +476,7 @@ namespace dex {
 
         virtual std::shared_ptr<CBaseTx> GetNewInstance() const { return std::make_shared<CDEXCancelOrderTx>(*this); }
         virtual string ToString(CAccountDBCache &accountCache); //logging usage
-        virtual Object ToJson(const CAccountDBCache &accountCache) const; //json-rpc usage
+        virtual Object ToJson(CCacheWrapper &cw) const; //json-rpc usage
 
         virtual bool CheckTx(CTxExecuteContext &context);
         virtual bool ExecuteTx(CTxExecuteContext &context);
@@ -539,7 +539,7 @@ namespace dex {
         virtual std::shared_ptr<CBaseTx> GetNewInstance() const { return std::make_shared<CDEXSettleTx>(*this); }
 
         virtual string ToString(CAccountDBCache &accountCache); //logging usage
-        virtual Object ToJson(const CAccountDBCache &accountCache) const; //json-rpc usage
+        virtual Object ToJson(CCacheWrapper &cw) const; //json-rpc usage
 
         virtual bool CheckTx(CTxExecuteContext &context);
         virtual bool ExecuteTx(CTxExecuteContext &context);

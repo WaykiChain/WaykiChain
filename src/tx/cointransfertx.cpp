@@ -56,12 +56,12 @@ string CBaseCoinTransferTx::ToString(CAccountDBCache &accountCache) {
         HexStr(memo), valid_height);
 }
 
-Object CBaseCoinTransferTx::ToJson(const CAccountDBCache &accountCache) const {
+Object CBaseCoinTransferTx::ToJson(CCacheWrapper &cw) const {
     SingleTransfer transfer(toUid, SYMB::WICC, coin_amount);
     Array transferArray;
-    transferArray.push_back(transfer.ToJson(accountCache));
+    transferArray.push_back(transfer.ToJson(cw));
 
-    Object result = CBaseTx::ToJson(accountCache);
+    Object result = CBaseTx::ToJson(cw);
     result.push_back(Pair("transfers",   transferArray));
     result.push_back(Pair("memo",        memo));
 
@@ -120,6 +120,7 @@ bool CCoinTransferTx::CheckTx(CTxExecuteContext &context) {
 bool CCoinTransferTx::ExecuteTx(CTxExecuteContext &context) {
     CCacheWrapper &cw       = *context.pCw;
     CValidationState &state = *context.pState;
+    const auto &txid = GetHash();
 
     for (size_t i = 0; i < transfers.size(); i++) {
         const auto &transfer = transfers[i];
@@ -162,9 +163,10 @@ bool CCoinTransferTx::ExecuteTx(CTxExecuteContext &context) {
                                         UPDATE_ACCOUNT_FAIL, "operate-fcoin-genesis-account-failed");
                     }
                     CHashWriter hashWriter(SER_GETHASH, 0);
-                    hashWriter << GetHash() << SYMB::WUSD << CFixedUInt32(i);
+                    hashWriter << txid << SYMB::WUSD << CFixedUInt32(i);
                     uint256 orderId = hashWriter.GetHash();
-                    auto pSysBuyMarketOrder = dex::CSysOrder::CreateBuyMarketOrder(context.GetTxCord(), SYMB::WUSD, SYMB::WGRT, buyScoins);
+                    auto pSysBuyMarketOrder = dex::CSysOrder::CreateBuyMarketOrder(
+                        context.GetTxCord(), SYMB::WUSD, SYMB::WGRT, buyScoins, {"send", txid});
                     if (!cw.dexCache.CreateActiveOrder(orderId, *pSysBuyMarketOrder)) {
                         return state.DoS(100, ERRORMSG("create system buy order failed, orderId=%s", orderId.ToString()),
                                         CREATE_SYS_ORDER_FAILED, "create-sys-order-failed");
@@ -219,12 +221,12 @@ string CCoinTransferTx::ToString(CAccountDBCache &accountCache) {
         valid_height, transferStr, HexStr(memo));
 }
 
-Object CCoinTransferTx::ToJson(const CAccountDBCache &accountCache) const {
-    Object result = CBaseTx::ToJson(accountCache);
+Object CCoinTransferTx::ToJson(CCacheWrapper &cw) const {
+    Object result = CBaseTx::ToJson(cw);
 
     Array transferArray;
     for (const auto &transfer : transfers) {
-        transferArray.push_back(transfer.ToJson(accountCache));
+        transferArray.push_back(transfer.ToJson(cw));
     }
 
     result.push_back(Pair("transfers",   transferArray));

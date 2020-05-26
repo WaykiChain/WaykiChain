@@ -235,10 +235,10 @@ bool CBaseTx::CheckTxFeeSufficient(CCacheWrapper &cw, const TokenSymbol &feeSymb
     return llFees >= minFee;
 }
 
-Object CBaseTx::ToJson(const CAccountDBCache &accountCache) const {
+Object CBaseTx::ToJson(CCacheWrapper &cw) const {
     Object result;
     CKeyID srcKeyId;
-    accountCache.GetKeyId(txUid, srcKeyId);
+    cw.accountCache.GetKeyId(txUid, srcKeyId);
     result.push_back(Pair("txid",           GetHash().GetHex()));
     result.push_back(Pair("tx_type",        GetTxType(nTxType)));
     result.push_back(Pair("ver",            nVersion));
@@ -397,11 +397,11 @@ string SingleTransfer::ToString(const CAccountDBCache &accountCache) const {
     return strprintf("to_uid=%s, coin_symbol=%s, coin_amount=%llu", to_uid.ToDebugString(), coin_symbol, coin_amount);
 }
 
-Object SingleTransfer::ToJson(const CAccountDBCache &accountCache) const {
+Object SingleTransfer::ToJson(CCacheWrapper &cw) const {
     Object result;
 
     CKeyID desKeyId;
-    accountCache.GetKeyId(to_uid, desKeyId);
+    cw.accountCache.GetKeyId(to_uid, desKeyId);
     result.push_back(Pair("to_uid",      to_uid.ToString()));
     result.push_back(Pair("to_addr",     desKeyId.ToAddress()));
     result.push_back(Pair("coin_symbol", coin_symbol));

@@ -21,7 +21,8 @@ using namespace json_spirit;
 class CBlockHeader;
 
 string RegIDToAddress(CUserID &userId);
-Object GetTxDetailJSON(const CBlockHeader& block,const shared_ptr<CBaseTx> pBaseTx, const CTxCord &txCord);
+Object GetTxDetailJSON(CCacheWrapper &cw, const CBlockHeader &block,
+                       const shared_ptr<CBaseTx> pBaseTx, const CTxCord &txCord);
 Object GetTxDetailJSON(const uint256& txid);
 Array GetTxAddressDetail(std::shared_ptr<CBaseTx> pBaseTx);
 

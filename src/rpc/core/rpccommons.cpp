@@ -209,11 +209,12 @@ string RegIDToAddress(CUserID &userId) {
     return "cannot get address from given RegId";
 }
 
-Object GetTxDetailJSON(const CBlockHeader& header,const shared_ptr<CBaseTx> pBaseTx, const CTxCord &txCord) {
+Object GetTxDetailJSON(CCacheWrapper &cw, const CBlockHeader &header,
+                       const shared_ptr<CBaseTx> pBaseTx, const CTxCord &txCord) {
     Object obj;
     auto txid = pBaseTx->GetHash();
     //obj = pBaseTx->IsMultiSignSupport()?pBaseTx->ToJsonMultiSign(*database):pBaseTx->ToJson(*pCdMan->pAccountCache);
-    obj = pBaseTx->ToJson(*pCdMan->pAccountCache);
+    obj = pBaseTx->ToJson(cw);
 
 
     obj.push_back(Pair("confirmed_height",  (int32_t)header.GetHeight()));
@@ -224,7 +225,7 @@ Object GetTxDetailJSON(const CBlockHeader& header,const shared_ptr<CBaseTx> pBas
     if (SysCfg().IsGenReceipt()) {
         vector<CReceipt> receipts;
         pCdMan->pReceiptCache->GetTxReceipts(txid, receipts);
-        obj.push_back(Pair("receipts", JSON::ToJson(*pCdMan->pAccountCache, receipts)));
+        obj.push_back(Pair("receipts", JSON::ToJson(cw.accountCache, receipts)));
     }
 
     CDataStream ds(SER_DISK, CLIENT_VERSION);
@@ -248,6 +249,7 @@ Object GetTxDetailJSON(const CBlockHeader& header,const shared_ptr<CBaseTx> pBas
 }
 
 Object GetTxDetailJSON(const uint256& txid) {
+    auto pCw = make_shared<CCacheWrapper>(pCdMan);
     Object obj;
     {
         std::shared_ptr<CBaseTx> pBaseTx;
@@ -255,7 +257,7 @@ Object GetTxDetailJSON(const uint256& txid) {
         LOCK(cs_main);
         if (SysCfg().IsTxIndex()) {
             CDiskTxPos postx;
-            if (pCdMan->pBlockCache->ReadTxIndex(txid, postx)) {
+            if (pCw->blockCache.ReadTxIndex(txid, postx)) {
                 CAutoFile file(OpenBlockFile(postx, true), SER_DISK, CLIENT_VERSION);
                 CBlockHeader header;
 
@@ -263,7 +265,7 @@ Object GetTxDetailJSON(const uint256& txid) {
                     file >> header;
                     fseek(file, postx.nTxOffset, SEEK_CUR);
                     file >> pBaseTx;
-                    obj = GetTxDetailJSON(header, pBaseTx, postx.tx_cord);
+                    obj = GetTxDetailJSON(*pCw, header, pBaseTx, postx.tx_cord);
                 } catch (std::exception &e) {
                     throw runtime_error(strprintf("%s : Deserialize or I/O error - %s", __func__, e.what()).c_str());
                 }
@@ -275,7 +277,7 @@ Object GetTxDetailJSON(const uint256& txid) {
         {
             pBaseTx = mempool.Lookup(txid);
             if (pBaseTx.get()) {
-                obj = pBaseTx->ToJson(*pCdMan->pAccountCache);
+                obj = pBaseTx->ToJson(*pCw);
                 CDataStream ds(SER_DISK, CLIENT_VERSION);
                 ds << pBaseTx;
                 obj.push_back(Pair("rawtx", HexStr(ds.begin(), ds.end())));
@@ -290,7 +292,7 @@ Object GetTxDetailJSON(const uint256& txid) {
         assert(genesisblock.GetMerkleRootHash() == genesisblock.BuildMerkleTree());
         for (uint32_t i = 0; i < genesisblock.vptx.size(); ++i) {
             if (txid == genesisblock.GetTxid(i)) {
-                obj = genesisblock.vptx[i]->ToJson(*pCdMan->pAccountCache);
+                obj = genesisblock.vptx[i]->ToJson(*pCw);
 
 
                 obj.push_back(Pair("confirmed_height",  chainActive.Height()));
@@ -303,7 +305,7 @@ Object GetTxDetailJSON(const uint256& txid) {
                 if (SysCfg().IsGenReceipt()) {
                     vector<CReceipt> receipts;
                     pCdMan->pReceiptCache->GetTxReceipts(txid, receipts);
-                    obj.push_back(Pair("receipts", JSON::ToJson(*pCdMan->pAccountCache, receipts)));
+                    obj.push_back(Pair("receipts", JSON::ToJson(pCw->accountCache, receipts)));
                 }
                 obj.push_back(Pair("rawtx", HexStr(ds.begin(), ds.end())));
                 obj.push_back(Pair("confirmations",     chainActive.Height()));

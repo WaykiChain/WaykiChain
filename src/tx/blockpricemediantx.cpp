@@ -25,7 +25,7 @@ using namespace dex;
 
 class CCdpCoinPairDetail {
 public:
-    const CCdpCoinPair &coin_pair;
+    CCdpCoinPair coin_pair;
     bool is_price_active = false;
     bool is_staked_perm = false;
     uint64_t bcoin_price = 0;
@@ -241,8 +241,8 @@ string CBlockPriceMedianTx::ToString(CAccountDBCache &accountCache) {
                      valid_height);
 }
 
-Object CBlockPriceMedianTx::ToJson(const CAccountDBCache &accountCache) const {
-    Object result = CBaseTx::ToJson(accountCache);
+Object CBlockPriceMedianTx::ToJson(CCacheWrapper &cw) const {
+    Object result = CBaseTx::ToJson(cw);
 
     Array pricePointArray;
     for (const auto &item : median_prices) {
@@ -432,7 +432,7 @@ bool CCdpForceLiquidator::SellAssetToRiskRevervePool(const CUserCDP &cdp,
     }
 
     pOrderOut = dex::CSysOrder::CreateSellMarketOrder(
-        CTxCord(context.height, context.index), coinSymbol, assetSymbol, amount);
+        CTxCord(context.height, context.index), coinSymbol, assetSymbol, amount, {"cdp_asset", cdp.cdpid});
 
     if (!context.pCw->dexCache.CreateActiveOrder(orderId, *pOrderOut)) {
         return context.pState->DoS(100, ERRORMSG("create sys sell market order failed, cdpid=%s, "

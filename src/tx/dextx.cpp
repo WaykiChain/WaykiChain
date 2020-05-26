@@ -174,6 +174,8 @@ namespace dex {
                 taker_fee_ratio,
             };
         }
+        orderDetail.order_src.src_type = "user";
+        orderDetail.order_src.src_id = txid;
         // other fields keep as is
 
         if (!cw.dexCache.CreateActiveOrder(txid, orderDetail))
@@ -209,8 +211,8 @@ namespace dex {
                 strprintf("memo_hex=%s", nVersion);
     }
 
-    Object CDEXOrderBaseTx::ToJson(const CAccountDBCache &accountCache) const {
-        Object result = CBaseTx::ToJson(accountCache);
+    Object CDEXOrderBaseTx::ToJson(CCacheWrapper &cw) const {
+        Object result = CBaseTx::ToJson(cw);
         result.push_back(Pair("order_type",         kOrderTypeHelper.GetName(order_type)));
         result.push_back(Pair("order_side",         kOrderSideHelper.GetName(order_side)));
         result.push_back(Pair("coin_symbol",        coin_symbol));
@@ -222,7 +224,7 @@ namespace dex {
         result.push_back(Pair("has_operator_config",  has_operator_config));
         if (has_operator_config) {
             CKeyID operatorKeyid;
-            accountCache.GetKeyId(operator_uid, operatorKeyid);
+            cw.accountCache.GetKeyId(operator_uid, operatorKeyid);
             result.push_back(Pair("open_mode",          kOpenModeHelper.GetName(open_mode)));
             result.push_back(Pair("taker_fee_ratio",    taker_fee_ratio));
             result.push_back(Pair("maker_fee_ratio",    maker_fee_ratio));
@@ -449,8 +451,8 @@ namespace dex {
             order_id.GetHex());
     }
 
-    Object CDEXCancelOrderTx::ToJson(const CAccountDBCache &accountCache) const {
-        Object result = CBaseTx::ToJson(accountCache);
+    Object CDEXCancelOrderTx::ToJson(CCacheWrapper &cw) const {
+        Object result = CBaseTx::ToJson(cw);
         result.push_back(Pair("order_id", order_id.GetHex()));
 
         return result;
@@ -972,6 +974,7 @@ namespace dex {
     bool CDealItemExecuter::ProcessWusdFrictionFee(CAccount &fromAccount, uint64_t amount, uint64_t frictionFee) {
 
         CCacheWrapper &cw = *context.pCw; CValidationState &state = *context.pState;
+        const auto &txid = tx.GetHash();
         if (frictionFee > 0) {
 
             uint64_t reserveScoins = frictionFee / 2;
@@ -996,9 +999,10 @@ namespace dex {
                                     UPDATE_ACCOUNT_FAIL, "operate-fcoin-genesis-account-failed");
                 }
                 CHashWriter hashWriter(SER_GETHASH, 0);
-                hashWriter << tx.GetHash() << SYMB::WUSD << CFixedUInt32(idx);
-                uint256 orderId = hashWriter.GetHash();
-                auto pSysBuyMarketOrder = dex::CSysOrder::CreateBuyMarketOrder(context.GetTxCord(), SYMB::WUSD, SYMB::WGRT, buyScoins);
+                hashWriter << txid << SYMB::WUSD << CFixedUInt32(idx);
+                uint256 orderId         = hashWriter.GetHash();
+                auto pSysBuyMarketOrder = dex::CSysOrder::CreateBuyMarketOrder(
+                    context.GetTxCord(), SYMB::WUSD, SYMB::WGRT, buyScoins, {"settle", txid});
                 if (!cw.dexCache.CreateActiveOrder(orderId, *pSysBuyMarketOrder)) {
                     return state.DoS(100, ERRORMSG("create system buy order failed, orderId=%s", orderId.ToString()),
                                     CREATE_SYS_ORDER_FAILED, "create-sys-order-failed");
@@ -1031,7 +1035,7 @@ namespace dex {
                         txUid.ToString(), llFees, dealInfo);
     }
 
-    Object CDEXSettleTx::ToJson(const CAccountDBCache &accountCache) const {
+    Object CDEXSettleTx::ToJson(CCacheWrapper &cw) const {
         Array arrayItems;
         for (const auto &item : dealItems) {
             Object subItem;
@@ -1043,7 +1047,7 @@ namespace dex {
             arrayItems.push_back(subItem);
         }
 
-        Object result = CBaseTx::ToJson(accountCache);
+        Object result = CBaseTx::ToJson(cw);
         result.push_back(Pair("deal_items",  arrayItems));
 
         return result;

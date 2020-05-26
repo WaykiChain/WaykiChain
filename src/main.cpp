@@ -735,7 +735,7 @@ bool DisconnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CVal
     }
 
     // undo block prices of price point memory cache.
-    if (!cw.ppCache.UndoBlock(cw.sysParamCache, pIndex))
+    if (!cw.ppCache.UndoBlock(cw.sysParamCache, pIndex, block))
         return state.Abort(_("DisconnectBlock() : undo block prices of memory cache"));
 
     if (pfClean) {
@@ -1226,7 +1226,6 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
             }
         }
 
-        // TODO: move the block delegates undo to block_undo
         if (!chain::ProcessBlockDelegates(block, cw, state)) {
             return state.DoS(100, ERRORMSG("[%d] failed to process block delegates! block(%s)",
                 block.GetHeight(), block.GetHash().ToString()));

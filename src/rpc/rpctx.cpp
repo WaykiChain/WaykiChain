@@ -1180,7 +1180,8 @@ Value decodetxraw(const Array& params, bool fHelp) {
     if (!pBaseTx.get()) {
         return obj;
     }
-    obj = pBaseTx->ToJson(*pCdMan->pAccountCache);
+    auto pCw = std::make_shared<CCacheWrapper>(pCdMan);
+    obj = pBaseTx->ToJson(*pCw);
     return obj;
 }
 

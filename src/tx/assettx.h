@@ -80,7 +80,7 @@ public:
     virtual std::shared_ptr<CBaseTx> GetNewInstance() const { return std::make_shared<CUserIssueAssetTx>(*this); }
 
     virtual string ToString(CAccountDBCache &accountCache);
-    virtual Object ToJson(const CAccountDBCache &accountCache) const;
+    virtual Object ToJson(CCacheWrapper &cw) const;
 
     virtual bool CheckTx(CTxExecuteContext &context);
     virtual bool ExecuteTx(CTxExecuteContext &context);
@@ -192,7 +192,7 @@ public:
 
     string ToString(const CAccountDBCache &accountCache) const;
 
-    Object ToJson(const CAccountDBCache &accountCache) const;
+    Object ToJson(CCacheWrapper &cw) const;
 };
 
 /**
@@ -235,7 +235,7 @@ public:
     virtual std::shared_ptr<CBaseTx> GetNewInstance() const { return std::make_shared<CUserUpdateAssetTx>(*this); }
 
     virtual string ToString(CAccountDBCache &accountCache);
-    virtual Object ToJson(const CAccountDBCache &accountCache) const;
+    virtual Object ToJson(CCacheWrapper &cw) const;
 
     virtual bool CheckTx(CTxExecuteContext &context);
     virtual bool ExecuteTx(CTxExecuteContext &context);

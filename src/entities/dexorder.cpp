@@ -47,7 +47,9 @@ namespace dex {
                 strprintf("tx_cord=%s", tx_cord.ToString()) + ", " +
                 strprintf("user_regid=%s", user_regid.ToString()) + ", " +
                 strprintf("total_deal_coin_amount=%llu", total_deal_coin_amount) + ", " +
-                strprintf("total_deal_asset_amount=%llu", total_deal_asset_amount);
+                strprintf("total_deal_asset_amount=%llu", total_deal_asset_amount) + ", " +
+                strprintf("src_type=%llu", order_src.src_type) + ", " +
+                strprintf("src_id=%llu", order_src.src_id.ToString());
     }
 
 
@@ -71,6 +73,8 @@ namespace dex {
         obj.push_back(Pair("user_regid",                user_regid.ToString()));
         obj.push_back(Pair("total_deal_coin_amount",    total_deal_coin_amount));
         obj.push_back(Pair("total_deal_asset_amount",   total_deal_asset_amount));
+        obj.push_back(Pair("src_type",   order_src.src_type));
+        obj.push_back(Pair("src_id",     order_src.src_id.ToString()));
     }
 
 
@@ -80,15 +84,15 @@ namespace dex {
     shared_ptr<CDEXOrderDetail> CSysOrder::CreateBuyMarketOrder(const CTxCord &txCord,
                                                                 const TokenSymbol &coinSymbol,
                                                                 const TokenSymbol &assetSymbol,
-                                                                uint64_t coinAmountIn) {
-        return Create(ORDER_MARKET_PRICE, ORDER_BUY, txCord, coinSymbol, assetSymbol, coinAmountIn, 0);
+                                                                uint64_t coinAmountIn, const CDEXOrderSrc &src) {
+        return Create(ORDER_MARKET_PRICE, ORDER_BUY, txCord, coinSymbol, assetSymbol, coinAmountIn, 0, src);
     }
 
     shared_ptr<CDEXOrderDetail> CSysOrder::CreateSellMarketOrder(const CTxCord& txCord,
                                                                     const TokenSymbol& coinSymbol,
                                                                     const TokenSymbol& assetSymbol,
-                                                                    uint64_t assetAmount) {
-        return Create(ORDER_MARKET_PRICE, ORDER_SELL, txCord, coinSymbol, assetSymbol, 0, assetAmount);
+                                                                    uint64_t assetAmount, const CDEXOrderSrc &src) {
+        return Create(ORDER_MARKET_PRICE, ORDER_SELL, txCord, coinSymbol, assetSymbol, 0, assetAmount, src);
     }
 
     shared_ptr<CDEXOrderDetail> CSysOrder::Create(OrderType orderType, OrderSide orderSide,
@@ -96,7 +100,7 @@ namespace dex {
                                                     const TokenSymbol &coinSymbol,
                                                     const TokenSymbol &assetSymbol,
                                                     uint64_t coiAmountIn,
-                                                    uint64_t assetAmountIn) {
+                                                    uint64_t assetAmountIn, const CDEXOrderSrc &src) {
         auto pSysOrder                = make_shared<CDEXOrderDetail>();
         pSysOrder->generate_type      = SYSTEM_GEN_ORDER;
         pSysOrder->order_type         = orderType;
@@ -110,6 +114,7 @@ namespace dex {
         pSysOrder->opt_operator_params = {OpenMode::PUBLIC, 0, 0}; // no order fee for sys order
         pSysOrder->tx_cord            = txCord;
         pSysOrder->user_regid         = SysCfg().GetFcoinGenesisRegId();
+        pSysOrder->order_src          = src;
         // other fields keep default value
 
         return pSysOrder;

@@ -49,7 +49,7 @@ public:
 
     virtual std::shared_ptr<CBaseTx> GetNewInstance() const { return std::make_shared<CCoinStakeTx>(*this); }
     virtual string ToString(CAccountDBCache &accountCache);
-    virtual Object ToJson(const CAccountDBCache &accountCache) const;
+    virtual Object ToJson(CCacheWrapper &cw) const;
 
     virtual bool CheckTx(CTxExecuteContext &context);
     virtual bool ExecuteTx(CTxExecuteContext &context);

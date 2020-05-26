@@ -153,7 +153,7 @@ Value submitsetcodetx( const Array &params, bool fHelp ) {
             auto payer_regid        = CRegID(params[0].get_str());
             read_and_validate_code(          params[1].get_str(), code, vm);
             read_and_validate_abi (          params[2].get_str(), abi);
-            auto contract_regid     = RPC_PARAM::GetRegId(params, 3, CRegID(0, 0));
+            CRegID contract_regid = (params.size() > 3) ? CRegID(params[3].get_str()) : CRegID();
             auto fee                = RPC_PARAM::GetFee(params, 4, TxType::UNIVERSAL_TX);
 
             CAccount payer_account;
@@ -170,9 +170,9 @@ Value submitsetcodetx( const Array &params, bool fHelp ) {
             tx.fee_symbol   = fee.symbol;
             tx.llFees       = fee.GetAmountInSawi();
             tx.valid_height = chainActive.Tip()->height;
-
+            string memo = ""; // empty memo
             tx.inline_transactions.push_back({wasmio, wasm::N(setcode), std::vector<permission>{{payer.value, wasmio_owner}},
-                                             wasm::pack(std::tuple(contract, payer, vm, code, abi, ""))});
+                                             wasm::pack(std::tuple(contract, payer, (uint8_t)vm, code, abi, memo))});
 
             //tx.signatures.push_back({payer_regid.value, vector<uint8_t>()});
             CHAIN_ASSERT( wallet->Sign(payer_account.keyid, tx.GetHash(), tx.signature),
@@ -287,7 +287,6 @@ Value submittx( const Array &params, bool fHelp ) {
 
     //WASM_TRACE(params[1].get_str())
     RESPONSE_RPC_HELP( fHelp || params.size() < 4 || params.size() > 5 , wasm::rpc::submit_tx_rpc_help_message)
-    RPCTypeCheck(params, list_of(str_type)(str_type)(str_type)(str_type)(str_type));
 
     try {
         auto db_account  = pCdMan->pAccountCache;

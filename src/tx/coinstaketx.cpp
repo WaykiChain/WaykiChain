@@ -45,8 +45,8 @@ string CCoinStakeTx::ToString(CAccountDBCache &accountCache) {
         coin_amount, fee_symbol, llFees, valid_height);
 }
 
-Object CCoinStakeTx::ToJson(const CAccountDBCache &accountCache) const {
-    Object result = CBaseTx::ToJson(accountCache);
+Object CCoinStakeTx::ToJson(CCacheWrapper &cw) const {
+    Object result = CBaseTx::ToJson(cw);
     result.push_back(Pair("stake_type",     GetBalanceOpTypeName(stake_type)));
     result.push_back(Pair("coin_symbol",    coin_symbol));
     result.push_back(Pair("coin_amount",    coin_amount));

@@ -2552,16 +2552,11 @@ int32_t ExGetAssetPriceFunc(lua_State *L) {
         return 0;
     }
 
-    PriceCoinPair pricePair(baseSymbol, quoteSymbol);
-    auto pErr = CheckPricePair(pricePair);
-    if (pErr) {
-        LogPrint(BCLog::LUAVM, "[ERROR] Invalid price pair! %s \n", *pErr);
-        return 0;
-    }
     LUA_BurnAccount(L, FUEL_CALL_GetAssetPrice, BURN_VER_R2);
 
     auto pAccount = make_shared<CAccount>();
-    uint64_t price = pVmRunEnv->GetCw()->priceFeedCache.GetMedianPrice(pricePair);
+    uint64_t price =
+        pVmRunEnv->GetCw()->priceFeedCache.GetMedianPrice(PriceCoinPair(baseSymbol, quoteSymbol));
 
     // check stack to avoid stack overflow
     if (!lua_checkstack(L, sizeof(lua_Integer))) {

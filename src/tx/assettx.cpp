@@ -174,9 +174,9 @@ string CUserIssueAssetTx::ToString(CAccountDBCache &accountCache) {
         asset.owner_uid.ToDebugString(), asset.asset_symbol, asset.asset_name, asset.total_supply, asset.mintable);
 }
 
-Object CUserIssueAssetTx::ToJson(const CAccountDBCache &accountCache) const {
-    Object result = CBaseTx::ToJson(accountCache);
-    container::Append(result, AssetToJson(accountCache, asset));
+Object CUserIssueAssetTx::ToJson(CCacheWrapper &cw) const {
+    Object result = CBaseTx::ToJson(cw);
+    container::Append(result, AssetToJson(cw.accountCache, asset));
     return result;
 }
 
@@ -241,13 +241,13 @@ string CUserUpdateAsset::ToString(const CAccountDBCache &accountCache) const {
     return s;
 }
 
-Object CUserUpdateAsset::ToJson(const CAccountDBCache &accountCache) const {
+Object CUserUpdateAsset::ToJson(CCacheWrapper &cw) const {
     Object result;
     result.push_back(Pair("update_type",   GetUpdateTypeName(type)));
     result.push_back(Pair("update_value",  ValueToString()));
     if (type == OWNER_UID) {
         CKeyID ownerKeyid;
-        accountCache.GetKeyId(get<CUserID>(), ownerKeyid);
+        cw.accountCache.GetKeyId(get<CUserID>(), ownerKeyid);
         result.push_back(Pair("owner_addr",   ownerKeyid.ToAddress()));
     }
     return result;
@@ -264,11 +264,11 @@ string CUserUpdateAssetTx::ToString(CAccountDBCache &accountCache) {
         asset_symbol, update_data.ToString(accountCache));
 }
 
-Object CUserUpdateAssetTx::ToJson(const CAccountDBCache &accountCache) const {
-    Object result = CBaseTx::ToJson(accountCache);
+Object CUserUpdateAssetTx::ToJson(CCacheWrapper &cw) const {
+    Object result = CBaseTx::ToJson(cw);
 
     result.push_back(Pair("asset_symbol",   asset_symbol));
-    container::Append(result, update_data.ToJson(accountCache));
+    container::Append(result, update_data.ToJson(cw));
 
     return result;
 }
@@ -385,7 +385,7 @@ bool CUserUpdateAssetTx::ExecuteTx(CTxExecuteContext &context) {
     }
 
     string errMsg;
-    if (!ProcessAssetFee(*this, cw, sp_tx_account.get(), ASSET_ACTION_ISSUE, receipts, errMsg)) {
+    if (!ProcessAssetFee(*this, cw, sp_tx_account.get(), ASSET_ACTION_UPDATE, receipts, errMsg)) {
         return state.DoS(100, ERRORMSG("process asset fee error: %s", errMsg),
                 REJECT_INVALID, "process-asset-fee-failed");
     }

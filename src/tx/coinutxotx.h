@@ -62,8 +62,8 @@ public:
 
     virtual std::shared_ptr<CBaseTx> GetNewInstance() const { return std::make_shared<CCoinUtxoTransferTx>(*this); }
 
-    virtual Object ToJson(const CAccountDBCache &accountCache) const {
-        Object obj = CBaseTx::ToJson(accountCache);
+    virtual Object ToJson(CCacheWrapper &cw) const {
+        Object obj = CBaseTx::ToJson(cw);
 
         Array inputArr;
         for(auto input: vins){
@@ -138,8 +138,8 @@ public:
 
     virtual std::shared_ptr<CBaseTx> GetNewInstance() const { return std::make_shared<CCoinUtxoPasswordProofTx>(*this); }
 
-    virtual Object ToJson(const CAccountDBCache &accountCache) const {
-        Object obj = CBaseTx::ToJson(accountCache);
+    virtual Object ToJson(CCacheWrapper &cw) const {
+        Object obj = CBaseTx::ToJson(cw);
 
         obj.push_back(Pair("utxo_txid", utxo_txid.ToString()));
         obj.push_back(Pair("utxo_vout_index", utxo_vout_index));

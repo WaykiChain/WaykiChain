@@ -60,7 +60,7 @@ namespace wasm {
          *  @return true
          */
         inline bool read( char *d, size_t s ) {
-            //eosio::check( size_t(_end - _pos) >= (size_t)s, "read" );
+            check( size_t(_end - _pos) >= (size_t)s, "datastream read out of bounds" );
             memcpy(d, _pos, s);
             _pos += s;
             return true;
@@ -74,7 +74,7 @@ namespace wasm {
          *  @return true
          */
         inline bool write( const char *d, size_t s ) {
-            //eosio::check( _end - _pos >= (int32_t)s, "write" );
+            check( _end - _pos >= (int32_t)s, "datastream write out of bounds" );
             memcpy((void *) _pos, d, s);
             _pos += s;
             return true;
@@ -88,7 +88,7 @@ namespace wasm {
          *  @return true
          */
         inline bool put( char c ) {
-            //eosio::check( _pos < _end, "put" );
+            check( _pos < _end, "datastream put out of bounds" );
             *_pos = c;
             ++_pos;
             return true;
@@ -111,7 +111,7 @@ namespace wasm {
          *  @return true
          */
         inline bool get( char &c ) {
-            //eosio::check( _pos < _end, "get" );
+            check( _pos < _end, "datastream get out of bounds" );
             c = *_pos;
             ++_pos;
             return true;
@@ -667,12 +667,9 @@ namespace wasm {
  */
     template<typename DataStream, std::enable_if_t<_datastream_detail::is_primitive<typename DataStream::wasm>()> * = nullptr>
     DataStream &operator>>( DataStream &ds, std::string &v ) {
-        std::vector<char> tmp;
-        ds >> tmp;
-        if (tmp.size())
-            v = std::string(tmp.data(), tmp.data() + tmp.size());
-        else
-            v = std::string();
+        unsigned_int s;
+        ds >> s;
+        ds.read(v.data(), v.size());
         return ds;
     }
 
@@ -814,6 +811,28 @@ namespace wasm {
         ds << unsigned_int(v.size());
         for (const auto &i : v)
             ds << i;
+        return ds;
+    }
+
+/**
+ *  Deserialize a vector of bool
+ *
+ *  @brief Deserialize a vector of bool
+ *  @param ds - The stream to read
+ *  @param v - The destination for deserialized value
+ *  @tparam DataStream - Type of datastream
+ *  @return DataStream& - Reference to the datastream
+ */
+    template<typename DataStream, std::enable_if_t<_datastream_detail::is_primitive<typename DataStream::wasm>()> * = nullptr>
+    DataStream &operator>>( DataStream &ds, std::vector<bool> &v ) {
+        unsigned_int s;
+        ds >> s;
+        v.resize(s.value);
+        bool tmp;
+        for (size_t i = 0; i < s.value; i++) {
+            ds >> tmp;
+            v[i] = tmp;
+        }
         return ds;
     }
 
