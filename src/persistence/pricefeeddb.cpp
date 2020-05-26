@@ -88,12 +88,12 @@ bool CPricePointMemCache::PushBlock(CSysParamDBCache &sysParamCache, CBlockIndex
     return true;
 }
 
-bool CPricePointMemCache::UndoBlock(CSysParamDBCache &sysParamCache, CBlockIndex *pTipBlockIdx) {
+bool CPricePointMemCache::UndoBlock(CSysParamDBCache &sysParamCache, CBlockIndex *pTipBlockIdx, CBlock &block) {
 
     uint64_t slideWindow = 0;
     if (!ReadSlideWindow(sysParamCache, slideWindow, __func__)) return false;
     // Delete the disconnected block's pricefeed items from price point memory cache.
-    if (!DeleteBlockPricePoint(pTipBlockIdx->height)) {
+    if (!DeleteBlockFromCache(block)) {
         return ERRORMSG("delete block=[%d]%s from price point memory cache failed",
                         pTipBlockIdx->height, pTipBlockIdx->GetBlockHash().ToString());
     }
@@ -173,21 +173,34 @@ bool CPricePointMemCache::AddPriceByBlock(const CBlock &block) {
     return true;
 }
 
-bool CPricePointMemCache::DeleteBlockPricePoint(const HeightType blockHeight) {
-    if (mapCoinPricePointCache.empty()) {
-        // TODO: multi stable coin
-        mapCoinPricePointCache[PriceCoinPair(SYMB::WICC, SYMB::USD)].DeleteUserPrice(blockHeight);
-        mapCoinPricePointCache[PriceCoinPair(SYMB::WGRT, SYMB::USD)].DeleteUserPrice(blockHeight);
-    } else {
-        for (auto &item : mapCoinPricePointCache) {
-            item.second.DeleteUserPrice(blockHeight);
+bool CPricePointMemCache::DeleteBlockFromCache(const CBlock &block) {
+    set<PriceCoinPair> deletingSet;
+    for (auto &pBaseTx : block.vptx) {
+        if (!pBaseTx->IsPriceFeedTx()) {
+            break;
         }
+
+        CPriceFeedTx *priceFeedTx = dynamic_cast<CPriceFeedTx*>(pBaseTx.get());
+        for (auto &pricePoint : priceFeedTx->price_points) {
+            deletingSet.insert(pricePoint.GetCoinPricePair());
+        }
+    }
+    auto height = block.GetHeight();
+    for (auto &coinPair : deletingSet) {
+        mapCoinPricePointCache[coinPair].mapBlockUserPrices[height].clear();
+    }
+
+    for (auto &item : mapCoinPricePointCache) {
+        auto &blockPrices = item.second.mapBlockUserPrices[height];
+        if (!blockPrices.empty()) {
+            LogPrint(BCLog::ERROR, "[WARN] the price should be erased!, coin_pair=%s, height=%u",
+                CoinPairToString(item.first), height);
+        }
+        blockPrices.clear();
     }
 
     return true;
 }
-
-bool CPricePointMemCache::DeleteBlockFromCache(const CBlock &block) { return DeleteBlockPricePoint(block.GetHeight()); }
 
 void CPricePointMemCache::BatchWrite(const CoinPricePointMap &mapCoinPricePointCacheIn) {
     for (const auto &item : mapCoinPricePointCacheIn) {

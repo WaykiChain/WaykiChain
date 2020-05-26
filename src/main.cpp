@@ -735,7 +735,7 @@ bool DisconnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CVal
     }
 
     // undo block prices of price point memory cache.
-    if (!cw.ppCache.UndoBlock(cw.sysParamCache, pIndex))
+    if (!cw.ppCache.UndoBlock(cw.sysParamCache, pIndex, block))
         return state.Abort(_("DisconnectBlock() : undo block prices of memory cache"));
 
     if (pfClean) {

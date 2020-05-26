@@ -48,7 +48,7 @@ public:
 public:
     bool ReleadBlocks(CSysParamDBCache &sysParamCache, CBlockIndex *pTipBlockIdx);
     bool PushBlock(CSysParamDBCache &sysParamCache, CBlockIndex *pTipBlockIdx);
-    bool UndoBlock(CSysParamDBCache &sysParamCache, CBlockIndex *pTipBlockIdx);
+    bool UndoBlock(CSysParamDBCache &sysParamCache, CBlockIndex *pTipBlockIdx, CBlock &block);
     bool AddPrice(const HeightType blockHeight, const CRegID &regId, const vector<CPricePoint> &pps);
 
     bool CalcMedianPrices(CCacheWrapper &cw, const HeightType blockHeight, PriceMap &medianPrices);
@@ -63,8 +63,6 @@ private:
     bool AddPriceByBlock(const CBlock &block);
     // delete block price point by specific block height.
     bool DeleteBlockFromCache(const CBlock &block);
-
-    bool DeleteBlockPricePoint(const HeightType blockHeight);
 
     bool ExistBlockUserPrice(const HeightType blockHeight, const CRegID &regId, const PriceCoinPair &coinPricePair);
 
