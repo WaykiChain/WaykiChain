@@ -440,7 +440,7 @@ public:
         if (pBase != nullptr) {
             assert(pDbAccess == nullptr);
             for (auto item : mapData) {
-                SetDataToSelf(item.first, *item.second);
+                pBase->SetDataToSelf(item.first, *item.second);
             }
         } else if (pDbAccess != nullptr) {
             assert(pBase == nullptr);
