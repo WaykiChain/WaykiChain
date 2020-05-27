@@ -58,6 +58,8 @@ namespace RPC_PARAM {
 
 
     CUserID ParseUserIdByAddr(const Value &jsonValue);
+    CRegID ParseRegId(const Value &jsonValue, const string &title);
+    CRegID ParseRegId(const Array& params, const size_t index, const string &title, const CRegID &defaultValue);
 
     CKeyID GetUserKeyId(const CUserID &userId);
 

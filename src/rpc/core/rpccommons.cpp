@@ -489,6 +489,21 @@ CUserID RPC_PARAM::ParseUserIdByAddr(const Value &jsonValue) {
     return *pUserId;
 }
 
+CRegID RPC_PARAM::ParseRegId(const Value &jsonValue, const string &title) {
+
+    const auto &idStr = jsonValue.get_str();
+    if (!CRegID::IsSimpleRegIdStr(idStr))
+        throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("invalid regid fomat of %s=%s", title, idStr));
+    return CRegID(idStr);
+}
+
+CRegID RPC_PARAM::ParseRegId(const Array& params, const size_t index, const string &title, const CRegID &defaultValue) {
+    if (params.size() > index && !params[index].get_str().empty()) {
+        return ParseRegId(params[index], title);
+    }
+    return defaultValue;
+}
+
 CUserID RPC_PARAM::GetUserId(const Value &jsonValue, const bool bSenderUid ) {
     auto userId = ParseUserIdByAddr(jsonValue);
 
