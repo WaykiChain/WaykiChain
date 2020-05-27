@@ -506,7 +506,6 @@ Value getcdpinfo(const Array& params, bool fHelp){
         );
     }
 
-    uint64_t bcoinMedianPrice = pCdMan->pPriceFeedCache->GetMedianPrice(PriceCoinPair(SYMB::WICC, SYMB::USD));
 
     uint256 cdpTxId(uint256S(params[0].get_str()));
     CUserCDP cdp;
@@ -514,6 +513,14 @@ Value getcdpinfo(const Array& params, bool fHelp){
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, strprintf("CDP (%s) does not exist!", cdpTxId.GetHex()));
     }
 
+    auto quoteSymbol = GetQuoteSymbolByCdpScoin(cdp.scoin_symbol);
+    if (quoteSymbol.empty())  {
+        throw JSONRPCError(RPC_INVALID_PARAMETER,
+                           strprintf("scoin symbol=%s does not have corresponding quote symbol!",
+                                     cdp.scoin_symbol));
+    }
+
+    uint64_t bcoinMedianPrice = pCdMan->pPriceFeedCache->GetMedianPrice(PriceCoinPair(cdp.bcoin_symbol, quoteSymbol));
     Object obj;
     obj.push_back(Pair("cdp", cdp.ToJson(bcoinMedianPrice)));
     return obj;
