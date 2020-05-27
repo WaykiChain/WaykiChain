@@ -52,11 +52,11 @@ static const std::unordered_map<TxType, AccountPermType> kTxTypePermMap = {
     { UTXO_TRANSFER_TX,             AccountPermType::PERM_SEND_UTXO  },
     { UTXO_PASSWORD_PROOF_TX,       AccountPermType::PERM_SEND_UTXO  },
 
-    { LCONTRACT_DEPLOY_TX,          AccountPermType::PERM_DEPLOY_SC  },
-    { LCONTRACT_INVOKE_TX,          AccountPermType::PERM_INVOKE_SC  },
-    { UCONTRACT_DEPLOY_TX,          AccountPermType::PERM_DEPLOY_SC  },
-    { UCONTRACT_INVOKE_TX,          AccountPermType::PERM_INVOKE_SC  },
-    { UNIVERSAL_TX,                 AccountPermType::PERM_INVOKE_SC  },
+    { LCONTRACT_DEPLOY_TX,          AccountPermType::PERM_CONTRACT   },
+    { LCONTRACT_INVOKE_TX,          AccountPermType::PERM_CONTRACT   },
+    { UCONTRACT_DEPLOY_TX,          AccountPermType::PERM_CONTRACT   },
+    { UCONTRACT_INVOKE_TX,          AccountPermType::PERM_CONTRACT   },
+    { UNIVERSAL_TX,                 AccountPermType::PERM_CONTRACT   },
     { PRICE_FEED_TX,                AccountPermType::PERM_FEED_PRICE },
 
     { CDP_STAKE_TX,                 AccountPermType::PERM_CDP        },

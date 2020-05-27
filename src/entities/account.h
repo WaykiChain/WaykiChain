@@ -34,14 +34,12 @@ enum AccountPermType : uint64_t {
     PERM_STAKE_COIN     = (1 << 1 ), //when input is negative, it means unstake
     PERM_SEND_VOTE      = (1 << 2 ), //send or revoke votes to others
     PERM_SEND_UTXO      = (1 << 3 ), //recv utox is always allowed
-    PERM_DEPLOY_SC      = (1 << 4 ), //Deploy smart contract
-    PERM_UPGRADE_SC     = (1 << 5 ), //Upgrade smart contract
-    PERM_INVOKE_SC      = (1 << 6 ), //Invoke smart contract
-    PERM_PROPOSE        = (1 << 7 ), //DeGov propose
-    PERM_MINE_BLOCK     = (1 << 8 ), //elected BP can mine blocks, mostly used to disable the perm when set zero
-    PERM_FEED_PRICE     = (1 << 9 ), //Feed price, mostly used to disable the perm when set zero
-    PERM_DEX            = (1 << 10 ), //freeze | unfreeze
-    PERM_CDP            = (1 << 11), //pledge | unpledge
+    PERM_CONTRACT       = (1 << 4 ), //perm of deploy|invoke contract
+    PERM_PROPOSE        = (1 << 5 ), //DeGov propose
+    PERM_MINE_BLOCK     = (1 << 6 ), //elected BP can mine blocks, mostly used to disable the perm when set zero
+    PERM_FEED_PRICE     = (1 << 7 ), //Feed price, mostly used to disable the perm when set zero
+    PERM_DEX            = (1 << 8 ), //freeze | unfreeze
+    PERM_CDP            = (1 << 9),  //pledge | unpledge
 };
 
 static const unordered_map<uint64_t, string> kAccountPermTitleMap = {
@@ -49,9 +47,7 @@ static const unordered_map<uint64_t, string> kAccountPermTitleMap = {
     { PERM_STAKE_COIN,   "PERM_STAKE_COIN"  },
     { PERM_SEND_VOTE,    "PERM_SEND_VOTE"   },
     { PERM_SEND_UTXO,    "PERM_SEND_UTXO"   },
-    { PERM_DEPLOY_SC,    "PERM_DEPLOY_SC"   },
-    { PERM_UPGRADE_SC,   "PERM_UPGRADE_SC"  },
-    { PERM_INVOKE_SC,    "PERM_INVOKE_SC"   },
+    { PERM_CONTRACT,     "PERM_CONTRACT"    },
     { PERM_PROPOSE,      "PERM_PROPOSE"     },
     { PERM_MINE_BLOCK,   "PERM_MINE_BLOCK"  },
     { PERM_FEED_PRICE,   "PERM_FEED_PRICE"  },
