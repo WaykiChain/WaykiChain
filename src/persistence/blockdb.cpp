@@ -150,7 +150,7 @@ bool CBlockDBCache::SetTxIndex(const uint256 &txid, const CDiskTxPos &pos) {
 
 bool CBlockDBCache::WriteTxIndexes(const vector<pair<uint256, CDiskTxPos> > &list) {
     for (auto it : list) {
-        LogPrint(BCLog::DEBUG, "%-30s txid:%.7s** dispos: nFile=%d, nPos=%d nTxOffset=%d\n",
+        LogPrint(BCLog::DEBUG, "%-30s txid:%s dispos: nFile=%d, nPos=%d nTxOffset=%d\n",
                 it.first.GetHex(), it.second.nFile, it.second.nPos, it.second.nTxOffset);
 
         if (!tx_diskpos_cache.SetData(it.first, it.second))

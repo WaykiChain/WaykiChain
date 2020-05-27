@@ -538,7 +538,7 @@ static bool CreateNewBlockForStableCoinRelease(int64_t startMiningMs, CCacheWrap
 
             pBlock->vptx.push_back(itor->baseTx);
 
-            LogPrint(BCLog::DEBUG, "miner total_fuel_fee=%d, tx_fuel_fee=%d, fuel=%d, fuelRate:%d, txid:%.7s**\n",
+            LogPrint(BCLog::DEBUG, "miner total_fuel_fee=%d, tx_fuel_fee=%d, fuel=%d, fuelRate:%d, txid:%s\n",
                     totalFuelFee, fuelFee, pBaseTx->fuel, fuelRate, pBaseTx->GetHash().GetHex());
 
         }

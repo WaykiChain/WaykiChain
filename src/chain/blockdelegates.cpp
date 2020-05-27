@@ -32,7 +32,7 @@ static bool GenPendingDelegates(CBlock &block, uint32_t delegateNum, CCacheWrapp
     VoteDelegateVector topVoteDelegates;
     if (!cw.delegateCache.GetTopVoteDelegates(delegateNum, BpMinVote, topVoteDelegates, isR3Fork)) {
         LogPrint(BCLog::INFO, "[WARN] [%d] GetTopVoteDelegates() failed! no need to update pending delegates! "
-                "block=%.7s**, delegate_num=%d\n", block.GetHeight(), block.GetHash().ToString(), delegateNum);
+                "block=%s, delegate_num=%d\n", block.GetHeight(), block.GetHash().ToString(), delegateNum);
 
         return true;
     };
@@ -40,7 +40,7 @@ static bool GenPendingDelegates(CBlock &block, uint32_t delegateNum, CCacheWrapp
     pendingDelegates.top_vote_delegates = topVoteDelegates;
 
     if (!activeDelegates.empty() && pendingDelegates.top_vote_delegates == activeDelegates) {
-        LogPrint(BCLog::INFO, "[%d] The top vote delegates are unchanged! block=%.7s**, num=%d, dest_num=%d\n",
+        LogPrint(BCLog::INFO, "[%d] The top vote delegates are unchanged! block=%s, num=%d, dest_num=%d\n",
                 block.GetHeight(), block.GetHash().ToString(), pendingDelegates.top_vote_delegates.size(), delegateNum);
         // update counted_vote_height and top_vote_delegates to skip unchanged delegates to next count vote slot height
         return true;
@@ -69,7 +69,7 @@ bool chain::ProcessBlockDelegates(CBlock &block, CCacheWrapper &cw, CValidationS
         (countVoteInterval == 0 || (block.GetHeight() % countVoteInterval == 0))) {
         VoteDelegateVector activeDelegates;
         if (!cw.delegateCache.GetActiveDelegates(activeDelegates)) {
-            LogPrint(BCLog::INFO, "[%d] Active delegates do not exist, will be initialized later! block=%.7s**\n",
+            LogPrint(BCLog::INFO, "[%d] Active delegates do not exist, will be initialized later! block=%s\n",
                     block.GetHeight(), block.GetHash().ToString());
         }
         int32_t lastVoteHeight = cw.delegateCache.GetLastVoteHeight();
@@ -105,7 +105,7 @@ bool chain::ProcessBlockDelegates(CBlock &block, CCacheWrapper &cw, CValidationS
                 return state.DoS(100, ERRORMSG("[%d] : save pending delegates failed! block=%s",
                     block.GetHeight(), block.GetHash().ToString()));
             }
-            LogPrint(BCLog::INFO, "[%d] activate new delegates! block=%.7s**, delegates=[%s]\n",
+            LogPrint(BCLog::INFO, "[%d] activate new delegates! block=%s, delegates=[%s]\n",
                     block.GetHeight(), block.GetHash().ToString(),
                     ToString(activeDelegates));
         }

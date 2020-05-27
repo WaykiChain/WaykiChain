@@ -114,7 +114,7 @@ void CBlock::Print() const {
         medianPrices += strprintf("{%s/%s -> %llu}", std::get<0>(item.first), std::get<1>(item.first), item.second);
     }
 
-    LogPrint(BCLog::DEBUG, "[%d] hash=%.7s**, ver=%d, hashPrevBlock=%s, merkleRootHash=%s, nTime=%u, nNonce=%u, vtx=%u, nFuelFee=%d, "
+    LogPrint(BCLog::DEBUG, "[%d] hash=%s, ver=%d, hashPrevBlock=%s, merkleRootHash=%s, nTime=%u, nNonce=%u, vtx=%u, nFuelFee=%d, "
              "nFuelRate=%d, median prices: %s\n",
              height, GetHash().ToString(), nVersion, prevBlockHash.ToString(), merkleRootHash.ToString(), nTime, nNonce,
              vptx.size(), nFuelFee, nFuelRate, medianPrices);

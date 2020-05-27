@@ -633,7 +633,7 @@ bool InvalidateBlock(CValidationState &state, CBlockIndex *pIndex) {
         pCdMan->pBlockIndexDb->WriteBlockIndex(CDiskBlockIndex(pindexWalk));
         setBlockIndexValid.erase(pindexWalk);
 
-        LogPrint(BCLog::INFO, "[%d] Invalidate block(%.7s**) BLOCK_FAILED_CHILD\n", pindexWalk->height,
+        LogPrint(BCLog::INFO, "[%d] Invalidate block(%s) BLOCK_FAILED_CHILD\n", pindexWalk->height,
                  pindexWalk->GetBlockHash().ToString());
 
         // ActivateBestChain considers blocks already in chainActive
@@ -1058,7 +1058,7 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
         // Verify that the cache's current state corresponds to the previous block
         uint256 hashPrevBlock = pIndex->pprev == nullptr ? uint256() : pIndex->pprev->GetBlockHash();
         if (hashPrevBlock != cw.blockCache.GetBestBlockHash()) {
-            LogPrint(BCLog::INFO, "[%d] hashPrevBlock=%.7s**, bestblock=%.7s**\n", pIndex->height, hashPrevBlock.GetHex(),
+            LogPrint(BCLog::INFO, "[%d] hashPrevBlock=%s, bestblock=%s\n", pIndex->height, hashPrevBlock.GetHex(),
                      cw.blockCache.GetBestBlockHash().GetHex());
 
             assert(hashPrevBlock == cw.blockCache.GetBestBlockHash());
@@ -1376,7 +1376,7 @@ void static UpdateTip(CBlockIndex *pIndexNew, const CBlock &block) {
 
     // New best block
     SysCfg().SetBestRecvTime(GetTime());
-    LogPrint(BCLog::INFO, "[%d] %.7s** blkTxCnt=%d chainTxCnt=%lu fuelRate=%d ts=%s\n",
+    LogPrint(BCLog::INFO, "[%d] %s blkTxCnt=%d chainTxCnt=%lu fuelRate=%d ts=%s\n",
              chainActive.Height(), chainActive.Tip()->GetBlockHash().ToString(),
              block.vptx.size(), chainActive.Tip()->nChainTx, chainActive.Tip()->nFuelRate,
              DateTimeStrFormat("%Y-%m-%d %H:%M:%S", chainActive.Tip()->GetBlockTime()));
@@ -1814,7 +1814,7 @@ bool ProcessForkedChain(const CBlock &block, CBlockIndex *pPreBlockIndex, CValid
         forkChainTipBlockHash = pPreBlockIndex->GetBlockHash();
         spCW                  = mapForkCache[forkChainTipBlockHash];
         forkChainTipFound     = true;
-        LogPrint(BCLog::INFO, "[%d] found block(%.7s**) in cache\n", pPreBlockIndex->height, forkChainTipBlockHash.GetHex());
+        LogPrint(BCLog::INFO, "[%d] found block(%s) in cache\n", pPreBlockIndex->height, forkChainTipBlockHash.GetHex());
     } else {
         spCW                     = CCacheWrapper::NewCopyFrom(pCdMan);
         int64_t beginTime        = GetTimeMillis();
@@ -1840,21 +1840,21 @@ bool ProcessForkedChain(const CBlock &block, CBlockIndex *pPreBlockIndex, CValid
         mapForkCache[pPreBlockIndex->GetBlockHash()] = spCW;
         forkChainTipBlockHash = pPreBlockIndex->GetBlockHash();
         forkChainTipFound     = true;
-        LogPrint(BCLog::INFO, "[%d] add block %.7s** to cache."
+        LogPrint(BCLog::INFO, "[%d] add block %s to cache."
                               "disconnect block elapse: %lld ms\n",
                               pPreBlockIndex->height, pPreBlockIndex->GetBlockHash().GetHex(), GetTimeMillis() - beginTime);
     }
 
     uint256 forkChainBestBlockHash   = spCW->blockCache.GetBestBlockHash();
     int32_t forkChainBestBlockHeight = mapBlockIndex[forkChainBestBlockHash]->height;
-    LogPrint(BCLog::INFO, "[%d] fork chain's best block(%.7s**)\n", forkChainBestBlockHeight,
+    LogPrint(BCLog::INFO, "[%d] fork chain's best block(%s)\n", forkChainBestBlockHeight,
              forkChainBestBlockHash.GetHex());
 
     if (!vPreBlocks.empty()) {
         auto spNewForkCW = std::make_shared<CCacheWrapper>(spCW.get());
         // Connect all of the forked chain's blocks.
         for (auto rIter = vPreBlocks.rbegin(); rIter != vPreBlocks.rend(); ++rIter) {
-            LogPrint(BCLog::INFO, "[%d] ConnectBlock hash=%.7s**\n", rIter->GetHeight(), rIter->GetHash().GetHex());
+            LogPrint(BCLog::INFO, "[%d] ConnectBlock hash=%s\n", rIter->GetHeight(), rIter->GetHash().GetHex());
 
             if (!ConnectBlock(*rIter, *spNewForkCW, mapBlockIndex[rIter->GetHash()], state, false)) {
                 return ERRORMSG("[%d] ConnectBlock %s failed", rIter->GetHeight(), rIter->GetHash().ToString());
@@ -1953,7 +1953,7 @@ bool AcceptBlock(CBlock &block, CValidationState &state, CDiskBlockPos *dbp, boo
 
     uint256 blockHash = block.GetHash();
     uint32_t blockHeight = block.GetHeight();
-    LogPrint(BCLog::INFO, "[%d] %.7s**, miner: %s, ts: %u\n",
+    LogPrint(BCLog::INFO, "[%d] %s, miner: %s, ts: %u\n",
             block.GetHeight(), blockHash.GetHex(), block.GetMinerUserID().ToString(), block.GetBlockTime());
 
     // Check for duplicated block

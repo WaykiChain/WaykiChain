@@ -217,7 +217,7 @@ inline bool AddBlockToQueue(const uint256 &hash, NodeId nodeId) {
          (now - std::get<2>(mapBlocksToDownload[hash]) < blocksToDownloadTimeout * 1000000)) ||
         (mapBlocksInFlight.count(hash) &&
          (now - std::get<2>(mapBlocksInFlight[hash]) < blockInFlightTimeout * 1000000))) {
-        LogPrint(BCLog::NET, "block (%.7s**) being downloaded from another peer, ignore! ts=%lld\n", hash.GetHex(), GetTimeMillis());
+        LogPrint(BCLog::NET, "block (%s) being downloaded from another peer, ignore! ts=%lld\n", hash.GetHex(), GetTimeMillis());
 
         return false;
     }
@@ -225,7 +225,7 @@ inline bool AddBlockToQueue(const uint256 &hash, NodeId nodeId) {
     LOCK(cs_mapNodeState);
     CNodeState *state = State(nodeId);
     if (state == nullptr) {
-        LogPrint(BCLog::NET, "peer (%d) not found! ts=%lld, block(%.7s**) \n",
+        LogPrint(BCLog::NET, "peer (%d) not found! ts=%lld, block(%s) \n",
             nodeId, GetTimeMillis(), hash.ToString());
         return false;
     }
