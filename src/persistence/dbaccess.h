@@ -439,12 +439,11 @@ public:
         assert(pBase != nullptr || pDbAccess != nullptr);
         if (pBase != nullptr) {
             assert(pDbAccess == nullptr);
-            for (auto it : mapData) {
-                pBase->SetData(it.first, *it.second);
+            for (auto item : mapData) {
+                SetDataToSelf(item.first, *item.second);
             }
         } else if (pDbAccess != nullptr) {
             assert(pBase == nullptr);
-            // pDbAccess->BatchWrite<KeyType, ValueType>(PREFIX_TYPE, mapData);
             CLevelDBBatch batch;
             for (auto item : mapData) {
                 string key = dbk::GenDbKey(PREFIX_TYPE, item.first);
@@ -464,13 +463,7 @@ public:
         KeyType key;
         ValueType value;
         dbOpLog.Get(key, value);
-        auto it = mapData.find(key);
-        if (it != mapData.end()) {
-            UpdateDataSize(*it->second, value);
-            *it->second = value;
-        } else {
-            AddDataToMap(key, value);
-        }
+        SetDataToSelf(key, value);
     }
 
     void UndoDataList(const CDbOpLogs &dbOpLogs) {
@@ -517,6 +510,17 @@ private:
         }
 
         return mapData.end();
+    }
+
+    // set data to self only
+    void SetDataToSelf(const KeyType &key, const ValueType &value) {
+        auto it = mapData.find(key);
+        if (it != mapData.end()) {
+            UpdateDataSize(*it->second, value);
+            *it->second = value;
+        } else {
+            AddDataToMap(key, value);
+        }
     }
 
     inline Iterator AddDataToMap(const KeyType &keyIn, const ValueType &valueIn) const {
