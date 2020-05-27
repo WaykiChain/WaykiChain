@@ -389,7 +389,6 @@ Value getscoininfo(const Array& params, bool fHelp){
         throw JSONRPCError(RPC_INTERNAL_ERROR, strprintf("%s, read sys param PRICE_FEED_TIMEOUT_BLOCKS error", __func__));
     }
 
-    // TODO: multi cdp coin pairs
     Array cdpInfoArray;
 
     for (const auto& item : medianPrices) {
