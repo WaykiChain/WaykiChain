@@ -344,6 +344,25 @@ public:
         assert(pDbAccess->GetDbNameType() == GetDbNameEnumByPrefix(PREFIX_TYPE));
     };
 
+    CCompositeKVCache(const CCompositeKVCache &other) {
+        operator=(other);
+    }
+
+    CCompositeKVCache& operator=(const CCompositeKVCache& other) {
+        pBase = other.pBase;
+        pDbAccess = other.pDbAccess;
+        // deep copy for map
+        mapData.clear();
+        for (auto otherItem : other.mapData) {
+            mapData[otherItem.first] = make_shared<ValueType>(*otherItem.second);
+        }
+        pDbOpLogMap = other.pDbOpLogMap;
+        is_calc_size = other.is_calc_size;
+        size = other.size;
+
+        return *this;
+    }
+
     void SetBase(CCompositeKVCache *pBaseIn) {
         assert(pDbAccess == nullptr);
         assert(mapData.empty());
