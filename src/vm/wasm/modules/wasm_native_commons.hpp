@@ -79,7 +79,7 @@ inline void transfer_balance(CAccount &fromAccount, CAccount &toAccount,
       auto quantity       = std::get<1>(transfer_data);
 	  auto memo			  = std::get<2>(transfer_data);
 
-      auto target_regid = CRegID(target);
+      auto target_regid   = CRegID(target);
 	  CHAIN_CHECK_REGID(target_regid, "target regid")
       CHAIN_ASSERT(quantity.is_valid(),    wasm_chain::native_contract_assert_exception, "invalid quantity");
       CHAIN_ASSERT(quantity.amount > 0,    wasm_chain::native_contract_assert_exception, "must transfer positive quantity");
@@ -119,7 +119,6 @@ inline void transfer_balance(CAccount &fromAccount, CAccount &toAccount,
                       spTargetAcct->regid.ToString())
 
         asset.total_supply = new_total_supply;
-
 
         context.notify_recipient(target);
 
