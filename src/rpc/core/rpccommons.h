@@ -13,8 +13,10 @@
 #include "commons/json/json_spirit.h"
 #include "entities/asset.h"
 #include "entities/account.h"
+#include "entities/cdp.h"
 #include "tx/tx.h"
 #include "persistence/dexdb.h"
+#include "persistence/pricefeeddb.h"
 
 using namespace std;
 using namespace json_spirit;
@@ -95,6 +97,8 @@ namespace RPC_PARAM {
     TxType ParseTxType(const Value &jsonValue);
 
     Value GetWasmContractArgs(const Value &jsonValue);
+
+    uint64_t GetPriceByCdp(CPriceFeedCache &priceFeedCache, CUserCDP &cdp);
 }
 
 /*

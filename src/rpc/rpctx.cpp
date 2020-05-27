@@ -659,12 +659,11 @@ Value getaccountinfo(const Array& params, bool fHelp) {
         } else
             obj.push_back(Pair("pubkey_registered", true));
 
-        // TODO: multi stable coin
-        uint64_t bcoinMedianPrice = pCdMan->pPriceFeedCache->GetMedianPrice(PriceCoinPair(SYMB::WICC, SYMB::USD));
         Array cdps;
         vector<CUserCDP> userCdps;
         if (pCdMan->pCdpCache->GetCDPList(account.regid, userCdps)) {
             for (auto& cdp : userCdps) {
+                uint64_t bcoinMedianPrice = RPC_PARAM::GetPriceByCdp(*pCdMan->pPriceFeedCache, cdp);
                 cdps.push_back(cdp.ToJson(bcoinMedianPrice));
             }
         }

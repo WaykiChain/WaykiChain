@@ -768,3 +768,14 @@ Value RPC_PARAM::GetWasmContractArgs(const Value &jsonValue) {
     throw JSONRPCError(RPC_INVALID_PARAMETER, "The contract action args type must be object or array,"
                                               " or string of object or array");
 }
+
+uint64_t RPC_PARAM::GetPriceByCdp(CPriceFeedCache &priceFeedCache, CUserCDP &cdp) {
+    auto quoteSymbol = GetQuoteSymbolByCdpScoin(cdp.scoin_symbol);
+    if (quoteSymbol.empty())  {
+        throw JSONRPCError(RPC_INVALID_PARAMETER,
+                           strprintf("scoin symbol=%s does not have corresponding quote symbol!",
+                                     cdp.scoin_symbol));
+    }
+
+    return priceFeedCache.GetMedianPrice(PriceCoinPair(cdp.bcoin_symbol, quoteSymbol));
+}
