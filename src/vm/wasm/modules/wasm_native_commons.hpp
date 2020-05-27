@@ -73,7 +73,7 @@ inline void transfer_balance(CAccount &fromAccount, CAccount &toAccount,
   inline void mint_burn_balance(wasm_context &context, bool isMintOperate) {
 
       context.control_trx.run_cost += context.get_runcost();
-      auto transfer_data  = wasm::unpack<std::tuple<uint64_t, wasm::asset, optional<string> >>(context.trx.data);
+      auto transfer_data  = wasm::unpack<std::tuple<uint64_t, wasm::asset, string>>(context.trx.data);
 
       auto target         = std::get<0>(transfer_data);
       auto quantity       = std::get<1>(transfer_data);
@@ -145,7 +145,8 @@ inline void transfer_balance(CAccount &fromAccount, CAccount &toAccount,
         asset.total_supply -= quantity.amount;
 
       }
-	  if (memo) CHAIN_CHECK_MEMO(memo.value(), "memo");
+
+      CHAIN_CHECK_MEMO(memo, "memo");
 
       CHAIN_ASSERT( context.database.assetCache.SetAsset(asset),
                       wasm_chain::native_contract_assert_exception,

@@ -43,7 +43,7 @@ namespace wasm {
 					case N(burn):		//burn asset tokens
 					     burn(context);
 						 return;
-					case N(update):		//update asset profile like owner regid
+					case N(update):		//update asset properties like owner's regid
 						 update(context);
 						 return;
 					 case N(transfer):	//transfer asset tokens
@@ -73,22 +73,22 @@ namespace wasm {
 						{"owner", 			"regid"		},
 						{"name",			"string"	},
 						{"total_supply",	"uint64"	},
-						{"mintable",		"bool?"		},
-						{"memo",     		"string?" 	}
+						{"mintable",		"bool"		},
+						{"memo",     		"string" 	}
 					}
 				});
 		        abi.structs.push_back({"mint", "",
 					{
 						{"to", 				"regid"		}, //mint & issue assets to the target holder
 						{"quantity", 		"asset" 	},
-						{"memo",     		"string?" 	}
+						{"memo",     		"string" 	}
 					}
 				});
 				abi.structs.push_back({"burn", "",
 					{
 						{"owner", 			"regid"		}, //only asset owner can burn assets hold by the owner
 						{"quantity",		"asset"		},
-						{"memo",     		"string?" 	}
+						{"memo",     		"string" 	}
 					}
 				});
 				abi.structs.push_back({"update", "",
@@ -133,8 +133,8 @@ namespace wasm {
 												wasm::regid,
 												string,
 												uint64_t,
-												optional<bool>,
-												optional<string> >>(context.trx.data);
+												bool,
+												string >>(context.trx.data);
 
 				auto symbol				= std::get<0>(params);
 		        auto owner              = std::get<1>(params);
@@ -162,7 +162,8 @@ namespace wasm {
 
 				auto sp_account = get_account(context, owner_regid, "owner account");
 
-				CHAIN_ASSERT(   ProcessAssetFee(context.control_trx, context.database, sp_account.get(), "issue", context.receipts, msg),
+				CHAIN_ASSERT(   ProcessAssetFee(context.control_trx, context.database, sp_account.get(),
+										"issue", context.receipts, msg),
 								wasm_chain::account_access_exception,
 								"process asset fee error: %s", msg )
 
@@ -175,7 +176,8 @@ namespace wasm {
                                 		ReceiptType::ASSET_MINT_NEW_AMOUNT, context.receipts),
 								wasm_chain::account_access_exception,
 								"add total supply to issuer=%s error", owner_regid.ToString() )
-				if (memo) CHAIN_CHECK_MEMO(memo.value(), "memo");
+
+				CHAIN_CHECK_MEMO(memo, "memo");
 
 				CAsset asset;
 				asset.asset_symbol	= sym;
@@ -183,12 +185,13 @@ namespace wasm {
 				asset.asset_type	= AssetType::UIA;
 				asset.owner_regid  	= owner_regid;
 				asset.total_supply  = total_supply;
-				asset.mintable		= (mintable) ? *mintable : true;
+				asset.mintable		= mintable;
 
 				CHAIN_ASSERT( 	context.database.assetCache.SetAsset(asset),
 								wasm_chain::level_db_update_fail,
                       			"Update Asset (%s) failure",
                       			symbol.to_string() )
+
 			}
 
 			static void mint(wasm_context &context) {
