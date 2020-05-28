@@ -251,9 +251,9 @@ namespace wasm {
 				auto sp_account = get_account(context, asset.owner_regid, "owner account");
 
 				string msg;
-				CHAIN_ASSERT(   ProcessAssetFee(context.control_trx, context.database, sp_account.get(), "update", context.receipts, msg),
-								wasm_chain::account_access_exception,
-								"process asset fee error: %s", msg )
+				// CHAIN_ASSERT(   ProcessAssetFee(context.control_trx, context.database, sp_account.get(), "update", context.receipts, msg),
+				// 				wasm_chain::account_access_exception,
+				// 				"process asset fee error: %s", msg )
 
 				bool to_update = false;
 
