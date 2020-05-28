@@ -261,11 +261,6 @@ Object CBaseTx::ToJson(CCacheWrapper &cw) const {
     return result;
 }
 
-string CBaseTx::ToString(CAccountDBCache &accountCache) {
-    return strprintf("txType=%s, hash=%s, ver=%d, txUid=%s, llFees=%llu,valid_height=%d",
-                     GetTxType(nTxType), GetHash().ToString(), nVersion, txUid.ToString(), llFees, valid_height);
-}
-
 bool CBaseTx::GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds) {
     return AddInvolvedKeyIds({txUid}, cw, keyIds);
 }
