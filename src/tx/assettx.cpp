@@ -54,6 +54,14 @@ extern bool ProcessAssetFee(CBaseTx &tx, CCacheWrapper &cw, CAccount *pSrcAccoun
         return false;
     }
 
+    auto freeAmount = pSrcAccount->GetToken(SYMB::WICC).free_amount;
+    if (freeAmount < assetFee) {
+        errMsg = strprintf(
+            "account=%s balance=%llu is insufficient for %s asset fee=%llu",
+            pSrcAccount->regid.ToString(), freeAmount, assetFee, action);
+        return false;
+    }
+
     uint64_t riskFee       = assetFee * assetRiskFeeRatio / RATIO_BOOST;
     uint64_t minerTotalFee = assetFee - riskFee;
 
@@ -67,7 +75,9 @@ extern bool ProcessAssetFee(CBaseTx &tx, CCacheWrapper &cw, CAccount *pSrcAccoun
                                                         ReceiptType::ASSET_UPDATED_FEE_TO_RESERVE;
 
     if (!pSrcAccount->OperateBalance(SYMB::WICC, BalanceOpType::SUB_FREE, riskFee, code, receipts, spFcoinAccount.get())) {
-        errMsg = strprintf("account=%s insufficient for asset fee to risk reserve", pSrcAccount->regid.ToString());
+        errMsg = strprintf(
+            "account=%s balance=%llu is insufficient for asset fee=%llu to risk reserve",
+            pSrcAccount->regid.ToString(), pSrcAccount->GetToken(SYMB::WICC).free_amount, riskFee);
         return false;
     }
 
@@ -86,13 +96,15 @@ extern bool ProcessAssetFee(CBaseTx &tx, CCacheWrapper &cw, CAccount *pSrcAccoun
             return false;
         }
 
-        uint64_t minerUpdatedFee = minerTotalFee / delegates.size();
-        if (i == 0) minerUpdatedFee += minerTotalFee % delegates.size(); // give the dust amount to topmost miner
+        uint64_t minerAssetFee = minerTotalFee / delegates.size();
+        if (i == 0) minerAssetFee += minerTotalFee % delegates.size(); // give the dust amount to topmost miner
 
         ReceiptType code = (action == ASSET_ACTION_ISSUE) ? ReceiptType::ASSET_ISSUED_FEE_TO_MINER :
                                                             ReceiptType::ASSET_UPDATED_FEE_TO_MINER;
-        if (!pSrcAccount->OperateBalance(SYMB::WICC, BalanceOpType::SUB_FREE, minerUpdatedFee, code, receipts, spDelegateAccount.get())) {
-            errMsg = strprintf("account=%s insufficient for asset fee to miner", pSrcAccount->regid.ToString());
+        if (!pSrcAccount->OperateBalance(SYMB::WICC, BalanceOpType::SUB_FREE, minerAssetFee, code, receipts, spDelegateAccount.get())) {
+            errMsg = strprintf(
+                "account=%s balance=%llu is insufficient for asset fee=%llu to miner",
+                pSrcAccount->regid.ToString(), pSrcAccount->GetToken(SYMB::WICC).free_amount, minerAssetFee);
             return false;
         }
     }
