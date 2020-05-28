@@ -28,12 +28,13 @@ public:
             nVersion = this->nVersion;
             READWRITE(VARINT(valid_height));
             READWRITE(txUid);
+            READWRITE(fee_symbol);
             READWRITE(VARINT(llFees));
             READWRITE(signature);)
 
     virtual void SerializeForHash(CHashWriter &hw) const {
         hw << VARINT(nVersion) << uint8_t(nTxType) << VARINT(valid_height) << txUid
-           << VARINT(llFees);
+           << fee_symbol << VARINT(llFees);
     }
 
     std::shared_ptr<CBaseTx> GetNewInstance() const { return std::make_shared<CAccountPermsClearTx>(*this); }
