@@ -113,18 +113,19 @@ static const unordered_map<TxType, std::tuple<string, uint64_t, uint64_t, uint64
 { BLOCK_REWARD_TX,          std::make_tuple("BLOCK_REWARD_TX",          0,          0,          0,          0,           false, MAJOR_VER_R1) }, //deprecated
 { ACCOUNT_REGISTER_TX,      std::make_tuple("ACCOUNT_REGISTER_TX",      0,          0.1*COIN,   0.1*COIN,   0.1*COIN    ,false, MAJOR_VER_R1) }, //deprecated
 { BCOIN_TRANSFER_TX,        std::make_tuple("BCOIN_TRANSFER_TX",        0,          0.1*COIN,   0.1*COIN,   0.1*COIN    ,false, MAJOR_VER_R1) }, //deprecated
-{ LCONTRACT_DEPLOY_TX,      std::make_tuple("LCONTRACT_DEPLOY_TX",      1*COIN,     1*COIN,     1*COIN,     1*COIN      ,true,  MAJOR_VER_R1) },
-{ LCONTRACT_INVOKE_TX,      std::make_tuple("LCONTRACT_INVOKE_TX",      0,          0.01*COIN,  0.01*COIN,  0.01*COIN   ,true,  MAJOR_VER_R1) }, //min fee
+{ LCONTRACT_DEPLOY_TX,      std::make_tuple("LCONTRACT_DEPLOY_TX",      1*COIN,     1*COIN,     1*COIN,     1*COIN      ,false,  MAJOR_VER_R1) },
+{ LCONTRACT_INVOKE_TX,      std::make_tuple("LCONTRACT_INVOKE_TX",      0,          0.01*COIN,  0.01*COIN,  0.01*COIN   ,false,  MAJOR_VER_R1) }, //min fee
 { DELEGATE_VOTE_TX,         std::make_tuple("DELEGATE_VOTE_TX",         0,          0.01*COIN,  0.01*COIN,  0.01*COIN   ,true,  MAJOR_VER_R1) },
 
 { UCOIN_STAKE_TX,           std::make_tuple("UCOIN_STAKE_TX",           0,          0.01*COIN,  0.01*COIN,  0.01*COIN   ,true,  MAJOR_VER_R2) },
-{ ASSET_ISSUE_TX,           std::make_tuple("ASSET_ISSUE_TX",           0,          0.01*COIN,  0.01*COIN,  0.01*COIN   ,true,  MAJOR_VER_R2) }, //plus 550 WICC
-{ UCOIN_TRANSFER_TX,        std::make_tuple("UCOIN_TRANSFER_TX",        0,          0.001*COIN, 0.001*COIN, 0.001*COIN  ,true,  MAJOR_VER_R2) },
-{ UCOIN_MINT_TX,            std::make_tuple("UCOIN_MINT_TX",            0,          0,          0,          0           ,false,  MAJOR_VER_R2) },
-{ UCOIN_BLOCK_REWARD_TX,    std::make_tuple("UCOIN_BLOCK_REWARD_TX",    0,          0,          0,          0           ,false,  MAJOR_VER_R2) },
+{ ASSET_ISSUE_TX,           std::make_tuple("ASSET_ISSUE_TX",           0,          0.01*COIN,  0.01*COIN,  0.01*COIN   ,false, MAJOR_VER_R2) }, //plus 550 WICC
+{ UIA_UPDATE_TX,            std::make_tuple("UIA_UPDATE_TX",            0,          0.01*COIN,  0.01*COIN,  0.01*COIN   ,false, MAJOR_VER_R2) },
+{ UCOIN_TRANSFER_TX,        std::make_tuple("UCOIN_TRANSFER_TX",        0,          0.001*COIN, 0.001*COIN, 0.001*COIN  ,false, MAJOR_VER_R2) },
+{ UCOIN_MINT_TX,            std::make_tuple("UCOIN_MINT_TX",            0,          0,          0,          0           ,false, MAJOR_VER_R2) },
+{ UCOIN_BLOCK_REWARD_TX,    std::make_tuple("UCOIN_BLOCK_REWARD_TX",    0,          0,          0,          0           ,false, MAJOR_VER_R2) },
 
-{ UCONTRACT_DEPLOY_TX,   std::make_tuple("UCONTRACT_DEPLOY_TX",   0,          1*COIN,     1*COIN,     1*COIN      ,true,  MAJOR_VER_R2) },
-{ UCONTRACT_INVOKE_TX,   std::make_tuple("UCONTRACT_INVOKE_TX",   0,          0.01*COIN,  0.01*COIN,  0.01*COIN   ,true,  MAJOR_VER_R2) }, //min fee
+{ UCONTRACT_DEPLOY_TX,   std::make_tuple("UCONTRACT_DEPLOY_TX",         0,          1*COIN,     1*COIN,     1*COIN      ,false,  MAJOR_VER_R2) },
+{ UCONTRACT_INVOKE_TX,   std::make_tuple("UCONTRACT_INVOKE_TX",   0,                0.01*COIN,  0.01*COIN,  0.01*COIN   ,false,  MAJOR_VER_R2) }, //min fee
 { PRICE_FEED_TX,            std::make_tuple("PRICE_FEED_TX",            0,          0.001*COIN, 0.001*COIN, 0.001*COIN  ,true,  MAJOR_VER_R2) },
 
 { PRICE_MEDIAN_TX,          std::make_tuple("PRICE_MEDIAN_TX",          0,          0,          0,          0           ,false,  MAJOR_VER_R2) },
@@ -149,7 +150,7 @@ static const unordered_map<TxType, std::tuple<string, uint64_t, uint64_t, uint64
 { PROPOSAL_APPROVAL_TX,     std::make_tuple("PROPOSAL_APPROVAL_TX",     0,          0.01*COIN,  0.01*COIN,  0.01*COIN   ,true,  MAJOR_VER_R3) },
 { ACCOUNT_PERMS_CLEAR_TX,   std::make_tuple("ACCOUNT_PERMS_CLEAR_TX",   0,          0.001*COIN, 0.001*COIN, 0.001*COIN  ,true,  MAJOR_VER_R3) },
 { UNIVERSAL_TX,             std::make_tuple("UNIVERSAL_TX",             0,          0.001*COIN, 0.001*COIN, 0.001*COIN  ,true,  MAJOR_VER_R3) },
-{ CDP_FORCE_SETTLE_INTEREST_TX,std::make_tuple("CDP_FORCE_SETTLE_INTEREST_TX",      0,      0,         0,          0  ,false,  MAJOR_VER_R3) },
+{ CDP_FORCE_SETTLE_INTEREST_TX,std::make_tuple("CDP_FORCE_SETTLE_INTEREST_TX",      0,      0,         0,          0    ,false, MAJOR_VER_R3) },
 { UTXO_TRANSFER_TX,         std::make_tuple("UTXO_TRANSFER_TX",         0,          0.001*COIN, 0.001*COIN, 0.001*COIN  ,true,  MAJOR_VER_R3) },
 { UTXO_PASSWORD_PROOF_TX,   std::make_tuple("UTXO_PASSWORD_PROOF_TX",   0,          0.001*COIN, 0.001*COIN, 0.001*COIN  ,true,  MAJOR_VER_R3) },
 
