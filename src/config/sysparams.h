@@ -15,6 +15,8 @@
 
 using namespace std;
 
+const uint64_t ASSET_UPDATE_FEE = 110 * COIN;
+
 enum SysParamType : uint8_t {
     NULL_SYS_PARAM_TYPE                     = 0,
     MEDIAN_PRICE_SLIDE_WINDOW_BLOCKCOUNT    = 1,
@@ -24,7 +26,7 @@ enum SysParamType : uint8_t {
     // PRICE_FEED_DEVIATE_PENALTY              = 5,
     PRICE_FEED_TIMEOUT_BLOCKS               = 6,
     ASSET_ISSUE_FEE                         = 19,
-    ASSET_UPDATE_FEE                        = 20,
+//    ASSET_UPDATE_FEE                        = 20,
     DEX_OPERATOR_REGISTER_FEE               = 21,
     DEX_OPERATOR_UPDATE_FEE                 = 22,
     PROPOSAL_EXPIRE_BLOCK_COUNT             = 23,
@@ -47,7 +49,7 @@ static const unordered_map<string, SysParamType> paramNameToSysParamTypeMap = {
         // {"PRICE_FEED_DEVIATE_PENALTY",                  PRICE_FEED_DEVIATE_PENALTY               },
         {"PRICE_FEED_TIMEOUT_BLOCKS",                   PRICE_FEED_TIMEOUT_BLOCKS                   },
         {"ASSET_ISSUE_FEE",                             ASSET_ISSUE_FEE                             },
-        {"ASSET_UPDATE_FEE",                            ASSET_UPDATE_FEE                            },
+ //       {"ASSET_UPDATE_FEE",                            ASSET_UPDATE_FEE                            },
         {"DEX_OPERATOR_REGISTER_FEE",                   DEX_OPERATOR_REGISTER_FEE                   },
         {"DEX_OPERATOR_UPDATE_FEE",                     DEX_OPERATOR_UPDATE_FEE                     },
         {"PROPOSAL_EXPIRE_BLOCK_COUNT",                 PROPOSAL_EXPIRE_BLOCK_COUNT                 },
@@ -75,7 +77,7 @@ static const unordered_map<SysParamType, std::tuple< uint64_t,string >, SysParam
     // { PRICE_FEED_DEVIATE_PENALTY,               make_tuple( 1000,         "PRICE_FEED_DEVIATE_PENALTY")              },  // deduct 1000 staked bcoins as penalty
     { PRICE_FEED_TIMEOUT_BLOCKS,                make_tuple( 7200,        "PRICE_FEED_TIMEOUT_BLOCKS")               },  // if the specified number of blocks does not have price feed, the price will be inactive
     { ASSET_ISSUE_FEE,                          make_tuple( 550 * COIN,  "ASSET_ISSUE_FEE")                         },  // asset issuance fee = 550 WICC
-    { ASSET_UPDATE_FEE,                         make_tuple( 110 * COIN,  "ASSET_UPDATE_FEE")                        },  // asset update fee = 110 WICC
+//    { ASSET_UPDATE_FEE,                         make_tuple( 110 * COIN,  "ASSET_UPDATE_FEE")                        },  // asset update fee = 110 WICC
     { DEX_OPERATOR_REGISTER_FEE,                make_tuple( 1100 * COIN, "DEX_OPERATOR_REGISTER_FEE")               }, // dex operator register fee = 1100 WICC
     { DEX_OPERATOR_UPDATE_FEE,                  make_tuple( 110 * COIN,  "DEX_OPERATOR_UPDATE_FEE")                 },  // dex operator update fee = 110 WICC
     { PROPOSAL_EXPIRE_BLOCK_COUNT,              make_tuple( 1200,        "PROPOSAL_EXPIRE_BLOCK_COUNT")             },   //
@@ -99,7 +101,7 @@ static const unordered_map<SysParamType, std::pair<uint64_t, uint64_t>, SysParam
 
     { PRICE_FEED_TIMEOUT_BLOCKS,                 RANGE(0, 0)       },  // if the specified number of blocks does not have price feed, the price will be inactive
     { ASSET_ISSUE_FEE,                           RANGE(0,0)        },  // asset issuance fee = 550 WICC
-    { ASSET_UPDATE_FEE,                          RANGE(0,0)        },  // asset update fee = 110 WICC
+//    { ASSET_UPDATE_FEE,                          RANGE(0,0)        },  // asset update fee = 110 WICC
     { DEX_OPERATOR_REGISTER_FEE,                 RANGE(0,0)        },  // dex operator register fee = 1100 WICC
     { DEX_OPERATOR_UPDATE_FEE,                   RANGE(0,0)        },  // dex operator update fee = 110 WICC
     { PROPOSAL_EXPIRE_BLOCK_COUNT,               RANGE(0,0)        },  //

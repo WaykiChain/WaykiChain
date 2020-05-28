@@ -41,10 +41,11 @@ extern bool ProcessAssetFee(CBaseTx &tx, CCacheWrapper &cw, CAccount *pSrcAccoun
         }
     } else {
         assert(action == ASSET_ACTION_UPDATE);
-        if (!cw.sysParamCache.GetParam(ASSET_UPDATE_FEE, assetFee)) {
-            errMsg = "read param ASSET_UPDATE_FEE failed";
-            return false;
-        }
+        assetFee = ASSET_UPDATE_FEE;
+        // if (!cw.sysParamCache.GetParam(ASSET_UPDATE_FEE, assetFee)) {
+        //     errMsg = "read param ASSET_UPDATE_FEE failed";
+        //     return false;
+        // }
     }
 
     uint64_t assetRiskFeeRatio;
