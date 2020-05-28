@@ -319,7 +319,7 @@ Value submittx( const Array &params, bool fHelp ) {
             std::vector<char> action_data = wasm::abi_serializer::pack(abi, action.to_string(), argsIn, max_serialization_time);
             CHAIN_ASSERT( action_data.size() < MAX_CONTRACT_ARGUMENT_SIZE,
                           wasm_chain::inline_transaction_data_size_exceeds_exception,
-                          "inline transaction args is empty or out of size(%u vs %u)",
+                          "inline transaction args is out of size(%u vs %u)",
                           action_data.size(), MAX_CONTRACT_ARGUMENT_SIZE)
 
             ComboMoney fee  = RPC_PARAM::GetFee(params, 4, TxType::UNIVERSAL_TX);
