@@ -191,7 +191,7 @@ public:
     }
     virtual void SerializeForHash(CHashWriter &hw) const = 0;
     virtual std::shared_ptr<CBaseTx> GetNewInstance() const           = 0;
-    virtual string ToString(CAccountDBCache &accountCache)            = 0;
+    virtual string ToString(CAccountDBCache &accountCache);
     virtual Object ToJson(CCacheWrapper &cw) const;
 
     virtual bool GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds);

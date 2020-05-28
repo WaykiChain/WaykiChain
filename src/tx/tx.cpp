@@ -234,6 +234,16 @@ bool CBaseTx::CheckTxFeeSufficient(CCacheWrapper &cw, const TokenSymbol &feeSymb
     }
     return llFees >= minFee;
 }
+string CBaseTx::ToString(CAccountDBCache &accountCache) {
+    return  strprintf("txType=%s", GetTxType(nTxType)) + ", " +
+            strprintf("hash=%s", GetHash().GetHex()) + ", " +
+            strprintf("ver=%d", nVersion) + ", " +
+            strprintf("valid_height=%d", valid_height) + ", " +
+            strprintf("tx_uid=%s", txUid.ToDebugString()) + ", " +
+            strprintf("fee_symbol=%llu", fee_symbol) + ", " +
+            strprintf("fees=%llu", llFees) + ", " +
+            strprintf("signature=%s", HexStr(signature));
+}
 
 Object CBaseTx::ToJson(CCacheWrapper &cw) const {
     Object result;

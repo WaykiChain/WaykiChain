@@ -3,18 +3,13 @@
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-
 #ifndef TX_ACCOUNTPERMSCLEARTX_H
 #define TX_ACCOUNTPERMSCLEARTX_H
-
 
 #include "tx.h"
 
 class CAccountPermsClearTx: public CBaseTx {
-
-
 public:
-
     CAccountPermsClearTx()
             : CBaseTx(ACCOUNT_PERMS_CLEAR_TX) {}
 
@@ -38,10 +33,12 @@ public:
     }
 
     std::shared_ptr<CBaseTx> GetNewInstance() const { return std::make_shared<CAccountPermsClearTx>(*this); }
-    string ToString(CAccountDBCache &accountCache) {
+
+    virtual string ToString(CAccountDBCache &accountCache) {
         return CBaseTx::ToString(accountCache);
     }
-    Object ToJson(CCacheWrapper &cw) const {
+
+    virtual Object ToJson(CCacheWrapper &cw) const {
         return CBaseTx::ToJson(cw);
     }
 
