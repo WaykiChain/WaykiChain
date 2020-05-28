@@ -397,11 +397,11 @@ bool CUserUpdateAssetTx::ExecuteTx(CTxExecuteContext &context) {
         default: assert(false);
     }
 
-    string errMsg;
-    if (!ProcessAssetFee(*this, cw, sp_tx_account.get(), ASSET_ACTION_UPDATE, receipts, errMsg)) {
-        return state.DoS(100, ERRORMSG("process asset fee error: %s", errMsg),
-                REJECT_INVALID, "process-asset-fee-failed");
-    }
+    // string errMsg;
+    // if (!ProcessAssetFee(*this, cw, sp_tx_account.get(), ASSET_ACTION_UPDATE, receipts, errMsg)) {
+    //     return state.DoS(100, ERRORMSG("process asset fee error: %s", errMsg),
+    //             REJECT_INVALID, "process-asset-fee-failed");
+    // }
 
     if (!cw.assetCache.SetAsset(asset))
         return state.DoS(100, ERRORMSG("save asset failed", txUid.ToDebugString()), UPDATE_ACCOUNT_FAIL, "save-asset-failed");
