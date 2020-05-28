@@ -317,7 +317,7 @@ Value submittx( const Array &params, bool fHelp ) {
                           wasm_chain::inline_transaction_data_size_exceeds_exception, "did not get abi")
 
             std::vector<char> action_data = wasm::abi_serializer::pack(abi, action.to_string(), argsIn, max_serialization_time);
-            CHAIN_ASSERT( action_data.size() > 0 && action_data.size() < MAX_CONTRACT_ARGUMENT_SIZE,
+            CHAIN_ASSERT( action_data.size() < MAX_CONTRACT_ARGUMENT_SIZE,
                           wasm_chain::inline_transaction_data_size_exceeds_exception,
                           "inline transaction args is empty or out of size(%u vs %u)",
                           action_data.size(), MAX_CONTRACT_ARGUMENT_SIZE)
