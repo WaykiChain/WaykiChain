@@ -428,7 +428,7 @@ Value wasm_getrow( const Array &params, bool fHelp ) {
         auto db_contract    = pCdMan->pContractCache;
         auto contract_regid = RPC_PARAM::ParseRegId(params[0], "contract");
         auto contract_table = wasm::name(params[1].get_str());
-        auto key = RPC_PARAM::GetBinStrFromHex(params[1], "key");
+        auto key = RPC_PARAM::GetBinStrFromHex(params[2], "key");
 
         auto contract = wasm::regid(contract_regid.GetIntValue());
         CHAIN_ASSERT( !is_native_contract(contract.value), wasm_chain::native_contract_access_exception,
