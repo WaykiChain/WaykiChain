@@ -421,7 +421,7 @@ Value wasm_gettable( const Array &params, bool fHelp ) {
 
 Value wasm_getrow( const Array &params, bool fHelp ) {
 
-    RESPONSE_RPC_HELP( fHelp || params.size() != 3 , wasm::rpc::get_table_wasm_rpc_help_message)
+    RESPONSE_RPC_HELP( fHelp || params.size() != 3 , wasm::rpc::get_row_wasm_rpc_help_message)
     RPCTypeCheck(params, list_of(str_type)(str_type)(str_type));
 
     try{
