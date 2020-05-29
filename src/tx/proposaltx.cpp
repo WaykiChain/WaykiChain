@@ -50,10 +50,8 @@ uint8_t GetGovernorApprovalMinCount(ProposalType proposalType, CCacheWrapper& cw
 
 string CProposalRequestTx::ToString(CAccountDBCache &accountCache) {
     string proposalString = proposal.sp_proposal->ToString();
-    return strprintf("txType=%s, hash=%s, ver=%d, %s, llFees=%ld, keyid=%s, valid_height=%d",
-                     GetTxType(nTxType), GetHash().ToString(), nVersion, proposalString, llFees,
-                     txUid.ToString(), valid_height);
-}          // logging usage
+    return strprintf("%s, proposal={%d}",  CBaseTx::ToString(accountCache), proposalString);
+}
 
 Object CProposalRequestTx::ToJson(CCacheWrapper &cw) const {
 
