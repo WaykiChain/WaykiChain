@@ -306,7 +306,7 @@ Value submitdelegatevotetx(const Array& params, bool fHelp) {
             "   }\n"
             "       ,...\n"
             " ]\n"
-            "3.\"fee\": (comboMoney string or numberic, required) pay fee to miner\n"
+            "3.\"fee\": (comboMoney string or numberic, required) pay fee to miner, only support WICC\n"
             "4.\"height\": (numeric optional) valid height. When not supplied, the tip block "
             "height in chainActive will be used.\n"
             "\nResult:\n"
@@ -331,6 +331,9 @@ Value submitdelegatevotetx(const Array& params, bool fHelp) {
 
     CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, txUid);
     RPC_PARAM::CheckAccountBalance(account, SYMB::WICC, SUB_FREE, fee.GetAmountInSawi());
+
+    if (fee.symbol != SYMB::WICC)
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "The fee symbol must be WICC");
 
     CDelegateVoteTx delegateVoteTx;
     delegateVoteTx.txUid        = txUid;
