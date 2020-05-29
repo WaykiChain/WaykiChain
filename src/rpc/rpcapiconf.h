@@ -165,6 +165,7 @@ static const CRPCCommand vRPCCommands[] =
     { "submittx",               &submittx,                  true,       false,      true    },
 
     { "wasm_gettable",                  &wasm_gettable,                      true,       false,      true    },
+    { "wasm_getrow",                    &wasm_getrow,                        true,       false,      true    },
     { "wasm_json2bin",                  &wasm_json2bin,                      true,       false,      true    },
     { "wasm_bin2json",                  &wasm_bin2json,                      true,       false,      true    },
     { "wasm_getcode",                   &wasm_getcode,                       true,       false,      true    },

@@ -418,6 +418,41 @@ Value wasm_gettable( const Array &params, bool fHelp ) {
 
 }
 
+
+Value wasm_getrow( const Array &params, bool fHelp ) {
+
+    RESPONSE_RPC_HELP( fHelp || params.size() != 3 , wasm::rpc::get_table_wasm_rpc_help_message)
+    RPCTypeCheck(params, list_of(str_type)(str_type)(str_type));
+
+    try{
+        auto db_contract    = pCdMan->pContractCache;
+        auto contract_regid = RPC_PARAM::ParseRegId(params[0], "contract");
+        auto contract_table = wasm::name(params[1].get_str());
+        auto key = RPC_PARAM::GetBinStrFromHex(params[1], "key");
+
+        auto contract = wasm::regid(contract_regid.GetIntValue());
+        CHAIN_ASSERT( !is_native_contract(contract.value), wasm_chain::native_contract_access_exception,
+                    "cannot get table from native contract '%s'", contract.to_string() )
+
+        CUniversalContractStore contract_store;
+        load_contract(db_contract, contract, contract_store);
+        std::vector<char> abi (contract_store.abi.begin(), contract_store.abi.end());
+
+        std::vector<char> key_prefix = wasm::pack(std::tuple<uint64_t, uint64_t>(contract.value, contract_table.value));
+        string data_key = string(key_prefix.data(),key_prefix.size()) + key;
+        string value;
+
+        CHAIN_ASSERT(db_contract->GetContractData(contract_regid, data_key, value), wasm_chain::table_not_found,
+                      "cannot get row from table '%s' of contract '%s' by key '%s'", contract_table.to_string(),
+                      contract_regid.ToString(), HexStr(key))
+
+        std::vector<char> value_bytes(value.begin(), value.end());
+        json_spirit::Value   value_json  = wasm::abi_serializer::unpack(abi, contract_table.value, value_bytes, max_serialization_time);
+        return value_json.get_obj();
+    } JSON_RPC_CAPTURE_AND_RETHROW;
+
+}
+
 Value wasm_json2bin( const Array &params, bool fHelp ) {
 
     RESPONSE_RPC_HELP( fHelp || params.size() < 2 || params.size() > 4 , wasm::rpc::json_to_bin_wasm_rpc_help_message)

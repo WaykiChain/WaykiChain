@@ -162,6 +162,7 @@ extern Value luavm_executecontract(const Array& params, bool fHelp);
 
 /******************************  WASM & General Module Access *********************************/
 extern Value wasm_gettable(const Array& params, bool fHelp);
+extern Value wasm_getrow(const Array& params, bool fHelp);
 extern Value wasm_json2bin(const Array& params, bool fHelp);
 extern Value wasm_bin2json(const Array& params, bool fHelp);
 extern Value wasm_getcode(const Array& params, bool fHelp);

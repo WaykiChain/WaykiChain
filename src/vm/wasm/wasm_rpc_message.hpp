@@ -58,13 +58,26 @@ namespace wasm { namespace rpc{
         2."table":    (string, required) table name"
         3."numbers":  (numberic, optional) numbers"
         4."begin_key":(string, optional) smallest key in Hex"
-        Result:"
-        "rows":       (string)"
+        Result:
+        "rows":       (array of object) array of row detail object"
         "more":       (bool)"
         nExamples:
         > ./coind wasm_gettable 0-2 accounts
         As json rpc call
         > curl --user myusername -d '{"jsonrpc": "1.0", "id":"curltest", "method":"wasm_gettable", "params":["0-2", "accounts"]}' -H 'Content-Type: application/json;' http://127.0.0.1:8332
+    )=====";
+
+    const char *get_row_wasm_rpc_help_message = R"=====(
+        wasm_getrow "contract" "table" "key"
+        1."contract": (string, required) contract regid"
+        2."table":    (string, required) table name"
+        3."key":      (string, required) key in Hex"
+        Result:
+        "row detail object"
+        nExamples:
+        > ./coind wasm_getrow 0-2 accounts 0000000000000001
+        As json rpc call
+        > curl --user myusername -d '{"jsonrpc": "1.0", "id":"curltest", "method":"wasm_getrow", "params":["0-2", "accounts", "0000000000000001"]}' -H 'Content-Type: application/json;' http://127.0.0.1:8332
     )=====";
 
     const char *json_to_bin_wasm_rpc_help_message = R"=====(
