@@ -53,15 +53,16 @@ public:
         nVersion = this->nVersion;
         READWRITE(VARINT(valid_height));
         READWRITE(txUid);
+        READWRITE(fee_symbol);
+        READWRITE(VARINT(llFees));
         READWRITE(inline_transactions);
         READWRITE(signatures);
-        READWRITE(VARINT(llFees));
         READWRITE(signature);
     )
 
     virtual void SerializeForHash(CHashWriter &hw) const {
-        hw << VARINT(nVersion) << uint8_t(nTxType) << VARINT(valid_height) << txUid
-           << inline_transactions << VARINT(llFees);
+        hw << VARINT(nVersion) << uint8_t(nTxType) << VARINT(valid_height) << txUid << fee_symbol
+           << VARINT(llFees) << inline_transactions;
 
         WriteCompactSize(hw, signatures.size());
         for (const auto &s : signatures) {
