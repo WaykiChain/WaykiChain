@@ -31,14 +31,12 @@ bool operator<(const CCdpCoinPairDetail &a, const CCdpCoinPairDetail &b) {
     return OBJ_COMPARE_LT4(a, b, is_price_active, is_staked_perm, init_tx_cord, coin_pair);
 }
 
-bool GetCdpCoinPairDetails(CTxExecuteContext &context, const PriceDetailMap &priceDetails, set<CCdpCoinPairDetail> &cdpCoinPairSet) {
-    CCacheWrapper &cw = *context.pCw;  CValidationState &state = *context.pState;
+bool GetCdpCoinPairDetails(CCacheWrapper &cw, HeightType height, const PriceDetailMap &priceDetails, set<CCdpCoinPairDetail> &cdpCoinPairSet) {
      uint64_t priceTimeoutBlocks = 0;
     if (!cw.sysParamCache.GetParam(SysParamType::PRICE_FEED_TIMEOUT_BLOCKS, priceTimeoutBlocks)) {
-        return state.DoS(100, ERRORMSG("read sys param PRICE_FEED_TIMEOUT_BLOCKS error"),
-                REJECT_INVALID, "read-sysparam-error");
+        return ERRORMSG("read sys param PRICE_FEED_TIMEOUT_BLOCKS error");
     }
-    FeatureForkVersionEnum version = GetFeatureForkVersion(context.height);
+    FeatureForkVersionEnum version = GetFeatureForkVersion(height);
     for (const auto& item : priceDetails) {
         if (item.first == kFcoinPriceCoinPair) continue;
 
@@ -63,7 +61,7 @@ bool GetCdpCoinPairDetails(CTxExecuteContext &context, const PriceDetailMap &pri
         }
 
         bool isPriceActive = true;
-        if (version >= MAJOR_VER_R3 && !item.second.IsActive(context.height, priceTimeoutBlocks)) {
+        if (version >= MAJOR_VER_R3 && !item.second.IsActive(height, priceTimeoutBlocks)) {
             isPriceActive = false;
         }
 
@@ -193,8 +191,10 @@ bool CBlockPriceMedianTx::ForceLiquidateCdps(CTxExecuteContext &context, PriceDe
 
     set<CCdpCoinPairDetail> cdpCoinPairSet;
 
-    if (!GetCdpCoinPairDetails(context, priceDetails, cdpCoinPairSet))
-        return false;
+    if (!GetCdpCoinPairDetails(cw, context.height, priceDetails, cdpCoinPairSet)) {
+        return state.DoS(100, ERRORMSG("get cdp coin pairs error"),
+                REJECT_INVALID, "get-cdp-coin-pairs-error");
+    }
 
     uint32_t liquidatedLimitCount = CDP_FORCE_LIQUIDATE_MAX_COUNT;
     for (const auto& cdpCoinPairDetail : cdpCoinPairSet) {

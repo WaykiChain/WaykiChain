@@ -8,6 +8,7 @@
 #include "config/const.h"
 #include "main.h"
 #include "persistence/cdpdb.h"
+#include "blockpricemediantx.h"
 
 #include <cmath>
 
@@ -1001,40 +1002,14 @@ bool GetSettledInterestCdps(CCacheWrapper &cw, HeightType height, vector<uint256
     Array cdpInfoArray;
     uint32_t count = CDP_SETTLE_INTEREST_MAX_COUNT;
 
-    for (const auto& item : medianPrices) {
-        if (item.first == kFcoinPriceCoinPair) continue;
+    set<CCdpCoinPairDetail> cdpCoinPairSet;
+    if (!GetCdpCoinPairDetails(cw, height, medianPrices, cdpCoinPairSet)) {
+        return ERRORMSG("get cdp coin pairs error");
+    }
 
-        CAsset asset;
-        const TokenSymbol &bcoinSymbol = item.first.first;
-        const TokenSymbol &quoteSymbol = item.first.second;
-
-        TokenSymbol scoinSymbol = GetCdpScoinByQuoteSymbol(quoteSymbol);
-        if (scoinSymbol.empty()) {
-            LogPrint(BCLog::CDP, "quote_symbol=%s not have a corresponding scoin , ignore", bcoinSymbol);
-            continue;
-        }
-
-        // TODO: remove me if need to support multi scoin and improve the force liquidate process
-        if (scoinSymbol != SYMB::WUSD)
-            throw runtime_error(strprintf("only support to force liquidate scoin=WUSD, actual_scoin=%s", scoinSymbol));
-
-        if (!cw.assetCache.CheckAsset(bcoinSymbol, AssetPermType::PERM_CDP_BCOIN)) {
-            LogPrint(BCLog::CDP, "base_symbol=%s not have cdp bcoin permission, ignore", bcoinSymbol);
-            continue;
-        }
-
-        if (!cw.cdpCache.IsCdpBcoinActivated(bcoinSymbol)) {
-            LogPrint(BCLog::CDP, "bcoin=%s does not be activated, ignore", bcoinSymbol);
-            continue;
-        }
-
-        if (item.second.price == 0) {
-            LogPrint(BCLog::CDP, "coin_pair(%s) price=0, ignore\n", CoinPairToString(item.first));
-            continue;
-        }
-        CCdpCoinPair cdpCoinPair(bcoinSymbol, scoinSymbol);
-        if (!GetSettledInterestCdps(cw, height, cdpCoinPair, cdpList, count)) {
-            return ERRORMSG("get settled interest cdps error! coin_pair=%s", cdpCoinPair.ToString());
+    for (const auto& item : cdpCoinPairSet) {
+        if (!GetSettledInterestCdps(cw, height, item.coin_pair, cdpList, count)) {
+            return ERRORMSG("get settled interest cdps error! coin_pair=%s", item.coin_pair.ToString());
         }
     }
     return true;

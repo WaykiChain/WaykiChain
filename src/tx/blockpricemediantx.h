@@ -161,6 +161,6 @@ public:
 };
 
 
-bool GetCdpCoinPairDetails(CTxExecuteContext &context, const PriceDetailMap &priceDetails, set<CCdpCoinPairDetail> &cdpCoinPairSet);
+bool GetCdpCoinPairDetails(CCacheWrapper &cw, HeightType height, const PriceDetailMap &priceDetails, set<CCdpCoinPairDetail> &cdpCoinPairSet);
 
 #endif //TX_PRICE_MEDIAN_H
