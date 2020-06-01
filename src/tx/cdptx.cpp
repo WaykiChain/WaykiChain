@@ -69,7 +69,7 @@ namespace cdp_util {
     }
 
     bool CdpNeedSettleInterest(HeightType lastHeight, HeightType curHeight, uint64_t cycleDays) {
-        uint64_t cycleBlocks = cycleDays * GetDayBlockCount(curHeight);
+        uint64_t cycleBlocks = cycleDays * SysCfg().GetOneDayBlocks(curHeight);
         return (curHeight > lastHeight) && ((curHeight - lastHeight) >= cycleBlocks);
     }
 
@@ -124,7 +124,7 @@ uint64_t ComputeCDPInterest(const uint64_t total_owed_scoins, const int32_t begi
                             uint64_t A, uint64_t B) {
 
     int32_t blockInterval = endHeight - beginHeight;
-    int32_t loanedDays    = std::max<int32_t>(1, ceil((double)blockInterval / ::GetDayBlockCount(endHeight)));
+    int32_t loanedDays    = std::max<int32_t>(1, ceil((double)blockInterval / SysCfg().GetOneDayBlocks(endHeight)));
 
     uint64_t N                = total_owed_scoins;
     double annualInterestRate = 0.1 * A / log10(1.0 + B * N / (double)COIN);

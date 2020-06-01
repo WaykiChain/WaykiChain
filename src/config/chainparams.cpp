@@ -433,3 +433,10 @@ int32_t CBaseParams::GetMaxForkHeight(int32_t currBlockHeight) const {
 
     return 0;
 }
+
+uint32_t CBaseParams::GetOneDayBlocks(const int32_t currBlockHeight) const {
+    uint32_t count = ::GetDayBlockCount(currBlockHeight);
+    if (NetworkID() != REGTEST_NET)
+        return count;
+    return GetArg("-onedayblocks", count);
+}

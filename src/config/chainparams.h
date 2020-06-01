@@ -168,6 +168,8 @@ public:
     void SetLogFailures(bool flag) const { fLogFailures = flag; }
     void SetGenReceipt(bool flag) const { fGenReceipt = flag; }
     void SetBestRecvTime(int64_t nTime) const { nTimeBestReceived = nTime; }
+    // use for cdp interest
+    uint32_t GetOneDayBlocks(const int32_t currBlockHeight) const;
     int32_t GetMaxForkHeight(int32_t currBlockHeight) const;
     const MessageStartChars& MessageStart() const { return pchMessageStart; }
     const vector<uint8_t>& AlertKey() const { return vAlertPubKey; }
