@@ -980,11 +980,11 @@ Object CCDPInterestForceSettleTx::ToJson(CCacheWrapper &cw) const {
 
 bool GetSettledInterestCdps(CCacheWrapper &cw, HeightType height, const CCdpCoinPair &cdpCoinPair,
                             vector<uint256> &cdpList, uint32_t &count) {
-    auto pIt = cw.cdpCache.CreateCdpHeightIndexIt();
     uint64_t cycleDays;
     if (!cw.sysParamCache.GetCdpParam(cdpCoinPair, CDP_CONVERT_INTEREST_TO_DEBT_DAYS, cycleDays))
         return ERRORMSG("read cdp param CDP_CONVERT_INTEREST_TO_DEBT_DAYS error! cdpCoinPair=%s", cdpCoinPair.ToString());
 
+    auto pIt = cw.cdpCache.CreateCdpHeightIndexIt(cdpCoinPair);
     for (pIt->First(); pIt->IsValid(); pIt->Next()) {
         if (!cdp_util::CdpNeedSettleInterest(pIt->GetHeight(), height, cycleDays)) {
             break;
