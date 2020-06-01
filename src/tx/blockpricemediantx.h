@@ -149,4 +149,18 @@ private:
     bool EqualToCalculatedPrices(const PriceDetailMap &calcPrices);
 };
 
+class CCdpCoinPairDetail {
+public:
+    CCdpCoinPair coin_pair;
+    bool is_price_active = false;
+    bool is_staked_perm = false;
+    uint64_t bcoin_price = 0;
+    CTxCord init_tx_cord;
+
+    friend bool operator<(const CCdpCoinPairDetail &a, const CCdpCoinPairDetail &b);
+};
+
+
+bool GetCdpCoinPairDetails(CTxExecuteContext &context, const PriceDetailMap &priceDetails, set<CCdpCoinPairDetail> &cdpCoinPairSet);
+
 #endif //TX_PRICE_MEDIAN_H
