@@ -956,9 +956,7 @@ string CCDPInterestForceSettleTx::ToString(CAccountDBCache &accountCache) {
         cdpListStr += cdpid.ToString() + ",";
     }
 
-    return strprintf("txType=%s, hash=%s, ver=%d, txUid=%s, valid_height=%llu, cdp_list={%s}",
-        GetTxType(nTxType), GetHash().ToString(), nVersion, txUid.ToString(), valid_height,
-        cdpListStr);
+    return strprintf("%s, cdp_list={%s}", CBaseTx::ToString(accountCache), cdpListStr);
 }
 
 Object CCDPInterestForceSettleTx::ToJson(CCacheWrapper &cw) const {
@@ -967,13 +965,6 @@ Object CCDPInterestForceSettleTx::ToJson(CCacheWrapper &cw) const {
         cdpArray.push_back(cdpid.ToString());
     }
     Object result = CBaseTx::ToJson(cw);
-    result.push_back(Pair("txid",           GetHash().GetHex()));
-    result.push_back(Pair("tx_type",        GetTxType(nTxType)));
-    result.push_back(Pair("ver",            nVersion));
-    result.push_back(Pair("tx_uid",         txUid.ToString()));
-    result.push_back(Pair("valid_height",   valid_height));
-    result.push_back(Pair("signature",      HexStr(signature)));
-
     result.push_back(Pair("cdp_list",       cdpArray));
     return result;
 }
