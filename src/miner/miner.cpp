@@ -455,7 +455,7 @@ static bool CreateNewBlockForStableCoinRelease(int64_t startMiningMs, CCacheWrap
                 return ERRORMSG("GetSettledInterestCdps error");
             }
             if (!spCdpForceSettleInterestTx->cdp_list.empty()) {
-                txPriorities.emplace(TxPriority(TRANSACTION_PRIORITY_CEILING, 0, std::make_shared<CBlockPriceMedianTx>(height)));
+                txPriorities.emplace(TxPriority(TRANSACTION_PRIORITY_CEILING, 0, spCdpForceSettleInterestTx));
 
                 LogPrint(BCLog::MINER, "create CCDPInterestForceSettleTx to block! tx=%s\n",
                         spCdpForceSettleInterestTx->ToString(cwIn.accountCache));
