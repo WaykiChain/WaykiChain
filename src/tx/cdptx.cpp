@@ -906,7 +906,23 @@ bool CCDPInterestForceSettleTx::ExecuteTx(CTxExecuteContext &context) {
         if (!cw.cdpCache.GetCDP(cdpid, cdp))
             return state.DoS(100, ERRORMSG("%s, cdp=%s not exist!", TX_ERR_TITLE, cdpid.ToString()),
                     REJECT_INVALID, "cdp-not-exist");
+
         const auto &cdpCoinPair = cdp.GetCoinPair();
+        uint64_t globalCollateralRatioFloor;
+
+        if (!ReadCdpParam(*this, context, cdpCoinPair, CDP_GLOBAL_COLLATERAL_RATIO_MIN, globalCollateralRatioFloor)) {
+            return false;
+        }
+
+        uint64_t bcoinMedianPrice = 0;
+        if (!GetBcoinMedianPrice(*this, context, cdpCoinPair, bcoinMedianPrice)) return false;
+
+        CCdpGlobalData cdpGlobalData = cw.cdpCache.GetCdpGlobalData(cdpCoinPair);
+        if (cdpGlobalData.CheckGlobalCollateralRatioFloorReached(bcoinMedianPrice, globalCollateralRatioFloor)) {
+            return state.DoS(100, ERRORMSG("GlobalCollateralFloorReached!!"), REJECT_INVALID,
+                            "global-cdp-lock-is-on");
+        }
+
         uint64_t cycleDays;
         if (!ReadCdpParam(*this, context, cdpCoinPair, CdpParamType::CDP_CONVERT_INTEREST_TO_DEBT_DAYS, cycleDays))
             return false;
@@ -970,8 +986,22 @@ Object CCDPInterestForceSettleTx::ToJson(CCacheWrapper &cw) const {
     return result;
 }
 
-bool GetSettledInterestCdps(CCacheWrapper &cw, HeightType height, const CCdpCoinPair &cdpCoinPair,
+bool GetSettledInterestCdps(CCacheWrapper &cw, HeightType height, const CCdpCoinPairDetail &coinPairDetail,
                             vector<uint256> &cdpList, uint32_t &count) {
+
+    uint64_t globalCollateralRatioFloor;
+    const auto &cdpCoinPair = coinPairDetail.coin_pair;
+
+    if (!cw.sysParamCache.GetCdpParam(cdpCoinPair, CDP_GLOBAL_COLLATERAL_RATIO_MIN, globalCollateralRatioFloor)) {
+        return ERRORMSG("read cdp param CDP_GLOBAL_COLLATERAL_RATIO_MIN error! cdpCoinPair=%s", cdpCoinPair.ToString());
+    }
+
+    CCdpGlobalData cdpGlobalData = cw.cdpCache.GetCdpGlobalData(cdpCoinPair);
+    if (cdpGlobalData.CheckGlobalCollateralRatioFloorReached(coinPairDetail.bcoin_price, globalCollateralRatioFloor)) {
+        ERRORMSG("[WARN]GlobalCollateralFloorReached! ignore!");
+        return true;
+    }
+
     uint64_t cycleDays;
     if (!cw.sysParamCache.GetCdpParam(cdpCoinPair, CDP_CONVERT_INTEREST_TO_DEBT_DAYS, cycleDays))
         return ERRORMSG("read cdp param CDP_CONVERT_INTEREST_TO_DEBT_DAYS error! cdpCoinPair=%s", cdpCoinPair.ToString());
@@ -1008,7 +1038,7 @@ bool GetSettledInterestCdps(CCacheWrapper &cw, HeightType height, vector<uint256
     }
 
     for (const auto& item : cdpCoinPairSet) {
-        if (!GetSettledInterestCdps(cw, height, item.coin_pair, cdpList, count)) {
+        if (!GetSettledInterestCdps(cw, height, item, cdpList, count)) {
             return ERRORMSG("get settled interest cdps error! coin_pair=%s", item.coin_pair.ToString());
         }
     }
