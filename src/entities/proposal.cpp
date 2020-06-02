@@ -574,7 +574,6 @@ bool ProcessAxcInFee(CTxExecuteContext& context, CBaseTx& tx, TokenSymbol& selfC
     uint64_t swapFeeForGw = swapFees - swapFeesPerBp * govBpRegIds.size();
 
     CRegID axcgwId;
-    CAccount axcgwAccount;
     if(!cw.sysParamCache.GetAxcSwapGwRegId(axcgwId)) {
         return state.DoS(100, ERRORMSG("CGovAxcInProposal::ExecuteProposal, failed to get GW regid (%s)",
                                        axcgwId.ToString()),
@@ -663,8 +662,6 @@ bool CGovAxcOutProposal::CheckProposal(CTxExecuteContext& context, CBaseTx& tx) 
         (peer_chain_type == ChainType::ETHEREUM && (peer_chain_addr.size() > 42)))
         return state.DoS(100, ERRORMSG("CGovAxcOutProposal::CheckProposal: peer_chain_addr=%s invalid",
                                         peer_chain_addr), REJECT_INVALID, "peer_chain_addr-invalid");
-
-    CAccount acct;
     CUserID uid;
     if(tx.nTxType == TxType::PROPOSAL_REQUEST_TX)
         uid = tx.txUid;
@@ -674,7 +671,7 @@ bool CGovAxcOutProposal::CheckProposal(CTxExecuteContext& context, CBaseTx& tx) 
     auto spSelfChainAccount = tx.GetAccount(context, uid, "self_chain");
     if (!spSelfChainAccount) return false;
 
-    if (!acct.CheckBalance(self_chain_token_symbol, BalanceType::FREE_VALUE, swap_amount))
+    if (!spSelfChainAccount->CheckBalance(self_chain_token_symbol, BalanceType::FREE_VALUE, swap_amount))
         return state.DoS(100, ERRORMSG("CGovAxcOutProposal::CheckProposal:Account does not have enough %s",
                                    self_chain_token_symbol), REJECT_INVALID, "balance-not-enough");
 
