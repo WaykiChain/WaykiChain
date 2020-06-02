@@ -79,7 +79,7 @@ namespace wasm_chain {
        					 o << " ";
 
 					//ss << itr->get_context().to_string();
-       			    ss << o.str();
+       			    ss << o.str() << ": ";
 					ss << itr->get_message();
 					++itr;
 				} catch( std::bad_alloc& ) {
