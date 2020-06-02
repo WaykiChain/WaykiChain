@@ -437,14 +437,12 @@ Value wasm_getrow( const Array &params, bool fHelp ) {
         CUniversalContractStore contract_store;
         load_contract(db_contract, contract, contract_store);
         std::vector<char> abi (contract_store.abi.begin(), contract_store.abi.end());
-
-        std::vector<char> key_prefix = wasm::pack(std::tuple<uint64_t, uint64_t>(contract.value, contract_table.value));
-        string data_key = string(key_prefix.data(),key_prefix.size()) + key;
+        // std::vector<char> key_prefix = wasm::pack(std::tuple<uint64_t, uint64_t>(contract.value, contract_table.value));
+        // string data_key = string(key_prefix.data(),key_prefix.size()) + key;
         string value;
-
-        CHAIN_ASSERT(db_contract->GetContractData(contract_regid, data_key, value), wasm_chain::table_not_found,
-                      "cannot get row from table '%s' of contract '%s' by key '%s'", contract_table.to_string(),
-                      contract_regid.ToString(), HexStr(key))
+        CHAIN_ASSERT(db_contract->GetContractData(contract_regid, key, value), wasm_chain::table_not_found,
+                      "the key '%s' of table '%s' of contract '%s' does not exist",
+                      HexStr(key), contract_table.to_string(), contract_regid.ToString())
 
         std::vector<char> value_bytes(value.begin(), value.end());
         json_spirit::Value   value_json  = wasm::abi_serializer::unpack(abi, contract_table.value, value_bytes, max_serialization_time);
