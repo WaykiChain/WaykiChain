@@ -172,6 +172,7 @@ static const CRPCCommand vRPCCommands[] =
     { "wasm_getabi",                    &wasm_getabi,                        true,       false,      true    },
     { "wasm_gettxtrace",                &wasm_gettxtrace,                    true,       false,      true    },
     { "wasm_abidefjson2bin",            &wasm_abidefjson2bin,                true,       false,      true    },
+    { "wasm_getstate",                  &wasm_getstate,                true,       false,      true    },
     /* for test code */
     { "disconnectblock",                &disconnectblock,                   true,       false,      true    },
     { "reloadtxcache",                  &reloadtxcache,                     true,       false,      true    },

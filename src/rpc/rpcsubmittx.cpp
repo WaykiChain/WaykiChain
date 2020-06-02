@@ -35,12 +35,11 @@
 #include "wasm/types/asset.hpp"
 #include "wasm/types/regid.hpp"
 #include "wasm/wasm_constants.hpp"
-// #include "wasm/wasm_native_contract_abi.hpp"
-// #include "wasm/wasm_native_contract.hpp"
 #include "wasm/wasm_context.hpp"
 #include "wasm/wasm_rpc_message.hpp"
 #include "wasm/wasm_variant_trace.hpp"
 #include "wasm/exception/exceptions.hpp"
+#include "wasm/wasm_control_rpc.hpp"
 
 using namespace std;
 using namespace boost;
@@ -628,3 +627,51 @@ Value wasm_abidefjson2bin( const Array &params, bool fHelp ) {
     } JSON_RPC_CAPTURE_AND_RETHROW;
 
 }
+
+Value wasm_getstate( const Array &params, bool fHelp ) {
+
+    RESPONSE_RPC_HELP( fHelp || params.size() < 4 || params.size() > 5 , wasm::rpc::submit_tx_rpc_help_message)
+
+    try {
+        //auto db_account  = pCdMan->pAccountCache;
+        auto db_contract = pCdMan->pContractCache;
+
+        //get abi
+        std::vector<char> abi;
+        auto contract_regid        = RPC_PARAM::ParseRegId(params[1], "contract");
+        auto contract              = wasm::regid(contract_regid.GetIntValue());
+        if (!get_native_contract_abi(contract_regid.GetIntValue(), abi)) {
+            CUniversalContractStore contract_store;
+            load_contract(db_contract, contract, contract_store);
+            abi = std::vector<char>(contract_store.abi.begin(), contract_store.abi.end());
+        }
+
+        auto action                   = wasm::name(params[2].get_str());
+        auto args                     = RPC_PARAM::GetWasmContractArgs(params[3]);
+        std::vector<char> action_data = wasm::abi_serializer::pack(abi, action.to_string(), args, max_serialization_time);
+        CHAIN_ASSERT( action_data.size() < MAX_CONTRACT_ARGUMENT_SIZE,
+                      wasm_chain::inline_transaction_data_size_exceeds_exception,
+                      "inline transaction args is out of size(%u vs %u)",
+                      action_data.size(), MAX_CONTRACT_ARGUMENT_SIZE)
+
+        auto tx = inline_transaction{contract.value, action.value, {{}}, action_data};
+        auto db = CCacheWrapper(pCdMan);
+
+        wasm_control_rpc ctrl(db);
+        string retMsg = ctrl.call_inline_transaction(tx);
+
+        Object obj_return;
+        Value  value_json;
+        json_spirit::read(retMsg, value_json);
+
+        Object result;
+        result.push_back(Pair("block_num", chainActive.Height()));
+        json_spirit::Config::add(result, "get_return", value_json );
+        json_spirit::Config::add(obj_return, "result", result );
+
+        return obj_return;
+
+    } JSON_RPC_CAPTURE_AND_RETHROW;
+
+}
+

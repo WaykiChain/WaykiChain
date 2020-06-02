@@ -169,6 +169,7 @@ extern Value wasm_getcode(const Array& params, bool fHelp);
 extern Value wasm_getabi(const Array& params, bool fHelp);
 extern Value wasm_gettxtrace(const Array& params, bool fHelp);
 extern Value wasm_abidefjson2bin(const Array& params, bool fHelp);
+extern Value wasm_getstate(const Array& params, bool fHelp);
 
 /******************************  UTXO *********************************/
 extern Value genutxomultiinputcondhash(const Array& params, bool fHelp);
