@@ -39,7 +39,7 @@ namespace wasm_chain {
 			enum code_enum
 			{
 				code_value = unspecified_exception_code
-			}; 
+			};
 
 	        exception( int64_t code = unspecified_exception_code,
 	                   const std::string& name_value = "exception",
@@ -48,7 +48,7 @@ namespace wasm_chain {
 	                   int64_t code = unspecified_exception_code,
 	                   const std::string& name_value = "exception",
 	                   const std::string& what_value = "unspecified");
-	        exception( log_messages&&, 
+	        exception( log_messages&&,
 	        	       int64_t code = unspecified_exception_code,
 	                   const std::string& name_value = "exception",
 	                   const std::string& what_value = "unspecified");
@@ -75,8 +75,8 @@ namespace wasm_chain {
 			// friend void to_variant( const exception& e, variant& v );
 			// friend void from_variant( const variant& e, exception& ll );
 
-			exception& operator=( const exception& copy );
-			exception& operator=( exception&& copy      );
+			exception& operator=( const exception& other );
+			exception& operator=( exception&& other      );
 		public:
 			std::string     _name;
 			std::string     _what;
@@ -99,7 +99,7 @@ namespace wasm_chain {
       private:
        std::exception_ptr _inner;
    };
-   
+
 
 
 

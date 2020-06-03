@@ -141,15 +141,21 @@ namespace wasm_chain {
 		return string();
 	}
 
-	exception& exception::operator=( const exception& copy )
+	exception& exception::operator=( const exception& other )
 	{
-	    *this = copy;
+		_name = other._name;
+		_what = other._what;
+		_code = other._code;
+		_elog = other._elog;
 	    return *this;
 	}
 
-	exception& exception::operator=( exception&& copy )
+	exception& exception::operator=( exception&& other )
 	{
-	    *this = std::move(copy);
+		_name = std::move(other._name);
+		_what = std::move(other._what);
+		_code = std::move(other._code);
+		_elog = std::move(other._elog);
 	    return *this;
 	}
 
