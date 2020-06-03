@@ -389,7 +389,12 @@ Value wasm_gettable( const Array &params, bool fHelp ) {
         bool                hasMore = false;
         json_spirit::Object object_return;
         json_spirit::Array  row_json;
-        for (pContractDataIt->SeekUpper(&start_key); pContractDataIt->IsValid(); pContractDataIt->Next()) {
+        if (start_key.empty()) {
+            pContractDataIt->First();
+        } else {
+            pContractDataIt->SeekUpper(&start_key);
+        }
+        for (; pContractDataIt->IsValid(); pContractDataIt->Next()) {
             if (pContractDataIt->GotCount() > numbers) {
                 hasMore = true;
                 break;
