@@ -56,8 +56,8 @@ namespace wasm { namespace rpc{
         wasm_gettable "contract" "table" "numbers" "begin_key"
         1."contract": (string, required) contract regid"
         2."table":    (string, required) table name"
-        3."numbers":  (numberic, optional) numbers"
-        4."begin_key":(string, optional) smallest key in Hex"
+        3."numbers":  (numberic, optional) numbers, defualt is 10"
+        4."begin_key":(string, optional) smallest key in Hex, default is empty"
         Result:
         "rows":       (array of object) array of row detail object"
         "more":       (bool)"
