@@ -28,6 +28,9 @@ public:
 
     virtual bool First() = 0;
 
+    // seek to the first element not less than the given key
+    virtual bool Seek(const KeyType *pKey) = 0;
+    // seek to the first element greater than the given key
     virtual bool SeekUpper(const KeyType *pKey) = 0;
 
     virtual bool Next() = 0;
@@ -64,6 +67,15 @@ public:
     bool First() {
         const string &prefix = dbk::GetKeyPrefix(CacheType::PREFIX_TYPE);
         p_db_it->Seek(prefix);
+        return ProcessData();
+    }
+
+    bool Seek(const KeyType *pKey) {
+        if (pKey == nullptr || db_util::IsEmpty(*pKey))
+            return First();
+        string lastKeyStr = dbk::GenDbKey(CacheType::PREFIX_TYPE, *pKey);
+        p_db_it->Seek(lastKeyStr);
+
         return ProcessData();
     }
 
@@ -123,6 +135,13 @@ public:
         return ProcessData();
     }
 
+    bool Seek(const KeyType *pKey) {
+        if (pKey == nullptr || db_util::IsEmpty(*pKey))
+            return First();
+        map_it = this->db_cache.GetMapData().lower_bound(*pKey);
+        return ProcessData();
+    }
+
     bool SeekUpper(const KeyType *pKey) {
         if (pKey == nullptr || db_util::IsEmpty(*pKey))
             return First();
@@ -174,6 +193,14 @@ public:
     bool First() {
         sp_map_it->First();
         sp_base_it->First();
+        return ProcessData();
+    }
+
+    bool Seek(const KeyType *pKey) {
+        if (pKey == nullptr || db_util::IsEmpty(*pKey))
+            return First();
+        sp_map_it->Seek(pKey);
+        sp_base_it->Seek(pKey);
         return ProcessData();
     }
 
@@ -279,6 +306,10 @@ public:
     }
     virtual bool First() {
         return sp_it_Impl->First();
+    }
+
+    virtual bool Seek(const KeyType *pKey) {
+        return sp_it_Impl->Seek(pKey);
     }
 
     virtual bool SeekUpper(const KeyType *pKey) {
@@ -415,7 +446,13 @@ public:
     virtual bool First() {
         KeyType lastKey;
         PrefixMatcher::MakeKeyByPrefix(prefix_element, lastKey);
-        return Base::SeekUpper(&lastKey);
+        return Base::Seek(&lastKey);
+    }
+
+    virtual bool Seek(const KeyType *pKey) {
+        if (pKey == nullptr || db_util::IsEmpty(*pKey))
+            return First();
+        return this->sp_it_Impl->Seek(pKey);
     }
 
     virtual bool SeekUpper(const KeyType *pKey) {
