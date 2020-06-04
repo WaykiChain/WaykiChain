@@ -34,7 +34,6 @@ bool CTxMemCache::RemoveBlockTx(const CBlock &block) {
 
 bool CTxMemCache::HasTx(const uint256 &txid) {
     auto it = txids.find(txid);
-    bool found = txids.count(txid) > 0;
     if (it != txids.end()) {
         return it->second;
     }
