@@ -60,7 +60,8 @@ namespace wasm {
                                  microseconds max_serialization_time ) const;
         void variant_to_binary( const type_name &type, const json_spirit::Value &var, wasm::datastream<char *> &ds,
                                 microseconds max_serialization_time ) const;
-
+        void variant_to_binary(const type_name &type, const json_spirit::Value &var,
+                               wasm::datastream<char *> &ds, wasm::abi_traverse_context &ctx) const;
         typedef std::function<json_spirit::Value(wasm::datastream<const char *> & , bool, bool)> unpack_function;
         typedef std::function<void( const json_spirit::Value &, wasm::datastream<char *> &, bool, bool )> pack_function;
         void add_specialized_unpack_pack( const string &name,
@@ -113,6 +114,10 @@ namespace wasm {
 
             return data;
         }
+
+        static std::vector<char> pack_keys(const std::vector<char> &abi,
+                                           const json_spirit::Value &array,
+                                           microseconds max_serialization_time);
 
         static json_spirit::Value
         unpack( const std::vector<char> &abi, const string &action, const bytes &data, microseconds max_serialization_time ) {

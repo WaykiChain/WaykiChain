@@ -250,8 +250,38 @@ namespace wasm {
         return type;
     }
 
-    json_spirit::Value abi_serializer::_binary_to_variant( const type_name &type, wasm::datastream<const char *> &ds,
-                                                           wasm::abi_traverse_context &ctx ) const {
+    std::vector<char> abi_serializer::pack_keys(const std::vector<char> &abi,
+                                                    const json_spirit::Value &array,
+                                                    microseconds max_serialization_time) {
+
+        const auto &keys = array.get_array();
+
+        if (keys.empty()) return {};
+
+        vector<char> data(1024 * 1024);
+        try {
+
+            wasm::abi_def def = wasm::unpack<wasm::abi_def>(abi);
+            wasm::abi_serializer abis(def, max_serialization_time);
+            wasm::abi_traverse_context ctx(max_serialization_time);
+            wasm::datastream<char *> ds(data.data(), data.size());
+            for ( const auto &item : keys) {
+                const auto &key_item = item.get_array();
+                CHAIN_ASSERT( key_item.size() == 2, wasm_chain::pack_exception, "the key must have type and value only")
+                const auto &key_type_name = key_item[0].get_str();
+                const auto &key_value = key_item[1];
+                abis.variant_to_binary(key_type_name, key_value, ds, ctx);
+            }
+            data.resize(ds.tellp());
+        }
+        CHAIN_CAPTURE_AND_RETHROW("abi_serializer pack error for keys")
+
+        return data;
+    }
+
+    json_spirit::Value abi_serializer::_binary_to_variant(const type_name &type,
+                                                          wasm::datastream<const char *> &ds,
+                                                          wasm::abi_traverse_context &ctx) const {
         ctx.check_deadline();
         ctx.recursion_depth++;
 
@@ -317,7 +347,6 @@ namespace wasm {
         json_spirit::Value var;
         return var;
     }
-
 
     json_spirit::Value abi_serializer::binary_to_variant( const type_name &type, const bytes &binary,
                                                           microseconds max_serialization_time ) const {
@@ -456,6 +485,11 @@ namespace wasm {
         _variant_to_binary(type, var, ds, ctx);
     }
 
+    void abi_serializer::variant_to_binary(const type_name &type, const json_spirit::Value &var,
+                                           wasm::datastream<char *> &ds,
+                                           wasm::abi_traverse_context &ctx) const {
+        _variant_to_binary(type, var, ds, ctx);
+    }
 
     type_name abi_serializer::get_action_type( type_name action ) const {
         auto itr = actions.find(action);

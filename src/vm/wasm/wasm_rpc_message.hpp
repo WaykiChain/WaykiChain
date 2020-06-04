@@ -53,18 +53,26 @@ namespace wasm { namespace rpc{
     )=====";
 
     const char *get_table_wasm_rpc_help_message = R"=====(
-        wasm_gettable "contract" "table" "numbers" "begin_key"
+        wasm_gettable "contract" "table" "key_prefix" "max_count" "begin_key"
         1."contract": (string, required) contract regid"
         2."table":    (string, required) table name"
-        3."numbers":  (numberic, optional) numbers, defualt is 10"
-        4."begin_key":(string, optional) smallest key in Hex, default is empty"
+        3."key_prefix" (array, optional) array of key prefix element, each element contain type and value, defualt is "[]"
+            '[
+              [
+                "type_name",  (string) type name
+                "value",    (string)   value
+              ]
+              , ...
+            ]'
+        4."max_count":  (numberic, optional) max count of result rows, defualt is 100"
+        5."begin_key":(string, optional) smallest key in Hex, default is empty"
         Result:
         "rows":       (array of object) array of row detail object"
         "more":       (bool)"
         nExamples:
-        > ./coind wasm_gettable 0-2 accounts
+        > ./coind wasm_gettable 0-2 accounts '[["regid", "0-1"]]'
         As json rpc call
-        > curl --user myusername -d '{"jsonrpc": "1.0", "id":"curltest", "method":"wasm_gettable", "params":["0-2", "accounts"]}' -H 'Content-Type: application/json;' http://127.0.0.1:8332
+        > curl --user myusername -d '{"jsonrpc": "1.0", "id":"curltest", "method":"wasm_gettable", "params":["0-2", "accounts"], [["regid", "0-1"]]}' -H 'Content-Type: application/json;' http://127.0.0.1:8332
     )=====";
 
     const char *get_row_wasm_rpc_help_message = R"=====(

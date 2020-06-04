@@ -68,6 +68,33 @@ using std::chrono::microseconds;
         throw runtime_error( msg);      \
     }
 
+
+Array GetKeyPrefixArray(const Value &jsonValue) {
+    auto valueType = jsonValue.type();
+
+    if (valueType == json_spirit::array_type) {
+        return jsonValue.get_array();
+    } else if (valueType == json_spirit::str_type) {
+        json_spirit::Value newObj;
+        try {
+            json_spirit::read_string_or_throw(jsonValue.get_str(), newObj);
+        } catch (json_spirit::Error_position &e) {
+            throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("Parse json of key prefix array error! line[%d:%d] %s",
+                    e.line_, e.column_, e.reason_));
+        }
+        auto newObjType = newObj.type();
+        if (newObjType == json_spirit::obj_type || newObjType == json_spirit::array_type) {
+            return newObj.get_array();
+        }
+    }
+    throw JSONRPCError(RPC_INVALID_PARAMETER, "The contract action args type must be object or array,"
+                                              " or string of object or array");
+}
+
+Array GetKeyPrefixArray(const Array &params, uint32_t index) {
+    return (params.size() > index) ? GetKeyPrefixArray(params[index]) : Array();
+}
+
 void read_file_limit(const string& path, string& data, uint64_t max_size){
 
     CHAIN_ASSERT( path.size() > 0, wasm_chain::file_read_exception, "file name is missing")
@@ -362,6 +389,9 @@ Value wasm_gettable( const Array &params, bool fHelp ) {
         auto db_contract    = pCdMan->pContractCache;
         auto contract_regid = RPC_PARAM::ParseRegId(params[0], "contract");
         auto contract_table = wasm::name(params[1].get_str());
+        auto key_prefix_arr = GetKeyPrefixArray(params, 2);
+        uint64_t numbers = (params.size() > 3) ? std::atoi(params[3].get_str().data()) : default_query_rows;
+        string start_key = (params.size() > 4) ? from_hex(params[4].get_str()) : "";
 
         // JSON_RPC_ASSERT(!is_native_contract(contract_regid.value), RPC_INVALID_PARAMS,
         //                 "cannot get table from native contract '%s'", contract_regid.to_string())
@@ -373,12 +403,12 @@ Value wasm_gettable( const Array &params, bool fHelp ) {
         load_contract(db_contract, contract, contract_store);
         std::vector<char> abi = std::vector<char>(contract_store.abi.begin(), contract_store.abi.end());
 
-        uint64_t numbers = default_query_rows;
-        if (params.size() > 2) numbers = std::atoi(params[2].get_str().data());
-
         std::vector<char> key_prefix = wasm::pack(std::tuple<uint64_t, uint64_t>(contract.value, contract_table.value));
         string search_key(key_prefix.data(),key_prefix.size());
-        string start_key = (params.size() > 3) ? from_hex(params[3].get_str()) : "";
+        if (!key_prefix_arr.empty()) {
+            auto keys = wasm::abi_serializer::pack_keys(abi, key_prefix_arr, max_serialization_time);
+            search_key.append(keys.begin(), keys.end());
+        }
 
         auto pContractDataIt = db_contract->CreateContractDataIterator(contract_regid, search_key);
         // JSON_RPC_ASSERT(pContractDataIt, RPC_INVALID_PARAMS,

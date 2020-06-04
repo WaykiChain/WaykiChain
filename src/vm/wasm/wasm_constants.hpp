@@ -9,7 +9,7 @@ namespace wasm {
     using std::chrono::microseconds;
 
 
-    const static uint16_t default_query_rows            = 10;
+    const static uint16_t default_query_rows            = 100;
 
     const static auto max_serialization_time            = microseconds(15 * 1000);
     const static auto max_wasm_execute_time_mining      = 200;//in milliseconds
