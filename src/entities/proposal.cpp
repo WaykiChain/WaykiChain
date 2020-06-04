@@ -540,8 +540,11 @@ bool CGovAxcInProposal::CheckProposal(CTxExecuteContext& context, CBaseTx& tx) {
     if (!spAccount) return false;
 
     if (swap_amount < DUST_AMOUNT_THRESHOLD)
-        return state.DoS(100, ERRORMSG("CGovAxcInProposal::CheckProposal: swap_amount=%llu too small",
-                                        swap_amount), REJECT_INVALID, "swap_amount-dust");
+        return state.DoS(100, ERRORMSG("swap_amount=%llu too small than %llu",
+                                        swap_amount, DUST_AMOUNT_THRESHOLD), REJECT_INVALID, "swap_amount-dust");
+    if (swap_amount > MAX_ASSET_TOTAL_SUPPLY)
+        return state.DoS(100, ERRORMSG("swap_amount=%llu too large than %llu",
+                                        swap_amount, MAX_ASSET_TOTAL_SUPPLY), REJECT_INVALID, "swap-amount-too-large");
 
     uint64_t mintAmount = 0;
     if (cw.axcCache.GetSwapInMintRecord(peer_chain_type, peer_chain_txid, mintAmount))
@@ -639,9 +642,15 @@ bool CGovAxcInProposal::ExecuteProposal(CTxExecuteContext& context, CBaseTx& tx)
         return state.DoS(100, ERRORMSG("CGovAxcInProposal::ExecuteProposal: don't find axc asset %s", coinPair.self_token_symbol),
                                        REJECT_INVALID, "get-axc-dia-asset-err");
     }
+
+    uint128_t totalSupply = asset.total_supply + swap_amount;
+    if (totalSupply > MAX_ASSET_TOTAL_SUPPLY)
+        return state.DoS(100, ERRORMSG("asset total_supply=%llu + swap_amount=%llu too large than %llu",
+                                        asset.total_supply, swap_amount, MAX_ASSET_TOTAL_SUPPLY),
+                                        REJECT_INVALID, "total-supply-too-large");
     asset.OperateToTalSupply(swap_amount, TotalSupplyOpType::ADD);
     if(!cw.assetCache.SetAsset( asset)) {
-        return state.DoS(100, ERRORMSG("CGovAxcInProposal::ExecuteProposal: save axc asset error %s", asset.asset_symbol ),
+        return state.DoS(100, ERRORMSG("save axc asset error %s", asset.asset_symbol ),
                                        REJECT_INVALID, "save-axc-dia-asset-err");
     }
 
@@ -679,6 +688,9 @@ bool CGovAxcOutProposal::CheckProposal(CTxExecuteContext& context, CBaseTx& tx) 
         return state.DoS(100, ERRORMSG("CGovAxcOutProposal::CheckProposal: swap_amount=%llu too small",
                                         swap_amount), REJECT_INVALID, "swap_amount-dust");
 
+    if (swap_amount > MAX_ASSET_TOTAL_SUPPLY)
+        return state.DoS(100, ERRORMSG("swap_amount=%llu too large than %llu",
+                                        swap_amount, MAX_ASSET_TOTAL_SUPPLY), REJECT_INVALID, "swap-amount-too-large");
     return true;
 }
 
@@ -705,6 +717,11 @@ bool CGovAxcOutProposal::ExecuteProposal(CTxExecuteContext& context, CBaseTx& tx
         return state.DoS(100, ERRORMSG("CGovAxcOutProposal::ExecuteProposal: don't find axc asset %s", self_chain_token_symbol),
                          REJECT_INVALID, "get-axc-dia-asset-err");
     }
+
+    if (swap_amount > asset.total_supply)
+        return state.DoS(100, ERRORMSG("asset swap_amount=%llu too large than total_supply=%llu",
+                                        swap_amount, asset.total_supply),
+                                        REJECT_INVALID, "swap-amount-exceed-total-supply");
     asset.OperateToTalSupply(swap_amount, TotalSupplyOpType::SUB);
     if(!cw.assetCache.SetAsset( asset)) {
         return state.DoS(100, ERRORMSG("CGovAxcOutProposal::ExecuteProposal: save axc asset error %s", asset.asset_symbol ),
