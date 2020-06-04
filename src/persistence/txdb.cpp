@@ -45,8 +45,6 @@ bool CTxMemCache::HasTx(const uint256 &txid) {
 }
 
 void CTxMemCache::BatchWrite(const TxIdMap &txidsIn) {
-    txids.clear();
-
     for (const auto &item : txidsIn) {
         if (pBase == nullptr && !item.second) {
             txids.erase(item.first);
