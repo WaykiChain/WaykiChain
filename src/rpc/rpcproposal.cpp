@@ -64,12 +64,12 @@ Value getswapcoindetail(const Array& params, bool fHelp) {
 
     string peerSymbol = params[0].get_str();
 
-    AxcSwapCoinPair p;
-    if (!pCdMan->pAssetCache->GetAxcCoinPairByPeerSymbol(TokenSymbol(peerSymbol), p)){
-        throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("don't find swap coin detail by peer coin (%s)",peerSymbol));
+    CAxcSwapPairStore swapPair;
+    if (!pCdMan->pAssetCache->GetAxcCoinPairByPeerSymbol(peerSymbol, swapPair)){
+        throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("swap coin pair=%s does not exist",peerSymbol));
     }
 
-    return p.ToJson();
+    return swapPair.ToJson();
 }
 
 Value getgovernors(const Array& params, bool fHelp) {

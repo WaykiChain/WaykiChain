@@ -55,6 +55,25 @@ enum ProposalOperateType: uint8_t {
     DISABLE             = 2
 };
 
+static const EnumHelper<ProposalOperateType, uint8_t> kProposalOperateTypeHelper = {{
+    {ProposalOperateType::NULL_PROPOSAL_OP, ""},
+    {ProposalOperateType::ENABLE, "ENABLE"},
+    {ProposalOperateType::DISABLE, "DISABLE"}
+}};
+
+enum ChainType: uint8_t {
+    NULL_CHAIN_TYPE = 0,
+    BITCOIN         = 1,
+    ETHEREUM        = 2,
+    EOS             = 3
+};
+
+static const EnumHelper<ChainType, uint8_t> kChainTypeHelper = {{
+    {ChainType::NULL_CHAIN_TYPE, ""},
+    {ChainType::BITCOIN, "BITCOIN"},
+    {ChainType::ETHEREUM, "ETHEREUM"},
+    {ChainType::EOS, "EOS"}
+}};
 
 struct CProposal {
     ProposalType proposal_type = NULL_PROPOSAL;

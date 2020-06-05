@@ -93,43 +93,19 @@ bool CAssetDbCache::CheckDexQuoteSymbol(const TokenSymbol &quoteSymbol) {
     return true;
 }
 
-bool CAssetDbCache::AddAxcSwapPair(TokenSymbol peerSymbol, TokenSymbol selfSymbol, ChainType peerType ) {
-    return axc_swap_coin_ps_cache.SetData(peerSymbol, std::make_pair(selfSymbol, peerType)) &&
-           axc_swap_coin_sp_cache.SetData(selfSymbol, std::make_pair(peerSymbol, peerType));
-}
-
-bool CAssetDbCache::EraseAxcSwapPair(TokenSymbol peerSymbol) {
-    pair<string, uint8_t> data;
-    if(!axc_swap_coin_ps_cache.GetData(peerSymbol, data)){
-        return true;
-    }
-
-    return axc_swap_coin_ps_cache.EraseData(peerSymbol) && axc_swap_coin_sp_cache.EraseData(data.first);
+bool CAssetDbCache::SetAxcSwapPair(const CAxcSwapPairStore &value) {
+    return axc_swap_coin_ps_cache.SetData(value.peer_symbol, value) &&
+           axc_swap_coin_sp_cache.SetData(value.GetSelfSymbol(), value);
 }
 
 bool CAssetDbCache::HasAxcCoinPairByPeerSymbol(TokenSymbol peerSymbol) {
-    AxcSwapCoinPair p;
-    return GetAxcCoinPairByPeerSymbol(peerSymbol, p);
+    return axc_swap_coin_ps_cache.HasData(peerSymbol);
 }
 
-bool CAssetDbCache::GetAxcCoinPairBySelfSymbol(TokenSymbol token, AxcSwapCoinPair& p) {
-
-    pair<string, uint8_t> data;
-    if(axc_swap_coin_sp_cache.GetData(token, data)){
-        p = AxcSwapCoinPair(TokenSymbol(data.first),token, ChainType(data.second));
-        return true;
-    }
-
-    return false;
+bool CAssetDbCache::GetAxcCoinPairBySelfSymbol(TokenSymbol selfSymbol, CAxcSwapPairStore& swapPair) {
+    return axc_swap_coin_sp_cache.GetData(selfSymbol, swapPair);
 }
 
-bool CAssetDbCache::GetAxcCoinPairByPeerSymbol(TokenSymbol token, AxcSwapCoinPair& p) {
-
-    pair<string, uint8_t> data;
-    if(axc_swap_coin_ps_cache.GetData(token, data)){
-        p = AxcSwapCoinPair(token, TokenSymbol(data.first),  ChainType(data.second));
-        return true;
-    }
-
-    return false;
+bool CAssetDbCache::GetAxcCoinPairByPeerSymbol(TokenSymbol peerSymbol, CAxcSwapPairStore& swapPair) {
+    return axc_swap_coin_ps_cache.GetData(peerSymbol, swapPair);
 }

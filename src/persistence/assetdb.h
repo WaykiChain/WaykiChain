@@ -11,6 +11,7 @@
 #include "dbaccess.h"
 #include "dbiterator.h"
 #include "entities/asset.h"
+#include "entities/proposal.h"
 #include "leveldbwrapper.h"
 
 #include <map>
@@ -18,29 +19,42 @@
 #include <utility>
 #include <vector>
 
+class CAxcSwapPairStore {
+public:
+    ProposalOperateType status = ProposalOperateType::NULL_PROPOSAL_OP;
+    TokenSymbol         peer_symbol;
+    ChainType           peer_chain_type = ChainType::NULL_CHAIN_TYPE;
 
-struct AxcSwapCoinPair {
+    IMPLEMENT_SERIALIZE(
+            READWRITE_ENUM(status, uint8_t);
+            READWRITE(peer_symbol);
+            READWRITE_ENUM(peer_chain_type, uint8_t);
+    )
 
-    TokenSymbol peer_token_symbol;
-    TokenSymbol self_token_symbol;
-    ChainType   peer_chain_type;
+    string GetSelfSymbol() const {
+        return "m" + peer_symbol;
+    }
 
-    AxcSwapCoinPair() {}
-    AxcSwapCoinPair(TokenSymbol peerSymbol, TokenSymbol selfSymbol, ChainType peerType):
-            peer_token_symbol(peerSymbol),self_token_symbol(selfSymbol), peer_chain_type(peerType){};
+    bool IsEmpty() const {
+        return status == 0;
+    }
+
+    void SetEmpty() {
+        *this = CAxcSwapPairStore();
+    }
+
+    string ToString() const {
+        return strprintf("status=%d, peer_symbol=%s, self_symbol=%s, ",
+            kProposalOperateTypeHelper.GetName(status), peer_symbol, GetSelfSymbol(), kChainTypeHelper.GetName(peer_chain_type));
+    }
 
     Object ToJson() {
-        Object o;
-        o.push_back(Pair("peer_token_symbol", peer_token_symbol));
-        o.push_back(Pair("self_token_symbol", self_token_symbol));
-
-        string chainTypeString;
-        auto itr = kChainTypeNameMap.find(peer_chain_type);
-        if (itr != kChainTypeNameMap.end())
-            o.push_back(Pair("peer_chain_type", itr->second));
-        else
-            o.push_back(Pair("peer_chain_type", peer_chain_type));
-        return o;
+        Object obj;
+        obj.push_back(Pair("status", kProposalOperateTypeHelper.GetName(status)));
+        obj.push_back(Pair("peer_symbol", peer_symbol));
+        obj.push_back(Pair("self_symbol", GetSelfSymbol()));
+        obj.push_back(Pair("peer_chain_type", kChainTypeHelper.GetName(peer_chain_type)));
+        return obj;
 
     }
 };
@@ -85,6 +99,11 @@ public:
     bool CheckAsset(const TokenSymbol &symbol, CAsset &asset);
     bool CheckAsset(const TokenSymbol &symbol, const uint64_t permsSum = 0);
 
+    bool SetAxcSwapPair(const CAxcSwapPairStore &swapPair);
+    bool HasAxcCoinPairByPeerSymbol(TokenSymbol peerSymbol);
+    bool GetAxcCoinPairBySelfSymbol(TokenSymbol selfSymbol, CAxcSwapPairStore& swapPair);
+    bool GetAxcCoinPairByPeerSymbol(TokenSymbol peerSymbol, CAxcSwapPairStore& swapPair);
+
     bool Flush() {
         asset_cache.Flush();
         axc_swap_coin_ps_cache.Flush();
@@ -126,23 +145,17 @@ public:
     bool CheckDexBaseSymbol(const TokenSymbol &baseSymbol);
     bool CheckDexQuoteSymbol(const TokenSymbol &baseSymbol);
 
-    bool AddAxcSwapPair(TokenSymbol peerSymbol, TokenSymbol selfSymbol, ChainType peerType);
-    bool EraseAxcSwapPair(TokenSymbol peerSymbol);
-    bool HasAxcCoinPairByPeerSymbol(TokenSymbol peerSymbol);
-    bool GetAxcCoinPairBySelfSymbol(TokenSymbol token, AxcSwapCoinPair& p);
-    bool GetAxcCoinPairByPeerSymbol(TokenSymbol token, AxcSwapCoinPair& p);
-
 public:
 /*  CCompositeKVCache     prefixType            key              value           variable           */
 /*  -------------------- --------------------   --------------  -------------   --------------------- */
     // <asset_tokenSymbol -> asset>
     DbAssetCache   asset_cache;
 
-    //peer_symbol -> pair<self_symbol, chainType>
-    CCompositeKVCache<dbk::AXC_COIN_PEERTOSELF,         string,            pair<string, uint8_t>>  axc_swap_coin_ps_cache;
+    //peer_symbol -> CAxcCoinPairStore
+    CCompositeKVCache<dbk::AXC_COIN_PEERTOSELF,         string,            CAxcSwapPairStore>  axc_swap_coin_ps_cache;
 
-    //self_symbol -> pair<peer_symbol, chainType>
-    CCompositeKVCache<dbk::AXC_COIN_SELFTOPEER,         string,            pair<string, uint8_t>>  axc_swap_coin_sp_cache;
+    //self_symbol -> CAxcCoinPairStore
+    CCompositeKVCache<dbk::AXC_COIN_SELFTOPEER,         string,            CAxcSwapPairStore>  axc_swap_coin_sp_cache;
 
 };
 

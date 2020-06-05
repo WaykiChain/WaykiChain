@@ -45,18 +45,22 @@ public:
     }
 
     bool SetSwapInMintRecord(ChainType peerChainType, const string& peerChainTxId, const uint64_t mintAmount) {
-        if (kChainTypeNameMap.find(peerChainType) == kChainTypeNameMap.end())
+        const auto &chainTypeStr = kChainTypeHelper.GetName(peerChainType);
+        if (chainTypeStr.empty()) {
             return false;
+        }
 
-        string key = kChainTypeNameMap.at(peerChainType) + peerChainTxId;
+        string key = chainTypeStr + peerChainTxId;
         return axc_swapin_cache.SetData(key, CVarIntValue(mintAmount));
     }
 
     bool GetSwapInMintRecord(ChainType peerChainType, const string& peerChainTxId, uint64_t &mintAmount) {
-        if (kChainTypeNameMap.find(peerChainType) == kChainTypeNameMap.end())
+        const auto &chainTypeStr = kChainTypeHelper.GetName(peerChainType);
+        if (chainTypeStr.empty()) {
             return false;
+        }
 
-        string key = kChainTypeNameMap.at(peerChainType) + peerChainTxId;
+        string key = chainTypeStr + peerChainTxId;
         CVarIntValue<uint64_t> amount;
         if (!axc_swapin_cache.GetData(key, amount))
             return false;
