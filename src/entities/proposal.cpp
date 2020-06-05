@@ -759,9 +759,15 @@ bool CGovAxcCoinProposal::CheckProposal(CTxExecuteContext& context, CBaseTx& tx)
     }
 
     if (peer_chain_coin_symbol.size() >= 6)
-        return state.DoS(100, ERRORMSG("CGovAxcCoinProposal::CheckProposal, peer_chain_coin_symbol size is too long"), REJECT_INVALID,
-                         "peer_coin_symbol-error");
+        return state.DoS(100, ERRORMSG("peer_chain_coin_symbol size=%u is too long than %u",
+                    peer_chain_coin_symbol.size(), 6), REJECT_INVALID, "peer-coin-symbol-error");
 
+    auto selfChainCoinSymbol = GenSelfChainCoinSymbol();
+    string errMsg;
+    if (!CAsset::CheckSymbol(AssetType::DIA, selfChainCoinSymbol, errMsg )) {
+        return state.DoS(100, ERRORMSG("Invalid symbol=%s: %s", selfChainCoinSymbol, errMsg.c_str()),
+                REJECT_INVALID, "bad-symbol");
+    }
     return true;
 }
 
