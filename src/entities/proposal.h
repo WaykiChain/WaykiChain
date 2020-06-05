@@ -124,8 +124,8 @@ struct CGovSysParamProposal: CProposal {
             subItem.push_back(Pair("param_code", item.first));
 
             std::string param_name = "";
-            auto itr = SysParamTable.find(SysParamType(item.first));
-            if(itr != SysParamTable.end())
+            auto itr = kSysParamTable.find(SysParamType(item.first));
+            if(itr != kSysParamTable.end())
                 param_name = std::get<1>(itr->second);
 
             subItem.push_back(Pair("param_name", param_name));

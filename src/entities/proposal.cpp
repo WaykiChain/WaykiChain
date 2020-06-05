@@ -28,7 +28,7 @@ bool CGovSysParamProposal::CheckProposal(CTxExecuteContext& context, CBaseTx& tx
             return state.DoS(100, ERRORMSG("params size=%u exceed the range (0, %u]", param_values.size(), SYS_PARAM_LIST_SIZE_MAX),
                     REJECT_INVALID, "invalid-params-size");
      for (auto pa: param_values){
-         if(SysParamTable.count(SysParamType(pa.first)) == 0){
+         if(kSysParamTable.count(SysParamType(pa.first)) == 0){
              return state.DoS(100, ERRORMSG("parameter name (%s) is not in sys params list ", pa.first),
                        REJECT_INVALID, "params-error");
          }
@@ -47,8 +47,8 @@ bool CGovSysParamProposal::ExecuteProposal(CTxExecuteContext& context, CBaseTx& 
 
     for( auto pa: param_values){
         auto paramType = SysParamType(pa.first);
-        auto itr = SysParamTable.find(paramType);
-        if (itr == SysParamTable.end())
+        auto itr = kSysParamTable.find(paramType);
+        if (itr == kSysParamTable.end())
             return false;
 
         if (!cw.sysParamCache.SetParam(paramType, pa.second.get()))

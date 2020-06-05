@@ -69,7 +69,7 @@ struct SysParamTypeHash {
     }
 };
 
-static const unordered_map<SysParamType, std::tuple< uint64_t,string >, SysParamTypeHash> SysParamTable = {
+static const unordered_map<SysParamType, std::tuple< uint64_t,string >, SysParamTypeHash> kSysParamTable = {
     { MEDIAN_PRICE_SLIDE_WINDOW_BLOCKCOUNT,     make_tuple( 11,         "MEDIAN_PRICE_SLIDE_WINDOW_BLOCKCOUNT")    },
     { PRICE_FEED_BCOIN_STAKE_AMOUNT_MIN,        make_tuple( 210000 * COIN, "PRICE_FEED_BCOIN_STAKE_AMOUNT_MIN")       },  // 1%: min 210K bcoins staked to be a price feeder for miner
     { PRICE_FEED_CONTINUOUS_DEVIATE_TIMES_MAX,  make_tuple( 10,         "PRICE_FEED_CONTINUOUS_DEVIATE_TIMES_MAX") },  // after 10 times continuous deviate limit penetration all deposit be deducted
