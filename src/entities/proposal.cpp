@@ -29,7 +29,7 @@ bool CGovSysParamProposal::CheckProposal(CTxExecuteContext& context, CBaseTx& tx
                     REJECT_INVALID, "invalid-params-size");
      for (auto pa: param_values){
          if(SysParamTable.count(SysParamType(pa.first)) == 0){
-             return state.DoS(100, ERRORMSG("CProposalRequestTx::CheckTx, parameter name (%s) is not in sys params list ", pa.first),
+             return state.DoS(100, ERRORMSG("parameter name (%s) is not in sys params list ", pa.first),
                        REJECT_INVALID, "params-error");
          }
          string errorInfo = CheckSysParamValue(SysParamType(pa.first), pa.second.get());
@@ -68,25 +68,25 @@ bool CGovBpMcListProposal::CheckProposal(CTxExecuteContext& context, CBaseTx& tx
     IMPLEMENT_DEFINE_CW_STATE
 
     if (op_type != ProposalOperateType::ENABLE && op_type != ProposalOperateType::DISABLE)
-        return state.DoS(100, ERRORMSG("CProposalRequestTx::CheckTx, operate type is illegal!"), REJECT_INVALID,
+        return state.DoS(100, ERRORMSG("operate type is illegal!"), REJECT_INVALID,
                          "operate_type-illegal");
 
     if (!gov_bp_regid.IsMature(context.height)) {
-        return state.DoS(100, ERRORMSG("CProposalRequestTx::CheckTx, regid (%s) is not matured!", gov_bp_regid.ToString()), REJECT_INVALID,
+        return state.DoS(100, ERRORMSG("regid (%s) is not matured!", gov_bp_regid.ToString()), REJECT_INVALID,
                          "regid-not-matured");
     }
 
     auto spGovBpAccount = tx.GetAccount(context, gov_bp_regid, "gov_bp");
     if (!spGovBpAccount)
-        return state.DoS(100, ERRORMSG("CProposalRequestTx::CheckTx, found not a account that regid is %s!", gov_bp_regid.ToString()), REJECT_INVALID,
+        return state.DoS(100, ERRORMSG("the account of regid=%s deos not exist", gov_bp_regid.ToString()), REJECT_INVALID,
                          "regid-not-found");
 
     if (op_type == ProposalOperateType::DISABLE && !cw.sysGovernCache.CheckIsGovernor(gov_bp_regid))
-        return state.DoS(100, ERRORMSG("CProposalRequestTx::CheckTx, regid(%s) is not a governor!", gov_bp_regid.ToString()), REJECT_INVALID,
+        return state.DoS(100, ERRORMSG("regid(%s) is not a governor!", gov_bp_regid.ToString()), REJECT_INVALID,
                          "regid-not-governor");
 
     if (op_type == ProposalOperateType::ENABLE && cw.sysGovernCache.CheckIsGovernor(gov_bp_regid))
-        return state.DoS(100, ERRORMSG("CProposalRequestTx::CheckTx, regid(%s) is a governor already!", gov_bp_regid.ToString()), REJECT_INVALID,
+        return state.DoS(100, ERRORMSG("regid(%s) is a governor already!", gov_bp_regid.ToString()), REJECT_INVALID,
                          "regid-is-governor");
 
     return true;
@@ -149,26 +149,26 @@ bool CGovMinerFeeProposal:: CheckProposal(CTxExecuteContext& context, CBaseTx& t
     CValidationState& state = *context.pState;
 
     if (!kFeeSymbolSet.count(fee_symbol)) {
-        return state.DoS(100, ERRORMSG("CProposalRequestTx::CheckTx, fee symbol(%s) is invalid!", fee_symbol),
+        return state.DoS(100, ERRORMSG("fee symbol(%s) is invalid!", fee_symbol),
                         REJECT_INVALID,
                         "feesymbol-error");
     }
 
     auto itr = kTxTypeInfoTable.find(tx_type);
     if (itr == kTxTypeInfoTable.end()){
-        return state.DoS(100, ERRORMSG("CProposalRequestTx::CheckTx, the tx type (%d) is invalid!", tx_type),
+        return state.DoS(100, ERRORMSG("the tx type (%d) is invalid!", tx_type),
                         REJECT_INVALID,
                         "txtype-error");
     }
 
     if (!std::get<5>(itr->second)){
-        return state.DoS(100, ERRORMSG("CProposalRequestTx::CheckTx, the tx type (%d) miner fee can't be updated!", tx_type),
+        return state.DoS(100, ERRORMSG("the tx type (%d) miner fee can't be updated!", tx_type),
                         REJECT_INVALID,
                         "can-not-update");
     }
 
     if (fee_sawi_amount == 0 ){
-        return state.DoS(100, ERRORMSG("CProposalRequestTx::CheckTx, the tx type (%d) miner fee can't be zero", tx_type),
+        return state.DoS(100, ERRORMSG("the tx type (%d) miner fee can't be zero", tx_type),
                         REJECT_INVALID,
                         "can-not-be-zero");
     }
@@ -328,13 +328,13 @@ bool CGovCdpParamProposal::CheckProposal(CTxExecuteContext& context, CBaseTx& tx
     IMPLEMENT_DEFINE_CW_STATE
 
     if (param_values.size() == 0 || param_values.size() > 50)
-        return state.DoS(100, ERRORMSG("CProposalRequestTx::CheckTx, params list is empty or size >50"), REJECT_INVALID,
+        return state.DoS(100, ERRORMSG("params list is empty or size >50"), REJECT_INVALID,
                          "params-empty");
 
     for (auto pa: param_values) {
         auto value = pa.second.get();
         if (kCdpParamTable.count(CdpParamType(pa.first)) == 0) {
-            return state.DoS(100, ERRORMSG("CProposalRequestTx::CheckTx, parameter name (%s) is not in sys params list ",
+            return state.DoS(100, ERRORMSG("parameter name (%s) is not in sys params list ",
                             pa.first), REJECT_INVALID, "params-error");
         }
 
@@ -424,17 +424,17 @@ bool CGovDexOpProposal::CheckProposal(CTxExecuteContext& context, CBaseTx& tx) {
                 REJECT_INVALID, "operator0-can't-be-switched");
 
     if (operate_type != ProposalOperateType::ENABLE && operate_type != ProposalOperateType::DISABLE)
-        return state.DoS(100, ERRORMSG("CProposalRequestTx::CheckTx, operate type error!"), REJECT_INVALID,
+        return state.DoS(100, ERRORMSG("operate type error!"), REJECT_INVALID,
                          "operate-type-error");
 
     DexOperatorDetail dexOperator;
     if (!cw.dexCache.GetDexOperator(dexid, dexOperator))
-        return state.DoS(100, ERRORMSG("CProposalRequestTx::CheckTx, dexoperator(%d) is not a governor!", dexid), REJECT_INVALID,
+        return state.DoS(100, ERRORMSG("dexoperator(%d) is not a governor!", dexid), REJECT_INVALID,
                          "dexoperator-not-exist");
 
     if ((dexOperator.activated && operate_type == ProposalOperateType::ENABLE)||
         (!dexOperator.activated && operate_type == ProposalOperateType::DISABLE))
-        return state.DoS(100, ERRORMSG("CProposalRequestTx::CheckTx, dexoperator(%d) is activated or not activated already !", dexid), REJECT_INVALID,
+        return state.DoS(100, ERRORMSG("dexoperator(%d) is activated or not activated already !", dexid), REJECT_INVALID,
                          "need-not-update");
 
     return true;
@@ -445,12 +445,12 @@ bool CGovDexOpProposal::ExecuteProposal(CTxExecuteContext& context, CBaseTx& tx)
 
     DexOperatorDetail dexOperator;
     if (!cw.dexCache.GetDexOperator(dexid, dexOperator))
-        return state.DoS(100, ERRORMSG("CProposalRequestTx::CheckTx, dexoperator(%d) is not a governor!", dexid), REJECT_INVALID,
+        return state.DoS(100, ERRORMSG("dexoperator(%d) is not a governor!", dexid), REJECT_INVALID,
                          "dexoperator-not-exist");
 
     if ((dexOperator.activated && operate_type == ProposalOperateType::ENABLE)||
        (!dexOperator.activated && operate_type == ProposalOperateType::DISABLE))
-        return state.DoS(100, ERRORMSG("CProposalRequestTx::CheckTx, dexoperator(%d) is activated or not activated already !", dexid), REJECT_INVALID,
+        return state.DoS(100, ERRORMSG("dexoperator(%d) is activated or not activated already !", dexid), REJECT_INVALID,
                          "need-not-update");
 
     DexOperatorDetail newOperator = dexOperator;
