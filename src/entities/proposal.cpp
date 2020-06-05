@@ -759,7 +759,7 @@ bool CGovAxcCoinProposal::CheckProposal(CTxExecuteContext& context, CBaseTx& tx)
                              "chain_type-error");
     }
 
-    if (peer_chain_coin_symbol.size() >= 6)
+    if (peer_chain_coin_symbol.size() > 6)
         return state.DoS(100, ERRORMSG("peer_chain_coin_symbol size=%u is too long than %u",
                     peer_chain_coin_symbol.size(), 6), REJECT_INVALID, "peer-coin-symbol-error");
 
