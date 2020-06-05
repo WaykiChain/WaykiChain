@@ -736,6 +736,11 @@ bool CGovAxcCoinProposal::CheckProposal(CTxExecuteContext& context, CBaseTx& tx)
     const auto &selfSymbol = GenSelfChainCoinSymbol();
     CAxcSwapPairStore swapPair;
     if (!cw.assetCache.GetAxcCoinPairByPeerSymbol(peer_chain_coin_symbol, swapPair)) {
+        if (op_type != ProposalOperateType::ENABLE) {
+            return state.DoS(100, ERRORMSG("the axc swap coin=%s must be enabled for op_type=%s",
+                    peer_chain_coin_symbol, kProposalOperateTypeHelper.GetName(op_type)),
+                    REJECT_INVALID, "asset-exist");
+        }
         if (cw.assetCache.HasAsset(selfSymbol))
             return state.DoS(100, ERRORMSG("the asset of symbol=%s is exist", selfSymbol),
                              REJECT_INVALID, "asset-exist");
