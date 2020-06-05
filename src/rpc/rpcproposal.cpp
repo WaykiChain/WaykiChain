@@ -153,7 +153,7 @@ Value submitparamgovernproposal(const Array& params, bool fHelp){
     if(errorInfo != EMPTY_STRING)
         throw JSONRPCError(RPC_INVALID_PARAMETER, errorInfo);
 
-    proposal.param_values.push_back(std::make_pair(type, paramValue));
+    proposal.param_values.push_back(std::make_pair(type, CVarIntValue<uint64_t>(paramValue)));
 
     CProposalRequestTx tx;
     tx.txUid        = txUid;
@@ -212,7 +212,7 @@ Value submitcdpparamgovernproposal(const Array& params, bool fHelp){
         throw JSONRPCError(RPC_INVALID_PARAMETER, errMsg);
 
     CGovCdpParamProposal proposal;
-    proposal.param_values.push_back(std::make_pair(type, paramValue));
+    proposal.param_values.push_back(std::make_pair(type, CVarIntValue<uint64_t>(paramValue)));
     proposal.coin_pair = CCdpCoinPair(bcoinSymbol, scoinSymbol);
 
     CProposalRequestTx tx;

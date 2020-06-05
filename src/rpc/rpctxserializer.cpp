@@ -165,7 +165,7 @@ std::shared_ptr<CBaseTx> genParamGovernProposal(json_spirit::Value param_json) {
     string errorInfo = CheckSysParamValue(type, val);
     if(errorInfo != EMPTY_STRING)
         throw JSONRPCError(RPC_INVALID_PARAMETER, errorInfo);
-    proposal.param_values.push_back(std::make_pair(type, val));
+    proposal.param_values.push_back(std::make_pair(type, CVarIntValue<uint64_t>(val)));
 
     std::shared_ptr<CProposalRequestTx> pBaseTx = std::make_shared<CProposalRequestTx>();
     pBaseTx->txUid        = sendUserId;

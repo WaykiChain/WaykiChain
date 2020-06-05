@@ -87,7 +87,7 @@ struct CProposal {
 
 
 struct CGovSysParamProposal: CProposal {
-    vector<std::pair<uint8_t, uint64_t>> param_values;
+    vector<std::pair<uint8_t, CVarIntValue<uint64_t>>> param_values;
 
     CGovSysParamProposal(): CProposal(ProposalType::GOV_SYS_PARAM) {}
 
@@ -110,7 +110,7 @@ struct CGovSysParamProposal: CProposal {
                 param_name = std::get<1>(itr->second);
 
             subItem.push_back(Pair("param_name", param_name));
-            subItem.push_back(Pair("param_value", item.second));
+            subItem.push_back(Pair("param_value", item.second.get()));
             arrayItems.push_back(subItem);
         }
 
@@ -121,7 +121,7 @@ struct CGovSysParamProposal: CProposal {
     std::string ToString() override {
         std::string baseString = CProposal::ToString();
         for(auto itr: param_values){
-            baseString = strprintf("%s, %s:%d", baseString,itr.first, itr.second );
+            baseString = strprintf("%s, %s:%d", baseString,itr.first, itr.second.get() );
         }
         return baseString;
     }
@@ -329,7 +329,7 @@ struct CGovAssetPermProposal: CProposal {
         READWRITE(VARINT(expiry_block_height));
         READWRITE(approval_min_count);
         READWRITE(asset_symbol);
-        READWRITE(VARINT((uint64_t&)proposed_perms_sum));
+        READWRITE(VARINT(proposed_perms_sum));
     );
 
     Object ToJson() override {
@@ -354,7 +354,7 @@ struct CGovAssetPermProposal: CProposal {
 };
 
 struct CGovCdpParamProposal: CProposal {
-    vector<std::pair<uint8_t, uint64_t>> param_values;
+    vector<std::pair<uint8_t, CVarIntValue<uint64_t>>> param_values;
     CCdpCoinPair coin_pair;
 
     CGovCdpParamProposal(): CProposal(ProposalType::GOV_CDP_PARAM) {}
@@ -380,7 +380,7 @@ struct CGovCdpParamProposal: CProposal {
                 param_name = std::get<1>(itr->second);
 
             subItem.push_back(Pair("param_name", param_name));
-            subItem.push_back(Pair("param_value", item.second));
+            subItem.push_back(Pair("param_value", (uint64_t)item.second.get()));
             arrayItems.push_back(subItem);
         }
 
@@ -391,7 +391,7 @@ struct CGovCdpParamProposal: CProposal {
     std::string ToString() override {
         std::string baseString = CProposal::ToString();
         for(auto itr: param_values){
-            baseString = strprintf("%s, %s:%d", baseString,itr.first, itr.second );
+            baseString = strprintf("%s, %s:%d", baseString,itr.first, itr.second.get() );
         }
         return baseString;
     }

@@ -32,7 +32,7 @@ bool CGovSysParamProposal::CheckProposal(CTxExecuteContext& context, CBaseTx& tx
              return state.DoS(100, ERRORMSG("CProposalRequestTx::CheckTx, parameter name (%s) is not in sys params list ", pa.first),
                        REJECT_INVALID, "params-error");
          }
-         string errorInfo = CheckSysParamValue(SysParamType(pa.first), pa.second);
+         string errorInfo = CheckSysParamValue(SysParamType(pa.first), pa.second.get());
 
          if (errorInfo != EMPTY_STRING)
              return state.DoS(100, ERRORMSG("CProposalRequestTx::CheckTx failed: %s ", errorInfo),
@@ -51,7 +51,7 @@ bool CGovSysParamProposal::ExecuteProposal(CTxExecuteContext& context, CBaseTx& 
         if (itr == SysParamTable.end())
             return false;
 
-        if (!cw.sysParamCache.SetParam(paramType, pa.second))
+        if (!cw.sysParamCache.SetParam(paramType, pa.second.get()))
             return false;
 
         if (paramType == SysParamType::BP_DELEGATE_VOTE_MIN &&
@@ -332,13 +332,14 @@ bool CGovCdpParamProposal::CheckProposal(CTxExecuteContext& context, CBaseTx& tx
                          "params-empty");
 
     for (auto pa: param_values) {
+        auto value = pa.second.get();
         if (kCdpParamTable.count(CdpParamType(pa.first)) == 0) {
             return state.DoS(100, ERRORMSG("CProposalRequestTx::CheckTx, parameter name (%s) is not in sys params list ",
                             pa.first), REJECT_INVALID, "params-error");
         }
 
         string errMsg;
-        if (!CheckCdpParamValue(CdpParamType(pa.first), pa.second, errMsg))
+        if (!CheckCdpParamValue(CdpParamType(pa.first), value, errMsg))
             return state.DoS(100, ERRORMSG("CProposalRequestTx::CheckTx failed: %s ", errMsg),
                              REJECT_INVALID, "params-range-error");
 
@@ -360,16 +361,16 @@ bool CGovCdpParamProposal::CheckProposal(CTxExecuteContext& context, CBaseTx& tx
 
             switch (pa.first) {
                 case CDP_LIQUIDATE_DISCOUNT_RATIO:
-                    liquidateDiscountRatio = pa.second;
+                    liquidateDiscountRatio = value;
                     break;
                 case CDP_START_LIQUIDATE_RATIO:
-                    startLiquidateRatio = pa.second;
+                    startLiquidateRatio = value;
                     break;
                 case CDP_START_COLLATERAL_RATIO:
-                    startCollateralRatio = pa.second;
+                    startCollateralRatio = value;
                     break;
                 case CDP_FORCE_LIQUIDATE_RATIO:
-                    forceLiquidateRatio = pa.second;
+                    forceLiquidateRatio = value;
                     break;
                 default:
                     break;
@@ -400,15 +401,16 @@ bool CGovCdpParamProposal::ExecuteProposal(CTxExecuteContext& context, CBaseTx& 
 
     IMPLEMENT_DEFINE_CW_STATE
     for (auto pa: param_values){
+        auto value = pa.second.get();
         auto itr = kCdpParamTable.find(CdpParamType(pa.first));
         if (itr == kCdpParamTable.end())
             return state.DoS(100, ERRORMSG(" cdpparam type error"), REJECT_INVALID, "bad-cdptype");
 
-        if (!cw.sysParamCache.SetCdpParam(coin_pair,CdpParamType(pa.first), pa.second))
+        if (!cw.sysParamCache.SetCdpParam(coin_pair,CdpParamType(pa.first), value))
             return state.DoS(100, ERRORMSG("save cdpparam  error"), REJECT_INVALID, "setparam-error");
 
         if (pa.first == CdpParamType ::CDP_INTEREST_PARAM_A || pa.first == CdpParamType::CDP_INTEREST_PARAM_B) {
-            if (!cw.sysParamCache.SetCdpInterestParam(coin_pair, CdpParamType(pa.first), context.height, pa.second))
+            if (!cw.sysParamCache.SetCdpInterestParam(coin_pair, CdpParamType(pa.first), context.height, value))
                 return state.DoS(100, ERRORMSG("SetCdpInterestParam  error"), REJECT_INVALID, "setcdpinterestparam-error");
         }
 
