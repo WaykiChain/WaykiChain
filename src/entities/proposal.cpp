@@ -19,12 +19,14 @@
 extern bool CheckIsGovernor(CRegID account, ProposalType proposalType, CCacheWrapper& cw );
 extern uint8_t GetGovernorApprovalMinCount(ProposalType proposalType, CCacheWrapper& cw );
 
+const uint32_t SYS_PARAM_LIST_SIZE_MAX = 50;
+
 bool CGovSysParamProposal::CheckProposal(CTxExecuteContext& context, CBaseTx& tx) {
      CValidationState &state = *context.pState;
 
-     if (param_values.size() == 0 || param_values.size() > 50)
-            return state.DoS(100, ERRORMSG("CProposalRequestTx::CheckTx, params list is empty"), REJECT_INVALID,
-                        "params-empty");
+     if (param_values.size() == 0 || param_values.size() > SYS_PARAM_LIST_SIZE_MAX)
+            return state.DoS(100, ERRORMSG("params size=%u exceed the range (0, %u]", param_values.size(), SYS_PARAM_LIST_SIZE_MAX),
+                    REJECT_INVALID, "invalid-params-size");
      for (auto pa: param_values){
          if(SysParamTable.count(SysParamType(pa.first)) == 0){
              return state.DoS(100, ERRORMSG("CProposalRequestTx::CheckTx, parameter name (%s) is not in sys params list ", pa.first),
