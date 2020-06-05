@@ -512,9 +512,16 @@ bool CGovAxcInProposal::CheckProposal(CTxExecuteContext& context, CBaseTx& tx) {
 
     CAxcSwapPairStore swapPair;
     if(!cw.assetCache.GetAxcCoinPairByPeerSymbol(peer_chain_token_symbol, swapPair)){
-        return state.DoS(100, ERRORMSG("CGovAxcInProposal::CheckProposal: swap pair is not exist"),
-                REJECT_INVALID, "find-swapcoinpair-error");
+        return state.DoS(
+            100, ERRORMSG("axc swap pair peer_chain_token_symbol=%s does not exist", peer_chain_token_symbol),
+            REJECT_INVALID, "axc-swap-pair-not-exist");
     }
+    if(swapPair.status != ProposalOperateType::ENABLE){
+        return state.DoS(100,
+                         ERRORMSG("axc swap pair peer_chain_token_symbol=%s is DISABLE", peer_chain_token_symbol),
+                         REJECT_INVALID, "axc-swap-pair-disable");
+    }
+
     TokenSymbol self_chain_token_symbol = swapPair.GetSelfSymbol();
     ChainType  peer_chain_type = swapPair.peer_chain_type;
 
@@ -657,8 +664,14 @@ bool CGovAxcOutProposal::CheckProposal(CTxExecuteContext& context, CBaseTx& tx) 
 
     CAxcSwapPairStore swapPair;
     if(!cw.assetCache.GetAxcCoinPairBySelfSymbol(self_chain_token_symbol, swapPair)){
-        return state.DoS(100, ERRORMSG("CGovAxcOutProposal::CheckProposal: self_chain_token_symbol=%s is invalid",
-                                       self_chain_token_symbol), REJECT_INVALID, "self_chain_token_symbol-not-valid");
+        return state.DoS(
+            100, ERRORMSG("self_chain_token_symbol=%s does not exist", self_chain_token_symbol),
+            REJECT_INVALID, "self-chain-token-symbol-not-exist");
+    }
+    if(swapPair.status != ProposalOperateType::ENABLE){
+        return state.DoS(100,
+                         ERRORMSG("self_chain_token_symbol=%s is DISABLE", self_chain_token_symbol),
+                         REJECT_INVALID, "self-chain-token-symbol-disable");
     }
 
     ChainType  peer_chain_type = swapPair.peer_chain_type;

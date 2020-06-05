@@ -66,7 +66,7 @@ Value getswapcoindetail(const Array& params, bool fHelp) {
 
     CAxcSwapPairStore swapPair;
     if (!pCdMan->pAssetCache->GetAxcCoinPairByPeerSymbol(peerSymbol, swapPair)){
-        throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("swap coin pair=%s does not exist",peerSymbol));
+        throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("swap coin pair=%s does not exist", peerSymbol));
     }
 
     return swapPair.ToJson();
