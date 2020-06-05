@@ -47,9 +47,6 @@ bool CGovSysParamProposal::ExecuteProposal(CTxExecuteContext& context, CBaseTx& 
 
     for( auto pa: param_values){
         auto paramType = SysParamType(pa.first);
-        auto itr = kSysParamTable.find(paramType);
-        if (itr == kSysParamTable.end())
-            return false;
 
         if (!cw.sysParamCache.SetParam(paramType, pa.second.get()))
             return false;
