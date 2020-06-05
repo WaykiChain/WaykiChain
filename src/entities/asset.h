@@ -159,7 +159,7 @@ public:
         }
 
         uint32_t symbolSizeMin = 2;
-        uint32_t symbolSizeMax = 5;
+        uint32_t symbolSizeMax = 7;
         if (assetType == AssetType::UIA) {
             symbolSizeMin = 6;
             symbolSizeMax = 7;
