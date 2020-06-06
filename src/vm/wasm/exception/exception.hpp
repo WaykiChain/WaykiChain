@@ -33,7 +33,7 @@ namespace wasm_chain {
 		divide_by_zero_code               = 21
 	};
 
-	class exception
+	class exception : public std::exception
 	{
 		public:
 			enum code_enum
