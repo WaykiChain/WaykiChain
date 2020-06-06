@@ -188,8 +188,8 @@ bool CCoinTransferTx::ExecuteTx(CTxExecuteContext &context) {
                         READ_ACCOUNT_FAIL, "account-not-exist");
             }
         }
-        // register account, must be only one dest
-        if ( transfers.size() == 1 && toUid.is<CPubKey>() && !spDestAccount->IsRegistered()) {
+        // register account, must have one dest only
+        if (txUid.is<CPubKey>() && transfers.size() == 1 && toUid.is<CPubKey>() && !spDestAccount->IsRegistered()) {
             if (!RegisterAccount(context, &toUid.get<CPubKey>(), *spDestAccount)) // generate new regid for the account
                 return false;
         }
