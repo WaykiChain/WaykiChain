@@ -35,7 +35,7 @@ bool CGovSysParamProposal::CheckProposal(CTxExecuteContext& context, CBaseTx& tx
          string errorInfo = CheckSysParamValue(SysParamType(pa.first), pa.second.get());
 
          if (errorInfo != EMPTY_STRING)
-             return state.DoS(100, ERRORMSG("CProposalRequestTx::CheckTx failed: %s ", errorInfo),
+             return state.DoS(100, ERRORMSG("CheckSysParamValue failed: %s ", errorInfo),
                      REJECT_INVALID, "params-range-error");
      }
 
@@ -105,7 +105,7 @@ bool CGovBpSizeProposal:: CheckProposal(CTxExecuteContext& context, CBaseTx& tx)
     CValidationState &state = *context.pState;;
 
     if (total_bps_size == 0) //total_bps_size > BP_MAX_COUNT: always false
-        return state.DoS(100, ERRORMSG("CGovBpSizeProposal::CheckProposal, total_bps_size must be between 1 and 255"),
+        return state.DoS(100, ERRORMSG("total_bps_size must be between 1 and 255"),
                          REJECT_INVALID,"bad-bp-count");
 
 
@@ -116,7 +116,7 @@ bool CGovBpSizeProposal:: CheckProposal(CTxExecuteContext& context, CBaseTx& tx)
             effectiveBlockCount = 50;
 
         if (effective_height < (uint32_t) context.height + effectiveBlockCount)
-            return state.DoS(100, ERRORMSG("CGovBpSizeProposal::CheckProposal: effective_height must be >= current height + %d", effectiveBlockCount),
+            return state.DoS(100, ERRORMSG("effective_height must be >= current height + %d", effectiveBlockCount),
                              REJECT_INVALID,"bad-effective-height");
     }
 
@@ -129,12 +129,12 @@ bool CGovBpSizeProposal::ExecuteProposal(CTxExecuteContext& context, CBaseTx& tx
 
     auto currentTotalBpsSize = cw.sysParamCache.GetTotalBpsSize(context.height);
     if (!cw.sysParamCache.SetCurrentTotalBpsSize(currentTotalBpsSize)) {
-        return state.DoS(100, ERRORMSG("CGovBpSizeProposal::ExecuteProposal, save current bp count failed!"),
+        return state.DoS(100, ERRORMSG("save current bp count failed!"),
                 REJECT_INVALID, "save-currtotalbpssize-failed");
     }
 
     if (!cw.sysParamCache.SetNewTotalBpsSize(total_bps_size, effective_height)) {
-        return state.DoS(100, ERRORMSG("CGovBpSizeProposal::ExecuteProposal, save new bp count failed!"),
+        return state.DoS(100, ERRORMSG("save new bp count failed!"),
                 REJECT_INVALID, "save-newtotalbpssize-failed");
     }
 
@@ -181,12 +181,13 @@ bool CGovCoinTransferProposal::CheckProposal(CTxExecuteContext& context, CBaseTx
    IMPLEMENT_DEFINE_CW_STATE
 
     if(tx.nTxType == TxType::PROPOSAL_REQUEST_TX && tx.sp_tx_account->IsSelfUid(from_uid)) {
-        return state.DoS(100, ERRORMSG("CGovCoinTransferProposal::CheckProposal, can't"
-                                       " create this proposal that from_uid is same as txUid"), REJECT_DUST, "tx_uid-can't-be-from_uid");
+        return state.DoS(100,
+                         ERRORMSG("can not create this proposal that from_uid is same as txUid"),
+                         REJECT_DUST, "tx_uid-can't-be-from_uid");
     }
 
     if (amount < DUST_AMOUNT_THRESHOLD)
-        return state.DoS(100, ERRORMSG("CGovCoinTransferProposal::CheckProposal, dust amount, %llu < %llu", amount,
+        return state.DoS(100, ERRORMSG("dust amount, %llu < %llu", amount,
                                        DUST_AMOUNT_THRESHOLD), REJECT_DUST, "invalid-coin-amount");
 
     auto spSrcAccount = tx.GetAccount(context, from_uid, "from");
@@ -201,7 +202,7 @@ bool CGovCoinTransferProposal::CheckProposal(CTxExecuteContext& context, CBaseTx
             const auto& pubkey = to_uid.get<CPubKey>();
             spDestAccount = tx.NewAccount(cw, pubkey.GetKeyId());
         } else {
-            return state.DoS(100, ERRORMSG("CGovCoinTransferProposal, to account of transfer not exist, uid=%s",
+            return state.DoS(100, ERRORMSG("to account of transfer not exist, uid=%s",
                                            to_uid.ToString()),
                              READ_ACCOUNT_FAIL, "account-not-exist");
         }
@@ -227,7 +228,7 @@ bool CGovCoinTransferProposal::ExecuteProposal(CTxExecuteContext& context, CBase
             const auto& pubkey = to_uid.get<CPubKey>();
             spDestAccount = tx.NewAccount(cw, pubkey.GetKeyId());
         } else {
-            return state.DoS(100, ERRORMSG("CGovCoinTransferProposal, to account of transfer not exist, uid=%s",
+            return state.DoS(100, ERRORMSG("to account of transfer not exist, uid=%s",
                              to_uid.ToString()),
                              READ_ACCOUNT_FAIL, "account-not-exist");
         }
@@ -235,7 +236,7 @@ bool CGovCoinTransferProposal::ExecuteProposal(CTxExecuteContext& context, CBase
 
 
     if (!spSrcAccount->OperateBalance(token, BalanceOpType::SUB_FREE, amount, ReceiptType::TRANSFER_PROPOSAL, tx.receipts, spDestAccount.get()))
-        return state.DoS(100, ERRORMSG("CGovCoinTransferProposal::ExecuteProposal, account has insufficient funds"),
+        return state.DoS(100, ERRORMSG("account has insufficient funds"),
                          UPDATE_ACCOUNT_FAIL, "operate-minus-account-failed");
 
     return true;
@@ -245,11 +246,11 @@ bool CGovAccountPermProposal::CheckProposal(CTxExecuteContext& context, CBaseTx&
     CValidationState &state = *context.pState;
 
     if (account_uid.IsEmpty())
-        return state.DoS(100, ERRORMSG("CGovAccountPermProposal::CheckProposal, target account_uid is empty"),
+        return state.DoS(100, ERRORMSG("target account_uid is empty"),
                         REJECT_INVALID, "account-uid-empty");
 
     if (proposed_perms_sum == 0 || proposed_perms_sum > kAccountAllPerms)
-        return state.DoS(100, ERRORMSG("CGovAccountPermProposal::CheckProposal, proposed perms is invalid: %llu",
+        return state.DoS(100, ERRORMSG("proposed perms is invalid: %llu",
                         proposed_perms_sum), REJECT_INVALID, "account-uid-empty");
     return true;
 
@@ -269,15 +270,15 @@ bool CGovAssetPermProposal::CheckProposal(CTxExecuteContext& context, CBaseTx& t
 
     CAsset asset;
     if (!cw.assetCache.GetAsset(asset_symbol, asset))
-        return state.DoS(100, ERRORMSG("CGovAssetPermProposal::CheckTx, asset symbol not found"),
+        return state.DoS(100, ERRORMSG("asset symbol not found"),
                          REJECT_INVALID, "asset-symbol-invalid");
 
     if(kCoinTypeSet.count(asset.asset_symbol) != 0)
-        return state.DoS(100, ERRORMSG("CGovAssetPermProposal::CheckTx, WICC,WGRT,WICC perm can't be modified"),
+        return state.DoS(100, ERRORMSG("WICC,WGRT,WICC perm can't be modified"),
                          REJECT_INVALID, "asset-type-error");
 
     if (proposed_perms_sum == 0)
-        return state.DoS(100, ERRORMSG("CGovAssetPermProposal::CheckTx, proposed perms is invalid: %llu",
+        return state.DoS(100, ERRORMSG("proposed perms is invalid: %llu",
                                        proposed_perms_sum), REJECT_INVALID, "asset-perms-invalid");
 
     auto oldHasCdpBcoinPerm = asset.HasPerms(AssetPermType::PERM_CDP_BCOIN);
@@ -337,7 +338,7 @@ bool CGovCdpParamProposal::CheckProposal(CTxExecuteContext& context, CBaseTx& tx
 
         string errMsg;
         if (!CheckCdpParamValue(CdpParamType(pa.first), value, errMsg))
-            return state.DoS(100, ERRORMSG("CProposalRequestTx::CheckTx failed: %s ", errMsg),
+            return state.DoS(100, ERRORMSG("CheckCdpParamValue failed: %s ", errMsg),
                              REJECT_INVALID, "params-range-error");
 
         if(pa.first == CdpParamType::CDP_START_COLLATERAL_RATIO
@@ -483,13 +484,13 @@ bool CGovFeedCoinPairProposal::CheckProposal(CTxExecuteContext& context, CBaseTx
 
     bool hasCoin = cw.priceFeedCache.HasFeedCoinPair(coinPair);
     if (hasCoin && op_type == ProposalOperateType ::ENABLE) {
-        return state.DoS(100, ERRORMSG("checkProposal:base_symbol(%s),quote_symbol(%s)"
+        return state.DoS(100, ERRORMSG("base_symbol(%s),quote_symbol(%s)"
                                        "is dex quote coin symbol already", base_symbol, quote_symbol),
                          REJECT_INVALID, "symbol-exist");
     }
 
     if (!hasCoin && op_type == ProposalOperateType ::DISABLE) {
-        return state.DoS(100, ERRORMSG("checkProposal:base_symbol(%s),quote_symbol(%s) "
+        return state.DoS(100, ERRORMSG("base_symbol(%s),quote_symbol(%s) "
                                        "is not a dex quote coin symbol ",base_symbol, quote_symbol),
                          REJECT_INVALID, "symbol-not-exist");
     }
@@ -688,7 +689,7 @@ bool CGovAxcOutProposal::CheckProposal(CTxExecuteContext& context, CBaseTx& tx) 
     ChainType  peer_chain_type = swapPair.peer_chain_type;
     if ((peer_chain_type == ChainType::BITCOIN && (peer_chain_addr.size() < 26 || peer_chain_addr.size() > 35)) ||
         (peer_chain_type == ChainType::ETHEREUM && (peer_chain_addr.size() > 42)))
-        return state.DoS(100, ERRORMSG("CGovAxcOutProposal::CheckProposal: peer_chain_addr=%s invalid",
+        return state.DoS(100, ERRORMSG("peer_chain_addr=%s invalid",
                                         peer_chain_addr), REJECT_INVALID, "peer_chain_addr-invalid");
     CUserID uid;
     if(tx.nTxType == TxType::PROPOSAL_REQUEST_TX)
@@ -700,11 +701,11 @@ bool CGovAxcOutProposal::CheckProposal(CTxExecuteContext& context, CBaseTx& tx) 
     if (!spSelfChainAccount) return false;
 
     if (!spSelfChainAccount->CheckBalance(self_chain_token_symbol, BalanceType::FREE_VALUE, swap_amount))
-        return state.DoS(100, ERRORMSG("CGovAxcOutProposal::CheckProposal:Account does not have enough %s",
+        return state.DoS(100, ERRORMSG("Account does not have enough %s",
                                    self_chain_token_symbol), REJECT_INVALID, "balance-not-enough");
 
     if (swap_amount < DUST_AMOUNT_THRESHOLD)
-        return state.DoS(100, ERRORMSG("CGovAxcOutProposal::CheckProposal: swap_amount=%llu too small",
+        return state.DoS(100, ERRORMSG("swap_amount=%llu too small",
                                         swap_amount), REJECT_INVALID, "swap_amount-dust");
 
     if (swap_amount > MAX_ASSET_TOTAL_SUPPLY)
@@ -718,7 +719,7 @@ bool CGovAxcOutProposal::ExecuteProposal(CTxExecuteContext& context, CBaseTx& tx
 
     uint64_t swap_fee_ratio;
     if (!cw.sysParamCache.GetParam(AXC_SWAP_FEE_RATIO, swap_fee_ratio))
-        return state.DoS(100, ERRORMSG("CGovAxcOutProposal::ExecuteProposal, get sysparam: axc_swap_fee_ratio failed"),
+        return state.DoS(100, ERRORMSG("get sysparam: axc_swap_fee_ratio failed"),
                         REJECT_INVALID, "bad-get-swap_fee_ratio");
 
     auto spSelfChainAccount = tx.GetAccount(context, self_chain_uid, "self_chain");
@@ -727,13 +728,13 @@ bool CGovAxcOutProposal::ExecuteProposal(CTxExecuteContext& context, CBaseTx& tx
     // burn the mirroed tokens from self-chain
     if (!spSelfChainAccount->OperateBalance(self_chain_token_symbol, BalanceOpType::SUB_FREE,
                                             swap_amount, ReceiptType::AXC_BURN_COINS, tx.receipts))
-        return state.DoS(100, ERRORMSG("CGovAxcOutProposal::ExecuteProposal, opreate balance failed, swap_amount=%llu",
+        return state.DoS(100, ERRORMSG("opreate balance failed, swap_amount=%llu",
                                         swap_amount), REJECT_INVALID, "bad-operate-balance");
 
     //sub dia total supply
     CAsset asset;
     if(!cw.assetCache.GetAsset(self_chain_token_symbol, asset)) {
-        return state.DoS(100, ERRORMSG("CGovAxcOutProposal::ExecuteProposal: don't find axc asset %s", self_chain_token_symbol),
+        return state.DoS(100, ERRORMSG("don't find axc asset %s", self_chain_token_symbol),
                          REJECT_INVALID, "get-axc-dia-asset-err");
     }
 
@@ -743,7 +744,7 @@ bool CGovAxcOutProposal::ExecuteProposal(CTxExecuteContext& context, CBaseTx& tx
                                         REJECT_INVALID, "swap-amount-exceed-total-supply");
     asset.OperateToTalSupply(swap_amount, TotalSupplyOpType::SUB);
     if(!cw.assetCache.SetAsset( asset)) {
-        return state.DoS(100, ERRORMSG("CGovAxcOutProposal::ExecuteProposal: save axc asset error %s", asset.asset_symbol ),
+        return state.DoS(100, ERRORMSG("save axc asset error %s", asset.asset_symbol ),
                          REJECT_INVALID, "save-axc-dia-asset-err");
     }
 
@@ -784,7 +785,7 @@ bool CGovAxcCoinProposal::CheckProposal(CTxExecuteContext& context, CBaseTx& tx)
         case ChainType ::ETHEREUM:
             break;
         default:
-            return state.DoS(100, ERRORMSG("CGovAxcCoinProposal::CheckProposal, chain type is not eos, btc, ethereum"), REJECT_INVALID,
+            return state.DoS(100, ERRORMSG("chain type is not eos, btc, ethereum"), REJECT_INVALID,
                              "chain_type-error");
     }
 
@@ -841,14 +842,14 @@ bool CGovAssetIssueProposal::CheckProposal(CTxExecuteContext& context, CBaseTx& 
     }
 
     if ( total_supply > MAX_ASSET_TOTAL_SUPPLY)
-        return state.DoS(100, ERRORMSG("CUserIssueAssetTx::CheckTx, asset total_supply=%llu can not == 0 or > %llu",
+        return state.DoS(100, ERRORMSG("asset total_supply=%llu can not == 0 or > %llu",
                                        total_supply, MAX_ASSET_TOTAL_SUPPLY), REJECT_INVALID, "invalid-total-supply");
 
     auto spOwnerAccount = tx.GetAccount(context, owner_regid, "owner");
     if (!spOwnerAccount) return false;
 
     if (cw.assetCache.HasAsset(asset_symbol))
-        return state.DoS(100, ERRORMSG("CGovAssetIssueProposal::CheckProposal, asset_symbol is exist"), REJECT_INVALID,
+        return state.DoS(100, ERRORMSG("asset_symbol is exist"), REJECT_INVALID,
                          "asset-exist");
 
 
@@ -862,7 +863,7 @@ bool CGovAssetIssueProposal::ExecuteProposal(CTxExecuteContext& context, CBaseTx
     CAsset asset(asset_symbol, asset_symbol, AssetType::DIA, kAssetDefaultPerms, owner_regid, total_supply, true);
 
     if (!cw.assetCache.SetAsset(asset)) {
-        return state.DoS(100, ERRORMSG("CGovAssetIssueProposal::ExecuteProposal,save asset error"), REJECT_INVALID,
+        return state.DoS(100, ERRORMSG("save asset error"), REJECT_INVALID,
                          "asset-write-error");
     }
     auto spOwnerAccount = tx.GetAccount(context, owner_regid, "owner");
