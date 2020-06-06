@@ -126,6 +126,7 @@ Value getinfo(const Array& params, bool fHelp) {
 
     obj.push_back(Pair("relay_fee_perkb",       JsonValueFromAmount(MIN_RELAY_TX_FEE)));
 
+    obj.push_back(Pair("tipblock_tx_count",    (int32_t)chainActive.Tip()->nTx));
     obj.push_back(Pair("tipblock_fuel_rate",    (int32_t)chainActive.Tip()->nFuelRate));
     obj.push_back(Pair("tipblock_fuel",         chainActive.Tip()->nFuelFee));
     obj.push_back(Pair("tipblock_time",         (int32_t)chainActive.Tip()->nTime));
