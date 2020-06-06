@@ -527,15 +527,15 @@ bool CGovAxcInProposal::CheckProposal(CTxExecuteContext& context, CBaseTx& tx) {
 
     if ((peer_chain_type == ChainType::BITCOIN && (peer_chain_addr.size() < 26 || peer_chain_addr.size() > 35)) ||
         (peer_chain_type == ChainType::ETHEREUM && (peer_chain_addr.size() > 42)))
-        return state.DoS(100, ERRORMSG("CGovAxcInProposal::CheckProposal: peer_chain_addr=%s invalid",
+        return state.DoS(100, ERRORMSG("peer_chain_addr=%s invalid",
                                         peer_chain_addr), REJECT_INVALID, "peer_chain_addr-invalid");
 
     if ( (peer_chain_type == ChainType::BITCOIN && (peer_chain_txid.size() != 66)) ||
          (peer_chain_type == ChainType::ETHEREUM && (peer_chain_txid.size() != 66)) )
-        return state.DoS(100, ERRORMSG("CGovAxcInProposal::CheckProposal: peer_chain_txid=%s invalid",
+        return state.DoS(100, ERRORMSG("peer_chain_txid=%s invalid",
                                         peer_chain_txid), REJECT_INVALID, "peer_chain_txid-invalid");
     if (self_chain_uid.IsEmpty())
-        return state.DoS(100, ERRORMSG("CGovAxcInProposal::CheckProposal: self_chain_uid empty"),
+        return state.DoS(100, ERRORMSG("self_chain_uid empty"),
                                         REJECT_INVALID, "self_chain_uid-empty");
 
     auto spAccount = tx.GetAccount(context, self_chain_uid, "self_chain");
@@ -550,11 +550,11 @@ bool CGovAxcInProposal::CheckProposal(CTxExecuteContext& context, CBaseTx& tx) {
 
     uint64_t mintAmount = 0;
     if (cw.axcCache.GetSwapInMintRecord(peer_chain_type, peer_chain_txid, mintAmount))
-        return state.DoS(100, ERRORMSG("CGovAxcInProposal::CheckProposal: GetSwapInMintRecord existing err  %s", peer_chain_txid),
+        return state.DoS(100, ERRORMSG("GetSwapInMintRecord existing err  %s", peer_chain_txid),
                         REJECT_INVALID, "get_swapin_mint-record-err");
     CAsset asset;
     if(!cw.assetCache.GetAsset(self_chain_token_symbol, asset)) {
-        return state.DoS(100, ERRORMSG("CGovAxcInProposal::ExecuteProposal: don't find axc asset %s", self_chain_token_symbol),
+        return state.DoS(100, ERRORMSG("don't find axc asset %s", self_chain_token_symbol),
                                        REJECT_INVALID, "get-axc-dia-asset-err");
     }
 
@@ -572,7 +572,7 @@ bool ProcessAxcInFee(CTxExecuteContext& context, CBaseTx& tx, TokenSymbol& selfC
     vector<CRegID> govBpRegIds;
     TxID proposalId = ((CProposalApprovalTx &) tx).proposal_id;
     if (!cw.sysGovernCache.GetApprovalList(proposalId, govBpRegIds) || govBpRegIds.size() == 0)
-        return state.DoS(100, ERRORMSG("CGovAxcInProposal::ExecuteProposal, failed to get BP Governors"),
+        return state.DoS(100, ERRORMSG("failed to get BP Governors"),
                          REJECT_INVALID, "bad-get-bp-governors");
 
     uint64_t swapFeesPerBp = swapFees / (govBpRegIds.size() + 3);
@@ -583,7 +583,7 @@ bool ProcessAxcInFee(CTxExecuteContext& context, CBaseTx& tx, TokenSymbol& selfC
         if (!spBpAccount->OperateBalance(selfChainTokenSymbol, BalanceOpType::ADD_FREE, swapFeesPerBp,
                                    ReceiptType::AXC_REWARD_FEE_TO_GOVERNOR, tx.receipts))
             return state.DoS(100,
-                             ERRORMSG("CGovAxcInProposal::ExecuteProposal, opreate balance failed, swapFeesPerBp=%llu",
+                             ERRORMSG("opreate balance failed, swapFeesPerBp=%llu",
                                       swapFeesPerBp), REJECT_INVALID, "bad-operate-balance");
     }
 
@@ -591,7 +591,7 @@ bool ProcessAxcInFee(CTxExecuteContext& context, CBaseTx& tx, TokenSymbol& selfC
 
     CRegID axcgwId;
     if(!cw.sysParamCache.GetAxcSwapGwRegId(axcgwId)) {
-        return state.DoS(100, ERRORMSG("CGovAxcInProposal::ExecuteProposal, failed to get GW regid (%s)",
+        return state.DoS(100, ERRORMSG("failed to get GW regid (%s)",
                                        axcgwId.ToString()),
                          REJECT_INVALID, "bad-get-gw-account");
     }
@@ -601,7 +601,7 @@ bool ProcessAxcInFee(CTxExecuteContext& context, CBaseTx& tx, TokenSymbol& selfC
 
     if (!spAxcgwAccount->OperateBalance(selfChainTokenSymbol, BalanceOpType::ADD_FREE, swapFeeForGw,
                                      ReceiptType::AXC_REWARD_FEE_TO_GW, tx.receipts))
-        return state.DoS(100, ERRORMSG("CGovAxcInProposal::ExecuteProposal, opreate balance failed, swapFeesPerBp=%llu",
+        return state.DoS(100, ERRORMSG("opreate balance failed, swapFeesPerBp=%llu",
                                        swapFeesPerBp), REJECT_INVALID, "bad-operate-balance");
     return true;
 }
@@ -611,7 +611,7 @@ bool CGovAxcInProposal::ExecuteProposal(CTxExecuteContext& context, CBaseTx& tx)
 
     CAxcSwapPairStore swapPair;
     if (!cw.assetCache.GetAxcCoinPairByPeerSymbol(peer_chain_token_symbol, swapPair)) {
-        return state.DoS(100, ERRORMSG("CGovAxcInProposal::CheckProposal: swap pair is not exist"),
+        return state.DoS(100, ERRORMSG("swap pair is not exist"),
                          REJECT_INVALID, "find-swapcoinpair-error");
     }
     TokenSymbol self_chain_token_symbol = swapPair.GetSelfSymbol();
@@ -620,14 +620,14 @@ bool CGovAxcInProposal::ExecuteProposal(CTxExecuteContext& context, CBaseTx& tx)
 
     uint64_t swap_fee_ratio;
     if (!cw.sysParamCache.GetParam(AXC_SWAP_FEE_RATIO, swap_fee_ratio) || swap_fee_ratio * 1.0 / RATIO_BOOST > 1)
-        return state.DoS(100, ERRORMSG("CGovAxcInProposal::ExecuteProposal, get sysparam: axc_swap_fee_ratio failed"),
+        return state.DoS(100, ERRORMSG("get sysparam: axc_swap_fee_ratio failed"),
                          REJECT_INVALID, "bad-get-swap_fee_ratio");
 
     uint64_t swap_fees = swap_fee_ratio * (swap_amount * 1.0 / RATIO_BOOST);
     uint64_t swap_amount_after_fees = swap_amount - swap_fees;
 
     if (!ProcessAxcInFee(context,tx, self_chain_token_symbol, swap_fees)) {
-        return state.DoS(100, ERRORMSG("CGovAxcInProposal::ExecuteProposal, process swap in fee error"), REJECT_INVALID,
+        return state.DoS(100, ERRORMSG("process swap in fee error"), REJECT_INVALID,
                          "bad-process-swapfee");
     }
 
@@ -637,22 +637,22 @@ bool CGovAxcInProposal::ExecuteProposal(CTxExecuteContext& context, CBaseTx& tx)
     // mint the new mirro-coin (self_chain_token_symbol) out of thin air
     if (!spSelfChainAccount->OperateBalance(self_chain_token_symbol, BalanceOpType::ADD_FREE, swap_amount_after_fees,
                                 ReceiptType::AXC_MINT_COINS, tx.receipts))
-        return state.DoS(100, ERRORMSG("CGovAxcInProposal::ExecuteProposal, opreate balance failed, swap_amount_after_fees=%llu",
+        return state.DoS(100, ERRORMSG("opreate balance failed, swap_amount_after_fees=%llu",
                                         swap_amount_after_fees), REJECT_INVALID, "bad-operate-balance");
 
     uint64_t mintAmount = 0;
     if (cw.axcCache.GetSwapInMintRecord(peer_chain_type, peer_chain_txid, mintAmount))
-        return state.DoS(100, ERRORMSG("CGovAxcInProposal::ExecuteProposal: GetSwapInMintRecord existing err %s",
+        return state.DoS(100, ERRORMSG("GetSwapInMintRecord existing err %s",
                         REJECT_INVALID, "get_swapin_mint_record-err"));
 
     if (!cw.axcCache.SetSwapInMintRecord(peer_chain_type, peer_chain_txid, swap_amount_after_fees))
-        return state.DoS(100, ERRORMSG("CGovAxcInProposal::ExecuteProposal: SetSwapInMintRecord existing err %s",
+        return state.DoS(100, ERRORMSG("SetSwapInMintRecord existing err %s",
                         REJECT_INVALID, "get_swapin_mint_record-err"));
 
     //add dia total supply
     CAsset asset;
     if(!cw.assetCache.GetAsset(self_chain_token_symbol, asset)) {
-        return state.DoS(100, ERRORMSG("CGovAxcInProposal::ExecuteProposal: don't find axc asset %s", self_chain_token_symbol),
+        return state.DoS(100, ERRORMSG("don't find axc asset %s", self_chain_token_symbol),
                                        REJECT_INVALID, "get-axc-dia-asset-err");
     }
 
