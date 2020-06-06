@@ -552,6 +552,17 @@ bool CGovAxcInProposal::CheckProposal(CTxExecuteContext& context, CBaseTx& tx) {
     if (cw.axcCache.GetSwapInMintRecord(peer_chain_type, peer_chain_txid, mintAmount))
         return state.DoS(100, ERRORMSG("CGovAxcInProposal::CheckProposal: GetSwapInMintRecord existing err  %s", peer_chain_txid),
                         REJECT_INVALID, "get_swapin_mint-record-err");
+    CAsset asset;
+    if(!cw.assetCache.GetAsset(self_chain_token_symbol, asset)) {
+        return state.DoS(100, ERRORMSG("CGovAxcInProposal::ExecuteProposal: don't find axc asset %s", self_chain_token_symbol),
+                                       REJECT_INVALID, "get-axc-dia-asset-err");
+    }
+
+    uint128_t totalSupply = asset.total_supply + swap_amount;
+    if (totalSupply > MAX_ASSET_TOTAL_SUPPLY)
+        return state.DoS(100, ERRORMSG("asset total_supply=%llu + swap_amount=%llu too large than %llu",
+                                        asset.total_supply, swap_amount, MAX_ASSET_TOTAL_SUPPLY),
+                                        REJECT_INVALID, "total-supply-too-large");
     return true;
 }
 
