@@ -48,7 +48,11 @@ namespace wasm_chain {
 	exception::~exception(){}
 
 	const char*  exception::name()const throw() { return _name.c_str(); }
-	const char*  exception::what()const throw() { return _what.c_str(); }
+	const char*  exception::what()const throw() {
+		// for be compactable with std::exception
+		_what_detail = to_detail_string();
+		return _what_detail.c_str();
+	}
 	int64_t      exception::code()const throw() { return _code;         }
 
 	const log_messages& exception::get_log()const              { return _elog;                   }

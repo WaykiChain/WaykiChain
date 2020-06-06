@@ -82,6 +82,8 @@ namespace wasm_chain {
 			std::string     _what;
 			int64_t         _code;
 			log_messages    _elog;
+		protected:
+			mutable std::string     _what_detail;
 	};
 
    class unhandled_exception : public exception
