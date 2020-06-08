@@ -641,6 +641,7 @@ Value getaccountinfo(const Array& params, bool fHelp) {
 
     RPCTypeCheck(params, list_of(str_type));
     CKeyID keyid = RPC_PARAM::GetKeyId(params[0]);
+    const auto &addrStr = params[0].get_str();
     CUserID userId = keyid;
     Object obj;
     CAccount account;
@@ -667,6 +668,11 @@ Value getaccountinfo(const Array& params, bool fHelp) {
         }
         if (account.keyid.IsEmpty()) {
             account.keyid        = pubKey_in_wallet.GetKeyId();
+        }
+    } else {
+        if (!on_chain) {
+            throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("account does not exist on chain and in wallet! addr=%s",
+                addrStr));
         }
     }
 
