@@ -44,7 +44,7 @@ bool BroadcastBlockFinality(const CBlockIndex* block);
 
 bool CheckPBFTMessage(const int32_t msgType ,const CPBFTMessage& msg);
 
-bool CheckPBFTMessageSignaturer(const CPBFTMessage& msg);
+bool CheckPBFTMessageSigner(const CPBFTMessage& msg);
 bool RelayBlockConfirmMessage(const CBlockConfirmMessage& msg);
 
 bool RelayBlockFinalityMessage(const CBlockFinalityMessage& msg);

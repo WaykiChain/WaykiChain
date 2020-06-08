@@ -854,7 +854,7 @@ bool ProcessBlockConfirmMessage(CNode *pFrom, CDataStream &vRecv) {
     bool updateFinalitySuccess = pbftMan.UpdateLocalFinBlock(message,  messageCount);
 
 
-    if(CheckPBFTMessageSignaturer(message))
+    if(CheckPBFTMessageSigner(message))
         RelayBlockConfirmMessage(message);
 
     if(updateFinalitySuccess){
@@ -894,7 +894,7 @@ bool ProcessBlockFinalityMessage(CNode *pFrom, CDataStream &vRecv) {
     int messageCount = msgMan.SaveMessageByBlock(message.blockHash, message);
     pbftMan.UpdateGlobalFinBlock(message, messageCount);
 
-    if(CheckPBFTMessageSignaturer(message)){
+    if(CheckPBFTMessageSigner(message)){
         RelayBlockFinalityMessage(message);
     }
 

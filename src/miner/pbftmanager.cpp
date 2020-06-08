@@ -411,7 +411,7 @@ bool BroadcastBlockConfirm(const CBlockIndex* block) {
     return true;
 }
 
-bool CheckPBFTMessageSignaturer(const CPBFTMessage& msg) {
+bool CheckPBFTMessageSigner(const CPBFTMessage& msg) {
 
     //查找上一个区块执行过后的矿工列表
     set<CRegID> delegates;
