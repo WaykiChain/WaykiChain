@@ -130,7 +130,7 @@ bool CProposalApprovalTx::CheckTx(CTxExecuteContext &context) {
 
     if(!CheckIsGovernor(txUid.get<CRegID>(), proposal->proposal_type, cw)){
         return state.DoS(100, ERRORMSG("CProposalApprovalTx::CheckTx, the tx commiter(%s) is not a governor", proposal_id.ToString()),
-                          READ_ACCOUNT_FAIL, "permission-deney");
+                          READ_ACCOUNT_FAIL, "permission-denied");
     }
 
     if (proposal->proposal_type == ProposalType::GOV_AXC_OUT &&
