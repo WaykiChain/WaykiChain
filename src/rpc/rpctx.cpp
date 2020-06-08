@@ -644,24 +644,38 @@ Value getaccountinfo(const Array& params, bool fHelp) {
     CUserID userId = keyid;
     Object obj;
     CAccount account;
+    bool on_chain = false;
+    bool pubkey_registered = false;
+    bool in_wallet = false;
+
     if (pCdMan->pAccountCache->GetAccount(userId, account)) {
-        obj = account.ToJsonObj();
-        if (!account.owner_pubkey.IsValid()) {
-            CPubKey pubKey;
-            CPubKey minerPubKey;
-            if (pWalletMain->GetPubKey(keyid, pubKey)) {
-                pWalletMain->GetPubKey(keyid, minerPubKey, true);
-                account.owner_pubkey = pubKey;
-                account.keyid        = pubKey.GetKeyId();
-                if (pubKey != minerPubKey && !account.miner_pubkey.IsValid()) {
-                    account.miner_pubkey = minerPubKey;
-                }
+        on_chain = true;
+        pubkey_registered = account.owner_pubkey.IsValid();
+    }
+
+    CPubKey pubKey_in_wallet;
+    if (pWalletMain->GetPubKey(keyid, pubKey_in_wallet)) {
+        in_wallet = true;
+        if (!pubkey_registered) {
+            account.owner_pubkey = pubKey_in_wallet;
+        }
+        if (!account.miner_pubkey.IsValid()) {
+            CPubKey miner_pubKey_in_wallet;
+            if (pWalletMain->GetPubKey(keyid, miner_pubKey_in_wallet, true)) {
+                account.miner_pubkey = miner_pubKey_in_wallet;
             }
+        }
+        if (account.keyid.IsEmpty()) {
+            account.keyid        = pubKey_in_wallet.GetKeyId();
+        }
+    }
 
-            obj.push_back(Pair("pubkey_registered", false));
-        } else
-            obj.push_back(Pair("pubkey_registered", true));
+    obj = account.ToJsonObj();
+    obj.push_back(Pair("onchain", on_chain));
+    obj.push_back(Pair("in_wallet", in_wallet));
+    obj.push_back(Pair("pubkey_registered", pubkey_registered));
 
+    if (on_chain && !account.regid.IsEmpty()) {
         Array cdps;
         vector<CUserCDP> userCdps;
         if (pCdMan->pCdpCache->GetCDPList(account.regid, userCdps)) {
@@ -672,26 +686,6 @@ Value getaccountinfo(const Array& params, bool fHelp) {
         }
 
         obj.push_back(Pair("cdp_list", cdps));
-        obj.push_back(Pair("onchain", true));
-
-    }  else {
-         obj.push_back(Pair("onchain", false));
-    }
-
-    CPubKey pubKey;
-    CPubKey minerPubKey;
-    if (pWalletMain->GetPubKey(keyid, pubKey)) {
-        pWalletMain->GetPubKey(keyid, minerPubKey, true);
-        account.owner_pubkey = pubKey;
-        account.keyid        = pubKey.GetKeyId();
-        if (minerPubKey != pubKey)
-            account.miner_pubkey = minerPubKey;
-
-        obj = account.ToJsonObj();
-        obj.push_back(Pair("in_wallet", true));
-
-    } else {
-        obj.push_back(Pair("in_wallet", false));
     }
 
     return obj;
