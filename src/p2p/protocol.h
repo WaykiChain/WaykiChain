@@ -349,7 +349,12 @@ public:
     )
 
     friend bool operator<(const CPBFTMessage& a , const CPBFTMessage& b);
+
     uint256 GetHash() const;
+
+    string GetBlockId() const {
+        return strprintf("[%u]%s", height, blockHash.ToString());
+    }
 
 };
 
