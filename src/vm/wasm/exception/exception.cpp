@@ -48,7 +48,11 @@ namespace wasm_chain {
 	exception::~exception(){}
 
 	const char*  exception::name()const throw() { return _name.c_str(); }
-	const char*  exception::what()const throw() { return _what.c_str(); }
+	const char*  exception::what()const throw() {
+		// for be compactable with std::exception
+		_what_detail = to_detail_string();
+		return _what_detail.c_str();
+	}
 	int64_t      exception::code()const throw() { return _code;         }
 
 	const log_messages& exception::get_log()const              { return _elog;                   }
@@ -79,7 +83,7 @@ namespace wasm_chain {
        					 o << " ";
 
 					//ss << itr->get_context().to_string();
-       			    ss << o.str();
+       			    ss << o.str() << ": ";
 					ss << itr->get_message();
 					++itr;
 				} catch( std::bad_alloc& ) {
@@ -141,15 +145,21 @@ namespace wasm_chain {
 		return string();
 	}
 
-	exception& exception::operator=( const exception& copy )
+	exception& exception::operator=( const exception& other )
 	{
-	    *this = copy;
+		_name = other._name;
+		_what = other._what;
+		_code = other._code;
+		_elog = other._elog;
 	    return *this;
 	}
 
-	exception& exception::operator=( exception&& copy )
+	exception& exception::operator=( exception&& other )
 	{
-	    *this = std::move(copy);
+		_name = std::move(other._name);
+		_what = std::move(other._what);
+		_code = std::move(other._code);
+		_elog = std::move(other._elog);
 	    return *this;
 	}
 

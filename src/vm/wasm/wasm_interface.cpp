@@ -106,12 +106,17 @@ namespace wasm {
 
     void wasm_interface::initialize(vm_type vm) {
 
-        if (vm == wasm::vm_type::eos_vm)
-            get_runtime_interface() = std::make_shared<wasm::wasm_vm_runtime<vm::interpreter>>();
-        else if (vm == wasm::vm_type::eos_vm_jit)
-            get_runtime_interface() = std::make_shared<wasm::wasm_vm_runtime<vm::jit>>();
-        else
-            get_runtime_interface() = std::make_shared<wasm::wasm_vm_runtime<vm::interpreter>>();
+        static bool wasm_interface_inited = false;
+        if(!wasm_interface_inited){
+            wasm_interface_inited = true;
+
+	        if (vm == wasm::vm_type::eos_vm)
+	            get_runtime_interface() = std::make_shared<wasm::wasm_vm_runtime<vm::interpreter>>();
+	        else if (vm == wasm::vm_type::eos_vm_jit)
+	            get_runtime_interface() = std::make_shared<wasm::wasm_vm_runtime<vm::jit>>();
+	        else
+	            get_runtime_interface() = std::make_shared<wasm::wasm_vm_runtime<vm::interpreter>>();
+    	}
 
     }
 

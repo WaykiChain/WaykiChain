@@ -33,16 +33,18 @@ uint64_t nLastBlockSize = 0;
 MinedBlockInfo miningBlockInfo;
 boost::circular_buffer<MinedBlockInfo> minedBlocks(MAX_MINED_BLOCK_COUNT);
 CCriticalSection csMinedBlocks;
-
+bool g_isMiningTimeLimit = true;
 
 // check the time is not exceed the limit time (2s) for packing new block
 static bool CheckPackBlockTime(int64_t startMiningMs, int32_t blockHeight) {
-    int64_t nowMs  = GetTimeMillis();
-    int64_t limitedTimeMs = std::max(1000LL, (int64_t)GetBlockInterval(blockHeight) * 1000LL - 1000LL);
-    if (nowMs - startMiningMs > limitedTimeMs) {
-        LogPrint(BCLog::MINER, "[%d] pack block time use up! start_ms=%lld, now_ms=%lld, limited_time_ms=%lld\n",
-            blockHeight, startMiningMs, nowMs, limitedTimeMs);
-        return false;
+    if (g_isMiningTimeLimit) {
+        int64_t nowMs  = GetTimeMillis();
+        int64_t limitedTimeMs = std::max(1000LL, (int64_t)GetBlockInterval(blockHeight) * 1000LL - 1000LL);
+        if (nowMs - startMiningMs > limitedTimeMs) {
+            LogPrint(BCLog::MINER, "[%d] pack block time use up! start_ms=%lld, now_ms=%lld, limited_time_ms=%lld\n",
+                blockHeight, startMiningMs, nowMs, limitedTimeMs);
+            return false;
+        }
     }
     return true;
 }
@@ -455,7 +457,7 @@ static bool CreateNewBlockForStableCoinRelease(int64_t startMiningMs, CCacheWrap
                 return ERRORMSG("GetSettledInterestCdps error");
             }
             if (!spCdpForceSettleInterestTx->cdp_list.empty()) {
-                txPriorities.emplace(TxPriority(TRANSACTION_PRIORITY_CEILING, 0, std::make_shared<CBlockPriceMedianTx>(height)));
+                txPriorities.emplace(TxPriority(TRANSACTION_PRIORITY_CEILING, 0, spCdpForceSettleInterestTx));
 
                 LogPrint(BCLog::MINER, "create CCDPInterestForceSettleTx to block! tx=%s\n",
                         spCdpForceSettleInterestTx->ToString(cwIn.accountCache));
@@ -740,6 +742,7 @@ void static ThreadBlockProducing(CWallet *pWallet, int32_t targetHeight) {
         return chainActive.Height();
     };
 
+    g_isMiningTimeLimit = SysCfg().GetBoolArg("-isminingtimelimit", true);
     targetHeight += GetCurrHeight();
     bool needSleep = false;
     int64_t nextSlotTime = 0;

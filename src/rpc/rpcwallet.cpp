@@ -303,8 +303,8 @@ Value submitsendtx(const Array& params, bool fHelp) {
 
     EnsureWalletIsUnlocked();
 
-    CUserID sendUserId = RPC_PARAM::GetUserId(params[0], true);
-    CUserID recvUserId = RPC_PARAM::GetUserId(params[1]);
+    CUserID sendUserId = RPC_PARAM::GetUserId(params[0], true /*isSender*/);
+    CUserID recvUserId = RPC_PARAM::GetUserId(params[1], false /*isSender*/);
     ComboMoney cmCoin  = RPC_PARAM::GetComboMoney(params[2], SYMB::WICC);
     ComboMoney cmFee   = RPC_PARAM::GetFee(params, 3, UCOIN_TRANSFER_TX);
 
@@ -315,21 +315,6 @@ Value submitsendtx(const Array& params, bool fHelp) {
         throw JSONRPCError(RPC_INVALID_PARAMETER, "Coins is zero!");
 
     CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, sendUserId);
-    CAccount destAccount;
-    if(recvUserId.is<CKeyID>()) {
-
-
-        bool accountFound = pCdMan->pAccountCache->GetAccount(recvUserId, destAccount);
-
-        if(!accountFound || !destAccount.IsRegistered()){
-            if(pWalletMain->HasKey(recvUserId.get<CKeyID>())) {
-                CKey k;
-                pWalletMain->GetKey(recvUserId.get<CKeyID>(),k,false);
-                recvUserId = k.GetPubKey();
-            }
-        }
-    }
-
 
     RPC_PARAM::CheckAccountBalance(account, cmCoin.symbol, SUB_FREE, cmCoin.GetAmountInSawi());
     RPC_PARAM::CheckAccountBalance(account, cmFee.symbol, SUB_FREE, cmFee.GetAmountInSawi());

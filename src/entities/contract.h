@@ -169,6 +169,8 @@ public:
                 strprintf("abi=%s", memo) + ", " +
                 strprintf("memo=%d", abi);
     }
+
+    json_spirit::Object ToJson() const;
 };
 
 #endif  // ENTITIES_CONTRACT_H

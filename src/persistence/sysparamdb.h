@@ -58,10 +58,10 @@ public:
                                                   new_total_bps_size_cache(pBaseIn->new_total_bps_size_cache){}
 
     bool GetParam(const SysParamType &paramType, uint64_t& paramValue) {
-        if (SysParamTable.count(paramType) == 0)
+        if (kSysParamTable.count(paramType) == 0)
             return false;
 
-        auto iter = SysParamTable.find(paramType);
+        auto iter = kSysParamTable.find(paramType);
         CVarIntValue<uint64_t > value;
         if (!sys_param_chache.GetData(paramType, value)) {
             paramValue = std::get<0>(iter->second);

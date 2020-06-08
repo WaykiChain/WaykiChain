@@ -3,18 +3,13 @@
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-
 #ifndef TX_ACCOUNTPERMSCLEARTX_H
 #define TX_ACCOUNTPERMSCLEARTX_H
-
 
 #include "tx.h"
 
 class CAccountPermsClearTx: public CBaseTx {
-
-
 public:
-
     CAccountPermsClearTx()
             : CBaseTx(ACCOUNT_PERMS_CLEAR_TX) {}
 
@@ -28,19 +23,22 @@ public:
             nVersion = this->nVersion;
             READWRITE(VARINT(valid_height));
             READWRITE(txUid);
+            READWRITE(fee_symbol);
             READWRITE(VARINT(llFees));
             READWRITE(signature);)
 
     virtual void SerializeForHash(CHashWriter &hw) const {
         hw << VARINT(nVersion) << uint8_t(nTxType) << VARINT(valid_height) << txUid
-           << VARINT(llFees);
+           << fee_symbol << VARINT(llFees);
     }
 
     std::shared_ptr<CBaseTx> GetNewInstance() const { return std::make_shared<CAccountPermsClearTx>(*this); }
-    string ToString(CAccountDBCache &accountCache) {
+
+    virtual string ToString(CAccountDBCache &accountCache) {
         return CBaseTx::ToString(accountCache);
     }
-    Object ToJson(CCacheWrapper &cw) const {
+
+    virtual Object ToJson(CCacheWrapper &cw) const {
         return CBaseTx::ToJson(cw);
     }
 

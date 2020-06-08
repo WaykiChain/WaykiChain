@@ -16,33 +16,42 @@
 
 bool CTxMemCache::AddBlockTx(const CBlock &block) {
     for (auto &ptx : block.vptx) {
-        txids.insert(ptx->GetHash());
+        txids[ptx->GetHash()] = true;
     }
     return true;
 }
 
 bool CTxMemCache::RemoveBlockTx(const CBlock &block) {
     for (auto &ptx : block.vptx) {
-        txids.erase(ptx->GetHash());
+        if (pBase == nullptr) {
+            txids.erase(ptx->GetHash());
+        } else {
+            txids[ptx->GetHash()] = false;
+        }
     }
     return true;
 }
 
 bool CTxMemCache::HasTx(const uint256 &txid) {
-    bool found = txids.count(txid) > 0;
-    if (found)
-        return true;
-    else if (pBase == nullptr) {
-        return false;
-    } else
+    auto it = txids.find(txid);
+    if (it != txids.end()) {
+        return it->second;
+    }
+
+    if (pBase != nullptr) {
         return pBase->HasTx(txid);
+    }
+    return false;
 }
 
-void CTxMemCache::BatchWrite(const UnorderedHashSet &txidsIn) {
-    txids.clear();
+void CTxMemCache::BatchWrite(const TxIdMap &txidsIn) {
+    for (const auto &item : txidsIn) {
+        if (pBase == nullptr && !item.second) {
+            txids.erase(item.first);
+        } else {
+            txids[item.first] = item.second;
 
-    for (const auto &txid : txidsIn) {
-        txids.insert(txid);
+        }
     }
 }
 
@@ -59,8 +68,11 @@ uint64_t CTxMemCache::GetSize() { return txids.size(); }
 
 Object CTxMemCache::ToJsonObj() const {
     Array txArray;
-    for (auto &txid : txids) {
-        txArray.push_back(txid.ToString());
+    for (auto &item : txids) {
+        Object obj;
+        obj.push_back(Pair("txid", item.first.ToString()));
+        obj.push_back(Pair("existed", item.second));
+        txArray.push_back(obj);
     }
 
     Object txCacheObj;

@@ -43,19 +43,6 @@ namespace SYMB {
     static const string KWH         = "KWH";
 };
 
-enum ChainType: uint8_t {
-    NULL_CHAIN_TYPE = 0,
-    BITCOIN         = 1,
-    ETHEREUM        = 2,
-    EOS             = 3
-};
-
-static const unordered_map<ChainType, string> kChainTypeNameMap {
-        { ChainType::BITCOIN,   "BITCOIN"   },
-        { ChainType::ETHEREUM,  "ETHEREUM"  },
-        { ChainType::EOS,       "EOS"       },
-};
-
 //default list below, can be also expanded thru DeGov
 static const unordered_set<TokenSymbol> kCoinTypeSet = {
     SYMB::WICC, SYMB::WGRT, SYMB::WUSD

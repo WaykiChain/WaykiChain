@@ -306,7 +306,7 @@ Value submitdelegatevotetx(const Array& params, bool fHelp) {
             "   }\n"
             "       ,...\n"
             " ]\n"
-            "3.\"fee\": (comboMoney string or numberic, required) pay fee to miner\n"
+            "3.\"fee\": (comboMoney string or numberic, required) pay fee to miner, only support WICC\n"
             "4.\"height\": (numeric optional) valid height. When not supplied, the tip block "
             "height in chainActive will be used.\n"
             "\nResult:\n"
@@ -331,6 +331,9 @@ Value submitdelegatevotetx(const Array& params, bool fHelp) {
 
     CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, txUid);
     RPC_PARAM::CheckAccountBalance(account, SYMB::WICC, SUB_FREE, fee.GetAmountInSawi());
+
+    if (fee.symbol != SYMB::WICC)
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "The fee symbol must be WICC");
 
     CDelegateVoteTx delegateVoteTx;
     delegateVoteTx.txUid        = txUid;
@@ -638,27 +641,47 @@ Value getaccountinfo(const Array& params, bool fHelp) {
 
     RPCTypeCheck(params, list_of(str_type));
     CKeyID keyid = RPC_PARAM::GetKeyId(params[0]);
+    const auto &addrStr = params[0].get_str();
     CUserID userId = keyid;
     Object obj;
     CAccount account;
+    bool on_chain = false;
+    bool pubkey_registered = false;
+    bool in_wallet = false;
+
     if (pCdMan->pAccountCache->GetAccount(userId, account)) {
-        obj = account.ToJsonObj();
-        if (!account.owner_pubkey.IsValid()) {
-            CPubKey pubKey;
-            CPubKey minerPubKey;
-            if (pWalletMain->GetPubKey(keyid, pubKey)) {
-                pWalletMain->GetPubKey(keyid, minerPubKey, true);
-                account.owner_pubkey = pubKey;
-                account.keyid        = pubKey.GetKeyId();
-                if (pubKey != minerPubKey && !account.miner_pubkey.IsValid()) {
-                    account.miner_pubkey = minerPubKey;
-                }
+        on_chain = true;
+        pubkey_registered = account.owner_pubkey.IsValid();
+    }
+
+    CPubKey pubKey_in_wallet;
+    if (pWalletMain->GetPubKey(keyid, pubKey_in_wallet)) {
+        in_wallet = true;
+        if (!pubkey_registered) {
+            account.owner_pubkey = pubKey_in_wallet;
+        }
+        if (!account.miner_pubkey.IsValid()) {
+            CPubKey miner_pubKey_in_wallet;
+            if (pWalletMain->GetPubKey(keyid, miner_pubKey_in_wallet, true)) {
+                account.miner_pubkey = miner_pubKey_in_wallet;
             }
+        }
+        if (account.keyid.IsEmpty()) {
+            account.keyid        = pubKey_in_wallet.GetKeyId();
+        }
+    } else {
+        if (!on_chain) {
+            throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("account does not exist on chain and in wallet! addr=%s",
+                addrStr));
+        }
+    }
 
-            obj.push_back(Pair("pubkey_registered", false));
-        } else
-            obj.push_back(Pair("pubkey_registered", true));
+    obj = account.ToJsonObj();
+    obj.push_back(Pair("onchain", on_chain));
+    obj.push_back(Pair("in_wallet", in_wallet));
+    obj.push_back(Pair("pubkey_registered", pubkey_registered));
 
+    if (on_chain && !account.regid.IsEmpty()) {
         Array cdps;
         vector<CUserCDP> userCdps;
         if (pCdMan->pCdpCache->GetCDPList(account.regid, userCdps)) {
@@ -669,26 +692,6 @@ Value getaccountinfo(const Array& params, bool fHelp) {
         }
 
         obj.push_back(Pair("cdp_list", cdps));
-        obj.push_back(Pair("onchain", true));
-
-    }  else {
-         obj.push_back(Pair("onchain", false));
-    }
-
-    CPubKey pubKey;
-    CPubKey minerPubKey;
-    if (pWalletMain->GetPubKey(keyid, pubKey)) {
-        pWalletMain->GetPubKey(keyid, minerPubKey, true);
-        account.owner_pubkey = pubKey;
-        account.keyid        = pubKey.GetKeyId();
-        if (minerPubKey != pubKey)
-            account.miner_pubkey = minerPubKey;
-
-        obj = account.ToJsonObj();
-        obj.push_back(Pair("in_wallet", true));
-
-    } else {
-        obj.push_back(Pair("in_wallet", false));
     }
 
     return obj;
@@ -801,13 +804,8 @@ Value getcontractinfo(const Array& params, bool fHelp) {
         throw JSONRPCError(RPC_DATABASE_ERROR, "Failed to acquire contract from db.");
     }
 
-    Object obj;
-    obj.push_back(Pair("contract_regid",    regid.ToString()));
-    obj.push_back(Pair("vm_type",           contractStore.vm_type));
-    obj.push_back(Pair("upgradable",        contractStore.upgradable));
-    obj.push_back(Pair("code",              HexStr(contractStore.code)));
-    obj.push_back(Pair("memo",              contractStore.memo));
-    obj.push_back(Pair("abi",               contractStore.abi));
+    Object obj = contractStore.ToJson();
+    obj.insert(obj.begin(), Pair("contract_regid",    regid.ToString()));
 
     return obj;
 }

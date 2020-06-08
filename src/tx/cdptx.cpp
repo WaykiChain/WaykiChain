@@ -8,6 +8,7 @@
 #include "config/const.h"
 #include "main.h"
 #include "persistence/cdpdb.h"
+#include "blockpricemediantx.h"
 
 #include <cmath>
 
@@ -69,7 +70,7 @@ namespace cdp_util {
     }
 
     bool CdpNeedSettleInterest(HeightType lastHeight, HeightType curHeight, uint64_t cycleDays) {
-        uint64_t cycleBlocks = cycleDays * GetDayBlockCount(curHeight);
+        uint64_t cycleBlocks = cycleDays * SysCfg().GetOneDayBlocks(curHeight);
         return (curHeight > lastHeight) && ((curHeight - lastHeight) >= cycleBlocks);
     }
 
@@ -124,7 +125,7 @@ uint64_t ComputeCDPInterest(const uint64_t total_owed_scoins, const int32_t begi
                             uint64_t A, uint64_t B) {
 
     int32_t blockInterval = endHeight - beginHeight;
-    int32_t loanedDays    = std::max<int32_t>(1, ceil((double)blockInterval / ::GetDayBlockCount(endHeight)));
+    int32_t loanedDays    = std::max<int32_t>(1, ceil((double)blockInterval / SysCfg().GetOneDayBlocks(endHeight)));
 
     uint64_t N                = total_owed_scoins;
     double annualInterestRate = 0.1 * A / log10(1.0 + B * N / (double)COIN);
@@ -905,7 +906,23 @@ bool CCDPInterestForceSettleTx::ExecuteTx(CTxExecuteContext &context) {
         if (!cw.cdpCache.GetCDP(cdpid, cdp))
             return state.DoS(100, ERRORMSG("%s, cdp=%s not exist!", TX_ERR_TITLE, cdpid.ToString()),
                     REJECT_INVALID, "cdp-not-exist");
+
         const auto &cdpCoinPair = cdp.GetCoinPair();
+        uint64_t globalCollateralRatioFloor;
+
+        if (!ReadCdpParam(*this, context, cdpCoinPair, CDP_GLOBAL_COLLATERAL_RATIO_MIN, globalCollateralRatioFloor)) {
+            return false;
+        }
+
+        uint64_t bcoinMedianPrice = 0;
+        if (!GetBcoinMedianPrice(*this, context, cdpCoinPair, bcoinMedianPrice)) return false;
+
+        CCdpGlobalData cdpGlobalData = cw.cdpCache.GetCdpGlobalData(cdpCoinPair);
+        if (cdpGlobalData.CheckGlobalCollateralRatioFloorReached(bcoinMedianPrice, globalCollateralRatioFloor)) {
+            return state.DoS(100, ERRORMSG("GlobalCollateralFloorReached!!"), REJECT_INVALID,
+                            "global-cdp-lock-is-on");
+        }
+
         uint64_t cycleDays;
         if (!ReadCdpParam(*this, context, cdpCoinPair, CdpParamType::CDP_CONVERT_INTEREST_TO_DEBT_DAYS, cycleDays))
             return false;
@@ -956,9 +973,7 @@ string CCDPInterestForceSettleTx::ToString(CAccountDBCache &accountCache) {
         cdpListStr += cdpid.ToString() + ",";
     }
 
-    return strprintf("txType=%s, hash=%s, ver=%d, txUid=%s, valid_height=%llu, cdp_list={%s}",
-        GetTxType(nTxType), GetHash().ToString(), nVersion, txUid.ToString(), valid_height,
-        cdpListStr);
+    return strprintf("%s, cdp_list={%s}", CBaseTx::ToString(accountCache), cdpListStr);
 }
 
 Object CCDPInterestForceSettleTx::ToJson(CCacheWrapper &cw) const {
@@ -967,24 +982,31 @@ Object CCDPInterestForceSettleTx::ToJson(CCacheWrapper &cw) const {
         cdpArray.push_back(cdpid.ToString());
     }
     Object result = CBaseTx::ToJson(cw);
-    result.push_back(Pair("txid",           GetHash().GetHex()));
-    result.push_back(Pair("tx_type",        GetTxType(nTxType)));
-    result.push_back(Pair("ver",            nVersion));
-    result.push_back(Pair("tx_uid",         txUid.ToString()));
-    result.push_back(Pair("valid_height",   valid_height));
-    result.push_back(Pair("signature",      HexStr(signature)));
-
     result.push_back(Pair("cdp_list",       cdpArray));
     return result;
 }
 
-bool GetSettledInterestCdps(CCacheWrapper &cw, HeightType height, const CCdpCoinPair &cdpCoinPair,
+bool GetSettledInterestCdps(CCacheWrapper &cw, HeightType height, const CCdpCoinPairDetail &coinPairDetail,
                             vector<uint256> &cdpList, uint32_t &count) {
-    auto pIt = cw.cdpCache.CreateCdpHeightIndexIt();
+
+    uint64_t globalCollateralRatioFloor;
+    const auto &cdpCoinPair = coinPairDetail.coin_pair;
+
+    if (!cw.sysParamCache.GetCdpParam(cdpCoinPair, CDP_GLOBAL_COLLATERAL_RATIO_MIN, globalCollateralRatioFloor)) {
+        return ERRORMSG("read cdp param CDP_GLOBAL_COLLATERAL_RATIO_MIN error! cdpCoinPair=%s", cdpCoinPair.ToString());
+    }
+
+    CCdpGlobalData cdpGlobalData = cw.cdpCache.GetCdpGlobalData(cdpCoinPair);
+    if (cdpGlobalData.CheckGlobalCollateralRatioFloorReached(coinPairDetail.bcoin_price, globalCollateralRatioFloor)) {
+        ERRORMSG("[WARN]GlobalCollateralFloorReached! ignore!");
+        return true;
+    }
+
     uint64_t cycleDays;
     if (!cw.sysParamCache.GetCdpParam(cdpCoinPair, CDP_CONVERT_INTEREST_TO_DEBT_DAYS, cycleDays))
         return ERRORMSG("read cdp param CDP_CONVERT_INTEREST_TO_DEBT_DAYS error! cdpCoinPair=%s", cdpCoinPair.ToString());
 
+    auto pIt = cw.cdpCache.CreateCdpHeightIndexIt(cdpCoinPair);
     for (pIt->First(); pIt->IsValid(); pIt->Next()) {
         if (!cdp_util::CdpNeedSettleInterest(pIt->GetHeight(), height, cycleDays)) {
             break;
@@ -1010,40 +1032,14 @@ bool GetSettledInterestCdps(CCacheWrapper &cw, HeightType height, vector<uint256
     Array cdpInfoArray;
     uint32_t count = CDP_SETTLE_INTEREST_MAX_COUNT;
 
-    for (const auto& item : medianPrices) {
-        if (item.first == kFcoinPriceCoinPair) continue;
+    set<CCdpCoinPairDetail> cdpCoinPairSet;
+    if (!GetCdpCoinPairDetails(cw, height, medianPrices, cdpCoinPairSet)) {
+        return ERRORMSG("get cdp coin pairs error");
+    }
 
-        CAsset asset;
-        const TokenSymbol &bcoinSymbol = item.first.first;
-        const TokenSymbol &quoteSymbol = item.first.second;
-
-        TokenSymbol scoinSymbol = GetCdpScoinByQuoteSymbol(quoteSymbol);
-        if (scoinSymbol.empty()) {
-            LogPrint(BCLog::CDP, "quote_symbol=%s not have a corresponding scoin , ignore", bcoinSymbol);
-            continue;
-        }
-
-        // TODO: remove me if need to support multi scoin and improve the force liquidate process
-        if (scoinSymbol != SYMB::WUSD)
-            throw runtime_error(strprintf("only support to force liquidate scoin=WUSD, actual_scoin=%s", scoinSymbol));
-
-        if (!cw.assetCache.CheckAsset(bcoinSymbol, AssetPermType::PERM_CDP_BCOIN)) {
-            LogPrint(BCLog::CDP, "base_symbol=%s not have cdp bcoin permission, ignore", bcoinSymbol);
-            continue;
-        }
-
-        if (!cw.cdpCache.IsCdpBcoinActivated(bcoinSymbol)) {
-            LogPrint(BCLog::CDP, "bcoin=%s does not be activated, ignore", bcoinSymbol);
-            continue;
-        }
-
-        if (item.second.price == 0) {
-            LogPrint(BCLog::CDP, "coin_pair(%s) price=0, ignore\n", CoinPairToString(item.first));
-            continue;
-        }
-        CCdpCoinPair cdpCoinPair(bcoinSymbol, scoinSymbol);
-        if (!GetSettledInterestCdps(cw, height, cdpCoinPair, cdpList, count)) {
-            return ERRORMSG("get settled interest cdps error! coin_pair=%s", cdpCoinPair.ToString());
+    for (const auto& item : cdpCoinPairSet) {
+        if (!GetSettledInterestCdps(cw, height, item, cdpList, count)) {
+            return ERRORMSG("get settled interest cdps error! coin_pair=%s", item.coin_pair.ToString());
         }
     }
     return true;

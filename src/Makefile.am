@@ -312,6 +312,8 @@ WASM_H = \
   vm/wasm/wasm_interface.hpp \
   vm/wasm/wasm_trace.hpp \
   vm/wasm/wasm_rpc_message.hpp \
+  vm/wasm/wasm_context_rpc.hpp \
+  vm/wasm/wasm_control_rpc.hpp \
   vm/wasm/modules/wasm_native_dispatch.hpp \
   vm/wasm/modules/wasm_native_bank_module.hpp \
   vm/wasm/modules/wasm_native_module.hpp
@@ -321,6 +323,8 @@ WASM_CPP = \
   vm/wasm/abi_serializer.cpp \
   vm/wasm/wasm_context.cpp \
   vm/wasm/abi_serializer.cpp \
+  vm/wasm/wasm_context_rpc.cpp \
+  vm/wasm/wasm_control_rpc.cpp \
   vm/wasm/exception/exception.cpp \
   vm/wasm/exception/log_message.cpp
 

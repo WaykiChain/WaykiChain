@@ -45,18 +45,12 @@ public:
     }
 
     bool SetSwapInMintRecord(ChainType peerChainType, const string& peerChainTxId, const uint64_t mintAmount) {
-        if (kChainTypeNameMap.find(peerChainType) == kChainTypeNameMap.end())
-            return false;
-
-        string key = kChainTypeNameMap.at(peerChainType) + peerChainTxId;
+        auto key = make_pair((uint8_t)peerChainType, peerChainTxId);
         return axc_swapin_cache.SetData(key, CVarIntValue(mintAmount));
     }
 
     bool GetSwapInMintRecord(ChainType peerChainType, const string& peerChainTxId, uint64_t &mintAmount) {
-        if (kChainTypeNameMap.find(peerChainType) == kChainTypeNameMap.end())
-            return false;
-
-        string key = kChainTypeNameMap.at(peerChainType) + peerChainTxId;
+        auto key = make_pair((uint8_t)peerChainType, peerChainTxId);
         CVarIntValue<uint64_t> amount;
         if (!axc_swapin_cache.GetData(key, amount))
             return false;
@@ -67,7 +61,6 @@ public:
 
     void RegisterUndoFunc(UndoDataFuncMap &undoDataFuncMap) {
         axc_swapin_cache.RegisterUndoFunc(undoDataFuncMap);
-
     }
 
 
@@ -78,10 +71,9 @@ public:
 
 /*       type               prefixType               key                     value                 variable               */
 /*  ----------------   -------------------------   -----------------------  ------------------   ------------------------ */
-//swap_in$peer_chain_txid -> coin_amount_to_mint
-CCompositeKVCache<dbk::AXC_SWAP_IN,           string,                  CVarIntValue<uint64_t> > axc_swapin_cache;
-
-
+//swap_in
+// $peer_chain_id, $peer_chain_txid -> coin_amount_to_mint
+    CCompositeKVCache<dbk::AXC_SWAP_IN,        pair<uint8_t, string>,                  CVarIntValue<uint64_t> > axc_swapin_cache;
 };
 
 #endif //PERSIST_AXCDB_H

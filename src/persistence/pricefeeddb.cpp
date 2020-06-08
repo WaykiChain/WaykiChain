@@ -69,20 +69,25 @@ bool CPricePointMemCache::PushBlock(CSysParamDBCache &sysParamCache, CBlockIndex
     // remove the oldest block
     if ((HeightType)pTipBlockIdx->height > (HeightType)slideWindow) {
         CBlockIndex *pDeleteBlockIndex = pTipBlockIdx;
-        HeightType height           = slideWindow;
-        while (pDeleteBlockIndex && height-- > 0) {
+        int idx           = slideWindow;
+        while (pDeleteBlockIndex && idx-- > 0) {
             pDeleteBlockIndex = pDeleteBlockIndex->pprev;
         }
 
-        CBlock deleteBlock;
-        if (!ReadBlockFromDisk(pDeleteBlockIndex, deleteBlock)) {
-            return ERRORMSG("read block=[%d]%s failed", pDeleteBlockIndex->height,
-                    pDeleteBlockIndex->GetBlockHash().ToString());
-        }
+        if (pDeleteBlockIndex) {
+            CBlock deleteBlock;
+            if (!ReadBlockFromDisk(pDeleteBlockIndex, deleteBlock)) {
+                return ERRORMSG("read block=[%d]%s failed", pDeleteBlockIndex->height,
+                        pDeleteBlockIndex->GetBlockHash().ToString());
+            }
 
-        if (!DeleteBlockFromCache(deleteBlock)) {
-            return ERRORMSG("delete block==[%d]%s from price point memory cache failed",
-                    pDeleteBlockIndex->height, pDeleteBlockIndex->GetBlockHash().ToString());
+            if (!DeleteBlockFromCache(deleteBlock)) {
+                return ERRORMSG("delete block==[%d]%s from price point memory cache failed",
+                        pDeleteBlockIndex->height, pDeleteBlockIndex->GetBlockHash().ToString());
+            }
+        } else {
+            return ERRORMSG("[WARN]the slide index=%u block not found in block index",
+                    idx);
         }
     }
     return true;
@@ -99,7 +104,7 @@ bool CPricePointMemCache::UndoBlock(CSysParamDBCache &sysParamCache, CBlockIndex
     }
     if ((HeightType)pTipBlockIdx->height > (HeightType)slideWindow) {
         CBlockIndex *pReLoadBlockIndex = pTipBlockIdx;
-        HeightType nCacheHeight           = slideWindow;
+        int nCacheHeight           = slideWindow;
         while (pReLoadBlockIndex && nCacheHeight-- > 0) {
             pReLoadBlockIndex = pReLoadBlockIndex->pprev;
         }
@@ -175,7 +180,8 @@ bool CPricePointMemCache::AddPriceByBlock(const CBlock &block) {
 
 bool CPricePointMemCache::DeleteBlockFromCache(const CBlock &block) {
     set<PriceCoinPair> deletingSet;
-    for (auto &pBaseTx : block.vptx) {
+    for (uint32_t i = 1; i < block.vptx.size(); ++i) {
+        auto pBaseTx = block.vptx[i];
         if (!pBaseTx->IsPriceFeedTx()) {
             break;
         }
@@ -193,7 +199,7 @@ bool CPricePointMemCache::DeleteBlockFromCache(const CBlock &block) {
     for (auto &item : mapCoinPricePointCache) {
         auto &blockPrices = item.second.mapBlockUserPrices[height];
         if (!blockPrices.empty()) {
-            LogPrint(BCLog::ERROR, "[WARN] the price should be erased!, coin_pair=%s, height=%u",
+            LogPrint(BCLog::ERROR, "[WARN] the price should be erased!, coin_pair=%s, height=%u\n",
                 CoinPairToString(item.first), height);
         }
         blockPrices.clear();

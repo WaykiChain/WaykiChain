@@ -23,21 +23,58 @@ using namespace dex;
 #define OBJ_COMPARE_LT4(obj1, obj2, f1, f2, f3, f4) \
     OBJ_COMPARE_LT1_MORE( obj1, obj2, f1, OBJ_COMPARE_LT3(obj1, obj2, f2, f3, f4) )
 
-class CCdpCoinPairDetail {
-public:
-    CCdpCoinPair coin_pair;
-    bool is_price_active = false;
-    bool is_staked_perm = false;
-    uint64_t bcoin_price = 0;
-    CTxCord init_tx_cord;
-
-    friend bool operator<(const CCdpCoinPairDetail &a, const CCdpCoinPairDetail &b) {
-        return OBJ_COMPARE_LT4(a, b, is_price_active, is_staked_perm, init_tx_cord, coin_pair);
-    }
-};
 
 static const CCdpCoinPair CDP_COIN_PAIR_WICC_WUSD = {SYMB::WICC, SYMB::WUSD};
 static const CCdpCoinPair CDP_COIN_PAIR_WGRT_WUSD = {SYMB::WGRT, SYMB::WUSD};
+
+bool operator<(const CCdpCoinPairDetail &a, const CCdpCoinPairDetail &b) {
+    return OBJ_COMPARE_LT4(a, b, is_price_active, is_staked_perm, init_tx_cord, coin_pair);
+}
+
+bool GetCdpCoinPairDetails(CCacheWrapper &cw, HeightType height, const PriceDetailMap &priceDetails, set<CCdpCoinPairDetail> &cdpCoinPairSet) {
+     uint64_t priceTimeoutBlocks = 0;
+    if (!cw.sysParamCache.GetParam(SysParamType::PRICE_FEED_TIMEOUT_BLOCKS, priceTimeoutBlocks)) {
+        return ERRORMSG("read sys param PRICE_FEED_TIMEOUT_BLOCKS error");
+    }
+    FeatureForkVersionEnum version = GetFeatureForkVersion(height);
+    for (const auto& item : priceDetails) {
+        if (item.first == kFcoinPriceCoinPair) continue;
+
+        CAsset asset;
+        const TokenSymbol &bcoinSymbol = item.first.first;
+        const TokenSymbol &quoteSymbol = item.first.second;
+
+        TokenSymbol scoinSymbol = GetCdpScoinByQuoteSymbol(quoteSymbol);
+        if (scoinSymbol.empty()) {
+            LogPrint(BCLog::CDP, "quote_symbol=%s not have a corresponding scoin , ignore", bcoinSymbol);
+            continue;
+        }
+
+        // TODO: remove me if need to support multi scoin and improve the force liquidate process
+        if (scoinSymbol != SYMB::WUSD)
+            throw runtime_error(strprintf("only support to force liquidate scoin=WUSD, actual_scoin=%s", scoinSymbol));
+
+        CCdpBcoinDetail cdpBcoinDetail;
+        if (!cw.cdpCache.GetCdpBcoin(bcoinSymbol, cdpBcoinDetail)) {
+            LogPrint(BCLog::CDP, "asset=%s not be activated as bcoin, ignore", bcoinSymbol);
+            continue;
+        }
+
+        bool isPriceActive = true;
+        if (version >= MAJOR_VER_R3 && !item.second.IsActive(height, priceTimeoutBlocks)) {
+            isPriceActive = false;
+        }
+
+        cdpCoinPairSet.insert({
+            CCdpCoinPair(bcoinSymbol, scoinSymbol), // coin_pair
+            isPriceActive,                          // is_price_active
+            true,                                   // is_staked_perm
+            item.second.price,                      // bcoin_price
+            cdpBcoinDetail.init_tx_cord             // init_tx_cord
+        });
+    }
+    return true;
+}
 
 class CCdpForceLiquidator {
 public:
@@ -154,49 +191,21 @@ bool CBlockPriceMedianTx::ForceLiquidateCdps(CTxExecuteContext &context, PriceDe
 
     set<CCdpCoinPairDetail> cdpCoinPairSet;
 
-    for (const auto& item : priceDetails) {
-        if (item.first == kFcoinPriceCoinPair) continue;
-
-        CAsset asset;
-        const TokenSymbol &bcoinSymbol = item.first.first;
-        const TokenSymbol &quoteSymbol = item.first.second;
-
-        TokenSymbol scoinSymbol = GetCdpScoinByQuoteSymbol(quoteSymbol);
-        if (scoinSymbol.empty()) {
-            LogPrint(BCLog::CDP, "quote_symbol=%s not have a corresponding scoin , ignore", bcoinSymbol);
-            continue;
-        }
-
-        // TODO: remove me if need to support multi scoin and improve the force liquidate process
-        if (scoinSymbol != SYMB::WUSD)
-            throw runtime_error(strprintf("only support to force liquidate scoin=WUSD, actual_scoin=%s", scoinSymbol));
-
-        CCdpBcoinDetail cdpBcoinDetail;
-        if (!cw.cdpCache.GetCdpBcoin(bcoinSymbol, cdpBcoinDetail)) {
-            LogPrint(BCLog::CDP, "asset=%s not be activated as bcoin, ignore", bcoinSymbol);
-            continue;
-        }
-
-        if (version >= MAJOR_VER_R3 && !item.second.IsActive(context.height, priceTimeoutBlocks)) {
-            LogPrint(BCLog::CDP,
-                    "price of coin_pair(%s) is inactive, ignore, "
-                    "last_update_height=%u, cur_height=%u\n",
-                    CoinPairToString(item.first), item.second.last_feed_height,
-                    context.height);
-            continue;
-        }
-
-        cdpCoinPairSet.insert({
-            CCdpCoinPair(bcoinSymbol, scoinSymbol), // coin_pair
-            true,                                   // is_price_active
-            true,                                   // is_staked_perm
-            item.second.price,                      // bcoin_price
-            cdpBcoinDetail.init_tx_cord             // init_tx_cord
-        });
+    if (!GetCdpCoinPairDetails(cw, context.height, priceDetails, cdpCoinPairSet)) {
+        return state.DoS(100, ERRORMSG("get cdp coin pairs error"),
+                REJECT_INVALID, "get-cdp-coin-pairs-error");
     }
 
     uint32_t liquidatedLimitCount = CDP_FORCE_LIQUIDATE_MAX_COUNT;
     for (const auto& cdpCoinPairDetail : cdpCoinPairSet) {
+
+        if (version >= MAJOR_VER_R3 && !cdpCoinPairDetail.is_price_active) {
+            LogPrint(BCLog::CDP,
+                    "price of coin_pair(%s) is inactive, ignore\n",
+                    cdpCoinPairDetail.coin_pair.ToString());
+            continue;
+        }
+
         CCdpForceLiquidator forceLiquidator(*this, context, receipts, *spFcoinAccount,
                                             cdpCoinPairDetail, fcoinUsdPrice, liquidatedLimitCount);
         if (!forceLiquidator.Execute())

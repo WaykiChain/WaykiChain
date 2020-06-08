@@ -33,13 +33,13 @@ namespace wasm_chain {
 		divide_by_zero_code               = 21
 	};
 
-	class exception
+	class exception : public std::exception
 	{
 		public:
 			enum code_enum
 			{
 				code_value = unspecified_exception_code
-			}; 
+			};
 
 	        exception( int64_t code = unspecified_exception_code,
 	                   const std::string& name_value = "exception",
@@ -48,7 +48,7 @@ namespace wasm_chain {
 	                   int64_t code = unspecified_exception_code,
 	                   const std::string& name_value = "exception",
 	                   const std::string& what_value = "unspecified");
-	        exception( log_messages&&, 
+	        exception( log_messages&&,
 	        	       int64_t code = unspecified_exception_code,
 	                   const std::string& name_value = "exception",
 	                   const std::string& what_value = "unspecified");
@@ -75,13 +75,15 @@ namespace wasm_chain {
 			// friend void to_variant( const exception& e, variant& v );
 			// friend void from_variant( const variant& e, exception& ll );
 
-			exception& operator=( const exception& copy );
-			exception& operator=( exception&& copy      );
+			exception& operator=( const exception& other );
+			exception& operator=( exception&& other      );
 		public:
 			std::string     _name;
 			std::string     _what;
 			int64_t         _code;
 			log_messages    _elog;
+		protected:
+			mutable std::string     _what_detail;
 	};
 
    class unhandled_exception : public exception
@@ -99,7 +101,7 @@ namespace wasm_chain {
       private:
        std::exception_ptr _inner;
    };
-   
+
 
 
 

@@ -36,3 +36,16 @@ bool CUniversalContract::IsValid() {
 
     return true;
 }
+
+json_spirit::Object CUniversalContractStore::ToJson() const {
+    using namespace json_spirit;
+    Object obj;
+    obj.push_back(Pair("vm_type",           vm_type));
+    obj.push_back(Pair("maintainer",        maintainer.ToString()));
+    obj.push_back(Pair("upgradable",        upgradable));
+    obj.push_back(Pair("code",              HexStr(code)));
+    obj.push_back(Pair("memo",              memo));
+    obj.push_back(Pair("abi",               abi));
+
+    return obj;
+}

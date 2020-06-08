@@ -58,7 +58,7 @@ namespace wasm {
 		                "setcode", "", {
 		                        {"contract", 	"regid"  },
 								{"maintainer", 	"regid"  }, //optional for subsequent code update
-								{"vmtype",		"uint8_t"},
+								{"vmtype",		"uint8"},
 		                        {"code",    	"bytes"  },
 		                        {"abi",     	"bytes"  },
 		                        {"memo",    	"string" }

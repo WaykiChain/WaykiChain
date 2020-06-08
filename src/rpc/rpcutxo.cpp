@@ -197,7 +197,7 @@ Value genutxomultiinputcondhash(const Array& params, bool fHelp) {
 
 Value submitpasswordprooftx(const Array& params, bool fHelp) {
 
-    if(fHelp || params.size() < 4 || params.size() > 5) {
+    if(fHelp || params.size() < 5 || params.size() > 6) {
         throw runtime_error(
                 "submitpasswordprooftx \"sender\" \"utxo_txid\" \"utxo_vout_index\" \"password\" \"pre_utxo_tx_uid\" [\"fee\"] \n"
                 "\nSubmit a password proof tx.\n" +

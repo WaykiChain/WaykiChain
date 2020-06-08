@@ -1,5 +1,4 @@
-#include "wasm_context.hpp"
-//#include "wasm/wasm_native_contract.hpp"
+#include "wasm_context_rpc.hpp"
 #include "wasm/types/name.hpp"
 #include "wasm/wasm_constants.hpp"
 #include "wasm/wasm_log.hpp"
@@ -32,15 +31,17 @@ namespace wasm {
     }
 
 
-    void wasm_context::reset_console() {
+    void wasm_context_rpc::reset_console() {
         _pending_console_output = std::ostringstream();
     }
 
-    bool wasm_context::has_permission_from_inline_transaction(const permission& p){
+    bool wasm_context_rpc::has_permission_from_inline_transaction(const permission& p){
         return std::find(trx.authorization.begin(), trx.authorization.end(), p) != trx.authorization.end();
     }
 
-    void wasm_context::execute_inline(const inline_transaction& t) {
+    void wasm_context_rpc::execute_inline(const inline_transaction& t) {
+
+    	return;
 
         //check authorization
         for (const auto p: t.authorization) {
@@ -79,7 +80,7 @@ namespace wasm {
         inline_transactions.push_back(t);
     }
 
-    bool wasm_context::get_code(const uint64_t& contract, std::vector <uint8_t> &code) {
+    bool wasm_context_rpc::get_code(const uint64_t& contract, std::vector <uint8_t> &code) {
         CUniversalContractStore contract_store;
         if (!database.contractCache.GetContract(CRegID(contract), contract_store))
             return false;
@@ -88,11 +89,11 @@ namespace wasm {
         return true;
     }
 
-    uint64_t wasm_context::get_runcost() {
+    uint64_t wasm_context_rpc::get_runcost() {
         return trx.GetSerializeSize(SER_DISK, CLIENT_VERSION) * store_fuel_fee_per_byte;
     }
 
-    uint64_t wasm_context::get_maintainer(const uint64_t& contract) {
+    uint64_t wasm_context_rpc::get_maintainer(const uint64_t& contract) {
         CRegID   maintainer;
         CUniversalContractStore contract_store;
         if (!database.contractCache.GetContract(CRegID(contract), contract_store))
@@ -102,18 +103,18 @@ namespace wasm {
         return maintainer.GetIntValue();
     }
 
-    void wasm_context::initialize() {
+    void wasm_context_rpc::initialize() {
 
-    	wasmif.initialize(wasm::vm_type::eos_vm_jit);
+        wasmif.initialize(wasm::vm_type::eos_vm_jit);
 
-        // static bool wasm_interface_inited = false;
-        // if (!wasm_interface_inited) {
+        // static bool wasm_interface_rpc_inited = false;
+        // if (!wasm_interface_rpc_inited) {
         //     wasm_interface_inited = true;
         //     wasmif.initialize(wasm::vm_type::eos_vm_jit);
         // }
     }
 
-    void wasm_context::execute(inline_transaction_trace &trace) {
+    void wasm_context_rpc::execute(inline_transaction_trace &trace) {
 
         initialize();
 
@@ -135,17 +136,17 @@ namespace wasm {
 
         for (auto &inline_trx : inline_transactions) {
             trace.inline_traces.emplace_back();
-            control_trx.execute_inline_transaction(trace.inline_traces.back(), inline_trx,
-                                                   inline_trx.contract, database, receipts,
+            control.execute_inline_transaction(trace.inline_traces.back(), inline_trx,
+                                                   inline_trx.contract, 
                                                    recurse_depth + 1);
         }
 
     }
 
-    void wasm_context::execute_one(inline_transaction_trace &trace) {
+    void wasm_context_rpc::execute_one(inline_transaction_trace &trace) {
 
         //auto start = system_clock::now();
-        control_trx.recipients_size ++;
+        //control.recipients_size ++;
 
         trace.trx      = trx;
         trace.receiver = _receiver;
@@ -154,14 +155,15 @@ namespace wasm {
 
         //reset_console();
         try {
-            if (native) {
-                (*native)(*this, trx.action);
-            } else {
+                if(native){
+                    CHAIN_ASSERT(false, wasm_chain::chain_exception,
+                    "can not getstate from native action ")
+                }
+        
                 vector <uint8_t> code;
                 if (get_code(_receiver, code) && code.size() > 0) {
                     wasmif.execute(code, this);
                 }
-            }
         }  catch (wasm_chain::exception &e) {
             string console_output = (_pending_console_output.str().size() == 0) ?
                                         string("") :
@@ -186,9 +188,8 @@ namespace wasm {
                          console_output );
         }
 
-        trace.trx_id  = control_trx.GetHash();
+        //trace.trx_id  = control.GetHash();
         trace.console = _pending_console_output.str();
-        //trace.elapsed = std::chrono::duration_cast<std::chrono::microseconds>(system_clock::now() - start);
 
         reset_console();
 
@@ -198,7 +199,7 @@ namespace wasm {
 
     }
 
-    bool wasm_context::has_recipient(const uint64_t& account) const {
+    bool wasm_context_rpc::has_recipient(const uint64_t& account) const {
         for (auto a : notified)
             if (a == account)
                 return true;
@@ -206,7 +207,7 @@ namespace wasm {
         return false;
     }
 
-    void wasm_context::notify_recipient(const uint64_t& recipient)  {
+    void wasm_context_rpc::notify_recipient(const uint64_t& recipient)  {
 
         if (!has_recipient(recipient)) {
             notified.push_back(recipient);
@@ -218,7 +219,7 @@ namespace wasm {
 
     }
 
-    void wasm_context::require_auth( const uint64_t& account ) const {
+    void wasm_context_rpc::require_auth( const uint64_t& account ) const {
         for (auto p: trx.authorization) {
             if (p.account == account) {
                 return;
@@ -227,7 +228,7 @@ namespace wasm {
         CHAIN_ASSERT(false, wasm_chain::missing_auth_exception, "missing authority of %s", wasm::regid(account).to_string());
     }
 
-    bool wasm_context::has_authorization( const uint64_t& account ) const {
+    bool wasm_context_rpc::has_authorization( const uint64_t& account ) const {
         for (auto p: trx.authorization) {
             if (p.account == account) {
                 return true;
@@ -237,12 +238,12 @@ namespace wasm {
         return false;
     }
 
-    bool wasm_context::is_account( const uint64_t& account ) const {
+    bool wasm_context_rpc::is_account( const uint64_t& account ) const {
 
         return database.accountCache.HasAccount(CRegID(account));
     }
 
-    std::vector<uint64_t> wasm_context::get_active_producers(){
+    std::vector<uint64_t> wasm_context_rpc::get_active_producers(){
 
         auto &db_account  = database.accountCache;
         auto &db_delegate = database.delegateCache;
@@ -270,7 +271,7 @@ namespace wasm {
         return active_producers;
     }
 
-    bool wasm_context::get_system_asset_price(uint64_t base, uint64_t quote, std::vector<char>& price){
+    bool wasm_context_rpc::get_system_asset_price(uint64_t base, uint64_t quote, std::vector<char>& price){
 
         wasm::symbol base_symbol  = wasm::symbol(base);
         wasm::symbol quote_symbol = wasm::symbol(quote);
@@ -289,10 +290,6 @@ namespace wasm {
         return true;
     }
 
-    void wasm_context::update_storage_usage(const uint64_t& account, const int64_t& size_in_bytes){
-
-        int64_t disk_usage    = size_in_bytes * store_fuel_fee_per_byte;
-        control_trx.run_cost += (disk_usage < 0) ? 0 : disk_usage;
-    }
+    void wasm_context_rpc::update_storage_usage(const uint64_t& account, const int64_t& size_in_bytes){}
 
 }
