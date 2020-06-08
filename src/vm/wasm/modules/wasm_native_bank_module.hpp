@@ -67,50 +67,50 @@ namespace wasm {
 
             abi.structs.push_back({"issue", "",
                 {
-                    {"symbol",            "symbol"    }, //target asset symbol to issue
-                    {"owner",             "regid"        },
+                    {"symbol",          "symbol"    }, //target asset symbol to issue
+                    {"owner",           "regid"     },
                     {"name",            "string"    },
                     {"total_supply",    "uint64"    },
-                    {"mintable",        "bool"        },
-                    {"memo",             "string"     }
+                    {"mintable",        "bool"      },
+                    {"memo",            "string"    }
                 }
             });
             abi.structs.push_back({"mint", "",
                 {
-                    {"to",                 "regid"        }, //mint & issue assets to the target holder
-                    {"quantity",         "asset"     },
-                    {"memo",             "string"     }
+                    {"to",              "regid"     }, //mint & issue assets to the target holder
+                    {"quantity",        "asset"     },
+                    {"memo",            "string"    }
                 }
             });
             abi.structs.push_back({"burn", "",
                 {
-                    {"owner",             "regid"        }, //only asset owner can burn assets hold by the owner
-                    {"quantity",        "asset"        },
-                    {"memo",             "string"     }
+                    {"owner",          "regid"     }, //only asset owner can burn assets hold by the owner
+                    {"quantity",       "asset"     },
+                    {"memo",           "string"    }
                 }
             });
             abi.structs.push_back({"update", "",
                 {
-                    {"symbol",            "symbol"    }, //target asset symbol to update
-                    {"owner",             "regid?"    },
-                    {"name",            "string?"    },
-                    {"memo",             "string?"     }
+                    {"symbol_code",    "symbol_code"   }, //target asset symbol to update
+                    {"owner",          "regid?"        },
+                    {"name",           "string?"       },
+                    {"memo",           "string?"       }
                 }
             });
             abi.structs.push_back({"transfer", "",
                 {
-                    {"from",             "regid"      },
-                    {"to",               "regid"      },
-                    {"quantity",         "asset"      },
-                    {"memo",             "string"     }
+                    {"from",          "regid"    },
+                    {"to",            "regid"    },
+                    {"quantity",      "asset"    },
+                    {"memo",          "string"   }
                 }
             });
 
-            abi.actions.emplace_back( "issue",         "issue",     "" );
-            abi.actions.emplace_back( "mint",         "mint",     "" );
-            abi.actions.emplace_back( "burn",         "burn",     "" );
-            abi.actions.emplace_back( "update",     "update",     "" );
-            abi.actions.emplace_back( "transfer",     "transfer", "" );
+            abi.actions.emplace_back( "issue",          "issue",        "" );
+            abi.actions.emplace_back( "mint",           "mint",         "" );
+            abi.actions.emplace_back( "burn",           "burn",         "" );
+            abi.actions.emplace_back( "update",         "update",       "" );
+            abi.actions.emplace_back( "transfer",       "transfer",     "" );
 
             auto abi_bytes = wasm::pack<wasm::abi_def>(abi);
             return abi_bytes;
@@ -134,12 +134,12 @@ namespace wasm {
                                             bool,
                                             string >>(context.trx.data);
 
-            auto symbol                = std::get<0>(params);
+            auto symbol             = std::get<0>(params);
             auto owner              = std::get<1>(params);
             auto name               = std::get<2>(params);
-            auto total_supply        = std::get<3>(params);
-            auto mintable            = std::get<4>(params);
-            auto memo                = std::get<5>(params);
+            auto total_supply       = std::get<3>(params);
+            auto mintable           = std::get<4>(params);
+            auto memo               = std::get<5>(params);
 
             CHAIN_CHECK_UIA_SYMBOL( symbol, "UIA asset symbol")
 
@@ -178,12 +178,12 @@ namespace wasm {
             CHAIN_CHECK_MEMO(memo, "memo");
 
             CAsset asset;
-            asset.asset_symbol    = sym;
-            asset.asset_name    = name;
-            asset.asset_type    = AssetType::UIA;
-            asset.owner_regid      = owner_regid;
-            asset.total_supply  = total_supply;
-            asset.mintable        = mintable;
+            asset.asset_symbol      = sym;
+            asset.asset_name        = name;
+            asset.asset_type        = AssetType::UIA;
+            asset.owner_regid       = owner_regid;
+            asset.total_supply      = total_supply;
+            asset.mintable          = mintable;
 
             CHAIN_ASSERT(     context.database.assetCache.SetAsset(asset),
                             wasm_chain::level_db_update_fail,
@@ -225,22 +225,22 @@ namespace wasm {
             context.control_trx.run_cost   += context.get_runcost();
 
             auto params = wasm::unpack< std::tuple <
-                            wasm::symbol,
+                            wasm::symbol_code,
                             std::optional<wasm::regid>,
                             std::optional<string>,
                             std::optional<string> >>(context.trx.data);
 
-            auto symbol                            = std::get<0>(params);
-            auto new_owner                      = std::get<1>(params);
-            auto new_name                       = std::get<2>(params);
-            auto memo                            = std::get<3>(params);
+            auto sym_code    = std::get<0>(params);
+            auto new_owner   = std::get<1>(params);
+            auto new_name    = std::get<2>(params);
+            auto memo        = std::get<3>(params);
 
-            CHAIN_CHECK_SYMBOL( symbol, "asset symbol")
+            auto sym = sym_code.to_string();
             CAsset asset;
-            CHAIN_ASSERT(     context.database.assetCache.GetAsset(symbol.code().to_string(), asset),
-                            wasm_chain::asset_type_exception,
-                            "asset (%s) does not exist",
-                            symbol.to_string() )
+            CHAIN_ASSERT(context.database.assetCache.GetAsset(sym, asset),
+                         wasm_chain::asset_type_exception,
+                         "asset (%s) does not exist",
+                         sym)
 
             CHAIN_CHECK_ASSET_HAS_OWNER(asset, "asset");
 
@@ -271,14 +271,14 @@ namespace wasm {
 
             if (memo) CHAIN_CHECK_MEMO(memo.value(), "memo");
 
-            CHAIN_ASSERT(     to_update,
-                            wasm_chain::native_contract_assert_exception,
-                                "none field found for update")
+            CHAIN_ASSERT( to_update,
+                          wasm_chain::native_contract_assert_exception,
+                          "none field found for update")
 
-            CHAIN_ASSERT(     context.database.assetCache.SetAsset(asset),
-                            wasm_chain::level_db_update_fail,
-                                "Update Asset (%s) failure",
-                                symbol.to_string() )
+            CHAIN_ASSERT( context.database.assetCache.SetAsset(asset),
+                          wasm_chain::level_db_update_fail,
+                          "Update Asset (%s) failure",
+                          sym)
 
         }
 
