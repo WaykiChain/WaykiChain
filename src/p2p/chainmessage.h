@@ -875,18 +875,20 @@ bool ProcessBlockFinalityMessage(CNode *pFrom, CDataStream &vRecv) {
     CBlockFinalityMessage message;
     vRecv >> message;
 
-    LogPrint(BCLog::NET, "received Block FinalityMessage: blockHeight=%d, blockHash=%s, minerid =%s, signature=%s \n",
-             message.height, message.blockHash.GetHex(), message.miner.ToString(), HexStr<vector<unsigned char>>(message.vSignature));
+    LogPrint(BCLog::NET, "received Block FinalityMessage: block=%s, miner=%s, signature=%s \n",
+             message.GetBlockId(), message.miner.ToString(), HexStr(message.vSignature));
 
     pFrom->AddBlockFinalityMessageKnown(message);
 
     if(msgMan.IsKnown(message)){
-        LogPrint(BCLog::NET, "duplicate finality message,miner_id=%s, blockhash=%s \n",message.miner.ToString(), message.blockHash.GetHex());
+        LogPrint(BCLog::NET, "duplicate finality message, miner=%s, block=%s \n",
+                 message.miner.ToString(), message.GetBlockId());
         return false;
     }
 
-    if(!CheckPBFTMessage(PBFTMsgType::FINALITY_BLOCK,message)){
-        LogPrint(BCLog::NET, "finality block message check failed,miner_id=%s, blockhash=%s \n",message.miner.ToString(), message.blockHash.GetHex());
+    if(!CheckPBFTMessage(PBFTMsgType::FINALITY_BLOCK, message)){
+        LogPrint(BCLog::NET, "finality block message check failed, miner=%s, block=%s \n",
+                 message.miner.ToString(), message.GetBlockId());
         return false;
     }
 
