@@ -804,13 +804,8 @@ Value getcontractinfo(const Array& params, bool fHelp) {
         throw JSONRPCError(RPC_DATABASE_ERROR, "Failed to acquire contract from db.");
     }
 
-    Object obj;
-    obj.push_back(Pair("contract_regid",    regid.ToString()));
-    obj.push_back(Pair("vm_type",           contractStore.vm_type));
-    obj.push_back(Pair("upgradable",        contractStore.upgradable));
-    obj.push_back(Pair("code",              HexStr(contractStore.code)));
-    obj.push_back(Pair("memo",              contractStore.memo));
-    obj.push_back(Pair("abi",               contractStore.abi));
+    Object obj = contractStore.ToJson();
+    obj.insert(obj.begin(), Pair("contract_regid",    regid.ToString()));
 
     return obj;
 }
