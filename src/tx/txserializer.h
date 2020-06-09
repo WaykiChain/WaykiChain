@@ -329,7 +329,7 @@ void CBaseTx::UnserializePtr(Stream& is, std::shared_ptr<CBaseTx> &pBaseTx, int 
 
         default:
             throw runtime_error(strprintf("%s(), unsupport nTxType(%d:%s) to unserialize",
-                                __FUNCTION__, nTxType, GetTxType((TxType)nTxType)));
+                                __FUNCTION__, nTxType, GetTxType(nTxType)));
     }
     pBaseTx->nTxType = TxType(nTxType);
 }
