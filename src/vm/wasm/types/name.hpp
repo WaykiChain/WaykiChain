@@ -145,7 +145,7 @@ namespace wasm {
                 return (c - 'a') + 6;
             }
             else{
-                check( false, "character is not in allowed character set for names, the character must be '_' 1~5' 'a-z'" );
+                check( false, strprintf("character '%c(0x%x)' is not in allowed character set for names, the character must be '_' 1~5' 'a-z'", c, c) );
                 //check( false, "character is not in allowed character set for names" );
             }
 
