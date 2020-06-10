@@ -293,8 +293,8 @@ namespace wasm {
 
     void wasm_context_rpc::update_storage_usage(const uint64_t& account, const int64_t& size_in_bytes){}
 
-    void wasm_context_rpc::set_rpc_result(const uint64_t &name, const std::vector<char> &value) {
+    void wasm_context_rpc::set_rpc_result(const uint64_t &name, const char *value, uint32_t value_len) {
         ret_value.name = name;
-        ret_value.value = value;
+        ret_value.value.assign(value, value + value_len);
     }
 }

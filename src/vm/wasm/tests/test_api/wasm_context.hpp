@@ -209,7 +209,7 @@ class wasm_context : public wasm_context_interface {
         void pause_billing_timer() { };
         void resume_billing_timer(){ };
 
-        void set_rpc_result(const uint64_t &name, const std::vector<char> &value) override { /* ignore */ }
+        void set_rpc_result(const uint64_t &name, const char *value, uint32_t value_len) override { /* ignore */ }
     public:
 
         CTxCord                     trx_cord;
