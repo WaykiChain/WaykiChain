@@ -693,6 +693,7 @@ Value wasm_getstate( const Array &params, bool fHelp ) {
         auto db = CCacheWrapper(pCdMan);
 
         wasm_control_rpc ctrl(db);
+        ctrl.call_inline_transaction(tx);
 
         const auto &ret_value = ctrl.ret_value;
         auto result = wasm::abi_serializer::unpack_data(abi, wasm::name(ret_value.name).to_string(), ret_value.value, max_serialization_time);
