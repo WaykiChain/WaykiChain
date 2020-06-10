@@ -618,6 +618,10 @@ namespace wasm {
             return copy_len;
         }
 
+        void set_rpc_result(const uint64_t &name, const std::vector<char> &value) {
+            pWasmContext->set_rpc_result(name, value);
+        }
+
 
         //llvm compiler builtins rt apis( GCC low-level runtime library ), eg. std:string in contract
         void __ashlti3( __int128 &ret, uint64_t low, uint64_t high, uint32_t shift ) {
@@ -962,6 +966,8 @@ namespace wasm {
     REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, get_txid,                get_txid)
     REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, get_maintainer,          get_maintainer)
     REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, get_system_asset_price,  get_system_asset_price)
+    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, set_rpc_result,  set_rpc_result)
+
 
     REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, __ashlti3,               __ashlti3)
     REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, __ashrti3,               __ashrti3)
