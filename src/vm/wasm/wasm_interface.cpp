@@ -602,10 +602,10 @@ namespace wasm {
             return 32;
         }
 
-        uint32_t get_system_asset_price(uint64_t base_symble, uint64_t quote_symble, void* data, uint32_t data_len ) {
+        uint32_t get_system_asset_price(uint64_t base_symbol, uint64_t quote_symbol, void* data, uint32_t data_len ) {
 
             std::vector<char> price;
-            bool success = pWasmContext->get_system_asset_price(base_symble, quote_symble, price);
+            bool success = pWasmContext->get_system_asset_price(base_symbol, quote_symbol, price);
             if (!success) return 0;
 
             size_t len = price.size();
