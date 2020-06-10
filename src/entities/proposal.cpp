@@ -764,7 +764,7 @@ bool CGovAxcCoinProposal::CheckProposal(CTxExecuteContext& context, CBaseTx& tx)
         if (op_type != ProposalOperateType::ENABLE) {
             return state.DoS(100, ERRORMSG("the axc swap coin=%s must be enabled for op_type=%s",
                     peer_chain_coin_symbol, kProposalOperateTypeHelper.GetName(op_type)),
-                    REJECT_INVALID, "asset-exist");
+                    REJECT_INVALID, "axc-coin-not-enabled");
         }
         if (cw.assetCache.HasAsset(selfSymbol))
             return state.DoS(100, ERRORMSG("the asset of symbol=%s is exist", selfSymbol),
