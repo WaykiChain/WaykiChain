@@ -693,16 +693,16 @@ Value wasm_getstate( const Array &params, bool fHelp ) {
         auto db = CCacheWrapper(pCdMan);
 
         wasm_control_rpc ctrl(db);
-        string retMsg = ctrl.call_inline_transaction(tx);
+
+        const auto &ret_value = ctrl.ret_value;
+        auto result = wasm::abi_serializer::unpack_data(abi, wasm::name(ret_value.name).to_string(), ret_value.value, max_serialization_time);
 
         Object obj_return;
         Value  value_json;
-        json_spirit::read(retMsg, value_json);
-
-        Object result;
-        result.push_back(Pair("block_num", chainActive.Height()));
-        json_spirit::Config::add(result, "get_return", value_json );
-        json_spirit::Config::add(obj_return, "result", result );
+        json_spirit::Array results;
+        results.push_back(result);
+        obj_return.push_back(Pair("block_height", chainActive.Height()));
+        obj_return.push_back(Pair("results", results));
 
         return obj_return;
 

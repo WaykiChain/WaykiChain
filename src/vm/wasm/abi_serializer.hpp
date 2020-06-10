@@ -161,6 +161,23 @@ namespace wasm {
             return data_v;
         }
 
+        static json_spirit::Value
+        unpack_data( const std::vector<char> &abi, const type_name &name, const bytes &data, microseconds max_serialization_time ) {
+
+            CHAIN_ASSERT(name.size() > 0, wasm_chain::abi_parse_exception, "the name can not be empty");
+            json_spirit::Value data_v;
+            try {
+
+                wasm::abi_def def = wasm::unpack<wasm::abi_def>(abi);
+                wasm::abi_serializer abis(def, max_serialization_time);
+
+
+                data_v = abis.binary_to_variant(name, data, max_serialization_time);
+            }
+            CHAIN_CAPTURE_AND_RETHROW("abi_serializer unpack_data error! name=%s, data=%s", name, to_hex(data))
+
+            return data_v;
+        }
     private:
         map <type_name, type_name> typedefs;
         map <type_name, struct_def> structs;

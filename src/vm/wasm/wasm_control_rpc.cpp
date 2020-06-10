@@ -12,6 +12,7 @@
 #include "wasm/wasm_context_rpc.hpp"
 #include "wasm/wasm_variant_trace.hpp"
 
+using namespace wasm;
 
 void wasm_control_rpc::pause_billing_timer() {
 
@@ -42,7 +43,7 @@ string wasm_control_rpc::call_inline_transaction(wasm::inline_transaction& trx){
 		trx_trace.traces.emplace_back();
         execute_inline_transaction(trx_trace.traces.back(), trx, trx.contract, 0);
         trx_trace.elapsed                 = std::chrono::duration_cast<std::chrono::microseconds>(system_clock::now() - pseudo_start);
-        trx_trace.minimum_tx_execute_fee  = 0; 
+        trx_trace.minimum_tx_execute_fee  = 0;
 
         auto resolver = make_resolver(database);
         json_spirit::Value value_json;
@@ -58,13 +59,13 @@ void wasm_control_rpc::execute_inline_transaction(  wasm::inline_transaction_tra
                                   uint64_t                        receiver,
                                   uint32_t                        recurse_depth){
 
-    wasm_context_rpc wasm_execute_context(*this, trx, database, recurse_depth);
+    wasm_context_rpc wasm_execute_context(*this, trx, database, ret_value, recurse_depth);
     wasm_execute_context._receiver = receiver;
     wasm_execute_context.execute(trace);
 
 }
 
-TxID wasm_control_rpc::get_txid()  { 
+TxID wasm_control_rpc::get_txid()  {
 	check(false, "rpc call can not have txid");
     return TxID{};
 }

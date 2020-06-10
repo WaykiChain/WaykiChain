@@ -61,6 +61,7 @@ namespace wasm {
         virtual void pause_billing_timer () = 0;//{};
         virtual void resume_billing_timer() = 0;//{};
 
+        virtual void set_rpc_result(const uint64_t &name, const std::vector<char> &value) = 0; // only used for rpc
     };
 
 }

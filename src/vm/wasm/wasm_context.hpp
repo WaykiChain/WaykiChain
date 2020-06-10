@@ -125,6 +125,10 @@ namespace wasm {
         void                      pause_billing_timer ()  { control_trx.pause_billing_timer();  };
         void                      resume_billing_timer()  { control_trx.resume_billing_timer(); };
 
+        void set_rpc_result(const uint64_t &name, const std::vector<char> &value) override {
+            CHAIN_ASSERT( false, contract_exception, "%s() only used for rpc", __func__)
+        }
+
     public:
         CTxCord&                    trx_cord;
         inline_transaction&         trx;

@@ -6,6 +6,7 @@
 
 #include "wasm/exception/exceptions.hpp"
 #include "wasm/modules/wasm_native_dispatch.hpp"
+#include "wasm/abi_serializer.hpp"
 
 using namespace std;
 using namespace wasm;
@@ -137,7 +138,7 @@ namespace wasm {
         for (auto &inline_trx : inline_transactions) {
             trace.inline_traces.emplace_back();
             control.execute_inline_transaction(trace.inline_traces.back(), inline_trx,
-                                                   inline_trx.contract, 
+                                                   inline_trx.contract,
                                                    recurse_depth + 1);
         }
 
@@ -159,7 +160,7 @@ namespace wasm {
                     CHAIN_ASSERT(false, wasm_chain::chain_exception,
                     "can not getstate from native action ")
                 }
-        
+
                 vector <uint8_t> code;
                 if (get_code(_receiver, code) && code.size() > 0) {
                     wasmif.execute(code, this);
@@ -292,4 +293,8 @@ namespace wasm {
 
     void wasm_context_rpc::update_storage_usage(const uint64_t& account, const int64_t& size_in_bytes){}
 
+    void wasm_context_rpc::set_rpc_result(const uint64_t &name, const std::vector<char> &value) {
+        ret_value.name = name;
+        ret_value.value = value;
+    }
 }

@@ -26,8 +26,8 @@ namespace wasm {
     class wasm_context_rpc : public wasm_context_interface {
 
     public:
-        wasm_context_rpc(wasm_control_rpc &c, inline_transaction &t,  CCacheWrapper &cw, uint32_t depth = 0)
-                : control(c), trx(t), database(cw), recurse_depth(depth) {
+        wasm_context_rpc(wasm_control_rpc &c, inline_transaction &t,  CCacheWrapper &cw, rpc_result_record &ret_value_in, uint32_t depth = 0)
+                : control(c), trx(t), database(cw), ret_value(ret_value_in), recurse_depth(depth) {
             reset_console();
         };
 
@@ -67,10 +67,10 @@ namespace wasm {
         void        require_auth (const uint64_t& account) const;
         void        require_auth2(const uint64_t& account, const uint64_t& permission) const {}
         bool        has_authorization(const uint64_t& account) const;
-        uint64_t    pending_block_time() { 
+        uint64_t    pending_block_time() {
             return control.current_block_time();
         }
-        TxID        get_txid()  { 
+        TxID        get_txid()  {
             return control.get_txid();
          }
         uint64_t    get_maintainer(const uint64_t& contract);
@@ -121,17 +121,20 @@ namespace wasm {
         bool                is_memory_in_wasm_allocator ( const uint64_t& p ) {
             return wasm_alloc.is_in_range(reinterpret_cast<const char*>(p));
         }
-        std::chrono::milliseconds get_max_transaction_duration() { 
+        std::chrono::milliseconds get_max_transaction_duration() {
             return std::chrono::milliseconds(wasm::max_wasm_execute_time_infinite);
         }
         void                      update_storage_usage( const uint64_t& account, const int64_t& size_in_bytes);
         void                      pause_billing_timer ()  { };
         void                      resume_billing_timer()  { };
 
+        void set_rpc_result(const uint64_t &k, const std::vector<char> &v) override;
+
     public:
         wasm_control_rpc&           control;
         inline_transaction&         trx;
         CCacheWrapper&              database;
+        rpc_result_record&          ret_value; // returned values
         uint32_t                    recurse_depth;
         vector<uint64_t>            notified;
         vector<inline_transaction>  inline_transactions;
