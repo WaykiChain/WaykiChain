@@ -209,7 +209,7 @@ class wasm_context : public wasm_context_interface {
         void pause_billing_timer() { };
         void resume_billing_timer(){ };
 
-        void set_rpc_result(const string_view &name, const string_view &value) override { /* ignore */ }
+        void set_rpc_result(const string_view &name, const string_view &type, const string_view &value) override { /* ignore */ }
     public:
 
         CTxCord                     trx_cord;

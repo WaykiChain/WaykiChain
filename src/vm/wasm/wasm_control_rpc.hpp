@@ -22,6 +22,7 @@ namespace wasm {
 
     struct rpc_result_record {
         string name;
+        string type;
         vector<char> value;
     };
 
