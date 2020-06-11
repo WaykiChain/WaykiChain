@@ -696,11 +696,13 @@ Value wasm_getstate( const Array &params, bool fHelp ) {
         ctrl.call_inline_transaction(tx);
 
         const auto &ret_value = ctrl.ret_value;
-        auto result = wasm::abi_serializer::unpack_data(abi, ret_value.name, ret_value.value, max_serialization_time);
+        auto value_json = wasm::abi_serializer::unpack_data(abi, ret_value.name, ret_value.value, max_serialization_time);
+        json_spirit::Array results;
+        Object result;
+        result.push_back(Pair("type", ret_value.name));
+        result.push_back(Pair("value", ret_value.name));
 
         Object obj_return;
-        Value  value_json;
-        json_spirit::Array results;
         results.push_back(result);
         obj_return.push_back(Pair("block_height", chainActive.Height()));
         obj_return.push_back(Pair("results", results));
