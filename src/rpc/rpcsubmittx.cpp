@@ -700,7 +700,7 @@ Value wasm_getstate( const Array &params, bool fHelp ) {
         json_spirit::Array results;
         Object result;
         result.push_back(Pair("type", ret_value.name));
-        result.push_back(Pair("value", ret_value.name));
+        result.push_back(Pair("value", value_json));
 
         Object obj_return;
         results.push_back(result);
