@@ -696,17 +696,19 @@ Value wasm_getstate( const Array &params, bool fHelp ) {
         ctrl.call_inline_transaction(tx);
 
         const auto &ret_value = ctrl.ret_value;
+        CHAIN_ASSERT( !ret_value.type.empty() && !ret_value.value.empty(),
+                      wasm_chain::rpc_no_ret_exception,
+                      "wasm rpc does not have result")
+
         auto value_json = wasm::abi_serializer::unpack_data(abi, ret_value.type, ret_value.value, max_serialization_time);
-        json_spirit::Array results;
         Object result;
         result.push_back(Pair("name", ret_value.name));
         result.push_back(Pair("type", ret_value.type));
         result.push_back(Pair("value", value_json));
 
         Object obj_return;
-        results.push_back(result);
         obj_return.push_back(Pair("block_height", chainActive.Height()));
-        obj_return.push_back(Pair("results", results));
+        obj_return.push_back(Pair("result", result));
 
         return obj_return;
 

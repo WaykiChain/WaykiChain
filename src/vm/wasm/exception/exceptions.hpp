@@ -597,4 +597,13 @@ namespace wasm_chain {
       CHAIN_DECLARE_DERIVED_EXCEPTION( asset_total_supply_exception,      chain_type_exception,
                                     3300001, "Invalid asset total supply" )
 
+////////////////////////////////////////////////////////////////////////////////
+// rpc
+   CHAIN_DECLARE_DERIVED_EXCEPTION( wasm_rpc_exception,      wasm_exception,
+                                 3300001, "rpc exception" )
+      CHAIN_DECLARE_DERIVED_EXCEPTION( rpc_no_ret_exception,      wasm_rpc_exception,
+                                    3300001, "rpc no result exception" )
+
+
+
 } //chain
