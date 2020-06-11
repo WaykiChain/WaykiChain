@@ -125,7 +125,7 @@ namespace wasm {
         void                      pause_billing_timer ()  { control_trx.pause_billing_timer();  };
         void                      resume_billing_timer()  { control_trx.resume_billing_timer(); };
 
-        void set_rpc_result(const string_view &name, const string_view &type, const string_view &value) override {
+        void emit_result(const string_view &name, const string_view &type, const string_view &value) override {
             CHAIN_ASSERT( false, contract_exception, "%s() only used for rpc", __func__)
         }
 

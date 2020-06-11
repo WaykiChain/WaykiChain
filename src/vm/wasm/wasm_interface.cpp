@@ -618,9 +618,9 @@ namespace wasm {
             return copy_len;
         }
 
-        void set_rpc_result(const char *name, uint32_t name_sz, const char *type, uint32_t type_sz,
+        void emit_result(const char *name, uint32_t name_sz, const char *type, uint32_t type_sz,
                             const char *value, uint32_t value_sz) {
-            pWasmContext->set_rpc_result(string_view(name, name_sz), string_view(type, type_sz),
+            pWasmContext->emit_result(string_view(name, name_sz), string_view(type, type_sz),
                     string_view(value, value_sz));
         }
 
@@ -968,7 +968,7 @@ namespace wasm {
     REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, get_txid,                get_txid)
     REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, get_maintainer,          get_maintainer)
     REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, get_system_asset_price,  get_system_asset_price)
-    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, set_rpc_result,  set_rpc_result)
+    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, emit_result,  emit_result)
 
 
     REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, __ashlti3,               __ashlti3)

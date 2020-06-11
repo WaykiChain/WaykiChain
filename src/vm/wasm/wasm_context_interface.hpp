@@ -61,7 +61,7 @@ namespace wasm {
         virtual void pause_billing_timer () = 0;//{};
         virtual void resume_billing_timer() = 0;//{};
 
-        virtual void set_rpc_result(const string_view &name, const string_view &type, const string_view &value) = 0; // only used for rpc
+        virtual void emit_result(const string_view &name, const string_view &type, const string_view &value) = 0; // only used for rpc
     };
 
 }

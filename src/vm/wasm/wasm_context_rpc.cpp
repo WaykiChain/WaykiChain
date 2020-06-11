@@ -293,7 +293,7 @@ namespace wasm {
 
     void wasm_context_rpc::update_storage_usage(const uint64_t& account, const int64_t& size_in_bytes){}
 
-    void wasm_context_rpc::set_rpc_result(const string_view &name, const string_view &type, const string_view &value) {
+    void wasm_context_rpc::emit_result(const string_view &name, const string_view &type, const string_view &value) {
         ret_value.name = name;
         ret_value.type = type;
         ret_value.value.assign(value.begin(), value.end());
