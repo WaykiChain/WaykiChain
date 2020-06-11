@@ -21,7 +21,7 @@ using namespace wasm;
 namespace wasm {
 
     struct rpc_result_record {
-        uint64_t name;
+        string name;
         vector<char> value;
     };
 

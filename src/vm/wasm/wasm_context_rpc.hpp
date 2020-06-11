@@ -128,7 +128,7 @@ namespace wasm {
         void                      pause_billing_timer ()  { };
         void                      resume_billing_timer()  { };
 
-        void set_rpc_result(const uint64_t &name, const char *value, uint32_t value_len) override;
+        void set_rpc_result(const string_view &name, const string_view &value) override;
 
     public:
         wasm_control_rpc&           control;

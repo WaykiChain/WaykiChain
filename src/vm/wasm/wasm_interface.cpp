@@ -618,8 +618,8 @@ namespace wasm {
             return copy_len;
         }
 
-        void set_rpc_result(const uint64_t &name, const char *value, uint32_t value_len) {
-            pWasmContext->set_rpc_result(name, value, value_len);
+        void set_rpc_result(const char *name, uint32_t name_sz, const char *value, uint32_t value_sz) {
+            pWasmContext->set_rpc_result(string_view(name, name_sz), string_view(value, value_sz));
         }
 
 
