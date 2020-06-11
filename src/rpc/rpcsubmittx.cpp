@@ -663,7 +663,7 @@ Value wasm_abidefjson2bin( const Array &params, bool fHelp ) {
 
 }
 
-Value wasm_getstate( const Array &params, bool fHelp ) {
+Value wasm_getresult( const Array &params, bool fHelp ) {
 
     RESPONSE_RPC_HELP( fHelp || params.size() < 4 || params.size() > 5 , wasm::rpc::submit_tx_rpc_help_message)
 
