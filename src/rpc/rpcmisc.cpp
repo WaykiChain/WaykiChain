@@ -31,6 +31,17 @@ using namespace json_spirit;
 
 extern CPBFTMan pbftMan;
 
+string get_node_state() {
+    if (SysCfg().IsImporting())
+        return "Loading";
+    else if (SysCfg().IsReindex())
+        return "ReIndexing";
+    else if (IsInitialBlockDownload())
+        return "IBD";
+    else
+        return "InSync";
+}
+
 Value getcoinunitinfo(const Array& params, bool fHelp){
     if (fHelp || params.size() > 1) {
             string msg = "getcoinunitinfo\n"
@@ -78,7 +89,7 @@ Value getinfo(const Array& params, bool fHelp) {
             "  \"data_dir\": \"xxxxx\",         (string) the data directory\n"
             "  \"block_interval\": xxxxx,       (numeric) the time interval (in seconds) to add a new block into the "
             "chain\n"
-            "  \"mine_block\": xxxxx,           (numeric) whether to mine/generate blocks or not (1|0), 1: true, 0: "
+            "  \"genblock\": xxxxx,             (numeric) whether to mine/generate blocks or not (1|0), 1: true, 0: "
             "false\n"
             "  \"time_offset\": xxxxx,          (numeric) the time offset\n"
 
@@ -96,6 +107,7 @@ Value getinfo(const Array& params, bool fHelp) {
             "  \"synblock_height\": xxxxx ,     (numeric) the block height of the loggest chain found in the network\n"
             "  \"connections\": xxxxx,          (numeric) the number of connections\n"
             "  \"errors\": \"xxxxx\"            (string) any error messages\n"
+            "  \"state\": \"xxxxx\"             (string) coind operation state\n"
             "}\n"
             "\nExamples:\n" +
             HelpExampleCli("getinfo", "") + "\nAs json rpc\n" + HelpExampleRpc("getinfo", ""));
@@ -145,7 +157,7 @@ Value getinfo(const Array& params, bool fHelp) {
 
     obj.push_back(Pair("connections",           (int32_t)vNodes.size()));
     obj.push_back(Pair("errors",                GetWarnings("statusbar")));
-
+    obj.push_back(Pair("state",                 get_node_state())); //IBD, Importing, ReIndexing, InSync
 
     return obj;
 }

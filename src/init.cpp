@@ -342,6 +342,7 @@ void ThreadImport(vector<boost::filesystem::path> vImportFiles) {
 
     // -reindex
     if (SysCfg().IsReindex()) {
+
         CImportingNow imp;
         int32_t nFile = 0;
         while (true) {
