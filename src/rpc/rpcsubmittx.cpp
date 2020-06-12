@@ -698,7 +698,7 @@ Value wasm_getresult( const Array &params, bool fHelp ) {
         const auto &ret_value = ctrl.ret_value;
         CHAIN_ASSERT( !ret_value.type.empty() && !ret_value.value.empty(),
                       wasm_chain::rpc_no_ret_exception,
-                      "wasm rpc does not have result")
+                      "contract action=%s does not emit result", action.to_string())
 
         auto value_json = wasm::abi_serializer::unpack_data(abi, ret_value.type, ret_value.value, max_serialization_time);
         Object result;
