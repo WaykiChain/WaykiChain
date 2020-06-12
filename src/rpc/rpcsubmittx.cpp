@@ -665,24 +665,25 @@ Value wasm_abidefjson2bin( const Array &params, bool fHelp ) {
 
 Value wasm_getresult( const Array &params, bool fHelp ) {
 
-    RESPONSE_RPC_HELP( fHelp || params.size() < 4 || params.size() > 5 , wasm::rpc::submit_tx_rpc_help_message)
+    RESPONSE_RPC_HELP( fHelp || params.size() != 3 , wasm::rpc::get_result_wasm_rpc_help_message)
 
     try {
         //auto db_account  = pCdMan->pAccountCache;
-        auto db_contract = pCdMan->pContractCache;
+        auto db = CCacheWrapper(pCdMan);
 
         //get abi
         std::vector<char> abi;
-        auto contract_regid        = RPC_PARAM::ParseRegId(params[1], "contract");
+        auto contract_regid        = RPC_PARAM::ParseRegId(params[0], "contract");
+        auto action                   = wasm::name(params[1].get_str());
+        auto args                     = RPC_PARAM::GetWasmContractArgs(params[2]);
+
         auto contract              = wasm::regid(contract_regid.GetIntValue());
         if (!get_native_contract_abi(contract_regid.GetIntValue(), abi)) {
             CUniversalContractStore contract_store;
-            load_contract(db_contract, contract, contract_store);
+            load_contract(&db.contractCache, contract, contract_store);
             abi = std::vector<char>(contract_store.abi.begin(), contract_store.abi.end());
         }
 
-        auto action                   = wasm::name(params[2].get_str());
-        auto args                     = RPC_PARAM::GetWasmContractArgs(params[3]);
         std::vector<char> action_data = wasm::abi_serializer::pack(abi, action.to_string(), args, max_serialization_time);
         CHAIN_ASSERT( action_data.size() < MAX_CONTRACT_ARGUMENT_SIZE,
                       wasm_chain::inline_transaction_data_size_exceeds_exception,
@@ -690,7 +691,6 @@ Value wasm_getresult( const Array &params, bool fHelp ) {
                       action_data.size(), MAX_CONTRACT_ARGUMENT_SIZE)
 
         auto tx = inline_transaction{contract.value, action.value, {{}}, action_data};
-        auto db = CCacheWrapper(pCdMan);
 
         wasm_control_rpc ctrl(db);
         ctrl.call_inline_transaction(tx);

@@ -52,6 +52,20 @@ namespace wasm { namespace rpc{
         > curl --user myusername -d '{"jsonrpc": "1.0", "id":"curltest", "method":"submittx", "params":["0-2", "800-2", "transfer", '["0-2", "0-3", "100.00000000 WICC","transfer to bob"]']}' -H 'Content-Type: application/json;' http://127.0.0.1:8332
     )=====";
 
+    const char *get_result_wasm_rpc_help_message = R"=====(
+        wasm_getresult "contract" "action" "data"
+        1."contract":        (string, required) contract regid
+        2."action":          (string, required) action name
+        3."data":            (json string, required) action data
+        Result:
+        "block_height":      (numeric) tip block height
+        "result":            (object) the result of action
+        Examples:
+        > ./coind wasm_getresult 100-2 get_account '["0-2"]'
+        As json rpc call
+        > curl --user myusername -d '{"jsonrpc": "1.0", "id":"curltest", "method":"wasm_getresult", "params":["100-2", "get_account", ["0-2"]}' -H 'Content-Type: application/json;' http://127.0.0.1:8332
+    )=====";
+
     const char *get_table_wasm_rpc_help_message = R"=====(
         wasm_gettable "contract" "table" "key_prefix" "max_count" "begin_key"
         1."contract": (string, required) contract regid"
