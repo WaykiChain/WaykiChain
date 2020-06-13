@@ -124,20 +124,18 @@ private:
 };
 
 inline FeatureForkVersionEnum GetFeatureForkVersion(const int32_t currBlockHeight) {
-    if (currBlockHeight >= (int32_t) SysCfg().GetVer3ForkHeight())
-        return MAJOR_VER_R3;
-
-    if (currBlockHeight >= (int32_t) SysCfg().GetVer2ForkHeight())
-        return MAJOR_VER_R2;
+    if (currBlockHeight >= (int32_t) SysCfg().GetVer3ForkHeight()) return MAJOR_VER_R3;
+    if (currBlockHeight >= (int32_t) SysCfg().GetVer2ForkHeight()) return MAJOR_VER_R2;
 
     return MAJOR_VER_R1;
 }
 
 inline uint32_t GetForkHeightByVersion(FeatureForkVersionEnum ver) {
     if (ver == FeatureForkVersionEnum::MAJOR_VER_R1) return 0;
-    if (ver == FeatureForkVersionEnum :: MAJOR_VER_R2) return SysCfg().GetVer2ForkHeight();
-    if (ver == FeatureForkVersionEnum:: MAJOR_VER_R3) SysCfg().GetVer3ForkHeight();
-    throw runtime_error("the version code is error");
+    if (ver == FeatureForkVersionEnum::MAJOR_VER_R2) return SysCfg().GetVer2ForkHeight();
+    if (ver == FeatureForkVersionEnum::MAJOR_VER_R3) return SysCfg().GetVer3ForkHeight();
+
+    throw runtime_error("version code is invalid");
 }
 
 inline uint32_t GetBlockInterval(const int32_t currBlockHeight) {
