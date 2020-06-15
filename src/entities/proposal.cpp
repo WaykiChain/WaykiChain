@@ -22,24 +22,35 @@ extern uint8_t GetGovernorApprovalMinCount(ProposalType proposalType, CCacheWrap
 const uint32_t SYS_PARAM_LIST_SIZE_MAX = 50;
 
 bool CGovSysParamProposal::CheckProposal(CTxExecuteContext& context, CBaseTx& tx) {
-     CValidationState &state = *context.pState;
+    CCacheWrapper &cw = *context.pCw;
+    CValidationState &state = *context.pState;
 
-     if (param_values.size() == 0 || param_values.size() > SYS_PARAM_LIST_SIZE_MAX)
+    if (param_values.size() == 0 || param_values.size() > SYS_PARAM_LIST_SIZE_MAX)
             return state.DoS(100, ERRORMSG("params size=%u exceed the range (0, %u]", param_values.size(), SYS_PARAM_LIST_SIZE_MAX),
                     REJECT_INVALID, "invalid-params-size");
-     for (auto pa: param_values){
-         if(kSysParamTable.count(SysParamType(pa.first)) == 0){
+    for (auto pa: param_values){
+        auto paramType = SysParamType(pa.first);
+        auto paramValue = pa.second.get();
+
+        if(kSysParamTable.count(paramType) == 0){
              return state.DoS(100, ERRORMSG("parameter name (%s) is not in sys params list ", pa.first),
                        REJECT_INVALID, "params-error");
-         }
-         string errorInfo = CheckSysParamValue(SysParamType(pa.first), pa.second.get());
-
-         if (errorInfo != EMPTY_STRING)
-             return state.DoS(100, ERRORMSG("CheckSysParamValue failed: %s ", errorInfo),
+        }
+        string errorInfo = CheckSysParamValue(paramType, paramValue);
+        if (errorInfo != EMPTY_STRING)
+            return state.DoS(100, ERRORMSG("CheckSysParamValue failed: %s ", errorInfo),
                      REJECT_INVALID, "params-range-error");
+        if (paramType == AXC_SWAP_GATEWAY_REGID || paramType == DEX_MATCH_SVC_REGID) {
+            auto regid = CRegID(paramValue);
+            if (regid.IsEmpty() || tx.GetAccount(cw, regid) == nullptr)  {
+                return state.DoS(100, ERRORMSG("account of %s not exist, regid_value=%llu",
+                        GetSysParamName(paramType), paramValue),
+                        REJECT_INVALID, "account-not-exist");
+            }
+        }
      }
 
-     return true;
+    return true;
 }
 
 bool CGovSysParamProposal::ExecuteProposal(CTxExecuteContext& context, CBaseTx& tx) {

@@ -138,5 +138,10 @@ inline SysParamType  GetSysParamType(const string  paramName){
 
 }
 
+inline const string& GetSysParamName(SysParamType type) {
+    auto it = kSysParamTable.find(type);
+    if (it != kSysParamTable.end()) return std::get<1>(it->second);
+    return EMPTY_STRING;
+}
 
 #endif
