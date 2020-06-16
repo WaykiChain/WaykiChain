@@ -22,6 +22,27 @@ using namespace std;
 using namespace json_spirit;
 class CBlockHeader;
 
+#define JSON_RPC_ASSERT(expr, code, ...)                                                           \
+    if (!(expr)) {                                                                                 \
+        string msg = tfm::format(__VA_ARGS__);                                                     \
+        std::ostringstream o;                                                                      \
+        o << msg;                                                                                  \
+        throw JSONRPCError(code, o.str().c_str());                                                 \
+    }
+
+#define JSON_RPC_CAPTURE_AND_RETHROW                                                               \
+    catch (wasm_chain::exception & e) {                                                            \
+        JSON_RPC_ASSERT(false, e.code(), e.to_detail_string())                                     \
+    }                                                                                              \
+    catch (...) {                                                                                  \
+        throw;                                                                                     \
+    }
+
+#define RESPONSE_RPC_HELP(expr, msg)                                                               \
+    if ((expr)) {                                                                                  \
+        throw runtime_error(msg);                                                                  \
+    }
+
 string RegIDToAddress(CUserID &userId);
 Object GetTxDetailJSON(CCacheWrapper &cw, const CBlockHeader &block,
                        const shared_ptr<CBaseTx> pBaseTx, const CTxCord &txCord);

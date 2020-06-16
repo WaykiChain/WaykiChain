@@ -178,73 +178,75 @@ std::shared_ptr<CBaseTx> genParamGovernProposal(json_spirit::Value param_json) {
 
 
 std::shared_ptr<CBaseTx> genWasmContractCallTx(json_spirit::Value param_json) {
-    const Value& str_from = JSON::GetObjectFieldValue(param_json, "sender");
-    auto authorizer_name   = wasm::regid(str_from.get_str());
-    const Value& str_fee = JSON::GetObjectFieldValue(param_json, "fee");
-    const Value& str_height = JSON::GetObjectFieldValue(param_json, "height");
-    ComboMoney fee = RPC_PARAM::GetComboMoney(str_fee,  SYMB::WICC);
-    int32_t height = AmountToRawValue(str_height);
+    try {
+        const Value& str_from = JSON::GetObjectFieldValue(param_json, "sender");
+        auto authorizer_name   = wasm::regid(str_from.get_str());
+        const Value& str_fee = JSON::GetObjectFieldValue(param_json, "fee");
+        const Value& str_height = JSON::GetObjectFieldValue(param_json, "height");
+        ComboMoney fee = RPC_PARAM::GetComboMoney(str_fee,  SYMB::WICC);
+        int32_t height = AmountToRawValue(str_height);
 
-    auto db_contract = pCdMan->pContractCache;
+        auto db_contract = pCdMan->pContractCache;
 
-    std::shared_ptr<CUniversalTx> pBaseTx = std::make_shared<CUniversalTx>();
+        std::shared_ptr<CUniversalTx> pBaseTx = std::make_shared<CUniversalTx>();
 
-    pBaseTx->nTxType      = UNIVERSAL_TX;
-    pBaseTx->txUid        = CRegID(authorizer_name.value);
-    pBaseTx->valid_height = height;
-    pBaseTx->fee_symbol   = fee.symbol;
-    pBaseTx->llFees       = fee.GetAmountInSawi();
-    Array json_transactions = JSON::GetObjectFieldValue(param_json, "transactions").get_array();
-    for (auto& json_transaction : json_transactions) {
-        const Value& str_contract   = JSON::GetObjectFieldValue(json_transaction, "contract");
-        const Value& str_action     = JSON::GetObjectFieldValue(json_transaction, "action");
-        const Value& str_data       = JSON::GetObjectFieldValue(json_transaction, "data");
+        pBaseTx->nTxType      = UNIVERSAL_TX;
+        pBaseTx->txUid        = CRegID(authorizer_name.value);
+        pBaseTx->valid_height = height;
+        pBaseTx->fee_symbol   = fee.symbol;
+        pBaseTx->llFees       = fee.GetAmountInSawi();
+        Array json_transactions = JSON::GetObjectFieldValue(param_json, "transactions").get_array();
+        for (auto& json_transaction : json_transactions) {
+            const Value& str_contract   = JSON::GetObjectFieldValue(json_transaction, "contract");
+            const Value& str_action     = JSON::GetObjectFieldValue(json_transaction, "action");
+            const Value& str_data       = JSON::GetObjectFieldValue(json_transaction, "data");
 
-       // std::vector<char> abi;
+        // std::vector<char> abi;
 
-     /*   wasm::regid       contract_regid = wasm::regid(params[1].get_str());
-        if (!get_native_contract_abi(contract_regid.value, abi)) {
-            CUniversalContractStore contract_store;
-            load_contract(db_contract, contract_regid, contract_store);
-            abi = std::vector<char>(contract_store.abi.begin(), contract_store.abi.end());
+        /*   wasm::regid       contract_regid = wasm::regid(params[1].get_str());
+            if (!get_native_contract_abi(contract_regid.value, abi)) {
+                CUniversalContractStore contract_store;
+                load_contract(db_contract, contract_regid, contract_store);
+                abi = std::vector<char>(contract_store.abi.begin(), contract_store.abi.end());
+            }
+        */
+            std::vector<char> abi;
+            wasm::regid contract_regid = wasm::regid(str_contract.get_str());
+            if (!wasm::get_native_contract_abi(contract_regid.value, abi)) {
+                CUniversalContractStore contract_store;
+                load_contract(db_contract, contract_regid, contract_store);
+                abi = std::vector<char>(contract_store.abi.begin(), contract_store.abi.end());
+            }
+
+            auto action = wasm::name(str_action.get_str());
+
+            std::vector<char> action_data = wasm::abi_serializer::pack(
+                    abi,
+                    action.to_string(),
+                    str_data,
+                    wasm::max_serialization_time);
+
+            pBaseTx->inline_transactions.push_back({
+                    contract_regid.value,
+                    action.value,
+                    std::vector<wasm::permission>{{authorizer_name.value, wasm::wasmio_owner}},
+                    action_data
+                });
         }
-     */
-        std::vector<char> abi;
-        wasm::regid contract_regid = wasm::regid(str_contract.get_str());
-        if (!wasm::get_native_contract_abi(contract_regid.value, abi)) {
-            CUniversalContractStore contract_store;
-            load_contract(db_contract, contract_regid, contract_store);
-            abi = std::vector<char>(contract_store.abi.begin(), contract_store.abi.end());
+
+        Value json_signs;
+        if (JSON::GetObjectFieldValue(param_json, "signs", json_signs)) {
+            Array sign_arr = json_signs.get_array();
+            for (auto& sign : sign_arr) {
+                const Value& str_auth = JSON::GetObjectFieldValue(sign, "auth");
+                auto auth = wasm::regid(str_auth.get_str());
+                const Value& str_sign = JSON::GetObjectFieldValue(sign, "sign");
+                std::vector<uint8_t> signature(str_sign.get_str().begin(), str_sign.get_str().end());
+                pBaseTx->signatures.push_back({auth.value, signature});
+            }
         }
-
-        auto action = wasm::name(str_action.get_str());
-
-        std::vector<char> action_data = wasm::abi_serializer::pack(
-                abi,
-                action.to_string(),
-                str_data,
-                wasm::max_serialization_time);
-
-        pBaseTx->inline_transactions.push_back({
-                contract_regid.value,
-                action.value,
-                std::vector<wasm::permission>{{authorizer_name.value, wasm::wasmio_owner}},
-                action_data
-            });
-    }
-
-    Value json_signs;
-    if (JSON::GetObjectFieldValue(param_json, "signs", json_signs)) {
-        Array sign_arr = json_signs.get_array();
-        for (auto& sign : sign_arr) {
-            const Value& str_auth = JSON::GetObjectFieldValue(sign, "auth");
-            auto auth = wasm::regid(str_auth.get_str());
-            const Value& str_sign = JSON::GetObjectFieldValue(sign, "sign");
-            std::vector<uint8_t> signature(str_sign.get_str().begin(), str_sign.get_str().end());
-            pBaseTx->signatures.push_back({auth.value, signature});
-        }
-    }
-    return pBaseTx;
+        return pBaseTx;
+    } JSON_RPC_CAPTURE_AND_RETHROW;
 }
 
 std::shared_ptr<CBaseTx> genDelegateVotetx(json_spirit::Value param_json) {
