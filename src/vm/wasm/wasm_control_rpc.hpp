@@ -15,6 +15,8 @@
 #include "eosio/vm/allocator.hpp"
 #include "persistence/cachewrapper.h"
 #include "wasm/exception/exceptions.hpp"
+#include "wasm/wasm_variant_trace.hpp"
+
 using namespace std;
 using namespace wasm;
 
@@ -24,6 +26,14 @@ namespace wasm {
         string name;
         string type;
         vector<char> value;
+    };
+
+    struct rpc_trx_trace {
+        uint256                   trx_id;
+        std::chrono::microseconds elapsed;
+        vector <inline_transaction_trace> traces;
+
+        WASM_REFLECT( rpc_trx_trace, (trx_id)(elapsed)(traces) )
     };
 
     class wasm_control_rpc {
@@ -47,7 +57,35 @@ namespace wasm {
         system_clock::time_point pseudo_start;
         std::chrono::microseconds billed_time = chrono::microseconds(0);
         rpc_result_record ret_value;
-        wasm::transaction_trace trx_trace;
+        wasm::rpc_trx_trace trx_trace;
     };
+
+
+    template<typename Resolver>
+    static inline void to_variant(const wasm::rpc_trx_trace &t, json_spirit::Value &v, Resolver resolver) {
+
+        json_spirit::Object obj;
+
+        json_spirit::Value val;
+        to_variant(t.trx_id.ToString(), val);
+        json_spirit::Config::add(obj, "trx_id", val);
+
+        to_variant(t.elapsed.count(), val);
+        json_spirit::Config::add(obj, "elapsed", val);
+
+        if (t.traces.size() > 0) {
+            json_spirit::Array arr;
+            for (const auto &trace :t.traces) {
+                json_spirit::Value tmp;
+                to_variant(trace, tmp, resolver);
+                arr.push_back(tmp);
+            }
+
+            json_spirit::Config::add(obj, "traces", json_spirit::Value(arr));
+        }
+
+        v = obj;
+    }
+
 }
 

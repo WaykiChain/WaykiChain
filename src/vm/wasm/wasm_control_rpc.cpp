@@ -38,11 +38,9 @@ void wasm_control_rpc::resume_billing_timer() {
 void wasm_control_rpc::call_inline_transaction(wasm::inline_transaction& trx){
 
     pseudo_start            = system_clock::now();
-    wasm::transaction_trace trx_trace;
     trx_trace.traces.emplace_back();
     execute_inline_transaction(trx_trace.traces.back(), trx, trx.contract, 0);
     trx_trace.elapsed                 = std::chrono::duration_cast<std::chrono::microseconds>(system_clock::now() - pseudo_start);
-    trx_trace.minimum_tx_execute_fee  = 0;
 }
 
 void wasm_control_rpc::execute_inline_transaction(  wasm::inline_transaction_trace &trace,
