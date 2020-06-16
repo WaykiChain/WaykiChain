@@ -706,9 +706,14 @@ Value wasm_getresult( const Array &params, bool fHelp ) {
         result.push_back(Pair("type", ret_value.type));
         result.push_back(Pair("value", value_json));
 
+        auto resolver = make_resolver(db);
+        json_spirit::Value trace_json;
+        to_variant(ctrl.trx_trace, trace_json, resolver);
+
         Object obj_return;
         obj_return.push_back(Pair("block_height", chainActive.Height()));
         obj_return.push_back(Pair("result", result));
+        obj_return.push_back(Pair("trace", trace_json));
 
         return obj_return;
 
