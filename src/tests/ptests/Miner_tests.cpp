@@ -432,7 +432,7 @@ public:
 		sprintf(height,"%d",height);
 
 
-		const char *argv[] = { "rpctest", "submitcontractdeploytx_r2", caddr, csript, fee, height};
+		const char *argv[] = { "rpctest", "submitluacontractdeploytx", caddr, csript, fee, height};
 		int argc = sizeof(argv)/sizeof(char*);
 
 		Value value;

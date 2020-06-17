@@ -96,8 +96,8 @@ static const CRPCCommand vRPCCommands[] =
     { "submitaccountregistertx",        &submitaccountregistertx,           false,      false,      true    },
     { "submitaccountpermscleartx",      &submitaccountpermscleartx,         false,      false,      true    },
 
-    { "submitcontractdeploytx_r2",      &submitcontractdeploytx_r2,         false,      false,      true    }, //deprecated
-    { "submitcontractcalltx_r2",        &submitcontractcalltx_r2,           false,      false,      true    },
+    { "submitluacontractdeploytx",      &submitluacontractdeploytx,         false,      false,      true    }, //deprecated
+    { "submitluacontractcalltx",        &submitluacontractcalltx,           false,      false,      true    },
     { "submitdelegatevotetx",           &submitdelegatevotetx,              false,      false,      true    },
     { "submitucontractdeploytx",        &submitucontractdeploytx,           false,      false,      true    },
     { "submitucontractcalltx",          &submitucontractcalltx,             false,      false,      true    },

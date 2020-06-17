@@ -23,8 +23,8 @@ extern Value submitsetcodetx(const Array& params, bool fHelp);
 
 extern Value submitaccountregistertx(const Array& params, bool fHelp);
 extern Value submitaccountpermscleartx(const Array& params, bool fHelp);
-extern Value submitcontractdeploytx_r2(const Array& params, bool fHelp);
-extern Value submitcontractcalltx_r2(const Array& params, bool fHelp);
+extern Value submitluacontractdeploytx(const Array& params, bool fHelp);
+extern Value submitluacontractcalltx(const Array& params, bool fHelp);
 extern Value submitdelegatevotetx(const Array& params, bool fHelp);
 extern Value submitucontractdeploytx(const Array& params, bool fHelp);
 extern Value submitucontractcalltx(const Array& params, bool fHelp);
