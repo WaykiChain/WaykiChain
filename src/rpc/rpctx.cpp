@@ -227,6 +227,8 @@ Value submitluacontractcalltx(const Array& params, bool fHelp) {
     if (fHelp || params.size() < 5 || params.size() > 6) {
         throw runtime_error(
             "submitluacontractcalltx \"sender_addr\" \"contract_regid\" \"arguments\" \"amount\" \"fee\" [\"height\"]\n"
+            " @@Deprecated: pls use submitucontractcalltx instead."
+            "\n"
             "\ncreate contract invocation transaction\n"
             "\nArguments:\n"
             "1.\"sender_addr\":     (string, required) tx sender's base58 addr\n"
