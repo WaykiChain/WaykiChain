@@ -132,6 +132,7 @@ void CTxMemPool::SetMemPoolCache() {
 }
 
 void CTxMemPool::ReScanMemPoolTx() {
+    int64_t startTime = GetTimeMicros();
     cw.reset(new CCacheWrapper(pCdMan));
 
     LOCK(cs);
@@ -144,6 +145,11 @@ void CTxMemPool::ReScanMemPoolTx() {
             continue;
         }
         ++iterTx;
+    }
+    if (SysCfg().IsBenchmark()) {
+        int64_t curTime = GetTimeMicros() - startTime;
+        LogPrint(BCLog::INFO, "[BENCHMARK]ReScanMemPoolTx: count=%d, time=%.2fms\n",
+                 memPoolTxs.size(), 0.001 * curTime);
     }
 }
 
