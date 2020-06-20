@@ -1077,3 +1077,11 @@ bool  ConvertPermsToString(uint64_t perms, uint8_t total_perms_count, string& pe
 //     permsList = s.str();
 //     return true;
 // }
+
+shared_ptr<Benchmark> MakeBenchmark(const char *msg) {
+    return SysCfg().IsBenchmark() ? make_shared<Benchmark>(msg) : nullptr;
+}
+
+shared_ptr<Benchmark> MakeBenchmark(const char *msg, const Benchmark::Time &startIn) {
+    return SysCfg().IsBenchmark() ? make_shared<Benchmark>(msg) : nullptr;
+}

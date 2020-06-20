@@ -60,6 +60,7 @@ namespace BCLog { //blockchain log
         RPCCMD      = (1 << 22),
         DELEGATE    = (1 << 23),
         PBFT        = (1 << 24),
+        BENCHMARK   = (1 << 25),
         ALL         = ~(uint32_t)0,
     };
 

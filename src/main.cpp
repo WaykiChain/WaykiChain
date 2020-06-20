@@ -247,8 +247,11 @@ bool VerifySignature(const uint256 &sigHash, const std::vector<uint8_t> &signatu
     if (signatureCache.Get(sigHash, signature, pubKey))
         return true;
 
-    if (!pubKey.Verify(sigHash, signature))
-        return false;
+    {
+        auto bm = MakeBenchmark("execute pubkey verify");
+        if (!pubKey.Verify(sigHash, signature))
+            return false;
+    }
 
     signatureCache.Set(sigHash, signature, pubKey);
     return true;
@@ -284,9 +287,12 @@ bool AcceptToMemoryPool(CTxMemPool &pool, CValidationState &state, CBaseTx *pBas
     uint32_t blockTime = pTip->GetBlockTime();
     uint32_t prevBlockTime = pTip->pprev != nullptr ? pTip->pprev->GetBlockTime() : pTip->GetBlockTime();
 
-    CTxExecuteContext context(newHeight, 0, fuelRate, blockTime, prevBlockTime, spCW.get(), &state);
-    if (!pBaseTx->CheckBaseTx(context) || !pBaseTx->CheckTx(context))
-        return ERRORMSG("AcceptToMemoryPool() : CheckBaseTx/CheckTx failed, txid: %s", hash.GetHex());
+    {
+        auto bm = MakeBenchmark("check tx before add mempool");
+        CTxExecuteContext context(newHeight, 0, fuelRate, blockTime, prevBlockTime, spCW.get(), &state);
+        if (!pBaseTx->CheckBaseTx(context) || !pBaseTx->CheckTx(context))
+            return ERRORMSG("AcceptToMemoryPool() : CheckBaseTx/CheckTx failed, txid: %s", hash.GetHex());
+    }
 
     CTxMemPoolEntry entry(pBaseTx, GetTime(), newHeight);
     auto nFees = std::get<1>(entry.GetFees());
@@ -686,6 +692,7 @@ void UpdateTime(CBlockHeader &block, const CBlockIndex *pIndexPrev) {
 }
 
 bool DisconnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValidationState &state, bool *pfClean) {
+    auto bmTx = MakeBenchmark("DisconnectBlock");
     assert(pIndex->GetBlockHash() == cw.blockCache.GetBestBlockHash());
 
     if (pfClean)
@@ -1048,6 +1055,7 @@ static bool ComputeVoteStakingInterestAndRevokeVotes(const uint256& blockHash, c
 bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValidationState &state, bool fJustCheck) {
     AssertLockHeld(cs_main);
 
+    auto bm = MakeBenchmark("ConnectBlock");
     bool isGensisBlock = (block.GetHeight() == 0) && (block.GetHash() == SysCfg().GetGenesisBlockHash());
 
     // Check it again in case a previous version let a bad block in
@@ -1098,7 +1106,6 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
         return state.DoS(100, ERRORMSG("[%d] verify reward tx error", block.GetHeight()), REJECT_INVALID, "bad-reward-tx");
 
     CBlockUndo blockUndo;
-    int64_t nStart = GetTimeMicros();
     std::vector<pair<uint256, CDiskTxPos> > vPos;
     vPos.reserve(block.vptx.size());
 
@@ -1118,6 +1125,7 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
         uint64_t totalFuel    = 0;
 
         for (int32_t index = 1; index < (int32_t)block.vptx.size(); ++index) {
+            auto bmTx = MakeBenchmark("execute tx in ConnectBlock");
             std::shared_ptr<CBaseTx> &pBaseTx = block.vptx[index];
             if (cw.txCache.HasTx((pBaseTx->GetHash())))
                 return state.DoS(100, ERRORMSG("[%d] txid=%s duplicated", curHeight, pBaseTx->GetHash().GetHex()),
@@ -1255,10 +1263,6 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
             }
         }
     }
-    int64_t nTime = GetTimeMicros() - nStart;
-    if (SysCfg().IsBenchmark())
-        LogPrint(BCLog::INFO, "- Connect %u transactions: %.2fms (%.3fms/tx)\n",
-                 (uint32_t)block.vptx.size(), 0.001 * nTime, 0.001 * nTime / block.vptx.size());
 
     if (fJustCheck)
         return true;
@@ -1400,6 +1404,7 @@ void static UpdateTip(CBlockIndex *pIndexNew, const CBlock &block) {
 
 // Disconnect chainActive's tip.
 bool DisconnectTip(CValidationState &state) {
+    auto bmTx = MakeBenchmark("DisconnectTip");
     CBlockIndex *pBlockIndexToDelete = chainActive.Tip();
     assert(pBlockIndexToDelete);
     // Read block from disk.
@@ -1407,27 +1412,23 @@ bool DisconnectTip(CValidationState &state) {
     if (!ReadBlockFromDisk(pBlockIndexToDelete, block))
         return state.Abort(_("Failed to read blocks from disk."));
     // Apply the block atomically to the chain state.
-    int64_t nStart = GetTimeMicros();
-    {
-        auto spCW = std::make_shared<CCacheWrapper>(pCdMan);
+    auto spCW = std::make_shared<CCacheWrapper>(pCdMan);
 
-        if (!DisconnectBlock(block, *spCW, pBlockIndexToDelete, state))
-            return ERRORMSG("DisconnectBlock %s failed", pBlockIndexToDelete->GetBlockHash().ToString());
+    if (!DisconnectBlock(block, *spCW, pBlockIndexToDelete, state))
+        return ERRORMSG("DisconnectBlock %s failed", pBlockIndexToDelete->GetBlockHash().ToString());
 
-        // Need to re-sync all to global cache layer.
-        spCW->Flush();
+    // Need to re-sync all to global cache layer.
+    spCW->Flush();
 
-        // Attention: need to reset the lastest block price median
-        CBlockIndex *pPreBlockIndex = pBlockIndexToDelete->pprev;
-        CBlock preBlock;
-        if (pPreBlockIndex) {
-            if (!ReadBlockFromDisk(pPreBlockIndex, preBlock))
-                return ERRORMSG("failed to read block [%d]: %s", pPreBlockIndex->height,
-                                pPreBlockIndex->GetBlockHash().ToString());
-        }
+    // Attention: need to reset the lastest block price median
+    CBlockIndex *pPreBlockIndex = pBlockIndexToDelete->pprev;
+    CBlock preBlock;
+    if (pPreBlockIndex) {
+        if (!ReadBlockFromDisk(pPreBlockIndex, preBlock))
+            return ERRORMSG("failed to read block [%d]: %s", pPreBlockIndex->height,
+                            pPreBlockIndex->GetBlockHash().ToString());
     }
-    if (SysCfg().IsBenchmark())
-        LogPrint(BCLog::INFO, "Time elapsed: %.2fms\n", (GetTimeMicros() - nStart) * 0.001);
+
     // Write the chain state to disk, if necessary.
     if (!WriteChainState(state))
         return false;
@@ -1451,6 +1452,7 @@ bool DisconnectTip(CValidationState &state) {
 
 // Connect a new block to chainActive.
 bool static ConnectTip(CValidationState &state, CBlockIndex *pIndexNew) {
+    auto bmTx = MakeBenchmark("ConnectTip");
     assert(pIndexNew->pprev == chainActive.Tip());
     // Read block from disk.
     CBlock block;
@@ -1458,29 +1460,24 @@ bool static ConnectTip(CValidationState &state, CBlockIndex *pIndexNew) {
         return state.Abort(strprintf("Failed to read block hash: %s", pIndexNew->GetBlockHash().GetHex()));
 
     // Apply the block automatically to the chain state.
-    int64_t nStart = GetTimeMicros();
+    CInv inv(MSG_BLOCK, pIndexNew->GetBlockHash());
+
+    auto spCW = std::make_shared<CCacheWrapper>(pCdMan);
+    if (!ConnectBlock(block, *spCW, pIndexNew, state)) {
+        if (state.IsInvalid()) {
+            InvalidBlockFound(pIndexNew, state);
+        }
+
+        return ERRORMSG("[%d] ConnectBlock(%s) failed", pIndexNew->height, pIndexNew->GetBlockHash().ToString());
+    }
     {
-        CInv inv(MSG_BLOCK, pIndexNew->GetBlockHash());
-
-        auto spCW = std::make_shared<CCacheWrapper>(pCdMan);
-        if (!ConnectBlock(block, *spCW, pIndexNew, state)) {
-            if (state.IsInvalid()) {
-                InvalidBlockFound(pIndexNew, state);
-            }
-
-            return ERRORMSG("[%d] ConnectBlock(%s) failed", pIndexNew->height, pIndexNew->GetBlockHash().ToString());
-        }
-        {
-            LOCK(cs_mapNodeState);
-            mapBlockSource.erase(inv.hash);
-        }
-
-        // Need to re-sync all to global cache layer.
-        spCW->Flush();
+        LOCK(cs_mapNodeState);
+        mapBlockSource.erase(inv.hash);
     }
 
-    if (SysCfg().IsBenchmark())
-        LogPrint(BCLog::INFO, "- Connect: %.2fms\n", (GetTimeMicros() - nStart) * 0.001);
+    // Need to re-sync all to global cache layer.
+    spCW->Flush();
+
 
     // Write the chain state to disk, if necessary.
     if (!WriteChainState(state))

@@ -25,6 +25,7 @@
 #include <string>
 #include <utility>
 #include <vector>
+#include <chrono>
 
 #ifndef WIN32
 #include <sys/resource.h>
@@ -484,5 +485,36 @@ static inline bool CalcAmountByRatio(uint64_t amountIn, uint64_t ratio, uint64_t
     amountOut = calcAmount;
     return true;
 }
+
+////////////////////////////////////////////////////////////////////////////////
+// Benchmark
+
+class Benchmark {
+public:
+    using system_clock = std::chrono::system_clock;
+    typedef std::chrono::time_point<system_clock> Time;
+public:
+    Benchmark(const char *msgIn) : msg(msgIn), start(system_clock::now()) {}
+    Benchmark(const char *msgIn, const Time &startIn) : msg(msgIn), start(startIn) {}
+    ~Benchmark() { end(); }
+
+    inline void log(const char *msgIn, const Time &endTime) {
+        auto us = std::chrono::duration_cast<std::chrono::microseconds>(endTime - start);
+        LogPrint(BCLog::BENCHMARK, "%s, spent=%llu us\n", msgIn, us.count());
+    }
+    inline void end() {
+        if (!is_end) {
+            log(msg, system_clock::now());
+            is_end = true;
+        }
+    }
+    const char *msg = nullptr;
+    Time start;
+    bool is_end = false;
+};
+
+shared_ptr<Benchmark> MakeBenchmark(const char *msg);
+
+shared_ptr<Benchmark> MakeBenchmark(const char *msg, const Benchmark::Time &startIn);
 
 #endif

@@ -90,6 +90,7 @@ void CTxMemPool::QueryHash(vector<uint256> &txids) {
 
 bool CTxMemPool::CheckTxInMemPool(const uint256 &txid, const CTxMemPoolEntry &memPoolEntry, CValidationState &state,
                                   bool bRehearsalExecute) {
+    auto bm = MakeBenchmark("execute tx in mempool");
     CBlockIndex *pTip =  chainActive.Tip();
     if (pTip == nullptr)
         throw runtime_error("CheckTxInMemPool:: ChainActive.Tip() is null");
@@ -132,7 +133,7 @@ void CTxMemPool::SetMemPoolCache() {
 }
 
 void CTxMemPool::ReScanMemPoolTx() {
-    int64_t startTime = GetTimeMicros();
+    auto bm = MakeBenchmark("rescan all tx in mempool");
     cw.reset(new CCacheWrapper(pCdMan));
 
     LOCK(cs);
@@ -145,11 +146,6 @@ void CTxMemPool::ReScanMemPoolTx() {
             continue;
         }
         ++iterTx;
-    }
-    if (SysCfg().IsBenchmark()) {
-        int64_t curTime = GetTimeMicros() - startTime;
-        LogPrint(BCLog::INFO, "[BENCHMARK]ReScanMemPoolTx: count=%d, time=%.2fms\n",
-                 memPoolTxs.size(), 0.001 * curTime);
     }
 }
 

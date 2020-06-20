@@ -184,6 +184,7 @@ static const EnumTypeMap<BCLog::LogFlags, std::string, uint32_t> LOG_CATEGORY_MA
     {BCLog::RPCCMD,     "RPCCMD"    },
     {BCLog::DELEGATE,   "DELEGATE"  },
     {BCLog::PBFT,       "PBFT"      },
+    {BCLog::BENCHMARK,  "BENCHMARK" },
     {BCLog::ALL,        "ALL"       },
 };
 
