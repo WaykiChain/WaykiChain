@@ -104,7 +104,7 @@ static const unordered_map<SysParamType, std::pair<uint64_t, uint64_t>, SysParam
 //    { ASSET_UPDATE_FEE,                          RANGE(0,0)        },  // asset update fee = 110 WICC
     { DEX_OPERATOR_REGISTER_FEE,                 RANGE(0,0)        },  // dex operator register fee = 1100 WICC
     { DEX_OPERATOR_UPDATE_FEE,                   RANGE(0,0)        },  // dex operator update fee = 110 WICC
-    { PROPOSAL_EXPIRE_BLOCK_COUNT,               RANGE(0,0)        },  //
+    { PROPOSAL_EXPIRE_BLOCK_COUNT,               RANGE(100, ULLONG_MAX) },  //
     { DEX_SCOIN_FRICTION_FEE_RATIO,              RANGE(0, 5000)    },  // max 50%
     { TRANSFER_SCOIN_FRICTION_FEE_RATIO,         RANGE(0, 5000)    },  // max 50%
     { ASSET_RISK_FEE_RATIO,                      RANGE(0,10000)    },
