@@ -334,7 +334,7 @@ static bool CreateNewBlockForPreStableCoinRelease(CCacheWrapper &cwIn, std::uniq
             auto spCW = std::make_shared<CCacheWrapper>(&cwIn);
 
             try {
-                auto bm = MakeBenchmark("execute tx in mining block");
+                auto bm = MAKE_BENCHMARK("execute tx in mining block");
                 CValidationState state;
                 pBaseTx->nFuelRate = fuelRate;
                 uint32_t prevBlockTime = pIndexPrev->GetBlockTime();
@@ -488,7 +488,7 @@ static bool CreateNewBlockForStableCoinRelease(int64_t startMiningMs, CCacheWrap
             auto spCW = std::make_shared<CCacheWrapper>(&cwIn);
 
             try {
-                auto bm = MakeBenchmark("execute tx in mining block");
+                auto bm = MAKE_BENCHMARK("execute tx in mining block");
                 CValidationState state;
 
                 pBaseTx->nFuelRate = fuelRate;

@@ -493,28 +493,44 @@ class Benchmark {
 public:
     using system_clock = std::chrono::system_clock;
     typedef std::chrono::time_point<system_clock> Time;
+
 public:
-    Benchmark(const char *msgIn) : msg(msgIn), start(system_clock::now()) {}
-    Benchmark(const char *msgIn, const Time &startIn) : msg(msgIn), start(startIn) {}
+    Benchmark(const char *msgIn, const char *fileIn, int lineIn, const char *funcIn)
+        : Benchmark(msgIn, fileIn, lineIn, funcIn, system_clock::now()) {}
+    Benchmark(const char *msgIn, const char *fileIn, int lineIn, const char *funcIn,
+              const Time &startIn)
+        : msg(msgIn), file(fileIn), line(lineIn), func(funcIn), start(startIn) {}
     ~Benchmark() { end(); }
 
-    inline void log(const char *msgIn, const Time &endTime) {
+    inline void log(const char *msgIn, const char *fileIn, int lineIn, const char *funcIn,
+                    const Time &endTime) {
         auto us = std::chrono::duration_cast<std::chrono::microseconds>(endTime - start);
-        LogPrint(BCLog::BENCHMARK, "%s, spent=%llu us\n", msgIn, us.count());
+        fprintf(stdout, "%ld - %ld [%s:%i] %s [%s]%s, spent=%ld us\n",
+                endTime.time_since_epoch().count(), start.time_since_epoch().count(), fileIn,
+                lineIn, funcIn, "BENCHMARK", msgIn, us.count());
     }
     inline void end() {
         if (!is_end) {
-            log(msg, system_clock::now());
+            log(msg, file, line, func, system_clock::now());
             is_end = true;
         }
     }
-    const char *msg = nullptr;
+    const char *msg  = nullptr;
+    const char *file = nullptr;
+    int line         = 0;
+    const char *func = nullptr;
+
     Time start;
     bool is_end = false;
 };
 
-shared_ptr<Benchmark> MakeBenchmark(const char *msg);
+std::shared_ptr<Benchmark> MakeBenchmark(const char *msg, const char *fileIn, int lineIn,
+                                         const char *funcIn);
 
-shared_ptr<Benchmark> MakeBenchmark(const char *msg, const Benchmark::Time &startIn);
+std::shared_ptr<Benchmark> MakeBenchmark(const char *msg, const char *fileIn, int lineIn,
+                                         const char *funcIn, const Benchmark::Time &startIn);
+
+#define MAKE_BENCHMARK(msg) MakeBenchmark(msg, __FILE__, __LINE__, __func__)
+#define MAKE_BENCHMARK_START(msg, start) MakeBenchmark(msg, __FILE__, __LINE__, __func__, start)
 
 #endif

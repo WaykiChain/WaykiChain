@@ -181,6 +181,7 @@ bool CBaseTx::CheckBaseTx(CTxExecuteContext &context) {
 }
 
 bool CBaseTx::ExecuteFullTx(CTxExecuteContext &context) {
+    auto bm = MAKE_BENCHMARK("ExecuteFullTx");
     IMPLEMENT_DEFINE_CW_STATE;
     ClearMemData();
     txCord = CTxCord(context.height, context.index);

@@ -104,6 +104,8 @@ CCacheWrapper& CCacheWrapper::operator=(CCacheWrapper& other) {
 }
 
 void CCacheWrapper::Flush() {
+
+    auto bm = MAKE_BENCHMARK("CCacheWrapper::Flush()");
     sysParamCache.Flush();
     blockCache.Flush();
     accountCache.Flush();

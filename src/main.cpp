@@ -248,7 +248,7 @@ bool VerifySignature(const uint256 &sigHash, const std::vector<uint8_t> &signatu
         return true;
 
     {
-        auto bm = MakeBenchmark("execute pubkey verify");
+        auto bm = MAKE_BENCHMARK("execute pubkey verify");
         if (!pubKey.Verify(sigHash, signature))
             return false;
     }
@@ -288,7 +288,7 @@ bool AcceptToMemoryPool(CTxMemPool &pool, CValidationState &state, CBaseTx *pBas
     uint32_t prevBlockTime = pTip->pprev != nullptr ? pTip->pprev->GetBlockTime() : pTip->GetBlockTime();
 
     {
-        auto bm = MakeBenchmark("check tx before add mempool");
+        auto bm = MAKE_BENCHMARK("check tx before add mempool");
         CTxExecuteContext context(newHeight, 0, fuelRate, blockTime, prevBlockTime, spCW.get(), &state);
         if (!pBaseTx->CheckBaseTx(context) || !pBaseTx->CheckTx(context))
             return ERRORMSG("AcceptToMemoryPool() : CheckBaseTx/CheckTx failed, txid: %s", hash.GetHex());
@@ -692,7 +692,7 @@ void UpdateTime(CBlockHeader &block, const CBlockIndex *pIndexPrev) {
 }
 
 bool DisconnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValidationState &state, bool *pfClean) {
-    auto bmTx = MakeBenchmark("DisconnectBlock");
+    auto bmTx = MAKE_BENCHMARK("DisconnectBlock");
     assert(pIndex->GetBlockHash() == cw.blockCache.GetBestBlockHash());
 
     if (pfClean)
@@ -1055,7 +1055,7 @@ static bool ComputeVoteStakingInterestAndRevokeVotes(const uint256& blockHash, c
 bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValidationState &state, bool fJustCheck) {
     AssertLockHeld(cs_main);
 
-    auto bm = MakeBenchmark("ConnectBlock");
+    auto bm = MAKE_BENCHMARK("ConnectBlock");
     bool isGensisBlock = (block.GetHeight() == 0) && (block.GetHash() == SysCfg().GetGenesisBlockHash());
 
     // Check it again in case a previous version let a bad block in
@@ -1125,7 +1125,7 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
         uint64_t totalFuel    = 0;
 
         for (int32_t index = 1; index < (int32_t)block.vptx.size(); ++index) {
-            auto bmTx = MakeBenchmark("execute tx in ConnectBlock");
+            auto bmTx = MAKE_BENCHMARK("execute tx in ConnectBlock");
             std::shared_ptr<CBaseTx> &pBaseTx = block.vptx[index];
             if (cw.txCache.HasTx((pBaseTx->GetHash())))
                 return state.DoS(100, ERRORMSG("[%d] txid=%s duplicated", curHeight, pBaseTx->GetHash().GetHex()),
@@ -1404,7 +1404,7 @@ void static UpdateTip(CBlockIndex *pIndexNew, const CBlock &block) {
 
 // Disconnect chainActive's tip.
 bool DisconnectTip(CValidationState &state) {
-    auto bmTx = MakeBenchmark("DisconnectTip");
+    auto bmTx = MAKE_BENCHMARK("DisconnectTip");
     CBlockIndex *pBlockIndexToDelete = chainActive.Tip();
     assert(pBlockIndexToDelete);
     // Read block from disk.
@@ -1452,7 +1452,7 @@ bool DisconnectTip(CValidationState &state) {
 
 // Connect a new block to chainActive.
 bool static ConnectTip(CValidationState &state, CBlockIndex *pIndexNew) {
-    auto bmTx = MakeBenchmark("ConnectTip");
+    auto bmTx = MAKE_BENCHMARK("ConnectTip");
     assert(pIndexNew->pprev == chainActive.Tip());
     // Read block from disk.
     CBlock block;

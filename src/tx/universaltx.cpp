@@ -245,6 +245,7 @@ static uint64_t get_run_fee_in_wicc(const uint64_t& fuel, CBaseTx& tx, CTxExecut
 
 bool CUniversalTx::ExecuteTx(CTxExecuteContext &context) {
 
+    auto bm = MAKE_BENCHMARK("universal tx ExecuteTx");
     auto& database             = *context.pCw;
     auto& execute_tx_to_return = *context.pState;
     context_type               = context.context_type;
@@ -259,27 +260,31 @@ bool CUniversalTx::ExecuteTx(CTxExecuteContext &context) {
         }
 
         recipients_size        = 0;
-        pseudo_start           = system_clock::now();//pseudo start for reduce code loading duration
-        run_cost               = GetSerializeSize(SER_DISK, CLIENT_VERSION) * store_fuel_fee_per_byte;
-
         wasm::transaction_trace trx_trace;
-        trx_trace.trx_id = GetHash();
+        pseudo_start           = system_clock::now();//pseudo start for reduce code loading duration
+        {
+            auto bm1 = MAKE_BENCHMARK_START("call execute_inline_transaction", pseudo_start);
+            run_cost               = GetSerializeSize(SER_DISK, CLIENT_VERSION) * store_fuel_fee_per_byte;
 
-        for (auto& inline_trx : inline_transactions) {
-            trx_current_for_exception = &inline_trx;
+            trx_trace.trx_id = GetHash();
 
-            trx_trace.traces.emplace_back();
-            execute_inline_transaction(trx_trace.traces.back(), inline_trx, inline_trx.contract, database, receipts, 0);
+            for (auto& inline_trx : inline_transactions) {
+                trx_current_for_exception = &inline_trx;
 
-            trx_current_for_exception = nullptr;
+                trx_trace.traces.emplace_back();
+                execute_inline_transaction(trx_trace.traces.back(), inline_trx, inline_trx.contract, database, receipts, 0);
+
+                trx_current_for_exception = nullptr;
+            }
+            trx_trace.elapsed = std::chrono::duration_cast<std::chrono::microseconds>(system_clock::now() - pseudo_start);
+
+            CHAIN_ASSERT( trx_trace.elapsed.count() < max_transaction_duration.count() * 1000,
+                        wasm_chain::tx_cpu_usage_exceeded,
+                        "Tx execution time must be in '%d' microseconds, but get '%d' microseconds",
+                        max_transaction_duration * 1000, trx_trace.elapsed.count())
         }
-        trx_trace.elapsed = std::chrono::duration_cast<std::chrono::microseconds>(system_clock::now() - pseudo_start);
 
-        CHAIN_ASSERT( trx_trace.elapsed.count() < max_transaction_duration.count() * 1000,
-                      wasm_chain::tx_cpu_usage_exceeded,
-                      "Tx execution time must be in '%d' microseconds, but get '%d' microseconds",
-                      max_transaction_duration * 1000, trx_trace.elapsed.count())
-
+        auto bm2 = MAKE_BENCHMARK("after call execute_inline_transaction");
         //bytes add margin
         run_cost      = run_cost + recipients_size * notice_fuel_fee_per_recipient;
 
