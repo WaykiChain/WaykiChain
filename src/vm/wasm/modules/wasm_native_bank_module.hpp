@@ -116,6 +116,9 @@ namespace wasm {
             return abi_bytes;
         }
 
+        /**
+         * Usage: issue an UIA asset
+         */
         static void issue(wasm_context &context) {
 
             CHAIN_ASSERT(    context._receiver == bank_native_module_id,
@@ -151,10 +154,10 @@ namespace wasm {
 
             CHAIN_CHECK_ASSET_NAME(name, "asset name")
 
-            CHAIN_ASSERT(     !context.database.assetCache.HasAsset(sym),
+            CHAIN_ASSERT(   !context.database.assetCache.HasAsset(sym),
                             wasm_chain::asset_type_exception,
                             "asset (%s) already issued",
-                            symbol.to_string() )
+                            sym )
 
             context.require_auth( owner.value );
 
