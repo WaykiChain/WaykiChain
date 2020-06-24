@@ -301,6 +301,20 @@ namespace wasm {
         }
     };
 
+    struct dag_tree_t {
+        dag_tree_t() {
+            root = make_shared<dag>();
+            root->name = "root";
+            root->root = root;
+        }
+
+        ~dag_tree_t() {
+            root->root = nullptr; // must clear root.root first to avoid memory leak
+            root = nullptr;
+        }
+
+        shared_ptr<dag> root;
+    };
 
 }  // wasm
 

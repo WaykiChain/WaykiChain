@@ -561,12 +561,10 @@ namespace wasm {
         }
 
         // //check struct in recursion
-        auto r = make_shared<dag>(
-                wasm::dag{"root", nullptr, vector < shared_ptr < dag >> {}, vector < shared_ptr < dag >> {}});
-        r->root = r;
+        dag_tree_t dag_tree;
         for (const auto &s : structs) {
             try {
-                check_struct_in_recursion(s.second, r, ctx);
+                check_struct_in_recursion(s.second, dag_tree.root, ctx);
             }
             CHAIN_CAPTURE_AND_RETHROW("Circular reference in struct '%s'", s.first)
         }
