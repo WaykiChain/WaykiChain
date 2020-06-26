@@ -51,7 +51,9 @@ namespace wasm {
         const struct_def &get_struct( const type_name &type ) const;
         type_name get_action_type( type_name action ) const;
         type_name get_table_type( type_name action ) const;
-        void check_struct_in_recursion( const struct_def &s, shared_ptr <dag> &parent,
+        // void check_struct_in_recursion( const struct_def &s, shared_ptr <dag> &parent,
+        //                                 wasm::abi_traverse_context &ctx ) const;
+        void check_struct_in_recursion( const struct_def &s, wasm::dag* parent,
                                         wasm::abi_traverse_context &ctx ) const;
 
         json_spirit::Value
@@ -81,6 +83,7 @@ namespace wasm {
 
                 json_spirit::Value data_v;
                 json_spirit::read_string_or_throw(params, data_v);
+                //json_spirit::read_string(params, data_v);
 
                 string action_type = abis.get_action_type(action);
                 if(action_type == string()){
@@ -224,15 +227,108 @@ namespace wasm {
         uint32_t recursion_depth;
     };
 
-    struct dag {
-        string name;
-        shared_ptr <dag> root;
-        vector <shared_ptr<dag>> parents;
-        vector <shared_ptr<dag>> childs;
+    // struct dag {
+    //     string name;
+    //     shared_ptr <dag> root;
+    //     vector <shared_ptr<dag>> parents;
+    //     vector <shared_ptr<dag>> childs;
 
-        bool has_circle( string n, wasm::abi_traverse_context &ctx ) {
-            if (name == n) return true;
-            for (auto p: parents) {
+    //     bool has_circle( string n, wasm::abi_traverse_context &ctx ) {
+    //         if (name == n) return true;
+    //         for (auto p: parents) {
+    //             ctx.check_deadline();
+    //             if (p->has_circle(n, ctx)) return true;
+    //         }
+    //         return false;
+    //     }
+
+    //     string to_string() {
+    //         std::stringstream ss;
+    //         ss << "{name:" << name;
+    //         ss << " parents:";
+    //         for (auto p :parents) {
+    //             ss << p->name;
+    //             ss << " ";
+    //         }
+
+    //         ss << " childs:";
+    //         for (auto c :childs) {
+    //             ss << c->name;
+    //             ss << " ";
+    //         }
+
+    //         ss << "}";
+    //         return ss.str();
+    //     }
+
+    //     static tuple<bool, shared_ptr<dag>> add( shared_ptr <dag> t, string n, wasm::abi_traverse_context &ctx ) {
+
+    //         CHAIN_ASSERT( !t->has_circle(n, ctx),
+    //                       wasm_chain::abi_circular_def_exception,
+    //                       "Circular reference in struct %s", n);
+
+    //         for (auto child: t->childs) {
+    //             if (child->name == n)
+    //                 return tuple(false, child);
+    //         }
+
+    //         {
+    //             auto child = wasm::dag::find(t->root, n, ctx);
+    //             if (child != nullptr) {
+    //                 auto itr = std::find(child->parents.begin(), child->parents.end(), t);
+    //                 if (itr == child->parents.end())
+    //                     child->parents.push_back(t);
+
+    //                 return tuple(false, child);
+    //             }
+    //         }
+
+    //         {//new child
+    //             auto child = make_shared<dag>(
+    //                     wasm::dag{n, t->root, vector < shared_ptr < dag >> {t}, vector < shared_ptr < dag >> {}});
+    //             t->childs.push_back(child);
+    //         }
+
+    //         return tuple(true, t->childs.back());
+    //     }
+
+    //     static shared_ptr <dag> find( shared_ptr <dag> t, string n, wasm::abi_traverse_context &ctx ) {
+    //         if (t->name == n) return t;
+    //         for (auto child: t->childs) {
+    //             ctx.check_deadline();
+    //             auto d = wasm::dag::find(child, n, ctx);
+    //             if (d != nullptr)
+    //                 return d;
+    //         }
+    //         return nullptr;
+    //     }
+    // };
+
+    // struct dag_tree_t {
+    //     dag_tree_t() {
+    //         root = make_shared<dag>();
+    //         root->name = "root";
+    //         root->root = root;
+    //     }
+
+    //     ~dag_tree_t() {
+    //         root->root = nullptr; // must clear root.root first to avoid memory leak
+    //         root = nullptr;
+    //     }
+
+    //     shared_ptr<dag> root;
+    // };
+    #define ROOT_DAG(node) node->root==nullptr?node:node->root
+
+    struct dag {
+        string     name;
+        wasm::dag* root;
+        vector <wasm::dag*> parents;
+        vector <wasm::dag*> childs;
+
+        bool has_circle( string n, wasm::abi_traverse_context& ctx ) {
+            if (name == n ) return true;
+            for (auto* p: parents) {
                 ctx.check_deadline();
                 if (p->has_circle(n, ctx)) return true;
             }
@@ -243,13 +339,13 @@ namespace wasm {
             std::stringstream ss;
             ss << "{name:" << name;
             ss << " parents:";
-            for (auto p :parents) {
+            for (auto* p :parents) {
                 ss << p->name;
                 ss << " ";
             }
-
+ 
             ss << " childs:";
-            for (auto c :childs) {
+            for (auto* c :childs) {
                 ss << c->name;
                 ss << " ";
             }
@@ -258,40 +354,60 @@ namespace wasm {
             return ss.str();
         }
 
-        static tuple<bool, shared_ptr<dag>> add( shared_ptr <dag> t, string n, wasm::abi_traverse_context &ctx ) {
+        static void free(wasm::dag* t) {
+
+            for (auto* parent: t->parents){
+                auto itr = std::find(parent->childs.begin(), parent->childs.end(), t);
+                if(itr != parent->childs.end()){
+                    //WASM_TRACE("free parent:%s child:%s", parent->name, (*itr)->name)
+                    *itr = nullptr;
+                }
+            }
+            
+            for (auto* child: t->childs) {
+                if(child != nullptr) free(child);
+            }
+
+            delete t;
+        }
+
+        static tuple<bool, dag*> add( wasm::dag* t, string n, wasm::abi_traverse_context& ctx ) {
 
             CHAIN_ASSERT( !t->has_circle(n, ctx),
                           wasm_chain::abi_circular_def_exception,
                           "Circular reference in struct %s", n);
 
-            for (auto child: t->childs) {
+            //n already add as t's child
+            for (auto* child: t->childs) {
                 if (child->name == n)
                     return tuple(false, child);
             }
 
+            //n already in dag and update t as n parent
             {
-                auto child = wasm::dag::find(t->root, n, ctx);
+                auto child = wasm::dag::find(ROOT_DAG(t), n, ctx);
                 if (child != nullptr) {
                     auto itr = std::find(child->parents.begin(), child->parents.end(), t);
-                    if (itr == child->parents.end())
+                    if (itr == child->parents.end()){
                         child->parents.push_back(t);
-
+                        //t->childs.push_back(child);
+                    }
                     return tuple(false, child);
                 }
             }
 
-            {//new child
-                auto child = make_shared<dag>(
-                        wasm::dag{n, t->root, vector < shared_ptr < dag >> {t}, vector < shared_ptr < dag >> {}});
+            //add n as a new dag node
+            {
+                auto* child = new wasm::dag{n, ROOT_DAG(t), vector < wasm::dag *> {t}, vector < wasm::dag *> {}};
                 t->childs.push_back(child);
             }
 
             return tuple(true, t->childs.back());
         }
 
-        static shared_ptr <dag> find( shared_ptr <dag> t, string n, wasm::abi_traverse_context &ctx ) {
+        static dag* find( wasm::dag* t, string n, wasm::abi_traverse_context &ctx ) {
             if (t->name == n) return t;
-            for (auto child: t->childs) {
+            for (auto* child: t->childs) {
                 ctx.check_deadline();
                 auto d = wasm::dag::find(child, n, ctx);
                 if (d != nullptr)
@@ -300,21 +416,5 @@ namespace wasm {
             return nullptr;
         }
     };
-
-    struct dag_tree_t {
-        dag_tree_t() {
-            root = make_shared<dag>();
-            root->name = "root";
-            root->root = root;
-        }
-
-        ~dag_tree_t() {
-            root->root = nullptr; // must clear root.root first to avoid memory leak
-            root = nullptr;
-        }
-
-        shared_ptr<dag> root;
-    };
-
 }  // wasm
 

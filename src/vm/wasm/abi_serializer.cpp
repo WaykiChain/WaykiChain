@@ -221,6 +221,8 @@ namespace wasm {
 
         ctx.check_deadline();
         auto type = fundamental_type(rtype);
+        //WASM_TRACE("type:%s fundamental_type:%s", rtype, type)
+
         if (built_in_types.find(type) != built_in_types.end()) return true;
         if (typedefs.find(type)       != typedefs.end())       return _is_type(typedefs.find(type)->second, ctx);
         if (structs.find(type)        != structs.end())        return true;
@@ -405,6 +407,9 @@ namespace wasm {
 
             auto s_itr = structs.end();
             auto btype = built_in_types.find(fundamental_type(rtype));
+
+            //WASM_TRACE("type:%s rtype:%s fundamental_type:%s", type, rtype, fundamental_type(rtype))
+
             if (btype != built_in_types.end()) {
                 btype->second.second(var, ds, is_array(rtype), is_optional(rtype));
             } else if (is_array(rtype)) {
@@ -561,13 +566,26 @@ namespace wasm {
         }
 
         // //check struct in recursion
-        dag_tree_t dag_tree;
+        // dag_tree_t dag_tree;
+        // for (const auto &s : structs) {
+        //     try {
+        //         check_struct_in_recursion(s.second, dag_tree.root, ctx);
+        //     }
+        //     CHAIN_CAPTURE_AND_RETHROW("Circular reference in struct '%s'", s.first)
+        // }
+
+        //check struct in recursion
+        // auto now     = system_clock::now();
+        auto* root = new wasm::dag{"root", nullptr, vector < wasm::dag *> {}, vector < wasm::dag *> {}};
         for (const auto &s : structs) {
             try {
-                check_struct_in_recursion(s.second, dag_tree.root, ctx);
+                check_struct_in_recursion(s.second, root, ctx);
             }
             CHAIN_CAPTURE_AND_RETHROW("Circular reference in struct '%s'", s.first)
         }
+        wasm::dag::free(root);
+        // std::chrono::microseconds elapsed = std::chrono::duration_cast<std::chrono::microseconds>(system_clock::now() - now);
+        // WASM_TRACE("duration:%ld", elapsed.count());
 
 
         for (const auto &a : actions) {
@@ -596,14 +614,47 @@ namespace wasm {
                       max_serialization_time_us.count());
     }
 
-    void abi_serializer::check_struct_in_recursion( const struct_def &s, shared_ptr <dag> &parent,
+    // void abi_serializer::check_struct_in_recursion( const struct_def &s, shared_ptr <dag> &parent,
+    //                                                 wasm::abi_traverse_context &ctx ) const {
+
+    //     auto ret = wasm::dag::add(parent, s.name, ctx);
+
+    //     //s already in dag
+    //     if (!std::get<0>(ret)) return;
+    //     auto d = std::get<1>(ret);
+
+    //     ctx.check_deadline();
+
+    //     vector <type_name> fields_seen;
+    //     for (const auto &field : s.fields) {
+    //         ctx.check_deadline();
+    //         auto f = resolve_type(fundamental_type(field.type));
+
+    //         //skip same type of field
+    //         auto itr_field = std::find(fields_seen.begin(), fields_seen.end(), f);
+    //         if (itr_field != fields_seen.end())
+    //             break;
+
+    //         fields_seen.push_back(f);
+
+    //         auto itr = structs.find(f);
+    //         if (itr != structs.end()) {
+    //             check_struct_in_recursion(itr->second, d, ctx);
+    //         }
+
+    //     }
+
+    // }
+
+    void abi_serializer::check_struct_in_recursion( const struct_def& s, wasm::dag* parent,
                                                     wasm::abi_traverse_context &ctx ) const {
 
         auto ret = wasm::dag::add(parent, s.name, ctx);
-
+        //WASM_TRACE("%s", std::get<1>(ret)->to_string())
+        
         //s already in dag
         if (!std::get<0>(ret)) return;
-        auto d = std::get<1>(ret);
+        auto* d = std::get<1>(ret);
 
         ctx.check_deadline();
 
@@ -612,13 +663,14 @@ namespace wasm {
             ctx.check_deadline();
             auto f = resolve_type(fundamental_type(field.type));
 
-            //skip same type of field
+            //skip same type field
             auto itr_field = std::find(fields_seen.begin(), fields_seen.end(), f);
             if (itr_field != fields_seen.end())
-                break;
+                continue;
 
             fields_seen.push_back(f);
 
+            //skip not struct field
             auto itr = structs.find(f);
             if (itr != structs.end()) {
                 check_struct_in_recursion(itr->second, d, ctx);

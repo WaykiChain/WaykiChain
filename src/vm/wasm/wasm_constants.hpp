@@ -11,7 +11,7 @@ namespace wasm {
 
     const static uint16_t default_query_rows            = 100;
 
-    const static auto max_serialization_time            = microseconds(15 * 1000);
+    const static auto max_serialization_time            = microseconds(25 * 1000);
     const static auto max_wasm_execute_time_mining      = 200;//in milliseconds
     const static auto max_wasm_execute_time_infinite    = 2000;
     //const static auto max_serialization_time = microseconds(60 * 1000 * 1000);
