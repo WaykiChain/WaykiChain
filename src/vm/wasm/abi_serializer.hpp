@@ -285,7 +285,7 @@ namespace wasm {
                 return {false, child_it->second};
             }
 
-            bool is_new = false;
+            bool is_new = true;
             // add new dag to root
             auto new_it = dags.find(n);
             if (new_it == dags.end()) {
