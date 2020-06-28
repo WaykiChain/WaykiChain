@@ -423,12 +423,14 @@ bool CheckPBFTMessageSigner(const CPBFTMessage& msg) {
     return false;
 }
 
-bool CheckPBFTMessage(const int32_t msgType ,const CPBFTMessage& msg){
+bool CheckPBFTMessage(const int32_t msgType ,const CPBFTMessage& msg) {
 
 
     //check message type;
-    if(msg.msgType != msgType )
-        return ERRORMSG("msgType is illegal");
+    if(msg.msgType != msgType ) {
+        LogPrint(BCLog::INFO, "msgType is illegal");
+        return false;
+    }
 
     CAccount account;
     CBlockIndex* localFinBlock = pbftMan.GetLocalFinIndex();
@@ -437,27 +439,32 @@ bool CheckPBFTMessage(const int32_t msgType ,const CPBFTMessage& msg){
 
         //check height
         if(msg.height - chainActive.Height() > 500 || (localFinBlock && msg.height < (uint32_t)localFinBlock->height) ) {
-            return ERRORMSG("messages height is out of range");
+            LogPrint(BCLog::INFO, "messages height is out of range");
+            return false;
         }
 
         //if block received,check whether in chainActive
         CBlockIndex* pIndex = chainActive[msg.height];
-        if(pIndex == nullptr || pIndex->GetBlockHash() != msg.blockHash){
-            return ERRORMSG("msg_block=%s not in chainActive! miner=%s",
+        if(pIndex == nullptr || pIndex->GetBlockHash() != msg.blockHash) {
+            LogPrint(BCLog::INFO, "msg_block=%s not in chainActive! miner=%s",
                 msg.GetBlockId(), msg.miner.ToString());
+            return false;
         }
 
         //check signature
         if(!pCdMan->pAccountCache->GetAccount(msg.miner, account)) {
-            return ERRORMSG("the miner=%s of msg is not found! msg_block=%s",
+            LogPrint(BCLog::INFO, "the miner=%s of msg is not found! msg_block=%s",
                 msg.miner.ToString(), msg.GetBlockId());
+            return false;
         }
     }
     uint256 messageHash = msg.GetHash();
     if (!VerifySignature(messageHash, msg.vSignature, account.owner_pubkey)) {
-        if (!VerifySignature(messageHash, msg.vSignature, account.miner_pubkey))
-            return ERRORMSG("verify signature error! miner=%s, msg_block=%s",
+        if (!VerifySignature(messageHash, msg.vSignature, account.miner_pubkey)) {
+            LogPrint(BCLog::INFO, "verify signature error! miner=%s, msg_block=%s",
                 msg.miner.ToString(), msg.GetBlockId());
+            return false;
+        }
     }
 
     return true;
