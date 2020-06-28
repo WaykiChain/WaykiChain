@@ -157,10 +157,10 @@ namespace wasm {
         //reset_console();
         try {
             if (native) {
-            auto bm_wasm = MAKE_BENCHMARK("execute wasm native action");
+                auto bm_wasm = MAKE_BENCHMARK("execute wasm native action");
                 (*native)(*this, trx.action);
             } else {
-            auto bm_wasm = MAKE_BENCHMARK("execute wasm vm");
+                auto bm_wasm = MAKE_BENCHMARK("execute wasm vm");
                 vector <uint8_t> code;
                 if (get_code(_receiver, code) && code.size() > 0) {
                     wasmif.execute(code, this);

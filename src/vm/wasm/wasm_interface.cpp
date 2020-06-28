@@ -58,13 +58,16 @@ namespace wasm {
     std::shared_ptr <wasm_instantiated_module_interface> get_instantiated_backend(const vector <uint8_t> &code) {
 
         try {
+            auto bm_wasm_hash = MAKE_BENCHMARK("load wasm vm -- load code hash");
             if (!get_wasm_instantiation_cache().has_value()){
                  get_wasm_instantiation_cache() = std::map <code_version_t, std::shared_ptr<wasm_instantiated_module_interface>>{};
             }
 
             auto code_id = Hash(code.begin(), code.end());
+            if (bm_wasm_hash) bm_wasm_hash->end();
             auto it = get_wasm_instantiation_cache()->find(code_id);
             if (it == get_wasm_instantiation_cache()->end()) {
+                auto bm_wasm_load = MAKE_BENCHMARK("load wasm vm -- init module");
                 get_wasm_instantiation_cache().value()[code_id] = get_runtime_interface()->instantiate_module((const char*)code.data(), code.size());
                 return get_wasm_instantiation_cache().value()[code_id];
             }
@@ -77,16 +80,15 @@ namespace wasm {
 
     void wasm_interface::execute(const vector <uint8_t> &code, wasm_context_interface *pWasmContext) {
 
+
+        auto bm_wasm_load = MAKE_BENCHMARK("load wasm vm with code");
         pWasmContext->pause_billing_timer();
         auto pInstantiated_module = get_instantiated_backend(code);
         pWasmContext->resume_billing_timer();
+        if (bm_wasm_load) bm_wasm_load->end();
 
-        //system_clock::time_point start = system_clock::now();
+        auto bm_wasm_exec = MAKE_BENCHMARK("execute wasm vm with code");
         pInstantiated_module->apply(pWasmContext);
-        // system_clock::time_point end = system_clock::now();
-        // std::cout << std::string("wasm duration:")
-        //           << std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() << std::endl;
-
     }
 
     void wasm_interface::validate(const vector <uint8_t> &code) {
