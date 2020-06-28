@@ -565,15 +565,6 @@ namespace wasm {
             CHAIN_CAPTURE_AND_RETHROW("Parse error in struct '%s'", s.first)
         }
 
-        // //check struct in recursion
-        // dag_manager dag_tree;
-        // for (const auto &s : structs) {
-        //     try {
-        //         check_struct_in_recursion(s.second, dag_tree.root, ctx);
-        //     }
-        //     CHAIN_CAPTURE_AND_RETHROW("Circular reference in struct '%s'", s.first)
-        // }
-
         //check struct in recursion
         // auto now     = system_clock::now();
         dag_manager man;
