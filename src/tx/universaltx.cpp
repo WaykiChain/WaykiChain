@@ -313,9 +313,8 @@ bool CUniversalTx::ExecuteTx(CTxExecuteContext &context) {
 
         auto resolver = make_resolver(database);
 
-        auto json_trace = state.GetTrace();
+        auto &json_trace = state.GetTrace();
         if (json_trace) {
-            json_spirit::Value value_json;
             to_variant(trx_trace, *json_trace, resolver);
         }
 
