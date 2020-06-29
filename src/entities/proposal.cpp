@@ -851,6 +851,10 @@ bool CGovAssetIssueProposal::CheckProposal(CTxExecuteContext& context, CBaseTx& 
         return state.DoS(100, ERRORMSG(errMsg.c_str()), REJECT_INVALID,
                          "bad-symbol");
     }
+    if (asset_symbol.at(0) == 'm') {
+        return state.DoS(100, ERRORMSG("asset symbol=%s can not start with 'm'", asset_symbol), REJECT_INVALID,
+                         "bad-symbol");
+    }
 
     if ( total_supply > MAX_ASSET_TOTAL_SUPPLY)
         return state.DoS(100, ERRORMSG("asset total_supply=%llu can not == 0 or > %llu",
