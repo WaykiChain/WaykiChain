@@ -145,6 +145,7 @@ namespace wasm {
 				contractStore.code 	 				= code;
 				contractStore.abi  	 				= abi;
 				contractStore.memo 	 				= memo;
+				contractStore.code_hash 			= HashOnce(code.data(), code.size());
 
 		        CHAIN_ASSERT( db_contract.SaveContract(contractRegId, contractStore),
 		                      wasm_chain::contract_exception,

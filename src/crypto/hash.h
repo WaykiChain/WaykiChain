@@ -29,6 +29,17 @@ inline uint256 Hash(const T1 pbegin, const T1 pend) {
     return hash2;
 }
 
+inline uint256 HashOnce(const unsigned char *data, size_t size) {
+    uint256 hash;
+    if (data != nullptr && size > 0)
+        SHA256(data, size, (uint8_t *)&hash);
+    return hash;
+}
+
+inline uint256 HashOnce(const void *data, size_t size) {
+    return HashOnce((const unsigned char *)data, size);
+}
+
 class CHashWriter {
 private:
     SHA256_CTX ctx;

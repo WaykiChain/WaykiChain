@@ -94,7 +94,8 @@ bool CLuaContractDeployTx::ExecuteTx(CTxExecuteContext &context) {
         false,
         contract.code,
         contract.memo,
-        ""                      // abi
+        "",                     // abi
+        HashOnce(contract.code.data(), contract.code.size())
     };
 
     if (!cw.contractCache.SaveContract(contractRegId, contractStore))
@@ -279,7 +280,8 @@ bool CUniversalContractDeployTx::ExecuteTx(CTxExecuteContext &context) {
         contract.upgradable,
         contract.code,
         contract.memo,
-        contract.abi           // abi
+        contract.abi,          // abi
+        HashOnce(contract.code.data(), contract.code.size())
     };
     if (!cw.contractCache.SaveContract(contractRegId, contractStore))
         return state.DoS(100, ERRORMSG("save code for contract id %s error",

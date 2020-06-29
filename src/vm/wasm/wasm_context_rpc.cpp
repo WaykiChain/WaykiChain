@@ -81,12 +81,13 @@ namespace wasm {
         inline_transactions.push_back(t);
     }
 
-    bool wasm_context_rpc::get_code(const uint64_t& contract, std::vector <uint8_t> &code) {
+    bool wasm_context_rpc::get_code(const uint64_t& contract, std::vector <uint8_t> &code, uint256 &hash) {
         CUniversalContractStore contract_store;
         if (!database.contractCache.GetContract(CRegID(contract), contract_store))
             return false;
 
         code = vector <uint8_t>(contract_store.code.begin(), contract_store.code.end());
+        hash = contract_store.code_hash;
         return true;
     }
 
@@ -162,8 +163,9 @@ namespace wasm {
                 }
 
                 vector <uint8_t> code;
-                if (get_code(_receiver, code) && code.size() > 0) {
-                    wasmif.execute(code, this);
+                uint256 hash;
+                if (get_code(_receiver, code, hash) && code.size() > 0) {
+                    wasmif.execute(code, hash, this);
                 }
         }  catch (wasm_chain::exception &e) {
             string console_output = (_pending_console_output.str().size() == 0) ?

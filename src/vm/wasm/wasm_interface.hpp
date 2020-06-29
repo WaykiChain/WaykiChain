@@ -23,7 +23,7 @@ namespace wasm {
 
     public:
         void initialize(vm_type vm);
-        void execute(const vector <uint8_t>& code, wasm_context_interface *pWasmContext);
+        void execute(const vector <uint8_t>& code, const uint256 &hash, wasm_context_interface *pWasmContext);
         void validate(const vector <uint8_t>& code);
         void exit();
 

@@ -138,6 +138,7 @@ public:
     string code;        //!< Contract Code
     string abi;         //!< Contract ABI
     string memo;        //!< Contract Description
+    uint256 code_hash;        //!< Contract Code hash(once)
 
 public:
     inline uint32_t GetContractSize() const { return GetSerializeSize(SER_DISK, CLIENT_VERSION); }
@@ -159,6 +160,7 @@ public:
         READWRITE(code);
         READWRITE(abi);
         READWRITE(memo);
+        READWRITE(code_hash);
     )
 
     string ToString() const {
@@ -167,7 +169,8 @@ public:
                 strprintf("upgradable=%d", upgradable) + ", " +
                 strprintf("code=%s", code) + ", " +
                 strprintf("abi=%s", memo) + ", " +
-                strprintf("memo=%d", abi);
+                strprintf("memo=%d", abi) +
+                strprintf("code_hash=%d", code_hash.ToString());
     }
 
     json_spirit::Object ToJson() const;
