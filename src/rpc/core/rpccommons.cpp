@@ -191,12 +191,14 @@ Object SubmitTx(const CKeyID &keyid, CBaseTx &tx) {
         throw JSONRPCError(RPC_WALLET_ERROR, "Sign failed");
     }
 
-    string retMsg;
-    if (!pWalletMain->CommitTx((CBaseTx *)&tx, retMsg))
-        throw JSONRPCError(RPC_WALLET_ERROR, strprintf("SubmitTx failed: txid=%s, %s", tx.GetHash().GetHex(), retMsg));
+    CValidationState state;
+    if (!pWalletMain->CommitTx((CBaseTx *)&tx, state))
+        throw JSONRPCError(RPC_WALLET_ERROR,
+                           strprintf("CommitTx failed: code=%d, reason=%s", state.GetRejectCode(),
+                                     state.GetRejectReason()));
 
     Object obj;
-    obj.push_back(Pair("txid", retMsg));
+    obj.push_back(Pair("txid", tx.GetHash().GetHex()));
 
     return obj;
 }

@@ -136,7 +136,7 @@ public:
 
     static CWallet* GetInstance();
 
-    bool CommitTx(CBaseTx *pTx, string &retMsg); //retMsg is TxID when successful
+    bool CommitTx(CBaseTx *pTx, CValidationState &state);
 };
 
 /** Private key that includes an expiration date in case it never gets used. */

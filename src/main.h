@@ -136,16 +136,23 @@ private:
         MODE_VALID,    // everything ok
         MODE_INVALID,  // network rule violation (DoS value may be set)
         MODE_ERROR,    // run-time error
-    } mode;
-    int32_t nDoS;
+    };
+    mode_state mode = MODE_VALID;
+    int32_t nDoS = 0;
     string rejectReason;
-    uint8_t rejectCode;
-    bool corruptionPossible;
+    uint8_t rejectCode = 0;
+    bool corruptionPossible = false;
 
     string ret;
 
+    std::optional<json_spirit::Value> opt_trace;
+
 public:
-    CValidationState() : mode(MODE_VALID), nDoS(0), corruptionPossible(false) {}
+    CValidationState() {}
+    CValidationState(bool isTrace) {
+        if (isTrace) opt_trace = json_spirit::Value();
+    }
+
     bool DoS(int32_t level, bool ret = false, uint8_t rejectCodeIn = 0, string rejectReasonIn = "",
              bool corruptionIn = false) {
         rejectCode         = rejectCodeIn;
@@ -186,6 +193,9 @@ public:
 
     void SetReturn(std::string r) {ret = r;}
     std::string GetReturn() {return ret;}
+
+    const std::optional<json_spirit::Value>& GetTrace() const { return opt_trace; }
+    std::optional<json_spirit::Value>& GetTrace() { return opt_trace; }
 };
 
 /** The currently best known chain of headers (some of which may be invalid). */

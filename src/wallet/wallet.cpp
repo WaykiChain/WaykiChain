@@ -194,11 +194,12 @@ void CWallet::ResendWalletTransactions() {
             continue;
         }
         std::shared_ptr<CBaseTx> pBaseTx = te.second->GetNewInstance();
-        string regMsg;
-        if (!CommitTx(&(*pBaseTx.get()), regMsg)) {
+
+        CValidationState state;
+        if (!CommitTx(&(*pBaseTx.get()), state)) {
             erase.push_back(te.first);
-            LogPrint(BCLog::RPCCMD, "abort invalid tx %s reason:%s\n", te.second.get()->ToString(*pCdMan->pAccountCache),
-                     regMsg);
+            LogPrint(BCLog::RPCCMD, "rescan tx in mempool failed! code=%d, reason=%s", state.GetRejectCode(),
+                                     state.GetRejectReason());
         }
     }
     for (auto const &tee : erase) {
@@ -208,7 +209,7 @@ void CWallet::ResendWalletTransactions() {
 }
 
 //// Call after CreateTransaction unless you want to abort
-bool CWallet::CommitTx(CBaseTx *pTx, string &retMsg) {
+bool CWallet::CommitTx(CBaseTx *pTx, CValidationState &state) {
     LOCK2(cs_main, cs_wallet);
     LogPrint(BCLog::RPCCMD, "CommitTx() : %s\n", pTx->ToString(*pCdMan->pAccountCache));
 
@@ -216,11 +217,9 @@ bool CWallet::CommitTx(CBaseTx *pTx, string &retMsg) {
     string wasm_execute_success_return;
 
     {
-        CValidationState state;
         if (!::AcceptToMemoryPool(mempool, state, pTx, true)) {
             // This must not fail. The transaction has already been signed and recorded.
-            retMsg = state.GetRejectReason();
-            LogPrint(BCLog::RPCCMD, "CommitTx() : invalid transaction %s\n", retMsg);
+            LogPrint(BCLog::RPCCMD, "CommitTx() : invalid transaction %s\n", state.GetRejectReason());
             return false;
         }
 
@@ -232,18 +231,12 @@ bool CWallet::CommitTx(CBaseTx *pTx, string &retMsg) {
     bool fWriteSuccess  = CWalletDB(strWalletFile).WriteUnconfirmedTx(txid, unconfirmedTx[txid]);
 
     if (!fWriteSuccess) {
-        retMsg = strprintf("Write unconfirmed tx (%s) failed. Corrupted wallet?", txid.GetHex());
-    } else {
-        retMsg = txid.ToString();
-        ::RelayTransaction(pTx, txid);
+        return state.DoS(100, ERRORMSG("Write unconfirmed tx (%s) failed. Corrupted wallet?", txid.GetHex()),
+                            REJECT_INVALID, "save-tx-to-wallet-error");
     }
 
-   if(pTx->nTxType == UNIVERSAL_TX){
-        retMsg = wasm_execute_success_return;
-    }
-
-    return fWriteSuccess;
-
+    ::RelayTransaction(pTx, txid);
+    return true;
 }
 
 DBErrors CWallet::LoadWallet(bool fFirstRunRet) {

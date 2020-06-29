@@ -256,12 +256,14 @@ Object SubmitOrderTx(const CKeyID &txKeyid, const DexOperatorDetail &operatorDet
         }
     }
 
-    string retMsg;
-    if (!pWalletMain->CommitTx(pBaseTx.get(), retMsg))
-        throw JSONRPCError(RPC_WALLET_ERROR, strprintf("SubmitTx failed: txid=%s, %s", pBaseTx->GetHash().GetHex(), retMsg));
+    CValidationState state;
+    if (!pWalletMain->CommitTx(pBaseTx.get(), state))
+        throw JSONRPCError(RPC_WALLET_ERROR,
+                           strprintf("CommitTx failed: code=%d, reason=%s", state.GetRejectCode(),
+                                     state.GetRejectReason()));
 
     Object obj;
-    obj.push_back( Pair("txid", retMsg) );
+    obj.push_back( Pair("txid", pBaseTx->GetHash().GetHex()) );
 
     return obj;
 }

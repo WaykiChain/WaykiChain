@@ -183,30 +183,31 @@ Value submitsetcodetx( const Array &params, bool fHelp ) {
                           wasm_chain::wallet_sign_exception, "wallet sign error")
         }
 
-        string retMsg;
-        bool fSuccess = wallet->CommitTx((CBaseTx * ) & tx, retMsg);
-        JSON_RPC_ASSERT(fSuccess, RPC_WALLET_ERROR, retMsg);
+        CValidationState state;
+        bool fSuccess = wallet->CommitTx((CBaseTx * ) & tx, state);
+        JSON_RPC_ASSERT(fSuccess, RPC_WALLET_ERROR, state.GetRejectReason());
 
-        // Object obj_return;
+        Object obj_return;
         // json_spirit::Config::add(obj_return, "txid", std::get<1>(ret) );
         // return obj_return;
 
-        Object obj_return;
-        Value  v_trx_id, value_json;
-        json_spirit::read(retMsg, value_json);
+        // Object obj_return;
+        // Value  v_trx_id, value_json;
+        // json_spirit::read(retMsg, value_json);
 
-        //if (value_json.type() == json_spirit::obj_type) {
-        auto o = value_json.get_obj();
-        for (json_spirit::Object::const_iterator iter = o.begin(); iter != o.end(); ++iter) {
-            string name = Config_type::get_name(*iter);
-            if (name == "trx_id") {
-                v_trx_id = Config_type::get_value(*iter);
-                break;
-            }
-        }
+        // //if (value_json.type() == json_spirit::obj_type) {
+        // auto o = value_json.get_obj();
+        // for (json_spirit::Object::const_iterator iter = o.begin(); iter != o.end(); ++iter) {
+        //     string name = Config_type::get_name(*iter);
+        //     if (name == "trx_id") {
+        //         v_trx_id = Config_type::get_value(*iter);
+        //         break;
+        //     }
+        // }
         //}
 
-        json_spirit::Config::add(obj_return, "trx_id", v_trx_id );
+        obj_return.push_back(Pair("txid", tx.GetHash().ToString()));
+        // TODO: get trace
         return obj_return;
 
     } JSON_RPC_CAPTURE_AND_RETHROW;
@@ -254,30 +255,30 @@ Value submitsetcodertx( const Array &params, bool fHelp ) {
                           wasm_chain::wallet_sign_exception, "wallet sign error")
         }
 
-        string retMsg;
-        bool fSuccess = wallet->CommitTx((CBaseTx * ) & tx, retMsg);
-        JSON_RPC_ASSERT(fSuccess, RPC_WALLET_ERROR, retMsg);
+        CValidationState state;
+        bool fSuccess = wallet->CommitTx((CBaseTx * ) & tx, state);
+        JSON_RPC_ASSERT(fSuccess, RPC_WALLET_ERROR, state.GetRejectReason());
 
-        // Object obj_return;
+        Object obj_return;
         // json_spirit::Config::add(obj_return, "txid", std::get<1>(ret) );
         // return obj_return;
 
-        Object obj_return;
-        Value  v_trx_id, value_json;
-        json_spirit::read(retMsg, value_json);
+        // Object obj_return;
+        // Value  v_trx_id, value_json;
+        // json_spirit::read(retMsg, value_json);
 
-        //if (value_json.type() == json_spirit::obj_type) {
-        auto o = value_json.get_obj();
-        for (json_spirit::Object::const_iterator iter = o.begin(); iter != o.end(); ++iter) {
-            string name = Config_type::get_name(*iter);
-            if (name == "trx_id") {
-                v_trx_id = Config_type::get_value(*iter);
-                break;
-            }
-        }
-        //}
+        // //if (value_json.type() == json_spirit::obj_type) {
+        // auto o = value_json.get_obj();
+        // for (json_spirit::Object::const_iterator iter = o.begin(); iter != o.end(); ++iter) {
+        //     string name = Config_type::get_name(*iter);
+        //     if (name == "trx_id") {
+        //         v_trx_id = Config_type::get_value(*iter);
+        //         break;
+        //     }
+        // }
+        // //}
 
-        json_spirit::Config::add(obj_return, "trx_id", v_trx_id );
+        obj_return.push_back(Pair("txid", tx.GetHash().ToString()));
         return obj_return;
 
     } JSON_RPC_CAPTURE_AND_RETHROW;
@@ -344,14 +345,16 @@ Value submittx( const Array &params, bool fHelp ) {
             //tx.set_signature({payer_regid.value, tx.signature});
         }
 
-        string retMsg;
-        bool fSuccess = wallet->CommitTx((CBaseTx * ) & tx, retMsg);
-        JSON_RPC_ASSERT(fSuccess, RPC_WALLET_ERROR, retMsg) //fixme: could get exception from committx
+        CValidationState state(true);
+        bool fSuccess = wallet->CommitTx((CBaseTx * ) & tx, state);
+        JSON_RPC_ASSERT(fSuccess, RPC_WALLET_ERROR, state.GetRejectReason()) //fixme: could get exception from committx
 
         Object obj_return;
-        Value  value_json;
-        json_spirit::read(retMsg, value_json);
-        json_spirit::Config::add(obj_return, "result", value_json );
+        // Value  value_json;
+        // json_spirit::read(retMsg, value_json);
+        // json_spirit::Config::add(obj_return, "result", value_json );
+        obj_return.push_back(Pair("txid", tx.GetHash().ToString()));
+        obj_return.push_back(Pair("tx_trace", *state.GetTrace()));
         return obj_return;
 
     } JSON_RPC_CAPTURE_AND_RETHROW;

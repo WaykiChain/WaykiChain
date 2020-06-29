@@ -247,7 +247,7 @@ bool CUniversalTx::ExecuteTx(CTxExecuteContext &context) {
 
     auto bm = MAKE_BENCHMARK("universal tx ExecuteTx");
     auto& database             = *context.pCw;
-    auto& execute_tx_to_return = *context.pState;
+    auto& state = *context.pState;
     context_type               = context.context_type;
     pending_block_time         = context.block_time;
 
@@ -313,12 +313,12 @@ bool CUniversalTx::ExecuteTx(CTxExecuteContext &context) {
 
         auto resolver = make_resolver(database);
 
-        json_spirit::Value value_json;
-        to_variant(trx_trace, value_json, resolver);
-        string string_return = json_spirit::write(value_json);
+        auto json_trace = state.GetTrace();
+        if (json_trace) {
+            json_spirit::Value value_json;
+            to_variant(trx_trace, *json_trace, resolver);
+        }
 
-        //execute_tx_to_return.SetReturn(GetHash().ToString());
-        execute_tx_to_return.SetReturn(string_return);
     } catch (wasm_chain::exception &e) {
 
         string trx_current_str("inline_tx:");
@@ -330,7 +330,7 @@ bool CUniversalTx::ExecuteTx(CTxExecuteContext &context) {
         }
         CHAIN_EXCEPTION_APPEND_LOG( e, log_level::warn, "%s", trx_current_str)
         auto detail_msg = e.to_detail_string();
-        return execute_tx_to_return.DoS(100, ERRORMSG("%s, %s", e.what(), detail_msg), e.code(), detail_msg);
+        return state.DoS(100, ERRORMSG("%s, %s", e.what(), detail_msg), e.code(), detail_msg);
     }
 
     return true;

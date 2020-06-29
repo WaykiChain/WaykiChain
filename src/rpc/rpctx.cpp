@@ -1008,20 +1008,15 @@ Value submittxraw(const Array& params, bool fHelp) {
         }
     }
 
-    string retMsg;
-    if (!pWalletMain->CommitTx((CBaseTx *) pBaseTx.get(), retMsg))
-        throw JSONRPCError(RPC_WALLET_ERROR, "Submittxraw error: " + retMsg);
+    CValidationState state(true);
+    if (!pWalletMain->CommitTx((CBaseTx *) pBaseTx.get(), state))
+        throw JSONRPCError(RPC_WALLET_ERROR,
+                           strprintf("CommitTx failed: code=%d, reason=%s", state.GetRejectCode(),
+                                     state.GetRejectReason()));
 
     Object obj;
     obj.push_back( Pair("txid", pBaseTx->GetHash().ToString()) );
-    if (pBaseTx->nTxType == UNIVERSAL_TX) {
-        Value  detailObj;
-        if (json_spirit::read(retMsg, detailObj)) {
-            obj.push_back( Pair("detail", detailObj) );
-        } else {
-            obj.push_back( Pair("detail_msg", retMsg) );
-        }
-    }
+    obj.push_back( Pair("tx_trace", *state.GetTrace()) );
     return obj;
 }
 
