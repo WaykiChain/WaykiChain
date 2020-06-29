@@ -998,7 +998,7 @@ bool GetSettledInterestCdps(CCacheWrapper &cw, HeightType height, const CCdpCoin
 
     CCdpGlobalData cdpGlobalData = cw.cdpCache.GetCdpGlobalData(cdpCoinPair);
     if (cdpGlobalData.CheckGlobalCollateralRatioFloorReached(coinPairDetail.bcoin_price, globalCollateralRatioFloor)) {
-        ERRORMSG("[WARN]GlobalCollateralFloorReached! ignore!");
+        LogPrint(BCLog::INFO, "[WARN] GlobalCollateralFloorReached! ignore!");
         return true;
     }
 
@@ -1038,6 +1038,8 @@ bool GetSettledInterestCdps(CCacheWrapper &cw, HeightType height, vector<uint256
     }
 
     for (const auto& item : cdpCoinPairSet) {
+        if (!item.is_price_active) continue;
+
         if (!GetSettledInterestCdps(cw, height, item, cdpList, count)) {
             return ERRORMSG("get settled interest cdps error! coin_pair=%s", item.coin_pair.ToString());
         }
