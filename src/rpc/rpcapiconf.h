@@ -183,15 +183,15 @@ static const CRPCCommand vRPCCommands[] =
     { "startcontracttpstest",           &startcontracttpstest,              true,       true,       false   },
     { "getblockfailures",               &getblockfailures,                  true,       false,      false   },
     /* vm functions work in vm simulator */
-    { "luavm_executescript",            &luavm_executescript,               true,       true,       true    },
-    { "luavm_executecontract",          &luavm_executecontract,             true,       true,       true    },
+    { "luavm_executescript",            &luavm_executescript,               true,       false,       true    },
+    { "luavm_executecontract",          &luavm_executecontract,             true,       false,       true    },
 
     /* debug */
-    { "dumpdb",                         &dumpdb,                            true,       true,       true    },
+    { "dumpdb",                         &dumpdb,                            true,       false,       false    },
     /* UTXO */
-    { "genutxomultiinputcondhash",      &genutxomultiinputcondhash,         true,       true,       false   },
-    { "genutxomultisignaddr",           &genutxomultisignaddr,              true,       true,       false   },
-    { "genutxomultisignature",          &genutxomultisignature,             true,       true,       false   },
+    { "genutxomultiinputcondhash",      &genutxomultiinputcondhash,         true,       false,       false   },
+    { "genutxomultisignaddr",           &genutxomultisignaddr,              true,       false,       false   },
+    { "genutxomultisignature",          &genutxomultisignature,             true,       false,       false   },
     /* abi tx serializer*/
     { "genunsignedtxraw",                &genunsignedtxraw,                   true,      false,       false   },
 
