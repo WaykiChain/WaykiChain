@@ -273,6 +273,12 @@ bool CDEXOperatorUpdateData::Check(CBaseTx &tx, CCacheWrapper &cw, string& errms
 
     if (field == ORDER_OPEN_DEXOP_LIST) {
         const auto &dexlist = get<DexOpIdValueList>();
+        if (dexlist.size() > ORDER_OPEN_DEXOP_LIST_SIZE_MAX) {
+            errmsg = strprintf("size=%u of order_open_dexop_list exceed max=%u",
+                dexlist.size(), ORDER_OPEN_DEXOP_LIST_SIZE_MAX);
+            errcode = "invalid-shared-dexop-list-size";
+            return false;
+        }
         DexOpIdValueSet dexIdSet;
         for (auto dexOpId : dexlist) {
             if (dexOpId.get() == dexId) {
