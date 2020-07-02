@@ -209,7 +209,7 @@ namespace wasm_chain {
                                     3040021, "Transaction trace access exception" )
 
    CHAIN_DECLARE_DERIVED_EXCEPTION( inline_transaction_validate_exception, chain_exception,
-                                 3050000, "Action validate exception" )
+                                    3050000, "Action validate exception" )
 
       CHAIN_DECLARE_DERIVED_EXCEPTION( account_name_exists_exception, inline_transaction_validate_exception,
                                     3050001, "Account name already exists" )
@@ -567,6 +567,8 @@ namespace wasm_chain {
                                  3270000, "Account exception" )
       CHAIN_DECLARE_DERIVED_EXCEPTION( account_access_exception, account_exception,
                                     3270001, "Account access exception" )
+      CHAIN_DECLARE_DERIVED_EXCEPTION( account_fund_exception, account_exception,
+                                    3270002, "Account fund insufficient exception" )
 
    CHAIN_DECLARE_DERIVED_EXCEPTION( size_exceeds_exception,    chain_exception,
                                  3280000, "Size exceeds exception" )

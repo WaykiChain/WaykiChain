@@ -65,7 +65,7 @@ inline void transfer_balance(CAccount &fromAccount, CAccount &toAccount,
     CHAIN_ASSERT(fromAccount.OperateBalance(symbol, BalanceOpType::SUB_FREE, quantity.amount,
                                             ReceiptType::WASM_TRANSFER_ACTUAL_COINS,
                                             context.control_trx.receipts, pToAccount),
-                 wasm_chain::account_access_exception, "Account %s balance overdrawn",
+                 wasm_chain::account_fund_exception, "Account %s balance overdrawn",
                  fromAccount.regid.ToString())
   }
 
@@ -114,7 +114,7 @@ inline void transfer_balance(CAccount &fromAccount, CAccount &toAccount,
 
         CHAIN_ASSERT( spTargetAcct->OperateBalance(symbol, BalanceOpType::ADD_FREE, quantity.amount,
                                                   ReceiptType::WASM_MINT_COINS, context.control_trx.receipts),
-                      wasm_chain::account_access_exception,
+                      wasm_chain::account_fund_exception,
                       "Asset Owner (%s) balance overminted",
                       spTargetAcct->regid.ToString())
 
@@ -137,7 +137,7 @@ inline void transfer_balance(CAccount &fromAccount, CAccount &toAccount,
 
         CHAIN_ASSERT( spTargetAcct->OperateBalance(symbol, BalanceOpType::SUB_FREE, quantity.amount,
                                                     ReceiptType::WASM_BURN_COINS, context.control_trx.receipts),
-                      wasm_chain::account_access_exception,
+                      wasm_chain::account_fund_exception,
                       "Asset Owner (%s) balance overburnt",
                       spTargetAcct->regid.ToString())
 
