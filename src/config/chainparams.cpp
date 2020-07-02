@@ -144,10 +144,6 @@ public:
         base58Prefixes[SECRET_KEY]     = IniCfg().GetAddressPrefix(TEST_NET, SECRET_KEY);
         base58Prefixes[EXT_PUBLIC_KEY] = IniCfg().GetAddressPrefix(TEST_NET, EXT_PUBLIC_KEY);
         base58Prefixes[EXT_SECRET_KEY] = IniCfg().GetAddressPrefix(TEST_NET, EXT_SECRET_KEY);
-
-        nVer2GenesisHeight = GetArg("-ver2genesisheight", IniCfg().GetVer2GenesisHeight(TEST_NET));
-        nVer2ForkHeight    = std::max<uint32_t>(nVer2GenesisHeight + 1, GetArg("-ver2forkheight", IniCfg().GetVer2ForkHeight(TEST_NET)));
-        nVer3ForkHeight    = std::max<uint32_t>(nVer2ForkHeight + 1, GetArg("-ver3forkheight", IniCfg().GetVer3ForkHeight(TEST_NET)));
     }
 
     virtual NET_TYPE NetworkID() const { return TEST_NET; }
