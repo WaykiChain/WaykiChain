@@ -116,6 +116,9 @@ namespace wasm_chain {
                                     3010013, "Invalid fixed key" )
       CHAIN_DECLARE_DERIVED_EXCEPTION( symbol_type_exception,             chain_type_exception,
                                     3010014, "Invalid symbol" )
+      CHAIN_DECLARE_DERIVED_EXCEPTION( precision_size_exception,          chain_type_exception,
+                                    3010014, "Invalid precision size" )
+
       CHAIN_DECLARE_DERIVED_EXCEPTION( unactivated_key_type,              chain_type_exception,
                                     3010015, "Key type is not a currently activated type" )
       CHAIN_DECLARE_DERIVED_EXCEPTION( unactivated_signature_type,        chain_type_exception,
@@ -231,7 +234,7 @@ namespace wasm_chain {
       CHAIN_DECLARE_DERIVED_EXCEPTION( restricted_error_code_exception, inline_transaction_validate_exception,
                                     3050011, "wasm_assert_code assertion failure uses restricted error code value" )
       CHAIN_DECLARE_DERIVED_EXCEPTION( wasm_assert_exception, inline_transaction_validate_exception,
-                                    3050004, "wasm_assert assertion failure" )
+                                    3050012, "wasm_assert assertion failure" )
 
    CHAIN_DECLARE_DERIVED_EXCEPTION( database_exception, chain_exception,
                                  3060000, "Database exception" )
