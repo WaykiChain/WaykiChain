@@ -413,9 +413,85 @@ Value reconsiderblock(const Array& params, bool fHelp) {
     return obj;
 }
 
-static unique_ptr<MsgQueue<CBaseCoinTransferTx>> generationQueue;
 
-void static CommonTxGenerator(const int64_t period, const int64_t batchSize) {
+class TpsTester {
+public:
+    typedef MsgQueue<std::shared_ptr<CBaseTx>> GenTxQueue;
+public:
+    int64_t period;
+    int64_t batchSize;
+    unique_ptr<GenTxQueue> generationQueue;
+    boost::thread_group* generateThreads;
+public:
+    TpsTester() {
+
+    }
+
+    ~TpsTester() {
+        Stop();
+    }
+
+    void Stop() {
+        if (generateThreads != nullptr) {
+            generateThreads->interrupt_all();
+            generateThreads->join_all();
+            delete generateThreads;
+            generateThreads = nullptr;
+        }
+    }
+
+    void SendTx() {
+        RenameThread("TpsTester::SendTx");
+        SetThreadPriority(THREAD_PRIORITY_NORMAL);
+
+        CValidationState state;
+        std::shared_ptr<CBaseTx> tx;
+
+        while (true) {
+            // add interruption point
+            boost::this_thread::interruption_point();
+
+            if (generationQueue->Pop(&tx)) {
+                LOCK(cs_main);
+                if (!::AcceptToMemoryPool(mempool, state, tx.get(), true)) {
+                    LogPrint(BCLog::ERROR, "TpsTester::SendTx, accept to mempool failed: %s\n", state.GetRejectReason());
+                    throw boost::thread_interrupted();
+                }
+            }
+        }
+    }
+
+    template<typename F>
+    void StartCommonGeneration(const int64_t periodIn, const int64_t batchSizeIn, F generateFunc) {
+
+        Stop();
+
+        period = periodIn;
+        batchSize = batchSizeIn;
+        if (period == 0 || batchSize == 0)
+            return;
+
+        // reset message queue according to <period, batchSize>
+        // For example, generate 50(batchSize) transactions in 20(period), then
+        // we need to prepare 1000 * 10 / 20 * 50 = 25,000 transactions in 10 second.
+        // Actually, set the message queue's size to 50,000(double or up to 60,000).
+        GenTxQueue::SizeType size       = 1000 * 10 * batchSize * 2 / period;
+        GenTxQueue::SizeType actualSize = size > MSG_QUEUE_MAX_LEN ? MSG_QUEUE_MAX_LEN : size;
+
+        generationQueue = std::make_unique<GenTxQueue>(actualSize);
+
+        generateThreads = new boost::thread_group();
+        generateThreads->create_thread(generateFunc);
+        generateThreads->create_thread(boost::bind(&TpsTester::SendTx, this));
+    }
+
+
+};
+
+TpsTester g_tpsTester = TpsTester();
+
+
+static void CommonTxGenerator(TpsTester *tpsTester) {
     RenameThread("CommonTxGenerator");
     SetThreadPriority(THREAD_PRIORITY_NORMAL);
 
@@ -429,13 +505,17 @@ void static CommonTxGenerator(const int64_t period, const int64_t batchSize) {
         if (!pWalletMain->RemoveKey(key))
             throw boost::thread_interrupted();
     }
-    auto spCw = make_shared<CCacheWrapper>(pCdMan);
+    shared_ptr<CCacheWrapper> spCw;
+    uint64_t llFees         = 0;
+    {
+        LOCK(cs_main);
+        spCw = make_shared<CCacheWrapper>(pCdMan);
+        GetTxMinFee(*spCw, BCOIN_TRANSFER_TX, chainActive.Height(), SYMB::WICC, llFees);
+    }
 
     CRegID srcRegId("0-1");
     CRegID desRegId("0-1");
     static uint64_t llValue = 10000;  // use static variable to keep autoincrement
-    uint64_t llFees         = 0;
-    GetTxMinFee(*spCw, BCOIN_TRANSFER_TX, chainActive.Height(), SYMB::WICC, llFees);
 
     while (true) {
         // add interruption point
@@ -444,76 +524,34 @@ void static CommonTxGenerator(const int64_t period, const int64_t batchSize) {
         int64_t nStart      = GetTimeMillis();
         int32_t validHeight = chainActive.Height();
 
-        for (int64_t i = 0; i < batchSize; ++i) {
-            CBaseCoinTransferTx tx;
-            tx.txUid        = srcRegId;
-            tx.toUid        = desRegId;
-            tx.coin_amount  = llValue++;
-            tx.llFees       = llFees;
-            tx.valid_height = validHeight;
+        for (int64_t i = 0; i < tpsTester->batchSize; ++i) {
+            std::shared_ptr<CBaseCoinTransferTx> tx;
+            tx->txUid        = srcRegId;
+            tx->toUid        = desRegId;
+            tx->coin_amount  = llValue++;
+            tx->llFees       = llFees;
+            tx->valid_height = validHeight;
 
             // sign transaction
-            key.Sign(tx.GetHash(), tx.signature);
+            key.Sign(tx->GetHash(), tx->signature);
 
-            generationQueue.get()->Push(std::move(tx));
+            tpsTester->generationQueue->Push(tx);
         }
 
         int64_t elapseTime = GetTimeMillis() - nStart;
         LogPrint(BCLog::DEBUG, "batch generate transaction(s): %ld, elapse time: %ld ms.\n",
-                batchSize, elapseTime);
+                tpsTester->batchSize, elapseTime);
 
-        if (elapseTime < period) {
-            MilliSleep(period - elapseTime);
+        if (elapseTime < tpsTester->period) {
+            MilliSleep(tpsTester->period - elapseTime);
         } else {
             LogPrint(BCLog::DEBUG, "need to slow down for overloading.\n");
         }
     }
 }
 
-void static CommonTxSender() {
-    RenameThread("CommonTxSender");
-    SetThreadPriority(THREAD_PRIORITY_NORMAL);
-
-    CValidationState state;
-    CBaseCoinTransferTx tx;
-
-    while (true) {
-        // add interruption point
-        boost::this_thread::interruption_point();
-
-        if (generationQueue.get()->Pop(&tx)) {
-            LOCK(cs_main);
-            if (!::AcceptToMemoryPool(mempool, state, (CBaseTx*)&tx, true)) {
-                LogPrint(BCLog::ERROR, "CommonTxSender, accept to mempool failed: %s\n", state.GetRejectReason());
-                throw boost::thread_interrupted();
-            }
-        }
-    }
-}
-
 void StartCommonGeneration(const int64_t period, const int64_t batchSize) {
-    static boost::thread_group* generateThreads = nullptr;
-
-    if (generateThreads != nullptr) {
-        generateThreads->interrupt_all();
-        delete generateThreads;
-        generateThreads = nullptr;
-    }
-
-    if (period == 0 || batchSize == 0)
-        return;
-
-    // reset message queue according to <period, batchSize>
-    // For example, generate 50(batchSize) transactions in 20(period), then
-    // we need to prepare 1000 * 10 / 20 * 50 = 25,000 transactions in 10 second.
-    // Actually, set the message queue's size to 50,000(double or up to 60,000).
-    MsgQueue<CBaseCoinTransferTx>::SizeType size       = 1000 * 10 * batchSize * 2 / period;
-    MsgQueue<CBaseCoinTransferTx>::SizeType actualSize = size > MSG_QUEUE_MAX_LEN ? MSG_QUEUE_MAX_LEN : size;
-    generationQueue.reset(new MsgQueue<CBaseCoinTransferTx>(actualSize));
-
-    generateThreads = new boost::thread_group();
-    generateThreads->create_thread(boost::bind(&CommonTxGenerator, period, batchSize));
-    generateThreads->create_thread(boost::bind(&CommonTxSender));
+    g_tpsTester.StartCommonGeneration(period, batchSize, boost::bind(&CommonTxGenerator, &g_tpsTester));
 }
 
 Value startcommontpstest(const Array& params, bool fHelp) {
@@ -552,10 +590,10 @@ Value startcommontpstest(const Array& params, bool fHelp) {
     return obj;
 }
 
-static unique_ptr<MsgQueue<CLuaContractInvokeTx>> generationContractQueue;
+//static unique_ptr<MsgQueue<CLuaContractInvokeTx>> generationContractQueue;
 
-void static ContractTxGenerator(const string& regid, const int64_t period, const int64_t batchSize) {
-    RenameThread("Tx-generator-v2");
+void static ContractTxGenerator(TpsTester *tpsTester, const string& regid) {
+    RenameThread("contract-tx-generator");
     SetThreadPriority(THREAD_PRIORITY_NORMAL);
 
     CCoinSecret vchSecret;
@@ -568,13 +606,16 @@ void static ContractTxGenerator(const string& regid, const int64_t period, const
         if (!pWalletMain->RemoveKey(key))
             throw boost::thread_interrupted();
     }
-
-    auto spCw = make_shared<CCacheWrapper>(pCdMan);
+    shared_ptr<CCacheWrapper> spCw;
+    uint64_t llFees         = 0;
+    {
+        LOCK(cs_main);
+        spCw = make_shared<CCacheWrapper>(pCdMan);
+        GetTxMinFee(*spCw, BCOIN_TRANSFER_TX, chainActive.Height(), SYMB::WICC, llFees);
+    }
     CRegID txUid("0-1");
     CRegID appUid(regid);
     static uint64_t llValue = 10000;  // use static variable to keep autoincrement
-    uint64_t llFees         = 0;
-    GetTxMinFee(*spCw, LCONTRACT_INVOKE_TX, chainActive.Height(), SYMB::WICC, llFees);
 
     // hex(whmD4M8Q8qbEx6R5gULbcb5ZkedbcRDGY1) =
     // 77686d44344d3851387162457836523567554c626362355a6b656462635244475931
@@ -587,76 +628,34 @@ void static ContractTxGenerator(const string& regid, const int64_t period, const
         int64_t nStart      = GetTimeMillis();
         int32_t validHeight = chainActive.Height();
 
-        for (int64_t i = 0; i < batchSize; ++i) {
-            CLuaContractInvokeTx tx;
-            tx.txUid        = txUid;
-            tx.app_uid      = appUid;
-            tx.coin_amount  = llValue++;
-            tx.llFees       = llFees;
-            tx.arguments    = arguments;
-            tx.valid_height = validHeight;
+        for (int64_t i = 0; i < tpsTester->batchSize; ++i) {
+            shared_ptr<CLuaContractInvokeTx> tx;
+            tx->txUid        = txUid;
+            tx->app_uid      = appUid;
+            tx->coin_amount  = llValue++;
+            tx->llFees       = llFees;
+            tx->arguments    = arguments;
+            tx->valid_height = validHeight;
 
             // sign transaction
-            key.Sign(tx.GetHash(), tx.signature);
+            key.Sign(tx->GetHash(), tx->signature);
 
-            generationContractQueue.get()->Push(std::move(tx));
+            tpsTester->generationQueue->Push(tx);
         }
 
         int64_t elapseTime = GetTimeMillis() - nStart;
-        LogPrint(BCLog::DEBUG, "batch generate transaction(s): %ld, elapse time: %ld ms.\n", batchSize, elapseTime);
+        LogPrint(BCLog::DEBUG, "batch generate transaction(s): %ld, elapse time: %ld ms.\n", tpsTester->batchSize, elapseTime);
 
-        if (elapseTime < period) {
-            MilliSleep(period - elapseTime);
+        if (elapseTime < tpsTester->period) {
+            MilliSleep(tpsTester->period - elapseTime);
         } else {
             LogPrint(BCLog::DEBUG, "need to slow down for overloading.\n");
         }
     }
 }
 
-void static ContractTxGenerator() {
-    RenameThread("ContractTxGenerator");
-    SetThreadPriority(THREAD_PRIORITY_NORMAL);
-
-    CValidationState state;
-    CLuaContractInvokeTx tx;
-
-    while (true) {
-        // add interruption point
-        boost::this_thread::interruption_point();
-
-        if (generationContractQueue.get()->Pop(&tx)) {
-            LOCK(cs_main);
-            if (!::AcceptToMemoryPool(mempool, state, (CBaseTx*)&tx, true)) {
-                LogPrint(BCLog::ERROR, "ContractTxGenerator, accept to mempool failed: %s\n", state.GetRejectReason());
-                throw boost::thread_interrupted();
-            }
-        }
-    }
-}
-
 void StartContractGeneration(const string& regid, const int64_t period, const int64_t batchSize) {
-    static boost::thread_group* generateContractThreads = nullptr;
-
-    if (generateContractThreads != nullptr) {
-        generateContractThreads->interrupt_all();
-        delete generateContractThreads;
-        generateContractThreads = nullptr;
-    }
-
-    if (regid.empty() || period == 0 || batchSize == 0)
-        return;
-
-    // reset message queue according to <period, batchSize>
-    // For example, generate 50(batchSize) transactions in 20(period), then
-    // we need to prepare 1000 * 10 / 20 * 50 = 25,000 transactions in 10 second.
-    // Actually, set the message queue's size to 50,000(double or up to 60,000).
-    MsgQueue<CLuaContractInvokeTx>::SizeType size       = 1000 * 10 * batchSize * 2 / period;
-    MsgQueue<CLuaContractInvokeTx>::SizeType actualSize = size > MSG_QUEUE_MAX_LEN ? MSG_QUEUE_MAX_LEN : size;
-    generationContractQueue.reset(new MsgQueue<CLuaContractInvokeTx>(actualSize));
-
-    generateContractThreads = new boost::thread_group();
-    generateContractThreads->create_thread(boost::bind(&ContractTxGenerator, regid, period, batchSize));
-    generateContractThreads->create_thread(boost::bind(&ContractTxGenerator));
+    g_tpsTester.StartCommonGeneration(period, batchSize, boost::bind(&ContractTxGenerator, &g_tpsTester, regid));
 }
 
 Value startcontracttpstest(const Array& params, bool fHelp) {

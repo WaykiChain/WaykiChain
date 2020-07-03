@@ -727,7 +727,7 @@ inline void ProcessBlockMessage(CNode *pFrom, CDataStream &vRecv) {
     std::pair<int32_t ,uint256> globalfinblock = std::make_pair(0,uint256());
     pCdMan->pBlockCache->ReadGlobalFinBlock(globalfinblock);
     if (block.GetHeight() < (uint32_t)globalfinblock.first) {
-        LogPrint(BCLog::NET,"[%d] this inbound block is irrreversible (%d)",
+        LogPrint(BCLog::NET,"[%d] this inbound block is irrreversible (%d)\n",
                             block.GetHeight(), globalfinblock.first);
     } else {
         ProcessBlock(state, pFrom, &block);
