@@ -19,7 +19,10 @@
 #include "tx/merkletx.h"
 #include "tx/tx.h"
 #include "tx/coinminttx.h"
+#include "tx/universaltx.h"
 #include "wallet/wallet.h"
+#include "wasm/abi_serializer.hpp"
+#include "wasm/modules/wasm_native_dispatch.hpp"
 
 using namespace json_spirit;
 using namespace std;
@@ -590,8 +593,6 @@ Value startcommontpstest(const Array& params, bool fHelp) {
     return obj;
 }
 
-//static unique_ptr<MsgQueue<CLuaContractInvokeTx>> generationContractQueue;
-
 void static ContractTxGenerator(TpsTester *tpsTester, const string& regid) {
     RenameThread("contract-tx-generator");
     SetThreadPriority(THREAD_PRIORITY_NORMAL);
@@ -696,6 +697,149 @@ Value startcontracttpstest(const Array& params, bool fHelp) {
 
     StartContractGeneration(regid, period, batchSize);
 
+    obj.push_back(Pair("msg", "success"));
+    return obj;
+}
+
+
+
+void static WasmTxGenerator(TpsTester *tpsTester, wasm::inline_transaction &inlineTx) {
+    RenameThread("contract-tx-generator");
+    SetThreadPriority(THREAD_PRIORITY_NORMAL);
+
+    CCoinSecret vchSecret;
+    vchSecret.SetString("Y6J4aK6Wcs4A3Ex4HXdfjJ6ZsHpNZfjaS4B9w7xqEnmFEYMqQd13");
+    CKey key = vchSecret.GetKey();
+
+    // remove key from wallet first.
+    {
+        LOCK2(cs_main, pWalletMain->cs_wallet);
+        if (!pWalletMain->RemoveKey(key))
+            throw boost::thread_interrupted();
+    }
+    shared_ptr<CCacheWrapper> spCw;
+    uint64_t minFees         = 0;
+    {
+        LOCK(cs_main);
+        spCw = make_shared<CCacheWrapper>(pCdMan);
+        GetTxMinFee(*spCw, BCOIN_TRANSFER_TX, chainActive.Height(), SYMB::WICC, minFees);
+    }
+    CRegID txUid("0-1");
+    auto payer      = wasm::regid(txUid.GetIntValue());
+
+    inlineTx.authorization = std::vector<permission>{{payer.value, wasmio_owner}};
+
+    int32_t lastHeight = 0;
+    uint64_t fees = minFees;
+    while (true) {
+        // add interruption point
+        boost::this_thread::interruption_point();
+
+        int64_t nStart      = GetTimeMillis();
+        int32_t validHeight = chainActive.Height();
+        if (lastHeight != validHeight) {
+            fees = minFees;
+            lastHeight = validHeight;
+        }
+
+        for (int64_t i = 0; i < tpsTester->batchSize; ++i) {
+            shared_ptr<CUniversalTx> tx;
+            tx->txUid        = txUid;
+            tx->fee_symbol   = SYMB::WICC;
+            tx->llFees       = fees;
+            tx->valid_height = validHeight;
+
+            tx->inline_transactions.push_back(inlineTx);
+            // sign transaction
+            key.Sign(tx->GetHash(), tx->signature);
+
+            tpsTester->generationQueue->Push(tx);
+            fees++;
+        }
+
+        int64_t elapseTime = GetTimeMillis() - nStart;
+        LogPrint(BCLog::DEBUG, "batch generate transaction(s): %ld, elapse time: %ld ms.\n", tpsTester->batchSize, elapseTime);
+
+        if (elapseTime < tpsTester->period) {
+            MilliSleep(tpsTester->period - elapseTime);
+        } else {
+            LogPrint(BCLog::DEBUG, "need to slow down for overloading.\n");
+        }
+    }
+}
+
+namespace RPC_PARAM {
+    int64_t ParseInt64(const Value &jsonValue, const string &name) {
+        ComboMoney money;
+        Value_type valueType = jsonValue.type();
+        if (valueType == json_spirit::Value_type::int_type ) {
+            return jsonValue.get_int64();
+        } else if (valueType == json_spirit::Value_type::str_type) {
+            return atoi64(jsonValue.get_str());
+        } else {
+            throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("%s should be numeric or string, but got %s type",
+                name, JSON::GetValueTypeName(valueType)));
+        }
+    }
+}
+
+Value startwasmtpstest(const Array& params, bool fHelp) {
+    if (fHelp || params.size() != 3) {
+        throw runtime_error(
+            "startwasmtpstest \"regid\" \"period\" \"batch_size\"\n"
+            "\nStart generation blocks with batch_size contract transactions in period ms.\n"
+            "\nArguments:\n"
+            "1.\"regid\" (string, required) contract regid\n"
+            "2.\"action\" (string, required) contract action\n"
+            "3.\"data\" (object, required) contract data, can be object or array\n"
+            "4.\"period\" (numeric, required) 0~1000\n"
+            "5.\"batch_size\" (numeric, required)\n"
+            "\nResult:\n"
+            "\nExamples:\n" +
+            HelpExampleCli("startwasmtpstest", "\"3-1\" 20 20") + "\nAs json rpc call\n" +
+            HelpExampleRpc("startwasmtpstest", "\"3-1\", 20, 20"));
+    }
+    auto regid  = RPC_PARAM::ParseRegId(params[1], "contract");
+    auto action = wasm::name(params[2].get_str());
+    auto argsIn = RPC_PARAM::GetWasmContractArgs(params[3]);
+
+    if (SysCfg().NetworkID() != REGTEST_NET) {
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "work in regtest only");
+    }
+
+    //get abi
+    std::vector<char> abi;
+    {
+        LOCK(cs_main);
+        if (!get_native_contract_abi(regid.GetIntValue(), abi)) {
+            CUniversalContractStore contract_store = RPC_PARAM::GetWasmContract(*pCdMan->pContractCache, regid);
+            abi = std::vector<char>(contract_store.abi.begin(), contract_store.abi.end());
+        }
+    }
+
+
+    std::vector<char> action_data = wasm::abi_serializer::pack(abi, action.to_string(), argsIn, max_serialization_time);
+    CHAIN_ASSERT( action_data.size() < MAX_CONTRACT_ARGUMENT_SIZE,
+                    wasm_chain::inline_transaction_data_size_exceeds_exception,
+                    "inline transaction args is out of size(%u vs %u)",
+                    action_data.size(), MAX_CONTRACT_ARGUMENT_SIZE)
+
+
+    int64_t period = RPC_PARAM::ParseInt64(params[1], "period");
+    if (period < 0 || period > 1000) {
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "period should range between 0 to 1000");
+    }
+
+    int64_t batchSize = RPC_PARAM::ParseInt64(params[2], "batch_size");
+    if (batchSize < 0) {
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "batch size should be bigger than 0");
+    }
+
+    wasm::inline_transaction inlineTx = { regid.GetIntValue(), action.value, {}, action_data };
+
+    g_tpsTester.StartCommonGeneration(period, batchSize, boost::bind(&WasmTxGenerator, &g_tpsTester, inlineTx));
+
+    Object obj;
     obj.push_back(Pair("msg", "success"));
     return obj;
 }

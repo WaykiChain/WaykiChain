@@ -16,6 +16,7 @@
 #include "abi_serializer.hpp"
 #include "wasm_context.hpp"
 #include "wasm_variant_trace.hpp"
+#include "wasm/exception/exceptions.hpp"
 
 #include <regex>
 #include <fstream>
@@ -795,4 +796,20 @@ uint64_t RPC_PARAM::GetPriceByCdp(CPriceFeedCache &priceFeedCache, CUserCDP &cdp
     }
 
     return priceFeedCache.GetMedianPrice(PriceCoinPair(cdp.bcoin_symbol, quoteSymbol));
+}
+
+
+CUniversalContractStore RPC_PARAM::GetWasmContract(CContractDBCache &contractCache, const CRegID &regid) {
+    CUniversalContractStore contract_store;
+    CHAIN_ASSERT( contractCache.GetContract(regid, contract_store),
+                  wasm_chain::contract_exception,
+                  "cannot get contract '%s'",
+                  regid.ToString())
+
+    CHAIN_ASSERT( contract_store.vm_type == VMType::WASM_VM,
+                  wasm_chain::vm_type_mismatch, "vm type must be WASM_VM")
+
+    CHAIN_ASSERT( contract_store.abi.size() > 0,
+                  wasm_chain::abi_not_found_exception, "contract abi is empty")
+    return std::move(contract_store);
 }

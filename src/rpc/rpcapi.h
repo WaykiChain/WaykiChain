@@ -216,5 +216,6 @@ extern Value listmintxfees(const Array& params, bool fHelp);
 extern Value dumpdb(const Array& params, bool fHelp);
 extern Value startcommontpstest(const Array& params, bool fHelp);
 extern Value startcontracttpstest(const Array& params, bool fHelp);
+extern Value startwasmtpstest(const Array& params, bool fHelp);
 
 #endif /* RPC_API_H_ */

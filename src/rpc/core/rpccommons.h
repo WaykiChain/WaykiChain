@@ -17,6 +17,7 @@
 #include "tx/tx.h"
 #include "persistence/dexdb.h"
 #include "persistence/pricefeeddb.h"
+#include "persistence/contractdb.h"
 
 using namespace std;
 using namespace json_spirit;
@@ -122,6 +123,8 @@ namespace RPC_PARAM {
     Value GetWasmContractArgs(const Value &jsonValue);
 
     uint64_t GetPriceByCdp(CPriceFeedCache &priceFeedCache, CUserCDP &cdp);
+
+    CUniversalContractStore GetWasmContract(CContractDBCache &contractCache, const CRegID &regid);
 }
 
 /*
