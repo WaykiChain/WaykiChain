@@ -784,10 +784,10 @@ namespace RPC_PARAM {
 }
 
 Value startwasmtpstest(const Array& params, bool fHelp) {
-    if (fHelp || params.size() != 3) {
+    if (fHelp || params.size() != 5) {
         throw runtime_error(
             "startwasmtpstest \"regid\" \"period\" \"batch_size\"\n"
-            "\nStart generation blocks with batch_size contract transactions in period ms.\n"
+            "\nStart generate wasm contract tx for tps with batch_size tx in period ms.\n"
             "\nArguments:\n"
             "1.\"regid\" (string, required) contract regid\n"
             "2.\"action\" (string, required) contract action\n"
