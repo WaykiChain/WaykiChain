@@ -896,7 +896,7 @@ fs::path AbsPathForConfigVal(const fs::path& path, bool net_specific = true)
  */
 bool InitLogging()
 {
-    LogInstance().m_print_to_file = !SysCfg().GetBoolArg("-debuglogfile", false);
+    LogInstance().m_print_to_file = SysCfg().GetBoolArg("-logprinttofile", false);
     LogInstance().m_file_path = AbsPathForConfigVal(SysCfg().GetArg("-debuglogfile", DEFAULT_DEBUGLOGFILE));
     LogInstance().m_print_to_console = SysCfg().GetBoolArg("-logprinttoconsole", true);
     LogInstance().m_print_file_line  = SysCfg().GetBoolArg("-logprintfileline", false);
