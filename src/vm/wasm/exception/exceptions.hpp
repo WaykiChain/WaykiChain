@@ -117,12 +117,11 @@ namespace wasm_chain {
       CHAIN_DECLARE_DERIVED_EXCEPTION( symbol_type_exception,             chain_type_exception,
                                     3010014, "Invalid symbol" )
       CHAIN_DECLARE_DERIVED_EXCEPTION( precision_size_exception,          chain_type_exception,
-                                    3010014, "Invalid precision size" )
-
+                                    3010015, "Invalid precision size" )
       CHAIN_DECLARE_DERIVED_EXCEPTION( unactivated_key_type,              chain_type_exception,
-                                    3010015, "Key type is not a currently activated type" )
+                                    3010016, "Key type is not a currently activated type" )
       CHAIN_DECLARE_DERIVED_EXCEPTION( unactivated_signature_type,        chain_type_exception,
-                                    3010016, "Signature type is not a currently activated type" )
+                                    3010017, "Signature type is not a currently activated type" )
 
    CHAIN_DECLARE_DERIVED_EXCEPTION( fork_database_exception, chain_exception,
                                  3020000, "Fork database exception" )
