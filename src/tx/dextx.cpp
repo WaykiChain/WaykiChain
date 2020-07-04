@@ -727,43 +727,44 @@ namespace dex {
         uint64_t buyerReceivedAssets = dealItem.dealAssetAmount;
         // the seller receive coins
         uint64_t sellerReceivedCoins = dealItem.dealCoinAmount;
+
+        // 8. calc the friction fees
         uint64_t coinFrictionFee = 0;
         uint64_t assetFrictionFee = 0;
         if (   (sellOrder.generate_type != SYSTEM_GEN_ORDER && buyOrder.generate_type != SYSTEM_GEN_ORDER) &&
                 version >= FeatureForkVersionEnum::MAJOR_VER_R3) {
-            // calc and check coin friction fee
+            // 8.1 calc and check coin friction fee
             if (!CalcWusdFrictionFee(sellerReceivedCoins, coinFrictionFee)) return false;
             if (!SubDealFee(sellerReceivedCoins, coinFrictionFee, "coin_friction")) return false;
-            // calc and check asset friction fee
+            // 8.2 calc and check asset friction fee
             if (!CalcWusdFrictionFee(buyerReceivedAssets, assetFrictionFee)) return false;
             if (!SubDealFee(buyerReceivedAssets, assetFrictionFee, "asset_friction")) return false;
         }
 
-        // 8. calc deal fees for dex operator
-        // 8.1. calc deal asset fee payed by buyer for buy operator
+        // 9. calc deal fees for dex operator
+        // 9.1. calc deal asset fee payed by buyer for buy operator
         uint64_t assetMatchFee = 0;
         if (!CalcMatchFee(dealItem.buyOrderId, buyOrder, buyOrderOperatorParams, takerSide,
                           buyerReceivedAssets, assetMatchFee))
             return false;
         if (!SubDealFee(buyerReceivedAssets, assetMatchFee, "asset_match")) return false;
-        // 8.2. calc deal coin fee payed by seller for sell operator
+        // 9.2. calc deal coin fee payed by seller for sell operator
         uint64_t coinMatchFee = 0;
         if (!CalcMatchFee(dealItem.sellOrderId, sellOrder, sellOrderOperatorParams, takerSide,
                           sellerReceivedCoins, coinMatchFee)) {
             return false;
         }
-
         if (!SubDealFee(sellerReceivedCoins, coinMatchFee, "coin_match")) return false;
 
-        // 9. Deal for the coins and assets
-        // 9.1 buyer's coins -> seller
+        // 10. Deal the coins and assets
+        // 10.1 buyer's coins -> seller
         if (!spBuyOrderAccount->OperateBalance(buyOrder.coin_symbol, DEX_DEAL, dealItem.dealCoinAmount,
                                               ReceiptType::DEX_COIN_TO_SELLER, receipts, spSellOrderAccount.get())) {
             return state.DoS(100, ERRORMSG("%s, deal buyer's coins failed! deal_info={%s}, coin_symbol=%s",
                     DEAL_ITEM_TITLE, dealItem.ToString(), buyOrder.coin_symbol),
                     REJECT_INVALID, "deal-buyer-coins-failed");
         }
-        // 9.2 seller's assets -> buyer
+        // 10.2 seller's assets -> buyer
         if (!spSellOrderAccount->OperateBalance(sellOrder.asset_symbol, DEX_DEAL, dealItem.dealAssetAmount,
                                               ReceiptType::DEX_ASSET_TO_BUYER, receipts, spBuyOrderAccount.get())) {
             return state.DoS(100, ERRORMSG("%s, deal seller's assets failed! deal_info={%s}, asset_symbol=%s",
@@ -771,12 +772,12 @@ namespace dex {
                     REJECT_INVALID, "deal-seller-assets-failed");
         }
 
-        // 10. process friction fee
+        // 11. process friction fee
         if (   (sellOrder.generate_type != SYSTEM_GEN_ORDER && buyOrder.generate_type != SYSTEM_GEN_ORDER) &&
                 version >= FeatureForkVersionEnum::MAJOR_VER_R3) {
-            // 10.1 coin friction fee: seller -> risk reserve
+            // 11.1 coin friction fee: seller -> risk reserve
             if (!ProcessCoinFrictionFee(*spSellOrderAccount, sellOrder.coin_symbol, coinFrictionFee)) return false;
-            // 10.2 asset friction fee: buyer -> current BP
+            // 11.2 asset friction fee: buyer -> current BP
             if (!spBuyOrderAccount->OperateBalance(buyOrder.asset_symbol, BalanceOpType::SUB_FREE, assetFrictionFee,
                                                     ReceiptType::FRICTION_FEE, receipts, spBpAccount.get())) {
                 return state.DoS(100, ERRORMSG("transfer friction to current bp account failed"),
@@ -784,8 +785,8 @@ namespace dex {
             }
         }
 
-        // 11. transfer the match fee of coins and assets to dex operators
-        // 11.1. coin match fee: seller -> sell operator
+        // 12. transfer the match fee of coins and assets to dex operators
+        // 12.1. coin match fee: seller -> sell operator
         if (!spSellOrderAccount->OperateBalance(sellOrder.coin_symbol, SUB_FREE, coinMatchFee,
                                                ReceiptType::DEX_COIN_FEE_TO_OPERATOR, receipts,
                                                spSellOpAccount.get())) {
@@ -796,7 +797,7 @@ namespace dex {
                     REJECT_INVALID, "transfer-coin-match-fee-failed");
         }
 
-        // 11.2. asset match fee: buyer -> buy operator
+        // 12.2. asset match fee: buyer -> buy operator
         if (!spBuyOrderAccount->OperateBalance(buyOrder.asset_symbol, SUB_FREE, assetMatchFee,
                                               ReceiptType::DEX_ASSET_FEE_TO_OPERATOR, receipts,
                                               spBuyOpAccount.get())) {
@@ -807,7 +808,8 @@ namespace dex {
         }
 
 
-        // 12. check order fullfiled or save residual amount
+        // 13. check order fullfiled or save residual amount
+        // 13.1 check buy order fullfiled or save residual amount
         if (buyResidualAmount == 0) { // buy order fulfilled
             if (buyOrder.order_type == ORDER_LIMIT_PRICE) {
                 if (buyOrder.coin_amount > buyOrder.total_deal_coin_amount) {
@@ -837,6 +839,7 @@ namespace dex {
             }
         }
 
+        // 13.2 check sell order fullfiled or save residual amount
         if (sellResidualAmount == 0) { // sell order fulfilled
             // erase active order
             if (!cw.dexCache.EraseActiveOrder(dealItem.sellOrderId, sellOrder)) {
