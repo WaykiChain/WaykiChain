@@ -908,11 +908,12 @@ namespace dex {
     }
 
     bool CDealItemExecuter::SubDealFee(uint64_t &receivedAmount, uint64_t fee, const char *name) {
-        if (receivedAmount < fee) {
+        if (receivedAmount <= fee) {
             return context.pState->DoS(100, ERRORMSG("%s, the %s fee=%llu too large! deal_info={%s}",
                     DEAL_ITEM_TITLE, name, fee, dealItem.ToString()),
                     REJECT_INVALID, "deal-fee-too-large");
         }
+        receivedAmount -= fee;
         return true;
     }
 
