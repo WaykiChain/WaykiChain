@@ -990,9 +990,6 @@ namespace dex {
         CCacheWrapper &cw = *context.pCw; CValidationState &state = *context.pState;
         const auto &txid = tx.GetHash();
         if (frictionFee > 0) {
-
-            uint64_t reserveScoins = frictionFee / 2;
-            uint64_t buyScoins  = frictionFee - reserveScoins;  // handle odd amount
             const auto &fcoinRegid = SysCfg().GetFcoinGenesisRegId();
             auto spFcoinAccount = tx.GetAccount(context, fcoinRegid, "fcoin");
             if (!spFcoinAccount) return false;
@@ -1007,7 +1004,7 @@ namespace dex {
             // 2) buy WGRT/coin for burn
             // should freeze user's coin for buying the WGRT
 
-            if (!spFcoinAccount->OperateBalance(symbol, BalanceOpType::FREEZE, buyScoins,
+            if (!spFcoinAccount->OperateBalance(symbol, BalanceOpType::FREEZE, frictionFee,
                                                     ReceiptType::BUY_FCOINS_FOR_DEFLATION, receipts)) {
                 return state.DoS(100, ERRORMSG("account has insufficient funds"),
                                 UPDATE_ACCOUNT_FAIL, "operate-fcoin-genesis-account-failed");
@@ -1016,7 +1013,7 @@ namespace dex {
             hashWriter << txid << CFixedUInt32(idx) << dealItem << symbol;
             uint256 orderId         = hashWriter.GetHash();
             auto pSysBuyMarketOrder = dex::CSysOrder::CreateBuyMarketOrder(
-                context.GetTxCord(), symbol, SYMB::WGRT, buyScoins, {"settle", txid});
+                context.GetTxCord(), symbol, SYMB::WGRT, frictionFee, {"settle", txid});
             if (!cw.dexCache.CreateActiveOrder(orderId, *pSysBuyMarketOrder)) {
                 return state.DoS(100, ERRORMSG("create system buy order failed, orderId=%s", orderId.ToString()),
                                 CREATE_SYS_ORDER_FAILED, "create-sys-order-failed");

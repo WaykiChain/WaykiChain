@@ -140,8 +140,6 @@ bool CCoinTransferTx::ExecuteTx(CTxExecuteContext &context) {
 
             if (frictionFee > 0) {
                 actualCoinsToSend -= frictionFee;
-                uint64_t reserveScoins = frictionFee / 2;
-                uint64_t buyScoins  = frictionFee - reserveScoins;  // handle odd amount
 
                 auto spFcoinGenesisAccount = GetAccount(context, SysCfg().GetFcoinGenesisRegId(), "fcoin");
                 if (!spFcoinGenesisAccount) return false;
@@ -154,23 +152,21 @@ bool CCoinTransferTx::ExecuteTx(CTxExecuteContext &context) {
                                     UPDATE_ACCOUNT_FAIL, "transfer-risk-fee-failed");
                 }
 
-                // 2) sell 50% risk fees and burn it
+                // 2) sell friction fees and burn it
                 // should freeze user's coin for buying the WGRT
-                if (buyScoins > 0) {
-                    if (!spFcoinGenesisAccount->OperateBalance(SYMB::WUSD, BalanceOpType::FREEZE, buyScoins,
-                                                            ReceiptType::BUY_FCOINS_FOR_DEFLATION, receipts)) {
-                        return state.DoS(100, ERRORMSG("account has insufficient funds"),
-                                        UPDATE_ACCOUNT_FAIL, "operate-fcoin-genesis-account-failed");
-                    }
-                    CHashWriter hashWriter(SER_GETHASH, 0);
-                    hashWriter << txid << SYMB::WUSD << CFixedUInt32(i);
-                    uint256 orderId = hashWriter.GetHash();
-                    auto pSysBuyMarketOrder = dex::CSysOrder::CreateBuyMarketOrder(
-                        context.GetTxCord(), SYMB::WUSD, SYMB::WGRT, buyScoins, {"send", txid});
-                    if (!cw.dexCache.CreateActiveOrder(orderId, *pSysBuyMarketOrder)) {
-                        return state.DoS(100, ERRORMSG("create system buy order failed, orderId=%s", orderId.ToString()),
-                                        CREATE_SYS_ORDER_FAILED, "create-sys-order-failed");
-                    }
+                if (!spFcoinGenesisAccount->OperateBalance(SYMB::WUSD, BalanceOpType::FREEZE, frictionFee,
+                                                        ReceiptType::BUY_FCOINS_FOR_DEFLATION, receipts)) {
+                    return state.DoS(100, ERRORMSG("account has insufficient funds"),
+                                    UPDATE_ACCOUNT_FAIL, "operate-fcoin-genesis-account-failed");
+                }
+                CHashWriter hashWriter(SER_GETHASH, 0);
+                hashWriter << txid << SYMB::WUSD << CFixedUInt32(i);
+                uint256 orderId = hashWriter.GetHash();
+                auto pSysBuyMarketOrder = dex::CSysOrder::CreateBuyMarketOrder(
+                    context.GetTxCord(), SYMB::WUSD, SYMB::WGRT, frictionFee, {"send", txid});
+                if (!cw.dexCache.CreateActiveOrder(orderId, *pSysBuyMarketOrder)) {
+                    return state.DoS(100, ERRORMSG("create system buy order failed, orderId=%s", orderId.ToString()),
+                                    CREATE_SYS_ORDER_FAILED, "create-sys-order-failed");
                 }
             }
         }
