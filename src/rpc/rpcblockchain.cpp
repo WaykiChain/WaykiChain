@@ -528,7 +528,7 @@ static void CommonTxGenerator(TpsTester *tpsTester) {
         int32_t validHeight = chainActive.Height();
 
         for (int64_t i = 0; i < tpsTester->batchSize; ++i) {
-            std::shared_ptr<CBaseCoinTransferTx> tx;
+            std::shared_ptr<CBaseCoinTransferTx> tx = make_shared<CBaseCoinTransferTx>();
             tx->txUid        = srcRegId;
             tx->toUid        = desRegId;
             tx->coin_amount  = llValue++;
@@ -630,7 +630,7 @@ void static ContractTxGenerator(TpsTester *tpsTester, const string& regid) {
         int32_t validHeight = chainActive.Height();
 
         for (int64_t i = 0; i < tpsTester->batchSize; ++i) {
-            shared_ptr<CLuaContractInvokeTx> tx;
+            shared_ptr<CLuaContractInvokeTx> tx = make_shared<CLuaContractInvokeTx>();
             tx->txUid        = txUid;
             tx->app_uid      = appUid;
             tx->coin_amount  = llValue++;
@@ -743,7 +743,7 @@ void static WasmTxGenerator(TpsTester *tpsTester, wasm::inline_transaction &inli
         }
 
         for (int64_t i = 0; i < tpsTester->batchSize; ++i) {
-            shared_ptr<CUniversalTx> tx;
+            shared_ptr<CUniversalTx> tx = std::make_shared<CUniversalTx>();
             tx->txUid        = txUid;
             tx->fee_symbol   = SYMB::WICC;
             tx->llFees       = fees;
