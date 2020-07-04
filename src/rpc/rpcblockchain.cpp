@@ -796,8 +796,11 @@ Value startwasmtpstest(const Array& params, bool fHelp) {
             "5.\"batch_size\" (numeric, required)\n"
             "\nResult:\n"
             "\nExamples:\n" +
-            HelpExampleCli("startwasmtpstest", "\"3-1\" 20 20") + "\nAs json rpc call\n" +
-            HelpExampleRpc("startwasmtpstest", "\"3-1\", 20, 20"));
+            HelpExampleCli("startwasmtpstest", "\"0-1\" \"0-800\" \"transfer\" '["
+                "\"0-1\", \"8-2\", \"1.00000000 WICC\", \"\"]' 20 20") +
+            "\nAs json rpc call\n" +
+            HelpExampleRpc("startwasmtpstest", "\"0-1\", \"0-800\", \"transfer\", ["
+                "\"0-1\", \"8-2\", \"1.00000000 WICC\", \"\"], 20, 20"));
     }
     auto regid  = RPC_PARAM::ParseRegId(params[1], "contract");
     auto action = wasm::name(params[2].get_str());
