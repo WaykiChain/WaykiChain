@@ -802,9 +802,11 @@ Value startwasmtpstest(const Array& params, bool fHelp) {
             HelpExampleRpc("startwasmtpstest", "\"0-1\", \"0-800\", \"transfer\", ["
                 "\"0-1\", \"8-2\", \"1.00000000 WICC\", \"\"], 20, 20"));
     }
-    auto regid  = RPC_PARAM::ParseRegId(params[1], "contract");
-    auto action = wasm::name(params[2].get_str());
-    auto argsIn = RPC_PARAM::GetWasmContractArgs(params[3]);
+    auto regid  = RPC_PARAM::ParseRegId(params[0], "contract");
+    auto action = wasm::name(params[1].get_str());
+    auto argsIn = RPC_PARAM::GetWasmContractArgs(params[2]);
+    int64_t period = RPC_PARAM::ParseInt64(params[3], "period");
+    int64_t batchSize = RPC_PARAM::ParseInt64(params[4], "batch_size");
 
     if (SysCfg().NetworkID() != REGTEST_NET) {
         throw JSONRPCError(RPC_INVALID_PARAMETER, "work in regtest only");
@@ -828,12 +830,10 @@ Value startwasmtpstest(const Array& params, bool fHelp) {
                     action_data.size(), MAX_CONTRACT_ARGUMENT_SIZE)
 
 
-    int64_t period = RPC_PARAM::ParseInt64(params[1], "period");
     if (period < 0 || period > 1000) {
         throw JSONRPCError(RPC_INVALID_PARAMETER, "period should range between 0 to 1000");
     }
 
-    int64_t batchSize = RPC_PARAM::ParseInt64(params[2], "batch_size");
     if (batchSize < 0) {
         throw JSONRPCError(RPC_INVALID_PARAMETER, "batch size should be bigger than 0");
     }
