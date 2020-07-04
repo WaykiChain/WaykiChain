@@ -148,7 +148,7 @@ bool CCoinTransferTx::ExecuteTx(CTxExecuteContext &context) {
 
                 // 1) transfer all risk fee to risk-reserve
                 if (!sp_tx_account->OperateBalance(SYMB::WUSD, BalanceOpType::SUB_FREE, frictionFee,
-                                                ReceiptType::SOIN_FRICTION_FEE_TO_RESERVE, receipts,
+                                                ReceiptType::FRICTION_FEE, receipts,
                                                 spFcoinGenesisAccount.get())) {
                     return state.DoS(100, ERRORMSG("transfer risk fee to risk-reserve account failed"),
                                     UPDATE_ACCOUNT_FAIL, "transfer-risk-fee-failed");

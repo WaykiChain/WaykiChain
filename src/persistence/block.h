@@ -179,7 +179,7 @@ public:
 
     map<TokenSymbol, uint64_t> GetFees() const;
     const PriceMap& GetBlockMedianPrice() const;
-    CUserID GetMinerUserID() const;
+    const CUserID &GetMinerUserID() const;
 
     void Print() const;
 };
@@ -292,10 +292,9 @@ public:
         nFuelFee       = block.GetFuelFee();
         nFuelRate      = block.GetFuelRate();
         vSignature     = block.GetSignature();
-      /*  if(block.GetHeight() == 0 )
-            miner = CRegID("0-1");
-        else
-            miner = block.vptx[0]->txUid.get<CRegID>();*/
+        if (block.vptx.size() > 0 && block.vptx[0]->txUid.is<CRegID>()) {
+            miner = block.vptx[0]->txUid.get<CRegID>();
+        }
     }
 
     CDiskBlockPos GetBlockPos() const {

@@ -27,7 +27,7 @@ static CUserID nullId;
     DEFINE(COIN_STAKE,                          104, "stake user's coins") \
     /**** transfer */ \
     DEFINE(BUY_FCOINS_FOR_DEFLATION,            200, "buy fcoins for deflation") \
-    DEFINE(SOIN_FRICTION_FEE_TO_RESERVE,        201, "soin friction fee to risk reserve") \
+    DEFINE(FRICTION_FEE,                        201, "friction fee") \
     DEFINE(TRANSFER_ACTUAL_COINS,               202, "transfer coins with account") \
     DEFINE(LUAVM_TRANSFER_ACTUAL_COINS,         203, "transfer coins in Lua contract") \
     DEFINE(WASM_TRANSFER_ACTUAL_COINS,          204, "transfer coins in WASM contract") \

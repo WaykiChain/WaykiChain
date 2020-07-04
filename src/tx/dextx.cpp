@@ -531,7 +531,7 @@ namespace dex {
     public:
         // input data
         DealItem &dealItem;
-        uint32_t idx;       // index of deal item
+        uint32_t idx = 0;       // index of deal item
         CDEXSettleTx &tx;
         CTxExecuteContext &context;
         shared_ptr<CAccount> &pTxAccount;
@@ -549,6 +549,7 @@ namespace dex {
         COrderOperatorParams buyOrderOperatorParams;
         COrderOperatorParams sellOrderOperatorParams;
         OrderSide takerSide;
+        shared_ptr<CAccount> spBpAccount;
 
         CDealItemExecuter(DealItem &dealItemIn, uint32_t idxIn, CDEXSettleTx &txIn,
                           CTxExecuteContext &contextIn, shared_ptr<CAccount> &pTxAccountIn,
@@ -561,7 +562,7 @@ namespace dex {
         COrderOperatorParams GetOrderOperatorParams(CDEXOrderDetail &order, DexOperatorDetail &operatorDetail);
 
         bool CheckOrderOpenMode();
-        bool CheckDealFee(uint64_t &receivedAmount, uint64_t fee, const char *name);
+        bool SubDealFee(uint64_t &receivedAmount, uint64_t fee, const char *name);
 
         bool GetDealOrder(const uint256 &orderId, const OrderSide orderSide,
                           CDEXOrderDetail &dealOrder);
@@ -572,17 +573,18 @@ namespace dex {
                                      const COrderOperatorParams &orderOperatorParams,
                                      const OrderSide &takerSide);
 
-        bool CalcDealFee(const uint256 &orderId, const CDEXOrderDetail &order,
+        bool CalcMatchFee(const uint256 &orderId, const CDEXOrderDetail &order,
                           const COrderOperatorParams &orderOperatorParams,
                           const OrderSide &takerSide, uint64_t amount, uint64_t &orderFee);
 
         bool CalcWusdFrictionFee(uint64_t amount, uint64_t &frictionFee);
 
-        bool ProcessWusdFrictionFee(CAccount &fromAccount, uint64_t amount, uint64_t frictionFee);
+        bool ProcessCoinFrictionFee(CAccount &fromAccount, const TokenSymbol &symbol, uint64_t frictionFee);
     };
 
     bool CDealItemExecuter::Execute() {
         CCacheWrapper &cw = *context.pCw; CValidationState &state = *context.pState;
+        FeatureForkVersionEnum version = GetFeatureForkVersion(context.height);
 
         //1.1 get and check buyDealOrder and sellDealOrder
         if (!GetDealOrder(dealItem.buyOrderId, ORDER_BUY, buyOrder)) return false;
@@ -614,6 +616,9 @@ namespace dex {
 
         // 1.5 get taker side
         takerSide = GetTakerOrderSide();
+
+        spBpAccount = tx.GetAccount(context, context.bp_regid, "current_bp");
+        if (!spBpAccount) return false;
 
         // 2. check coin type match
         if (buyOrder.coin_symbol != sellOrder.coin_symbol) {
@@ -722,21 +727,33 @@ namespace dex {
         uint64_t buyerReceivedAssets = dealItem.dealAssetAmount;
         // the seller receive coins
         uint64_t sellerReceivedCoins = dealItem.dealCoinAmount;
+        uint64_t coinFrictionFee = 0;
+        uint64_t assetFrictionFee = 0;
+        if (   (sellOrder.generate_type != SYSTEM_GEN_ORDER && buyOrder.generate_type != SYSTEM_GEN_ORDER) &&
+                version >= FeatureForkVersionEnum::MAJOR_VER_R3) {
+            // calc and check coin friction fee
+            if (!CalcWusdFrictionFee(sellerReceivedCoins, coinFrictionFee)) return false;
+            if (!SubDealFee(sellerReceivedCoins, coinFrictionFee, "coin_friction")) return false;
+            // calc and check asset friction fee
+            if (!CalcWusdFrictionFee(buyerReceivedAssets, assetFrictionFee)) return false;
+            if (!SubDealFee(buyerReceivedAssets, assetFrictionFee, "asset_friction")) return false;
+        }
 
         // 8. calc deal fees for dex operator
         // 8.1. calc deal asset fee payed by buyer for buy operator
-        uint64_t dealAssetFee = 0;
-        if (!CalcDealFee(dealItem.buyOrderId, buyOrder, buyOrderOperatorParams, takerSide,
-                          dealItem.dealAssetAmount, dealAssetFee))
+        uint64_t assetMatchFee = 0;
+        if (!CalcMatchFee(dealItem.buyOrderId, buyOrder, buyOrderOperatorParams, takerSide,
+                          buyerReceivedAssets, assetMatchFee))
             return false;
-        if (!CheckDealFee(buyerReceivedAssets, dealAssetFee, "deal_asset")) return false;
+        if (!SubDealFee(buyerReceivedAssets, assetMatchFee, "asset_match")) return false;
         // 8.2. calc deal coin fee payed by seller for sell operator
-        uint64_t dealCoinFee = 0;
-        if (!CalcDealFee(dealItem.sellOrderId, sellOrder, sellOrderOperatorParams, takerSide,
-                          dealItem.dealCoinAmount, dealCoinFee))
+        uint64_t coinMatchFee = 0;
+        if (!CalcMatchFee(dealItem.sellOrderId, sellOrder, sellOrderOperatorParams, takerSide,
+                          sellerReceivedCoins, coinMatchFee)) {
             return false;
-        if (!CheckDealFee(sellerReceivedCoins, dealCoinFee, "deal_coin")) return false;
+        }
 
+        if (!SubDealFee(sellerReceivedCoins, coinMatchFee, "coin_match")) return false;
 
         // 9. Deal for the coins and assets
         // 9.1 buyer's coins -> seller
@@ -754,44 +771,41 @@ namespace dex {
                     REJECT_INVALID, "deal-seller-assets-failed");
         }
 
-        // 10. transfer the deal fee of coins and assets to dex operators
-        // 10.1. transfer deal coin fee from seller to sell operator
-        if (!spSellOrderAccount->OperateBalance(sellOrder.coin_symbol, SUB_FREE, dealCoinFee,
-                                               ReceiptType::DEX_COIN_FEE_TO_OPERATOR, receipts,
-                                               spSellOpAccount.get())) {
-            return state.DoS(100, ERRORMSG("%s, transfer deal coin fee from seller to sell operator failed!"
-                    " deal_info={%s}, coin_symbol=%s, coin_fee=%llu, sell_op_regid=%s",
-                    DEAL_ITEM_TITLE, dealItem.ToString(), sellOrder.coin_symbol, dealCoinFee,
-                    spSellOpAccount->regid.ToString()),
-                    REJECT_INVALID, "transfer-deal-coin-fee-failed");
-        }
-
-        // 10.2. transfer deal asset fee from buyer to buy operator
-        if (!spBuyOrderAccount->OperateBalance(buyOrder.asset_symbol, SUB_FREE, dealAssetFee,
-                                              ReceiptType::DEX_ASSET_FEE_TO_OPERATOR, receipts,
-                                              spBuyOpAccount.get())) {
-            return state.DoS(100, ERRORMSG("%s, transfer deal asset fee from buyer to buy operator failed!"
-                " deal_info={%s}, asset_symbol=%s, asset_fee=%llu, buy_match_regid=%s",
-                DEAL_ITEM_TITLE, dealItem.ToString(), buyOrder.asset_symbol, dealAssetFee, spBuyOpAccount->regid.ToString()),
-                REJECT_INVALID, "transfer-deal-asset-fee-failed");
-        }
-
-        // 11. process WUSD friction fee payed for risk-reserve
-        FeatureForkVersionEnum version = GetFeatureForkVersion(context.height);
+        // 10. process friction fee
         if (   (sellOrder.generate_type != SYSTEM_GEN_ORDER && buyOrder.generate_type != SYSTEM_GEN_ORDER) &&
                 version >= FeatureForkVersionEnum::MAJOR_VER_R3) {
-            if (sellOrder.coin_symbol == SYMB::WUSD) { // the seller received coins
-                uint64_t frictionCoinFee = 0;
-                if (!CalcWusdFrictionFee(dealItem.dealCoinAmount, frictionCoinFee)) return false;
-                if (!CheckDealFee(sellerReceivedCoins, frictionCoinFee, "friction_coin")) return false;
-                if (!ProcessWusdFrictionFee(*spSellOrderAccount, dealItem.dealCoinAmount, frictionCoinFee)) return false;
-            } else if (buyOrder.asset_symbol == SYMB::WUSD) { // the buyer received assets
-                uint64_t frictionAssetFee = 0;
-                if (!CalcWusdFrictionFee(dealItem.dealAssetAmount, frictionAssetFee)) return false;
-                if (!CheckDealFee(buyerReceivedAssets, frictionAssetFee, "friction_asset")) return false;
-                if (!ProcessWusdFrictionFee(*spBuyOrderAccount, dealItem.dealAssetAmount, frictionAssetFee)) return false;
+            // 10.1 coin friction fee: seller -> risk reserve
+            if (!ProcessCoinFrictionFee(*spSellOrderAccount, sellOrder.coin_symbol, coinFrictionFee)) return false;
+            // 10.2 asset friction fee: buyer -> current BP
+            if (!spBuyOrderAccount->OperateBalance(buyOrder.asset_symbol, BalanceOpType::SUB_FREE, assetFrictionFee,
+                                                    ReceiptType::FRICTION_FEE, receipts, spBpAccount.get())) {
+                return state.DoS(100, ERRORMSG("transfer friction to current bp account failed"),
+                                UPDATE_ACCOUNT_FAIL, "transfer-friction-fee-failed");
             }
         }
+
+        // 11. transfer the match fee of coins and assets to dex operators
+        // 11.1. coin match fee: seller -> sell operator
+        if (!spSellOrderAccount->OperateBalance(sellOrder.coin_symbol, SUB_FREE, coinMatchFee,
+                                               ReceiptType::DEX_COIN_FEE_TO_OPERATOR, receipts,
+                                               spSellOpAccount.get())) {
+            return state.DoS(100, ERRORMSG("%s, transfer coin match fee from seller to sell operator failed!"
+                    " deal_info={%s}, coin_symbol=%s, coin_fee=%llu, sell_op_regid=%s",
+                    DEAL_ITEM_TITLE, dealItem.ToString(), sellOrder.coin_symbol, coinMatchFee,
+                    spSellOpAccount->regid.ToString()),
+                    REJECT_INVALID, "transfer-coin-match-fee-failed");
+        }
+
+        // 11.2. asset match fee: buyer -> buy operator
+        if (!spBuyOrderAccount->OperateBalance(buyOrder.asset_symbol, SUB_FREE, assetMatchFee,
+                                              ReceiptType::DEX_ASSET_FEE_TO_OPERATOR, receipts,
+                                              spBuyOpAccount.get())) {
+            return state.DoS(100, ERRORMSG("%s, transfer asset match fee from buyer to buy operator failed!"
+                " deal_info={%s}, asset_symbol=%s, asset_fee=%llu, buy_match_regid=%s",
+                DEAL_ITEM_TITLE, dealItem.ToString(), buyOrder.asset_symbol, assetMatchFee, spBuyOpAccount->regid.ToString()),
+                REJECT_INVALID, "transfer-asset-match-fee-failed");
+        }
+
 
         // 12. check order fullfiled or save residual amount
         if (buyResidualAmount == 0) { // buy order fulfilled
@@ -890,7 +904,7 @@ namespace dex {
         return true;
     }
 
-    bool CDealItemExecuter::CheckDealFee(uint64_t &receivedAmount, uint64_t fee, const char *name) {
+    bool CDealItemExecuter::SubDealFee(uint64_t &receivedAmount, uint64_t fee, const char *name) {
         if (receivedAmount < fee) {
             return context.pState->DoS(100, ERRORMSG("%s, the %s fee=%llu too large! deal_info={%s}",
                     DEAL_ITEM_TITLE, name, fee, dealItem.ToString()),
@@ -943,7 +957,7 @@ namespace dex {
         return ratio;
     }
 
-    bool CDealItemExecuter::CalcDealFee(const uint256 &orderId, const CDEXOrderDetail &order,
+    bool CDealItemExecuter::CalcMatchFee(const uint256 &orderId, const CDEXOrderDetail &order,
                                          const COrderOperatorParams &orderOperatorParams,
                                          const OrderSide &takerSide, uint64_t amount,
                                          uint64_t &orderFee) {
@@ -971,7 +985,7 @@ namespace dex {
         return true;
     }
 
-    bool CDealItemExecuter::ProcessWusdFrictionFee(CAccount &fromAccount, uint64_t amount, uint64_t frictionFee) {
+    bool CDealItemExecuter::ProcessCoinFrictionFee(CAccount &fromAccount, const TokenSymbol &symbol, uint64_t frictionFee) {
 
         CCacheWrapper &cw = *context.pCw; CValidationState &state = *context.pState;
         const auto &txid = tx.GetHash();
@@ -984,30 +998,30 @@ namespace dex {
             if (!spFcoinAccount) return false;
 
             // 1) transfer all risk fee to risk-reserve
-            if (!fromAccount.OperateBalance(SYMB::WUSD, BalanceOpType::SUB_FREE, frictionFee,
-                                                    ReceiptType::SOIN_FRICTION_FEE_TO_RESERVE, receipts, spFcoinAccount.get())) {
+            if (!fromAccount.OperateBalance(symbol, BalanceOpType::SUB_FREE, frictionFee,
+                                                    ReceiptType::FRICTION_FEE, receipts, spFcoinAccount.get())) {
                 return state.DoS(100, ERRORMSG("transfer risk fee to risk-reserve account failed"),
                                 UPDATE_ACCOUNT_FAIL, "transfer-risk-fee-failed");
             }
 
-            // 2) sell 50% risk fees and burn it
+            // 2) buy WGRT/coin for burn
             // should freeze user's coin for buying the WGRT
-            if (buyScoins > 0) {
-                if (!spFcoinAccount->OperateBalance(SYMB::WUSD, BalanceOpType::FREEZE, buyScoins,
-                                                        ReceiptType::BUY_FCOINS_FOR_DEFLATION, receipts)) {
-                    return state.DoS(100, ERRORMSG("account has insufficient funds"),
-                                    UPDATE_ACCOUNT_FAIL, "operate-fcoin-genesis-account-failed");
-                }
-                CHashWriter hashWriter(SER_GETHASH, 0);
-                hashWriter << txid << SYMB::WUSD << CFixedUInt32(idx);
-                uint256 orderId         = hashWriter.GetHash();
-                auto pSysBuyMarketOrder = dex::CSysOrder::CreateBuyMarketOrder(
-                    context.GetTxCord(), SYMB::WUSD, SYMB::WGRT, buyScoins, {"settle", txid});
-                if (!cw.dexCache.CreateActiveOrder(orderId, *pSysBuyMarketOrder)) {
-                    return state.DoS(100, ERRORMSG("create system buy order failed, orderId=%s", orderId.ToString()),
-                                    CREATE_SYS_ORDER_FAILED, "create-sys-order-failed");
-                }
+
+            if (!spFcoinAccount->OperateBalance(symbol, BalanceOpType::FREEZE, buyScoins,
+                                                    ReceiptType::BUY_FCOINS_FOR_DEFLATION, receipts)) {
+                return state.DoS(100, ERRORMSG("account has insufficient funds"),
+                                UPDATE_ACCOUNT_FAIL, "operate-fcoin-genesis-account-failed");
             }
+            CHashWriter hashWriter(SER_GETHASH, 0);
+            hashWriter << txid << CFixedUInt32(idx) << dealItem << symbol;
+            uint256 orderId         = hashWriter.GetHash();
+            auto pSysBuyMarketOrder = dex::CSysOrder::CreateBuyMarketOrder(
+                context.GetTxCord(), symbol, SYMB::WGRT, buyScoins, {"settle", txid});
+            if (!cw.dexCache.CreateActiveOrder(orderId, *pSysBuyMarketOrder)) {
+                return state.DoS(100, ERRORMSG("create system buy order failed, orderId=%s", orderId.ToString()),
+                                CREATE_SYS_ORDER_FAILED, "create-sys-order-failed");
+            }
+
         }
         return true;
     }

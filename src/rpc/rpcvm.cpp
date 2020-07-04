@@ -189,7 +189,7 @@ Value luavm_executescript(const Array& params, bool fHelp) {
         }
 
         CValidationState state;
-        CTxExecuteContext context(newHeight, 1, fuelRate, blockTime, prevBlockTime, spCw.get(), &state);
+        CTxExecuteContext context(newHeight, 1, fuelRate, blockTime, prevBlockTime, pTip->miner, spCw.get(), &state);
         if (!tx.CheckAndExecuteTx(context)) {
             throw JSONRPCError(RPC_TRANSACTION_ERROR, "CheckAndExecuteTx register contract failed");
         }
@@ -225,7 +225,7 @@ Value luavm_executescript(const Array& params, bool fHelp) {
         }
 
         CValidationState state;
-        CTxExecuteContext context(chainActive.Height() + 1, 2, fuelRate, blockTime, prevBlockTime, spCw.get(), &state);
+        CTxExecuteContext context(chainActive.Height() + 1, 2, fuelRate, blockTime, prevBlockTime, pTip->miner, spCw.get(), &state);
         if (!contractInvokeTx.CheckAndExecuteTx(context)) {
             throw JSONRPCError(RPC_TRANSACTION_ERROR, "CheckAndExecuteTx contract failed");
         }
@@ -345,7 +345,7 @@ Value luavm_executecontract(const Array& params, bool fHelp) {
         }
 
         CValidationState state;
-        CTxExecuteContext context(height, txIndex, fuelRate, blockTime, prevBlockTime, spCw.get(), &state);
+        CTxExecuteContext context(height, txIndex, fuelRate, blockTime, prevBlockTime, pTip->miner, spCw.get(), &state);
         if (!contractInvokeTx.CheckAndExecuteTx(context)) {
             throw JSONRPCError(RPC_TRANSACTION_ERROR, "CheckAndExecuteTx contract failed");
         }

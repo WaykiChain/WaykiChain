@@ -100,7 +100,7 @@ const PriceMap& CBlock::GetBlockMedianPrice() const {
     return EMPTY_PRICE_MAP;
 }
 
-CUserID CBlock::GetMinerUserID() const {
+const CUserID& CBlock::GetMinerUserID() const {
     assert(vptx.size() > 0);
     assert(vptx[0]->IsBlockRewardTx());
 

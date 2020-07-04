@@ -289,7 +289,7 @@ bool AcceptToMemoryPool(CTxMemPool &pool, CValidationState &state, CBaseTx *pBas
 
     {
         auto bm = MAKE_BENCHMARK("check tx before add mempool");
-        CTxExecuteContext context(newHeight, 0, fuelRate, blockTime, prevBlockTime, spCW.get(), &state);
+        CTxExecuteContext context(newHeight, 0, fuelRate, blockTime, prevBlockTime, pTip->miner, spCW.get(), &state);
         if (!pBaseTx->CheckBaseTx(context) || !pBaseTx->CheckTx(context))
             return ERRORMSG("AcceptToMemoryPool() : CheckBaseTx/CheckTx failed, txid: %s", hash.GetHex());
     }
@@ -1139,7 +1139,7 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
             CTxUndoOpLogger opLogger(cw, pBaseTx->GetHash(), blockUndo);
 
             uint32_t prevBlockTime = pIndex->pprev != nullptr ? pIndex->pprev->GetBlockTime() : pIndex->GetBlockTime();
-            CTxExecuteContext context(pIndex->height, index, fuelRate, pIndex->nTime, prevBlockTime, &cw, &state);
+            CTxExecuteContext context(pIndex->height, index, fuelRate, pIndex->nTime, prevBlockTime, pIndex->miner, &cw, &state);
             if (!pBaseTx->CheckAndExecuteTx(context)) {
                 pCdMan->pLogCache->SetExecuteFail(pIndex->height, pBaseTx->GetHash(), state.GetRejectCode(), state.GetRejectReason());
                 return state.DoS(100, ERRORMSG("[%d] txid=%s check/execute failed, in detail: %s", pIndex->height,
@@ -1210,7 +1210,7 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
     {
         // Execute block reward transaction
         uint32_t prevBlockTime = pIndex->pprev != nullptr ? pIndex->pprev->GetBlockTime() : pIndex->GetBlockTime();
-        CTxExecuteContext context(pIndex->height, 0, pIndex->nFuelRate, pIndex->nTime, prevBlockTime, &cw, &state);
+        CTxExecuteContext context(pIndex->height, 0, pIndex->nFuelRate, pIndex->nTime, prevBlockTime, pIndex->miner, &cw, &state);
         CTxUndoOpLogger rewardOpLogger(cw, block.vptx[0]->GetHash(), blockUndo);
 
         if (!block.vptx[0]->ExecuteFullTx(context)) {
@@ -1254,7 +1254,7 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
             }
 
             uint32_t prevBlockTime = pIndex->pprev != nullptr ? pIndex->pprev->GetBlockTime() : pIndex->GetBlockTime();
-            CTxExecuteContext context(pIndex->height, -1, pIndex->nFuelRate, pIndex->nTime, prevBlockTime, &cw, &state);
+            CTxExecuteContext context(pIndex->height, -1, pIndex->nFuelRate, pIndex->nTime, prevBlockTime, pIndex->miner,  &cw, &state);
             CTxUndoOpLogger rewardOpLogger(cw, block.vptx[0]->GetHash(), blockUndo);
             if (!matureBlock.vptx[0]->ExecuteFullTx(context)) {
                 pCdMan->pLogCache->SetExecuteFail(pIndex->height, matureBlock.vptx[0]->GetHash(), state.GetRejectCode(),

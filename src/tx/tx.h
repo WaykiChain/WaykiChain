@@ -92,36 +92,24 @@ TxType ParseTxType(const string &str);
 
 class CTxExecuteContext {
 public:
-    int32_t                       height;
-    int32_t                       index;
-    uint32_t                      fuel_rate;
-    uint32_t                      block_time;
-    uint32_t                      prev_block_time;
-    CCacheWrapper*                pCw;
-    CValidationState*             pState;
-    TxExecuteContextType          context_type;
+    int32_t                       height = 0;
+    int32_t                       index = 0;
+    uint32_t                      fuel_rate = 0;
+    uint32_t                      block_time = 0;
+    uint32_t                      prev_block_time = 0;
+    CRegID                        bp_regid; // current BP(Block Producer) regid
+    CCacheWrapper*                pCw = nullptr;
+    CValidationState*             pState = nullptr;
+    TxExecuteContextType          context_type = TxExecuteContextType::CONNECT_BLOCK;
 
-    CTxExecuteContext()
-        : height(0),
-          index(0),
-          fuel_rate(0),
-          block_time(0),
-          prev_block_time(0),
-          pCw(nullptr),
-          pState(nullptr),
-          context_type(TxExecuteContextType::CONNECT_BLOCK){}
+    CTxExecuteContext() {}
 
     CTxExecuteContext(const int32_t heightIn, const int32_t indexIn, const uint32_t fuelRateIn,
                       const uint32_t blockTimeIn, const uint32_t preBlockTimeIn,
-                      CCacheWrapper *pCwIn, CValidationState *pStateIn,
+                      const CRegID &bpRegidIn, CCacheWrapper *pCwIn, CValidationState *pStateIn,
                       const TxExecuteContextType contextType = TxExecuteContextType::CONNECT_BLOCK)
-        : height(heightIn),
-          index(indexIn),
-          fuel_rate(fuelRateIn),
-          block_time(blockTimeIn),
-          prev_block_time(preBlockTimeIn),
-          pCw(pCwIn),
-          pState(pStateIn),
+        : height(heightIn), index(indexIn), fuel_rate(fuelRateIn), block_time(blockTimeIn),
+          prev_block_time(preBlockTimeIn), bp_regid(bpRegidIn), pCw(pCwIn), pState(pStateIn),
           context_type(contextType) {}
 
     CTxCord GetTxCord() const { return {(HeightType)height, (uint16_t)index}; }

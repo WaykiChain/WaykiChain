@@ -290,7 +290,7 @@ bool VerifyRewardTx(const CBlock *pBlock, CCacheWrapper &cwIn, VoteDelegate &cur
     return true;
 }
 
-static bool CreateNewBlockForPreStableCoinRelease(CCacheWrapper &cwIn, std::unique_ptr<CBlock> &pBlock) {
+static bool CreateNewBlockForPreStableCoinRelease(Miner &miner, CCacheWrapper &cwIn, std::unique_ptr<CBlock> &pBlock) {
     pBlock->vptx.push_back(std::make_shared<CBlockRewardTx>());
 
     // Largest block you're willing to create:
@@ -338,8 +338,9 @@ static bool CreateNewBlockForPreStableCoinRelease(CCacheWrapper &cwIn, std::uniq
                 CValidationState state;
                 pBaseTx->nFuelRate = fuelRate;
                 uint32_t prevBlockTime = pIndexPrev->GetBlockTime();
-                CTxExecuteContext context(height, index + 1, fuelRate, blockTime, prevBlockTime, spCW.get(), &state,
-                                        TxExecuteContextType::PRODUCE_BLOCK);
+                CTxExecuteContext context(height, index + 1, fuelRate, blockTime, prevBlockTime,
+                                          miner.account.regid, spCW.get(), &state,
+                                          TxExecuteContextType::PRODUCE_BLOCK);
 
                 if (!pBaseTx->CheckAndExecuteTx(context)) {
                     LogPrint(BCLog::MINER, "Check/ExecuteTx failed, txid: %s\n", pBaseTx->GetHash().GetHex());
@@ -422,7 +423,7 @@ static bool CreateStableCoinGenesisBlock(std::unique_ptr<CBlock> &pBlock) {
     return true;
 }
 
-static bool CreateNewBlockForStableCoinRelease(int64_t startMiningMs, CCacheWrapper &cwIn, std::unique_ptr<CBlock> &pBlock) {
+static bool CreateNewBlockForStableCoinRelease(int64_t startMiningMs, Miner &miner, CCacheWrapper &cwIn, std::unique_ptr<CBlock> &pBlock) {
     pBlock->vptx.push_back(std::make_shared<CUCoinBlockRewardTx>());
 
     // Largest block you're willing to create:
@@ -503,8 +504,9 @@ static bool CreateNewBlockForStableCoinRelease(int64_t startMiningMs, CCacheWrap
                 LogPrint(BCLog::MINER, "begin to pack trx: %s\n", pBaseTx->ToString(spCW->accountCache));
 
                 uint32_t prevBlockTime = pIndexPrev->GetBlockTime();
-                CTxExecuteContext context(height, index + 1, fuelRate, blockTime, prevBlockTime, spCW.get(), &state,
-                                        TxExecuteContextType::PRODUCE_BLOCK);
+                CTxExecuteContext context(height, index + 1, fuelRate, blockTime, prevBlockTime,
+                                          miner.account.regid, spCW.get(), &state,
+                                          TxExecuteContextType::PRODUCE_BLOCK);
 
                 if (!pBaseTx->CheckAndExecuteTx(context)) {
                     LogPrint(BCLog::MINER, "failed to check/exec tx: %s\n", pBaseTx->ToString(spCW->accountCache));
@@ -668,10 +670,10 @@ static bool ProduceBlock(int64_t startMiningMs, CBlockIndex *pPrevIndex, Miner &
         success = CreateStableCoinGenesisBlock(pBlock);  // stable coin genesis
 
     } else if (GetFeatureForkVersion(blockHeight) == MAJOR_VER_R1) {
-        success = CreateNewBlockForPreStableCoinRelease(*spCW, pBlock); // pre-stable coin release
+        success = CreateNewBlockForPreStableCoinRelease(miner, *spCW, pBlock); // pre-stable coin release
 
     } else {
-        success = CreateNewBlockForStableCoinRelease(startMiningMs, *spCW, pBlock);    // stable coin release
+        success = CreateNewBlockForStableCoinRelease(startMiningMs, miner, *spCW, pBlock);    // stable coin release
     }
 
     if (!success) {
