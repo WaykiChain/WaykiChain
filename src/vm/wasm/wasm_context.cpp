@@ -90,10 +90,6 @@ namespace wasm {
         return true;
     }
 
-    uint64_t wasm_context::get_fuel() {
-        return trx.GetSerializeSize(SER_DISK, CLIENT_VERSION) * store_fuel_per_byte;
-    }
-
     uint64_t wasm_context::get_maintainer(const uint64_t& contract) {
         CRegID   maintainer;
         CUniversalContractStore contract_store;

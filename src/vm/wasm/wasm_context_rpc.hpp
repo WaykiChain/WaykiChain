@@ -41,7 +41,6 @@ namespace wasm {
         void execute_one(inline_transaction_trace &trace);
         bool has_permission_from_inline_transaction(const permission &p);
         bool get_code(const uint64_t& contract, std::vector <uint8_t> &code, uint256 &hash);
-        uint64_t get_fuel();
 
 // Console methods:
     public:

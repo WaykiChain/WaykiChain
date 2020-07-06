@@ -95,10 +95,6 @@ namespace wasm {
        return cache.GetCode(contract, code);
     }
 
-    uint64_t wasm_context::get_fuel() {
-        return trx.GetSerializeSize(SER_DISK, CLIENT_VERSION) * store_fuel_per_byte;
-    }
-
     void wasm_context::initialize() {
 
         static bool wasm_interface_inited = false;
