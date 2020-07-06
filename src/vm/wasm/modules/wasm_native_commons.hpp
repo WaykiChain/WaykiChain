@@ -69,10 +69,13 @@ inline void transfer_balance(CAccount &fromAccount, CAccount &toAccount,
                  fromAccount.regid.ToString())
   }
 
+inline uint64_t calc_inline_tx_fuel(wasm_context &context) {
+    return context.trx.GetSerializeSize(SER_DISK, CLIENT_VERSION) * store_fuel_fee_per_byte;
+}
 
   inline void mint_burn_balance(wasm_context &context, bool isMintOperate) {
 
-      context.control_trx.run_cost += context.get_runcost();
+      context.control_trx.fuel   += calc_inline_tx_fuel(context);
       auto transfer_data  = wasm::unpack<std::tuple<uint64_t, wasm::asset, string>>(context.trx.data);
 
       auto target         = std::get<0>(transfer_data);

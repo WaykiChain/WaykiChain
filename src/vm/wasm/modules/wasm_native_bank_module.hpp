@@ -127,7 +127,7 @@ namespace wasm {
                                 wasm::regid(bank_native_module_id).to_string(),
                                 wasm::regid(context._receiver).to_string());
 
-            context.control_trx.run_cost   += context.get_runcost();
+            context.control_trx.fuel   += calc_inline_tx_fuel(context);
 
             auto params = wasm::unpack< std::tuple <
                                             wasm::symbol,
@@ -225,7 +225,7 @@ namespace wasm {
                                 wasm::regid(bank_native_module_id).to_string(),
                                 wasm::regid(context._receiver).to_string());
 
-            context.control_trx.run_cost   += context.get_runcost();
+            context.control_trx.fuel   += calc_inline_tx_fuel(context);
 
             auto params = wasm::unpack< std::tuple <
                             wasm::symbol_code,
@@ -293,7 +293,7 @@ namespace wasm {
                                 wasm::regid(bank_native_module_id).to_string(),
                                 wasm::regid(context._receiver).to_string());
 
-            context.control_trx.run_cost   += context.get_runcost();
+            context.control_trx.fuel   += calc_inline_tx_fuel(context);
 
             auto transfer_data = wasm::unpack<std::tuple <uint64_t, uint64_t,
                                     wasm::asset, string >>(context.trx.data);
