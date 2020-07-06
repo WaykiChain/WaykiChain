@@ -261,6 +261,7 @@ bool AcceptToMemoryPool(CTxMemPool &pool, CValidationState &state, CBaseTx *pBas
                         bool fLimitFree, bool fRejectInsaneFee) {
     AssertLockHeld(cs_main);
 
+    auto bm = MAKE_BENCHMARK("AcceptToMemoryPool");
     // is it already in the memory pool?
     uint256 hash = pBaseTx->GetHash();
     if (pool.Exists(hash))
