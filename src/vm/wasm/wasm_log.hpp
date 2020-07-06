@@ -1,19 +1,21 @@
 #pragma once
 
-#include <cstdint>
-#include <string>
+#include "logging.h"
 
-using namespace std;
+// #include <cstdint>
+// #include <string>
 
-#define WASM_FUNCTION_PRINT_LENGTH 64
+// using namespace std;
 
-#define WASM_TRACE( ... ) {                  \
-   string msg = tfm::format( __VA_ARGS__ );  \
-   std::ostringstream o;                     \
-   o << __FILE__ << ":" << __LINE__          \
-             << ":[" << __FUNCTION__ << "]"; \
-   while (o.str().size() < WASM_FUNCTION_PRINT_LENGTH) \
-        o << " ";                             \
-    std::cout << o.str() << msg << std::endl;} 
-             
+// #define WASM_FUNCTION_PRINT_LENGTH 64
 
+// #define WASM_TRACE( ... ) {                  \
+//    string msg = tfm::format( __VA_ARGS__ );  \
+//    std::ostringstream o;                     \
+//    o << __FILE__ << ":" << __LINE__          \
+//              << ":[" << __FUNCTION__ << "]"; \
+//    while (o.str().size() < WASM_FUNCTION_PRINT_LENGTH) \
+//         o << " ";                             \
+//     std::cout << o.str() << msg << std::endl;}
+
+#define WASM_TRACE( ... ) LogPrint(BCLog::WASM, __VA_ARGS__);
