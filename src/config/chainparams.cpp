@@ -57,7 +57,7 @@ public:
         genesis.SetVersion(INIT_BLOCK_VERSION);
         genesis.SetTime(IniCfg().GetStartTimeInit(MAIN_NET));
         genesis.SetNonce(IniCfg().GetGenesisBlockNonce(MAIN_NET));
-        genesis.SetFuelRate(INIT_FUEL_RATES);
+        genesis.SetFuelRate(INIT_FUEL_RATE);
         genesis.SetHeight(0);
         genesis.ClearSignature();
         genesisBlockHash = genesis.GetHash();

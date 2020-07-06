@@ -52,11 +52,11 @@ static bool CheckPackBlockTime(int64_t startMiningMs, int32_t blockHeight) {
 // base on the lastest 50 blocks
 uint32_t GetElementForBurn(CBlockIndex *pIndex) {
     if (!pIndex) {
-        return INIT_FUEL_RATES;
+        return INIT_FUEL_RATE;
     }
     int32_t nBlock = SysCfg().GetArg("-blocksizeforburn", DEFAULT_BURN_BLOCK_SIZE);
     if (nBlock * 2 >= pIndex->height - 1) {
-        return INIT_FUEL_RATES;
+        return INIT_FUEL_RATE;
     }
 
     uint64_t totalFuelFee   = 0;
@@ -77,8 +77,8 @@ uint32_t GetElementForBurn(CBlockIndex *pIndex) {
         newFuelRate = pIndex->nFuelRate;
     }
 
-    if (newFuelRate < MIN_FUEL_RATES) {
-        newFuelRate = MIN_FUEL_RATES;
+    if (newFuelRate < MIN_FUEL_RATE) {
+        newFuelRate = MIN_FUEL_RATE;
     }
 
     LogPrint(BCLog::DEBUG, "[%d] preFuelRate=%d, fuelRate=%d\n", pIndex->height, pIndex->nFuelRate, newFuelRate);

@@ -262,7 +262,7 @@ public:
         nBits          = 0;
         nNonce         = 0;
         nFuelFee          = 0;
-        nFuelRate      = INIT_FUEL_RATES;
+        nFuelRate      = INIT_FUEL_RATE;
         vSignature.clear();
     }
 

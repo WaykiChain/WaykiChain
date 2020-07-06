@@ -138,9 +138,9 @@ static const uint64_t MAX_ASSET_TOTAL_SUPPLY = 90000000000 * COIN; // 90 billion
 
 /** the total blocks of burn fee need */
 static const uint32_t DEFAULT_BURN_BLOCK_SIZE = 50;
-static const uint64_t MAX_BLOCK_FUEL      = 12000000;
-static const int64_t INIT_FUEL_RATES          = 100;  // 100 unit / 100 step
-static const int64_t MIN_FUEL_RATES           = 1;    // 1 unit / 100 step
+static const uint64_t MAX_BLOCK_FUEL          = 12000000;
+static const int64_t INIT_FUEL_RATE           = 100;        // 100%, boost 100
+static const int64_t MIN_FUEL_RATE            = 1;          // 1%, boost 100
 
 /** Fees smaller than this (in sawi) are considered zero fee (for relaying and mining) */
 static const uint64_t MIN_RELAY_TX_FEE = 1000;

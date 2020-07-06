@@ -297,6 +297,7 @@ bool CUniversalTx::ExecuteTx(CTxExecuteContext &context) {
                       "tx.llFees '%ld' is not enough to charge minimum tx execute fee '%ld' , fuel_rate:%ld",
                       llFees, minimum_tx_execute_fee, context.fuel_rate);
 
+        trx_trace.fuel                    = fuel;
         trx_trace.fuel_rate               = context.fuel_rate;
         trx_trace.minimum_tx_execute_fee  = minimum_tx_execute_fee;
 
