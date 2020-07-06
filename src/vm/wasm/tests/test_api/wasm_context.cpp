@@ -96,7 +96,7 @@ namespace wasm {
     }
 
     uint64_t wasm_context::get_fuel() {
-        return trx.GetSerializeSize(SER_DISK, CLIENT_VERSION) * store_fuel_fee_per_byte;
+        return trx.GetSerializeSize(SER_DISK, CLIENT_VERSION) * store_fuel_per_byte;
     }
 
     void wasm_context::initialize() {

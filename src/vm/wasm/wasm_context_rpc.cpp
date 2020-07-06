@@ -92,7 +92,7 @@ namespace wasm {
     }
 
     uint64_t wasm_context_rpc::get_fuel() {
-        return trx.GetSerializeSize(SER_DISK, CLIENT_VERSION) * store_fuel_fee_per_byte;
+        return trx.GetSerializeSize(SER_DISK, CLIENT_VERSION) * store_fuel_per_byte;
     }
 
     uint64_t wasm_context_rpc::get_maintainer(const uint64_t& contract) {

@@ -70,7 +70,7 @@ inline void transfer_balance(CAccount &fromAccount, CAccount &toAccount,
   }
 
 inline uint64_t calc_inline_tx_fuel(wasm_context &context) {
-    return context.trx.GetSerializeSize(SER_DISK, CLIENT_VERSION) * store_fuel_fee_per_byte;
+    return context.trx.GetSerializeSize(SER_DISK, CLIENT_VERSION) * store_fuel_per_byte;
 }
 
   inline void mint_burn_balance(wasm_context &context, bool isMintOperate) {

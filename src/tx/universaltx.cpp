@@ -264,7 +264,7 @@ bool CUniversalTx::ExecuteTx(CTxExecuteContext &context) {
         {
             pseudo_start           = system_clock::now();//pseudo start for reduce code loading duration
             auto bm1 = MAKE_BENCHMARK_START("call execute_inline_transaction", pseudo_start);
-            fuel               = GetSerializeSize(SER_DISK, CLIENT_VERSION) * store_fuel_fee_per_byte;
+            fuel               = GetSerializeSize(SER_DISK, CLIENT_VERSION) * store_fuel_per_byte;
 
             trx_trace.trx_id = GetHash();
 
