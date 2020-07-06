@@ -90,7 +90,7 @@ namespace wasm {
         return true;
     }
 
-    uint64_t wasm_context::get_runcost() {
+    uint64_t wasm_context::get_fuel() {
         return trx.GetSerializeSize(SER_DISK, CLIENT_VERSION) * store_fuel_fee_per_byte;
     }
 
@@ -298,7 +298,7 @@ namespace wasm {
     void wasm_context::update_storage_usage(const uint64_t& account, const int64_t& size_in_bytes){
 
         int64_t disk_usage    = size_in_bytes * store_fuel_fee_per_byte;
-        control_trx.run_cost += (disk_usage < 0) ? 0 : disk_usage;
+        control_trx.fuel += (disk_usage < 0) ? 0 : disk_usage;
     }
 
 }

@@ -261,10 +261,10 @@ bool CUniversalTx::ExecuteTx(CTxExecuteContext &context) {
 
         recipients_size        = 0;
         wasm::transaction_trace trx_trace;
-        pseudo_start           = system_clock::now();//pseudo start for reduce code loading duration
         {
+            pseudo_start           = system_clock::now();//pseudo start for reduce code loading duration
             auto bm1 = MAKE_BENCHMARK_START("call execute_inline_transaction", pseudo_start);
-            run_cost               = GetSerializeSize(SER_DISK, CLIENT_VERSION) * store_fuel_fee_per_byte;
+            fuel               = GetSerializeSize(SER_DISK, CLIENT_VERSION) * store_fuel_fee_per_byte;
 
             trx_trace.trx_id = GetHash();
 
@@ -286,10 +286,10 @@ bool CUniversalTx::ExecuteTx(CTxExecuteContext &context) {
 
         auto bm2 = MAKE_BENCHMARK("after call execute_inline_transaction");
         //bytes add margin
-        run_cost      += recipients_size * notice_fuel_fee_per_recipient;
+        fuel      += recipients_size * notice_fuel_fee_per_recipient;
 
         auto min_fee  = get_min_fee_in_wicc(*this, context) ;
-        auto run_fee  = get_run_fee_in_wicc(run_cost, *this, context);
+        auto run_fee  = get_run_fee_in_wicc(fuel, *this, context);
 
         auto minimum_tx_execute_fee = std::max<uint64_t>( min_fee, run_fee);
 
@@ -307,9 +307,6 @@ bool CUniversalTx::ExecuteTx(CTxExecuteContext &context) {
                       wasm_chain::account_access_exception,
                       "set tx '%s' trace failed",
                       GetHash().ToString())
-
-        //set fuel for block fuel sum
-        fuel = run_cost;
 
         auto resolver = make_resolver(database);
 

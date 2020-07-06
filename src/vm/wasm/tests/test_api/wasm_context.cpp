@@ -95,7 +95,7 @@ namespace wasm {
        return cache.GetCode(contract, code);
     }
 
-    uint64_t wasm_context::get_runcost() {
+    uint64_t wasm_context::get_fuel() {
         return trx.GetSerializeSize(SER_DISK, CLIENT_VERSION) * store_fuel_fee_per_byte;
     }
 

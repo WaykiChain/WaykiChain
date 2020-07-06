@@ -160,7 +160,7 @@ class wasm_context : public wasm_context_interface {
         void execute_one( inline_transaction_trace &trace );
         void initialize();
         void execute( inline_transaction_trace &trace );
-        uint64_t get_runcost();
+        uint64_t get_fuel();
 
 // Console methods:
     public:
