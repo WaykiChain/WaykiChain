@@ -286,7 +286,7 @@ bool CUniversalTx::ExecuteTx(CTxExecuteContext &context) {
 
         auto bm2 = MAKE_BENCHMARK("after call execute_inline_transaction");
         //bytes add margin
-        fuel      += recipients_size * notice_fuel_fee_per_recipient;
+        fuel      += recipients_size * notice_fuel_per_recipient;
 
         auto min_fee  = get_min_fee_in_wicc(*this, context) ;
         auto run_fee  = get_run_fee_in_wicc(fuel, *this, context);
