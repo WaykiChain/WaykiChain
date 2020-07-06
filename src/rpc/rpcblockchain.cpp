@@ -437,10 +437,14 @@ public:
 
     void Stop() {
         if (generateThreads != nullptr) {
+            if(generationQueue) {
+                generationQueue->Clear();
+            }
             generateThreads->interrupt_all();
             generateThreads->join_all();
             delete generateThreads;
             generateThreads = nullptr;
+            generationQueue = nullptr;
         }
     }
 
