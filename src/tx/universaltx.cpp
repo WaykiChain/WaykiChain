@@ -286,7 +286,7 @@ bool CUniversalTx::ExecuteTx(CTxExecuteContext &context) {
 
         auto bm2 = MAKE_BENCHMARK("after call execute_inline_transaction");
         //bytes add margin
-        run_cost      = run_cost + recipients_size * notice_fuel_fee_per_recipient;
+        run_cost      += recipients_size * notice_fuel_fee_per_recipient;
 
         auto min_fee  = get_min_fee_in_wicc(*this, context) ;
         auto run_fee  = get_run_fee_in_wicc(run_cost, *this, context);
@@ -363,17 +363,6 @@ bool CUniversalTx::GetInvolvedKeyIds(CCacheWrapper &cw, set <CKeyID> &keyIds) {
 
     keyIds.insert(senderKeyId);
     return true;
-}
-
-uint64_t CUniversalTx::GetFuelFee(CCacheWrapper &cw, int32_t height, uint32_t nFuelRate) {
-
-    uint64_t minFee = 0;
-    if (!GetTxMinFee(cw, nTxType, height, fee_symbol, minFee)) {
-        LogPrint(BCLog::ERROR, "CUniversalTx::GetFuelFee(), get min_fee failed! fee_symbol=%s\n", fee_symbol);
-        throw runtime_error("CUniversalTx::GetFuelFee(), get min_fee failed");
-    }
-
-    return std::max<uint64_t>(((fuel / 100.0f) * nFuelRate), minFee);
 }
 
 string CUniversalTx::ToString(CAccountDBCache &accountCache) {

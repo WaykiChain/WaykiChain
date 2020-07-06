@@ -72,7 +72,6 @@ public:
 
     virtual std::shared_ptr<CBaseTx>   GetNewInstance() const { return std::make_shared<CUniversalTx>(*this); }
     virtual map<TokenSymbol, uint64_t> GetValues()      const { return map<TokenSymbol, uint64_t>{{SYMB::WICC, 0}}; }
-    virtual uint64_t                   GetFuelFee(CCacheWrapper &cw, int32_t height, uint32_t fuelRate);
     virtual bool                       GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds);
     virtual string ToString(CAccountDBCache &accountCache);
     virtual Object ToJson(CCacheWrapper &cw) const;

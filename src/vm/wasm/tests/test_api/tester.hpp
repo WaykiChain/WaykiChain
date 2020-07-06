@@ -111,7 +111,7 @@ shared_ptr<transaction_trace> CallFunction( validating_tester &test, T ac, const
     {
         //WASM_TRACE("%ld", data.size())
 
-        shared_ptr<transaction_trace> trx_trace = make_shared<transaction_trace>(transaction_trace{});
+        shared_ptr<transaction_trace> trx_trace = make_shared<transaction_trace>();
         inline_transaction trx;
         trx.contract = ac.get_account();
         trx.action   = ac.get_name();
