@@ -169,23 +169,24 @@ static inline void to_variant(const wasm::inline_transaction_trace &t, json_spir
 
 }
 
+
+template<typename Variant, typename Resolver>
+static inline void add_field_variant(json_spirit::Object &obj, const string& name, const Variant &var, Resolver resolver) {
+    json_spirit::Value value;
+    to_variant(var, value);
+    json_spirit::Config::add(obj, name, value);
+}
+
 template<typename Resolver>
 static inline void to_variant(const wasm::transaction_trace &t, json_spirit::Value &v, Resolver resolver) {
 
     json_spirit::Object obj;
 
-    json_spirit::Value val;
-    to_variant(t.trx_id.ToString(), val);
-    json_spirit::Config::add(obj, "trx_id", val);
-
-    to_variant(t.elapsed.count(), val);
-    json_spirit::Config::add(obj, "elapsed", val);
-
-    // to_variant(t.fuel_rate, val);
-    // json_spirit::Config::add(obj, "fuel_rate", val);
-
-    to_variant(t.minimum_tx_execute_fee, val);
-    json_spirit::Config::add(obj, "minimum_fee", val);
+    add_field_variant(obj, "trx_id", t.trx_id.ToString(), resolver);
+    add_field_variant(obj, "elapsed", t.elapsed.count(), resolver);
+    add_field_variant(obj, "burned_fuel", t.fuel, resolver);
+    add_field_variant(obj, "fuel_rate", t.fuel_rate, resolver);
+    add_field_variant(obj, "minimum_fee", t.minimum_tx_execute_fee, resolver);
 
     if (t.traces.size() > 0) {
         json_spirit::Array arr;
