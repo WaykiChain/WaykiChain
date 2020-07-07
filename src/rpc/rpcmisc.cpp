@@ -379,19 +379,35 @@ template<int32_t PREFIX_TYPE, typename KeyType, typename ValueType>
 Object UndoLogToJson(CCompositeKVCache<PREFIX_TYPE, KeyType, ValueType> &cache, const CDbOpLog &opLog) {
     Object obj;
     KeyType key;
-    ValueType value;
-    opLog.Get(key, value);
-    obj.push_back(Pair("key",  db_util::ToString(key)));
-    obj.push_back(Pair("value",  db_util::ToString(value)));
+    #ifdef DB_OP_LOG_NEW_VALUE
+        std::pair<ValueType, ValueType> valuePair; // (old_value, new_value)
+        opLog.Get(key, valuePair);
+        obj.push_back(Pair("key",  db_util::ToString(key)));
+        obj.push_back(Pair("value",  db_util::ToString(valuePair.first)));
+        obj.push_back(Pair("new_value",  db_util::ToString(valuePair.second)));
+    #else  // DB_OP_LOG_NEW_VALUE
+        ValueType value;
+        opLog.Get(key, value);
+        obj.push_back(Pair("key",  db_util::ToString(key)));
+        obj.push_back(Pair("value",  db_util::ToString(value)));
+    #endif // else DB_OP_LOG_NEW_VALUE
     return obj;
 }
 
 template<int32_t PREFIX_TYPE, typename ValueType>
 Object UndoLogToJson(CSimpleKVCache<PREFIX_TYPE, ValueType> &cache, const CDbOpLog &opLog) {
     Object obj;
-    ValueType value;
-    opLog.Get(value);
-    obj.push_back(Pair("value",  db_util::ToString(value)));
+
+    #ifdef DB_OP_LOG_NEW_VALUE
+        std::pair<ValueType, ValueType> valuePair; // (old_value, new_value)
+        opLog.Get(valuePair);
+        obj.push_back(Pair("value",  db_util::ToString(valuePair.first)));
+        obj.push_back(Pair("new_value",  db_util::ToString(valuePair.second)));
+    #else  // DB_OP_LOG_NEW_VALUE
+        ValueType value;
+        opLog.Get(value);
+        obj.push_back(Pair("value",  db_util::ToString(value)));
+    #endif // else DB_OP_LOG_NEW_VALUE
     return obj;
 }
 

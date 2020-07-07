@@ -662,7 +662,7 @@ public:
         if (!ptrData) {
             ptrData = db_util::MakeEmptyValue<ValueType>();
         }
-        AddOpLog(*ptrData);
+        AddOpLog(*ptrData, &value);
         *ptrData = value;
         return true;
     }
@@ -675,7 +675,7 @@ public:
     bool EraseData() {
         auto ptr = GetDataPtr();
         if (ptr && !db_util::IsEmpty(*ptr)) {
-            AddOpLog(*ptr);
+            AddOpLog(*ptr, nullptr);
             db_util::SetEmpty(*ptr);
         }
         return true;
@@ -741,10 +741,17 @@ public:
     }
 
 private:
-    inline void AddOpLog(const ValueType &oldValue) {
+    inline void AddOpLog(const ValueType &oldValue, const ValueType *pNewValue) {
         if (pDbOpLogMap != nullptr) {
             CDbOpLog dbOpLog;
-            dbOpLog.Set(oldValue);
+            #ifdef DB_OP_LOG_NEW_VALUE
+                if (pNewValue != nullptr)
+                    dbOpLog.Set(make_pair(oldValue, *pNewValue));
+                else
+                    dbOpLog.Set(make_pair(oldValue, ValueType()));
+            #else
+                dbOpLog.Set(oldValue);
+            #endif
             pDbOpLogMap->AddOpLog(PREFIX_TYPE, dbOpLog);
         }
 
