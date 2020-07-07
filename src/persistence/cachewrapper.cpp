@@ -164,54 +164,54 @@ UndoDataFuncMap CCacheWrapper::GetUndoDataFuncMap() {
 ////////////////////////////////////////////////////////////////////////////////
 // class CCacheDBManager
 
-CCacheDBManager::CCacheDBManager(bool fReIndex, bool fMemory) {
-    const boost::filesystem::path& dbDir = GetDataDir() / "blocks";
-    pSysParamDb     = new CDBAccess(dbDir, DBNameType::SYSPARAM, false, fReIndex);
+CCacheDBManager::CCacheDBManager(bool isReindex, bool isMemory): is_reindex(isReindex), is_memory(isMemory) {
+
+    pSysParamDb     = CreateDbAccess(DBNameType::SYSPARAM);
     pSysParamCache  = new CSysParamDBCache(pSysParamDb);
 
-    pAccountDb      = new CDBAccess(dbDir, DBNameType::ACCOUNT, false, fReIndex);
+    pAccountDb      = CreateDbAccess(DBNameType::ACCOUNT);
     pAccountCache   = new CAccountDBCache(pAccountDb);
 
-    pAssetDb        = new CDBAccess(dbDir, DBNameType::ASSET, false, fReIndex);
+    pAssetDb        = CreateDbAccess(DBNameType::ASSET);
     pAssetCache     = new CAssetDbCache(pAssetDb);
 
-    pContractDb     = new CDBAccess(dbDir, DBNameType::CONTRACT, false, fReIndex);
+    pContractDb     = CreateDbAccess(DBNameType::CONTRACT);
     pContractCache  = new CContractDBCache(pContractDb);
 
-    pDelegateDb     = new CDBAccess(dbDir, DBNameType::DELEGATE, false, fReIndex);
+    pDelegateDb     = CreateDbAccess(DBNameType::DELEGATE);
     pDelegateCache  = new CDelegateDBCache(pDelegateDb);
 
-    pCdpDb          = new CDBAccess(dbDir, DBNameType::CDP, false, fReIndex);
+    pCdpDb          = CreateDbAccess(DBNameType::CDP);
     pCdpCache       = new CCdpDBCache(pCdpDb);
 
-    pClosedCdpDb    = new CDBAccess(dbDir, DBNameType::CLOSEDCDP, false, fReIndex);
+    pClosedCdpDb    = CreateDbAccess(DBNameType::CLOSEDCDP);
     pClosedCdpCache = new CClosedCdpDBCache(pClosedCdpDb);
 
-    pDexDb          = new CDBAccess(dbDir, DBNameType::DEX, false, fReIndex);
+    pDexDb          = CreateDbAccess(DBNameType::DEX);
     pDexCache       = new CDexDBCache(pDexDb);
 
 
-    pBlockIndexDb   = new CBlockIndexDB(false, fReIndex);
+    pBlockIndexDb   = new CBlockIndexDB(memory, wipe);
 
-    pBlockDb        = new CDBAccess(dbDir, DBNameType::BLOCK, false, fReIndex);
+    pBlockDb        = CreateDbAccess(DBNameType::BLOCK);
     pBlockCache     = new CBlockDBCache(pBlockDb);
 
-    pLogDb          = new CDBAccess(dbDir, DBNameType::LOG, false, fReIndex);
+    pLogDb          = CreateDbAccess(DBNameType::LOG);
     pLogCache       = new CLogDBCache(pLogDb);
 
-    pReceiptDb      = new CDBAccess(dbDir, DBNameType::RECEIPT, false, fReIndex);
+    pReceiptDb      = CreateDbAccess(DBNameType::RECEIPT);
     pReceiptCache   = new CTxReceiptDBCache(pReceiptDb);
 
-    pUtxoDb         = new CDBAccess(dbDir, DBNameType::UTXO, false, fReIndex);
+    pUtxoDb         = CreateDbAccess(DBNameType::UTXO);
     pUtxoCache      = new CTxUTXODBCache(pUtxoDb);
 
-    pAxcDb          = new CDBAccess(dbDir, DBNameType::AXC, false, fReIndex);
+    pAxcDb          = CreateDbAccess(DBNameType::AXC);
     pAxcCache       = new CAxcDBCache(pAxcDb);
 
-    pSysGovernDb    = new CDBAccess(dbDir, DBNameType::SYSGOVERN, false, fReIndex);
+    pSysGovernDb    = CreateDbAccess(DBNameType::SYSGOVERN);
     pSysGovernCache = new CSysGovernDBCache(pSysGovernDb);
 
-    pPriceFeedDb    = new CDBAccess(dbDir, DBNameType::PRICEFEED, false, fReIndex);
+    pPriceFeedDb    = CreateDbAccess(DBNameType::PRICEFEED);
     pPriceFeedCache = new CPriceFeedCache(pPriceFeedDb);
 
 
@@ -298,4 +298,12 @@ bool CCacheDBManager::Flush() {
     //     pPpCache->Flush();
 
     return true;
+}
+
+CDBAccess* CCacheDBManager::CreateDbAccess(DBNameType dbNameTypeIn) {
+
+    const boost::filesystem::path& path = GetDataDir() / "blocks" / ::GetDbName(dbNameTypeIn);
+    uint32_t cacheSize = kDBCacheSizeMap.at(dbNameTypeIn);
+
+    return new CDBAccess(dbNameTypeIn, path, cacheSize, memory, wipe);
 }

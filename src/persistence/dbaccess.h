@@ -266,9 +266,9 @@ typedef std::map<dbk::PrefixType, std::function<UndoDataFunc>> UndoDataFuncMap;
 
 class CDBAccess {
 public:
-    CDBAccess(const boost::filesystem::path& dir, DBNameType dbNameTypeIn, bool fMemory, bool fWipe) :
-              dbNameType(dbNameTypeIn),
-              db( dir / ::GetDbName(dbNameTypeIn), DBCacheSize[dbNameTypeIn], fMemory, fWipe ) {}
+    CDBAccess(DBNameType dbNameTypeIn, const boost::filesystem::path &path, size_t cacheSize,
+              bool memory, bool wipe)
+        : dbNameType(dbNameTypeIn), db(path, cacheSize, memory, wipe) {}
 
     int64_t GetDbCount() const { return db.GetDbCount(); }
     template<typename KeyType, typename ValueType>

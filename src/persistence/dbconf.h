@@ -11,12 +11,13 @@
 
 #include "config/version.h"
 #include "commons/serialize.h"
+#include "commons/types.h"
 
 typedef leveldb::Slice Slice;
 
 #define DEF_DB_NAME_ENUM(enumType, enumName, cacheSize) enumType,
 #define DEF_DB_NAME_ARRAY(enumType, enumName, cacheSize) enumName,
-#define DEF_CACHE_SIZE_ARRAY(enumType, enumName, cacheSize) cacheSize,
+#define DEF_CACHE_SIZE_PAIR(enumType, enumName, cacheSize) {enumType, cacheSize},
 
 //         DBNameType            DBName             DBCacheSize           description
 //         ----------           --------------    --------------     ----------------------------
@@ -47,8 +48,8 @@ enum DBNameType {
 
 #define DB_NAME_NONE DB_NAME_COUNT
 
-static const int32_t DBCacheSize[DBNameType::DB_NAME_COUNT + 1] {
-    DB_NAME_LIST(DEF_CACHE_SIZE_ARRAY)
+static const EnumTypeMap<DBNameType, uint32_t> kDBCacheSizeMap = {
+    DB_NAME_LIST(DEF_CACHE_SIZE_PAIR)
 };
 
 static const std::string kDbNames[DBNameType::DB_NAME_COUNT + 1] {

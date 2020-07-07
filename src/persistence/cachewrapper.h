@@ -123,11 +123,16 @@ public:
     CPricePointMemCache *pPpCache;
 
 public:
-    CCacheDBManager(bool fReIndex, bool fMemory);
+    CCacheDBManager(bool isReindex, bool isMemory);
 
     ~CCacheDBManager();
 
     bool Flush();
+private:
+    CDBAccess* CreateDbAccess(DBNameType dbNameTypeIn);
+private:
+    bool is_reindex = false;
+    bool is_memory = false;
 };  // CCacheDBManager
 
 #endif //PERSIST_CACHEWRAPPER_H
