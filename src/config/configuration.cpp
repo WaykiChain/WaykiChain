@@ -275,6 +275,6 @@ uint32_t G_CONFIG_TABLE::nVer2ForkHeight[3] {
 
 // Block height to enable feature fork version
 uint32_t G_CONFIG_TABLE::nVer3ForkHeight[3] {
-    12035830,   // mainnet, estimate block time: 2020-07-29 10:00:00
+    11776688,   // mainnet, estimate block time: 2020-07-20 10:10:08
     5756220,    // testnet, estimate block time: 2020-06-04 10:00:00
     500};       // regtest
