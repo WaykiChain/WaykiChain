@@ -345,7 +345,7 @@ Value submittx( const Array &params, bool fHelp ) {
             //tx.set_signature({payer_regid.value, tx.signature});
         }
 
-        CValidationState state(true);
+        CValidationState state(SysCfg().IsTxTrace());
         bool fSuccess = wallet->CommitTx((CBaseTx * ) & tx, state);
         JSON_RPC_ASSERT(fSuccess, RPC_WALLET_ERROR, state.GetRejectReason()) //fixme: could get exception from committx
 

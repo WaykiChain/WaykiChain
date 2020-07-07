@@ -221,6 +221,7 @@ string HelpMessage() {
     strUsage += "  -pid=<file>            " + _("Specify pid file (default: coin.pid)") + "\n";
     strUsage += "  -reindex               " + _("Rebuild block chain index from current blk000??.dat files") + " " + _("on startup") + "\n";
     strUsage += "  -txindex               " + _("Maintain a full transaction index (default: 0)") + "\n";
+    strUsage += "  -txtrace               " + _("Maintain trace of transaction (default: 1)") + "\n";
     strUsage += "  -logfailures           " + _("Log failures into level db in detail (default: 0)") + "\n";
     strUsage += "  -genreceipt            " + _("Whether generate receipt(default: 0)") + "\n";
 
@@ -520,6 +521,8 @@ bool AppInit(boost::thread_group &threadGroup) {
         if (SysCfg().SoftSetBoolArg("-rescan", true))
             LogPrint(BCLog::INFO, "AppInit : parameter interaction: -salvagewallet=1 -> setting -rescan=1\n");
     }
+
+    SysCfg().SetTxTrace(SysCfg().GetBoolArg("-txtrace", true));
 
     // Make sure enough file descriptors are available
     int32_t nBind   = max((int32_t)SysCfg().IsArgCount("-bind"), 1);

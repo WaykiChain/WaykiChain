@@ -67,6 +67,7 @@ protected:
     mutable bool fReindex;
     mutable bool fBenchmark;
     mutable bool fTxIndex;
+    mutable bool fTxTrace;
     mutable bool fLogFailures;
     mutable bool fGenReceipt;
     mutable int64_t nTimeBestReceived;
@@ -94,6 +95,7 @@ public:
         te += strprintf("fReindex:%d\n",                            fReindex);
         te += strprintf("fBenchmark:%d\n",                          fBenchmark);
         te += strprintf("fTxIndex:%d\n",                            fTxIndex);
+        te += strprintf("fTxTrace:%d\n",                            fTxTrace);
         te += strprintf("fLogFailures:%d\n",                        fLogFailures);
         te += strprintf("nTimeBestReceived:%llu\n",                 nTimeBestReceived);
         te += strprintf("nBlockIntervalPreVer2Fork:%u\n",  nBlockIntervalPreVer2Fork);
@@ -156,6 +158,7 @@ public:
     bool IsReindex() const { return fReindex; }
     bool IsBenchmark() const { return fBenchmark; }
     bool IsTxIndex() const { return fTxIndex; }
+    bool IsTxTrace() const { return fTxTrace; }
     bool IsLogFailures() const { return fLogFailures; };
     bool IsGenReceipt() const { return fGenReceipt; };
     int64_t GetBestRecvTime() const { return nTimeBestReceived; }
@@ -165,6 +168,7 @@ public:
     void SetReIndex(bool flag) const { fReindex = flag; }
     void SetBenchMark(bool flag) const { fBenchmark = flag; }
     void SetTxIndex(bool flag) const { fTxIndex = flag; }
+    void SetTxTrace(bool flag) const { fTxTrace = flag; }
     void SetLogFailures(bool flag) const { fLogFailures = flag; }
     void SetGenReceipt(bool flag) const { fGenReceipt = flag; }
     void SetBestRecvTime(int64_t nTime) const { nTimeBestReceived = nTime; }

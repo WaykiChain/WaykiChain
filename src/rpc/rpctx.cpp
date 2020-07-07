@@ -1008,7 +1008,7 @@ Value submittxraw(const Array& params, bool fHelp) {
         }
     }
 
-    CValidationState state(true);
+    CValidationState state(SysCfg().IsTxTrace());
     if (!pWalletMain->CommitTx((CBaseTx *) pBaseTx.get(), state))
         throw JSONRPCError(RPC_WALLET_ERROR,
                            strprintf("CommitTx failed: code=%d, reason=%s", state.GetRejectCode(),

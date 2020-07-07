@@ -302,22 +302,24 @@ bool CUniversalTx::ExecuteTx(CTxExecuteContext &context) {
         trx_trace.minimum_tx_execute_fee  = minimum_tx_execute_fee;
 
         //save trx trace
-        {
-            auto bm_save_trace = MAKE_BENCHMARK("save tx trace");
-            std::vector<char> trace_bytes = wasm::pack<transaction_trace>(trx_trace);
-            CHAIN_ASSERT( database.contractCache.SetContractTraces(GetHash(),
-                                                                std::string(trace_bytes.begin(), trace_bytes.end())),
-                        wasm_chain::account_access_exception,
-                        "set tx '%s' trace failed",
-                        GetHash().ToString())
-        }
+        if (SysCfg().IsTxTrace()) {
+            {
+                auto bm_save_trace = MAKE_BENCHMARK("save tx trace");
+                std::vector<char> trace_bytes = wasm::pack<transaction_trace>(trx_trace);
+                CHAIN_ASSERT( database.contractCache.SetContractTraces(GetHash(),
+                                                                    std::string(trace_bytes.begin(), trace_bytes.end())),
+                            wasm_chain::account_access_exception,
+                            "set tx '%s' trace failed",
+                            GetHash().ToString())
+            }
 
 
-        auto &json_trace = state.GetTrace();
-        if (json_trace) {
-            auto bm_return_trace = MAKE_BENCHMARK("return tx trace for rpc");
-            auto resolver = make_resolver(database);
-            to_variant(trx_trace, *json_trace, resolver);
+            auto &json_trace = state.GetTrace();
+            if (json_trace) {
+                auto bm_return_trace = MAKE_BENCHMARK("return tx trace for rpc");
+                auto resolver = make_resolver(database);
+                to_variant(trx_trace, *json_trace, resolver);
+            }
         }
 
     } catch (wasm_chain::exception &e) {
