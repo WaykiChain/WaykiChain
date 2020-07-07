@@ -254,10 +254,8 @@ inline json_spirit::Value JsonValueFromAmount(uint64_t amount) {
     if (SysCfg().IsDisplayValueInSawi())
         return amount;
     else
-        return (double)amount / (double)COIN;
+        return amount / (double)COIN;
 }
-
-inline double ValueFromAmount(uint64_t amount) { return (double)amount / (double)COIN; }
 
 // Note: it's deliberate that this returns "false" for regression test mode.
 inline bool TestNet() { return SysCfg().NetworkID() == TEST_NET; }

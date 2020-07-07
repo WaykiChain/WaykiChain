@@ -150,7 +150,7 @@ public:
         return strprintf("from_uid=%s", from_uid.ToString()) + ", " +
         strprintf("to_uid=%s", to_uid.ToString()) + ", " +
         strprintf("coin_symbol=%s", coin_symbol) + ", " +
-        strprintf("coin_amount=%f", ValueFromAmount(coin_amount)) + ", " +
+        strprintf("coin_amount=%f", coin_amount) + ", " +
         strprintf("receipt_type=%s", GetReceiptTypeName(receipt_type));
     }
 };

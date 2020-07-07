@@ -102,7 +102,7 @@ public:
 
     string ToString() const {
         return strprintf("voteType: %s, candidateUid: %s, votes: %f\n",
-                        GetVoteType(voteType), candidateUid.ToString(), ValueFromAmount(votedBcoins));
+                        GetVoteType(voteType), candidateUid.ToString(), votedBcoins);
     }
 
 private:
@@ -150,7 +150,7 @@ public:
     }
 
     string ToString() const {
-        string str = strprintf("candidate_uid: %s, voted_bcoins: %f \n", candidate_uid.ToString(), ValueFromAmount(voted_bcoins));
+        string str = strprintf("candidate_uid: %s, voted_bcoins: %f \n", candidate_uid.ToString(), voted_bcoins);
         return str;
     }
 
