@@ -188,7 +188,12 @@ void CWallet::EraseTransaction(const uint256 &hash) {
 
 void CWallet::ResendWalletTransactions() {
     vector<uint256> erase;
-    for (auto &te : unconfirmedTx) {
+    map<uint256, std::shared_ptr<CBaseTx> > resendTxMap;
+    {
+        LOCK(cs_wallet);
+        resendTxMap = unconfirmedTx;  // copy the tx map to avoid cycle thread lock
+    }
+    for (auto &te : resendTxMap) {
         // Do not submit the tx if in mempool already.
         if (mempool.Exists(te.first)) {
             continue;
@@ -202,9 +207,12 @@ void CWallet::ResendWalletTransactions() {
                                      state.GetRejectReason());
         }
     }
-    for (auto const &tee : erase) {
-        CWalletDB(strWalletFile).EraseUnconfirmedTx(tee);
-        unconfirmedTx.erase(tee);
+    {
+        LOCK(cs_wallet);
+        for (auto const &tee : erase) {
+            CWalletDB(strWalletFile).EraseUnconfirmedTx(tee);
+            unconfirmedTx.erase(tee);
+        }
     }
 }
 

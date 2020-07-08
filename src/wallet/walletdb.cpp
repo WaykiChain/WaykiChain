@@ -409,11 +409,15 @@ void ThreadRelayTx(CWallet* pWallet) {
     RenameThread("coin-relaytx");
     while (pWallet) {
         MilliSleep(60 * 1000);
-        map<uint256, std::shared_ptr<CBaseTx> >::iterator iterTx = pWallet->unconfirmedTx.begin();
-        for (; iterTx != pWallet->unconfirmedTx.end(); ++iterTx) {
-            if (mempool.Exists(iterTx->first)) {
-                RelayTransaction(iterTx->second.get(), iterTx->first);
-                LogPrint(BCLog::NET, "ThreadRelayTx resend tx hash:%s time:%ld\n", iterTx->first.GetHex(), GetTime());
+        map<uint256, std::shared_ptr<CBaseTx> > relayTxMap;
+        {
+            LOCK(pWallet->cs_wallet);
+            relayTxMap = pWallet->unconfirmedTx; // copy the tx map to avoid cycle thread lock
+        }
+        for (auto item : relayTxMap) {
+            if (mempool.Exists(item.first)) {
+                RelayTransaction(item.second.get(), item.first);
+                LogPrint(BCLog::NET, "ThreadRelayTx resend tx hash:%s time:%ld\n", item.first.GetHex(), GetTime());
             }
         }
     }
