@@ -12,13 +12,17 @@ libboost-system-dev libboost-filesystem-dev libboost-chrono-dev libboost-program
 libboost-test-dev libboost-thread-dev software-properties-common libdb4.8-dev libdb4.8++-dev git-core
 
 # Build WaykiChain source on its release branch
-RUN mkdir -p /opt/src && cd /opt/src && git clone -b $SOURCE_BRANCH 'https://github.com/WaykiChain/WaykiChain.git' --recursive \
+RUN mkdir -p /opt/src && cd /opt/src && git clone --recurse-submodules -b $SOURCE_BRANCH \
+    'https://github.com/WaykiChain/WaykiChain.git' && WaykiChain \
+    && git submodule update --init --recursive \
+    && git pull --recurse-submodules \
     && echo 'Build at source commit:' && git log | head -n 3
+
 RUN cd /opt/src/WaykiChain/distros/linuxshell && sh ./linux.sh \
-&& cd /opt/src/WaykiChain/ && sh ./autogen-coin-man.sh "coin${debug}" \
-&& make && strip /opt/src/WaykiChain/src/coind \
-&& mkdir /opt/wicc && mv /opt/src/WaykiChain/src/coind /opt/wicc/ \
-&& rm -rf /opt/src
+    && cd /opt/src/WaykiChain/ && sh ./autogen-coin-man.sh "coin${debug}" \
+    && make && strip /opt/src/WaykiChain/src/coind \
+    && mkdir /opt/wicc && mv /opt/src/WaykiChain/src/coind /opt/wicc/ \
+    && rm -rf /opt/src
 
 ENV PATH="/opt/wicc:${PATH}"
 WORKDIR /opt/wicc/
