@@ -1,6 +1,8 @@
 # Version
-* 2019-09-10
-* v2.0.0
+* v3.0.0
+
+# Mainnet Upgrade Date
+* 2020-07-16
 
 # Run in docker
 Run waykichain coind inside a docker container!
