@@ -1,4 +1,4 @@
-FROM phusion/baseimage:0.11
+FROM phusion/baseimage:18.04-1.0.0
 MAINTAINER coredev@waykichainhk.com
 ENV SOURCE_BRANCH "release"
 ARG debug='-debug'
@@ -23,6 +23,8 @@ RUN cd /opt/src/WaykiChain/distros/linuxshell && sh ./linux.sh \
     && make && strip /opt/src/WaykiChain/src/coind \
     && mkdir /opt/wicc && mv /opt/src/WaykiChain/src/coind /opt/wicc/ \
     && rm -rf /opt/src
+
+RUN apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 ENV PATH="/opt/wicc:${PATH}"
 WORKDIR /opt/wicc/
