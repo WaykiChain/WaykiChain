@@ -84,7 +84,7 @@ bool BCLog::Logger::StartLogging()
 void BCLog::Logger::Flush() {
     if (Enabled()) {
         if (m_print_to_file && m_fileout != nullptr) {
-            fflush(stdout);
+            fflush(m_fileout);
         }
     }
 }
