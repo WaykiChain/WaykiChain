@@ -13,7 +13,7 @@ libboost-test-dev libboost-thread-dev software-properties-common libdb4.8-dev li
 
 # Build WaykiChain source on its release branch
 RUN mkdir -p /opt/src && cd /opt/src && git clone --recurse-submodules -b $SOURCE_BRANCH \
-    'https://github.com/WaykiChain/WaykiChain.git' && WaykiChain \
+    'https://github.com/WaykiChain/WaykiChain.git' && cd WaykiChain \
     && git submodule update --init --recursive \
     && git pull --recurse-submodules \
     && echo 'Build at source commit:' && git log | head -n 3
