@@ -6,6 +6,8 @@
 #include <mutex>
 #include <condition_variable>
 
+extern void RenameThread(const char* name);
+
 namespace eosio { namespace vm {
 
    /// \brief Triggers a callback after a given time elapses.
@@ -57,6 +59,7 @@ namespace eosio { namespace vm {
          // each watchdog.  If there are many watchdogs, it might be more
          // efficient to create a single thread for them all.
          void runner() {
+            RenameThread("coin-wasmtimer");
             auto _lock = std::unique_lock(_mutex);
             // wait until the timer expires or someone stops it.
             _cond.wait_until(_lock, _start + _duration, [&]() { return _run_state != running; });

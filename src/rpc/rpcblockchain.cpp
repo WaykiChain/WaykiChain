@@ -449,7 +449,7 @@ public:
     }
 
     void SendTx() {
-        RenameThread("TpsTester::SendTx");
+        RenameThread("coin-tpssend");
         SetThreadPriority(THREAD_PRIORITY_NORMAL);
 
         CValidationState state;
@@ -500,7 +500,7 @@ TpsTester g_tpsTester = TpsTester();
 
 
 static void CommonTxGenerator(TpsTester *tpsTester) {
-    RenameThread("CommonTxGenerator");
+    RenameThread("coin-gentxcomm");
     SetThreadPriority(THREAD_PRIORITY_NORMAL);
 
     CCoinSecret vchSecret;
@@ -599,7 +599,7 @@ Value startcommontpstest(const Array& params, bool fHelp) {
 }
 
 void static ContractTxGenerator(TpsTester *tpsTester, const string& regid) {
-    RenameThread("contract-tx-generator");
+    RenameThread("coin-gentxlua");
     SetThreadPriority(THREAD_PRIORITY_NORMAL);
 
     CCoinSecret vchSecret;
@@ -709,7 +709,7 @@ Value startcontracttpstest(const Array& params, bool fHelp) {
 
 
 void static WasmTxGenerator(TpsTester *tpsTester, wasm::inline_transaction &inlineTx) {
-    RenameThread("contract-tx-generator");
+    RenameThread("coin-gentxwasm");
     SetThreadPriority(THREAD_PRIORITY_NORMAL);
 
     CCoinSecret vchSecret;

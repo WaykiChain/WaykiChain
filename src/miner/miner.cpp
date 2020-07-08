@@ -725,7 +725,7 @@ static bool ProduceBlock(int64_t startMiningMs, CBlockIndex *pPrevIndex, Miner &
 void static ThreadBlockProducing(CWallet *pWallet, int32_t targetHeight) {
     LogPrint(BCLog::INFO, "started\n");
 
-    RenameThread("Block-Producing");
+    RenameThread("coin-miner");
 
     auto HaveMinerKey = [&]() {
         LOCK2(cs_main, pWalletMain->cs_wallet);

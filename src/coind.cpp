@@ -32,6 +32,7 @@
 static bool fDaemon = false;
 
 void DetectShutdownThread(boost::thread_group* threadGroup) {
+    RenameThread("coin-waitexit");
     bool fShutdown = ShutdownRequested();
     // Tell the main threads to shutdown.
     while (!fShutdown) {

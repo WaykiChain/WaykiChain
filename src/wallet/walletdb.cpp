@@ -406,7 +406,7 @@ void ThreadFlushWalletDB(const string& strFile) {
 }
 
 void ThreadRelayTx(CWallet* pWallet) {
-    RenameThread("relay-tx");
+    RenameThread("coin-relaytx");
     while (pWallet) {
         MilliSleep(60 * 1000);
         map<uint256, std::shared_ptr<CBaseTx> >::iterator iterTx = pWallet->unconfirmedTx.begin();

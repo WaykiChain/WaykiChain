@@ -18,7 +18,7 @@
 
 #ifndef WIN32
 // for posix_fallocate
-#ifdef __linux_
+#ifdef __linux__
 
 #ifdef _POSIX_C_SOURCE
 #undef _POSIX_C_SOURCE
@@ -34,7 +34,7 @@
 #include <sys/stat.h>
 #include <algorithm>
 
-#else
+#else // if WIN32
 
 #ifdef _MSC_VER
 #pragma warning(disable : 4786)
@@ -60,7 +60,7 @@
 
 #include <io.h> /* for _commit */
 #include <shlobj.h>
-#endif
+#endif // WIN32
 
 #include <openssl/crypto.h>
 #include <openssl/rand.h>
