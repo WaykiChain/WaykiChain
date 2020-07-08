@@ -48,6 +48,8 @@ enum DBNameType {
 
 #define DB_NAME_NONE DB_NAME_COUNT
 
+static const uint32_t MAX_DB_CACHE_SIZE = 1 << 30; // 1 GB: max cache size
+
 static const EnumTypeMap<DBNameType, uint32_t> kDBCacheSizeMap = {
     DB_NAME_LIST(DEF_CACHE_SIZE_PAIR)
 };

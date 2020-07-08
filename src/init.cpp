@@ -751,7 +751,7 @@ bool AppInit(boost::thread_group &threadGroup) {
 
             } catch (std::exception &e) {
                 LogPrint(BCLog::INFO, "%s\n", e.what());
-                strLoadError = _("Error opening block database");
+                strLoadError = _("Error opening block database! ") + e.what();
                 break;
             }
 
