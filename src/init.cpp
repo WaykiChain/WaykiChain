@@ -134,7 +134,7 @@ void Shutdown() {
     if (!lockShutdown)
         return;
 
-    RenameThread("Coin-shutoff");
+    RenameThread("coin-shutoff");
 
     StopRPCServer();
 
