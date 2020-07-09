@@ -305,7 +305,7 @@ CDBAccess* CCacheDBManager::CreateDbAccess(DBNameType dbNameTypeIn) {
     const boost::filesystem::path& path = GetDataDir() / "blocks" / ::GetDbName(dbNameTypeIn);
     uint32_t defaultCacheSize = kDBCacheSizeMap.at(dbNameTypeIn);
     // db cache config
-    string configName = "cache_size_" + ::GetDbName(dbNameTypeIn);
+    string configName = "-cache_size_" + ::GetDbName(dbNameTypeIn);
     int64_t cacheSize = SysCfg().GetArg(configName, defaultCacheSize);
     if (cacheSize < 0 || cacheSize > MAX_DB_CACHE_SIZE) {
         LogPrint(BCLog::ERROR, "%s=%u is out or range [0, %u], use default value=%u instead\n",
