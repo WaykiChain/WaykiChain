@@ -257,8 +257,9 @@ extern CBaseParams &SysCfg();
 inline json_spirit::Value JsonValueFromAmount(uint64_t amount) {
     if (SysCfg().IsDisplayValueInSawi())
         return amount;
-    else
-        return amount / (double)COIN;
+    else {
+        return strprintf("%llu.%08llu", amount / COIN, amount % COIN);
+    }
 }
 
 // Note: it's deliberate that this returns "false" for regression test mode.
