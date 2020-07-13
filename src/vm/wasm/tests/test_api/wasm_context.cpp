@@ -102,8 +102,8 @@ namespace wasm {
             wasm_interface_inited = true;
             wasmif.initialize(wasm::vm_type::eos_vm_jit);
         }
-        //RegisterNativeHandler(wasmio, N(setcode), WasmNativeSetcode);
-        //RegisterNativeHandler(wasmio_bank, N(transfer), WasmNativeTransfer);
+        //RegisterNativeHandler(wasmio, NAME(setcode), WasmNativeSetcode);
+        //RegisterNativeHandler(wasmio_bank, NAME(transfer), WasmNativeTransfer);
     }
 
     void wasm_context::execute( inline_transaction_trace &trace ) {

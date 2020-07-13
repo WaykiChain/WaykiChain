@@ -250,7 +250,7 @@ namespace wasm {
 
 //     // action = name("transfer");
 //     // trx.contract = contract.value;
-//     // trx.funcName = action.value;  
+//     // trx.funcName = action.value;
 
 //     // from = name("xiaoyu");
 //     // to = name("mark");
@@ -259,12 +259,12 @@ namespace wasm {
 //     // vector<char> memoTransfer2(strTransfer2.begin(), strTransfer2.end());
 
 //     // trx.data = pack(std::tuple(from, to, quantity, memoTransfer));
-//     // queue.pushBack(trx); 
+//     // queue.pushBack(trx);
 
 //     // //std::cout << std::string("queue size:")<< queue.queue.size()<<std::endl ;
 //     // CWasmContext wasmContextTranser2( queue, cache);
 //     // wasmInterface.Execute(code, wasmContextTranser2);
-//     // for(auto iter = cache.database.begin(); iter != cache.database.end(); iter++) 
+//     // for(auto iter = cache.database.begin(); iter != cache.database.end(); iter++)
 //     //        std::cout << std::string("key:") << StringToHexString(iter->first,"") << std::string(" value:") << StringToHexString(iter->second,"")<<std::endl ;
 
 //     //open
@@ -313,7 +313,7 @@ int main( int argc, char **argv ) {
 
     validating_tester tester;
 
-    set_code(tester, N(testapi), "token.wasm");
+    set_code(tester, NAME(testapi), "token.wasm");
 
     name  issuer         = name("walker");
     asset maximum_supply = asset{1000000000, symbol("BTC", 4)};

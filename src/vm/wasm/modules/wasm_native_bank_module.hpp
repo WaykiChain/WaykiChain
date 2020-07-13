@@ -33,19 +33,19 @@ namespace wasm {
         public:
             static void act_handler(wasm_context &context, uint64_t action) {
                 switch (action) {
-                case N(issue): // issue a new asset
+                case NAME(issue): // issue a new asset
                     issue(context);
                     return;
-                case N(mint): // mint new asset tokens
+                case NAME(mint): // mint new asset tokens
                     mint(context);
                     return;
-                case N(burn): // burn asset tokens
+                case NAME(burn): // burn asset tokens
                     burn(context);
                     return;
-                case N(update): // update asset properties like owner's regid
+                case NAME(update): // update asset properties like owner's regid
                     update(context);
                     return;
-                case N(transfer): // transfer asset tokens
+                case NAME(transfer): // transfer asset tokens
                     tansfer(context);
                     return;
                 default:

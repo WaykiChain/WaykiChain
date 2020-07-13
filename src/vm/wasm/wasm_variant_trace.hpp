@@ -114,7 +114,7 @@ static inline void to_variant(const wasm::inline_transaction &t, json_spirit::Va
     std::vector<char> abi = resolver(t.contract);
 
     //fixme:setcode should be removed
-    if (abi.size() > 0 && t.action != wasm::N(setcode)) {
+    if (abi.size() > 0 && t.action != wasm::NAME(setcode)) {
         if (t.data.size() > 0) {
             try {
                 val = wasm::abi_serializer::unpack(abi, wasm::name(t.action).to_string(), t.data,

@@ -206,7 +206,7 @@ static uint64_t get_run_fee_in_wicc(const uint64_t& fuel, CBaseTx& tx, CTxExecut
 //                                      vector<CReceipt>&                     receipts,
 //                                      map<transfer_data_t,  uint64_t>&   receipts_duplicate_check) {
 
-//     if (trace.trx.contract == wasmio_bank && trace.trx.action == wasm::N(transfer)) {
+//     if (trace.trx.contract == wasmio_bank && trace.trx.action == wasm::NAME(transfer)) {
 
 //         CReceipt receipt;
 //         receipt.code = TRANSFER_ACTUAL_COINS;

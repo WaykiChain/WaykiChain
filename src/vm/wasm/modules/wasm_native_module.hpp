@@ -30,10 +30,10 @@ namespace wasm {
 	    public:
 		  	static void act_handler(wasm_context &context, uint64_t action){
 	    		switch (action){
-					case N(setcode):
+					case NAME(setcode):
 	    			     setcode(context);
 	    			     return;
-					case N(setcoder):
+					case NAME(setcoder):
 	    			     setcoder(context);
 	    			     return;
 	    			default:

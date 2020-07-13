@@ -40,7 +40,7 @@ namespace wasm {
     }
 
 #define N( X ) string_to_name(#X)
-#define NAME( X ) string_to_name(X)
+#define NAME( X ) string_to_name(#X)
 
 
     /*

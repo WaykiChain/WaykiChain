@@ -95,19 +95,19 @@ public:
 };
 
 
-template<uint64_t NAME>
+template<uint64_t NAME_V>
 struct test_api_action {
     static uint64_t get_account() {
-        return N(testapi);
+        return NAME(testapi);
     }
 
     static uint64_t get_name() {
-        return NAME;
+        return NAME_V;
     }
 };
 
 template<typename T>
-shared_ptr<transaction_trace> CallFunction( validating_tester &test, T ac, const vector<char> &data, const vector <uint64_t> &scope = {N(testapi)} ) {
+shared_ptr<transaction_trace> CallFunction( validating_tester &test, T ac, const vector<char> &data, const vector <uint64_t> &scope = {NAME(testapi)} ) {
     {
         //WASM_TRACE("%ld", data.size())
 
@@ -159,10 +159,10 @@ constexpr uint64_t TEST_METHOD( const char *CLASS, const char *METHOD ) {
 
 struct dummy_action {
    static uint64_t get_name() {
-      return N(dummyaction);
+      return NAME(dummyaction);
    }
    static uint64_t get_account() {
-      return N(testapi);
+      return NAME(testapi);
    }
 
   char a; //1

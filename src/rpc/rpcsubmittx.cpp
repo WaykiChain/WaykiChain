@@ -177,7 +177,7 @@ Value submitsetcodetx( const Array &params, bool fHelp ) {
             string memo = ""; // empty memo
             std::vector<permission> permissions = std::vector<permission>{{payer.value, wasmio_owner}};
             auto data = wasm::pack(std::make_tuple(contract, payer, (uint8_t)vm, code, abi, memo));
-            tx.inline_transactions.push_back({wasmio, wasm::N(setcode), permissions, data});
+            tx.inline_transactions.push_back({wasmio, wasm::NAME(setcode), permissions, data});
 
             CHAIN_ASSERT( wallet->Sign(payer_account.keyid, tx.GetHash(), tx.signature),
                           wasm_chain::wallet_sign_exception, "wallet sign error")
@@ -249,7 +249,7 @@ Value submitsetcodertx( const Array &params, bool fHelp ) {
             std::vector<permission> permissions = {{payer_regid.GetIntValue(), wasmio_owner}};
             auto data = wasm::pack(std::tuple<wasm::regid, wasm::regid>(contract.GetIntValue(),
                                                                         maintainer.GetIntValue()));
-            tx.inline_transactions.push_back({wasmio, wasm::N(setcoder), permissions, data});
+            tx.inline_transactions.push_back({wasmio, wasm::NAME(setcoder), permissions, data});
 
             CHAIN_ASSERT( wallet->Sign(payer.keyid, tx.GetHash(), tx.signature),
                           wasm_chain::wallet_sign_exception, "wallet sign error")

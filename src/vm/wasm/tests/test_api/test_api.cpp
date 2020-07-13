@@ -16,7 +16,7 @@ BOOST_AUTO_TEST_SUITE( test_api )
 
 BOOST_FIXTURE_TEST_CASE( print_tests, validating_tester ) {
 
-    set_code(*this, N(testapi), "wasm/test_api.wasm");
+    set_code(*this, NAME(testapi), "wasm/test_api.wasm");
 
     // test prints
     auto tx1_trace = CALL_TEST_FUNCTION( *this, "test_print", "test_prints", {});
@@ -134,7 +134,7 @@ BOOST_FIXTURE_TEST_CASE( print_tests, validating_tester ) {
 }
 
 BOOST_FIXTURE_TEST_CASE( types_tests, validating_tester ) {
-	set_code(*this, N(testapi), "wasm/test_api.wasm");
+	set_code(*this, NAME(testapi), "wasm/test_api.wasm");
 	CALL_TEST_FUNCTION( *this, "test_types", "types_size", {});
 	CALL_TEST_FUNCTION( *this, "test_types", "char_to_symbol", {});
 	CALL_TEST_FUNCTION( *this, "test_types", "string_to_name", {});
@@ -142,7 +142,7 @@ BOOST_FIXTURE_TEST_CASE( types_tests, validating_tester ) {
 }
 
 BOOST_FIXTURE_TEST_CASE( datastream_tests, validating_tester ) {
-	set_code(*this, N(testapi), "wasm/test_api.wasm");
+	set_code(*this, NAME(testapi), "wasm/test_api.wasm");
 	CALL_TEST_FUNCTION( *this, "test_datastream", "test_basic", {} );
 
 }
@@ -153,7 +153,7 @@ BOOST_FIXTURE_TEST_CASE( datastream_tests, validating_tester ) {
 
 BOOST_FIXTURE_TEST_CASE( action_tests, validating_tester ) {
 
-    set_code(*this, N(testapi), "wasm/test_api.wasm");
+    set_code(*this, NAME(testapi), "wasm/test_api.wasm");
     CALL_TEST_FUNCTION( *this, "test_action", "assert_true", {} );
 
     bool passed;
@@ -187,7 +187,7 @@ BOOST_FIXTURE_TEST_CASE( action_tests, validating_tester ) {
     CHECK_EXCEPTION(test_require_notice(*this, raw_bytes), passed, wasm_assert_exception, "Should've failed")
 
     // test test_current_receiver
-    CALL_TEST_FUNCTION( *this, "test_action", "test_current_receiver", wasm::pack(N(testapi)));
+    CALL_TEST_FUNCTION( *this, "test_action", "test_current_receiver", wasm::pack(NAME(testapi)));
 
     // test test_abort
     CHECK_EXCEPTION(CALL_TEST_FUNCTION( *this, "test_action", "test_abort", {} ), passed, abort_called, "abort() called")
@@ -196,8 +196,8 @@ BOOST_FIXTURE_TEST_CASE( action_tests, validating_tester ) {
 }
 
 BOOST_FIXTURE_TEST_CASE( require_notice_tests, validating_tester ) {
-  set_code(*this, N(testapi), "wasm/test_api.wasm");
-  set_code(*this, N(acc5),    "wasm/test_api.wasm");
+  set_code(*this, NAME(testapi), "wasm/test_api.wasm");
+  set_code(*this, NAME(acc5),    "wasm/test_api.wasm");
   CALL_TEST_FUNCTION( *this, "test_action", "require_notice_tests", {});
 
   wasm_code_cache_free();
