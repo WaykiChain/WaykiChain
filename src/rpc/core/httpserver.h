@@ -8,6 +8,7 @@
 #include <string>
 #include <stdint.h>
 #include <functional>
+#include "netbase.h"
 
 static const int32_t DEFAULT_HTTP_THREADS        = 4;
 static const int32_t DEFAULT_HTTP_WORKQUEUE      = 16;

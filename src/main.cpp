@@ -4,6 +4,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 
+#include "p2p/node.h"
 #include "main.h"
 
 #include "logging.h"

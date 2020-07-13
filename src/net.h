@@ -22,6 +22,7 @@
 
 #include <openssl/rand.h>
 #include <boost/foreach.hpp>
+#include <boost/thread.hpp>
 
 class CAddrMan;
 class CBlockIndex;

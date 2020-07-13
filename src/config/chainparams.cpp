@@ -11,6 +11,8 @@
 #include "commons/util/util.h"
 #include "configuration.h"
 #include "main.h"
+#include "net.h"
+#include "p2p/node.h"
 #include "tx/blockrewardtx.h"
 #include "tx/delegatetx.h"
 #include "tx/coinminttx.h"

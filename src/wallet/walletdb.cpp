@@ -14,9 +14,11 @@
 #include "sync.h"
 #include "tx/tx.h"
 #include "wallet.h"
+#include "net.h"
 
 #include <algorithm>
 #include <boost/filesystem.hpp>
+#include <boost/scoped_ptr.hpp>
 #include <fstream>
 #include <iterator>
 

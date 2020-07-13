@@ -8,6 +8,22 @@
 
 #include "main.h"
 
+namespace {
+struct CMainSignals {
+    // Notifies listeners of updated transaction data (passing hash, transaction, and optionally the block it is found
+    // in.
+    boost::signals2::signal<void(const uint256 &, CBaseTx *, const CBlock *)> SyncTransaction;
+    // Notifies listeners of an erased transaction (currently disabled, requires transaction replacement).
+    boost::signals2::signal<void(const uint256 &)> EraseTransaction;
+    // Notifies listeners of a new active block chain.
+    boost::signals2::signal<void(const CBlockLocator &)> SetBestChain;
+    // Notifies listeners about an inventory item being seen on the network.
+    // boost::signals2::signal<void (const uint256 &)> Inventory;
+    // Tells listeners to broadcast their data.
+    boost::signals2::signal<void()> Broadcast;
+} g_signals;
+}  // namespace
+
 // Requires cs_mapNodeState.
 void MarkBlockAsInFlight(const uint256 &hash, NodeId nodeId) {
     AssertLockHeld(cs_mapNodeState);
@@ -40,7 +56,7 @@ bool SendMessages(CNode *pTo, bool fSendTrickle) {
             // RPC ping request by user
             pingSend = true;
         }
-        
+
         //if (pTo->nLastSend && GetTime() - pTo->nLastSend > 30 * 60 && pTo->vSendMsg.empty()) {
         if (pTo->nPingNonceSent == 0 && pTo->nPingUsecStart + PING_INTERVAL * 1000000 < GetTimeMicros()) {
             // Ping automatically sent as a keepalive

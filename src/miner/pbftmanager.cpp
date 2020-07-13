@@ -10,6 +10,8 @@
 #include "p2p/protocol.h"
 #include "miner/miner.h"
 #include "wallet/wallet.h"
+#include "net.h"
+#include "p2p/node.h"
 
 CPBFTMan pbftMan;
 extern CPBFTContext pbftContext;

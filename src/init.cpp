@@ -20,6 +20,7 @@
 #include "main.h"
 #include "miner/miner.h"
 #include "net.h"
+#include "p2p/node.h"
 #include "persistence/blockdb.h"
 #include "persistence/accountdb.h"
 #include "persistence/txdb.h"

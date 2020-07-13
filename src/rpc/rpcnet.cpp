@@ -9,6 +9,7 @@
 #include "net.h"
 #include "netbase.h"
 #include "p2p/protocol.h"
+#include "p2p/node.h"
 #include "sync.h"
 #include "commons/util/util.h"
 #include "tx/blockrewardtx.h"
