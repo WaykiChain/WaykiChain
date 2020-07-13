@@ -6,7 +6,7 @@
 #ifndef LUA_VM_H
 #define LUA_VM_H
 
-#include "main.h"
+#include "commons/types.h"
 
 #include <cstdio>
 #include <memory>

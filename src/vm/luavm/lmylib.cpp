@@ -12,6 +12,7 @@
 #include "commons/SafeInt3.hpp"
 #include "tx/contracttx.h"
 #include "tx/cointransfertx.h"
+#include "main.h"
 
 #define LUA_C_BUFFER_SIZE  500  //传递值，最大字节防止栈溢出
 
