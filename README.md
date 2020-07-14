@@ -2,7 +2,7 @@ Quick Resource Access
 =====================================
 ## :: Download WaykiChain ```coind```
 * [WaykiChain coind Binary Releases](https://github.com/WaykiChain/WaykiChain/wiki/Download-WaykiChain-Binary-Releases)
-* Docker: ```docker pull wicc/waykicoind```
+* Docker: ```docker pull wicc/waykicoind:v3.0```
 
 ## :: Developer Documentation
 
