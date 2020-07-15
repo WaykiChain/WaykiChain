@@ -1,6 +1,6 @@
 FROM phusion/baseimage:18.04-1.0.0
 MAINTAINER coredev@waykichainhk.com
-ENV SOURCE_BRANCH "release"
+ENV SOURCE_BRANCH "rel/v3.0.0"
 ARG debug='-debug'
 
 # Install prrequisite components
