@@ -15,7 +15,13 @@ class CWallet;
 
 extern CWallet* pWalletMain;
 
-void StartShutdown();
+void RequestShutdown();
+#define StartShutdown()                                                                            \
+    {                                                                                              \
+        LogPrint(BCLog::INFO, "Request shutdown by %s()\n", __func__);                             \
+        RequestShutdown();                                                                         \
+    }
+
 bool ShutdownRequested();
 void Shutdown();
 bool AppInit(boost::thread_group& threadGroup);

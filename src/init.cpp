@@ -122,7 +122,7 @@ enum BindFlags {
 
 volatile bool fRequestShutdown = false;
 
-void StartShutdown() { fRequestShutdown = true; }
+void RequestShutdown() { fRequestShutdown = true; }
 
 bool ShutdownRequested() { return fRequestShutdown; }
 
@@ -179,7 +179,7 @@ void Shutdown() {
 // Signal handlers are very limited in what they are allowed to do, so:
 //
 void HandleSIGTERM(int32_t) {
-    fRequestShutdown = true;
+    StartShutdown();
 }
 
 void HandleSIGHUP(int32_t) {
