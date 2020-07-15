@@ -3,6 +3,7 @@
 #include "symbol.hpp"
 #include<iostream>
 #include <cstdlib>
+#include <cerrno>
 
 #include "check.hpp"
 #include "types.hpp"
@@ -419,13 +420,28 @@ namespace wasm {
                 class symbol sym = symbol::from_string(symbol_part);
 
                 // Parse amount
+                bool is_negtive = amount_str.size() > 0 && amount_str[0] == '-';
                 int64_t int_part, fract_part = 0;
                 if (dot_pos != string::npos) {
-                    int_part   = atoi(amount_str.substr(0, dot_pos).data());
-                    fract_part = atoi(amount_str.substr(dot_pos + 1).data());
-                    if (amount_str[0] == '-') fract_part *= -1;
+                    const auto &int_str = amount_str.substr(0, dot_pos);
+                    int_part            = std::strtoll(int_str.c_str(), nullptr, 10);
+                    CHAIN_ASSERT(errno != ERANGE && is_negtive == (int_part < 0),
+                                 asset_type_exception, "The int part is overflow, str=%s", int_str);
+
+                    const auto &fract_str = amount_str.substr(dot_pos + 1);
+                    fract_part            = std::strtoll(fract_str.c_str(), nullptr, 10);
+                    CHAIN_ASSERT(errno != ERANGE, asset_type_exception,
+                                 "The fract part is overflow, str=%s", fract_str);
+                    CHAIN_ASSERT(fract_part >= 0, asset_type_exception,
+                                 "The fract part can not be negative, str=%s", fract_str);
+                    if (is_negtive) {
+                        fract_part *= -1;
+                    }
                 } else {
-                    int_part = atoi(amount_str.data());
+                    int_part = std::strtoll(amount_str.c_str(), nullptr, 10);
+                    CHAIN_ASSERT(errno != ERANGE && is_negtive == (int_part < 0),
+                                 asset_type_exception, "The int part is overflow, str=%s",
+                                 amount_str);
                 }
 
                 int64_t amount = int_part;
