@@ -34,9 +34,9 @@ namespace wasm {
         class symbol symbol;
 
         /**
-         * Maximum amount possible for this asset. It's capped to 2^62 - 1
+         * Maximum amount possible for this asset. It's capped to 90 billion
          */
-        static constexpr int64_t max_amount = (1LL << 62) - 1;
+        static constexpr int64_t max_amount = 900LL * 100000000 * 100000000; // 90 billion
 
         asset() {}
 
@@ -48,7 +48,7 @@ namespace wasm {
          */
         asset( int64_t a, class symbol s )
                 : amount(a), symbol{s} {
-            check(is_amount_within_range(), "magnitude of asset amount must be less than 2^62");
+            check(is_amount_within_range(), "magnitude of asset amount must be less than 9,000,000,000,000,000,000");
             check(symbol.is_valid(), "invalid symbol name");
         }
 
