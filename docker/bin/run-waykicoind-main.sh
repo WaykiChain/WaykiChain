@@ -5,4 +5,4 @@ cd /opt/docker-instances/waykicoind-main \
        -v `pwd`/conf/WaykiChain.conf:/root/.WaykiChain/WaykiChain.conf \
        -v `pwd`/data:/root/.WaykiChain/main \
        -v `pwd`/bin:/opt/wicc/bin \
-       -d wicc/waykicoind
+       -d wicc/waykicoind:v3.0
