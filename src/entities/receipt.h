@@ -52,8 +52,8 @@ static CUserID nullId;
     DEFINE(CDP_ASSET_TO_LIQUIDATOR,             441, "cdp assets to liquidator") \
     DEFINE(CDP_LIQUIDATED_ASSET_TO_OWNER,       442, "cdp liquidated assets to owner") \
     DEFINE(CDP_LIQUIDATED_CLOSEOUT_SCOIN,       443, "cdp liquidated closeout scoins") \
-    DEFINE(CDP_PENALTY_TO_RESERVE,              444, "cdp half penalty scoins to risk reserve directly") \
-    DEFINE(CDP_PENALTY_BUY_DEFLATE_FCOINS,      445, "cdp half penalty scoins to buy fcoins for deflating") \
+    DEFINE(CDP_PENALTY_TO_RESERVE,              444, "cdp penalty scoins to risk reserve") \
+    DEFINE(CDP_PENALTY_BUY_DEFLATE_FCOINS,      445, "cdp penalty scoins to buy fcoins for deflating") \
     /**** CDP forced liquidate*/ \
     DEFINE(CDP_TOTAL_CLOSEOUT_SCOIN_FROM_RESERVE, 460, "total closeout scoins from risk reserve in forced-liquidation") \
     DEFINE(CDP_TOTAL_INFLATE_FCOIN_TO_RESERVE,    461, "total inflate fcoins to risk reserve in forced-liquidation") \
