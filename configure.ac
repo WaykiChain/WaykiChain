@@ -127,6 +127,10 @@ AC_ARG_ENABLE([glibc-back-compat],
   [use_glibc_compat=$enableval],
   [use_glibc_compat=no])
 
+AC_ARG_ENABLE(gperftools,
+    AS_HELP_STRING([--enable-gperftools],[gperftools (default is no)]),
+    [use_gperftools=$enableval],
+    [use_gperftools=no])
 
 AC_CONFIG_SRCDIR([src])
 AC_CONFIG_HEADERS([src/config/coin-config.h])
@@ -533,6 +537,24 @@ fi
 
 if test x$boost_sleep != xyes; then
   AC_MSG_ERROR(No working boost sleep implementation found. If on ubuntu 13.10 with libboost1.54-all-dev remove libboost.1.54-all-dev and use libboost1.53-all-dev)
+fi
+
+dnl Check for gperftools (optional)
+AC_MSG_CHECKING([whether to enable gperftools])
+AC_MSG_RESULT($use_gperftools)
+if test x$use_gperftools != xno; then
+  AC_CHECK_HEADERS(
+    [gperftools/heap-profiler.h],
+    [AC_CHECK_LIB([tcmalloc], [main],, [have_tcmalloc=no])],
+    [have_tcmalloc=no]
+  )
+  if test x$have_tcmalloc = xno; then
+    AC_MSG_ERROR("gperftools not installed")
+  else
+    LIBS = "$LIBS -ltcmalloc"
+    CPPFLAGS="$CPPFLAGS -DENABLE_GPERFTOOLS"
+    CFLAGS="$CFLAGS -DENABLE_GPERFTOOLS"
+  fi
 fi
 
 AC_ARG_WITH([cli],

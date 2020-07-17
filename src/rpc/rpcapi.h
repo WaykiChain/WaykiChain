@@ -218,4 +218,12 @@ extern Value startcommontpstest(const Array& params, bool fHelp);
 extern Value startcontracttpstest(const Array& params, bool fHelp);
 extern Value startwasmtpstest(const Array& params, bool fHelp);
 
+
+#ifdef ENABLE_GPERFTOOLS
+extern Value startheapprofiler(const Array& params, bool fHelp);
+extern Value stopheapprofiler(const Array& params, bool fHelp);
+extern Value getheapprofiler(const Array& params, bool fHelp);
+extern Value dumpheapprofiler(const Array& params, bool fHelp);
+#endif//DENABLE_GPERFTOOLS
+
 #endif /* RPC_API_H_ */

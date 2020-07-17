@@ -518,3 +518,86 @@ Value getblockundo(const Array& params, bool fHelp) {
 
     return obj;
 }
+
+#ifdef ENABLE_GPERFTOOLS
+
+#include <gperftools/heap-profiler.h>
+
+Value startheapprofiler(const Array& params, bool fHelp) {
+    if (fHelp || (params.size() != 0 && params.size() != 1)) {
+        throw runtime_error(
+            "startheapprofiler"
+            "\nStart profiling and arrange to write profile data to file names of the form: \"prefix.0000\", \"prefix.0001\".\n"
+            "\nArguments:\n"
+            "1.\"prefix\"   (string, optional) prefix of output file names, default is \"coind\"\n"
+            "\nResult:\n"
+            "\nExamples:\n" +
+            HelpExampleCli("startheapprofiler", "") +
+            "\nAs json rpc\n" +
+            HelpExampleRpc("startheapprofiler", ""));
+    }
+    string prefix="coind";
+    if (params.size() > 0)
+        prefix = params[0].get_str();
+
+    HeapProfilerStart(prefix.c_str());
+    return Value();
+}
+
+Value stopheapprofiler(const Array& params, bool fHelp) {
+    if (fHelp || params.size() != 0) {
+        throw runtime_error(
+            "stopheapprofiler"
+            "\nStop profiling.\n"
+            "\nArguments:\n"
+            "\nResult:\n"
+            "\nExamples:\n" +
+            HelpExampleCli("stopheapprofiler", "") +
+            "\nAs json rpc\n" +
+            HelpExampleRpc("stopheapprofiler", ""));
+    }
+    HeapProfilerStop();
+    return Value();
+}
+
+
+Value getheapprofiler(const Array& params, bool fHelp) {
+    if (fHelp || params.size() != 0) {
+        throw runtime_error(
+            "getheapprofiler"
+            "\nGet heap profiler.\n"
+            "\nArguments:\n"
+            "\nResult:\n"
+            "\nExamples:\n" +
+            HelpExampleCli("getheapprofiler", "") +
+            "\nAs json rpc\n" +
+            HelpExampleRpc("getheapprofiler", ""));
+    }
+    Object obj;
+    obj.push_back(Pair("runing", IsHeapProfilerRunning()));
+    return obj;
+}
+
+Value dumpheapprofiler(const Array& params, bool fHelp) {
+    if (fHelp || (params.size() != 0 && params.size() != 1)) {
+        throw runtime_error(
+            "dumpheapprofiler"
+            "\nDump a profile now - can be used for dumping at a hopefully quiescent state in your program, "
+            " in order to more easily track down memory leaks. Will include the reason in the logged message.\n"
+            "\nArguments:\n"
+            "1.\"reason\"   (string, optional) reason, default is \"\"\n"
+            "\nResult:\n"
+            "\nExamples:\n" +
+            HelpExampleCli("dumpheapprofiler", "") +
+            "\nAs json rpc\n" +
+            HelpExampleRpc("dumpheapprofiler", ""));
+    }
+    string reason = "";
+    if (params.size() > 0)
+        reason = params[0].get_str();
+
+    HeapProfilerDump(reason.c_str());
+    return Value();
+}
+
+#endif//DENABLE_GPERFTOOLS

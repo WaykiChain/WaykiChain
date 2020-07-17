@@ -190,6 +190,13 @@ static const CRPCCommand vRPCCommands[] =
 
     /* debug */
     { "dumpdb",                         &dumpdb,                            true,       false,       false    },
+#ifdef ENABLE_GPERFTOOLS
+    { "startheapprofiler",              &startheapprofiler,                 true,       false,       false    },
+    { "stopheapprofiler",               &stopheapprofiler,                  true,       false,       false    },
+    { "getheapprofiler",                &getheapprofiler,                   true,       false,       false    },
+    { "dumpheapprofiler",               &dumpheapprofiler,                  true,       false,       false    },
+#endif//DENABLE_GPERFTOOLS
+
     /* UTXO */
     { "genutxomultiinputcondhash",      &genutxomultiinputcondhash,         true,       false,       false   },
     { "genutxomultisignaddr",           &genutxomultisignaddr,              true,       false,       false   },
