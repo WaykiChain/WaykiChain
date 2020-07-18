@@ -724,7 +724,7 @@ bool RenameOver(boost::filesystem::path src, boost::filesystem::path dest) {
 bool TryCreateDirectory(const boost::filesystem::path& p) {
     try {
         return boost::filesystem::create_directory(p);
-    } catch (boost::filesystem::filesystem_error) {
+    } catch (const boost::filesystem::filesystem_error&) {
         if (!boost::filesystem::exists(p) || !boost::filesystem::is_directory(p)) throw;
     }
 

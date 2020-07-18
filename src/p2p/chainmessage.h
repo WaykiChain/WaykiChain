@@ -475,7 +475,7 @@ inline bool ProcessTxMessage(CNode *pFrom, string strCommand, CDataStream &vRecv
     std::shared_ptr<CBaseTx> pBaseTx;
     try {
         vRecv >> pBaseTx;
-    } catch(runtime_error e) {
+    } catch(const runtime_error &e) {
         // TODO: record the misebehaving or ban the peer node.
         return ERRORMSG("Unknown transaction type from peer %s, ignore! %s", pFrom->addr.ToString(), e.what());
     }
