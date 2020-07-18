@@ -1735,7 +1735,6 @@ int32_t ExGetUserAppAccValueFunc(lua_State *L) {
     double doubleValue = 0;
     uint32_t idlen = 0;
     vector<uint8_t> accountId;
-    memset(&accountId, 0, sizeof(accountId));
     if (!(getNumberInTable(L, "idLen", doubleValue))) {
         LogPrint(BCLog::LUAVM, "get idlen failed\n");
         return 0;
@@ -1779,7 +1778,6 @@ static bool GetDataTableOutAppOperate(lua_State *L, vector<std::shared_ptr<std::
     double doubleValue = 0;
     vector<uint8_t> vBuf;
     CAppFundOperate temp;
-    memset(&temp,0,sizeof(temp));
     if (!(getNumberInTable(L,(char *)"operatorType",doubleValue))) {
         LogPrint(BCLog::LUAVM, "opType get fail\n");
         return false;
@@ -1886,7 +1884,6 @@ static bool GetDataTableAssetOperate(lua_State *L, int32_t index, vector<std::sh
     double doubleValue = 0;
     vector<uint8_t> vBuf;
     CAssetOperate temp;
-    memset(&temp,0,sizeof(temp));
 
     if (!getArrayInTable(L,(char *)"toAddrTbl",34,vBuf)) {
         LogPrint(BCLog::LUAVM,"toAddrTbl not table\n");
@@ -2061,7 +2058,6 @@ int32_t ExTransferContractAsset(lua_State *L) {
     int32_t count = 0;
     int32_t i = 0;
     CAppFundOperate op;
-    memset(&op, 0, sizeof(op));
 
     if (nMoney > 0) {
         op.mMoney = nMoney;
@@ -2164,7 +2160,6 @@ int32_t ExTransferSomeAsset(lua_State *L) {
 
     int32_t i = 0;
     CAppFundOperate op;
-    memset(&op, 0, sizeof(op));
     vector<uint8_t> vtag = assetOp.GetFundTagV();
     op.fundTagLen = vtag.size();
 

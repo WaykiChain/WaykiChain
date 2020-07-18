@@ -65,13 +65,13 @@ class CAppFundOperate {
 public:
     CAppFundOperate();
 
-    uint8_t opType;          //!< OperType
-    uint32_t timeoutHeight;  //!< the transacion Timeout height
-    int64_t mMoney;          //!< The transfer amount
-    uint8_t appuserIDlen;
-    uint8_t vAppuser[CAppCFund::MAX_TAG_SIZE];  //!< accountId
-    uint8_t fundTagLen;
-    uint8_t vFundTag[CAppCFund::MAX_TAG_SIZE];  //!< accountId
+    uint8_t opType = 0;          //!< OperType
+    uint32_t timeoutHeight = 0;  //!< the transacion Timeout height
+    int64_t mMoney = 0;          //!< The transfer amount
+    uint8_t appuserIDlen = 0;
+    uint8_t vAppuser[CAppCFund::MAX_TAG_SIZE] = {0};  //!< accountId
+    uint8_t fundTagLen = 0;
+    uint8_t vFundTag[CAppCFund::MAX_TAG_SIZE] = {0};  //!< accountId
 
     CAppFundOperate(const vector<uint8_t> &appUserIn, const vector<uint8_t> &fundTagIn, const APP_OP_TYPE opTypeIn,
                     const int32_t timeoutHeightIn, const int64_t moneyIn) {
@@ -200,10 +200,10 @@ public:
 	)
 
 public:
-    uint32_t timeoutHeight;  //!< the transacion Timeout height
-    uint64_t mMoney;         //!< The transfer amount
-    uint8_t fundTagLen;
-    uint8_t vFundTag[CAppCFund::MAX_TAG_SIZE];  //!< accountId
+    uint32_t timeoutHeight = 0;  //!< the transacion Timeout height
+    uint64_t mMoney = 0;         //!< The transfer amount
+    uint8_t fundTagLen = 0;
+    uint8_t vFundTag[CAppCFund::MAX_TAG_SIZE] = {0};  //!< accountId
 };
 
 #endif  // VM_APP_ACCOUT_H
