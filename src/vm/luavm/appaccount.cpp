@@ -28,12 +28,6 @@ CAppCFund::CAppCFund() {
     timeoutHeight = 0;
 }
 
-CAppCFund::CAppCFund(const CAppCFund& fund) {
-    vTag          = fund.GetTag();
-    value         = fund.GetValue();
-    timeoutHeight = fund.GetHeight();
-}
-
 CAppCFund::CAppCFund(const vector<uint8_t>& tag, uint64_t val, int32_t height) {
     vTag          = tag;
     value         = val;

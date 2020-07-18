@@ -83,19 +83,6 @@ public:
         : free_amount(freeAmount), frozen_amount(frozenAmount), staked_amount(stakedAmount),
           voted_amount(votedAmount), pledged_amount(pledgedAmount) {}
 
-    CAccountToken& operator=(const CAccountToken& other) {
-        if (this == &other)
-            return *this;
-
-        this->free_amount   = other.free_amount;
-        this->frozen_amount = other.frozen_amount;
-        this->staked_amount = other.staked_amount;
-        this->voted_amount  = other.voted_amount;
-        this->pledged_amount= other.pledged_amount;
-
-        return *this;
-    }
-
     IMPLEMENT_SERIALIZE(
         READWRITE(VARINT(free_amount));
         READWRITE(VARINT(frozen_amount));

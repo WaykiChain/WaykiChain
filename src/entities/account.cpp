@@ -12,11 +12,11 @@
 
 
 bool CAccount::GetBalance(const TokenSymbol &tokenSymbol, const BalanceType balanceType, uint64_t &value) {
-    auto iter = tokens.find(tokenSymbol);
+    const auto iter = tokens.find(tokenSymbol);
     if (iter == tokens.end())
         return false; // token not found
 
-    auto accountToken = iter->second;
+    const auto &accountToken = iter->second;
 
     switch (balanceType) {
         case FREE_VALUE:    value = accountToken.free_amount;    break;
@@ -279,7 +279,7 @@ uint64_t CAccount::ComputeBlockInflateInterest(const uint32_t currHeight, const 
 }
 
 CAccountToken CAccount::GetToken(const TokenSymbol &tokenSymbol) const {
-    auto iter = tokens.find(tokenSymbol);
+    const auto iter = tokens.find(tokenSymbol);
     if (iter != tokens.end())
         return iter->second;
 

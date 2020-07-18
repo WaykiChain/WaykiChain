@@ -25,7 +25,6 @@ public:
 
     CAppCFund();
     CAppCFund(const CAppFundOperate &operate);
-    CAppCFund(const CAppCFund &fund);
     CAppCFund(const vector<uint8_t> &tag, uint64_t val, int32_t height);
 
     bool MergeCFund(const CAppCFund &fund);

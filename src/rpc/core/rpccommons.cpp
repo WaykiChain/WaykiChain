@@ -811,5 +811,5 @@ CUniversalContractStore RPC_PARAM::GetWasmContract(CContractDBCache &contractCac
 
     CHAIN_ASSERT( contract_store.abi.size() > 0,
                   wasm_chain::abi_not_found_exception, "contract abi is empty")
-    return std::move(contract_store);
+    return contract_store;
 }

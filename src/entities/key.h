@@ -271,9 +271,16 @@ public:
     }
 
     // Copy constructor. This is necessary because of memlocking.
-    CKey(const CKey &secret) : fValid(secret.fValid), fCompressed(secret.fCompressed) {
+    CKey(const CKey &other) {
         LockObject(vch);
-        memcpy(vch, secret.vch, sizeof(vch));
+        *this = other;
+    }
+
+    CKey& operator=(const CKey &other) {
+        fValid = other.fValid;
+        fCompressed = other.fCompressed;
+        memcpy(vch, other.vch, sizeof(vch));
+        return *this;
     }
 
     // Destructor (again necessary because of memlocking).
