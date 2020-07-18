@@ -30,7 +30,7 @@ DIST_SUBDIRS = crypto/secp256k1
 LIBSECP256K1 = crypto/secp256k1/libsecp256k1.la
 AM_CPPFLAGS += -I$(srcdir)/crypto/secp256k1/include -I$(srcdir)/crypto/secp256k1/contrib
 
-$(LIBSECP256K1): $(wildcard secp256k1/src/*.h) $(wildcard secp256k1/src/*.c) $(wildcard secp256k1/include/*)
+$(LIBSECP256K1): $(wildcard crypto/secp256k1/src/*.h) $(wildcard crypto/secp256k1/src/*.c) $(wildcard crypto/secp256k1/include/*)
 	$(AM_V_at)$(MAKE) $(AM_MAKEFLAGS) -C $(@D) $(@F)
 
 
@@ -529,6 +529,6 @@ DISTCLEANFILES = config/build.h
 EXTRA_DIST = leveldb Makefile.include
 
 clean-local:
-	-$(MAKE) -C secp256k1 clean
-	-$(MAKE) -C leveldb clean
+	-$(MAKE) -C crypto/secp256k1 clean
+	-$(MAKE) -C persistence/leveldb clean
 	rm -f persistence/leveldb/*/*.gcno persistence/leveldb/helpers/memenv/*.gcno
