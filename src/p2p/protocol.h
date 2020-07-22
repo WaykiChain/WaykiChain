@@ -53,7 +53,7 @@ class CMessageHeader
             HEADER_SIZE=MESSAGE_START_SIZE+COMMAND_SIZE+MESSAGE_SIZE_SIZE+CHECKSUM_SIZE
         };
         char pchMessageStart[MESSAGE_START_SIZE];
-        char pchCommand[COMMAND_SIZE + 1];
+        char pchCommand[COMMAND_SIZE];
         uint32_t nMessageSize;
         uint32_t nChecksum;
 };
