@@ -23,7 +23,7 @@
  * again when accepted into the block chain)
  */
 class CSignatureCache {
-private:
+public:
     //! Entries are SHA256(signature hash || public key || signature):
     UnorderedHashSet setValid;
     std::mutex mtx;

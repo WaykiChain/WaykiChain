@@ -190,6 +190,8 @@ static const CRPCCommand vRPCCommands[] =
 
     /* debug */
     { "dumpdb",                         &dumpdb,                            true,       false,       false    },
+    { "getmemstat",                     &getmemstat,                        true,       false,       false    },
+
 #ifdef ENABLE_GPERFTOOLS
     { "startheapprofiler",              &startheapprofiler,                 true,       false,       false    },
     { "stopheapprofiler",               &stopheapprofiler,                  true,       false,       false    },

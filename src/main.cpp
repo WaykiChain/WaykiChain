@@ -61,6 +61,9 @@ map<uint256/* blockhash */, std::shared_ptr<CCacheWrapper>> mapForkCache;
 CSignatureCache signatureCache;
 CChain chainActive;
 CChain chainMostWork;
+// may contain all CBlockIndex*'s that have validness >=BLOCK_VALID_TRANSACTIONS, and must contain those who aren't
+// failed
+set<CBlockIndex *, CBlockIndexWorkComparator> setBlockIndexValid;  //an ordered set sorted by height
 bool mining;        // could change from time to time due to vote change
 CKeyID minerKeyId;  // miner accout keyId
 CKeyID nodeKeyId;   // 1st keyId of the node
@@ -100,30 +103,7 @@ namespace {
         mapNodeState.erase(nodeid);
     }
 
-    struct CBlockIndexWorkComparator {
-    bool operator()(CBlockIndex *pa, CBlockIndex *pb) const {
-
-        // First sort by most total work, ...
-        if (pa->nChainWork != pb->nChainWork) {
-            return (pa->nChainWork < pb->nChainWork);
-        }
-
-        // ... then by earliest time received, ...
-        if (pa->nSequenceId != pb->nSequenceId) {
-            return (pa->nSequenceId > pb->nSequenceId);
-        }
-
-        // Use pointer address as tie breaker (should only happen with blocks
-        // loaded from disk, as those all have id 0).
-
-        return pa > pb;
-    }
-};
-
 CBlockIndex *pIndexBestInvalid;
-// may contain all CBlockIndex*'s that have validness >=BLOCK_VALID_TRANSACTIONS, and must contain those who aren't
-// failed
-set<CBlockIndex *, CBlockIndexWorkComparator> setBlockIndexValid;  //an ordered set sorted by height
 
 struct COrphanBlockComparator {
     bool operator()(COrphanBlock *pa, COrphanBlock *pb) const{

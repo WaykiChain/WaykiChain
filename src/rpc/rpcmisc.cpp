@@ -519,6 +519,141 @@ Value getblockundo(const Array& params, bool fHelp) {
     return obj;
 }
 
+
+static string SizeToString(uint64_t sz) {
+    static const uint64_t SZ_KB = 1024;
+    static const uint64_t SZ_MB = SZ_KB * 1024;
+    static const uint64_t SZ_GB = SZ_MB * 1024;
+    static const uint64_t SZ_TB = SZ_GB * 1024;
+    if (sz >= SZ_TB) {
+        return strprintf("%.5f TB", sz / SZ_TB);
+    } else if (sz >= SZ_GB) {
+        return strprintf("%.5f GB", sz / SZ_GB);
+    } else if (sz >= SZ_MB) {
+        return strprintf("%.5f MB", sz / SZ_MB);
+    } else if (sz >= SZ_KB) {
+        return strprintf("%.5f KB", sz / SZ_KB);
+    } else {
+        return strprintf("%llu B", sz);
+    }
+}
+
+extern set<CBlockIndex *, CBlockIndexWorkComparator> setBlockIndexValid;
+
+extern CSignatureCache signatureCache;
+
+Value getmemstat(const Array& params, bool fHelp) {
+    if (fHelp || params.size() != 0) {
+        throw runtime_error(
+            "getmemstat \n"
+            "\nget memory stat.\n"
+            "\nArguments:\n"
+
+            "\nResult: memory stat\n"
+            "\nExamples:\n" +
+            HelpExampleCli("getmemstat", "") +
+            "\nAs json rpc\n" +
+            HelpExampleRpc("getmemstat", ""));
+    }
+
+    Object obj;
+    // mapBlockIndex
+    {
+        Object statObj;
+        statObj.push_back(Pair("count", (int64_t)mapBlockIndex.size()));
+        uint64_t totalSz = 0;
+        if (mapBlockIndex.size() > 0) {
+            const auto &idx = *mapBlockIndex.rbegin()->second;
+            // need to calc size for each idx?
+            totalSz = sizeof(mapBlockIndex) + mapBlockIndex.size() * (sizeof(idx) + idx.vSignature.size());
+        }
+        statObj.push_back(Pair("size", SizeToString(totalSz)));
+        statObj.push_back(Pair("size_bytes", totalSz));
+
+        obj.push_back(Pair("block_index_map", statObj));
+    }
+
+    // CChain chainActive;
+    {
+        Object statObj;
+        uint64_t totalSz = 0;
+        {
+            uint64_t cnt = chainActive.Height() + 1;
+            statObj.push_back(Pair("count", cnt));
+            if (cnt > 0) {
+                // need to calc size for each idx?
+                totalSz = sizeof(chainActive) + cnt * (sizeof(void*));
+            }
+        }
+        statObj.push_back(Pair("size", SizeToString(totalSz)));
+        statObj.push_back(Pair("size_bytes", totalSz));
+
+        obj.push_back(Pair("active_chain", statObj));
+
+    }
+
+    // setBlockIndexValid
+    {
+        Object statObj;
+        uint64_t totalSz = 0;
+        {
+            uint64_t cnt = setBlockIndexValid.size();
+            statObj.push_back(Pair("count", cnt));
+            if (cnt > 0) {
+                // need to calc size for each idx?
+                totalSz = sizeof(setBlockIndexValid) + cnt * (sizeof(void*));
+            }
+        }
+        statObj.push_back(Pair("size", SizeToString(totalSz)));
+        statObj.push_back(Pair("size_bytes", totalSz));
+
+        obj.push_back(Pair("block_index_valid", statObj));
+
+    }
+
+    // signatureCache
+    {
+        Object statObj;
+        uint64_t totalSz = 0;
+        {
+            uint64_t cnt = signatureCache.setValid.size();
+            statObj.push_back(Pair("count", cnt));
+            if (cnt > 0) {
+                const auto &item = signatureCache.setValid.begin();
+                // need to calc size for each idx?
+                totalSz = sizeof(signatureCache) + cnt * (sizeof(item));
+            }
+        }
+        statObj.push_back(Pair("size", SizeToString(totalSz)));
+        statObj.push_back(Pair("size_bytes", totalSz));
+
+        obj.push_back(Pair("signature_cache", statObj));
+
+    }
+
+    // mempool;
+    {
+        Object statObj;
+        uint64_t totalSz = 0;
+        {
+            LOCK(mempool.cs);
+            statObj.push_back(Pair("count", (int64_t)mempool.memPoolTxs.size()));
+            if (mempool.memPoolTxs.size() > 0) {
+                const auto &item = *mempool.memPoolTxs.rbegin();
+                // need to calc size for each idx?
+                totalSz = sizeof(mempool.memPoolTxs) + mempool.memPoolTxs.size() * (sizeof(item));
+            }
+        }
+        statObj.push_back(Pair("size", SizeToString(totalSz)));
+        statObj.push_back(Pair("size_bytes", totalSz));
+
+        obj.push_back(Pair("tx_mem_pool", statObj));
+
+    }
+
+    return obj;
+}
+
 #ifdef ENABLE_GPERFTOOLS
 
 #include <gperftools/heap-profiler.h>

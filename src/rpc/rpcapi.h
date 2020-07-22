@@ -214,6 +214,8 @@ extern Value listmintxfees(const Array& params, bool fHelp);
 
 // debug only
 extern Value dumpdb(const Array& params, bool fHelp);
+extern Value getmemstat(const Array& params, bool fHelp);
+
 extern Value startcommontpstest(const Array& params, bool fHelp);
 extern Value startcontracttpstest(const Array& params, bool fHelp);
 extern Value startwasmtpstest(const Array& params, bool fHelp);
