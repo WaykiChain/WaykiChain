@@ -58,7 +58,7 @@ inline void transfer_balance(CAccount &fromAccount, CAccount &toAccount,
     string symbol     = quantity.symbol.code().to_string();
     uint8_t precision = quantity.symbol.precision();
     CHAIN_ASSERT(precision == 8, wasm_chain::precision_size_exception,
-                 "The precision of system coin %s must be %d", symbol, 8)
+                 "Token(%s)'s precision must be %d", symbol, 8)
 
     CAccount *pToAccount = toAccount.IsEmpty() ? nullptr : &toAccount;
 
