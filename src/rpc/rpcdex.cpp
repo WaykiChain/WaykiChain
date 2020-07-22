@@ -782,7 +782,7 @@ Value getdexorder(const Array& params, bool fHelp) {
     auto pDexCache = pCdMan->pDexCache;
     CDEXOrderDetail orderDetail;
     if (!pDexCache->GetActiveOrder(orderId, orderDetail))
-        throw JSONRPCError(RPC_INVALID_PARAMS, strprintf("The order not exists or inactive! order_id=%s", orderId.ToString()));
+        throw JSONRPCError(RPC_INVALID_PARAMS, strprintf("DEX Order (%s) is invalid or fulfilled!", orderId.ToString()));
 
     Object obj;
     DEX_DB::OrderToJson(orderId, orderDetail, obj);
