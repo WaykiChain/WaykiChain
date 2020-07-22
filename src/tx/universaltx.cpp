@@ -281,7 +281,7 @@ bool CUniversalTx::ExecuteTx(CTxExecuteContext &context) {
             CHAIN_ASSERT( trx_trace.elapsed.count() < max_transaction_duration.count() * 1000,
                         wasm_chain::tx_cpu_usage_exceeded,
                         "Tx execution time must be in '%d' microseconds, but get '%d' microseconds",
-                        max_transaction_duration * 1000, trx_trace.elapsed.count())
+                        max_transaction_duration.count() * 1000, trx_trace.elapsed.count())
         }
 
         auto bm2 = MAKE_BENCHMARK("after call execute_inline_transaction");
