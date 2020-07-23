@@ -44,9 +44,6 @@ using namespace boost;
 #error "Coin cannot be compiled without assertions."
 #endif
 
-#define LOG_CATEGORY_BENCH "BENCH"  // log category: BENCH
-#define MILLI 0.001                 // conversation rate: milli
-
 //
 // Global state
 //
