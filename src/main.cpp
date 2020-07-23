@@ -69,6 +69,7 @@ CKeyID minerKeyId;  // miner accout keyId
 CKeyID nodeKeyId;   // 1st keyId of the node
 extern CPBFTMan pbftMan;
 
+extern map<uint256, NodeId> mapBlockSource;  // Remember who we got this block from.
 map<uint256/* blockhash */, COrphanBlock *> mapOrphanBlocks;
 multimap<uint256/* blockhash */, COrphanBlock *> mapOrphanBlocksByPrev;
 map<uint256/* blockhash */, std::shared_ptr<CBaseTx> > mapOrphanTransactions;
@@ -79,28 +80,9 @@ const string strMessageMagic = "Coin Signed Message:\n";
 // Internal stuff
 namespace {
 
-    void InitializeNode(NodeId nodeid, const CNode *pNode) {
-        LOCK(cs_mapNodeState);
-        CNodeState &state = mapNodeState.insert(make_pair(nodeid, CNodeState())).first->second;
-        state.name        = pNode->addrName;
-    }
-
     int32_t GetHeight() {
         LOCK(cs_main);
         return chainActive.Height();
-    }
-
-    void FinalizeNode(NodeId nodeid) {
-        LOCK(cs_mapNodeState);
-        CNodeState *state = State(nodeid);
-
-        for (const auto &entry : state->vBlocksInFlight)
-            mapBlocksInFlight.erase(entry.hash);
-
-        for (const auto &hash : state->vBlocksToDownload)
-            mapBlocksToDownload.erase(hash);
-
-        mapNodeState.erase(nodeid);
     }
 
 CBlockIndex *pIndexBestInvalid;

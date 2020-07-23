@@ -62,6 +62,10 @@ inline uint32_t SendBufferSize() { return 1000 * SysCfg().GetArg("-maxsendbuffer
 CAddress GetLocalAddress(const CNetAddr* paddrPeer = nullptr);
 bool GetLocal(CService& addr, const CNetAddr* paddrPeer = nullptr);
 
+void InitializeNode(NodeId nodeid, const CNode *pNode);
+
+void FinalizeNode(NodeId nodeid);
+
 class CNodeStats {
 public:
     NodeId nodeid;

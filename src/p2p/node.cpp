@@ -25,6 +25,27 @@ limitedmap<CInv, int64_t> mapAlreadyAskedFor(MAX_INV_SZ);
 CNode* pnodeSync = nullptr;
 
 
+map<uint256, tuple<NodeId, list<QueuedBlock>::iterator, int64_t>> mapBlocksInFlight;  // downloading blocks
+map<uint256, tuple<NodeId, list<uint256>::iterator, int64_t>> mapBlocksToDownload;    // blocks to be downloaded
+
+void InitializeNode(NodeId nodeid, const CNode *pNode) {
+    LOCK(cs_mapNodeState);
+    CNodeState &state = mapNodeState.insert(make_pair(nodeid, CNodeState())).first->second;
+    state.name        = pNode->addrName;
+}
+
+void FinalizeNode(NodeId nodeid) {
+    LOCK(cs_mapNodeState);
+    CNodeState *state = State(nodeid);
+
+    for (const auto &entry : state->vBlocksInFlight)
+        mapBlocksInFlight.erase(entry.hash);
+
+    for (const auto &hash : state->vBlocksToDownload)
+        mapBlocksToDownload.erase(hash);
+
+    mapNodeState.erase(nodeid);
+}
 
 // Requires cs_mapNodeState.
 CNodeState *State(NodeId pNode) {

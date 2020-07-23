@@ -7,6 +7,7 @@
 #define SENDMESSAGE_HPP
 
 #include "main.h"
+#include "chainmessage.h"
 
 namespace {
 struct CMainSignals {
@@ -23,24 +24,6 @@ struct CMainSignals {
     boost::signals2::signal<void()> Broadcast;
 } g_signals;
 }  // namespace
-
-// Requires cs_mapNodeState.
-void MarkBlockAsInFlight(const uint256 &hash, NodeId nodeId) {
-    AssertLockHeld(cs_mapNodeState);
-    CNodeState *state = State(nodeId);
-    assert(state != nullptr);
-
-    // Make sure it's not listed somewhere already.
-    MarkBlockAsReceived(hash);
-
-    QueuedBlock newentry = {hash, GetTimeMicros(), state->nBlocksInFlight};
-    if (state->nBlocksInFlight == 0)
-        state->nLastBlockReceive = newentry.nTime;  // Reset when a first request is sent.
-
-    list<QueuedBlock>::iterator it = state->vBlocksInFlight.insert(state->vBlocksInFlight.end(), newentry);
-    state->nBlocksInFlight++;
-    mapBlocksInFlight[hash] = std::make_tuple(nodeId, it, GetTimeMicros());
-}
 
 bool SendMessages(CNode *pTo, bool fSendTrickle) {
     {
