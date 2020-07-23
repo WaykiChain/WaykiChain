@@ -193,7 +193,6 @@ coin_CORE_H = \
   tx/dextx.h \
   tx/dexoperatortx.h \
   tx/coinstaketx.h \
-  tx/merkletx.h \
   tx/pricefeedtx.h \
   tx/tx.h \
   tx/txmempool.h \

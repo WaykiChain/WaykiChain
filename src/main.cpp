@@ -17,7 +17,6 @@
 #include "init.h"
 #include "miner/miner.h"
 #include "net.h"
-#include "tx/merkletx.h"
 #include "commons/util/util.h"
 
 #include "commons/json/json_spirit_utils.h"
@@ -288,42 +287,6 @@ bool AcceptToMemoryPool(CTxMemPool &pool, CValidationState &state, CBaseTx *pBas
         return ERRORMSG("AcceptToMemoryPool() : txid: %s pay insane fees, %d > %d", hash.GetHex(), nFees, SysCfg().GetMaxFee());
 
     return pool.AddUnchecked(hash, entry, state);
-}
-
-int32_t CMerkleTx::GetDepthInMainChainINTERNAL(CBlockIndex *&pindexRet) const {
-    if (blockHash.IsNull() || index == -1)
-        return 0;
-
-    AssertLockHeld(cs_main);
-
-    // Find the block it claims to be in
-    map<uint256, CBlockIndex *>::iterator mi = mapBlockIndex.find(blockHash);
-    if (mi == mapBlockIndex.end())
-        return 0;
-
-    CBlockIndex *pIndex = (*mi).second;
-    if (!pIndex || !chainActive.Contains(pIndex))
-        return 0;
-
-    // Make sure the merkle branch connects to this block
-    if (!fMerkleVerified) {
-        if (CBlock::CheckMerkleBranch(pTx->GetHash(), vMerkleBranch, index) != pIndex->merkleRootHash)
-            return 0;
-
-        fMerkleVerified = true;
-    }
-
-    pindexRet = pIndex;
-    return chainActive.Height() - pIndex->height + 1;
-}
-
-int32_t CMerkleTx::GetDepthInMainChain(CBlockIndex *&pindexRet) const {
-    AssertLockHeld(cs_main);
-    int32_t nResult = GetDepthInMainChainINTERNAL(pindexRet);
-    if (nResult == 0 && !mempool.Exists(pTx->GetHash()))
-        return -1;  // Not in chain, not in mempool
-
-    return nResult;
 }
 
 int32_t GetTxConfirmHeight(const uint256 &hash, CBlockDBCache &blockCache) {

@@ -16,7 +16,6 @@
 #include "rpc/core/rpcserver.h"
 #include "rpc/core/rpccommons.h"
 #include "sync.h"
-#include "tx/merkletx.h"
 #include "tx/tx.h"
 #include "tx/coinminttx.h"
 #include "tx/universaltx.h"
