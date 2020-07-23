@@ -15,6 +15,11 @@ using namespace std;
 
 
 /********************** CBlockIndexDB ********************************/
+
+bool CBlockIndexDB::GetBlockIndex(const uint256 &hash, CDiskBlockIndex &blockIndex) {
+    return Read(dbk::GenDbKey(dbk::BLOCK_INDEX, hash), blockIndex);
+}
+
 bool CBlockIndexDB::WriteBlockIndex(const CDiskBlockIndex &blockIndex) {
     return Write(dbk::GenDbKey(dbk::BLOCK_INDEX, blockIndex.GetBlockHash()), blockIndex);
 }

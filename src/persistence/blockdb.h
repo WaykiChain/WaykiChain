@@ -29,7 +29,8 @@ public:
     // CBlockIndexDB(const std::string &name, size_t nCacheSize, bool fMemory = false, bool fWipe = false);
 
 public:
-    bool WriteBlockIndex(const CDiskBlockIndex &blockindex);
+    bool GetBlockIndex(const uint256 &hash, CDiskBlockIndex &blockIndex);
+    bool WriteBlockIndex(const CDiskBlockIndex &blockIndex);
     bool EraseBlockIndex(const uint256 &blockHash);
     bool LoadBlockIndexes();
 

@@ -412,11 +412,16 @@ Value getchaininfo(const Array& params, bool fHelp) {
 
     for (int32_t i = 0; (i < count) && (pBlockIndex != nullptr); i++) {
         Object object;
+        CDiskBlockIndex diskBlockIndex;
+        if (!pCdMan->pBlockIndexDb->GetBlockIndex(pBlockIndex->GetBlockHash(), diskBlockIndex)) {
+            throw JSONRPCError(RPC_INVALID_PARAMS,
+                strprintf("the index of block=%s not found in db", pBlockIndex->GetIndentityString()));
+        }
         object.push_back(Pair("height",     pBlockIndex->height));
         object.push_back(Pair("time",       pBlockIndex->GetBlockTime()));
         object.push_back(Pair("tx_count",   (int32_t)pBlockIndex->nTx));
-        object.push_back(Pair("fuel_fee",   (int64_t)pBlockIndex->nFuelFee));
-        object.push_back(Pair("fuel_rate",  (int32_t)pBlockIndex->nFuelRate));
+        object.push_back(Pair("fuel_fee",   (int64_t)diskBlockIndex.nFuelFee));
+        object.push_back(Pair("fuel_rate",  (int32_t)diskBlockIndex.nFuelRate));
 
         block.SetNull();
         if (ReadBlockFromDisk(pBlockIndex, block)) {

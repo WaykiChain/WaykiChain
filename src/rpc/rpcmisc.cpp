@@ -116,6 +116,16 @@ Value getinfo(const Array& params, bool fHelp) {
     GetProxy(NET_IPV4, proxy);
     static const string fullVersion = strprintf("%s (%s)", FormatFullVersion().c_str(), CLIENT_DATE.c_str());
 
+    auto tipBlockIndex = chainActive.Tip();
+    auto tipHeight = tipBlockIndex->height;
+    const auto &tipBlockHash = tipBlockIndex->GetBlockHash();
+    CDiskBlockIndex diskBlockIndex;
+
+    if (!pCdMan->pBlockIndexDb->GetBlockIndex(tipBlockHash, diskBlockIndex)) {
+        throw JSONRPCError(RPC_INVALID_PARAMS,
+            strprintf("the index of block=%s not found in db", tipBlockIndex->GetIndentityString()));
+    }
+
     Object obj;
     obj.push_back(Pair("version",               fullVersion));
     obj.push_back(Pair("protocol_version",      PROTOCOL_VERSION));
@@ -124,7 +134,7 @@ Value getinfo(const Array& params, bool fHelp) {
     obj.push_back(Pair("public_ip",             publicIp));
     obj.push_back(Pair("conf_dir",              GetConfigFile().string().c_str()));
     obj.push_back(Pair("data_dir",              GetDataDir().string().c_str()));
-    obj.push_back(Pair("block_interval",        (int32_t)::GetBlockInterval(chainActive.Height())));
+    obj.push_back(Pair("block_interval",        (int32_t)::GetBlockInterval(tipHeight)));
     obj.push_back(Pair("genblock",              SysCfg().GetArg("-genblock", 0)));
     obj.push_back(Pair("time_offset",           GetTimeOffset()));
 
@@ -138,15 +148,14 @@ Value getinfo(const Array& params, bool fHelp) {
 
     obj.push_back(Pair("relay_fee_perkb",       JsonValueFromAmount(MIN_RELAY_TX_FEE)));
 
-    obj.push_back(Pair("tipblock_tx_count",    (int32_t)chainActive.Tip()->nTx));
-    obj.push_back(Pair("tipblock_fuel_rate",    (int32_t)chainActive.Tip()->nFuelRate));
-    obj.push_back(Pair("tipblock_fuel",         chainActive.Tip()->nFuelFee));
-    obj.push_back(Pair("tipblock_time",         (int32_t)chainActive.Tip()->nTime));
-    obj.push_back(Pair("tipblock_hash",         chainActive.Tip()->GetBlockHash().ToString()));
-    obj.push_back(Pair("tipblock_height",       chainActive.Height()));
+    obj.push_back(Pair("tipblock_tx_count",     (int64_t)tipBlockIndex->nTx));
+    obj.push_back(Pair("tipblock_fuel_rate",    (int64_t)diskBlockIndex.nFuelRate));
+    obj.push_back(Pair("tipblock_fuel",         diskBlockIndex.nFuelFee));
+    obj.push_back(Pair("tipblock_time",         (int64_t)diskBlockIndex.nTime));
+    obj.push_back(Pair("tipblock_hash",         tipBlockIndex->GetBlockHash().ToString()));
+    obj.push_back(Pair("tipblock_height",       tipHeight));
     obj.push_back(Pair("synblock_height",       nSyncTipHeight));
 
-    //CBlockIndex* globalFinIndex = chainActive.GetGlobalFinIndex();
     std::pair<int32_t ,uint256> globalfinblock = std::make_pair(0,uint256());
     pCdMan->pBlockCache->ReadGlobalFinBlock(globalfinblock);
     obj.push_back(Pair("finblock_height",       globalfinblock.first));
