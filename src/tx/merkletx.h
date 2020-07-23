@@ -53,8 +53,6 @@ public:
         return GetDepthInMainChain(pIndexRet);
     }
 
-    int GetBlocksToMaturity() const;
-
     int SetMerkleBranch(const CBlock *pBlock) {
         AssertLockHeld(cs_main);
         CBlock blockTmp;

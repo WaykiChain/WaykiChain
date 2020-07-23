@@ -326,13 +326,6 @@ int32_t CMerkleTx::GetDepthInMainChain(CBlockIndex *&pindexRet) const {
     return nResult;
 }
 
-int32_t CMerkleTx::GetBlocksToMaturity() const {
-    if (!pTx->IsBlockRewardTx())
-        return 0;
-
-    return max(0, (BLOCK_REWARD_MATURITY + 1) - GetDepthInMainChain());
-}
-
 int32_t GetTxConfirmHeight(const uint256 &hash, CBlockDBCache &blockCache) {
     if (SysCfg().IsTxIndex()) {
         CDiskTxPos diskTxPos;
