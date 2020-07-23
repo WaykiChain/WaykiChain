@@ -1025,6 +1025,18 @@ Value getsysparam(const Array& params, bool fHelp){
     }
 }
 
+Value CdpParamValueToJson(const string& unit, uint64_t value) {
+    Value val;
+    if (unit == "WI") {
+        val = value * COIN;
+    } else if (unit == "RATIO") {
+        val = (double)value / 100.0;
+    } else {
+        val = value;
+    }
+    return val;
+}
+
 Value getcdpparam(const Array& params, bool fHelp) {
     if(fHelp || params.size() < 1 || params.size() > 2){
         throw runtime_error(
@@ -1054,31 +1066,31 @@ Value getcdpparam(const Array& params, bool fHelp) {
 
     if (params.size() == 2) {
         string paramName = params[1].get_str();
-        CdpParamType cpt;
+
         auto itr = paramNameToCdpParamTypeMap.find(paramName);
         if( itr == paramNameToCdpParamTypeMap.end())
             throw JSONRPCError(RPC_INVALID_PARAMETER, "param name is illegal");
 
-        cpt = itr->second;
+        CdpParamType type = itr->second;
+        const auto &item = kCdpParamTable.at(type);
 
         uint64_t pv;
-        if (!pCdMan->pSysParamCache->GetCdpParam(coinPair,cpt, pv)) {
+        if (!pCdMan->pSysParamCache->GetCdpParam(coinPair, type, pv)) {
             throw JSONRPCError(RPC_INVALID_PARAMETER, "get param error or coin pair error");
         }
 
         Object obj;
-        obj.push_back(Pair(paramName, pv));
+        obj.push_back(Pair(paramName, CdpParamValueToJson(std::get<2>(item), pv)));
         return obj;
     } else {
         Object obj;
-        for (auto kv : paramNameToCdpParamTypeMap) {
-            auto paramName = kv.first;
+        for (auto kv : kCdpParamTable) {
+            const auto& paramName = std::get<1>(kv.second);
             uint64_t pv = 0;
-            pCdMan->pSysParamCache->GetCdpParam(coinPair, kv.second, pv);
-            if (paraName == "CDP_GLOBAL_COLLATERAL_CEILING_AMOUNT")
-                pv *= COIN;
-                
-            obj.push_back(Pair(paramName, pv));
+            if (!pCdMan->pSysParamCache->GetCdpParam(coinPair, kv.first, pv)) {
+                pv = std::get<0>(kv.second);
+            }
+            obj.push_back(Pair(paramName, CdpParamValueToJson(std::get<2>(kv.second), pv)));
         }
         return obj;
     }

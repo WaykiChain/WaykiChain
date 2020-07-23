@@ -84,27 +84,28 @@ struct CdpParamTypeHash {
     }
 };
 
-static const unordered_map<CdpParamType, std::tuple< uint64_t,string >, CdpParamTypeHash> kCdpParamTable = {
-        { CDP_GLOBAL_COLLATERAL_CEILING_AMOUNT,     make_tuple(  52500000,     "CDP_GLOBAL_COLLATERAL_CEILING_AMOUNT")    },  // 25% * 210000000
-        { CDP_GLOBAL_COLLATERAL_RATIO_MIN,          make_tuple(  8000,         "CDP_GLOBAL_COLLATERAL_RATIO_MIN")         },  // 80% * 10000
-        { CDP_START_COLLATERAL_RATIO,               make_tuple(  19000,        "CDP_START_COLLATERAL_RATIO")              },  // 190% * 10000 : starting collateral ratio
-        { CDP_START_LIQUIDATE_RATIO,                make_tuple(  15000,        "CDP_START_LIQUIDATE_RATIO")               },  // 1.13 ~ 1.5  : common liquidation
-        { CDP_NONRETURN_LIQUIDATE_RATIO,            make_tuple(  11300,        "CDP_NONRETURN_LIQUIDATE_RATIO")           },  // 1.04 ~ 1.13 : Non-return to CDP owner
-        { CDP_FORCE_LIQUIDATE_RATIO,                make_tuple(  10400,        "CDP_FORCE_LIQUIDATE_RATIO")               },  // 0 ~ 1.04    : forced liquidation only
-        { CDP_LIQUIDATE_DISCOUNT_RATIO,             make_tuple(  9700,         "CDP_LIQUIDATE_DISCOUNT_RATIO")            },  // discount: 97%
-        { CDP_BCOINSTOSTAKE_AMOUNT_MIN_IN_SCOIN,    make_tuple(  90000000,     "CDP_BCOINSTOSTAKE_AMOUNT_MIN_IN_SCOIN")   },  // 0.9 WUSD, dust amount (<0.9) rejected
-        { CDP_INTEREST_PARAM_A,                     make_tuple(  2,            "CDP_INTEREST_PARAM_A")                    },  // a = 2
-        { CDP_INTEREST_PARAM_B,                     make_tuple(  1,            "CDP_INTEREST_PARAM_B")                    },  // min penalty fee = 10
-        { CDP_CONVERT_INTEREST_TO_DEBT_DAYS,        make_tuple(  30,           "CDP_CONVERT_INTEREST_TO_DEBT_DAYS")       },  // after 30 days, unpaid interest will be converted into debt
+static const unordered_map<CdpParamType, std::tuple< uint64_t,string, string >, CdpParamTypeHash> kCdpParamTable = {
+        //         type                          default_value  name                                    unit_type
+        { CDP_GLOBAL_COLLATERAL_CEILING_AMOUNT,  {52500000,  "CDP_GLOBAL_COLLATERAL_CEILING_AMOUNT"  , "WI"     }},  // 25% * 210000000
+        { CDP_GLOBAL_COLLATERAL_RATIO_MIN,       {8000,      "CDP_GLOBAL_COLLATERAL_RATIO_MIN"       , "RATIO"  }},  // 80% * 10000
+        { CDP_START_COLLATERAL_RATIO,            {9000,     "CDP_START_COLLATERAL_RATIO"             , "RATIO"  }},  // 190% * 10000 : starting collateral ratio
+        { CDP_START_LIQUIDATE_RATIO,             {15000,     "CDP_START_LIQUIDATE_RATIO"             , "RATIO"  }},  // 1.13 ~ 1.5  : common liquidation
+        { CDP_NONRETURN_LIQUIDATE_RATIO,         {11300,     "CDP_NONRETURN_LIQUIDATE_RATIO"         , "RATIO"  }},  // 1.04 ~ 1.13 : Non-return to CDP owner
+        { CDP_FORCE_LIQUIDATE_RATIO,             {10400,     "CDP_FORCE_LIQUIDATE_RATIO"             , "RATIO"  }},  // 0 ~ 1.04    : forced liquidation only
+        { CDP_LIQUIDATE_DISCOUNT_RATIO,          {9700,      "CDP_LIQUIDATE_DISCOUNT_RATIO"          , "RATIO"  }},  // discount: 97%
+        { CDP_BCOINSTOSTAKE_AMOUNT_MIN_IN_SCOIN, {90000000,  "CDP_BCOINSTOSTAKE_AMOUNT_MIN_IN_SCOIN" , "SAWI"   }},  // 0.9 WUSD, dust amount (<0.9) rejected
+        { CDP_INTEREST_PARAM_A,                  {2,         "CDP_INTEREST_PARAM_A"                  , "INT"    }},  // a = 2
+        { CDP_INTEREST_PARAM_B,                  {1,         "CDP_INTEREST_PARAM_B"                  , "INT"    }},  // min penalty fee = 10
+        { CDP_CONVERT_INTEREST_TO_DEBT_DAYS,     {30,        "CDP_CONVERT_INTEREST_TO_DEBT_DAYS"     , "INT"    }}   // after 30 days, unpaid interest will be converted into debt
 };
 
 static const unordered_map<CdpParamType, std::pair<uint64_t,uint64_t>, CdpParamTypeHash> kCdpParamRangeTable = {
         { CDP_GLOBAL_COLLATERAL_CEILING_AMOUNT,     RANGE(0,0)          },  // 25% * 210000000
         { CDP_GLOBAL_COLLATERAL_RATIO_MIN,          RANGE(0,0)          },  // 80% * 10000
-        { CDP_START_COLLATERAL_RATIO,               RANGE(10000,1000000) },  // 190% * 10000 : starting collateral ratio
-        { CDP_START_LIQUIDATE_RATIO,                RANGE(10000,100000)  },  // 1.13 ~ 1.5  : common liquidation
-        { CDP_NONRETURN_LIQUIDATE_RATIO,            RANGE(10000,100000)  },  // 1.04 ~ 1.13 : Non-return to CDP owner
-        { CDP_FORCE_LIQUIDATE_RATIO,                RANGE(0,20000)  },  // 0 ~ 1.04    : forced liquidation only
+        { CDP_START_COLLATERAL_RATIO,               RANGE(10000,1000000)},  // 190% * 10000 : starting collateral ratio
+        { CDP_START_LIQUIDATE_RATIO,                RANGE(10000,100000) },  // 1.13 ~ 1.5  : common liquidation
+        { CDP_NONRETURN_LIQUIDATE_RATIO,            RANGE(10000,100000) },  // 1.04 ~ 1.13 : Non-return to CDP owner
+        { CDP_FORCE_LIQUIDATE_RATIO,                RANGE(0,20000)      },  // 0 ~ 1.04    : forced liquidation only
         { CDP_LIQUIDATE_DISCOUNT_RATIO,             RANGE(0,10000)      },  // discount: 97%
         { CDP_BCOINSTOSTAKE_AMOUNT_MIN_IN_SCOIN,    RANGE(0,0)          },  // 0.9 WUSD, dust amount (<0.9) rejected
         { CDP_INTEREST_PARAM_A,                     RANGE(0,0)          },  // a = 2
