@@ -52,10 +52,7 @@ public:
         CBlockIndex *pIndexRet;
         return GetDepthInMainChain(pIndexRet);
     }
-    bool IsInMainChain() const {
-        CBlockIndex *pIndexRet;
-        return GetDepthInMainChainINTERNAL(pIndexRet) > 0;
-    }
+
     int GetBlocksToMaturity() const;
 
     int SetMerkleBranch(const CBlock *pBlock) {
