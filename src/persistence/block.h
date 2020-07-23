@@ -212,9 +212,6 @@ public:
     // Byte offset within rev?????.dat where this block's undo data is stored
     uint32_t nUndoPos;
 
-    // (memory only) Total amount of work (expected number of hashes) in the chain up to and including this block
-    arith_uint256 nChainWork;
-
     // Number of transactions in this block.
     // Note: in a potential headers-first mode, this number cannot be relied upon
     uint32_t nTx;
@@ -249,7 +246,6 @@ public:
         nFile            = 0;
         nDataPos         = 0;
         nUndoPos         = 0;
-        nChainWork       = 0;
         nTx              = 0;
         nChainTx         = 0;
         nStatus          = 0;
@@ -274,7 +270,6 @@ public:
         nFile            = 0;
         nDataPos         = 0;
         nUndoPos         = 0;
-        nChainWork       = 0;
         nTx              = 0;
         nChainTx         = 0;
         nStatus          = 0;
@@ -357,8 +352,8 @@ public:
                                 uint32_t nRequired, uint32_t nToCheck);
 
     string ToString() const {
-        return strprintf("CBlockIndex(pprev=%p, height=%d, merkle=%s, blockHash=%s, chainWork=%s, regId=%s)", pprev, height,
-                         merkleRootHash.ToString(), GetBlockHash().ToString(), nChainWork.ToString(), miner.ToString());
+        return strprintf("CBlockIndex(pprev=%p, height=%d, merkle=%s, blockHash=%s, miner=%s)", pprev, height,
+                         merkleRootHash.ToString(), GetBlockHash().ToString(), miner.ToString());
     }
 
     string GetIndentityString() const {
@@ -379,8 +374,8 @@ struct CBlockIndexWorkComparator {
     bool operator()(CBlockIndex *pa, CBlockIndex *pb) const {
 
         // First sort by most total work, ...
-        if (pa->nChainWork != pb->nChainWork) {
-            return (pa->nChainWork < pb->nChainWork);
+        if (pa->height != pb->height) {
+            return (pa->height < pb->height);
         }
 
         // ... then by earliest time received, ...

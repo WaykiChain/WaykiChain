@@ -475,7 +475,7 @@ void CheckForkWarningConditions() {
 
     if (pIndexBestForkTip ||
         (pIndexBestInvalid &&
-         pIndexBestInvalid->nChainWork > chainActive.Tip()->nChainWork + (GetBlockProof(*chainActive.Tip()) * 6))) {
+         pIndexBestInvalid->height > chainActive.Tip()->height + 20)) {
         if (!fLargeWorkForkFound && pIndexBestForkBase) {
             string strCmd = SysCfg().GetArg("-alertnotify", "");
             if (!strCmd.empty()) {
@@ -496,7 +496,7 @@ void CheckForkWarningConditions() {
             fLargeWorkForkFound = true;
         } else {
             LogPrint(BCLog::INFO,
-                     "[WARN] Found invalid chain at least ~6 blocks longer than our best chain.\n"
+                     "[WARN] Found invalid chain at least ~20 blocks longer than our best chain.\n"
                      "Chain state database corruption likely.\n");
 
             fLargeWorkInvalidChainFound = true;
@@ -529,7 +529,6 @@ void CheckForkWarningConditionsOnNewFork(CBlockIndex *pindexNewForkTip) {
     // the 7-block condition and from this always have the most-likely-to-cause-warning fork
     if (pfork &&
         (!pIndexBestForkTip || (pIndexBestForkTip && pindexNewForkTip->height > pIndexBestForkTip->height)) &&
-        pindexNewForkTip->nChainWork - pfork->nChainWork > (GetBlockProof(*pfork) * 7) &&
         chainActive.Height() - pindexNewForkTip->height < 72) {
         pIndexBestForkTip  = pindexNewForkTip;
         pIndexBestForkBase = pfork;
@@ -559,7 +558,7 @@ void Misbehaving(NodeId pNode, int32_t howmuch) {
 }
 
 void static InvalidChainFound(CBlockIndex *pIndexNew) {
-    if (!pIndexBestInvalid || pIndexNew->nChainWork > pIndexBestInvalid->nChainWork) {
+    if (pIndexBestInvalid == nullptr || pIndexNew->height > pIndexBestInvalid->height) {
         pIndexBestInvalid = pIndexNew;
         // The current code doesn't actually read the BestInvalidWork entry in
         // the block database anymore, as it is derived from the flags in block
@@ -567,14 +566,12 @@ void static InvalidChainFound(CBlockIndex *pIndexNew) {
         // TODO: need to remove the indexBestInvalid
         //pCdMan->pBlockCache->WriteBestInvalidWork(ArithToUint256(pIndexBestInvalid->nChainWork));
     }
-    LogPrint(BCLog::INFO, "[%d] invalid block=%s log2_work=%.8g  date=%s\n",
+    LogPrint(BCLog::INFO, "[%d] invalid block=%s date=%s\n",
              pIndexNew->height, pIndexNew->GetBlockHash().ToString(),
-             log(pIndexNew->nChainWork.getdouble()) / log(2.0),
              DateTimeStrFormat("%Y-%m-%d %H:%M:%S", pIndexNew->GetBlockTime()));
 
     LogPrint(BCLog::INFO, "[%d] current best=%s  log2_work=%.8g  date=%s\n",
              chainActive.Height(), chainActive.Tip()->GetBlockHash().ToString(),
-             log(chainActive.Tip()->nChainWork.getdouble()) / log(2.0),
              DateTimeStrFormat("%Y-%m-%d %H:%M:%S", chainActive.Tip()->GetBlockTime()));
 
     CheckForkWarningConditions();
@@ -1501,7 +1498,7 @@ void static FindMostWorkChain() {
         while (pindexTest && !chainActive.Contains(pindexTest)) {
             if (pindexTest->nStatus & BLOCK_FAILED_MASK) {
                 // Candidate has an invalid ancestor, remove entire chain from the set.
-                if (pIndexBestInvalid == nullptr || pIndexNew->nChainWork > pIndexBestInvalid->nChainWork)
+                if (pIndexBestInvalid == nullptr || pIndexNew->height > pIndexBestInvalid->height)
                     pIndexBestInvalid = pIndexNew;
                 CBlockIndex *pindexFailed = pIndexNew;
                 while (pindexTest != pindexFailed) {
@@ -1660,7 +1657,6 @@ bool AddToBlockIndex(CBlock &block, CValidationState &state, const CDiskBlockPos
     else
         pIndexNew->miner = block.vptx[0]->txUid.get<CRegID>();
     pIndexNew->nTx        = block.vptx.size();
-    pIndexNew->nChainWork = pIndexNew->height;
     pIndexNew->nChainTx   = (pIndexNew->pprev ? pIndexNew->pprev->nChainTx : 0) + pIndexNew->nTx;
     pIndexNew->nFile      = pos.nFile;
     pIndexNew->nDataPos   = pos.nPos;
@@ -2276,7 +2272,6 @@ bool static LoadBlockIndexDB() {
 
     boost::this_thread::interruption_point();
 
-    // Calculate nChainWork
     vector<pair<int32_t, CBlockIndex *> > vSortedByHeight;
     vSortedByHeight.reserve(mapBlockIndex.size());
     for (const auto &item : mapBlockIndex) {
@@ -2286,12 +2281,11 @@ bool static LoadBlockIndexDB() {
     sort(vSortedByHeight.begin(), vSortedByHeight.end());
     for (const auto &item : vSortedByHeight) {
         CBlockIndex *pIndex = item.second;
-        pIndex->nChainWork  = pIndex->height;
         pIndex->nChainTx    = (pIndex->pprev ? pIndex->pprev->nChainTx : 0) + pIndex->nTx;
         if ((pIndex->nStatus & BLOCK_VALID_MASK) >= BLOCK_VALID_TRANSACTIONS && !(pIndex->nStatus & BLOCK_FAILED_MASK))
             setBlockIndexValid.insert(pIndex);
         if (pIndex->nStatus & BLOCK_FAILED_MASK &&
-            (!pIndexBestInvalid || pIndex->nChainWork > pIndexBestInvalid->nChainWork))
+            (pIndexBestInvalid == nullptr || pIndex->height > pIndexBestInvalid->height))
             pIndexBestInvalid = pIndex;
         if (pIndex->pprev)
             pIndex->BuildSkip();
