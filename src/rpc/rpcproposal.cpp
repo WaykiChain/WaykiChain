@@ -1062,7 +1062,7 @@ Value getcdpparam(const Array& params, bool fHelp) {
         cpt = itr->second;
 
         uint64_t pv;
-        if(!pCdMan->pSysParamCache->GetCdpParam(coinPair,cpt, pv)){
+        if (!pCdMan->pSysParamCache->GetCdpParam(coinPair,cpt, pv)) {
             throw JSONRPCError(RPC_INVALID_PARAMETER, "get param error or coin pair error");
         }
 
@@ -1071,10 +1071,13 @@ Value getcdpparam(const Array& params, bool fHelp) {
         return obj;
     } else {
         Object obj;
-        for(auto kv:paramNameToCdpParamTypeMap){
+        for (auto kv : paramNameToCdpParamTypeMap) {
             auto paramName = kv.first;
             uint64_t pv = 0;
-            pCdMan->pSysParamCache->GetCdpParam(coinPair,kv.second, pv);
+            pCdMan->pSysParamCache->GetCdpParam(coinPair, kv.second, pv);
+            if (paraName == "CDP_GLOBAL_COLLATERAL_CEILING_AMOUNT")
+                pv *= COIN;
+                
             obj.push_back(Pair(paramName, pv));
         }
         return obj;
