@@ -43,9 +43,7 @@ Object BlockToJSON(const CBlock& block, const CBlockIndex* pBlockIndex) {
     result.push_back(Pair("merkle_root",    block.GetMerkleRootHash().GetHex()));
     result.push_back(Pair("fuel_rate", block.GetFuelRate()));
     result.push_back(Pair("total_fuel_fee", block.GetFuelFee()));
-    CMerkleTx txGen(block.vptx[0]);
-    txGen.SetMerkleBranch(&block);
-    result.push_back(Pair("confirmations",  (int32_t)txGen.GetDepthInMainChain()));
+    result.push_back(Pair("confirmations",  (int32_t)chainActive.Height() - pBlockIndex->height + 1));
     result.push_back(Pair("size",           (int32_t)::GetSerializeSize(block, SER_NETWORK, PROTOCOL_VERSION)));
     result.push_back(Pair("height",         (int32_t)block.GetHeight()));
     result.push_back(Pair("tx_count",       (int32_t)block.vptx.size()));
