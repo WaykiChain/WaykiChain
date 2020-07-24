@@ -18,6 +18,7 @@
 #include "entities/id.h"
 #include "entities/price.h"
 #include "tx/tx.h"
+#include "persistence/dbaccess.h"
 
 
 #include <stdint.h>
@@ -296,8 +297,8 @@ public:
                                 uint32_t nRequired, uint32_t nToCheck);
 
     string ToString() const {
-        return strprintf("CBlockIndex(pprev=%p, height=%d, blockHash=%s, miner=%s)", pprev, height,
-                         GetBlockHash().ToString(), miner.ToString());
+        return strprintf("CBlockIndex(pprev=%p, height=%d, miner=%s)", pprev, height,
+                         miner.ToString());
     }
 
     string GetIndentityString() const {
@@ -411,11 +412,19 @@ public:
     }
 
     string ToString() const {
-        string str = "CDiskBlockIndex={";
-        str += CBlockIndex::ToString();
-        str += strprintf(", hashPrev=%s, merkle=%s, nNonce=%u}", hashPrev.ToString(),
-                         merkleRootHash.ToString(), nNonce);
-        return str;
+        return  TO_KV_STRING1(nVersion) +
+                TO_KV_STRING1(height) +
+                TO_KV_STRING1(nStatus) +
+                TO_KV_STRING1(nTx) +
+                TO_KV_STRING1(hashPrev) +
+                TO_KV_STRING1(miner) +
+                TO_KV_STRING1(merkleRootHash) +
+                TO_KV_STRING1(hashPos) +
+                TO_KV_STRING1(nTime) +
+                TO_KV_STRING1(nBits) +
+                TO_KV_STRING1(nFuelFee) +
+                TO_KV_STRING1(nFuelRate) +
+                TO_KV_STRING_END2("signature", HexStr(vSignature));
     }
 
     void Print() const {

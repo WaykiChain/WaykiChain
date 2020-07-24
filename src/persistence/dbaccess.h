@@ -259,6 +259,20 @@ namespace db_util {
         T value; SetEmpty(value);
         return value;
     }
+
+    template<typename V>
+    inline string to_kv_string(const string &k, const V &v) {
+        return k + "=" + db_util::ToString(v) + ",";
+    }
+    template<typename V>
+    inline string to_kv_string_end(const string &k, const V &v) {
+        return k + "=" + db_util::ToString(v);
+    }
+
+    #define TO_KV_STRING1(v) db_util::to_kv_string(#v, v)
+    #define TO_KV_STRING2(k, v) db_util::to_kv_string(k, v)
+    #define TO_KV_STRING_END1(v) db_util::to_kv_string(#v, v)
+    #define TO_KV_STRING_END2(k, v) db_util::to_kv_string(k, v)
 };
 
 typedef void(UndoDataFunc)(const CDbOpLogs &pDbOpLogs);

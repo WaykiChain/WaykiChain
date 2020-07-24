@@ -225,7 +225,7 @@ Value verifymessage(const Array& params, bool fHelp) {
     /*** Asset Registry DB */ \
     DEFINE( ASSET,                pAssetCache, asset_cache )  \
     /**** block db                                                                          */ \
-    /*DEFINE( BLOCK_INDEX,          cw.blockCache.txDiskPosCache)         */ \
+    /*DEFINE( BLOCK_INDEX,          pAssetCache, pBlockIndexDb) */ \
     DEFINE( BLOCKFILE_NUM_INFO,   pBlockCache, tx_diskpos_cache) \
     DEFINE( LAST_BLOCKFILE,       pBlockCache, last_block_file_cache) \
     DEFINE( REINDEX,              pBlockCache, reindex_cache) \
@@ -285,6 +285,34 @@ Value verifymessage(const Array& params, bool fHelp) {
     DEFINE(GOVN_APPROVAL_LIST,    pSysGovernCache, approvals_cache)      \
 
 
+string DbCacheToString(CBlockIndexDB &cache) {
+    std::shared_ptr<leveldb::Iterator> pCursor(cache.NewIterator());
+    const std::string &prefix = dbk::GetKeyPrefix(dbk::BLOCK_INDEX);
+    string str;
+    for (pCursor->Seek(prefix); pCursor->Valid(); pCursor->Next()) {
+        boost::this_thread::interruption_point();
+        try {
+            leveldb::Slice slKey = pCursor->key();
+            if (slKey.starts_with(prefix)) {
+                leveldb::Slice slValue = pCursor->value();
+                CDataStream ssValue(slValue.data(), slValue.data() + slValue.size(), SER_DISK, CLIENT_VERSION);
+                CDiskBlockIndex diskIndex;
+                ssValue >> diskIndex;
+                uint256 hash;
+                ParseDbKey(slKey, dbk::BLOCK_INDEX, hash);
+                str += strprintf("{%s}={%s},\n", hash.ToString(), diskIndex.ToString());
+
+            } else {
+                break;  // if shutdown requested or finished loading block index
+            }
+        } catch (const std::exception &e) {
+            throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("Deserialize or I/O error - %s", e.what()));
+        }
+    }
+
+    return strprintf("-->%s, data={%s}\n", prefix, str);
+}
+
 template<int32_t PREFIX_TYPE, typename KeyType, typename ValueType>
 string DbCacheToString(CCompositeKVCache<PREFIX_TYPE, KeyType, ValueType> &cache) {
     string str;
@@ -307,13 +335,15 @@ string DbCacheToString(CSimpleKVCache<PREFIX_TYPE, ValueType> &cache) {
 #define DUMP_DB_ONE(prefixType, db, cache) \
     case dbk::prefixType: { str = DbCacheToString(pCdMan->db->cache); break;}
 #define DUMP_DB_ALL(prefixType, db, cache) \
-    str = DbCacheToString(pCdMan->db->cache) + "\n"; \
-    fwrite(str.data(), 1, str.size(), f);
+    str += DbCacheToString(pCdMan->db->cache) + "\n";
 
 static void DumpDbOne(FILE *f, dbk::PrefixType prefixType, const string &prefixTypeStr) {
     string str = "";
     switch (prefixType) {
         DBK_PREFIX_CACHE_LIST(DUMP_DB_ONE);
+        case dbk::BLOCK_INDEX:
+            str = DbCacheToString(*pCdMan->pBlockIndexDb);
+            break;
         default :
             throw JSONRPCError(RPC_INVALID_PARAMS, strprintf("unsupported dump db data of key prefix type=%s",
                 prefixTypeStr));
@@ -325,6 +355,8 @@ static void DumpDbOne(FILE *f, dbk::PrefixType prefixType, const string &prefixT
 static void DumpDbAll(FILE *f) {
     string str = "";
     DBK_PREFIX_CACHE_LIST(DUMP_DB_ALL);
+    str += DbCacheToString(*pCdMan->pBlockIndexDb) + "\n";
+    fwrite(str.data(), 1, str.size(), f);
 }
 
 
