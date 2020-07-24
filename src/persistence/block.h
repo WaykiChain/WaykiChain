@@ -227,7 +227,6 @@ public:
 
     // block header
     int32_t nVersion = 0;
-    uint256 merkleRootHash;
     uint256 hashPos;
     uint32_t nTime = 0;
     uint64_t nFuelFee = 0;
@@ -244,7 +243,6 @@ public:
         // }
 
         nVersion       = block.GetVersion();
-        merkleRootHash = block.GetMerkleRootHash();
         nTime          = block.GetTime();
         nFuelFee       = block.GetFuelFee();
         nFuelRate      = block.GetFuelRate();
@@ -301,8 +299,8 @@ public:
                                 uint32_t nRequired, uint32_t nToCheck);
 
     string ToString() const {
-        return strprintf("CBlockIndex(pprev=%p, height=%d, merkle=%s, blockHash=%s, miner=%s)", pprev, height,
-                         merkleRootHash.ToString(), GetBlockHash().ToString(), miner.ToString());
+        return strprintf("CBlockIndex(pprev=%p, height=%d, blockHash=%s, miner=%s)", pprev, height,
+                         GetBlockHash().ToString(), miner.ToString());
     }
 
     string GetIndentityString() const {
@@ -343,6 +341,7 @@ struct CBlockIndexWorkComparator {
 class CDiskBlockIndex : public CBlockIndex {
 public:
     uint256 hashPrev;
+    uint256 merkleRootHash;
     uint32_t nBits = 0;
     uint32_t nNonce = 0;
     vector<unsigned char> vSignature;
@@ -355,6 +354,7 @@ public:
 
     CDiskBlockIndex(CBlockIndex *pIndex, const CBlock &block): CBlockIndex(*pIndex) {
         hashPrev = block.GetPrevBlockHash();
+        merkleRootHash = block.GetMerkleRootHash();
         nNonce = block.GetNonce();
     }
 
@@ -411,11 +411,10 @@ public:
     }
 
     string ToString() const {
-        string str = "CDiskBlockIndex(";
+        string str = "CDiskBlockIndex={";
         str += CBlockIndex::ToString();
-        str += strprintf("\n                blockHash=%s, hashPrev=%s)",
-                         GetBlockHash().ToString().c_str(),
-                         hashPrev.ToString().c_str());
+        str += strprintf(", hashPrev=%s, merkle=%s, nNonce=%u}", hashPrev.ToString(),
+                         merkleRootHash.ToString(), nNonce);
         return str;
     }
 
