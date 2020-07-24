@@ -119,9 +119,9 @@ Value getinfo(const Array& params, bool fHelp) {
     auto tipBlockIndex = chainActive.Tip();
     auto tipHeight = tipBlockIndex->height;
     const auto &tipBlockHash = tipBlockIndex->GetBlockHash();
-    CDiskBlockIndex diskBlockIndex;
+    CDiskBlockIndex tipDiskBlockIndex;
 
-    if (!pCdMan->pBlockIndexDb->GetBlockIndex(tipBlockHash, diskBlockIndex)) {
+    if (!pCdMan->pBlockIndexDb->GetBlockIndex(tipBlockHash, tipDiskBlockIndex)) {
         throw JSONRPCError(RPC_INVALID_PARAMS,
             strprintf("the index of block=%s not found in db", tipBlockIndex->GetIndentityString()));
     }
@@ -148,10 +148,10 @@ Value getinfo(const Array& params, bool fHelp) {
 
     obj.push_back(Pair("relay_fee_perkb",       JsonValueFromAmount(MIN_RELAY_TX_FEE)));
 
-    obj.push_back(Pair("tipblock_tx_count",     (int64_t)tipBlockIndex->nTx));
-    obj.push_back(Pair("tipblock_fuel_rate",    (int64_t)diskBlockIndex.nFuelRate));
-    obj.push_back(Pair("tipblock_fuel",         diskBlockIndex.nFuelFee));
-    obj.push_back(Pair("tipblock_time",         (int64_t)diskBlockIndex.nTime));
+    obj.push_back(Pair("tipblock_tx_count",     (int64_t)tipDiskBlockIndex.nTx));
+    obj.push_back(Pair("tipblock_fuel_rate",    (int64_t)tipDiskBlockIndex.nFuelRate));
+    obj.push_back(Pair("tipblock_fuel",         tipDiskBlockIndex.nFuelFee));
+    obj.push_back(Pair("tipblock_time",         (int64_t)tipDiskBlockIndex.nTime));
     obj.push_back(Pair("tipblock_hash",         tipBlockIndex->GetBlockHash().ToString()));
     obj.push_back(Pair("tipblock_height",       tipHeight));
     obj.push_back(Pair("synblock_height",       nSyncTipHeight));

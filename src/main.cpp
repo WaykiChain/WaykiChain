@@ -1603,7 +1603,6 @@ bool AddToBlockIndex(CBlock &block, CValidationState &state, const CDiskBlockPos
         pIndexNew->miner = CRegID("0-1");
     else
         pIndexNew->miner = block.vptx[0]->txUid.get<CRegID>();
-    pIndexNew->nTx        = block.vptx.size();
     pIndexNew->nFile      = pos.nFile;
     pIndexNew->nDataPos   = pos.nPos;
     pIndexNew->nUndoPos   = 0;

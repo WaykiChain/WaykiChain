@@ -213,10 +213,6 @@ public:
     // Byte offset within rev?????.dat where this block's undo data is stored
     uint32_t nUndoPos = 0;
 
-    // Number of transactions in this block.
-    // Note: in a potential headers-first mode, this number cannot be relied upon
-    uint32_t nTx = 0;
-
     // Verification status of this block. See enum BlockStatus
     uint32_t nStatus = 0;
 
@@ -341,6 +337,10 @@ public:
     uint256 merkleRootHash;
     uint32_t nBits = 0;
     uint32_t nNonce = 0;
+
+    // Number of transactions in this block.
+    // Note: in a potential headers-first mode, this number cannot be relied upon
+    uint32_t nTx = 0;
     vector<unsigned char> vSignature;
 
     // (memory only) Number of transactions in the chain up to and including this block
@@ -353,9 +353,10 @@ public:
     }
 
     CDiskBlockIndex(CBlockIndex *pIndex, const CBlock &block): CBlockIndex(*pIndex) {
-        hashPrev = block.GetPrevBlockHash();
+        hashPrev       = block.GetPrevBlockHash();
         merkleRootHash = block.GetMerkleRootHash();
-        nNonce = block.GetNonce();
+        nNonce         = block.GetNonce();
+        nTx            = block.vptx.size();
     }
 
     IMPLEMENT_SERIALIZE(

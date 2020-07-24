@@ -419,7 +419,7 @@ Value getchaininfo(const Array& params, bool fHelp) {
         }
         object.push_back(Pair("height",     pBlockIndex->height));
         object.push_back(Pair("time",       pBlockIndex->GetBlockTime()));
-        object.push_back(Pair("tx_count",   (int32_t)pBlockIndex->nTx));
+        object.push_back(Pair("tx_count",   (int32_t)diskBlockIndex.nTx));
         object.push_back(Pair("fuel_fee",   (int64_t)diskBlockIndex.nFuelFee));
         object.push_back(Pair("fuel_rate",  (int32_t)diskBlockIndex.nFuelRate));
 
