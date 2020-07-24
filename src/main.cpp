@@ -1306,9 +1306,9 @@ void static UpdateTip(CBlockIndex *pIndexNew, const CBlock &block) {
 
     // New best block
     SysCfg().SetBestRecvTime(GetTime());
-    LogPrint(BCLog::INFO, "[%d] %s blkTxCnt=%d chainTxCnt=%lu fuelRate=%d ts=%s\n",
+    LogPrint(BCLog::INFO, "[%d] %s blkTxCnt=%d fuelRate=%d ts=%s\n",
              chainActive.Height(), chainActive.Tip()->GetBlockHash().ToString(),
-             block.vptx.size(), chainActive.Tip()->nChainTx, chainActive.Tip()->nFuelRate,
+             block.vptx.size(), chainActive.Tip()->nFuelRate,
              DateTimeStrFormat("%Y-%m-%d %H:%M:%S", chainActive.Tip()->GetBlockTime()));
 
     // Check the version of the last 100 blocks to see if we need to upgrade:
@@ -1604,14 +1604,15 @@ bool AddToBlockIndex(CBlock &block, CValidationState &state, const CDiskBlockPos
     else
         pIndexNew->miner = block.vptx[0]->txUid.get<CRegID>();
     pIndexNew->nTx        = block.vptx.size();
-    pIndexNew->nChainTx   = (pIndexNew->pprev ? pIndexNew->pprev->nChainTx : 0) + pIndexNew->nTx;
     pIndexNew->nFile      = pos.nFile;
     pIndexNew->nDataPos   = pos.nPos;
     pIndexNew->nUndoPos   = 0;
     pIndexNew->nStatus    = BLOCK_VALID_TRANSACTIONS | BLOCK_HAVE_DATA;
     setBlockIndexValid.insert(pIndexNew);
 
-    if (!pCdMan->pBlockIndexDb->WriteBlockIndex(CDiskBlockIndex(pIndexNew, block)))
+    CDiskBlockIndex diskBlockIndex(pIndexNew, block);
+    // pIndexNew->nChainTx   = (pIndexNew->pprev ? pIndexNew->pprev->nChainTx : 0) + pIndexNew->nTx;
+    if (!pCdMan->pBlockIndexDb->WriteBlockIndex(diskBlockIndex))
         return state.Abort(_("Failed to write block index"));
     int64_t beginTime = GetTimeMillis();
     // New best?
@@ -2228,7 +2229,6 @@ bool static LoadBlockIndexDB() {
     sort(vSortedByHeight.begin(), vSortedByHeight.end());
     for (const auto &item : vSortedByHeight) {
         CBlockIndex *pIndex = item.second;
-        pIndex->nChainTx    = (pIndex->pprev ? pIndex->pprev->nChainTx : 0) + pIndex->nTx;
         if ((pIndex->nStatus & BLOCK_VALID_MASK) >= BLOCK_VALID_TRANSACTIONS && !(pIndex->nStatus & BLOCK_FAILED_MASK))
             setBlockIndexValid.insert(pIndex);
         if (pIndex->nStatus & BLOCK_FAILED_MASK &&

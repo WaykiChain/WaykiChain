@@ -216,9 +216,6 @@ public:
     // Note: in a potential headers-first mode, this number cannot be relied upon
     uint32_t nTx = 0;
 
-    // (memory only) Number of transactions in the chain up to and including this block
-    uint32_t nChainTx = 0;  // change to 64-bit type when necessary; won't happen before 2030
-
     // Verification status of this block. See enum BlockStatus
     uint32_t nStatus = 0;
 
@@ -345,6 +342,9 @@ public:
     uint32_t nBits = 0;
     uint32_t nNonce = 0;
     vector<unsigned char> vSignature;
+
+    // (memory only) Number of transactions in the chain up to and including this block
+    uint32_t nChainTx = 0;  // change to 64-bit type when necessary; won't happen before 2030
 
     CDiskBlockIndex() {}
 
