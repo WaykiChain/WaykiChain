@@ -52,7 +52,6 @@ bool CBlockIndexDB::LoadBlockIndexes() {
                 pIndexNew->nDataPos       = diskIndex.nDataPos;
                 pIndexNew->nUndoPos       = diskIndex.nUndoPos;
                 pIndexNew->nVersion       = diskIndex.nVersion;
-                pIndexNew->hashPos        = diskIndex.hashPos;
                 pIndexNew->nTime          = diskIndex.nTime;
                 pIndexNew->nStatus        = diskIndex.nStatus;
                 pIndexNew->nTx            = diskIndex.nTx;

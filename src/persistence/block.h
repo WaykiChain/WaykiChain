@@ -225,7 +225,6 @@ public:
 
     // block header
     int32_t nVersion = 0;
-    uint256 hashPos;
     uint32_t nTime = 0;
     uint64_t nFuelFee = 0;
     uint32_t nFuelRate = 0;
@@ -377,7 +376,6 @@ public:
         READWRITE(this->nVersion);
         READWRITE(hashPrev);
         READWRITE(merkleRootHash);
-        READWRITE(hashPos);
         READWRITE(nTime);
         READWRITE(nBits);
         READWRITE(nNonce);
@@ -419,7 +417,6 @@ public:
                 TO_KV_STRING1(hashPrev) +
                 TO_KV_STRING1(miner) +
                 TO_KV_STRING1(merkleRootHash) +
-                TO_KV_STRING1(hashPos) +
                 TO_KV_STRING1(nTime) +
                 TO_KV_STRING1(nBits) +
                 TO_KV_STRING1(nFuelFee) +
