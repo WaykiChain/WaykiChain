@@ -55,13 +55,13 @@ bool CBlockIndexDB::LoadBlockIndexes() {
                 pIndexNew->merkleRootHash = diskIndex.merkleRootHash;
                 pIndexNew->hashPos        = diskIndex.hashPos;
                 pIndexNew->nTime          = diskIndex.nTime;
-                pIndexNew->nBits          = diskIndex.nBits;
-                pIndexNew->nNonce         = diskIndex.nNonce;
+                // pIndexNew->nBits          = diskIndex.nBits;
+                // pIndexNew->nNonce         = diskIndex.nNonce;
                 pIndexNew->nStatus        = diskIndex.nStatus;
                 pIndexNew->nTx            = diskIndex.nTx;
                 pIndexNew->nFuelFee          = diskIndex.nFuelFee;
                 pIndexNew->nFuelRate      = diskIndex.nFuelRate;
-                pIndexNew->vSignature     = diskIndex.vSignature;
+                // pIndexNew->vSignature     = diskIndex.vSignature;
                 pIndexNew->miner          = diskIndex.miner;
 
                 if (!pIndexNew->CheckIndex())

@@ -109,6 +109,18 @@ uint32_t nBlockSequenceId = 1;
 
 }  // namespace
 
+static bool UpdateBlockIndexDB(CBlockIndex *pIndex) {
+    CDiskBlockIndex diskBlockIndex;
+    if (!pCdMan->pBlockIndexDb->GetBlockIndex(pIndex->GetBlockHash(), diskBlockIndex)) {
+        return ERRORMSG("the index of block=%s not exist in db", pIndex->GetIndentityString());
+    }
+    (CBlockIndex&)diskBlockIndex = *pIndex;
+    if (!pCdMan->pBlockIndexDb->WriteBlockIndex(diskBlockIndex)) {
+        return ERRORMSG("save index of block=%s not to db failed", pIndex->GetIndentityString());
+    }
+    return true;
+}
+
 //////////////////////////////////////////////////////////////////////////////
 //
 // dispatching functions
@@ -378,20 +390,6 @@ bool static PruneOrphanBlocks(int32_t height) {
     return true;
 }
 
-arith_uint256 GetBlockProof(const CBlockIndex &block) {
-    arith_uint256 bnTarget;
-    bool fNegative;
-    bool fOverflow;
-    bnTarget.SetCompact(block.nBits, &fNegative, &fOverflow);
-    if (fNegative || fOverflow || bnTarget == 0)
-        return 0;
-    // We need to compute 2**256 / (bnTarget+1), but we can't represent 2**256
-    // as it's too large for a arith_uint256. However, as 2**256 is at least as large
-    // as bnTarget+1, it is equal to ((2**256 - bnTarget - 1) / (bnTarget+1)) + 1,
-    // or ~bnTarget / (nTarget+1) + 1.
-    return (~bnTarget / (bnTarget + 1)) + 1;
-}
-
 bool fLargeWorkForkFound         = false;
 bool fLargeWorkInvalidChainFound = false;
 CBlockIndex *pIndexBestForkTip   = nullptr;
@@ -512,7 +510,7 @@ void static InvalidChainFound(CBlockIndex *pIndexNew) {
     CheckForkWarningConditions();
 }
 
-void static InvalidBlockFound(CBlockIndex *pIndex, const CValidationState &state) {
+void static InvalidBlockFound(CBlockIndex *pIndex, CBlock &block, const CValidationState &state) {
     int32_t nDoS = 0;
     if (state.IsInvalid(nDoS)) {
         LOCK(cs_mapNodeState);
@@ -530,32 +528,35 @@ void static InvalidBlockFound(CBlockIndex *pIndex, const CValidationState &state
 
     if (!state.CorruptionPossible()) {
         pIndex->nStatus |= BLOCK_FAILED_VALID;
-        pCdMan->pBlockIndexDb->WriteBlockIndex(CDiskBlockIndex(pIndex));
+        pCdMan->pBlockIndexDb->WriteBlockIndex(CDiskBlockIndex(pIndex, block));
         setBlockIndexValid.erase(pIndex);
         InvalidChainFound(pIndex);
     }
+}
+
+bool InvalidateBlockIndex(CBlockIndex *pIndex) {
+    pIndex->nStatus |= BLOCK_FAILED_VALID;
+    if(!UpdateBlockIndexDB(pIndex)) {
+        return ERRORMSG("update block=%s index failed", pIndex->GetIndentityString());
+    }
+
+    setBlockIndexValid.erase(pIndex);
+    LogPrint(BCLog::INFO, "Invalidate block=%s BLOCK_FAILED_VALID\n", pIndex->GetIndentityString());
+    return true;
 }
 
 bool InvalidateBlock(CValidationState &state, CBlockIndex *pIndex) {
     AssertLockHeld(cs_main);
 
     // Mark the block itself as invalid.
-    pIndex->nStatus |= BLOCK_FAILED_VALID;
-    pCdMan->pBlockIndexDb->WriteBlockIndex(CDiskBlockIndex(pIndex));
-    setBlockIndexValid.erase(pIndex);
-
-    LogPrint(BCLog::INFO, "Invalidate block[%d]: %s BLOCK_FAILED_VALID\n", pIndex->height,
-             pIndex->GetBlockHash().ToString());
+    if (!InvalidateBlockIndex(pIndex)) {
+        return ERRORMSG("invalidate block=%s index failed", pIndex->GetIndentityString());
+    }
 
     while (chainActive.Contains(pIndex)) {
-        CBlockIndex *pindexWalk = chainActive.Tip();
-        pindexWalk->nStatus |= BLOCK_FAILED_CHILD;
-        pCdMan->pBlockIndexDb->WriteBlockIndex(CDiskBlockIndex(pindexWalk));
-        setBlockIndexValid.erase(pindexWalk);
-
-        LogPrint(BCLog::INFO, "[%d] Invalidate block(%s) BLOCK_FAILED_CHILD\n", pindexWalk->height,
-                 pindexWalk->GetBlockHash().ToString());
-
+        if (!InvalidateBlockIndex(chainActive.Tip())) {
+            return ERRORMSG("invalidate block=%s index failed", pIndex->GetIndentityString());
+        }
         // ActivateBestChain considers blocks already in chainActive
         // unconditionally valid already, so force disconnect away from it.
         if (!DisconnectTip(state)) {
@@ -564,6 +565,21 @@ bool InvalidateBlock(CValidationState &state, CBlockIndex *pIndex) {
     }
 
     InvalidChainFound(pIndex);
+    return true;
+}
+
+
+bool ReconsiderBlockIndex(CBlockIndex *pIndex) {
+    pIndex->nStatus &= ~BLOCK_FAILED_MASK;
+
+    if(!UpdateBlockIndexDB(pIndex)) {
+        return ERRORMSG("update block=%s index failed", pIndex->GetIndentityString());
+    }
+    setBlockIndexValid.insert(pIndex);
+    if (pIndex == pIndexBestInvalid) {
+        // Reset invalid block marker if it was pointing to one of those.
+        pIndexBestInvalid = nullptr;
+    }
     return true;
 }
 
@@ -576,12 +592,8 @@ bool ReconsiderBlock(CValidationState &state, CBlockIndex *pIndex, bool children
     if (children) {
         while (it != mapBlockIndex.end()) {
             if (it->second->nStatus & BLOCK_FAILED_MASK && it->second->GetAncestor(height) == pIndex) {
-                it->second->nStatus &= ~BLOCK_FAILED_MASK;
-                pCdMan->pBlockIndexDb->WriteBlockIndex(CDiskBlockIndex(it->second));
-                setBlockIndexValid.insert(it->second);
-                if (it->second == pIndexBestInvalid) {
-                    // Reset invalid block marker if it was pointing to one of those.
-                    pIndexBestInvalid = nullptr;
+                if (!ReconsiderBlockIndex(it->second)) {
+                    return ERRORMSG("reconsider block=%s index failed", it->second->GetIndentityString());
                 }
             }
             it++;
@@ -591,9 +603,9 @@ bool ReconsiderBlock(CValidationState &state, CBlockIndex *pIndex, bool children
     // Remove the invalidity flag from all ancestors too.
     while (pIndex != nullptr) {
         if (pIndex->nStatus & BLOCK_FAILED_MASK) {
-            pIndex->nStatus &= ~BLOCK_FAILED_MASK;
-            setBlockIndexValid.insert(pIndex);
-            pCdMan->pBlockIndexDb->WriteBlockIndex(CDiskBlockIndex(pIndex));
+            if (!ReconsiderBlockIndex(pIndex)) {
+                return ERRORMSG("reconsider block=%s index failed", pIndex->GetIndentityString());
+            }
         }
         pIndex = pIndex->pprev;
     }
@@ -1211,7 +1223,7 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
 
         pIndex->nStatus = (pIndex->nStatus & ~BLOCK_VALID_MASK) | BLOCK_VALID_SCRIPTS;
 
-        CDiskBlockIndex blockIndex(pIndex);
+        CDiskBlockIndex blockIndex(pIndex, block);
         if (!pCdMan->pBlockIndexDb->WriteBlockIndex(blockIndex))
             return state.Abort(_("ConnectBlock() : failed to write block index"));
     }
@@ -1379,7 +1391,7 @@ bool static ConnectTip(CValidationState &state, CBlockIndex *pIndexNew) {
     auto spCW = std::make_shared<CCacheWrapper>(pCdMan);
     if (!ConnectBlock(block, *spCW, pIndexNew, state)) {
         if (state.IsInvalid()) {
-            InvalidBlockFound(pIndexNew, state);
+            InvalidBlockFound(pIndexNew, block, state);
         }
 
         return ERRORMSG("[%d] ConnectBlock(%s) failed", pIndexNew->height, pIndexNew->GetBlockHash().ToString());
@@ -1599,7 +1611,7 @@ bool AddToBlockIndex(CBlock &block, CValidationState &state, const CDiskBlockPos
     pIndexNew->nStatus    = BLOCK_VALID_TRANSACTIONS | BLOCK_HAVE_DATA;
     setBlockIndexValid.insert(pIndexNew);
 
-    if (!pCdMan->pBlockIndexDb->WriteBlockIndex(CDiskBlockIndex(pIndexNew)))
+    if (!pCdMan->pBlockIndexDb->WriteBlockIndex(CDiskBlockIndex(pIndexNew, block)))
         return state.Abort(_("Failed to write block index"));
     int64_t beginTime = GetTimeMillis();
     // New best?

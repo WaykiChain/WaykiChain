@@ -813,3 +813,11 @@ CUniversalContractStore RPC_PARAM::GetWasmContract(CContractDBCache &contractCac
                   wasm_chain::abi_not_found_exception, "contract abi is empty")
     return contract_store;
 }
+
+CBlock RPC_PARAM::ReadBlock(CBlockIndex* pBlockIndex) {
+    CBlock block;
+    if (!ReadBlockFromDisk(pBlockIndex, block)) {
+        throw JSONRPCError(RPC_INTERNAL_ERROR, "Can't read block from disk");
+    }
+    return block;
+}

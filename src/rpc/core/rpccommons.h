@@ -125,6 +125,8 @@ namespace RPC_PARAM {
     uint64_t GetPriceByCdp(CPriceFeedCache &priceFeedCache, CUserCDP &cdp);
 
     CUniversalContractStore GetWasmContract(CContractDBCache &contractCache, const CRegID &regid);
+
+    CBlock ReadBlock(CBlockIndex* pBlockIndex);
 }
 
 /*

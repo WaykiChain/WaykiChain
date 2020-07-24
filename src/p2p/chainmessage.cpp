@@ -539,7 +539,7 @@ bool ProcessGetHeadersMessage(CNode *pFrom, CDataStream &vRecv) {
 
     for (; pIndex; pIndex = chainActive.Next(pIndex)) {
         CBlockHeader blockHeader;
-        pIndex->GetBlockHeader(blockHeader);
+        GetBlockHeader(pIndex, blockHeader);
         vHeaders.push_back(blockHeader);
 
         if (--nLimit <= 0 || pIndex->GetBlockHash() == hashStop)

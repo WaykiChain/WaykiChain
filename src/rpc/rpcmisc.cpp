@@ -574,7 +574,7 @@ Value getmemstat(const Array& params, bool fHelp) {
         if (mapBlockIndex.size() > 0) {
             const auto &idx = *mapBlockIndex.rbegin()->second;
             // need to calc size for each idx?
-            totalSz = sizeof(mapBlockIndex) + mapBlockIndex.size() * (sizeof(idx) + idx.vSignature.size());
+            totalSz = sizeof(mapBlockIndex) + mapBlockIndex.size() * (sizeof(idx));
         }
         statObj.push_back(Pair("size", SizeToString(totalSz)));
         statObj.push_back(Pair("size_bytes", totalSz));

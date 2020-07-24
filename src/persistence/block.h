@@ -192,88 +192,51 @@ public:
 class CBlockIndex {
 public:
     // pointer to the hash of the block, if any. memory is owned by this CBlockIndex
-    const uint256 *pBlockHash;
+    const uint256 *pBlockHash = nullptr;
 
     // pointer to the index of the predecessor of this block
-    CBlockIndex *pprev;
+    CBlockIndex *pprev = nullptr;
 
     // pointer to the index of some further predecessor of this block
-    CBlockIndex *pskip;
+    CBlockIndex *pskip = nullptr;
 
     // height of the entry in the chain. The genesis block has height 0
-    int32_t height;
+    int32_t height = 0;
 
     // Which # file this block is stored in (blk?????.dat)
-    int32_t nFile;
+    int32_t nFile = 0;
 
     // Byte offset within blk?????.dat where this block's data is stored
-    uint32_t nDataPos;
+    uint32_t nDataPos = 0;
 
     // Byte offset within rev?????.dat where this block's undo data is stored
-    uint32_t nUndoPos;
+    uint32_t nUndoPos = 0;
 
     // Number of transactions in this block.
     // Note: in a potential headers-first mode, this number cannot be relied upon
-    uint32_t nTx;
+    uint32_t nTx = 0;
 
     // (memory only) Number of transactions in the chain up to and including this block
-    uint32_t nChainTx;  // change to 64-bit type when necessary; won't happen before 2030
+    uint32_t nChainTx = 0;  // change to 64-bit type when necessary; won't happen before 2030
 
     // Verification status of this block. See enum BlockStatus
-    uint32_t nStatus;
+    uint32_t nStatus = 0;
 
     // (memory only) Sequencial id assigned to distinguish order in which blocks are received.
-    uint32_t nSequenceId;
+    uint32_t nSequenceId = 0;
 
     // block header
-    int32_t nVersion;
+    int32_t nVersion = 0;
     uint256 merkleRootHash;
     uint256 hashPos;
-    uint32_t nTime;
-    uint32_t nBits;
-    uint32_t nNonce;
-    uint64_t nFuelFee;
-    uint32_t nFuelRate;
-    vector<unsigned char> vSignature;
-
+    uint32_t nTime = 0;
+    uint64_t nFuelFee = 0;
+    uint32_t nFuelRate = 0;
     CRegID miner;
 
-    CBlockIndex() {
-        pBlockHash       = nullptr;
-        pprev            = nullptr;
-        pskip            = nullptr;
-        height           = 0;
-        nFile            = 0;
-        nDataPos         = 0;
-        nUndoPos         = 0;
-        nTx              = 0;
-        nChainTx         = 0;
-        nStatus          = 0;
-        nSequenceId      = 0;
-
-        nVersion       = 0;
-        merkleRootHash = uint256();
-        hashPos        = uint256();
-        nTime          = 0;
-        nBits          = 0;
-        nNonce         = 0;
-        nFuelFee          = 0;
-        nFuelRate      = INIT_FUEL_RATE;
-        vSignature.clear();
-    }
+    CBlockIndex() {}
 
     CBlockIndex(const CBlock &block) {
-        pBlockHash       = nullptr;
-        pprev            = nullptr;
-        pskip            = nullptr;
-        height           = 0;
-        nFile            = 0;
-        nDataPos         = 0;
-        nUndoPos         = 0;
-        nTx              = 0;
-        nChainTx         = 0;
-        nStatus          = 0;
-        nSequenceId      = 0;
 
         // int64_t nTxSize = 0;
         // for (auto &pTx : block.vptx) {
@@ -283,10 +246,8 @@ public:
         nVersion       = block.GetVersion();
         merkleRootHash = block.GetMerkleRootHash();
         nTime          = block.GetTime();
-        nNonce         = block.GetNonce();
         nFuelFee       = block.GetFuelFee();
         nFuelRate      = block.GetFuelRate();
-        vSignature     = block.GetSignature();
         if (block.vptx.size() > 0 && block.vptx[0]->txUid.is<CRegID>()) {
             miner = block.vptx[0]->txUid.get<CRegID>();
         }
@@ -309,18 +270,6 @@ public:
         }
 
         return ret;
-    }
-
-    void GetBlockHeader(CBlockHeader &header) {
-        header.SetVersion(nVersion);
-        if (pprev)
-            header.SetPrevBlockHash(pprev->GetBlockHash());
-
-        header.SetMerkleRootHash(merkleRootHash);
-        header.SetTime(nTime);
-        header.SetNonce(nNonce);
-        header.SetHeight(height);
-        header.SetSignature(vSignature);
     }
 
     uint256 GetBlockHash() const { return *pBlockHash; }
@@ -394,11 +343,19 @@ struct CBlockIndexWorkComparator {
 class CDiskBlockIndex : public CBlockIndex {
 public:
     uint256 hashPrev;
+    uint32_t nBits = 0;
+    uint32_t nNonce = 0;
+    vector<unsigned char> vSignature;
 
-    CDiskBlockIndex() : hashPrev(uint256()) {}
+    CDiskBlockIndex() {}
 
     explicit CDiskBlockIndex(CBlockIndex *pIndex) : CBlockIndex(*pIndex) {
         hashPrev = (pprev ? pprev->GetBlockHash() : uint256());
+    }
+
+    CDiskBlockIndex(CBlockIndex *pIndex, const CBlock &block): CBlockIndex(*pIndex) {
+        hashPrev = block.GetPrevBlockHash();
+        nNonce = block.GetNonce();
     }
 
     IMPLEMENT_SERIALIZE(
@@ -441,6 +398,16 @@ public:
         block.SetFuelRate(nFuelRate);
         block.SetSignature(vSignature);
         return block.GetHash();
+    }
+
+    void GetBlockHeader(CBlockHeader &header) {
+        header.SetVersion(nVersion);
+        header.SetPrevBlockHash(hashPrev);
+        header.SetMerkleRootHash(merkleRootHash);
+        header.SetTime(nTime);
+        header.SetNonce(nNonce);
+        header.SetHeight(height);
+        header.SetSignature(vSignature);
     }
 
     string ToString() const {
@@ -499,5 +466,7 @@ bool ReadTxFromDisk(const CTxCord txCord, std::shared_ptr<TxType> &pTx) {
     }
     return true;
 }
+
+bool GetBlockHeader(CBlockIndex *pBlockIndex, CBlockHeader &header);
 
 #endif  // PERSIST_BLOCK_H

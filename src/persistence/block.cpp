@@ -201,3 +201,13 @@ bool ReadBaseTxFromDisk(const CTxCord txCord, std::shared_ptr<CBaseTx> &pTx) {
     pTx = pBlock->vptx.at(txCord.GetIndex())->GetNewInstance();
     return true;
 }
+
+bool GetBlockHeader(CBlockIndex *pBlockIndex, CBlockHeader &header) {
+    // TODO: need to use map pool of block header?
+    CDiskBlockIndex diskBlockIndex;
+    if (!pCdMan->pBlockIndexDb->GetBlockIndex(pBlockIndex->GetBlockHash(), diskBlockIndex)) {
+        return ERRORMSG("the index of block=%s not found in db", pBlockIndex->GetIndentityString());
+    }
+    diskBlockIndex.GetBlockHeader(header);
+    return true;
+}
