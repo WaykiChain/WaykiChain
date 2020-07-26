@@ -203,10 +203,12 @@ bool IsStandardTx(CBaseTx *pBaseTx, string &reason) {
     // to MAX_STANDARD_TX_SIZE mitigates CPU exhaustion attacks.
     uint32_t sz = ::GetSerializeSize(pBaseTx->GetNewInstance(), SER_NETWORK, CBaseTx::CURRENT_VERSION);
     if (pBaseTx->nTxType != UNIVERSAL_TX && sz >= MAX_STANDARD_TX_SIZE) {
-        reason = strprintf("size of common tx exceeds max: %d", MAX_STANDARD_TX_SIZE);
+        reason = strprintf("common tx siz exceeds max: %d", MAX_STANDARD_TX_SIZE);
         return false;
-    } else if (pBaseTx->nTxType == UNIVERSAL_TX && sz >= MAX_CONTRACT_TX_SIZE)
-        reason = strprintf("size of contract tx exceeds max: %d", MAX_CONTRACT_TX_SIZE);
+    }
+
+    if (pBaseTx->nTxType == UNIVERSAL_TX && sz >= MAX_CONTRACT_TX_SIZE) {
+        reason = strprintf("contract tx size exceeds max: %d", MAX_CONTRACT_TX_SIZE);
         return false;
     }
 
