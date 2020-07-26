@@ -232,8 +232,11 @@ bool IsStandardTx(CBaseTx *pBaseTx, string &reason) {
     // computing signature hashes is O(ninputs*txsize). Limiting transactions
     // to MAX_STANDARD_TX_SIZE mitigates CPU exhaustion attacks.
     uint32_t sz = ::GetSerializeSize(pBaseTx->GetNewInstance(), SER_NETWORK, CBaseTx::CURRENT_VERSION);
-    if (sz >= MAX_STANDARD_TX_SIZE) {
-        reason = "tx-size";
+    if (pBaseTx->nTxType != UNIVERSAL_TX && sz >= MAX_STANDARD_TX_SIZE) {
+        reason = strprintf("size of common tx exceeds max: %d", MAX_STANDARD_TX_SIZE);
+        return false;
+    } else if (pBaseTx->nTxType == UNIVERSAL_TX && sz >= MAX_CONTRACT_TX_SIZE)
+        reason = strprintf("size of contract tx exceeds max: %d", MAX_CONTRACT_TX_SIZE);
         return false;
     }
 

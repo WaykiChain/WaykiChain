@@ -151,8 +151,11 @@ static const uint64_t DUST_AMOUNT_THRESHOLD = 10000;
 static const uint32_t MAX_BLOCK_SIZE = 4000000;
 /** Default for -blockmaxsize which control the range of sizes the mining code will create **/
 static const uint32_t DEFAULT_BLOCK_MAX_SIZE = 3750000;
+
 /** The maximum size for transactions we're willing to relay/mine */
 static const uint32_t MAX_STANDARD_TX_SIZE = 100000;
+/** The maximum size for transactions we're willing to relay/mine */
+static const uint32_t MAX_CONTRACT_TX_SIZE = 800000;
 
 /** The maximum number of orphan blocks kept in memory */
 static const uint32_t MAX_ORPHAN_BLOCKS = 750;
