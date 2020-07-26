@@ -235,7 +235,9 @@ bool IsStandardTx(CBaseTx *pBaseTx, string &reason) {
     if (pBaseTx->nTxType != UNIVERSAL_TX && sz >= MAX_STANDARD_TX_SIZE) {
         reason = strprintf("size of common tx exceeds max: %d", MAX_STANDARD_TX_SIZE);
         return false;
-    } else if (pBaseTx->nTxType == UNIVERSAL_TX && sz >= MAX_CONTRACT_TX_SIZE)
+    }
+
+    if (pBaseTx->nTxType == UNIVERSAL_TX && sz >= MAX_CONTRACT_TX_SIZE)
         reason = strprintf("size of contract tx exceeds max: %d", MAX_CONTRACT_TX_SIZE);
         return false;
     }
