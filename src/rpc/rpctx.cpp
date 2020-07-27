@@ -529,10 +529,12 @@ Value listaddr(const Array& params, bool fHelp) {
             for (auto tokenPair : account.tokens) {
                 Object tokenObj;
                 const CAccountToken& token = tokenPair.second;
+
                 tokenObj.push_back(Pair("free_amount",      token.free_amount));
                 tokenObj.push_back(Pair("staked_amount",    token.staked_amount));
                 tokenObj.push_back(Pair("frozen_amount",    token.frozen_amount));
                 tokenObj.push_back(Pair("voted_amount",     token.voted_amount));
+                tokenObj.push_back(Pair("pledged_amount",   token.pledged_amount));
 
                 tokenMapObj.push_back(Pair(tokenPair.first, tokenObj));
             }
