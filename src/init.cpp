@@ -957,3 +957,8 @@ bool InitLogging()
 
     return true;
 }
+
+void FinalLogging() {
+    LogInstance().Flush(); // make sure the logs are saved to storage!
+    LogInstance().DisconnectTestLogger();
+}

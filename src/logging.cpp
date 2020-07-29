@@ -31,7 +31,7 @@ BCLog::Logger& LogInstance()
  * This method of initialization was originally introduced in
  * ee3374234c60aba2cc4c5cd5cac1c0aefc2d817c.
  */
-    static BCLog::Logger* g_logger{new BCLog::Logger()};
+    static std::unique_ptr<BCLog::Logger> g_logger = std::make_unique<BCLog::Logger>();
     return *g_logger;
 }
 
@@ -83,6 +83,7 @@ bool BCLog::Logger::StartLogging()
 
 void BCLog::Logger::Flush() {
     if (Enabled()) {
+        std::lock_guard<std::mutex> scoped_lock(m_cs);
         if (m_print_to_file && m_fileout != nullptr) {
             fflush(m_fileout);
         }

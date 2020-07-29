@@ -27,6 +27,7 @@ void Shutdown();
 bool AppInit(boost::thread_group& threadGroup);
 //!Initialize the logging infrastructure
 bool InitLogging();
+void FinalLogging();
 void Interrupt();
 string HelpMessage();
 void StartCommonGeneration(const int64_t period, const int64_t batchSize);
