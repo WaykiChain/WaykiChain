@@ -349,6 +349,7 @@ void StopRPCServer() {
         httpRPCTimerInterface.reset();
     }
     StopHTTPServer();
+    FinalizeHTTPServer();
 }
 
 void RPCRunLater(const std::string& name, std::function<void()> func, int64_t nSeconds) {

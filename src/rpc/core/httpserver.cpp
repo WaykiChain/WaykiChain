@@ -422,6 +422,10 @@ bool InitHTTPServer() {
     return true;
 }
 
+void FinalizeHTTPServer() {
+    libevent_global_shutdown();
+}
+
 bool UpdateHTTPServerLogging(bool enable) {
 #if LIBEVENT_VERSION_NUMBER >= 0x02010100
     if (enable) {

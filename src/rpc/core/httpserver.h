@@ -27,6 +27,13 @@ bool InitHTTPServer();
  * This is separate from InitHTTPServer to give users race-condition-free time
  * to register their handlers between InitHTTPServer and StartHTTPServer.
  */
+
+/**
+ * Finalize HTTP Server
+ * Call this before process exist
+ */
+void FinalizeHTTPServer();
+
 void StartHTTPServer();
 /** Interrupt HTTP server threads */
 void InterruptHTTPServer();
