@@ -165,6 +165,7 @@ void Shutdown() {
     UnregisterAllWallets();
 
     delete pWalletMain;
+    pWalletMain = nullptr;
 
     // Uninitialize elliptic curve code
     globalVerifyHandle.reset();

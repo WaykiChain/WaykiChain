@@ -30,12 +30,13 @@ private:
     bool fDbEnvInit;
     bool fMockDb;
     boost::filesystem::path path;
+    FILE* err_file = nullptr;
 
     void EnvShutdown();
 
 public:
     mutable CCriticalSection cs_db;
-    DbEnv *dbenv;
+    DbEnv *dbenv = nullptr;
     std::map<std::string, int> mapFileUseCount;
     std::map<std::string, Db*> mapDb;
 
@@ -83,6 +84,9 @@ public:
             return NULL;
         return ptxn;
     }
+
+private:
+    void CloseErrFile();
 };
 
 extern CDBEnv bitdb;
