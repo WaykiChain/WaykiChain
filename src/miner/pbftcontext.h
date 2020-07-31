@@ -95,6 +95,7 @@ class CPBFTContext {
 public:
     CPBFTMessageMan<CBlockConfirmMessage> confirmMessageMan;
     CPBFTMessageMan<CBlockFinalityMessage> finalityMessageMan;
+    CCriticalSection cs_block_miner_list;
     CFIFOLimitmap<uint256, set<CRegID>> blockMinerListMap;
 
     CPBFTContext(){
