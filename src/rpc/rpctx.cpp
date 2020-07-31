@@ -706,7 +706,7 @@ Value disconnectblock(const Array& params, bool fHelp) {
         throw runtime_error("disconnectblock \"numbers\"\n"
                 "\ndisconnect block\n"
                 "\nArguments:\n"
-                "1. \"numbers \"  (numeric, required) the block numbers.\n"
+                "1. \"number \"  (numeric, required) the number of block(s) to be disconnected\n"
                 "\nResult:\n"
                 "\"disconnect result\"  (bool) \n"
                 "\nExamples:\n"
