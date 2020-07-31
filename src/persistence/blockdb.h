@@ -133,4 +133,6 @@ public:
 /** Create a new block index entry for a given block hash */
 CBlockIndex * InsertBlockIndex(uint256 hash);
 
+CRegID  GetBlockBpRegid(const CBlock &block, CCacheWrapper &cw);
+
 #endif  // PERSIST_BLOCKDB_H

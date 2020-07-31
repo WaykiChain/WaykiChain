@@ -140,10 +140,11 @@ Value luavm_executescript(const Array& params, bool fHelp) {
                            strprintf("input fee could not smaller than: %ld sawi", minFee));
     }
 
-    CBlockIndex *pTip      = chainActive.Tip();
-    uint32_t fuelRate      = GetElementForBurn(pTip);
-    uint32_t blockTime     = pTip->GetBlockTime();
-    uint32_t prevBlockTime = pTip->pprev != nullptr ? pTip->pprev->GetBlockTime() : pTip->GetBlockTime();
+    CBlockIndex *pTip       = chainActive.Tip();
+    auto bpRegid            = GetBlockBpRegid(*chainActive.TipBlock(), *spCw);
+    uint32_t fuelRate       = GetElementForBurn(pTip);
+    uint32_t blockTime      = pTip->GetBlockTime();
+    uint32_t prevBlockTime  = pTip->pprev != nullptr ? pTip->pprev->GetBlockTime() : pTip->GetBlockTime();
 
     CKeyID srcKeyId;
     if (!FindKeyId(&spCw->accountCache, params[0].get_str(), srcKeyId)) {
@@ -189,7 +190,7 @@ Value luavm_executescript(const Array& params, bool fHelp) {
         }
 
         CValidationState state;
-        CTxExecuteContext context(newHeight, 1, fuelRate, blockTime, prevBlockTime, pTip->miner, spCw.get(), &state);
+        CTxExecuteContext context(newHeight, 1, fuelRate, blockTime, prevBlockTime, bpRegid, spCw.get(), &state);
         if (!tx.CheckAndExecuteTx(context)) {
             throw JSONRPCError(RPC_TRANSACTION_ERROR, "CheckAndExecuteTx register contract failed");
         }
@@ -225,7 +226,7 @@ Value luavm_executescript(const Array& params, bool fHelp) {
         }
 
         CValidationState state;
-        CTxExecuteContext context(chainActive.Height() + 1, 2, fuelRate, blockTime, prevBlockTime, pTip->miner, spCw.get(), &state);
+        CTxExecuteContext context(chainActive.Height() + 1, 2, fuelRate, blockTime, prevBlockTime, bpRegid, spCw.get(), &state);
         if (!contractInvokeTx.CheckAndExecuteTx(context)) {
             throw JSONRPCError(RPC_TRANSACTION_ERROR, "CheckAndExecuteTx contract failed");
         }
@@ -281,6 +282,7 @@ Value luavm_executecontract(const Array& params, bool fHelp) {
 
     auto spCw = std::make_shared<CCacheWrapper>(pCdMan);
     CBlockIndex *pTip      = chainActive.Tip();
+    auto bpRegid = GetBlockBpRegid(*chainActive.TipBlock(), *spCw);
     HeightType height = pTip->height + 1;
     uint32_t txIndex = 1;
     uint32_t fuelRate      = GetElementForBurn(pTip);
@@ -345,7 +347,7 @@ Value luavm_executecontract(const Array& params, bool fHelp) {
         }
 
         CValidationState state;
-        CTxExecuteContext context(height, txIndex, fuelRate, blockTime, prevBlockTime, pTip->miner, spCw.get(), &state);
+        CTxExecuteContext context(height, txIndex, fuelRate, blockTime, prevBlockTime, bpRegid, spCw.get(), &state);
         if (!contractInvokeTx.CheckAndExecuteTx(context)) {
             throw JSONRPCError(RPC_TRANSACTION_ERROR, "CheckAndExecuteTx contract failed");
         }

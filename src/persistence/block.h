@@ -224,7 +224,6 @@ public:
     uint32_t nTime = 0;
     uint64_t nFuelFee = 0;
     uint32_t nFuelRate = 0;
-    CRegID miner;
 
     CBlockIndex() {}
 
@@ -239,9 +238,6 @@ public:
         nTime          = block.GetTime();
         nFuelFee       = block.GetFuelFee();
         nFuelRate      = block.GetFuelRate();
-        if (block.vptx.size() > 0 && block.vptx[0]->txUid.is<CRegID>()) {
-            miner = block.vptx[0]->txUid.get<CRegID>();
-        }
     }
 
     CDiskBlockPos GetBlockPos() const {
@@ -292,8 +288,7 @@ public:
                                 uint32_t nRequired, uint32_t nToCheck);
 
     string ToString() const {
-        return strprintf("CBlockIndex(pprev=%p, height=%d, miner=%s)", pprev, height,
-                         miner.ToString());
+        return strprintf("CBlockIndex(pprev=%p, height=%d)", pprev, height);
     }
 
     string GetIndentityString() const {
@@ -337,6 +332,7 @@ public:
     uint256 merkleRootHash;
     uint32_t nBits = 0;
     uint32_t nNonce = 0;
+    CRegID miner;
 
     // Number of transactions in this block.
     // Note: in a potential headers-first mode, this number cannot be relied upon

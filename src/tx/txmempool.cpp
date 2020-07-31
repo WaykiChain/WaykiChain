@@ -110,10 +110,11 @@ bool CTxMemPool::CheckTxInMemPool(const uint256 &txid, const CTxMemPoolEntry &me
     auto spCW = std::make_shared<CCacheWrapper>(cw.get());
 
     if (bRehearsalExecute) { //always true so far
+        auto bpRegid = GetBlockBpRegid(*chainActive.TipBlock(), *spCW);
         uint32_t fuelRate  = GetElementForBurn(pTip);
         uint32_t blockTime = pTip->GetBlockTime();
         uint32_t prevBlockTime = pTip->pprev != nullptr ? pTip->pprev->GetBlockTime() : pTip->GetBlockTime();
-        CTxExecuteContext context(newHeight, 0, fuelRate, blockTime, prevBlockTime, pTip->miner, spCW.get(), &state,
+        CTxExecuteContext context(newHeight, 0, fuelRate, blockTime, prevBlockTime, bpRegid, spCW.get(), &state,
                                 TxExecuteContextType::VALIDATE_MEMPOOL);
 
         if (!memPoolEntry.GetTransaction()->ExecuteFullTx(context)) { //rehearsal only within cache env

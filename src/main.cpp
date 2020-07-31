@@ -266,7 +266,8 @@ bool AcceptToMemoryPool(CTxMemPool &pool, CValidationState &state, CBaseTx *pBas
 
     {
         auto bm = MAKE_BENCHMARK("check tx before add mempool");
-        CTxExecuteContext context(newHeight, 0, fuelRate, blockTime, prevBlockTime, pTip->miner, spCW.get(), &state);
+        auto bpRegid = GetBlockBpRegid(*chainActive.TipBlock(), *spCW);
+        CTxExecuteContext context(newHeight, 0, fuelRate, blockTime, prevBlockTime, bpRegid, spCW.get(), &state);
         if (!pBaseTx->CheckBaseTx(context) || !pBaseTx->CheckTx(context))
             return ERRORMSG("AcceptToMemoryPool() : CheckBaseTx/CheckTx failed, txid: %s", hash.GetHex());
     }
@@ -1047,6 +1048,7 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
     // Re-compute reward values and total fuel
     uint64_t totalFuelFee     = 0;
     map<TokenSymbol, uint64_t> rewards = {{SYMB::WICC, 0}, {SYMB::WUSD, 0}};  // Only allow WICC/WUSD as fees type.
+    auto bpRegid = GetBlockBpRegid(block, cw);
 
     if (block.vptx.size() > 1) {
         assert(mapBlockIndex.count(cw.blockCache.GetBestBlockHash()));
@@ -1070,7 +1072,7 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
             CTxUndoOpLogger opLogger(cw, pBaseTx->GetHash(), blockUndo);
 
             uint32_t prevBlockTime = pIndex->pprev != nullptr ? pIndex->pprev->GetBlockTime() : pIndex->GetBlockTime();
-            CTxExecuteContext context(pIndex->height, index, fuelRate, pIndex->nTime, prevBlockTime, pIndex->miner, &cw, &state);
+            CTxExecuteContext context(pIndex->height, index, fuelRate, pIndex->nTime, prevBlockTime, bpRegid, &cw, &state);
             if (!pBaseTx->CheckAndExecuteTx(context)) {
                 pCdMan->pLogCache->SetExecuteFail(pIndex->height, pBaseTx->GetHash(), state.GetRejectCode(), state.GetRejectReason());
                 return state.DoS(100, ERRORMSG("[%d] txid=%s check/execute failed, in detail: %s", pIndex->height,
@@ -1141,7 +1143,7 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
     {
         // Execute block reward transaction
         uint32_t prevBlockTime = pIndex->pprev != nullptr ? pIndex->pprev->GetBlockTime() : pIndex->GetBlockTime();
-        CTxExecuteContext context(pIndex->height, 0, pIndex->nFuelRate, pIndex->nTime, prevBlockTime, pIndex->miner, &cw, &state);
+        CTxExecuteContext context(pIndex->height, 0, pIndex->nFuelRate, pIndex->nTime, prevBlockTime, bpRegid, &cw, &state);
         CTxUndoOpLogger rewardOpLogger(cw, block.vptx[0]->GetHash(), blockUndo);
 
         if (!block.vptx[0]->ExecuteFullTx(context)) {
@@ -1185,7 +1187,7 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
             }
 
             uint32_t prevBlockTime = pIndex->pprev != nullptr ? pIndex->pprev->GetBlockTime() : pIndex->GetBlockTime();
-            CTxExecuteContext context(pIndex->height, -1, pIndex->nFuelRate, pIndex->nTime, prevBlockTime, pIndex->miner,  &cw, &state);
+            CTxExecuteContext context(pIndex->height, -1, pIndex->nFuelRate, pIndex->nTime, prevBlockTime, bpRegid,  &cw, &state);
             CTxUndoOpLogger rewardOpLogger(cw, block.vptx[0]->GetHash(), blockUndo);
             if (!matureBlock.vptx[0]->ExecuteFullTx(context)) {
                 pCdMan->pLogCache->SetExecuteFail(pIndex->height, matureBlock.vptx[0]->GetHash(), state.GetRejectCode(),
@@ -1604,10 +1606,6 @@ bool AddToBlockIndex(CBlock &block, CValidationState &state, const CDiskBlockPos
         pIndexNew->BuildSkip();
     }
 
-    if(block.GetHeight() == 0 )
-        pIndexNew->miner = CRegID("0-1");
-    else
-        pIndexNew->miner = block.vptx[0]->txUid.get<CRegID>();
     pIndexNew->nFile      = pos.nFile;
     pIndexNew->nDataPos   = pos.nPos;
     pIndexNew->nUndoPos   = 0;
@@ -1615,6 +1613,7 @@ bool AddToBlockIndex(CBlock &block, CValidationState &state, const CDiskBlockPos
     setBlockIndexValid.insert(pIndexNew);
 
     CDiskBlockIndex diskBlockIndex(pIndexNew, block);
+    pCdMan->pAccountCache->GetRegId(block.GetMinerUserID(), diskBlockIndex.miner);
     // pIndexNew->nChainTx   = (pIndexNew->pprev ? pIndexNew->pprev->nChainTx : 0) + pIndexNew->nTx;
     if (!pCdMan->pBlockIndexDb->WriteBlockIndex(diskBlockIndex))
         return state.Abort(_("Failed to write block index"));
