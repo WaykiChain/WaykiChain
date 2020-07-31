@@ -534,7 +534,8 @@ void static InvalidBlockFound(CBlockIndex *pIndex, CBlock &block, const CValidat
 
     if (!state.CorruptionPossible()) {
         pIndex->nStatus |= BLOCK_FAILED_VALID;
-        pCdMan->pBlockIndexDb->WriteBlockIndex(CDiskBlockIndex(pIndex, block));
+        CRegID bpRegid = GetBlockBpRegid(block, *pCdMan->pAccountCache);
+        pCdMan->pBlockIndexDb->WriteBlockIndex(CDiskBlockIndex(pIndex, block, bpRegid));
         setBlockIndexValid.erase(pIndex);
         InvalidChainFound(pIndex);
     }
@@ -1230,7 +1231,8 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
 
         pIndex->nStatus = (pIndex->nStatus & ~BLOCK_VALID_MASK) | BLOCK_VALID_SCRIPTS;
 
-        CDiskBlockIndex blockIndex(pIndex, block);
+        CRegID bpRegid = GetBlockBpRegid(block, cw);
+        CDiskBlockIndex blockIndex(pIndex, block, bpRegid);
         if (!pCdMan->pBlockIndexDb->WriteBlockIndex(blockIndex))
             return state.Abort(_("ConnectBlock() : failed to write block index"));
     }
@@ -1612,8 +1614,8 @@ bool AddToBlockIndex(CBlock &block, CValidationState &state, const CDiskBlockPos
     pIndexNew->nStatus    = BLOCK_VALID_TRANSACTIONS | BLOCK_HAVE_DATA;
     setBlockIndexValid.insert(pIndexNew);
 
-    CDiskBlockIndex diskBlockIndex(pIndexNew, block);
-    pCdMan->pAccountCache->GetRegId(block.GetMinerUserID(), diskBlockIndex.miner);
+    CRegID bpRegid = GetBlockBpRegid(block, *pCdMan->pAccountCache);
+    CDiskBlockIndex diskBlockIndex(pIndexNew, block, bpRegid);
     // pIndexNew->nChainTx   = (pIndexNew->pprev ? pIndexNew->pprev->nChainTx : 0) + pIndexNew->nTx;
     if (!pCdMan->pBlockIndexDb->WriteBlockIndex(diskBlockIndex))
         return state.Abort(_("Failed to write block index"));

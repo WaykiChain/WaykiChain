@@ -332,7 +332,7 @@ public:
     uint256 merkleRootHash;
     uint32_t nBits = 0;
     uint32_t nNonce = 0;
-    CRegID miner;
+    CRegID bp_regid;
 
     // Number of transactions in this block.
     // Note: in a potential headers-first mode, this number cannot be relied upon
@@ -344,15 +344,16 @@ public:
 
     CDiskBlockIndex() {}
 
-    explicit CDiskBlockIndex(CBlockIndex *pIndex) : CBlockIndex(*pIndex) {
-        hashPrev = (pprev ? pprev->GetBlockHash() : uint256());
-    }
+    // explicit CDiskBlockIndex(CBlockIndex *pIndex) : CBlockIndex(*pIndex) {
+    //     hashPrev = (pprev ? pprev->GetBlockHash() : uint256());
+    // }
 
-    CDiskBlockIndex(CBlockIndex *pIndex, const CBlock &block): CBlockIndex(*pIndex) {
-        hashPrev       = block.GetPrevBlockHash();
+    CDiskBlockIndex(CBlockIndex *pIndex, const CBlock &block, const CRegID &bpRegid): CBlockIndex(*pIndex) {
+        hashPrev       = pprev ? pprev->GetBlockHash() : uint256();
         merkleRootHash = block.GetMerkleRootHash();
         nNonce         = block.GetNonce();
         nTx            = block.vptx.size();
+        bp_regid       = bpRegid;
     }
 
     IMPLEMENT_SERIALIZE(
@@ -379,7 +380,7 @@ public:
         READWRITE(nFuelFee);
         READWRITE(nFuelRate);
         READWRITE(vSignature);
-        READWRITE(miner);)
+        READWRITE(bp_regid);)
 
 
     uint256 GetBlockHash() const {
@@ -412,7 +413,7 @@ public:
                 TO_KV_STRING1(nStatus) +
                 TO_KV_STRING1(nTx) +
                 TO_KV_STRING1(hashPrev) +
-                TO_KV_STRING1(miner) +
+                TO_KV_STRING1(bp_regid) +
                 TO_KV_STRING1(merkleRootHash) +
                 TO_KV_STRING1(nTime) +
                 TO_KV_STRING1(nBits) +

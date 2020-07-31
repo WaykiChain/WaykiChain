@@ -180,10 +180,3 @@ bool CBlockDBCache::WriteGlobalFinBlock(const int32_t height, const uint256 hash
 bool CBlockDBCache::ReadGlobalFinBlock(std::pair<int32_t,uint256>& block) {
     return finality_block_cache.GetData(block);
 }
-
-CRegID  GetBlockBpRegid(const CBlock &block, CCacheWrapper &cw) {
-    const auto &uid = block.GetMinerUserID();
-    CRegID regid;
-    cw.accountCache.GetRegId(uid, regid);
-    return regid;
-}
