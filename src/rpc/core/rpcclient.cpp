@@ -266,7 +266,7 @@ Array RPCConvertValues(const string &strMethod, const vector<string> &strParams)
 
     if (strMethod == "reconsiderblock"          && n > 1) ConvertTo<bool>(params[1]);
 
-
+    if (strMethod == "getpeerinfo"              && n > 0) ConvertTo<bool>(params[0]);
 
     /* vm functions work in vm simulator */
     if (strMethod == "luavm_executescript"          && n > 3) ConvertTo<int64_t>(params[3]);
