@@ -56,6 +56,7 @@ struct CNodeSignals {
 };
 
 inline uint32_t SendBufferSize() { return 1000 * SysCfg().GetArg("-maxsendbuffer", 1 * 1000); }
+inline uint32_t MaxPbftMsgSize() { return SysCfg().GetArg("-maxpbftmsgsize", 11 * 1000); }
 
 
 
@@ -257,7 +258,9 @@ public:
         fGetAddr                 = false;
         fRelayTxes               = false;
         setInventoryKnown.max_size(SendBufferSize() / 1000);
-        setBlockConfirmMsgKnown.max_size(200);
+        auto maxPbftMsgSize = MaxPbftMsgSize();
+        setBlockConfirmMsgKnown.max_size(maxPbftMsgSize);
+        setBlockFinalityMsgKnown.max_size(maxPbftMsgSize);
         pFilter        = new CBloomFilter();
         nPingNonceSent = 0;
         nPingUsecStart = 0;
