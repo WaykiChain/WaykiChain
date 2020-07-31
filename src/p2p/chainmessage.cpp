@@ -540,7 +540,7 @@ bool ProcessGetHeadersMessage(CNode *pFrom, CDataStream &vRecv) {
     for (; pIndex; pIndex = chainActive.Next(pIndex)) {
         CBlockHeader blockHeader;
         if (!GetBlockHeader(pIndex, blockHeader))
-            return ERRORMSG("get block=%s index failed", pIndex->GetIndentityString());
+            return ERRORMSG("get block=%s index failed", pIndex->GetIdString());
         vHeaders.push_back(blockHeader);
 
         if (--nLimit <= 0 || pIndex->GetBlockHash() == hashStop)
@@ -567,14 +567,14 @@ void ProcessGetBlocksMessage(CNode *pFrom, CDataStream &vRecv) {
 
     int32_t nLimit = 500;
     LogPrint(BCLog::NET, "recv getblocks msg! start_block=%s, end_block=%s, tip_block=%s, limit=%d, peer=%s\n",
-        (pStartIndex ? pStartIndex->GetIndentityString() : ""), hashStop.ToString(),
-        chainActive.Tip()->GetIndentityString(), nLimit, pFrom->addrName);
+        (pStartIndex ? pStartIndex->GetIdString() : ""), hashStop.ToString(),
+        chainActive.Tip()->GetIdString(), nLimit, pFrom->addrName);
 
     CBlockIndex *pIndex = pStartIndex;
     for (; pIndex; pIndex = chainActive.Next(pIndex)) {
         if (pIndex->GetBlockHash() == hashStop) {
             LogPrint(BCLog::NET, "[%d] stoped by hash_end! end_block=%s, peer=%s\n", pIndex->height,
-                     pIndex->GetIndentityString(), pFrom->addrName);
+                     pIndex->GetIdString(), pFrom->addrName);
             break;
         }
 
@@ -592,7 +592,7 @@ void ProcessGetBlocksMessage(CNode *pFrom, CDataStream &vRecv) {
             // When this block is requested, we'll send an inv that'll make them
             // getblocks the next batch of inventory.
             LogPrint(BCLog::NET, "processing getblocks stopped by limit! end_block=%s, limit=%d, peer=%s\n",
-                    pIndex->GetIndentityString(), 500, pFrom->addrName);
+                    pIndex->GetIdString(), 500, pFrom->addrName);
 
             pFrom->hashContinue = pIndex->GetBlockHash();
             break;

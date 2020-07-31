@@ -827,7 +827,7 @@ void static ThreadBlockProducing(CWallet *pWallet, int32_t targetHeight) {
                 CBlockIndex *pTipIndex = chainActive.Tip();
                 if (pPrevIndex != pTipIndex) {
                     LogPrint(BCLog::MINER, "active chain tip changed when mining! pre_block=%s, tip_block=%s\n",
-                        pPrevIndex->GetIndentityString(), pTipIndex->GetIndentityString());
+                        pPrevIndex->GetIdString(), pTipIndex->GetIdString());
                     needSleep = false;
                     continue; // need to check and mine again
                 }

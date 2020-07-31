@@ -568,7 +568,7 @@ Value getchaininfo(const Array& params, bool fHelp) {
         CDiskBlockIndex diskBlockIndex;
         if (!pCdMan->pBlockIndexDb->GetBlockIndex(pBlockIndex->GetBlockHash(), diskBlockIndex)) {
             throw JSONRPCError(RPC_INVALID_PARAMS,
-                strprintf("the index of block=%s not found in db", pBlockIndex->GetIndentityString()));
+                strprintf("the index of block=%s not found in db", pBlockIndex->GetIdString()));
         }
         object.push_back(Pair("height",     pBlockIndex->height));
         object.push_back(Pair("time",       pBlockIndex->GetBlockTime()));

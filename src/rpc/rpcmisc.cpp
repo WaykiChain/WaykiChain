@@ -123,7 +123,7 @@ Value getinfo(const Array& params, bool fHelp) {
 
     if (!pCdMan->pBlockIndexDb->GetBlockIndex(tipBlockHash, tipDiskBlockIndex)) {
         throw JSONRPCError(RPC_INVALID_PARAMS,
-            strprintf("the index of block=%s not found in db", tipBlockIndex->GetIndentityString()));
+            strprintf("the index of block=%s not found in db", tipBlockIndex->GetIdString()));
     }
 
     Object obj;

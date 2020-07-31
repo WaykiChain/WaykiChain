@@ -112,11 +112,11 @@ uint32_t nBlockSequenceId = 1;
 static bool UpdateBlockIndexDB(CBlockIndex *pIndex) {
     CDiskBlockIndex diskBlockIndex;
     if (!pCdMan->pBlockIndexDb->GetBlockIndex(pIndex->GetBlockHash(), diskBlockIndex)) {
-        return ERRORMSG("the index of block=%s not exist in db", pIndex->GetIndentityString());
+        return ERRORMSG("the index of block=%s not exist in db", pIndex->GetIdString());
     }
     (CBlockIndex&)diskBlockIndex = *pIndex;
     if (!pCdMan->pBlockIndexDb->WriteBlockIndex(diskBlockIndex)) {
-        return ERRORMSG("save index of block=%s not to db failed", pIndex->GetIndentityString());
+        return ERRORMSG("save index of block=%s not to db failed", pIndex->GetIdString());
     }
     return true;
 }
@@ -544,11 +544,11 @@ void static InvalidBlockFound(CBlockIndex *pIndex, CBlock &block, const CValidat
 bool InvalidateBlockIndex(CBlockIndex *pIndex) {
     pIndex->nStatus |= BLOCK_FAILED_VALID;
     if(!UpdateBlockIndexDB(pIndex)) {
-        return ERRORMSG("update block=%s index failed", pIndex->GetIndentityString());
+        return ERRORMSG("update block=%s index failed", pIndex->GetIdString());
     }
 
     setBlockIndexValid.erase(pIndex);
-    LogPrint(BCLog::INFO, "Invalidate block=%s BLOCK_FAILED_VALID\n", pIndex->GetIndentityString());
+    LogPrint(BCLog::INFO, "Invalidate block=%s BLOCK_FAILED_VALID\n", pIndex->GetIdString());
     return true;
 }
 
@@ -557,12 +557,12 @@ bool InvalidateBlock(CValidationState &state, CBlockIndex *pIndex) {
 
     // Mark the block itself as invalid.
     if (!InvalidateBlockIndex(pIndex)) {
-        return ERRORMSG("invalidate block=%s index failed", pIndex->GetIndentityString());
+        return ERRORMSG("invalidate block=%s index failed", pIndex->GetIdString());
     }
 
     while (chainActive.Contains(pIndex)) {
         if (!InvalidateBlockIndex(chainActive.Tip())) {
-            return ERRORMSG("invalidate block=%s index failed", pIndex->GetIndentityString());
+            return ERRORMSG("invalidate block=%s index failed", pIndex->GetIdString());
         }
         // ActivateBestChain considers blocks already in chainActive
         // unconditionally valid already, so force disconnect away from it.
@@ -580,7 +580,7 @@ bool ReconsiderBlockIndex(CBlockIndex *pIndex) {
     pIndex->nStatus &= ~BLOCK_FAILED_MASK;
 
     if(!UpdateBlockIndexDB(pIndex)) {
-        return ERRORMSG("update block=%s index failed", pIndex->GetIndentityString());
+        return ERRORMSG("update block=%s index failed", pIndex->GetIdString());
     }
     setBlockIndexValid.insert(pIndex);
     if (pIndex == pIndexBestInvalid) {
@@ -600,7 +600,7 @@ bool ReconsiderBlock(CValidationState &state, CBlockIndex *pIndex, bool children
         while (it != mapBlockIndex.end()) {
             if (it->second->nStatus & BLOCK_FAILED_MASK && it->second->GetAncestor(height) == pIndex) {
                 if (!ReconsiderBlockIndex(it->second)) {
-                    return ERRORMSG("reconsider block=%s index failed", it->second->GetIndentityString());
+                    return ERRORMSG("reconsider block=%s index failed", it->second->GetIdString());
                 }
             }
             it++;
@@ -611,7 +611,7 @@ bool ReconsiderBlock(CValidationState &state, CBlockIndex *pIndex, bool children
     while (pIndex != nullptr) {
         if (pIndex->nStatus & BLOCK_FAILED_MASK) {
             if (!ReconsiderBlockIndex(pIndex)) {
-                return ERRORMSG("reconsider block=%s index failed", pIndex->GetIndentityString());
+                return ERRORMSG("reconsider block=%s index failed", pIndex->GetIdString());
             }
         }
         pIndex = pIndex->pprev;
@@ -2272,7 +2272,7 @@ bool static LoadBlockIndexDB() {
     auto tipIndex = it->second;
     CBlock block;
     if (!ReadBlockFromDisk(tipIndex, block)) {
-        return ERRORMSG("Failed to read block=%s from disk", tipIndex->GetIndentityString());
+        return ERRORMSG("Failed to read block=%s from disk", tipIndex->GetIdString());
     }
     chainActive.SetTip(tipIndex, &block);
   //  chainActive.UpdateFinalityBlock();

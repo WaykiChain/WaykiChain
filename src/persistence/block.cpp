@@ -206,7 +206,7 @@ bool GetBlockHeader(CBlockIndex *pBlockIndex, CBlockHeader &header) {
     // TODO: need to use map pool of block header?
     CDiskBlockIndex diskBlockIndex;
     if (!pCdMan->pBlockIndexDb->GetBlockIndex(pBlockIndex->GetBlockHash(), diskBlockIndex)) {
-        return ERRORMSG("the index of block=%s not found in db", pBlockIndex->GetIndentityString());
+        return ERRORMSG("the index of block=%s not found in db", pBlockIndex->GetIdString());
     }
     diskBlockIndex.GetBlockHeader(header);
     return true;

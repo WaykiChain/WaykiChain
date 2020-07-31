@@ -291,7 +291,7 @@ public:
         return strprintf("CBlockIndex(pprev=%p, height=%d)", pprev, height);
     }
 
-    string GetIndentityString() const {
+    string GetIdString() const {
         return strprintf("[%d]%s", height, GetBlockHash().ToString());
     }
 
