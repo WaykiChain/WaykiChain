@@ -34,7 +34,6 @@ class CBlockConfirmMessage;
 
 extern CPBFTContext pbftContext;
 extern CPBFTMan pbftMan;
-extern CChain chainActive;
 extern uint256 GetOrphanRoot(const uint256 &hash);
 extern map<uint256, COrphanBlock *> mapOrphanBlocks;
 

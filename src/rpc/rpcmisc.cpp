@@ -614,7 +614,6 @@ Value getmemstat(const Array& params, bool fHelp) {
         obj.push_back(Pair("block_index_map", statObj));
     }
 
-    // CChain chainActive;
     {
         Object statObj;
         uint64_t totalSz = 0;

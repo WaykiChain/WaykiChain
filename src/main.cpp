@@ -55,7 +55,7 @@ int32_t nSyncTipHeight = 0;
 string publicIp;
 map<uint256/* blockhash */, std::shared_ptr<CCacheWrapper>> mapForkCache;
 CSignatureCache signatureCache;
-CChain chainActive;
+CChainActive chainActive;
 CChain chainMostWork;
 // may contain all CBlockIndex*'s that have validness >=BLOCK_VALID_TRANSACTIONS, and must contain those who aren't
 // failed
@@ -1300,7 +1300,7 @@ bool static WriteChainState(CValidationState &state) {
 
 // Update chainActive and related internal data structures.
 void static UpdateTip(CBlockIndex *pIndexNew, const CBlock &block) {
-    chainActive.SetTip(pIndexNew);
+    chainActive.SetTip(pIndexNew, &block);
 
     SyncTransaction(uint256(), nullptr, &block);
 
@@ -2268,8 +2268,12 @@ bool static LoadBlockIndexDB() {
         return ERRORMSG("%s(), the best block hash in db not found in block index! hash=%s\n",
             __FUNCTION__, bestBlockHash.ToString());
     }
-
-    chainActive.SetTip(it->second);
+    auto tipIndex = it->second;
+    CBlock block;
+    if (!ReadBlockFromDisk(tipIndex, block)) {
+        return ERRORMSG("Failed to read block=%s from disk", tipIndex->GetIndentityString());
+    }
+    chainActive.SetTip(tipIndex, &block);
   //  chainActive.UpdateFinalityBlock();
     LogPrint(BCLog::INFO, "LoadBlockIndexDB(): hashBestChain=%s height=%d date=%s\n",
              chainActive.Tip()->GetBlockHash().ToString(), chainActive.Height(),
@@ -2372,7 +2376,7 @@ bool VerifyDB(int32_t nCheckLevel, int32_t nCheckDepth) {
 void UnloadBlockIndex() {
     mapBlockIndex.clear();
     setBlockIndexValid.clear();
-    chainActive.SetTip(nullptr);
+    chainActive.SetTip(nullptr, nullptr);
     pIndexBestInvalid = nullptr;
 }
 

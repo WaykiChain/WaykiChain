@@ -39,7 +39,7 @@ class CInv;
 
 extern CCriticalSection cs_main;
 /** The currently-connected chain of blocks. */
-extern CChain chainActive;
+extern CChainActive chainActive;
 extern CSignatureCache signatureCache;
 
 extern CTxMemPool mempool;

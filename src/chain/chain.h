@@ -11,7 +11,7 @@
 
 /** An in-memory indexed chain of blocks. */
 class CChain {
-private:
+protected:
     vector<CBlockIndex *> vChain;
 
 public:
@@ -52,5 +52,13 @@ public:
 
 }; //end of CChain
 
+class CChainActive : public CChain {
+public:
+    CBlock tip_block;
+
+    CBlockIndex *SetTip(CBlockIndex *index, const CBlock *block);
+
+    inline CBlock *TipBlock() { return &tip_block; }
+};
 
 #endif //CHAIN_CHAIN_H

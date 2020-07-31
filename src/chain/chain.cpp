@@ -102,3 +102,15 @@ CBlockIndex* CChain::FindFork(map<uint256, CBlockIndex *> &mapBlockIndex, const 
 
     return Genesis();
 }
+
+////////////////////////////////////////////////////////////////////////////////
+// class CChainActive
+CBlockIndex* CChainActive::SetTip(CBlockIndex *index, const CBlock *block) {
+    auto ret = CChain::SetTip(index);
+    if (ret != nullptr) {
+        tip_block = *block;
+    } else {
+        tip_block = CBlock();
+    }
+    return ret;
+}

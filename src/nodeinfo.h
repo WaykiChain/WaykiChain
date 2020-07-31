@@ -17,7 +17,6 @@ using namespace std;
 
 extern CCacheDBManager *pCdMan;
 extern int32_t nSyncTipHeight;
-extern CChain chainActive;
 
 extern bool mining;
 extern CKeyID minerKeyId;

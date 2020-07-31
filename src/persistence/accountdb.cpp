@@ -13,8 +13,6 @@
 
 using namespace std;
 
-extern CChain chainActive;
-
 bool CAccountDBCache::GetAccount(const CKeyID &keyId, CAccount &account) const {
     return accountCache.GetData(keyId, account);
 }
