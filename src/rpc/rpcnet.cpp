@@ -22,6 +22,68 @@ using namespace boost::assign;
 using namespace json_spirit;
 using namespace std;
 
+////////////////////////////////////////////////////////////////////////////////
+// class CNodeStats
+
+class CNodeStats {
+public:
+    NodeId nodeid;
+    uint64_t nServices;
+    int64_t nLastSend;
+    int64_t nLastRecv;
+    int64_t nTimeConnected;
+    string addrName;
+    int32_t nVersion;
+    string cleanSubVer;
+    bool fInbound;
+    int32_t nStartingHeight;
+    uint64_t nSendBytes;
+    uint64_t nRecvBytes;
+    bool fSyncNode;
+    double dPingTime;
+    double dPingWait;
+    string addrLocal;
+
+    CNodeStats(CNode &node);
+};
+
+extern CNode* pnodeSync;
+
+CNodeStats::CNodeStats(CNode &node) {
+    nodeid = node.GetId();
+    nServices = node.nServices;
+    nLastSend = node.nLastSend;
+    nLastRecv = node.nLastRecv;
+    nTimeConnected = node.nTimeConnected;
+    addrName = node.addrName;
+    nVersion = node.nVersion;
+    cleanSubVer = node.cleanSubVer;
+    fInbound = node.fInbound;
+    nStartingHeight = node.nStartingHeight;
+    nSendBytes = node.nSendBytes;
+    nRecvBytes = node.nRecvBytes;
+    fSyncNode = (&node == pnodeSync);
+
+    // It is common for nodes with good ping times to suddenly become lagged,
+    // due to a new block arriving or other large transfer.
+    // Merely reporting pingtime might fool the caller into thinking the node was still responsive,
+    // since pingtime does not update until the ping is complete, which might take a while.
+    // So, if a ping is taking an unusually long time in flight,
+    // the caller can immediately detect that this is happening.
+    int64_t nPingUsecWait = 0;
+    if ((0 != node.nPingNonceSent) && (0 != node.nPingUsecStart)) {
+        nPingUsecWait = GetTimeMicros() - node.nPingUsecStart;
+    }
+
+    // Raw ping time is in microseconds, but show it to user as whole seconds (Coin users should be well used to small
+    // numbers with many decimal places by now :)
+    dPingTime = (((double)node.nPingUsecTime) / 1e6);
+    dPingWait = (((double)nPingUsecWait) / 1e6);
+
+    // Leave string empty if addrLocal invalid (not filled in yet)
+    addrLocal = node.addrLocal.IsValid() ? node.addrLocal.ToString() : "";
+}
+
 Value getconnectioncount(const Array& params, bool fHelp) {
     if (fHelp || params.size() != 0)
         throw runtime_error(
@@ -62,9 +124,7 @@ static void CopyNodeStats(vector<CNodeStats>& vstats) {
     LOCK(cs_vNodes);
     vstats.reserve(vNodes.size());
     for(auto pNode : vNodes) {
-        CNodeStats stats;
-        pNode->copyStats(stats);
-        vstats.push_back(stats);
+        vstats.push_back(CNodeStats(*pNode));
     }
 }
 

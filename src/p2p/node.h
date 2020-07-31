@@ -67,26 +67,6 @@ void InitializeNode(NodeId nodeid, const CNode *pNode);
 
 void FinalizeNode(NodeId nodeid);
 
-class CNodeStats {
-public:
-    NodeId nodeid;
-    uint64_t nServices;
-    int64_t nLastSend;
-    int64_t nLastRecv;
-    int64_t nTimeConnected;
-    string addrName;
-    int32_t nVersion;
-    string cleanSubVer;
-    bool fInbound;
-    int32_t nStartingHeight;
-    uint64_t nSendBytes;
-    uint64_t nRecvBytes;
-    bool fSyncNode;
-    double dPingTime;
-    double dPingWait;
-    string addrLocal;
-};
-
 struct CBlockReject {
     uint8_t chRejectCode;
     string strRejectReason;
@@ -620,7 +600,6 @@ public:
     // new code.
     static bool IsBanned(CNetAddr ip);
     static bool Ban(const CNetAddr& ip);
-    void copyStats(CNodeStats& stats);
     static void ClearBanned();  // needed for unit testing
     // Network stats
     static void RecordBytesRecv(uint64_t bytes);
