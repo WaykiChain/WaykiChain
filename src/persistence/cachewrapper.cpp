@@ -324,7 +324,7 @@ const CRegID&  GetBlockBpRegid(const CBlock &block) {
     if (block.GetHeight() == 0) {
         return GENESIS_REGID;
     }
-    if (block.vptx.size() == 1) {
+    if (block.vptx.size() == 0) {
         throw runtime_error("failed to get bp regid! no tx");
     }
     const auto &tx = *block.vptx[0];
