@@ -88,7 +88,7 @@ static const unordered_map<CdpParamType, std::tuple< uint64_t,string, string >, 
         //         type                          default_value  name                                    unit_type
         { CDP_GLOBAL_COLLATERAL_CEILING_AMOUNT,  {52500000,  "CDP_GLOBAL_COLLATERAL_CEILING_AMOUNT"  , "WI"     }},  // 25% * 210000000
         { CDP_GLOBAL_COLLATERAL_RATIO_MIN,       {8000,      "CDP_GLOBAL_COLLATERAL_RATIO_MIN"       , "RATIO"  }},  // 80% * 10000
-        { CDP_START_COLLATERAL_RATIO,            {9000,     "CDP_START_COLLATERAL_RATIO"             , "RATIO"  }},  // 190% * 10000 : starting collateral ratio
+        { CDP_START_COLLATERAL_RATIO,            {19000,     "CDP_START_COLLATERAL_RATIO"             , "RATIO" }},  // 190% * 10000 : starting collateral ratio
         { CDP_START_LIQUIDATE_RATIO,             {15000,     "CDP_START_LIQUIDATE_RATIO"             , "RATIO"  }},  // 1.13 ~ 1.5  : common liquidation
         { CDP_NONRETURN_LIQUIDATE_RATIO,         {11300,     "CDP_NONRETURN_LIQUIDATE_RATIO"         , "RATIO"  }},  // 1.04 ~ 1.13 : Non-return to CDP owner
         { CDP_FORCE_LIQUIDATE_RATIO,             {10400,     "CDP_FORCE_LIQUIDATE_RATIO"             , "RATIO"  }},  // 0 ~ 1.04    : forced liquidation only
