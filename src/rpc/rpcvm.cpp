@@ -141,7 +141,7 @@ Value luavm_executescript(const Array& params, bool fHelp) {
     }
 
     CBlockIndex *pTip       = chainActive.Tip();
-    auto bpRegid            = GetBlockBpRegid(*chainActive.TipBlock(), *spCw);
+    const auto &bpRegid     = GetBlockBpRegid(*chainActive.TipBlock());
     uint32_t fuelRate       = GetElementForBurn(pTip);
     uint32_t blockTime      = pTip->GetBlockTime();
     uint32_t prevBlockTime  = pTip->pprev != nullptr ? pTip->pprev->GetBlockTime() : pTip->GetBlockTime();
@@ -282,7 +282,7 @@ Value luavm_executecontract(const Array& params, bool fHelp) {
 
     auto spCw = std::make_shared<CCacheWrapper>(pCdMan);
     CBlockIndex *pTip      = chainActive.Tip();
-    auto bpRegid = GetBlockBpRegid(*chainActive.TipBlock(), *spCw);
+    const auto &bpRegid = GetBlockBpRegid(*chainActive.TipBlock());
     HeightType height = pTip->height + 1;
     uint32_t txIndex = 1;
     uint32_t fuelRate      = GetElementForBurn(pTip);

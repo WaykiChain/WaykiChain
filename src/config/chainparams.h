@@ -41,6 +41,8 @@ typedef enum {
 
 static const string NetTypeNames[] = { "MAIN_NET", "TEST_NET", "REGTEST_NET" };
 
+static const CRegID GENESIS_REGID = CRegID (0, 1);
+
 typedef enum {
     PUBKEY_ADDRESS,     //!< PUBKEY_ADDRESS
     SCRIPT_ADDRESS,     //!< SCRIPT_ADDRESS

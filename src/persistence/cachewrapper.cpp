@@ -320,15 +320,16 @@ CDBAccess* CCacheDBManager::CreateDbAccess(DBNameType dbNameTypeIn) {
     return new CDBAccess(dbNameTypeIn, path, cacheSize, is_memory, is_reindex);
 }
 
-CRegID  GetBlockBpRegid(const CBlock &block, CCacheWrapper &cw) {
-    return GetBlockBpRegid(block, cw.accountCache);
-}
-
-CRegID  GetBlockBpRegid(const CBlock &block, CAccountDBCache &accountCache) {
-    const auto &uid = block.GetMinerUserID();
-    CRegID regid;
-    if (!accountCache.GetRegId(uid, regid)) {
-        throw runtime_error("failed to get bp regid by uid=" + uid.ToString());
+const CRegID&  GetBlockBpRegid(const CBlock &block) {
+    if (block.GetHeight() == 0) {
+        return GENESIS_REGID;
     }
-    return regid;
+    if (block.vptx.size() == 1) {
+        throw runtime_error("failed to get bp regid! no tx");
+    }
+    const auto &tx = *block.vptx[0];
+    if (!tx.txUid.is<CRegID>()) {
+        throw runtime_error("failed to get bp regid! txUid=%s" + tx.txUid.ToString() + " not regid");
+    }
+    return tx.txUid.get<CRegID>();
 }

@@ -266,7 +266,7 @@ bool AcceptToMemoryPool(CTxMemPool &pool, CValidationState &state, CBaseTx *pBas
 
     {
         auto bm = MAKE_BENCHMARK("check tx before add mempool");
-        auto bpRegid = GetBlockBpRegid(*chainActive.TipBlock(), *spCW);
+        const auto &bpRegid = GetBlockBpRegid(*chainActive.TipBlock());
         CTxExecuteContext context(newHeight, 0, fuelRate, blockTime, prevBlockTime, bpRegid, spCW.get(), &state);
         if (!pBaseTx->CheckBaseTx(context) || !pBaseTx->CheckTx(context))
             return ERRORMSG("AcceptToMemoryPool() : CheckBaseTx/CheckTx failed, txid: %s", hash.GetHex());
@@ -534,7 +534,7 @@ void static InvalidBlockFound(CBlockIndex *pIndex, CBlock &block, const CValidat
 
     if (!state.CorruptionPossible()) {
         pIndex->nStatus |= BLOCK_FAILED_VALID;
-        CRegID bpRegid = GetBlockBpRegid(block, *pCdMan->pAccountCache);
+        const auto &bpRegid = GetBlockBpRegid(block);
         pCdMan->pBlockIndexDb->WriteBlockIndex(CDiskBlockIndex(pIndex, block, bpRegid));
         setBlockIndexValid.erase(pIndex);
         InvalidChainFound(pIndex);
@@ -1049,7 +1049,7 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
     // Re-compute reward values and total fuel
     uint64_t totalFuelFee     = 0;
     map<TokenSymbol, uint64_t> rewards = {{SYMB::WICC, 0}, {SYMB::WUSD, 0}};  // Only allow WICC/WUSD as fees type.
-    auto bpRegid = GetBlockBpRegid(block, cw);
+    const auto &bpRegid = GetBlockBpRegid(block);
 
     if (block.vptx.size() > 1) {
         assert(mapBlockIndex.count(cw.blockCache.GetBestBlockHash()));
@@ -1231,7 +1231,7 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
 
         pIndex->nStatus = (pIndex->nStatus & ~BLOCK_VALID_MASK) | BLOCK_VALID_SCRIPTS;
 
-        CRegID bpRegid = GetBlockBpRegid(block, cw);
+        CRegID bpRegid = GetBlockBpRegid(block);
         CDiskBlockIndex blockIndex(pIndex, block, bpRegid);
         if (!pCdMan->pBlockIndexDb->WriteBlockIndex(blockIndex))
             return state.Abort(_("ConnectBlock() : failed to write block index"));
@@ -1614,7 +1614,7 @@ bool AddToBlockIndex(CBlock &block, CValidationState &state, const CDiskBlockPos
     pIndexNew->nStatus    = BLOCK_VALID_TRANSACTIONS | BLOCK_HAVE_DATA;
     setBlockIndexValid.insert(pIndexNew);
 
-    CRegID bpRegid = GetBlockBpRegid(block, *pCdMan->pAccountCache);
+    const auto &bpRegid = GetBlockBpRegid(block);
     CDiskBlockIndex diskBlockIndex(pIndexNew, block, bpRegid);
     // pIndexNew->nChainTx   = (pIndexNew->pprev ? pIndexNew->pprev->nChainTx : 0) + pIndexNew->nTx;
     if (!pCdMan->pBlockIndexDb->WriteBlockIndex(diskBlockIndex))

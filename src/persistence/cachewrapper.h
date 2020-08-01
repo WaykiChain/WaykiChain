@@ -135,8 +135,6 @@ private:
     bool is_memory = false;
 };  // CCacheDBManager
 
-CRegID  GetBlockBpRegid(const CBlock &block, CCacheWrapper &cw);
-
-CRegID  GetBlockBpRegid(const CBlock &block, CAccountDBCache &accountCache);
+const CRegID& GetBlockBpRegid(const CBlock &block);
 
 #endif //PERSIST_CACHEWRAPPER_H
