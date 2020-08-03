@@ -26,13 +26,13 @@ bool CPriceFeedTx::CheckTx(CTxExecuteContext &context) {
     IMPLEMENT_DEFINE_CW_STATE;
 
     if (price_points.size() == 0 || price_points.size() > COIN_PRICE_PAIR_COUNT_MAX)
-        return state.DoS(100, ERRORMSG("CPriceFeedTx::CheckTx, the count=%u of price_points is 0 or larger than %u",
+        return state.DoS(100, ERRORMSG("the count=%u of price_points is 0 or larger than %u",
                 COIN_PRICE_PAIR_COUNT_MAX), REJECT_INVALID, "price-point-size-error");
 
     for (const auto &pricePoint : price_points) {
         const uint64_t &price = pricePoint.price;
         if (price == 0)
-            return state.DoS(100, ERRORMSG("CPriceFeedTx::CheckTx, invalid price"), REJECT_INVALID, "bad-tx-invalid-price");
+            return state.DoS(100, ERRORMSG("invalid price"), REJECT_INVALID, "bad-tx-invalid-price");
 
         const TokenSymbol &baseSymbol = pricePoint.coin_price_pair.first;
         const TokenSymbol &quoteSymbol = pricePoint.coin_price_pair.second;

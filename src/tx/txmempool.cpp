@@ -98,14 +98,16 @@ bool CTxMemPool::CheckTxInMemPool(const uint256 &txid, const CTxMemPoolEntry &me
     HeightType newHeight = pTip->height + 1;
     // not within valid height
     static int validHeight = SysCfg().GetTxCacheHeight();
-    if (!memPoolEntry.GetTransaction()->IsValidHeight(newHeight, validHeight))
-        return state.Invalid(ERRORMSG("CheckTxInMemPool() : txid: %s beyond the scope of valid height", txid.GetHex()),
-                             REJECT_INVALID, "tx-invalid-height");
+    if (!memPoolEntry.GetTransaction()->IsValidHeight(newHeight, validHeight)) {
+        LogPrint(BCLog::NET, "txid %s beyond the scope of valid height", txid.GetHex());
+        return false;
+    }
 
     // already confirmed in block
-    if (cw->txCache.HasTx(txid))
-        return state.Invalid(ERRORMSG("CheckTxInMemPool() : txid: %s has been confirmed", txid.GetHex()), REJECT_INVALID,
-                             "tx-duplicate-confirmed");
+    if (cw->txCache.HasTx(txid)) {
+        LogPrint(BCLog::NET, "txid %s confirmed in block", txid.GetHex());
+        return false;
+    }
 
     auto spCW = std::make_shared<CCacheWrapper>(cw.get());
 
