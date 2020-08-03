@@ -102,6 +102,7 @@ coin_CORE_H = \
   commons/openssl.hpp \
   commons/serialize.h \
   commons/leb128.h \
+  commons/lrucache.hpp \
   commons/types.h \
   commons/util/enumhelper.hpp \
   commons/util/util.h \
