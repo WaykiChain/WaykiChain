@@ -100,17 +100,17 @@ static const unordered_map<CdpParamType, std::tuple< uint64_t,string, string >, 
 };
 
 static const unordered_map<CdpParamType, std::pair<uint64_t,uint64_t>, CdpParamTypeHash> kCdpParamRangeTable = {
-        { CDP_GLOBAL_COLLATERAL_CEILING_AMOUNT,     RANGE(0,0)          },  // 25% * 210000000
-        { CDP_GLOBAL_COLLATERAL_RATIO_MIN,          RANGE(0,0)          },  // 80% * 10000
-        { CDP_START_COLLATERAL_RATIO,               RANGE(10000,1000000)},  // 190% * 10000 : starting collateral ratio
-        { CDP_START_LIQUIDATE_RATIO,                RANGE(10000,100000) },  // 1.13 ~ 1.5  : common liquidation
-        { CDP_NONRETURN_LIQUIDATE_RATIO,            RANGE(10000,100000) },  // 1.04 ~ 1.13 : Non-return to CDP owner
-        { CDP_FORCE_LIQUIDATE_RATIO,                RANGE(0,20000)      },  // 0 ~ 1.04    : forced liquidation only
-        { CDP_LIQUIDATE_DISCOUNT_RATIO,             RANGE(0,10000)      },  // discount: 97%
-        { CDP_BCOINSTOSTAKE_AMOUNT_MIN_IN_SCOIN,    RANGE(0,0)          },  // 0.9 WUSD, dust amount (<0.9) rejected
-        { CDP_INTEREST_PARAM_A,                     RANGE(0,0)          },  // a = 2
-        { CDP_INTEREST_PARAM_B,                     RANGE(1,100000000)  },  // b = 1
-        { CDP_CONVERT_INTEREST_TO_DEBT_DAYS,        RANGE(0,3650)       },  // max 10 years
+        { CDP_GLOBAL_COLLATERAL_CEILING_AMOUNT,     RANGE(0, 210000000)  },  // 0 ~ 210000000 : must <= total of WICC (WI)
+        { CDP_GLOBAL_COLLATERAL_RATIO_MIN,          RANGE(0, 1000000)    },  // 0% ~ 10000%
+        { CDP_START_COLLATERAL_RATIO,               RANGE(10000, 1000000)},  // 100% * 10000% : starting collateral ratio
+        { CDP_START_LIQUIDATE_RATIO,                RANGE(10000, 100000) },  // 100% ~ 1000%  : common liquidation
+        { CDP_NONRETURN_LIQUIDATE_RATIO,            RANGE(10000, 100000) },  // 100% ~ 1000% : Non-return to CDP owner
+        { CDP_FORCE_LIQUIDATE_RATIO,                RANGE(0, 20000)      },  // 0% ~ 200%    : forced liquidation only
+        { CDP_LIQUIDATE_DISCOUNT_RATIO,             RANGE(0, 10000)      },  // 0% ~ 100%
+        { CDP_BCOINSTOSTAKE_AMOUNT_MIN_IN_SCOIN,    RANGE(0, 0)          },  //
+        { CDP_INTEREST_PARAM_A,                     RANGE(0, 0)          },  //
+        { CDP_INTEREST_PARAM_B,                     RANGE(1, 100000000)  },  // 1 ~ 100000000
+        { CDP_CONVERT_INTEREST_TO_DEBT_DAYS,        RANGE(0, 3650)       },  // 0 ~ 10 years
 };
 
 inline bool CheckCdpParamValue(const CdpParamType paramType, uint64_t value, string &errMsg) {
