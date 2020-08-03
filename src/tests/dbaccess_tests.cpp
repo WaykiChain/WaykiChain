@@ -14,6 +14,8 @@ using namespace std;
 
 static const CRegID id; // to fix the link error: undefined reference to `CRegID ...
 
+static const uint32_t CACHE_SIZE = 50  << 10; // 50K
+
 struct FDBAccessTests {
     FDBAccessTests() {
         BOOST_TEST_MESSAGE( "setup FDBAccessTests" );
@@ -59,7 +61,7 @@ BOOST_AUTO_TEST_CASE(dbaccess_test)
 {
     bool isWipe = true;
     shared_ptr<CDBAccess> pDBAccess = make_shared<CDBAccess>(
-        db_dir, DBNameType::ACCOUNT, false, isWipe);
+        DBNameType::ACCOUNT, db_dir, CACHE_SIZE, false, isWipe);
     const dbk::PrefixType prefix = dbk::REGID_KEYID;
     map<string, string> dataMap;
     dataMap["regid-1"] = "keyid-1";
@@ -87,7 +89,7 @@ BOOST_AUTO_TEST_CASE(dbcache_multi_value_Level1_test)
     const bool isWipe = true;
     const dbk::PrefixType prefix = dbk::REGID_KEYID;
     shared_ptr<CDBAccess> pDBAccess = make_shared<CDBAccess>(
-        db_dir, DBNameType::ACCOUNT, false, isWipe);
+        DBNameType::ACCOUNT, db_dir, CACHE_SIZE, false, isWipe);
 
     auto pDBCache = make_shared< CCompositeKVCache<prefix, string, string> >(pDBAccess.get());
     pDBCache->SetData("regid-1", "keyid-1");
@@ -109,7 +111,7 @@ BOOST_AUTO_TEST_CASE(dbcache_multi_value_Level3_test)
     const bool isWipe = true;
     const dbk::PrefixType prefix = dbk::REGID_KEYID;
     shared_ptr<CDBAccess> pDBAccess = make_shared<CDBAccess>(
-        db_dir, DBNameType::ACCOUNT, false, isWipe);
+        DBNameType::ACCOUNT, db_dir, CACHE_SIZE, false, isWipe);
 
     auto pDBCache1 = make_shared< CCompositeKVCache<prefix, string, string> >(pDBAccess.get());
     auto pDBCache2 = make_shared< CCompositeKVCache<prefix, string, string> >(pDBCache1.get());
@@ -145,7 +147,7 @@ BOOST_AUTO_TEST_CASE(dbcache_scalar_value_Level3_test)
     const bool isWipe = true;
     const dbk::PrefixType prefix = dbk::REGID_KEYID;
     shared_ptr<CDBAccess> pDBAccess = make_shared<CDBAccess>(
-        db_dir, DBNameType::ACCOUNT, false, isWipe);
+        DBNameType::ACCOUNT, db_dir, CACHE_SIZE, false, isWipe);
 
     auto pDBCache1 = make_shared< CSimpleKVCache<prefix, string> >(pDBAccess.get());
     auto pDBCache2 = make_shared< CSimpleKVCache<prefix, string> >(pDBCache1.get());
@@ -179,7 +181,7 @@ BOOST_AUTO_TEST_CASE(dbcache_cache_size_test)
     const bool isWipe = true;
     const dbk::PrefixType prefix = dbk::REGID_KEYID;
     shared_ptr<CDBAccess> pDBAccess = make_shared<CDBAccess>(
-        db_dir, DBNameType::ACCOUNT, false, isWipe);
+        DBNameType::ACCOUNT, db_dir, CACHE_SIZE, false, isWipe);
 
     auto pDBCache = make_shared< CCompositeKVCache<prefix, string, string> >(pDBAccess.get());
     pDBCache->SetData("regid-1", "keyid-1");
