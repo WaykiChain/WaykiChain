@@ -430,7 +430,7 @@ bool CheckPBFTMessage(const int32_t msgType ,const CPBFTMessage& msg) {
 
     //check message type;
     if(msg.msgType != msgType ) {
-        LogPrint(BCLog::INFO, "msgType is illegal");
+        LogPrint(BCLog::PBFT, "msgType is illegal");
         return false;
     }
 
@@ -441,21 +441,21 @@ bool CheckPBFTMessage(const int32_t msgType ,const CPBFTMessage& msg) {
 
         //check height
         if(msg.height - chainActive.Height() > 500 || (localFinBlock && msg.height < (uint32_t)localFinBlock->height) ) {
-            LogPrint(BCLog::INFO, "messages height is out of range\n");
+            LogPrint(BCLog::PBFT, "messages height is out of range\n");
             return false;
         }
 
         //if block received,check whether in chainActive
         CBlockIndex* pIndex = chainActive[msg.height];
         if(pIndex == nullptr || pIndex->GetBlockHash() != msg.blockHash) {
-            LogPrint(BCLog::INFO, "msg_block=%s not in chainActive! miner=%s\n",
+            LogPrint(BCLog::PBFT, "msg_block=%s not in chainActive! miner=%s\n",
                 msg.GetBlockId(), msg.miner.ToString());
             return false;
         }
 
         //check signature
         if(!pCdMan->pAccountCache->GetAccount(msg.miner, account)) {
-            LogPrint(BCLog::INFO, "the miner=%s of msg is not found! msg_block=%s\n",
+            LogPrint(BCLog::PBFT, "the miner=%s of msg is not found! msg_block=%s\n",
                 msg.miner.ToString(), msg.GetBlockId());
             return false;
         }
