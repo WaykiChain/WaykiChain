@@ -98,15 +98,16 @@ bool CTxMemPool::CheckTxInMemPool(const uint256 &txid, const CTxMemPoolEntry &me
     HeightType newHeight = pTip->height + 1;
     // not within valid height
     static int validHeight = SysCfg().GetTxCacheHeight();
-    if (!memPoolEntry.GetTransaction()->IsValidHeight(newHeight, validHeight)) {
-        LogPrint(BCLog::NET, "txid %s beyond the scope of valid height", txid.GetHex());
-        return false;
+    auto &tx = *memPoolEntry.GetTransaction();
+    if (!tx.IsValidHeight(newHeight, validHeight)) {
+        LogPrint(BCLog::INFO, "valid_height(%d) of txid %s is invalid! new_height=%d\n", tx.valid_height, txid.GetHex(), newHeight);
+        return state.Invalid(false, REJECT_INVALID, "tx-invalid-height");
     }
 
     // already confirmed in block
     if (cw->txCache.HasTx(txid)) {
-        LogPrint(BCLog::NET, "txid %s confirmed in block", txid.GetHex());
-        return false;
+        LogPrint(BCLog::INFO, "txid %s confirmed in block\n", txid.GetHex());
+        return state.Invalid(false, REJECT_INVALID, "tx-duplicate-confirmed");
     }
 
     auto spCW = std::make_shared<CCacheWrapper>(cw.get());
@@ -119,8 +120,8 @@ bool CTxMemPool::CheckTxInMemPool(const uint256 &txid, const CTxMemPoolEntry &me
         CTxExecuteContext context(newHeight, 0, fuelRate, blockTime, prevBlockTime, bpRegid, spCW.get(), &state,
                                 TxExecuteContextType::VALIDATE_MEMPOOL);
 
-        if (!memPoolEntry.GetTransaction()->ExecuteFullTx(context)) { //rehearsal only within cache env
-            pCdMan->pLogCache->SetExecuteFail(newHeight, memPoolEntry.GetTransaction()->GetHash(),
+        if (!tx.ExecuteFullTx(context)) { //rehearsal only within cache env
+            pCdMan->pLogCache->SetExecuteFail(newHeight, tx.GetHash(),
                                               state.GetRejectCode(), state.GetRejectReason());
             return false;
         }
