@@ -29,17 +29,9 @@ private:
     mruset<MsgType> messageKnown;
 
 public:
-    CPBFTMessageMan(){
-            blockMessagesMap.max_size(500);
-            broadcastedBlockHashSet.max_size(500);
-            messageKnown.max_size(500);
-    }
-
-    CPBFTMessageMan(const int maxSize) {
-        blockMessagesMap.max_size(maxSize);
-        broadcastedBlockHashSet.max_size(maxSize);
-        messageKnown.max_size(maxSize);
-    }
+    CPBFTMessageMan()
+        : blockMessagesMap(PBFT_LATEST_BLOCKS), broadcastedBlockHashSet(PBFT_LATEST_BLOCKS),
+          messageKnown(PBFT_LATEST_BLOCKS) {}
 
     bool IsBroadcastedBlock(uint256 blockHash) {
         LOCK(cs_pbftmessage);
