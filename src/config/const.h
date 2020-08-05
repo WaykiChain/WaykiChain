@@ -226,4 +226,8 @@ static const uint32_t COUNT_VOTE_INTERVAL_AFTER_V3 = 100;         //<! count vot
 static const uint32_t ACTIVATE_DELEGATE_DELAY_BEFORE_V3 = 0;  //<! activate delegate delay before V3, unit: block count
 static const uint32_t ACTIVATE_DELEGATE_DELAY_AFTER_V3 = 100;   //<! activate delegate delay after V3, unit: block count
 
+////////////////////////////////////////////////////////////////////////////////
+// pBFT
+static const uint32_t PBFT_LATEST_BLOCKS = 500; // the max processing letest block count of pbft
+
 #endif //CONFIG_CONST_H

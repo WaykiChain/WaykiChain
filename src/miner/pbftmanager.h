@@ -42,7 +42,7 @@ bool BroadcastBlockConfirm(const CBlockIndex* block);
 
 bool BroadcastBlockFinality(const CBlockIndex* block);
 
-bool CheckPBFTMessage(const int32_t msgType ,const CPBFTMessage& msg);
+bool CheckPBFTMessage(CNode *pFrom, const int32_t msgType ,const CPBFTMessage& msg);
 
 bool CheckPBFTMessageSigner(const CPBFTMessage& msg);
 bool RelayBlockConfirmMessage(const CBlockConfirmMessage& msg);

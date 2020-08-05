@@ -834,7 +834,7 @@ bool ProcessBlockConfirmMessage(CNode *pFrom, CDataStream &vRecv) {
         return false;
     }
 
-    if(!CheckPBFTMessage(PBFTMsgType::CONFIRM_BLOCK,message)){
+    if(!CheckPBFTMessage(pFrom, PBFTMsgType::CONFIRM_BLOCK,message)){
         LogPrint(BCLog::NET, "confirm message check failed,miner_id=%s, blockhash=%s \n",message.miner.ToString(), message.blockHash.GetHex());
         return false;
     }
@@ -877,7 +877,7 @@ bool ProcessBlockFinalityMessage(CNode *pFrom, CDataStream &vRecv) {
         return false;
     }
 
-    if(!CheckPBFTMessage(PBFTMsgType::FINALITY_BLOCK, message)){
+    if(!CheckPBFTMessage(pFrom, PBFTMsgType::FINALITY_BLOCK, message)){
         LogPrint(BCLog::NET, "finality block message check failed, miner=%s, block=%s \n",
                  message.miner.ToString(), message.GetBlockId());
         return false;

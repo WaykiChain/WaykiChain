@@ -425,12 +425,12 @@ bool CheckPBFTMessageSigner(const CPBFTMessage& msg) {
     return false;
 }
 
-bool CheckPBFTMessage(const int32_t msgType ,const CPBFTMessage& msg) {
-
+bool CheckPBFTMessage(CNode *pFrom, const int32_t msgType ,const CPBFTMessage& msg) {
 
     //check message type;
     if(msg.msgType != msgType ) {
-        LogPrint(BCLog::PBFT, "msgType is illegal");
+        LogPrint(BCLog::INFO, "Misbehaving: invalid pbft_msg_type=%d, expected=%d, Misbehavior add 100\n", msg.msgType, msgType);
+        Misbehaving(pFrom->GetId(), 100);
         return false;
     }
 
@@ -440,31 +440,38 @@ bool CheckPBFTMessage(const int32_t msgType ,const CPBFTMessage& msg) {
         LOCK(cs_main);
 
         //check height
-        if(msg.height - chainActive.Height() > 500 || (localFinBlock && msg.height < (uint32_t)localFinBlock->height) ) {
-            LogPrint(BCLog::PBFT, "messages height is out of range\n");
-            return false;
+        uint32_t tipHeight = chainActive.Height();
+        uint32_t localFinHeight = localFinBlock != nullptr ? localFinBlock->height : 0;
+        localFinHeight = min(tipHeight, localFinHeight); // make sure the localFinHeight <= tipHeight
+        if( msg.height < localFinHeight || msg.height >  + PBFT_LATEST_BLOCKS ) {
+            LogPrint(BCLog::PBFT, "messages height is out of valid range[localFinHeight, tipHeight]:[%u, %u]\n",
+                localFinHeight, chainActive.Height() + PBFT_LATEST_BLOCKS);
+            return false; // ignore the msg
         }
 
-        //if block received,check whether in chainActive
+        // check whether in chainActive
         CBlockIndex* pIndex = chainActive[msg.height];
         if(pIndex == nullptr || pIndex->GetBlockHash() != msg.blockHash) {
             LogPrint(BCLog::PBFT, "msg_block=%s not in chainActive! miner=%s\n",
                 msg.GetBlockId(), msg.miner.ToString());
-            return false;
+            return false; // ignore the msg
         }
 
         //check signature
         if(!pCdMan->pAccountCache->GetAccount(msg.miner, account)) {
-            LogPrint(BCLog::PBFT, "the miner=%s of msg is not found! msg_block=%s\n",
-                msg.miner.ToString(), msg.GetBlockId());
+            LogPrint(BCLog::INFO, "the miner=%s of msg is not found! Misbehavior add 10, msg_block=%s\n",
+                msg.miner.ToString(), 10, msg.GetBlockId());
+            Misbehaving(pFrom->GetId(), 10);
             return false;
         }
     }
     uint256 messageHash = msg.GetHash();
+    // TODO: add verify signature cache for pBFT messages
     if (!VerifySignature(messageHash, msg.vSignature, account.owner_pubkey)) {
         if (!VerifySignature(messageHash, msg.vSignature, account.miner_pubkey)) {
-            LogPrint(BCLog::INFO, "verify signature error! miner=%s, msg_block=%s\n",
-                msg.miner.ToString(), msg.GetBlockId());
+            LogPrint(BCLog::INFO, "verify signature error! Misbehavior add %d, miner=%s, msg_block=%s\n",
+                10, msg.miner.ToString(), msg.GetBlockId());
+            Misbehaving(pFrom->GetId(), 10);
             return false;
         }
     }
