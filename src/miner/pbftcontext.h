@@ -14,6 +14,7 @@
 #include "miner/pbftlimitmap.h"
 #include "commons/mruset.h"
 #include "entities/vote.h"
+#include "commons/lrucache.hpp"
 
 class CRegID;
 class CBlockConfirmMessage;
@@ -24,14 +25,14 @@ class CPBFTMessageMan {
 
 private:
     CCriticalSection cs_pbftmessage;
-    CFIFOLimitmap<uint256, set<MsgType>> blockMessagesMap;
+    CLruCache<uint256, set<MsgType>, CUint256Hasher> blockMessagesMap;
     mruset<uint256> broadcastedBlockHashSet;
     mruset<MsgType> messageKnown;
 
 public:
     CPBFTMessageMan()
-        : blockMessagesMap(PBFT_LATEST_BLOCKS), broadcastedBlockHashSet(PBFT_LATEST_BLOCKS),
-          messageKnown(PBFT_LATEST_BLOCKS) {}
+        : blockMessagesMap(PBFT_LATEST_BLOCK_COUNT), broadcastedBlockHashSet(PBFT_LATEST_BLOCK_COUNT),
+          messageKnown(PBFT_LATEST_BLOCK_COUNT) {}
 
     bool IsBroadcastedBlock(uint256 blockHash) {
         LOCK(cs_pbftmessage);
@@ -55,29 +56,21 @@ public:
         return true;
     }
 
-    int  SaveMessageByBlock(const uint256 blockHash,const MsgType& msg) {
+    int  SaveMessageByBlock(const uint256 &blockHash,const MsgType& msg) {
 
         LOCK(cs_pbftmessage);
-        auto it = blockMessagesMap.find(blockHash);
-        if (it == blockMessagesMap.end()) {
-                set<MsgType> messages;
-                messages.insert(msg);
-                blockMessagesMap.insert(std::make_pair(blockHash, messages));
-                return 1;
-        } else {
-                set<MsgType> v = blockMessagesMap[blockHash];
-                v.insert(msg);
-                blockMessagesMap.update(it, v);
-                return v.size();
-        }
+        auto pData = blockMessagesMap.Touch(blockHash);
+        assert(pData && "Touch() must return a valid pData");
+        pData->insert(msg);
+        return pData->size();
     }
 
-    bool GetMessagesByBlockHash(const uint256 hash, set<MsgType>& msgs) {
+    bool GetMessagesByBlockHash(const uint256 &hash, set<MsgType>& msgs) {
         LOCK(cs_pbftmessage);
-        auto it = blockMessagesMap.find(hash);
-        if (it == blockMessagesMap.end())
+        auto pData = blockMessagesMap.Get(hash);
+        if (pData == nullptr)
             return false;
-        msgs = it->second;
+        msgs = *pData;
         return true;
     }
 

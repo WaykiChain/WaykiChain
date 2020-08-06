@@ -443,9 +443,9 @@ bool CheckPBFTMessage(CNode *pFrom, const int32_t msgType ,const CPBFTMessage& m
         uint32_t tipHeight = chainActive.Height();
         uint32_t localFinHeight = localFinBlock != nullptr ? localFinBlock->height : 0;
         localFinHeight = min(tipHeight, localFinHeight); // make sure the localFinHeight <= tipHeight
-        if( msg.height < localFinHeight || msg.height >  + PBFT_LATEST_BLOCKS ) {
+        if( msg.height < localFinHeight || msg.height >  + PBFT_LATEST_BLOCK_COUNT ) {
             LogPrint(BCLog::PBFT, "messages height is out of valid range[localFinHeight, tipHeight]:[%u, %u]\n",
-                localFinHeight, chainActive.Height() + PBFT_LATEST_BLOCKS);
+                localFinHeight, chainActive.Height() + PBFT_LATEST_BLOCK_COUNT);
             return false; // ignore the msg
         }
 

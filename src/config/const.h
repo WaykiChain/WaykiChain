@@ -228,6 +228,6 @@ static const uint32_t ACTIVATE_DELEGATE_DELAY_AFTER_V3 = 100;   //<! activate de
 
 ////////////////////////////////////////////////////////////////////////////////
 // pBFT
-static const uint32_t PBFT_LATEST_BLOCKS = 500; // the max processing letest block count of pbft
+static const uint32_t PBFT_LATEST_BLOCK_COUNT = 500; // the max processing letest block count of pbft
 
 #endif //CONFIG_CONST_H

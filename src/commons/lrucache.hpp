@@ -10,13 +10,13 @@
  * Least Recently Used Cache
  * the newest data is in the front
  */
-template< class Key, class Data>
+template< class Key, class Data, class Hasher = hash<Key> >
 class CLruCache {
 public:
     typedef std::pair<Key, Data> Item;
     typedef std::list< Item > Queue;
     typedef typename Queue::iterator QueueIterator;
-    typedef std::unordered_map< Key, QueueIterator > Map;
+    typedef std::unordered_map< Key, QueueIterator, Hasher> Map;
     typedef std::function<uint32_t(const Item &item)> SizeFunc;
 protected:
     Queue queue;
@@ -79,25 +79,29 @@ public:
         }
     }
 
-    /** @brief Touches a key in the Cache and makes it the most recently used.
+    /** @brief get a existed key or create a new one(empty data) in the Cache and makes it the most recently used.
      *  @param key to be touched
      */
-    inline Data*  Touch( const Key &key ) {
-        return Get(key, true); // make touch
+    inline Data*  Touch( const Key &key) {
+        auto pData = Get(key, true);
+        if (!pData) {
+            pData = InsertNewItem(key, Data());
+        }
+        return pData;
     }
 
     /** @brief get cached data.
      *  @param key to get data for
-     *  @param touch_data whether or not to touch the data
+     *  @param move_to_front whether or not to touch the data
      *  @return cached data pointer if existed, else nullptr
      */
-    inline Data* Get( const Key &key, bool touch_data = true ) {
+    inline Data* Get( const Key &key, bool move_to_front = true ) {
         auto mapIt = index.find( key );
         if( mapIt == index.end() )
             return nullptr;
         auto &qIt = mapIt->second;
-        if( touch_data )
-            TouchInList(qIt);
+        if( move_to_front )
+            MoveToFront(qIt);
         return &(qIt->second);
     }
 
@@ -113,24 +117,31 @@ public:
             // the key exists
             auto &qIt = mapIt->second;
             qIt->second = data;
-            TouchInList(qIt);
+            MoveToFront(qIt);
+            return ;
+        } else {
+            // new cache item
+            InsertNewItem(key, data);
         }
-
-        // new cache item
-        queue.emplace_front(key, data);
-        auto qIt = queue.begin();
-        index.emplace(key, qIt);
-        curr_size += GetItemSize(*qIt);
 
         CleanExcess();
     }
 
 private:
-    inline void TouchInList(QueueIterator &qIt ) {
+    inline void MoveToFront(QueueIterator &qIt ) {
         // Move the found node to the head of the queue.
         if (qIt != queue.begin() && qIt != queue.end()) {
             queue.splice( queue.begin(), queue, qIt);
         }
+    }
+
+    inline Data* InsertNewItem(const Key &key, const Data& data) {
+                // new cache item
+        queue.emplace_front(key, data);
+        auto qIt = queue.begin();
+        index.emplace(key, qIt);
+        curr_size += GetItemSize(*qIt);
+        return &qIt->second;
     }
 
     inline void CleanExcess() {
