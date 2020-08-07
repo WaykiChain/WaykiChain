@@ -1449,7 +1449,7 @@ inline void SetForkInvalidByRoot(CBlockIndex *root, CBlockIndex *last) {
 
 // Make chainMostWork correspond to the chain with the most work in it, that isn't
 // known to be invalid (it's however far from certain to be valid).
-void static FindMostWorkChain() {
+bool static FindMostWorkChain(CValidationState &state) {
     CBlockIndex *pIndexNew = nullptr;
 
     // In case the current best is invalid, do not consider it.
@@ -1458,13 +1458,9 @@ void static FindMostWorkChain() {
         chainMostWork.SetTip(chainMostWork.Tip()->pprev);
     }
 
-    CBlockIndex* localFinIndex = pbftMan.GetLocalFinIndex();
-    CBlockIndex* globalFinIndex = pbftMan.GetGlobalFinIndex();
-    CBlockIndex* finIndex = localFinIndex;
-    if (localFinIndex != nullptr && globalFinIndex != nullptr && localFinIndex->height < globalFinIndex->height) {
-        LogPrint(BCLog::INFO, "[WARN]the localFinIndex(%s) < globalFinIndex(%s)\n",
-                 localFinIndex->GetIdString(), globalFinIndex->GetIdString());
-        finIndex = globalFinIndex;
+    CBlockIndex* finIndex = pbftMan.GetGlobalFinIndex();
+    if (finIndex && !chainActive.Contains(finIndex)) {
+        return state.Invalid(ERRORMSG("the fin block(%s) index not in active chain", finIndex->GetIdString()), 0, "invalid-global-fin-block");
     }
 
     do {
@@ -1472,7 +1468,7 @@ void static FindMostWorkChain() {
         {
             set<CBlockIndex *, CBlockIndexWorkComparator>::reverse_iterator it = setBlockIndexValid.rbegin();
             if (it == setBlockIndexValid.rend())
-                return;
+                return true;
             pIndexNew = *it;
         }
 
@@ -1507,9 +1503,7 @@ void static FindMostWorkChain() {
             continue;
         }
 
-        if (finIndex && (forkRoot->height < finIndex->height ||
-                         (forkRoot->height == finIndex->height &&
-                          forkRoot->GetBlockHash() == finIndex->GetBlockHash()))) {
+        if (finIndex && (forkRoot->height < finIndex->height)) {
             LogPrint(BCLog::PBFT, "the root(%s) of fork{from (%s) to (%s)} is prior to fin block(%s)\n",
                     forkRoot->GetIdString(), forkFirst->GetIdString(), pIndexNew->GetIdString(),
                     finIndex->GetIdString());
@@ -1521,10 +1515,11 @@ void static FindMostWorkChain() {
 
     // Check whether it's actually an improvement.
     if (chainMostWork.Tip() && !CBlockIndexWorkComparator()(chainMostWork.Tip(), pIndexNew))
-        return;
+        return true;
 
     // We have a new best.
     chainMostWork.SetTip(pIndexNew);
+    return true;
 }
 
 bool ConnectBlockOnFinChain(CBlockIndex* pNewIndex, CValidationState& state) {
@@ -1552,7 +1547,10 @@ bool ActivateBestChain(CValidationState &state, CBlockIndex* pNewIndex) {
     bool fComplete            = false;
 
     while (!fComplete) {
-        FindMostWorkChain();
+        if (!FindMostWorkChain(state)) {
+            return ERRORMSG("FindMostWorkChain error!");
+        }
+
         fComplete = true;
 
         // Check whether we have something to do.
