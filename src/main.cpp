@@ -1513,9 +1513,9 @@ bool static FindMostWorkChain(CValidationState &state) {
         break;
     } while (true);
 
-    // Check whether it's actually an improvement.
-    if (chainMostWork.Tip() && !CBlockIndexWorkComparator()(chainMostWork.Tip(), pIndexNew))
-        return true;
+    // // Check whether it's actually an improvement.
+    // if (chainMostWork.Tip() && !CBlockIndexWorkComparator()(chainMostWork.Tip(), pIndexNew))
+    //     return true;
 
     // We have a new best.
     chainMostWork.SetTip(pIndexNew);
