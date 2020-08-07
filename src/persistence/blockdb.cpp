@@ -177,6 +177,6 @@ bool CBlockDBCache::WriteGlobalFinBlock(const int32_t height, const uint256 hash
     finality_block_cache.SetData(std::make_pair(height, hash));
     return true;
 }
-bool CBlockDBCache::ReadGlobalFinBlock(std::pair<int32_t,uint256>& block) {
+bool CBlockDBCache::GetGlobalFinBlock(std::pair<int32_t,uint256>& block) {
     return finality_block_cache.GetData(block);
 }

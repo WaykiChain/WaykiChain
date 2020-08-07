@@ -25,6 +25,7 @@ private:
     bool UpdateGlobalFinBlock(const uint32_t height);
 
 public:
+    void InitFinIndex(CBlockIndex *globalFinIndexIn);
 
     CBlockIndex *GetLocalFinIndex();
     CBlockIndex *GetGlobalFinIndex();

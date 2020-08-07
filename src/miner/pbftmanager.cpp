@@ -30,6 +30,11 @@ uint32_t GetFinalBlockMinerCount(const uint256& preHash = uint256()) {
 
 }
 
+void CPBFTMan::InitFinIndex(CBlockIndex *globalFinIndexIn) {
+    globalFinIndex = globalFinIndexIn;
+    localFinIndex = globalFinIndexIn;
+}
+
 CBlockIndex* CPBFTMan::GetLocalFinIndex(){
     LOCK(cs_finblock);
     return localFinIndex ? localFinIndex : chainActive[0];
@@ -48,7 +53,7 @@ uint256 CPBFTMan::GetGlobalFinBlockHash() {
         {
             LOCK(cs_main);
             std::pair<int32_t ,uint256> globalfinblock = std::make_pair(0,uint256());
-            if (pCdMan->pBlockCache->ReadGlobalFinBlock(globalfinblock)){
+            if (pCdMan->pBlockCache->GetGlobalFinBlock(globalfinblock)){
                 globalFinHash = globalfinblock.second;
             } else if (chainActive[0] != nullptr) {
                 globalFinHash = chainActive[0]->GetBlockHash();
