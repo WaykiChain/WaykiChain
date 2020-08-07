@@ -376,6 +376,7 @@ libcoin_server_a_SOURCES = \
   rpc/rpcwallet.cpp \
   rpc/rpcsubmittx.cpp \
   rpc/rpcproposal.cpp \
+  rpc/rpctpstester.cpp \
   rpc/rpctxserializer.cpp \
   sigcache.cpp \
   tx/assettx.cpp \
