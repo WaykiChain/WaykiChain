@@ -107,8 +107,9 @@ public:
     bool WriteFlag(const string &name, bool fValue);
     bool ReadFlag(const string &name, bool &fValue);
 
-    bool WriteGlobalFinBlock(const int32_t height, const uint256 hash);
+    bool SetGlobalFinBlock(const int32_t height, const uint256 hash);
     bool GetGlobalFinBlock(std::pair<int32_t,uint256>& block);
+    bool EraseGlobalFinBlock();
 
     uint256 GetBestBlockHash() const;
     bool SetBestBlock(const uint256 &blockHash);

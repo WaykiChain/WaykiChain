@@ -2291,19 +2291,20 @@ bool static LoadBlockIndexDB() {
         return ERRORMSG("Failed to read block=%s from disk", tipIndex->GetIdString());
     }
     chainActive.SetTip(tipIndex, &block);
+
     std::pair<int32_t,uint256> globalFinBlock;
     if (pCdMan->pBlockCache->GetGlobalFinBlock(globalFinBlock)) {
         auto globalFinIndex = chainActive[globalFinBlock.first];
         if (globalFinIndex == nullptr || globalFinIndex->GetBlockHash() != globalFinBlock.second) {
-            return ERRORMSG("Global fin block([%u]%s) not in active chain! should execute `clearfinblock` and reload again.",
+            ERRORMSG("Global fin block([%u]%s) not in active chain! Erase the global fin block.",
                 globalFinBlock.first, globalFinBlock.second.ToString());
+            pCdMan->pBlockCache->EraseGlobalFinBlock();
+        } else {
+            pbftMan.InitFinIndex(globalFinIndex);
+            LogPrint(BCLog::INFO, "Found global fin block(%s)\n", globalFinIndex->GetIdString());
         }
-        pbftMan.InitFinIndex(globalFinIndex);
-
-        LogPrint(BCLog::INFO, "Found global fin block(%s)\n", globalFinIndex->GetIdString());
     }
 
-  //  chainActive.UpdateFinalityBlock();
     LogPrint(BCLog::INFO, "LoadBlockIndexDB(): hashBestChain=%s height=%d date=%s\n",
              chainActive.Tip()->GetBlockHash().ToString(), chainActive.Height(),
              DateTimeStrFormat("%Y-%m-%d %H:%M:%S", chainActive.Tip()->GetBlockTime()));

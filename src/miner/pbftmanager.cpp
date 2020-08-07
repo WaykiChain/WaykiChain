@@ -111,7 +111,7 @@ bool CPBFTMan::UpdateGlobalFinBlock(const uint32_t height) {
             return false;
         globalFinIndex = pTemp;
         globalFinHash = pTemp->GetBlockHash();
-        pCdMan->pBlockCache->WriteGlobalFinBlock(pTemp->height, pTemp->GetBlockHash());
+        pCdMan->pBlockCache->SetGlobalFinBlock(pTemp->height, pTemp->GetBlockHash());
         return true;
     }
 

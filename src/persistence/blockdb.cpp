@@ -173,10 +173,15 @@ bool CBlockDBCache::WriteFlag(const string &name, bool fValue) {
 bool CBlockDBCache::ReadFlag(const string &name, bool &fValue) {
     return flag_cache.GetData(name, fValue);
 }
-bool CBlockDBCache::WriteGlobalFinBlock(const int32_t height, const uint256 hash) {
-    finality_block_cache.SetData(std::make_pair(height, hash));
-    return true;
+
+bool CBlockDBCache::SetGlobalFinBlock(const int32_t height, const uint256 hash) {
+    return finality_block_cache.SetData(std::make_pair(height, hash));
 }
+
 bool CBlockDBCache::GetGlobalFinBlock(std::pair<int32_t,uint256>& block) {
     return finality_block_cache.GetData(block);
+}
+
+bool CBlockDBCache::EraseGlobalFinBlock() {
+    return finality_block_cache.EraseData();
 }
