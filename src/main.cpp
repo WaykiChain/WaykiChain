@@ -1427,6 +1427,26 @@ bool static ConnectTip(CValidationState &state, CBlockIndex *pIndexNew) {
     return true;
 }
 
+// Candidate has an invalid ancestor, remove entire chain from the set.
+inline void SetForkInvalid(CBlockIndex *first, CBlockIndex *last) {
+    CBlockIndex *pos = last;
+    while (pos) {
+        pos->nStatus |= BLOCK_FAILED_CHILD;
+        setBlockIndexValid.erase(pos);
+        pos = (first && pos != first) ? pos->pprev : nullptr;
+    }
+}
+
+// Candidate has an invalid ancestor, remove entire chain from the set.
+inline void SetForkInvalidByRoot(CBlockIndex *root, CBlockIndex *last) {
+    CBlockIndex *pos = last;
+    while (pos && pos != root) {
+        pos->nStatus |= BLOCK_FAILED_CHILD;
+        setBlockIndexValid.erase(pos);
+        pos = pos->pprev;
+    }
+}
+
 // Make chainMostWork correspond to the chain with the most work in it, that isn't
 // known to be invalid (it's however far from certain to be valid).
 void static FindMostWorkChain() {
@@ -1436,6 +1456,15 @@ void static FindMostWorkChain() {
     while (chainMostWork.Tip() && (chainMostWork.Tip()->nStatus & BLOCK_FAILED_MASK)) {
         setBlockIndexValid.erase(chainMostWork.Tip());
         chainMostWork.SetTip(chainMostWork.Tip()->pprev);
+    }
+
+    CBlockIndex* localFinIndex = pbftMan.GetLocalFinIndex();
+    CBlockIndex* globalFinIndex = pbftMan.GetGlobalFinIndex();
+    CBlockIndex* finIndex = localFinIndex;
+    if (localFinIndex != nullptr && globalFinIndex != nullptr && localFinIndex->height < globalFinIndex->height) {
+        LogPrint(BCLog::INFO, "[WARN]the localFinIndex(%s) < globalFinIndex(%s)\n",
+                 localFinIndex->GetIdString(), globalFinIndex->GetIdString());
+        finIndex = globalFinIndex;
     }
 
     do {
@@ -1449,27 +1478,44 @@ void static FindMostWorkChain() {
 
         // Check whether all blocks on the path between the currently active chain and the candidate are valid.
         // Just going until the active chain is an optimization, as we know all blocks in it are valid already.
-        CBlockIndex *pindexTest = pIndexNew;
+        CBlockIndex *forkRoot = pIndexNew;
+        CBlockIndex *forkFirst = pIndexNew;
         bool fInvalidAncestor   = false;
-        while (pindexTest && !chainActive.Contains(pindexTest)) {
-            if (pindexTest->nStatus & BLOCK_FAILED_MASK) {
-                // Candidate has an invalid ancestor, remove entire chain from the set.
+        while (forkRoot && !chainActive.Contains(forkRoot)) {
+            forkFirst = forkRoot;
+
+            if (forkRoot->nStatus & BLOCK_FAILED_MASK) {
                 if (pIndexBestInvalid == nullptr || pIndexNew->height > pIndexBestInvalid->height)
                     pIndexBestInvalid = pIndexNew;
-                CBlockIndex *pindexFailed = pIndexNew;
-                while (pindexTest != pindexFailed) {
-                    pindexFailed->nStatus |= BLOCK_FAILED_CHILD;
-                    setBlockIndexValid.erase(pindexFailed);
-                    pindexFailed = pindexFailed->pprev;
-                }
+
+                // Candidate has an invalid ancestor, remove entire chain from the set.
+                SetForkInvalidByRoot(forkRoot, pIndexNew);
                 fInvalidAncestor = true;
                 break;
             }
-            pindexTest = pindexTest->pprev;
+            forkRoot = forkRoot->pprev;
         }
         if (fInvalidAncestor)
             continue;
 
+        if (!forkRoot) {
+            LogPrint(BCLog::INFO, "[WARN]not found root of fork{from (%s) to (%s)} base on active chain\n",
+                    forkFirst ? forkFirst->GetIdString() : "",
+                    pIndexNew ? pIndexNew->GetIdString() : "");
+            if (pIndexNew)
+                SetForkInvalid(forkFirst, pIndexNew);
+            continue;
+        }
+
+        if (finIndex && (forkRoot->height < finIndex->height ||
+                         (forkRoot->height == finIndex->height &&
+                          forkRoot->GetBlockHash() == finIndex->GetBlockHash()))) {
+            LogPrint(BCLog::PBFT, "the root(%s) of fork{from (%s) to (%s)} is prior to fin block(%s)\n",
+                    forkRoot->GetIdString(), forkFirst->GetIdString(), pIndexNew->GetIdString(),
+                    finIndex->GetIdString());
+            SetForkInvalidByRoot(forkRoot, pIndexNew);
+            continue;
+        }
         break;
     } while (true);
 
@@ -1512,34 +1558,6 @@ bool ActivateBestChain(CValidationState &state, CBlockIndex* pNewIndex) {
         // Check whether we have something to do.
         if (chainMostWork.Tip() == nullptr)
             break;
-
-        auto height = chainActive.Height();
-        while(height >= 0 ){
-            auto chainIndex = chainActive[height];
-            if( chainIndex &&!chainMostWork.Contains(chainIndex)){
-                CBlockIndex* finIndex = pbftMan.GetLocalFinIndex();
-                if(finIndex && chainIndex->GetBlockHash() == finIndex->GetBlockHash()){
-                    LogPrint(BCLog::INFO, "finality block can't be reverse\n");
-                    if (GetTime() - pbftMan.GetLocalFinLastUpdate() > 60) {
-                        pbftMan.SetLocalFinTimeout();
-                    } else{
-                        LogPrint(BCLog::INFO, "connect block on fin chain\n");
-                        return ConnectBlockOnFinChain(pNewIndex, state);
-                    }
-                }
-
-                uint256 globalFinIndexHash = pbftMan.GetGlobalFinBlockHash();
-                if( chainIndex->GetBlockHash() == globalFinIndexHash){
-                    LogPrint(BCLog::INFO, "globalfinality block can't be reverse\n");
-                    return ConnectBlockOnFinChain(pNewIndex, state);
-                }
-
-                height--;
-            }else if (chainIndex&& chainMostWork.Contains(chainIndex)){
-                break;
-            }else if(chainIndex == nullptr)
-                return true;
-        }
 
         // Disconnect active blocks which are no longer in the best chain.
         while (chainActive.Tip() && !chainMostWork.Contains(chainActive.Tip())) {
