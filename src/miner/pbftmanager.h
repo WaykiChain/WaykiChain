@@ -29,8 +29,6 @@ public:
 
     CBlockIndex *GetLocalFinIndex();
     CBlockIndex *GetGlobalFinIndex();
-    uint256 GetGlobalFinBlockHash();
-//    bool UpdateFinalityBlock();
     bool SetLocalFinTimeout();
     bool UpdateLocalFinBlock(const CBlockIndex* pIndex);
     bool UpdateLocalFinBlock(const CBlockConfirmMessage& msg, const uint32_t messageCount);

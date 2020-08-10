@@ -46,26 +46,6 @@ CBlockIndex* CPBFTMan::GetGlobalFinIndex(){
     return globalFinIndex ? globalFinIndex : chainActive[0];
 }
 
-uint256 CPBFTMan::GetGlobalFinBlockHash() {
-    if(!globalFinIndex) {
-        if(globalFinHash != uint256())
-            return globalFinHash;
-        {
-            LOCK(cs_main);
-            std::pair<int32_t ,uint256> globalfinblock = std::make_pair(0,uint256());
-            if (pCdMan->pBlockCache->GetGlobalFinBlock(globalfinblock)){
-                globalFinHash = globalfinblock.second;
-            } else if (chainActive[0] != nullptr) {
-                globalFinHash = chainActive[0]->GetBlockHash();
-            }
-            return globalFinHash;
-        }
-
-    }
-    return globalFinIndex->GetBlockHash();
-
-}
-
 bool CPBFTMan::SetLocalFinTimeout() {
     LOCK(cs_finblock);
     localFinIndex = chainActive[0];
