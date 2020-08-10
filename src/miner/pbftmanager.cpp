@@ -18,9 +18,9 @@ extern CPBFTContext pbftContext;
 extern CWallet *pWalletMain;
 extern CCacheDBManager *pCdMan;
 
-uint32_t GetFinalBlockMinerCount(const uint256& preHash = uint256()) {
+uint32_t GetFinalBlockMinerCount(const uint256& blockHash = uint256()) {
     set<CRegID> bpSet;
-    if(preHash != uint256() && pbftContext.GetMinerListByBlockHash(preHash, bpSet)) {
+    if(!blockHash.IsEmpty() && pbftContext.GetMinerListByBlockHash(blockHash, bpSet)) {
         uint32_t bpsize = bpSet.size();
         return bpsize - bpsize/3;
 
@@ -51,7 +51,7 @@ bool CPBFTMan::SetLocalFinTimeout() {
     localFinIndex = chainActive[0];
     return true;
 }
-bool CPBFTMan::UpdateLocalFinBlock(const uint32_t height) {
+bool CPBFTMan::SaveLocalFinBlock(const uint32_t height) {
     {
         LOCK(cs_finblock);
         CBlockIndex* oldFinblock = GetLocalFinIndex();
@@ -97,44 +97,50 @@ bool CPBFTMan::UpdateGlobalFinBlock(const uint32_t height) {
 
 }
 
-bool CPBFTMan::UpdateLocalFinBlock(const CBlockIndex* pIndex){
+bool CPBFTMan::UpdateLocalFinBlock(CBlockIndex* pTipIndex){
 
 
-    if(pIndex == nullptr|| pIndex->height==0){
+    if(pTipIndex == nullptr|| pTipIndex->height==0){
         LogPrint(BCLog::DEBUG, "pIndex not found");
         return false;
     }
-    int32_t height = pIndex->height;
 
-    uint32_t needConfirmCount = GetFinalBlockMinerCount(*(pIndex->pprev->pBlockHash));
+    LOCK(cs_finblock);
+    auto oldLocalFinHeight = localFinIndex ? localFinIndex->height : 0;
 
-    while(height > GetLocalFinIndex()->height&& height>0 && height > pIndex->height-10){
-
-        CBlockIndex* pTemp = chainActive[height];
+    CBlockIndex* pIndex = pTipIndex;
+    CBlockIndex *newLocalFinIndex = nullptr;
+    while (pIndex && pIndex->height > oldLocalFinHeight && pIndex->height > 0 &&
+           pIndex->height > pTipIndex->height - 10) {
 
         set<CBlockConfirmMessage> messageSet;
         set<CRegID> miners;
 
-        if(pbftContext.confirmMessageMan.GetMessagesByBlockHash(pTemp->GetBlockHash(), messageSet)
-           && pbftContext.GetMinerListByBlockHash(pTemp->pprev->GetBlockHash(),miners)){
+        if(pbftContext.confirmMessageMan.GetMessagesByBlockHash(pIndex->GetBlockHash(), messageSet)
+           && pbftContext.GetMinerListByBlockHash(pIndex->pprev->GetBlockHash(),miners)){
 
+            // TODO: use curr or last miners
+            uint32_t needConfirmCount = GetFinalBlockMinerCount(*pIndex->pBlockHash);
             if(messageSet.size() >= needConfirmCount){
                 uint32_t count =0;
                 for(auto msg: messageSet){
                     if(miners.count(msg.miner))
                         count++;
                     if(count >= needConfirmCount){
-                        return UpdateLocalFinBlock( height);
+                        newLocalFinIndex = pIndex;
+                        break;
                     }
                 }
             }
 
         }
-
-        height--;
-
+        pIndex = pIndex->pprev;
     }
-    return false;
+    if (!newLocalFinIndex) return false;
+
+    localFinIndex = newLocalFinIndex;
+    localFinLastUpdate = GetTime();
+    return true;
 }
 
 bool CPBFTMan::UpdateLocalFinBlock(const CBlockConfirmMessage& msg, const uint32_t messageCount){
@@ -174,7 +180,7 @@ bool CPBFTMan::UpdateLocalFinBlock(const CBlockConfirmMessage& msg, const uint32
                     count++;
 
                 if (count >= needConfirmCount)
-                    return UpdateLocalFinBlock(pIndex->height);
+                    return SaveLocalFinBlock(pIndex->height);
             }
         }
 
