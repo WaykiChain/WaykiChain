@@ -17,6 +17,7 @@
 #include "sync.h"
 #include "tx/tx.h"
 #include "tx/coinminttx.h"
+#include "miner/pbftmanager.h"
 
 using namespace json_spirit;
 using namespace std;
@@ -448,3 +449,37 @@ Value getblockfailures(const Array& params, bool fHelp) {
 
     return obj;
 }
+
+extern CPBFTMan pbftMan;
+
+Value getpbftinfo(const Array& params, bool fHelp) {
+    if (fHelp || params.size() != 0) {
+        throw runtime_error(
+            "getpbftinfo \n"
+            "\nget pBFT info.\n"
+            "\nArguments:\n"
+            "\nResult: pBFT info\n"
+            "\nExamples:\n" +
+            HelpExampleCli("getpbftinfo", "") +
+            "\nAs json rpc call\n" +
+            HelpExampleRpc("getpbftinfo", ""));
+    }
+
+    auto localFinIndex = pbftMan.GetLocalFinIndex();
+    auto globalFinIndex = pbftMan.GetGlobalFinIndex();
+
+    Object obj;
+
+    obj.push_back(Pair("height",      chainActive.Height()));
+    if (localFinIndex) {
+        obj.push_back(Pair("local_fin_height",  localFinIndex->height));
+        obj.push_back(Pair("local_fin_height",  localFinIndex->GetBlockHash().ToString()));
+    }
+    if (globalFinIndex) {
+        obj.push_back(Pair("global_fin_height",  globalFinIndex->height));
+        obj.push_back(Pair("global_fin_height",  globalFinIndex->GetBlockHash().ToString()));
+    }
+
+    return obj;
+}
+

@@ -154,6 +154,7 @@ extern Value reconsiderblock(const Array& params, bool fHelp);
 
 extern Value getblockfailures(const Array& params, bool fHelp);
 extern Value getblockundo(const Array& params, bool fHelp);
+extern Value getpbftinfo(const Array& params, bool fHelp);
 
 /******************************  Lua VM *********************************/
 extern Value luavm_executescript(const Array& params, bool fHelp);

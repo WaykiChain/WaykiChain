@@ -39,7 +39,8 @@ static const CRPCCommand vRPCCommands[] =
     { "getrawmempool",                  &getrawmempool,                     true,      false,       false   },
     { "verifychain",                    &verifychain,                       true,      false,       false   },
     { "getblockundo",                   &getblockundo,                      true,      false,       false   },
-    { "getswapcoindetail",              &getswapcoindetail,                 true,      false,        false   },
+    { "getswapcoindetail",              &getswapcoindetail,                 true,      false,       false   },
+    { "getpbftinfo",                    &getpbftinfo,                       true,      false,       false   },
 
     { "gettotalcoins",                  &gettotalcoins,                     true,      false,       false   },
     { "invalidateblock",                &invalidateblock,                   true,      true,        false   },
