@@ -267,6 +267,58 @@ bool CPBFTMan::UpdateGlobalFinBlock(const CBlockFinalityMessage& msg, const uint
     return false;
 }
 
+bool CPBFTMan::AddBlockConfirmMessage(CNode *pFrom, const CBlockConfirmMessage& msg) {
+    CPBFTMessageMan<CBlockConfirmMessage>& msgMan = pbftContext.confirmMessageMan;
+    if(msgMan.IsKnown(msg)){
+        LogPrint(BCLog::NET, "duplicate confirm message! miner_id=%s, blockhash=%s \n",msg.miner.ToString(), msg.blockHash.GetHex());
+        return false;
+    }
+
+    if(!CheckPBFTMessage(pFrom, PBFTMsgType::CONFIRM_BLOCK, msg)){
+        LogPrint(BCLog::NET, "confirm message check failed,miner_id=%s, blockhash=%s \n",msg.miner.ToString(), msg.blockHash.GetHex());
+        return false;
+    }
+
+    msgMan.AddMessageKnown(msg);
+    int messageCount = msgMan.SaveMessageByBlock(msg.blockHash, msg);
+
+    bool updateFinalitySuccess = UpdateLocalFinBlock(msg,  messageCount);
+
+
+    if(CheckPBFTMessageSigner(msg))
+        RelayBlockConfirmMessage(msg);
+
+    if(updateFinalitySuccess){
+        BroadcastBlockFinality(GetLocalFinIndex());
+    }
+    return true;
+}
+
+bool CPBFTMan::AddBlockFinalityMessage(CNode *pFrom, const CBlockFinalityMessage& msg) {
+    CPBFTMessageMan<CBlockFinalityMessage>& msgMan = pbftContext.finalityMessageMan;
+    if(msgMan.IsKnown(msg)){
+        LogPrint(BCLog::NET, "duplicated finality message, miner=%s, block=%s \n",
+                 msg.miner.ToString(), msg.GetBlockId());
+        return false;
+    }
+
+    if(!CheckPBFTMessage(pFrom, PBFTMsgType::FINALITY_BLOCK, msg)){
+        LogPrint(BCLog::NET, "finality block message check failed, miner=%s, block=%s \n",
+                 msg.miner.ToString(), msg.GetBlockId());
+        return false;
+    }
+
+    msgMan.AddMessageKnown(msg);
+    int messageCount = msgMan.SaveMessageByBlock(msg.blockHash, msg);
+    pbftMan.UpdateGlobalFinBlock(msg, messageCount);
+
+    if(CheckPBFTMessageSigner(msg)){
+        RelayBlockFinalityMessage(msg);
+    }
+
+    return true;
+}
+
 static bool PbftFindMiner(CRegID delegate, Miner &miner){
     {
         LOCK(cs_main);
@@ -434,7 +486,7 @@ bool CheckPBFTMessage(CNode *pFrom, const int32_t msgType ,const CPBFTMessage& m
         uint32_t tipHeight = chainActive.Height();
         uint32_t localFinHeight = localFinBlock != nullptr ? localFinBlock->height : 0;
         localFinHeight = min(tipHeight, localFinHeight); // make sure the localFinHeight <= tipHeight
-        if( msg.height < localFinHeight || msg.height >  + PBFT_LATEST_BLOCK_COUNT ) {
+        if( msg.height < localFinHeight || msg.height > tipHeight + PBFT_LATEST_BLOCK_COUNT ) {
             LogPrint(BCLog::PBFT, "messages height is out of valid range[localFinHeight, tipHeight]:[%u, %u]\n",
                 localFinHeight, chainActive.Height() + PBFT_LATEST_BLOCK_COUNT);
             return false; // ignore the msg
