@@ -405,6 +405,19 @@ public:
         return false;
     }
 
+    bool GetData(const KeyType &key, const ValueType **value) const {
+        assert(value != nullptr && "the value pointer is NULL");
+        if (db_util::IsEmpty(key)) {
+            return false;
+        }
+        auto it = GetDataIt(key);
+        if (it != mapData.end() && !db_util::IsEmpty(*it->second)) {
+            *value = it->second.get();
+            return true;
+        }
+        return false;
+    }
+
     bool SetData(const KeyType &key, const ValueType &value) {
         if (db_util::IsEmpty(key)) {
             return false;
@@ -667,6 +680,16 @@ public:
         auto ptr = GetDataPtr();
         if (ptr && !db_util::IsEmpty(*ptr)) {
             value = *ptr;
+            return true;
+        }
+        return false;
+    }
+
+    bool GetData(const ValueType **value) const {
+        assert(value != nullptr && "the value pointer is NULL");
+        auto ptr = GetDataPtr();
+        if (ptr && !db_util::IsEmpty(*ptr)) {
+            *value = ptr.get();
             return true;
         }
         return false;

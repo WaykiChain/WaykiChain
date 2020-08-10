@@ -69,8 +69,9 @@ public:
 
     bool IsActiveDelegate(const CRegID &regid);
     bool GetActiveDelegate(const CRegID &regid, VoteDelegate &voteDelegate);
-    bool GetActiveDelegates(VoteDelegateVector &voteDelegates);
-    bool SetActiveDelegates(const VoteDelegateVector &voteDelegates);
+    bool GetActiveDelegates(ActiveDelegatesStore &activeDelegatesStore);
+    bool GetActiveDelegates(VoteDelegateVector &activeDelegates);
+    bool SetActiveDelegates(const ActiveDelegatesStore &activeDelegates);
 
     bool SetCandidateVotes(const CRegID &regid, const vector<CCandidateReceivedVote> &candidateVotes);
     bool GetCandidateVotes(const CRegID &regid, vector<CCandidateReceivedVote> &candidateVotes);
@@ -118,7 +119,8 @@ public:
 
     CSimpleKVCache<dbk::LAST_VOTE_HEIGHT, CVarIntValue<uint32_t>> last_vote_height_cache;
     CSimpleKVCache<dbk::PENDING_DELEGATES, PendingDelegates> pending_delegates_cache;
-    CSimpleKVCache<dbk::ACTIVE_DELEGATES, VoteDelegateVector> active_delegates_cache;
+    //
+    CSimpleKVCache<dbk::ACTIVE_DELEGATES, ActiveDelegatesStore> active_delegates_cache;
 
     vector<CRegID> delegateRegIds;
 };

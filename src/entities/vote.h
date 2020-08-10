@@ -71,9 +71,7 @@ public:
     friend bool operator<(const CCandidateVote &fa, const CCandidateVote &fb) {
         return (fa.votedBcoins <= fb.votedBcoins);
     }
-    friend bool operator>(const CCandidateVote &fa, const CCandidateVote &fb) {
-        return !operator<(fa, fb);
-    }
+
     friend bool operator==(const CCandidateVote &fa, const CCandidateVote &fb) {
         return (fa.candidateUid == fb.candidateUid && fa.votedBcoins == fb.votedBcoins);
     }
@@ -186,13 +184,22 @@ struct VoteDelegate {
     }
 };
 
+
+typedef vector<VoteDelegate> VoteDelegateVector;
+
+inline string VoteDelegateVectorToString(const VoteDelegateVector &delegates) {
+    string str;
+    for (const auto &item : delegates)
+        str += "{" + item.ToString() + "},\n";
+    return str;
+}
+
 enum class VoteDelegateState: uint8_t {
     NONE,           // none, init state
     PENDING,        // pending, wait for activating vote delegates
     ACTIVATED,      // activated, vote delegates is activated
 };
 
-typedef vector<VoteDelegate> VoteDelegateVector;
 struct PendingDelegates {
     VoteDelegateState state = VoteDelegateState::NONE;  // state
     uint32_t counted_vote_height = 0;                   // counting vote height
@@ -235,14 +242,61 @@ struct PendingDelegates {
     }
 
     string ToString() const {
-        string delegatesStr;
-        for (const auto &item : top_vote_delegates)
-            delegatesStr += "{" + item.ToString() + "},\n";
         return strprintf("state=%d", (int)state/*TODO:... */) + "," +
                 strprintf("counted_vote_height=%d", counted_vote_height) + ", " +
                 strprintf("delegate_num=%d", top_vote_delegates.size()) + ", " +
-                strprintf("top_vote_delegates=[%s]", delegatesStr);
+                strprintf("top_vote_delegates=[%s]", VoteDelegateVectorToString(top_vote_delegates));
     }
 };
+
+struct ActiveDelegates {
+    uint32_t update_height = 0;                // update height
+    VoteDelegateVector delegates;              // the active delegates
+
+    IMPLEMENT_SERIALIZE(
+        READWRITE(VARINT(update_height));
+        READWRITE(delegates);
+    )
+
+    inline bool IsEmpty() const {
+        return update_height == 0 && delegates.empty();
+    }
+
+    inline void SetEmpty() {
+        update_height = 0;
+        delegates.clear();
+    }
+
+    string ToString() const {
+        return strprintf("update_height=%d", update_height) + ", " +
+               strprintf("delegate_num=%d", delegates.size()) + ", " +
+               strprintf("delegates=[%s]", VoteDelegateVectorToString(delegates));
+    }
+};
+
+struct ActiveDelegatesStore {
+    ActiveDelegates active_delegates;
+    ActiveDelegates last_delegates;
+
+    IMPLEMENT_SERIALIZE(
+        READWRITE(active_delegates);
+        READWRITE(last_delegates);
+    )
+
+    bool IsEmpty() const {
+        return active_delegates.IsEmpty() && last_delegates.IsEmpty();
+    }
+
+    void SetEmpty() {
+        active_delegates.SetEmpty();
+        last_delegates.SetEmpty();
+    }
+
+    string ToString() const {
+        return strprintf("active_delegates={%s}", active_delegates.ToString()) + "," +
+                strprintf("last_delegates={%s}", last_delegates.ToString());
+    }
+};
+
 
 #endif //ENTITIES_VOTE_H

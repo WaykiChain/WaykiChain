@@ -98,12 +98,13 @@ bool CDelegateDBCache::SetPendingDelegates(const PendingDelegates &delegates) {
     return pending_delegates_cache.SetData(delegates);
 
 }
+
 uint32_t CDelegateDBCache::GetActivedDelegateNum() {
-    VoteDelegateVector dv;
-    if (GetActiveDelegates(dv)){
-        return dv.size();
-    }
-    throw runtime_error("get actived delegate num error");
+    const ActiveDelegatesStore *activeDelegatesStore;
+     if (active_delegates_cache.GetData(&activeDelegatesStore)){
+         return activeDelegatesStore->active_delegates.delegates.size();
+     }
+    throw runtime_error("get active delegate num error");
 }
 
 bool CDelegateDBCache::IsActiveDelegate(const CRegID &regid) {
@@ -113,10 +114,10 @@ bool CDelegateDBCache::IsActiveDelegate(const CRegID &regid) {
 }
 
 bool CDelegateDBCache::GetActiveDelegate(const CRegID &regid, VoteDelegate &voteDelegate) {
-    VoteDelegateVector delegates;
-    if (!GetActiveDelegates(delegates))
+    ActiveDelegatesStore activeDelegates;
+    if (!GetActiveDelegates(activeDelegates))
         return false;
-
+    auto &delegates = activeDelegates.active_delegates.delegates;
     auto it = std::find_if (delegates.begin(), delegates.end(), [&regid](const VoteDelegate &item){
         return item.regid == regid;
     });
@@ -127,16 +128,26 @@ bool CDelegateDBCache::GetActiveDelegate(const CRegID &regid, VoteDelegate &vote
     return true;
 }
 
-bool CDelegateDBCache::GetActiveDelegates(VoteDelegateVector &voteDelegates) {
-     bool res =  active_delegates_cache.GetData(voteDelegates);
+bool CDelegateDBCache::GetActiveDelegates(ActiveDelegatesStore &activeDelegatesStore) {
+     bool res =  active_delegates_cache.GetData(activeDelegatesStore);
      if (res){
-         assert(voteDelegates.size() != 0 );
+         assert(activeDelegatesStore.active_delegates.delegates.size() != 0 );
      }
      return res;
 }
 
-bool CDelegateDBCache::SetActiveDelegates(const VoteDelegateVector &voteDelegates) {
-    return active_delegates_cache.SetData(voteDelegates);
+bool CDelegateDBCache::GetActiveDelegates(VoteDelegateVector &activeDelegates) {
+    const ActiveDelegatesStore *activeDelegatesStore;
+     bool res =  active_delegates_cache.GetData(&activeDelegatesStore);
+     if (res){
+         activeDelegates = activeDelegatesStore->active_delegates.delegates;
+         assert(activeDelegates.size() != 0 );
+     }
+     return res;
+}
+
+bool CDelegateDBCache::SetActiveDelegates(const ActiveDelegatesStore &activeDelegates) {
+    return active_delegates_cache.SetData(activeDelegates);
 }
 
 bool CDelegateDBCache::SetCandidateVotes(const CRegID &regId,

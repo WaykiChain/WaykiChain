@@ -107,7 +107,7 @@ namespace dbk {
         DEFINE( VOTE,                 "vote",   DELEGATE )      /* "vote{(uint64t)MAX - $votedBcoins}{$RegId} --> 1 */ \
         DEFINE( LAST_VOTE_HEIGHT,     "lvht",   DELEGATE )      /* "[prefix] --> last_vote_height */ \
         DEFINE( PENDING_DELEGATES,    "pdds",   DELEGATE )      /* "[prefix] --> pending_delegates */ \
-        DEFINE( ACTIVE_DELEGATES,     "atds",   DELEGATE )      /* "[prefix] --> active_delegates */ \
+        DEFINE( ACTIVE_DELEGATES,     "atds",   DELEGATE )      /* "[prefix] --> ActiveDelegatesStore */ \
         DEFINE( REGID_VOTE,           "ridv",   DELEGATE )      /* "ridv --> $votes" */ \
         /**** cdp db                                                                     */ \
         DEFINE( CDP,                  "cid",    CDP )           /* cid{$cdpid} --> CUserCDP */ \

@@ -94,8 +94,14 @@ bool chain::ProcessBlockDelegates(CBlock &block, CCacheWrapper &cw, CValidationS
     // must execute below separately because activateDelegateInterval may be 0
     if (pendingDelegates.state != VoteDelegateState::ACTIVATED) {
         if (block.GetHeight() - pendingDelegates.counted_vote_height >= (uint32_t)activateDelegateInterval) {
-            VoteDelegateVector activeDelegates = pendingDelegates.top_vote_delegates;
-            if (!cw.delegateCache.SetActiveDelegates(activeDelegates)) {
+            ActiveDelegatesStore activeDelegatesStore;
+            cw.delegateCache.GetActiveDelegates(activeDelegatesStore);
+
+            activeDelegatesStore.last_delegates = activeDelegatesStore.active_delegates;
+            activeDelegatesStore.active_delegates.update_height = block.GetHeight();
+            activeDelegatesStore.active_delegates.delegates = pendingDelegates.top_vote_delegates;
+
+            if (!cw.delegateCache.SetActiveDelegates(activeDelegatesStore)) {
                 return state.DoS(100, ERRORMSG("[%d] SetActiveDelegates failed! block=%s",
                         block.GetHeight(), block.GetHash().ToString()));
             }
@@ -107,7 +113,7 @@ bool chain::ProcessBlockDelegates(CBlock &block, CCacheWrapper &cw, CValidationS
             }
             LogPrint(BCLog::INFO, "[%d] activate new delegates! block=%s, delegates=[%s]\n",
                     block.GetHeight(), block.GetHash().ToString(),
-                    ToString(activeDelegates));
+                    ToString(activeDelegatesStore.active_delegates.delegates));
         }
     }
     return true;
