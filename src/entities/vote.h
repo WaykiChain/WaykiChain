@@ -128,9 +128,7 @@ public:
     friend bool operator<(const CCandidateReceivedVote &fa, const CCandidateReceivedVote &fb) {
         return (fa.voted_bcoins <= fb.voted_bcoins);
     }
-    friend bool operator>(const CCandidateReceivedVote &fa, const CCandidateReceivedVote &fb) {
-        return !operator<(fa, fb);
-    }
+
     friend bool operator==(const CCandidateReceivedVote &fa, const CCandidateReceivedVote &fb) {
         return (fa.candidate_uid == fb.candidate_uid && fa.voted_bcoins == fb.voted_bcoins);
     }
