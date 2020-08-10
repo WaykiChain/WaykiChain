@@ -31,49 +31,16 @@ static const unordered_map<uint8_t, string> kVoteTypeMap = {
 
 class CCandidateVote {
 private:
-    uint8_t voteType;        //!< 1:ADD_BCOIN 2:MINUS_BCOIN
+    uint8_t voteType = NULL_VOTE;        //!< 1:ADD_BCOIN 2:MINUS_BCOIN
     CUserID candidateUid;    //!< candidate RegId or PubKey
-    uint64_t votedBcoins;    //!< count of votes to the candidate
-
-    mutable uint256 sigHash;  //!< only in memory
-
+    uint64_t votedBcoins = 0;    //!< count of votes to the candidate
 public:
-    CCandidateVote() {
-        voteType     = NULL_VOTE;
-        candidateUid = CUserID();
-        votedBcoins  = 0;
-    }
+    CCandidateVote() {}
+
     CCandidateVote(VoteType voteTypeIn, CUserID voteUserIdIn, uint64_t votedBcoinsIn) {
         voteType     = voteTypeIn;
         candidateUid = voteUserIdIn;
         votedBcoins  = votedBcoinsIn;
-    }
-    CCandidateVote(const CCandidateVote &voteIn) {
-        voteType     = voteIn.voteType;
-        candidateUid = voteIn.candidateUid;
-        votedBcoins  = voteIn.votedBcoins;
-    }
-    CCandidateVote &operator=(const CCandidateVote &voteIn) {
-        if (this == &voteIn)
-            return *this;
-
-        this->voteType     = voteIn.voteType;
-        this->candidateUid = voteIn.candidateUid;
-        this->votedBcoins  = voteIn.votedBcoins;
-        return *this;
-    }
-    ~CCandidateVote() {}
-
-    virtual void SerializeForHash(CHashWriter &hw) const {
-        hw << voteType << candidateUid << VARINT(votedBcoins);
-    }
-
-    friend bool operator<(const CCandidateVote &fa, const CCandidateVote &fb) {
-        return (fa.votedBcoins <= fb.votedBcoins);
-    }
-
-    friend bool operator==(const CCandidateVote &fa, const CCandidateVote &fb) {
-        return (fa.candidateUid == fb.candidateUid && fa.votedBcoins == fb.votedBcoins);
     }
 
     IMPLEMENT_SERIALIZE(
