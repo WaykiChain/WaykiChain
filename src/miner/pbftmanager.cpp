@@ -18,6 +18,26 @@ extern CPBFTContext pbftContext;
 extern CWallet *pWalletMain;
 extern CCacheDBManager *pCdMan;
 
+static inline const VoteDelegateVector& GetBpListByHeight(ActiveDelegatesStore &activeDelegatesStore, HeightType height) {
+    // make sure the height > tip height - 100
+    return (height > activeDelegatesStore.active_delegates.update_height || activeDelegatesStore.last_delegates.IsEmpty())
+            ? activeDelegatesStore.active_delegates.delegates
+            : activeDelegatesStore.last_delegates.delegates;
+}
+
+static inline set<CRegID> GetBpSetByHeight(ActiveDelegatesStore &activeDelegatesStore, HeightType height) {
+    auto &bpList = GetBpListByHeight(activeDelegatesStore, height);
+    set<CRegID> bpSet;
+    for (auto &bp : bpList) {
+        bpSet.insert(bp.regid);
+    }
+    return bpSet;
+}
+
+static inline uint32_t GetMinConfirmBpCount(uint32_t bpCount) {
+    return bpCount - bpCount/3;
+}
+
 uint32_t GetFinalBlockMinerCount(const uint256& blockHash = uint256()) {
     set<CRegID> bpSet;
     if(!blockHash.IsEmpty() && pbftContext.GetMinerListByBlockHash(blockHash, bpSet)) {
@@ -99,88 +119,93 @@ bool CPBFTMan::UpdateGlobalFinBlock(const uint32_t height) {
 
 bool CPBFTMan::UpdateLocalFinBlock(CBlockIndex* pTipIndex){
 
+    AssertLockHeld(cs_main);
+    assert(pTipIndex == chainActive.Tip() && pTipIndex != nullptr && "tip index invalid");
 
-    if(pTipIndex == nullptr|| pTipIndex->height==0){
-        LogPrint(BCLog::DEBUG, "pIndex not found");
-        return false;
+    if(pTipIndex->height==0){
+        return true;
     }
 
     LOCK(cs_finblock);
-    auto oldLocalFinHeight = localFinIndex ? localFinIndex->height : 0;
+    CBlockIndex* oldLocalFinIndex = localFinIndex;
+    auto oldLocalFinHeight = oldLocalFinIndex ? oldLocalFinIndex->height : 0;
 
+    ActiveDelegatesStore activeDelegatesStore;
+    if (!pCdMan->pDelegateCache->GetActiveDelegates(activeDelegatesStore)) {
+        return ERRORMSG("get active delegates error");
+    }
     CBlockIndex* pIndex = pTipIndex;
-    CBlockIndex *newLocalFinIndex = nullptr;
     while (pIndex && pIndex->height > oldLocalFinHeight && pIndex->height > 0 &&
-           pIndex->height > pTipIndex->height - 10) {
+           pIndex->height + 10 > pTipIndex->height) {
 
         set<CBlockConfirmMessage> messageSet;
-        set<CRegID> miners;
+        if (pbftContext.confirmMessageMan.GetMessagesByBlockHash(pIndex->GetBlockHash(), messageSet)) {
 
-        if(pbftContext.confirmMessageMan.GetMessagesByBlockHash(pIndex->GetBlockHash(), messageSet)
-           && pbftContext.GetMinerListByBlockHash(pIndex->pprev->GetBlockHash(),miners)){
+            const set<CRegID> &bpSet = GetBpSetByHeight(activeDelegatesStore, pIndex->height);
 
-            // TODO: use curr or last miners
-            uint32_t needConfirmCount = GetFinalBlockMinerCount(*pIndex->pBlockHash);
-            if(messageSet.size() >= needConfirmCount){
-                uint32_t count =0;
+            uint32_t minConfirmBpCount = GetMinConfirmBpCount(bpSet.size());
+            if(messageSet.size() >= minConfirmBpCount){
+                uint32_t count = 0;
                 for(auto msg: messageSet){
-                    if(miners.count(msg.miner))
+                    if(bpSet.count(msg.miner))
                         count++;
-                    if(count >= needConfirmCount){
-                        newLocalFinIndex = pIndex;
-                        break;
+                    if(count >= minConfirmBpCount){
+                        localFinIndex = pIndex;
+                        localFinLastUpdate = GetTime();
+                        return true;
                     }
                 }
             }
-
         }
         pIndex = pIndex->pprev;
     }
-    if (!newLocalFinIndex) return false;
 
-    localFinIndex = newLocalFinIndex;
-    localFinLastUpdate = GetTime();
-    return true;
+    return false;
 }
 
 bool CPBFTMan::UpdateLocalFinBlock(const CBlockConfirmMessage& msg, const uint32_t messageCount){
 
-    uint32_t needConfirmCount = GetFinalBlockMinerCount(msg.preBlockHash);
-    if( needConfirmCount > messageCount) {
-        return false;
+    ActiveDelegatesStore activeDelegatesStore;
+    CBlockIndex* pIndex = nullptr;
+    {
+        LOCK(cs_main);
+        pIndex = chainActive[msg.height];
+        if(pIndex == nullptr || pIndex->pprev== nullptr) {
+            return false;
+        }
+
+        if(pIndex->GetBlockHash() != msg.blockHash) {
+            return false;
+        }
+
+        if (!pCdMan->pDelegateCache->GetActiveDelegates(activeDelegatesStore)) {
+            return ERRORMSG("get active delegates error");
+        }
     }
 
-    CBlockIndex* fi = GetLocalFinIndex();
+    LOCK(cs_finblock);
+    CBlockIndex* oldLocalFinIndex = GetLocalFinIndex();
 
-    if (fi == nullptr || (uint32_t)fi->height >= msg.height) {
-        if(fi != nullptr)
-            LogPrint(BCLog::PBFT, "[%d] msg.height=%d\n", fi->height, msg.height);
-
-        return false;
-    }
-
-    CBlockIndex* pIndex = chainActive[msg.height];
-    if(pIndex == nullptr || pIndex->pprev== nullptr) {
-        return false;
-    }
-
-    if(pIndex->GetBlockHash() != msg.blockHash) {
+    if (oldLocalFinIndex != nullptr && msg.height <= (uint32_t)oldLocalFinIndex->height ) {
+        LogPrint(BCLog::PBFT, "the msg.height=%u is less than current local fin height=%d\n", msg.height, oldLocalFinIndex->height);
         return false;
     }
 
     set<CBlockConfirmMessage> messageSet;
-    set<CRegID> miners;
 
-    if (pbftContext.confirmMessageMan.GetMessagesByBlockHash(pIndex->GetBlockHash(), messageSet)
-       && pbftContext.GetMinerListByBlockHash(pIndex->pprev->GetBlockHash(),miners)) {
-        if (messageSet.size() >= needConfirmCount){
+    if (pbftContext.confirmMessageMan.GetMessagesByBlockHash(pIndex->GetBlockHash(), messageSet)) {
+
+        const set<CRegID> &bpSet = GetBpSetByHeight(activeDelegatesStore, pIndex->height);
+        uint32_t minConfirmBpCount = GetMinConfirmBpCount(bpSet.size());
+        if (messageSet.size() >= minConfirmBpCount) {
             uint32_t count =0;
             for (auto msg: messageSet){
-                if (miners.count(msg.miner))
+                if (bpSet.count(msg.miner))
                     count++;
 
-                if (count >= needConfirmCount)
+                if (count >= minConfirmBpCount) {
                     return SaveLocalFinBlock(pIndex->height);
+                }
             }
         }
 
@@ -188,40 +213,43 @@ bool CPBFTMan::UpdateLocalFinBlock(const CBlockConfirmMessage& msg, const uint32
     return false;
 }
 
-bool CPBFTMan::UpdateGlobalFinBlock(const CBlockIndex* pIndex){
+bool CPBFTMan::UpdateGlobalFinBlock(CBlockIndex* pTipIndex){
 
-    if (pIndex == nullptr|| pIndex->height==0)
-        return false;
+    AssertLockHeld(cs_main);
+    assert(pTipIndex == chainActive.Tip() && pTipIndex != nullptr && "tip index invalid");
 
-    int32_t height = pIndex->height;
-    uint32_t needConfirmCount = GetFinalBlockMinerCount(*(pIndex->pprev->pBlockHash));
+    ActiveDelegatesStore activeDelegatesStore;
+    if (!pCdMan->pDelegateCache->GetActiveDelegates(activeDelegatesStore)) {
+        return ERRORMSG("get active delegates error");
+    }
 
-    while (height > GetGlobalFinIndex()->height&& height>0 &&height > pIndex->height-50) {
-        CBlockIndex* pTemp = chainActive[height];
+    CBlockIndex *pIndex = pTipIndex;
+    CBlockIndex *oldGlobalFinIndex = GetGlobalFinIndex();
+    HeightType oldGlobalFinHeight = oldGlobalFinIndex ? oldGlobalFinIndex->height : 0;
+
+    while (pIndex && (uint32_t)pIndex->height > oldGlobalFinHeight && pIndex->height > 0 && pIndex->height > pTipIndex->height-50) {
 
         set<CBlockFinalityMessage> messageSet;
-        set<CRegID> miners;
 
-        if (pbftContext.finalityMessageMan.GetMessagesByBlockHash(pTemp->GetBlockHash(), messageSet)
-           && pbftContext.GetMinerListByBlockHash(pTemp->pprev->GetBlockHash(),miners)){
+        if (pbftContext.finalityMessageMan.GetMessagesByBlockHash(pIndex->GetBlockHash(), messageSet)) {
+            const set<CRegID> &bpSet = GetBpSetByHeight(activeDelegatesStore, pIndex->height);
+            uint32_t minConfirmBpCount = GetMinConfirmBpCount(bpSet.size());
 
-
-            if (messageSet.size() >= needConfirmCount){
+            if (messageSet.size() >= minConfirmBpCount){
                 uint32_t count =0;
                 for (auto msg: messageSet){
-                    if (miners.count(msg.miner))
+                    if (bpSet.count(msg.miner))
                         count++;
 
-                    if (count >= needConfirmCount)
-                        return UpdateGlobalFinBlock( height);
+                    if (count >= minConfirmBpCount) {
+                        return UpdateGlobalFinBlock( pIndex->height);
+                    }
                 }
             }
-
         }
-
-        height--;
-
+        pIndex = pIndex->pprev;
     }
+
     return false;
 }
 
@@ -232,38 +260,52 @@ int64_t  CPBFTMan::GetLocalFinLastUpdate() const {
 
 bool CPBFTMan::UpdateGlobalFinBlock(const CBlockFinalityMessage& msg, const uint32_t messageCount ){
 
+    ActiveDelegatesStore activeDelegatesStore;
+    CBlockIndex* pIndex = nullptr;
+    {
+        LOCK(cs_main);
+        pIndex = chainActive[msg.height];
+        if(pIndex == nullptr || pIndex->GetBlockHash() != msg.blockHash) {
+            LogPrint(BCLog::PBFT, "the block=[%u]%s of finality msg is not actived\n", msg.height, msg.blockHash.ToString());
+            return false;
+        }
+
+        if (!pCdMan->pDelegateCache->GetActiveDelegates(activeDelegatesStore)) {
+            return ERRORMSG("get active delegates error");
+        }
+    }
+
     uint32_t needConfirmCount = GetFinalBlockMinerCount(msg.preBlockHash);
     if(needConfirmCount > messageCount)
         return false;
 
-    CBlockIndex* fi = GetGlobalFinIndex();
+    LOCK(cs_finblock);
+    CBlockIndex *oldGlobalFinIndex = GetGlobalFinIndex();
 
-    if (fi == nullptr || (uint32_t) fi->height >= msg.height)
+    if (oldGlobalFinIndex != nullptr && msg.height <= (uint32_t)oldGlobalFinIndex->height ) {
+        LogPrint(BCLog::PBFT, "the msg.height=%u is less than current global fin height=%d\n", msg.height, oldGlobalFinIndex->height);
         return false;
-
-    CBlockIndex* pIndex = chainActive[msg.height];
-    if (pIndex == nullptr || pIndex->pprev== nullptr)
-        return false;
-
-    if (pIndex->GetBlockHash() != msg.blockHash)
-        return false;
+    }
 
     set<CBlockFinalityMessage> messageSet;
     set<CRegID> miners;
 
-    if (pbftContext.finalityMessageMan.GetMessagesByBlockHash(pIndex->GetBlockHash(), messageSet)
-       && pbftContext.GetMinerListByBlockHash(pIndex->pprev->GetBlockHash(),miners)) {
-        if (messageSet.size() >= needConfirmCount){
+    if (pbftContext.finalityMessageMan.GetMessagesByBlockHash(pIndex->GetBlockHash(), messageSet)) {
+        const set<CRegID> &bpSet = GetBpSetByHeight(activeDelegatesStore, pIndex->height);
+        uint32_t minConfirmBpCount = GetMinConfirmBpCount(bpSet.size());
+        if (messageSet.size() >= minConfirmBpCount){
             uint32_t count = 0;
             for (auto msg: messageSet){
-                if (miners.count(msg.miner))
+                if (bpSet.count(msg.miner))
                     count++;
 
-                if (count >= needConfirmCount)
+                if (count >= minConfirmBpCount) {
                     return UpdateGlobalFinBlock(pIndex->height);
+                }
             }
         }
     }
+
     return false;
 }
 
