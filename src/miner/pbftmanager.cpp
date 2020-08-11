@@ -333,9 +333,7 @@ bool CPBFTMan::AddBlockConfirmMessage(CNode *pFrom, const CBlockConfirmMessage& 
 
     bool updateFinalitySuccess = UpdateLocalFinBlock(msg,  messageCount);
 
-
-    if(CheckPBFTMessageSigner(msg))
-        RelayBlockConfirmMessage(msg);
+    RelayBlockConfirmMessage(msg);
 
     if(updateFinalitySuccess){
         BroadcastBlockFinality(GetLocalFinIndex());
@@ -368,10 +366,7 @@ bool CPBFTMan::AddBlockFinalityMessage(CNode *pFrom, const CBlockFinalityMessage
     int messageCount = msgMan.SaveMessageByBlock(msg.blockHash, msg);
     pbftMan.UpdateGlobalFinBlock(msg, messageCount);
 
-    if(CheckPBFTMessageSigner(msg)){
-        RelayBlockFinalityMessage(msg);
-    }
-
+    RelayBlockFinalityMessage(msg);
     return true;
 }
 
@@ -510,18 +505,6 @@ bool BroadcastBlockConfirm(const CBlockIndex* block) {
 
     msgMan.SaveBroadcastedBlock(block->GetBlockHash());
     return true;
-}
-
-bool CheckPBFTMessageSigner(const CPBFTMessage& msg) {
-
-    //查找上一个区块执行过后的矿工列表
-    set<CRegID> delegates;
-
-    if(pbftContext.GetMinerListByBlockHash(msg.preBlockHash, delegates)) {
-        if(delegates.count(msg.miner) > 0)
-            return true;
-    }
-    return false;
 }
 
 bool CheckPBFTMessage(CNode *pFrom, const int32_t msgType ,const CPBFTMessage& msg, HeightType finHeight) {
