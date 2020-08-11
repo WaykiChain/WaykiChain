@@ -448,13 +448,15 @@ bool BroadcastBlockFinality(const CBlockIndex* block){
     return true;
 
 }
-bool BroadcastBlockConfirm(const CBlockIndex* block) {
+bool BroadcastBlockConfirm(const CBlockIndex* pTipIndex) {
+
+    AssertLockHeld(cs_main);
 
     if(!SysCfg().GetBoolArg("-genblock", false))
         return false;
 
 
-    if(GetTime() - block->GetBlockTime() > 60)
+    if(GetTime() - pTipIndex->GetBlockTime() > 60)
         return false;
 
     if(IsInitialBlockDownload())
@@ -462,29 +464,24 @@ bool BroadcastBlockConfirm(const CBlockIndex* block) {
 
     CPBFTMessageMan<CBlockConfirmMessage>& msgMan = pbftContext.confirmMessageMan;
 
-    if(msgMan.IsBroadcastedBlock(block->GetBlockHash())){
+    if(msgMan.IsBroadcastedBlock(pTipIndex->GetBlockHash())){
         return true;
     }
 
+    VoteDelegateVector activeDelegates;
+    if (!pCdMan->pDelegateCache->GetActiveDelegates(activeDelegates)) {
+        return ERRORMSG("get active delegates error");
+    }
 
-    //查找上一个区块执行过后的矿工列表
-    set<CRegID> delegates;
-
-    if(block->pprev == nullptr) {
+    if(pTipIndex->pprev == nullptr) {
         return false;
     }
 
-    uint256 preHash = block->pprev->GetBlockHash();
-    pbftContext.GetMinerListByBlockHash(preHash, delegates);
-
-    LogPrint(BCLog::PBFT, "[%d] found %d delegates, prevHash= %s\n", block->height, delegates.size(), preHash.ToString());
-
-    CBlockConfirmMessage msg(block->height, block->GetBlockHash(), preHash);
-
+    CBlockConfirmMessage msg(pTipIndex->height, pTipIndex->GetBlockHash(), pTipIndex->pprev->GetBlockHash());
     {
-        for(auto delegate: delegates){
+        for(auto delegate: activeDelegates){
             Miner miner;
-            if(!PbftFindMiner(delegate, miner))
+            if(!PbftFindMiner(delegate.regid, miner))
                 continue;
             msg.miner = miner.account.regid;
             vector<unsigned char > vSign;
@@ -499,11 +496,13 @@ bool BroadcastBlockConfirm(const CBlockIndex* block) {
                     pNode->PushBlockConfirmMessage(msg);
                 }
             }
+            LogPrint(BCLog::PBFT, "generate and broadcast pbft confirm msg! block=%s, bp=%s\n",
+                pTipIndex->GetIdString(), delegate.regid.ToString());
             msgMan.SaveMessageByBlock(msg.blockHash,msg);
         }
     }
 
-    msgMan.SaveBroadcastedBlock(block->GetBlockHash());
+    msgMan.SaveBroadcastedBlock(pTipIndex->GetBlockHash());
     return true;
 }
 
