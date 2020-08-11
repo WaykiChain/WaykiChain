@@ -145,6 +145,10 @@ struct VoteDelegate {
         return (a.regid == b.regid && a.votes == b.votes);
     }
 
+    bool operator==(const CRegID &other_regid) const {
+        return regid == other_regid;
+    }
+
     string ToString() const {
         return strprintf("regid=%s", regid.ToString()) + ", " +
                 strprintf("votes=%llu", votes);
