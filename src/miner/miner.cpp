@@ -23,7 +23,6 @@
 #include <boost/circular_buffer.hpp>
 
 extern CWallet *pWalletMain;
-extern CPBFTContext pbftContext;
 extern void SetMinerStatus(bool bStatus);
 
 

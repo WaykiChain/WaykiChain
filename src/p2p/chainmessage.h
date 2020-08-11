@@ -32,7 +32,6 @@ class CInv;
 class COrphanBlock;
 class CBlockConfirmMessage;
 
-extern CPBFTContext pbftContext;
 extern CPBFTMan pbftMan;
 extern uint256 GetOrphanRoot(const uint256 &hash);
 extern map<uint256, COrphanBlock *> mapOrphanBlocks;

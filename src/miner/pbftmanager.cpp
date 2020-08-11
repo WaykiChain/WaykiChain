@@ -14,7 +14,6 @@
 #include "p2p/node.h"
 
 CPBFTMan pbftMan;
-extern CPBFTContext pbftContext;
 extern CWallet *pWalletMain;
 extern CCacheDBManager *pCdMan;
 
@@ -127,7 +126,7 @@ bool CPBFTMan::UpdateLocalFinBlock(CBlockIndex* pTipIndex){
            pIndex->height + 10 > pTipIndex->height) {
 
         set<CBlockConfirmMessage> messageSet;
-        if (pbftContext.confirmMessageMan.GetMessagesByBlockHash(pIndex->GetBlockHash(), messageSet)) {
+        if (confirmMessageMan.GetMessagesByBlockHash(pIndex->GetBlockHash(), messageSet)) {
 
             const set<CRegID> &bpSet = GetBpSetByHeight(activeDelegatesStore, pIndex->height);
 
@@ -181,7 +180,7 @@ bool CPBFTMan::UpdateLocalFinBlock(const CBlockConfirmMessage& msg, const uint32
 
     set<CBlockConfirmMessage> messageSet;
 
-    if (pbftContext.confirmMessageMan.GetMessagesByBlockHash(pIndex->GetBlockHash(), messageSet)) {
+    if (confirmMessageMan.GetMessagesByBlockHash(pIndex->GetBlockHash(), messageSet)) {
 
         const set<CRegID> &bpSet = GetBpSetByHeight(activeDelegatesStore, pIndex->height);
         uint32_t minConfirmBpCount = GetMinConfirmBpCount(bpSet.size());
@@ -219,7 +218,7 @@ bool CPBFTMan::UpdateGlobalFinBlock(CBlockIndex* pTipIndex){
 
         set<CBlockFinalityMessage> messageSet;
 
-        if (pbftContext.finalityMessageMan.GetMessagesByBlockHash(pIndex->GetBlockHash(), messageSet)) {
+        if (finalityMessageMan.GetMessagesByBlockHash(pIndex->GetBlockHash(), messageSet)) {
             const set<CRegID> &bpSet = GetBpSetByHeight(activeDelegatesStore, pIndex->height);
             uint32_t minConfirmBpCount = GetMinConfirmBpCount(bpSet.size());
 
@@ -274,7 +273,7 @@ bool CPBFTMan::UpdateGlobalFinBlock(const CBlockFinalityMessage& msg, const uint
     set<CBlockFinalityMessage> messageSet;
     set<CRegID> miners;
 
-    if (pbftContext.finalityMessageMan.GetMessagesByBlockHash(pIndex->GetBlockHash(), messageSet)) {
+    if (finalityMessageMan.GetMessagesByBlockHash(pIndex->GetBlockHash(), messageSet)) {
         const set<CRegID> &bpSet = GetBpSetByHeight(activeDelegatesStore, pIndex->height);
         uint32_t minConfirmBpCount = GetMinConfirmBpCount(bpSet.size());
         if (messageSet.size() >= minConfirmBpCount){
@@ -294,7 +293,7 @@ bool CPBFTMan::UpdateGlobalFinBlock(const CBlockFinalityMessage& msg, const uint
 }
 
 bool CPBFTMan::AddBlockConfirmMessage(CNode *pFrom, const CBlockConfirmMessage& msg) {
-    CPBFTMessageMan<CBlockConfirmMessage>& msgMan = pbftContext.confirmMessageMan;
+    CPBFTMessageMan<CBlockConfirmMessage>& msgMan = confirmMessageMan;
     if(msgMan.IsKnown(msg)){
         LogPrint(BCLog::NET, "duplicate confirm message! miner_id=%s, blockhash=%s \n",msg.miner.ToString(), msg.blockHash.GetHex());
         return false;
@@ -326,7 +325,7 @@ bool CPBFTMan::AddBlockConfirmMessage(CNode *pFrom, const CBlockConfirmMessage& 
 }
 
 bool CPBFTMan::AddBlockFinalityMessage(CNode *pFrom, const CBlockFinalityMessage& msg) {
-    CPBFTMessageMan<CBlockFinalityMessage>& msgMan = pbftContext.finalityMessageMan;
+    CPBFTMessageMan<CBlockFinalityMessage>& msgMan = finalityMessageMan;
     if(msgMan.IsKnown(msg)){
         LogPrint(BCLog::NET, "duplicated finality message, miner=%s, block=%s \n",
                  msg.miner.ToString(), msg.GetBlockId());
@@ -348,7 +347,7 @@ bool CPBFTMan::AddBlockFinalityMessage(CNode *pFrom, const CBlockFinalityMessage
 
     msgMan.AddMessageKnown(msg);
     int messageCount = msgMan.SaveMessageByBlock(msg.blockHash, msg);
-    pbftMan.UpdateGlobalFinBlock(msg, messageCount);
+    UpdateGlobalFinBlock(msg, messageCount);
 
     RelayBlockFinalityMessage(msg);
     return true;
@@ -376,8 +375,9 @@ static bool PbftFindMiner(CRegID delegate, Miner &miner){
     return true;
 }
 
-bool BroadcastBlockFinality(const CBlockIndex* block){
+bool CPBFTMan::BroadcastBlockFinality(const CBlockIndex* pTipIndex){
 
+    AssertLockHeld(cs_main);
 
     if(!SysCfg().GetBoolArg("-genblock", false))
         return false;
@@ -385,29 +385,24 @@ bool BroadcastBlockFinality(const CBlockIndex* block){
     if(IsInitialBlockDownload())
         return false;
 
-    CPBFTMessageMan<CBlockFinalityMessage>& msgMan = pbftContext.finalityMessageMan;
+    CPBFTMessageMan<CBlockFinalityMessage>& msgMan = finalityMessageMan;
 
-    if(msgMan.IsBroadcastedBlock(block->GetBlockHash()))
+    if(msgMan.IsBroadcastedBlock(pTipIndex->GetBlockHash()))
         return true;
 
-    //查找上一个区块执行过后的矿工列表
-    set<CRegID> delegates;
-
-    if(block->pprev == nullptr)
+    if(pTipIndex->pprev == nullptr)
         return false;
-    pbftContext.GetMinerListByBlockHash(block->pprev->GetBlockHash(), delegates);
 
-    uint256 preHash = block->pprev == nullptr? uint256(): block->pprev->GetBlockHash();
+    VoteDelegateVector activeDelegates;
+    if (!pCdMan->pDelegateCache->GetActiveDelegates(activeDelegates)) {
+        return ERRORMSG("get active delegates error");
+    }
 
-
-    CBlockFinalityMessage msg(block->height, block->GetBlockHash(), preHash);
-
+    CBlockFinalityMessage msg(pTipIndex->height, pTipIndex->GetBlockHash(), pTipIndex->pprev->GetBlockHash());
     {
-
-        for(auto delegate: delegates){
-
+        for(auto delegate: activeDelegates){
             Miner miner;
-            if(!PbftFindMiner(delegate, miner))
+            if(!PbftFindMiner(delegate.regid, miner))
                 continue;
             msg.miner = miner.account.regid;
             vector<unsigned char > vSign;
@@ -423,16 +418,19 @@ bool BroadcastBlockFinality(const CBlockIndex* block){
                 }
             }
 
+            LogPrint(BCLog::PBFT, "generate and broadcast pbft finality msg! block=%s, bp=%s\n",
+                pTipIndex->GetIdString(), delegate.regid.ToString());
             msgMan.SaveMessageByBlock(msg.blockHash, msg);
 
         }
     }
 
-    msgMan.SaveBroadcastedBlock(block->GetBlockHash());
+    msgMan.SaveBroadcastedBlock(pTipIndex->GetBlockHash());
     return true;
 
 }
-bool BroadcastBlockConfirm(const CBlockIndex* pTipIndex) {
+
+bool CPBFTMan::BroadcastBlockConfirm(const CBlockIndex* pTipIndex) {
 
     AssertLockHeld(cs_main);
 
@@ -446,7 +444,7 @@ bool BroadcastBlockConfirm(const CBlockIndex* pTipIndex) {
     if(IsInitialBlockDownload())
         return false;
 
-    CPBFTMessageMan<CBlockConfirmMessage>& msgMan = pbftContext.confirmMessageMan;
+    CPBFTMessageMan<CBlockConfirmMessage>& msgMan = confirmMessageMan;
 
     if(msgMan.IsBroadcastedBlock(pTipIndex->GetBlockHash())){
         return true;

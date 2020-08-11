@@ -8,6 +8,7 @@
 #define MINER_PBFTMANAGER_H
 
 #include "chain/chain.h"
+#include "miner/pbftcontext.h"
 
 class CBlockConfirmMessage;
 class CBlockFinalityMessage;
@@ -20,6 +21,8 @@ private:
     int64_t localFinLastUpdate = 0;
     CBlockIndex* globalFinIndex = nullptr;
     uint256 globalFinHash = uint256();
+    CPBFTMessageMan<CBlockConfirmMessage> confirmMessageMan;
+    CPBFTMessageMan<CBlockFinalityMessage> finalityMessageMan;
     CCriticalSection cs_finblock;
     bool SaveLocalFinBlock(const uint32_t height);
     bool UpdateGlobalFinBlock(const uint32_t height);
@@ -37,11 +40,10 @@ public:
     int64_t  GetLocalFinLastUpdate() const;
     bool AddBlockConfirmMessage(CNode *pFrom, const CBlockConfirmMessage& msg);
     bool AddBlockFinalityMessage(CNode *pFrom, const CBlockFinalityMessage& msg);
+
+    bool BroadcastBlockConfirm(const CBlockIndex* pTipIndex);
+    bool BroadcastBlockFinality(const CBlockIndex* pTipIndex);
 };
-
-bool BroadcastBlockConfirm(const CBlockIndex* block);
-
-bool BroadcastBlockFinality(const CBlockIndex* block);
 
 bool CheckPBFTMessage(CNode *pFrom, const int32_t msgType ,const CPBFTMessage& msg, HeightType finHeight);
 

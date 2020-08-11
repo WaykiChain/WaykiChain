@@ -69,7 +69,6 @@ extern map<uint256, NodeId> mapBlockSource;  // Remember who we got this block f
 map<uint256/* blockhash */, COrphanBlock *> mapOrphanBlocks;
 multimap<uint256/* blockhash */, COrphanBlock *> mapOrphanBlocksByPrev;
 map<uint256/* blockhash */, std::shared_ptr<CBaseTx> > mapOrphanTransactions;
-extern CPBFTContext pbftContext;
 const string strMessageMagic = "Coin Signed Message:\n";
 
 
@@ -1985,9 +1984,9 @@ bool AcceptBlock(CBlock &block, CValidationState &state, CDiskBlockPos *dbp, boo
             }
         }
 
-        BroadcastBlockConfirm(pTip);
+        pbftMan.BroadcastBlockConfirm(pTip);
         if(pbftMan.UpdateLocalFinBlock(pTip)){
-            BroadcastBlockFinality(pTip);
+            pbftMan.BroadcastBlockFinality(pTip);
             pbftMan.UpdateGlobalFinBlock(pTip);
         }
     }
