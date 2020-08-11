@@ -38,18 +38,6 @@ static inline uint32_t GetMinConfirmBpCount(uint32_t bpCount) {
     return bpCount - bpCount/3;
 }
 
-uint32_t GetFinalBlockMinerCount(const uint256& blockHash = uint256()) {
-    set<CRegID> bpSet;
-    if(!blockHash.IsEmpty() && pbftContext.GetMinerListByBlockHash(blockHash, bpSet)) {
-        uint32_t bpsize = bpSet.size();
-        return bpsize - bpsize/3;
-
-    }
-    uint32_t totalBpsSize =  pCdMan->pDelegateCache->GetActivedDelegateNum();
-    return totalBpsSize - totalBpsSize/3;
-
-}
-
 void CPBFTMan::InitFinIndex(CBlockIndex *globalFinIndexIn) {
     globalFinIndex = globalFinIndexIn;
     localFinIndex = globalFinIndexIn;
@@ -274,10 +262,6 @@ bool CPBFTMan::UpdateGlobalFinBlock(const CBlockFinalityMessage& msg, const uint
             return ERRORMSG("get active delegates error");
         }
     }
-
-    uint32_t needConfirmCount = GetFinalBlockMinerCount(msg.preBlockHash);
-    if(needConfirmCount > messageCount)
-        return false;
 
     LOCK(cs_finblock);
     CBlockIndex *oldGlobalFinIndex = GetGlobalFinIndex();
