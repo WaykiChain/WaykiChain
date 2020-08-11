@@ -1985,11 +1985,6 @@ bool AcceptBlock(CBlock &block, CValidationState &state, CDiskBlockPos *dbp, boo
             }
         }
 
-        VoteDelegateVector delegates;
-        if (pCdMan->pDelegateCache->GetActiveDelegates(delegates)) {
-            pbftContext.SaveMinersByHash(blockHash, delegates);
-        }
-
         BroadcastBlockConfirm(pTip);
         if(pbftMan.UpdateLocalFinBlock(pTip)){
             BroadcastBlockFinality(pTip);

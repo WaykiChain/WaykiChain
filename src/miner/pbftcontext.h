@@ -80,16 +80,6 @@ class CPBFTContext {
 public:
     CPBFTMessageMan<CBlockConfirmMessage> confirmMessageMan;
     CPBFTMessageMan<CBlockFinalityMessage> finalityMessageMan;
-    CCriticalSection cs_block_miner_list;
-    CFIFOLimitmap<uint256, set<CRegID>> blockMinerListMap;
-
-    CPBFTContext(){
-        blockMinerListMap.max_size(500);
-    }
-
-    bool GetMinerListByBlockHash(const uint256 blockHash, set<CRegID>& delegates);
-
-    bool SaveMinersByHash(uint256 blockhash, VoteDelegateVector delegates);
 };
 
 #endif //MINER_PBFTCONTEXT_H
