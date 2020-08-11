@@ -38,7 +38,9 @@ void getnodeinfo(NodeInfo *pNodeInfo) {
     pNodeInfo->nfp = mining ? minerKeyId.ToString() : nodeKeyId.ToString();
     pNodeInfo->synh = nSyncTipHeight;
     pNodeInfo->tiph = chainActive.Height();
-    pNodeInfo->finh = 0; // TODO: placeholder here
+    std::pair<int32_t ,uint256> globalfinblock = std::make_pair(0,uint256());
+    pCdMan->pBlockCache->ReadGlobalFinBlock(globalfinblock);
+    pNodeInfo->finh = globalfinblock.first; 
 }
 
 #endif
