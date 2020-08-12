@@ -230,7 +230,7 @@ bool CPBFTMan::ProcessBlockConfirmMessage(CNode *pFrom, const CBlockConfirmMessa
     return true;
 }
 
-bool CPBFTMan::AddBlockFinalityMessage(CNode *pFrom, const CBlockFinalityMessage& msg) {
+bool CPBFTMan::ProcessBlockFinalityMessage(CNode *pFrom, const CBlockFinalityMessage& msg) {
     CPBFTMessageMan<CBlockFinalityMessage>& msgMan = finalityMessageMan;
     if(msgMan.IsKnown(msg)){
         LogPrint(BCLog::NET, "duplicated finality message, miner=%s, block=%s \n",

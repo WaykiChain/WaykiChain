@@ -37,7 +37,7 @@ public:
     bool UpdateGlobalFinBlock(const CBlockFinalityMessage& msg, const uint32_t messageCount);
     int64_t  GetLocalFinLastUpdate() const;
     bool ProcessBlockConfirmMessage(CNode *pFrom, const CBlockConfirmMessage& msg);
-    bool AddBlockFinalityMessage(CNode *pFrom, const CBlockFinalityMessage& msg);
+    bool ProcessBlockFinalityMessage(CNode *pFrom, const CBlockFinalityMessage& msg);
 
     bool BroadcastBlockConfirm(const CBlockIndex* pTipIndex);
     bool BroadcastBlockFinality(const CBlockIndex* pTipIndex);

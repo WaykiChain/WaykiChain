@@ -846,7 +846,7 @@ bool ProcessBlockFinalityMessage(CNode *pFrom, CDataStream &vRecv) {
 
     pFrom->AddBlockFinalityMessageKnown(message);
 
-    return pbftMan.AddBlockFinalityMessage(pFrom, message);
+    return pbftMan.ProcessBlockFinalityMessage(pFrom, message);
 }
 void ProcessRejectMessage(CNode *pFrom, CDataStream &vRecv) {
     if (SysCfg().IsDebug()) {
