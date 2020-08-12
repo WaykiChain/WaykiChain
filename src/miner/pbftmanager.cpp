@@ -125,16 +125,16 @@ bool CPBFTMan::UpdateLocalFinBlock(CBlockIndex* pTipIndex){
     while (pIndex && pIndex->height > oldLocalFinHeight && pIndex->height > 0 &&
            pIndex->height + 10 > pTipIndex->height) {
 
-        set<CBlockConfirmMessage> messageSet;
-        if (confirmMessageMan.GetMessagesByBlockHash(pIndex->GetBlockHash(), messageSet)) {
+        typename decltype(confirmMessageMan)::BpMsgMap bpMsgMap;
+        if (confirmMessageMan.GetMessagesByBlockHash(pIndex->GetBlockHash(), bpMsgMap)) {
 
             const set<CRegID> &bpSet = GetBpSetByHeight(activeDelegatesStore, pIndex->height);
 
             uint32_t minConfirmBpCount = GetMinConfirmBpCount(bpSet.size());
-            if(messageSet.size() >= minConfirmBpCount){
+            if(bpMsgMap.size() >= minConfirmBpCount){
                 uint32_t count = 0;
-                for(auto msg: messageSet){
-                    if(bpSet.count(msg.miner))
+                for(auto &bp : bpSet){
+                    if(bpMsgMap.count(bp))
                         count++;
                     if(count >= minConfirmBpCount){
                         localFinIndex = pIndex;
@@ -178,16 +178,15 @@ bool CPBFTMan::UpdateLocalFinBlock(const CBlockConfirmMessage& msg, const uint32
         return false;
     }
 
-    set<CBlockConfirmMessage> messageSet;
-
-    if (confirmMessageMan.GetMessagesByBlockHash(pIndex->GetBlockHash(), messageSet)) {
+    typename decltype(confirmMessageMan)::BpMsgMap bpMsgMap;
+    if (confirmMessageMan.GetMessagesByBlockHash(pIndex->GetBlockHash(), bpMsgMap)) {
 
         const set<CRegID> &bpSet = GetBpSetByHeight(activeDelegatesStore, pIndex->height);
         uint32_t minConfirmBpCount = GetMinConfirmBpCount(bpSet.size());
-        if (messageSet.size() >= minConfirmBpCount) {
+        if (bpMsgMap.size() >= minConfirmBpCount) {
             uint32_t count =0;
-            for (auto msg: messageSet){
-                if (bpSet.count(msg.miner))
+            for (auto &bp : bpSet){
+                if (bpMsgMap.count(bp))
                     count++;
 
                 if (count >= minConfirmBpCount) {
@@ -216,16 +215,15 @@ bool CPBFTMan::UpdateGlobalFinBlock(CBlockIndex* pTipIndex){
 
     while (pIndex && (uint32_t)pIndex->height > oldGlobalFinHeight && pIndex->height > 0 && pIndex->height > pTipIndex->height-50) {
 
-        set<CBlockFinalityMessage> messageSet;
-
-        if (finalityMessageMan.GetMessagesByBlockHash(pIndex->GetBlockHash(), messageSet)) {
+        typename decltype(finalityMessageMan)::BpMsgMap bpMsgMap;
+        if (finalityMessageMan.GetMessagesByBlockHash(pIndex->GetBlockHash(), bpMsgMap)) {
             const set<CRegID> &bpSet = GetBpSetByHeight(activeDelegatesStore, pIndex->height);
             uint32_t minConfirmBpCount = GetMinConfirmBpCount(bpSet.size());
 
-            if (messageSet.size() >= minConfirmBpCount){
+            if (bpMsgMap.size() >= minConfirmBpCount){
                 uint32_t count =0;
-                for (auto msg: messageSet){
-                    if (bpSet.count(msg.miner))
+                for (auto &bp : bpSet){
+                    if (bpMsgMap.count(bp))
                         count++;
 
                     if (count >= minConfirmBpCount) {
@@ -270,16 +268,14 @@ bool CPBFTMan::UpdateGlobalFinBlock(const CBlockFinalityMessage& msg, const uint
         return false;
     }
 
-    set<CBlockFinalityMessage> messageSet;
-    set<CRegID> miners;
-
-    if (finalityMessageMan.GetMessagesByBlockHash(pIndex->GetBlockHash(), messageSet)) {
+    typename decltype(finalityMessageMan)::BpMsgMap bpMsgMap;
+    if (finalityMessageMan.GetMessagesByBlockHash(pIndex->GetBlockHash(), bpMsgMap)) {
         const set<CRegID> &bpSet = GetBpSetByHeight(activeDelegatesStore, pIndex->height);
         uint32_t minConfirmBpCount = GetMinConfirmBpCount(bpSet.size());
-        if (messageSet.size() >= minConfirmBpCount){
+        if (bpMsgMap.size() >= minConfirmBpCount){
             uint32_t count = 0;
-            for (auto msg: messageSet){
-                if (bpSet.count(msg.miner))
+            for (auto &bp : bpSet){
+                if (bpMsgMap.count(bp))
                     count++;
 
                 if (count >= minConfirmBpCount) {
@@ -480,7 +476,7 @@ bool CPBFTMan::BroadcastBlockConfirm(const CBlockIndex* pTipIndex) {
             }
             LogPrint(BCLog::PBFT, "generate and broadcast pbft confirm msg! block=%s, bp=%s\n",
                 pTipIndex->GetIdString(), delegate.regid.ToString());
-            msgMan.SaveMessageByBlock(msg.blockHash,msg);
+            msgMan.SaveMessageByBlock(msg.blockHash, msg);
         }
     }
 

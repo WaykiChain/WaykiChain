@@ -22,10 +22,11 @@ class CBlockFinalityMessage;
 
 template <typename MsgType>
 class CPBFTMessageMan {
-
+public:
+    typedef map<CRegID, MsgType> BpMsgMap;
 private:
     CCriticalSection cs_pbftmessage;
-    CLruCache<uint256, set<MsgType>, CUint256Hasher> blockMessagesMap;
+    CLruCache<uint256, BpMsgMap, CUint256Hasher> blockMessagesMap;
     mruset<uint256> broadcastedBlockHashSet;
     mruset<MsgType> messageKnown;
 
@@ -56,21 +57,25 @@ public:
         return true;
     }
 
-    int  SaveMessageByBlock(const uint256 &blockHash,const MsgType& msg) {
+    int  SaveMessageByBlock(const uint256 &blockHash, const MsgType& msg) {
 
         LOCK(cs_pbftmessage);
         auto pData = blockMessagesMap.Touch(blockHash);
         assert(pData && "Touch() must return a valid pData");
-        pData->insert(msg);
+        auto ret = pData->emplace(msg.miner, msg);
+        if (!ret.second) {
+            LogPrint(BCLog::PBFT, "duplicated msg of bp=%s, block=%s, type=%d\n",
+                msg.miner.ToString(), msg.GetBlockId(), msg.msgType);
+        }
         return pData->size();
     }
 
-    bool GetMessagesByBlockHash(const uint256 &hash, set<MsgType>& msgs) {
+    bool GetMessagesByBlockHash(const uint256 &hash, BpMsgMap& bpMsgMap) {
         LOCK(cs_pbftmessage);
         auto pData = blockMessagesMap.Get(hash);
         if (pData == nullptr)
             return false;
-        msgs = *pData;
+        bpMsgMap = *pData;
         return true;
     }
 
