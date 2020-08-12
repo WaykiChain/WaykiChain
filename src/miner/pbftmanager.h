@@ -17,10 +17,9 @@ class CPBFTMessage;
 class CPBFTMan {
 
 private:
-    CBlockIndex* localFinIndex = nullptr;
-    int64_t localFinLastUpdate = 0;
-    CBlockIndex* globalFinIndex = nullptr;
-    uint256 globalFinHash = uint256();
+    CBlockIndex* local_fin_index = nullptr;
+    int64_t local_fin_last_update = 0;
+    CBlockIndex* global_fin_index = nullptr;
     CPBFTMessageMan<CBlockConfirmMessage> confirmMessageMan;
     CPBFTMessageMan<CBlockFinalityMessage> finalityMessageMan;
     CCriticalSection cs_finblock;

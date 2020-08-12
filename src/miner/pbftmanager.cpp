@@ -25,24 +25,24 @@ static inline const VoteDelegateVector& GetBpListByHeight(ActiveDelegatesStore &
 }
 
 void CPBFTMan::InitFinIndex(CBlockIndex *globalFinIndexIn) {
-    globalFinIndex = globalFinIndexIn;
-    localFinIndex = globalFinIndexIn;
+    global_fin_index = globalFinIndexIn;
+    local_fin_index = globalFinIndexIn;
 }
 
 CBlockIndex* CPBFTMan::GetLocalFinIndex(){
     LOCK(cs_finblock);
-    return localFinIndex ? localFinIndex : chainActive[0];
+    return local_fin_index ? local_fin_index : chainActive[0];
 }
 
 
 CBlockIndex* CPBFTMan::GetGlobalFinIndex(){
     LOCK(cs_finblock);
-    return globalFinIndex ? globalFinIndex : chainActive[0];
+    return global_fin_index ? global_fin_index : chainActive[0];
 }
 
 bool CPBFTMan::SetLocalFinTimeout() {
     LOCK(cs_finblock);
-    localFinIndex = chainActive[0];
+    local_fin_index = chainActive[0];
     return true;
 }
 
@@ -67,8 +67,7 @@ bool CPBFTMan::UpdateGlobalFinBlock(const uint32_t height) {
         CBlockIndex* pTemp = chainActive[height];
         if(pTemp== nullptr)
             return false;
-        globalFinIndex = pTemp;
-        globalFinHash = pTemp->GetBlockHash();
+        global_fin_index = pTemp;
         pCdMan->pBlockCache->SetGlobalFinBlock(pTemp->height, pTemp->GetBlockHash());
         return true;
     }
@@ -90,7 +89,7 @@ bool CPBFTMan::UpdateLocalFinBlock(CBlockIndex* pTipIndex){
     }
 
     LOCK(cs_finblock);
-    auto oldLocalFinHeight = localFinIndex ? localFinIndex->height : 0;
+    auto oldLocalFinHeight = local_fin_index ? local_fin_index->height : 0;
 
     CBlockIndex* pIndex = pTipIndex;
     while (pIndex && pIndex->height > oldLocalFinHeight && pIndex->height > 0 &&
@@ -98,8 +97,8 @@ bool CPBFTMan::UpdateLocalFinBlock(CBlockIndex* pTipIndex){
 
         const auto &bpList = GetBpListByHeight(activeDelegatesStore, pIndex->height);
         if (confirmMessageMan.CheckBlockConfirm(pIndex->GetBlockHash(), bpList)) {
-            localFinIndex = pIndex;
-            localFinLastUpdate = GetTime();
+            local_fin_index = pIndex;
+            local_fin_last_update = GetTime();
             return true;
 
         }
@@ -139,8 +138,8 @@ bool CPBFTMan::UpdateLocalFinBlock(const CBlockConfirmMessage& msg, const uint32
 
     const auto &bpList = GetBpListByHeight(activeDelegatesStore, pIndex->height);
     if (confirmMessageMan.CheckBlockConfirm(pIndex->GetBlockHash(), bpList)) {
-        localFinIndex = pIndex;
-        localFinLastUpdate = GetTime();
+        local_fin_index = pIndex;
+        local_fin_last_update = GetTime();
         return true;
 
     }
@@ -175,7 +174,7 @@ bool CPBFTMan::UpdateGlobalFinBlock(CBlockIndex* pTipIndex){
 }
 
 int64_t  CPBFTMan::GetLocalFinLastUpdate() const {
-    return localFinLastUpdate;
+    return local_fin_last_update;
 }
 
 bool CPBFTMan::UpdateGlobalFinBlock(const CBlockFinalityMessage& msg, const uint32_t messageCount ){
@@ -412,9 +411,9 @@ bool CPBFTMan::CheckPBFTMessage(CNode *pFrom, const int32_t msgType ,const CPBFT
         {
             LOCK(cs_finblock);
             if (msgType == PBFTMsgType::CONFIRM_BLOCK) {
-                pFinIndex = localFinIndex;
+                pFinIndex = local_fin_index;
             } else {
-                pFinIndex = globalFinIndex;
+                pFinIndex = global_fin_index;
             }
         }
         if (pFinIndex != nullptr && chainActive.Contains(pFinIndex)) {
