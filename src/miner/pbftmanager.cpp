@@ -460,6 +460,15 @@ bool CPBFTMan::CheckPBFTMessage(CNode *pFrom, const int32_t msgType ,const CPBFT
 
 }
 
+bool CPBFTMan::IsBlockReversible(HeightType height, const uint256 &hash) {
+    LOCK(cs_finblock);
+    return !global_fin_index || height > (uint32_t)global_fin_index->height;
+}
+
+bool CPBFTMan::IsBlockReversible(const CBlock &block) {
+    return IsBlockReversible(block.GetHeight(), block.GetHash());
+}
+
 bool RelayBlockConfirmMessage(const CBlockConfirmMessage& msg){
 
     LOCK(cs_vNodes);

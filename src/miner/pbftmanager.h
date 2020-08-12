@@ -26,24 +26,28 @@ private:
     bool SaveGlobalFinBlock(CBlockIndex *pNewIndex);
     CBlockIndex* GetNewLocalFinIndex(const CBlockConfirmMessage& msg);
     CBlockIndex* GetNewGlobalFinIndex(const CBlockFinalityMessage& msg);
+    bool CheckPBFTMessage(CNode *pFrom, const int32_t msgType ,const CPBFTMessage& msg);
 public:
     void InitFinIndex(CBlockIndex *globalFinIndexIn);
 
     CBlockIndex *GetLocalFinIndex();
     CBlockIndex *GetGlobalFinIndex();
     bool SetLocalFinTimeout();
+    int64_t  GetLocalFinLastUpdate() const;
     bool UpdateLocalFinBlock(CBlockIndex* pTipIndex);
     bool UpdateGlobalFinBlock(CBlockIndex* pIndex);
-    int64_t  GetLocalFinLastUpdate() const;
     bool ProcessBlockConfirmMessage(CNode *pFrom, const CBlockConfirmMessage& msg);
     bool ProcessBlockFinalityMessage(CNode *pFrom, const CBlockFinalityMessage& msg);
 
     bool BroadcastBlockConfirm(const CBlockIndex* pTipIndex);
     bool BroadcastBlockFinality(const CBlockIndex* pTipIndex);
-    bool CheckPBFTMessage(CNode *pFrom, const int32_t msgType ,const CPBFTMessage& msg);
+
+    bool IsBlockReversible(HeightType height, const uint256 &hash);
+    bool IsBlockReversible(const CBlock &block);
 };
 
 bool RelayBlockConfirmMessage(const CBlockConfirmMessage& msg);
 
 bool RelayBlockFinalityMessage(const CBlockFinalityMessage& msg);
+
 #endif //MINER_PBFTMANAGER_H
