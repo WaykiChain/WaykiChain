@@ -56,8 +56,6 @@ bool CPBFTMan::SaveGlobalFinBlock(CBlockIndex *pNewIndex) {
 
     global_fin_index = pNewIndex;
     return true;
-
-
 }
 
 bool CPBFTMan::UpdateLocalFinBlock(CBlockIndex* pTipIndex){
@@ -75,18 +73,18 @@ bool CPBFTMan::UpdateLocalFinBlock(CBlockIndex* pTipIndex){
     }
 
     LOCK(cs_finblock);
-    auto localFinHeight = local_fin_index ? local_fin_index->height : 0;
+    uint32_t localFinHeight = local_fin_index ? local_fin_index->height : 0;
+    uint32_t minHeight = pTipIndex->height > 50 ? pTipIndex->height - 50 : 0;
+    minHeight = std::max(minHeight, localFinHeight);
 
     CBlockIndex* pIndex = pTipIndex;
-    while (pIndex && pIndex->height > localFinHeight && pIndex->height > 0 &&
-           pIndex->height + 10 > pTipIndex->height) {
+    while (pIndex && pIndex->height > minHeight) {
 
         const auto &bpList = GetBpListByHeight(activeDelegatesStore, pIndex->height);
         if (confirmMessageMan.CheckConfirmByBlock(pIndex->GetBlockHash(), bpList)) {
             local_fin_index = pIndex;
             local_fin_last_update = GetTime();
             return true;
-
         }
         pIndex = pIndex->pprev;
     }
