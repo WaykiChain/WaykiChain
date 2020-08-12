@@ -24,7 +24,7 @@ private:
     CPBFTMessageMan<CBlockFinalityMessage> finalityMessageMan;
     CCriticalSection cs_finblock;
     bool UpdateGlobalFinBlock(const uint32_t height);
-
+    CBlockIndex* GetNewLocalFinIndex(const CBlockConfirmMessage& msg);
 public:
     void InitFinIndex(CBlockIndex *globalFinIndexIn);
 
@@ -36,7 +36,7 @@ public:
     bool UpdateGlobalFinBlock(CBlockIndex* pIndex);
     bool UpdateGlobalFinBlock(const CBlockFinalityMessage& msg, const uint32_t messageCount);
     int64_t  GetLocalFinLastUpdate() const;
-    bool AddBlockConfirmMessage(CNode *pFrom, const CBlockConfirmMessage& msg);
+    bool ProcessBlockConfirmMessage(CNode *pFrom, const CBlockConfirmMessage& msg);
     bool AddBlockFinalityMessage(CNode *pFrom, const CBlockFinalityMessage& msg);
 
     bool BroadcastBlockConfirm(const CBlockIndex* pTipIndex);

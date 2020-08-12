@@ -24,8 +24,8 @@ template <typename MsgType>
 class CPBFTMessageMan {
 public:
     typedef map<CRegID, MsgType> BpMsgMap;
-private:
     CCriticalSection cs_pbftmessage;
+private:
     CLruCache<uint256, BpMsgMap, CUint256Hasher> blockMessagesMap;
     mruset<uint256> broadcastedBlockHashSet;
     mruset<MsgType> messageKnown;
@@ -57,12 +57,12 @@ public:
         return true;
     }
 
-    int  AddMessage(const MsgType& msg) {
-
-        LOCK(cs_pbftmessage);
-        auto pData = blockMessagesMap.Touch(msg.blockHash);
-        assert(pData && "Touch() must return a valid pData");
-        auto ret = pData->emplace(msg.miner, msg);
+     const BpMsgMap *InsertMessage(const MsgType& msg) {
+        AssertLockHeld(cs_pbftmessage);
+        messageKnown.insert(msg);
+        auto pBpMsgMap = blockMessagesMap.Touch(msg.blockHash);
+        assert(pBpMsgMap && "Touch() must return a valid pBpMsgMap");
+        auto ret = pBpMsgMap->emplace(msg.miner, msg);
         if (!ret.second) {
             LogPrint(BCLog::PBFT, "duplicated msg of bp=%s, block=%s, type=%d\n",
                 msg.miner.ToString(), msg.GetBlockId(), msg.msgType);
@@ -74,11 +74,7 @@ public:
         return bpCount - bpCount/3;
     }
 
-    bool CheckBlockConfirm(const uint256 &blockHash, const VoteDelegateVector& delegates) {
-        LOCK(cs_pbftmessage);
-        auto pBpMsgMap = blockMessagesMap.Get(blockHash);
-        if (pBpMsgMap == nullptr)
-            return false;
+    bool CheckBlockConfirm(const BpMsgMap *pBpMsgMap, const VoteDelegateVector& delegates) {
 
         uint32_t minConfirmBpCount = GetMinConfirmBpCount(delegates.size());
         if(pBpMsgMap->size() < minConfirmBpCount)

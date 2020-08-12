@@ -108,44 +108,6 @@ bool CPBFTMan::UpdateLocalFinBlock(CBlockIndex* pTipIndex){
     return false;
 }
 
-bool CPBFTMan::UpdateLocalFinBlock(const CBlockConfirmMessage& msg, const uint32_t messageCount){
-
-    ActiveDelegatesStore activeDelegatesStore;
-    CBlockIndex* pIndex = nullptr;
-    {
-        LOCK(cs_main);
-        pIndex = chainActive[msg.height];
-        if(pIndex == nullptr || pIndex->pprev== nullptr) {
-            return false;
-        }
-
-        if(pIndex->GetBlockHash() != msg.blockHash) {
-            return false;
-        }
-
-        if (!pCdMan->pDelegateCache->GetActiveDelegates(activeDelegatesStore)) {
-            return ERRORMSG("get active delegates error");
-        }
-    }
-
-    LOCK(cs_finblock);
-    CBlockIndex* oldLocalFinIndex = GetLocalFinIndex();
-
-    if (oldLocalFinIndex != nullptr && msg.height <= (uint32_t)oldLocalFinIndex->height ) {
-        LogPrint(BCLog::PBFT, "the msg.height=%u is less than current local fin height=%d\n", msg.height, oldLocalFinIndex->height);
-        return false;
-    }
-
-    const auto &bpList = GetBpListByHeight(activeDelegatesStore, pIndex->height);
-    if (confirmMessageMan.CheckBlockConfirm(pIndex->GetBlockHash(), bpList)) {
-        local_fin_index = pIndex;
-        local_fin_last_update = GetTime();
-        return true;
-
-    }
-    return false;
-}
-
 bool CPBFTMan::UpdateGlobalFinBlock(CBlockIndex* pTipIndex){
 
     AssertLockHeld(cs_main);
@@ -210,9 +172,25 @@ bool CPBFTMan::UpdateGlobalFinBlock(const CBlockFinalityMessage& msg, const uint
     return false;
 }
 
-bool CPBFTMan::AddBlockConfirmMessage(CNode *pFrom, const CBlockConfirmMessage& msg) {
-    CPBFTMessageMan<CBlockConfirmMessage>& msgMan = confirmMessageMan;
-    if(msgMan.IsKnown(msg)){
+CBlockIndex* CPBFTMan::GetNewLocalFinIndex(const CBlockConfirmMessage& msg) {
+
+    AssertLockHeld(cs_main);
+    AssertLockHeld(cs_finblock);
+    CBlockIndex* pIndex = chainActive[msg.height];
+    if(pIndex == nullptr || pIndex->GetBlockHash() != msg.blockHash) {
+        return nullptr;
+    }
+    uint32_t localFinHeight = local_fin_index ? local_fin_index->height : 0;
+    if (msg.height <= localFinHeight ) {
+        LogPrint(BCLog::PBFT, "the msg.height=%u is <= local_fin_height=%d\n", msg.height, localFinHeight);
+        return nullptr;
+    }
+    return pIndex;
+}
+
+bool CPBFTMan::ProcessBlockConfirmMessage(CNode *pFrom, const CBlockConfirmMessage& msg) {
+
+    if(confirmMessageMan.IsKnown(msg)){
         LogPrint(BCLog::NET, "duplicate confirm message! miner_id=%s, blockhash=%s \n",msg.miner.ToString(), msg.blockHash.GetHex());
         return false;
     }
@@ -222,15 +200,31 @@ bool CPBFTMan::AddBlockConfirmMessage(CNode *pFrom, const CBlockConfirmMessage& 
         return false;
     }
 
-    msgMan.AddMessageKnown(msg);
-    int messageCount = msgMan.AddMessage(msg);
+    LOCK(cs_main);
+    CBlockIndex* pNewIndex = nullptr;
+    {
+        LOCK2(cs_finblock, confirmMessageMan.cs_pbftmessage);
+        auto pBpMsgMap = confirmMessageMan.InsertMessage(msg);
 
-    bool updateFinalitySuccess = UpdateLocalFinBlock(msg,  messageCount);
+        CBlockIndex* pNewIndex = GetNewLocalFinIndex(msg);
+        if (pNewIndex != nullptr) {
+            ActiveDelegatesStore activeDelegatesStore;
+            if (!pCdMan->pDelegateCache->GetActiveDelegates(activeDelegatesStore)) {
+                return ERRORMSG("get active delegates error");
+            }
+            const auto &bpList = GetBpListByHeight(activeDelegatesStore, pNewIndex->height);
+            if (confirmMessageMan.CheckBlockConfirm(pBpMsgMap, bpList)) {
+                local_fin_index = pNewIndex;
+                local_fin_last_update = GetTime();
+            } else {
+                pNewIndex = nullptr;
+            }
+        }
+    }
 
     RelayBlockConfirmMessage(msg);
 
-    if(updateFinalitySuccess){
-        LOCK(cs_main);
+    if(pNewIndex != nullptr){
         BroadcastBlockFinality(GetLocalFinIndex());
     }
     return true;

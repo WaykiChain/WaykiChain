@@ -828,7 +828,7 @@ bool ProcessBlockConfirmMessage(CNode *pFrom, CDataStream &vRecv) {
 
     pFrom->AddBlockConfirmMessageKnown(message);
 
-    return pbftMan.AddBlockConfirmMessage(pFrom, message);
+    return pbftMan.ProcessBlockConfirmMessage(pFrom, message);
 }
 
 
