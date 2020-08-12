@@ -96,7 +96,7 @@ bool CPBFTMan::UpdateLocalFinBlock(CBlockIndex* pTipIndex){
            pIndex->height + 10 > pTipIndex->height) {
 
         const auto &bpList = GetBpListByHeight(activeDelegatesStore, pIndex->height);
-        if (confirmMessageMan.CheckBlockConfirm(pIndex->GetBlockHash(), bpList)) {
+        if (confirmMessageMan.CheckConfirmByBlock(pIndex->GetBlockHash(), bpList)) {
             local_fin_index = pIndex;
             local_fin_last_update = GetTime();
             return true;
@@ -125,7 +125,7 @@ bool CPBFTMan::UpdateGlobalFinBlock(CBlockIndex* pTipIndex){
     while (pIndex && (uint32_t)pIndex->height > oldGlobalFinHeight && pIndex->height > 0 &&
            pIndex->height > pTipIndex->height - 50) {
         const auto &bpList = GetBpListByHeight(activeDelegatesStore, pIndex->height);
-        if (finalityMessageMan.CheckBlockConfirm(pIndex->GetBlockHash(), bpList)) {
+        if (finalityMessageMan.CheckConfirmByBlock(pIndex->GetBlockHash(), bpList)) {
             return UpdateGlobalFinBlock(pIndex->height);
         }
 
@@ -165,7 +165,7 @@ bool CPBFTMan::UpdateGlobalFinBlock(const CBlockFinalityMessage& msg, const uint
     }
 
     const auto &bpList = GetBpListByHeight(activeDelegatesStore, pIndex->height);
-    if (finalityMessageMan.CheckBlockConfirm(pIndex->GetBlockHash(), bpList)) {
+    if (finalityMessageMan.CheckConfirmByBlock(pIndex->GetBlockHash(), bpList)) {
         return UpdateGlobalFinBlock(pIndex->height);
     }
 
@@ -227,7 +227,7 @@ bool CPBFTMan::ProcessBlockConfirmMessage(CNode *pFrom, const CBlockConfirmMessa
     CBlockIndex* pNewIndex = nullptr;
     {
         LOCK2(cs_finblock, confirmMessageMan.cs_pbftmessage);
-        auto pBpMsgMap = confirmMessageMan.InsertMessage(msg);
+        auto pBpMsgMap = confirmMessageMan.InsertMessageNoLock(msg);
 
         pNewIndex = GetNewLocalFinIndex(msg);
         if (pNewIndex != nullptr) {
@@ -236,7 +236,7 @@ bool CPBFTMan::ProcessBlockConfirmMessage(CNode *pFrom, const CBlockConfirmMessa
                 return ERRORMSG("get active delegates error");
             }
             const auto &bpList = GetBpListByHeight(activeDelegatesStore, pNewIndex->height);
-            if (confirmMessageMan.CheckBlockConfirm(pBpMsgMap, bpList)) {
+            if (confirmMessageMan.CheckConfirm(pBpMsgMap, bpList)) {
                 local_fin_index = pNewIndex;
                 local_fin_last_update = GetTime();
             } else {
@@ -271,7 +271,7 @@ bool CPBFTMan::ProcessBlockFinalityMessage(CNode *pFrom, const CBlockFinalityMes
     {
         LOCK2(cs_finblock, finalityMessageMan.cs_pbftmessage);
 
-        auto pBpMsgMap = finalityMessageMan.InsertMessage(msg);
+        auto pBpMsgMap = finalityMessageMan.InsertMessageNoLock(msg);
 
         CBlockIndex* pNewIndex = GetNewGlobalFinIndex(msg);
         if (pNewIndex != nullptr) {
@@ -280,7 +280,7 @@ bool CPBFTMan::ProcessBlockFinalityMessage(CNode *pFrom, const CBlockFinalityMes
                 return ERRORMSG("get active delegates error");
             }
             const auto &bpList = GetBpListByHeight(activeDelegatesStore, pNewIndex->height);
-            if (finalityMessageMan.CheckBlockConfirm(pBpMsgMap, bpList)) {
+            if (finalityMessageMan.CheckConfirm(pBpMsgMap, bpList)) {
                 UpdateGlobalFinBlock(pNewIndex->height);
             }
         }
@@ -322,9 +322,7 @@ bool CPBFTMan::BroadcastBlockFinality(const CBlockIndex* pTipIndex){
     if(IsInitialBlockDownload())
         return false;
 
-    CPBFTMessageMan<CBlockFinalityMessage>& msgMan = finalityMessageMan;
-
-    if(msgMan.IsBroadcastedBlock(pTipIndex->GetBlockHash()))
+    if(finalityMessageMan.IsBroadcastedBlock(pTipIndex->GetBlockHash()))
         return true;
 
     if(pTipIndex->pprev == nullptr)
@@ -357,12 +355,12 @@ bool CPBFTMan::BroadcastBlockFinality(const CBlockIndex* pTipIndex){
 
             LogPrint(BCLog::PBFT, "generate and broadcast pbft finality msg! block=%s, bp=%s\n",
                 pTipIndex->GetIdString(), delegate.regid.ToString());
-            msgMan.AddMessage(msg);
+            finalityMessageMan.InsertMessage(msg);
 
         }
     }
 
-    msgMan.SaveBroadcastedBlock(pTipIndex->GetBlockHash());
+    finalityMessageMan.SaveBroadcastedBlock(pTipIndex->GetBlockHash());
     return true;
 
 }
@@ -417,7 +415,7 @@ bool CPBFTMan::BroadcastBlockConfirm(const CBlockIndex* pTipIndex) {
             }
             LogPrint(BCLog::PBFT, "generate and broadcast pbft confirm msg! block=%s, bp=%s\n",
                 pTipIndex->GetIdString(), delegate.regid.ToString());
-            msgMan.AddMessage(msg);
+            msgMan.InsertMessage(msg);
         }
     }
 

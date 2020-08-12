@@ -51,13 +51,7 @@ public:
         return messageKnown.count(msg) != 0;
     }
 
-    bool AddMessageKnown(const MsgType msg) {
-        LOCK(cs_pbftmessage);
-        messageKnown.insert(msg);
-        return true;
-    }
-
-     const BpMsgMap *InsertMessage(const MsgType& msg) {
+     const BpMsgMap *InsertMessageNoLock(const MsgType& msg) {
         AssertLockHeld(cs_pbftmessage);
         messageKnown.insert(msg);
         auto pBpMsgMap = blockMessagesMap.Touch(msg.blockHash);
@@ -67,14 +61,19 @@ public:
             LogPrint(BCLog::PBFT, "duplicated msg of bp=%s, block=%s, type=%d\n",
                 msg.miner.ToString(), msg.GetBlockId(), msg.msgType);
         }
-        return pData->size();
+        return pBpMsgMap;
+    }
+
+    void InsertMessage(const MsgType& msg) {
+        LOCK(cs_pbftmessage);
+        InsertMessageNoLock(msg);
     }
 
     static inline uint32_t GetMinConfirmBpCount(uint32_t bpCount) {
         return bpCount - bpCount/3;
     }
 
-    bool CheckBlockConfirm(const BpMsgMap *pBpMsgMap, const VoteDelegateVector& delegates) {
+    static bool CheckConfirm(const BpMsgMap *pBpMsgMap, const VoteDelegateVector& delegates) {
 
         uint32_t minConfirmBpCount = GetMinConfirmBpCount(delegates.size());
         if(pBpMsgMap->size() < minConfirmBpCount)
@@ -91,7 +90,13 @@ public:
         return false;
     }
 
-
+    bool CheckConfirmByBlock(const uint256 &blockHash, const VoteDelegateVector& delegates) {
+        LOCK(cs_pbftmessage);
+        auto pBpMsgMap = blockMessagesMap.Get(blockHash);
+        if (pBpMsgMap == nullptr)
+            return false;
+        return CheckConfirm(pBpMsgMap, delegates);
+    }
 
 };
 
