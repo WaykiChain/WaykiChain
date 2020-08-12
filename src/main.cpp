@@ -2288,7 +2288,7 @@ bool static LoadBlockIndexDB() {
     }
     chainActive.SetTip(tipIndex, &block);
 
-    std::pair<int32_t,uint256> globalFinBlock;
+    std::pair<HeightType, uint256> globalFinBlock;
     if (pCdMan->pBlockCache->GetGlobalFinBlock(globalFinBlock)) {
         auto globalFinIndex = chainActive[globalFinBlock.first];
         if (globalFinIndex == nullptr || globalFinIndex->GetBlockHash() != globalFinBlock.second) {

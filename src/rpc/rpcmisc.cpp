@@ -156,7 +156,7 @@ Value getinfo(const Array& params, bool fHelp) {
     obj.push_back(Pair("tipblock_height",       tipHeight));
     obj.push_back(Pair("synblock_height",       nSyncTipHeight));
 
-    std::pair<int32_t ,uint256> globalfinblock = std::make_pair(0,uint256());
+    std::pair<HeightType ,uint256> globalfinblock = std::make_pair(0,uint256());
     pCdMan->pBlockCache->GetGlobalFinBlock(globalfinblock);
     obj.push_back(Pair("finblock_height",       globalfinblock.first));
     obj.push_back(Pair("finblock_hash",         globalfinblock.second.GetHex()));

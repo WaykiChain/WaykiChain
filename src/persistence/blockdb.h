@@ -107,8 +107,8 @@ public:
     bool WriteFlag(const string &name, bool fValue);
     bool ReadFlag(const string &name, bool &fValue);
 
-    bool SetGlobalFinBlock(const int32_t height, const uint256 hash);
-    bool GetGlobalFinBlock(std::pair<int32_t,uint256>& block);
+    bool SetGlobalFinBlock(const HeightType height, const uint256 hash);
+    bool GetGlobalFinBlock(std::pair<HeightType, uint256>& block);
     bool EraseGlobalFinBlock();
 
     uint256 GetBestBlockHash() const;
@@ -128,7 +128,7 @@ public:
     CSimpleKVCache< dbk::BEST_BLOCKHASH,            uint256>      best_block_hash_cache;    // best blockHash
     CSimpleKVCache< dbk::LAST_BLOCKFILE,            int32_t>          last_block_file_cache;
     CSimpleKVCache< dbk::REINDEX,                   bool>         reindex_cache;
-    CSimpleKVCache< dbk::FINALITY_BLOCK,            std::pair<int32_t,uint256>> finality_block_cache;
+    CSimpleKVCache< dbk::FINALITY_BLOCK,            std::pair<HeightType,uint256>> finality_block_cache;
 };
 
 /** Create a new block index entry for a given block hash */
