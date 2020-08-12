@@ -24,19 +24,6 @@ static inline const VoteDelegateVector& GetBpListByHeight(ActiveDelegatesStore &
             : activeDelegatesStore.last_delegates.delegates;
 }
 
-static inline set<CRegID> GetBpSetByHeight(ActiveDelegatesStore &activeDelegatesStore, HeightType height) {
-    auto &bpList = GetBpListByHeight(activeDelegatesStore, height);
-    set<CRegID> bpSet;
-    for (auto &bp : bpList) {
-        bpSet.insert(bp.regid);
-    }
-    return bpSet;
-}
-
-static inline uint32_t GetMinConfirmBpCount(uint32_t bpCount) {
-    return bpCount - bpCount/3;
-}
-
 void CPBFTMan::InitFinIndex(CBlockIndex *globalFinIndexIn) {
     globalFinIndex = globalFinIndexIn;
     localFinIndex = globalFinIndexIn;
