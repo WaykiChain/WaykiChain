@@ -45,22 +45,6 @@ bool CPBFTMan::SetLocalFinTimeout() {
     localFinIndex = chainActive[0];
     return true;
 }
-bool CPBFTMan::SaveLocalFinBlock(const uint32_t height) {
-    {
-        LOCK(cs_finblock);
-        CBlockIndex* oldFinblock = GetLocalFinIndex();
-        if (oldFinblock != nullptr && (uint32_t)oldFinblock->height >= height)
-            return false;
-        CBlockIndex* pTemp = chainActive[height];
-        if (pTemp== nullptr)
-            return false;
-
-        localFinIndex = pTemp;
-        localFinLastUpdate = GetTime();
-        return true;
-    }
-
-}
 
 bool CPBFTMan::UpdateGlobalFinBlock(const uint32_t height) {
     {

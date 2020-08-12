@@ -24,7 +24,6 @@ private:
     CPBFTMessageMan<CBlockConfirmMessage> confirmMessageMan;
     CPBFTMessageMan<CBlockFinalityMessage> finalityMessageMan;
     CCriticalSection cs_finblock;
-    bool SaveLocalFinBlock(const uint32_t height);
     bool UpdateGlobalFinBlock(const uint32_t height);
 
 public:
