@@ -81,10 +81,4 @@ public:
 
 };
 
-class CPBFTContext {
-public:
-    CPBFTMessageMan<CBlockConfirmMessage> confirmMessageMan;
-    CPBFTMessageMan<CBlockFinalityMessage> finalityMessageMan;
-};
-
 #endif //MINER_PBFTCONTEXT_H
