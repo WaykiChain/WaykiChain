@@ -84,14 +84,14 @@ bool CPBFTMan::UpdateLocalFinBlock(CBlockIndex* pTipIndex){
         return true;
     }
 
-    LOCK(cs_finblock);
-    CBlockIndex* oldLocalFinIndex = localFinIndex;
-    auto oldLocalFinHeight = oldLocalFinIndex ? oldLocalFinIndex->height : 0;
-
     ActiveDelegatesStore activeDelegatesStore;
     if (!pCdMan->pDelegateCache->GetActiveDelegates(activeDelegatesStore)) {
         return ERRORMSG("get active delegates error");
     }
+
+    LOCK(cs_finblock);
+    auto oldLocalFinHeight = localFinIndex ? localFinIndex->height : 0;
+
     CBlockIndex* pIndex = pTipIndex;
     while (pIndex && pIndex->height > oldLocalFinHeight && pIndex->height > 0 &&
            pIndex->height + 10 > pTipIndex->height) {
@@ -218,14 +218,7 @@ bool CPBFTMan::AddBlockConfirmMessage(CNode *pFrom, const CBlockConfirmMessage& 
         return false;
     }
 
-    HeightType localFinHeight = 0;
-    {
-        LOCK(cs_finblock);
-        if (localFinIndex != nullptr)
-            localFinHeight = localFinIndex->height;
-    }
-
-    if(!CheckPBFTMessage(pFrom, PBFTMsgType::CONFIRM_BLOCK, msg, localFinHeight)){
+    if(!CheckPBFTMessage(pFrom, PBFTMsgType::CONFIRM_BLOCK, msg)){
         LogPrint(BCLog::NET, "confirm message check failed,miner_id=%s, blockhash=%s \n",msg.miner.ToString(), msg.blockHash.GetHex());
         return false;
     }
@@ -238,6 +231,7 @@ bool CPBFTMan::AddBlockConfirmMessage(CNode *pFrom, const CBlockConfirmMessage& 
     RelayBlockConfirmMessage(msg);
 
     if(updateFinalitySuccess){
+        LOCK(cs_main);
         BroadcastBlockFinality(GetLocalFinIndex());
     }
     return true;
@@ -251,14 +245,7 @@ bool CPBFTMan::AddBlockFinalityMessage(CNode *pFrom, const CBlockFinalityMessage
         return false;
     }
 
-    HeightType globalFinHeight = 0;
-    {
-        LOCK(cs_finblock);
-        if (globalFinIndex != nullptr)
-            globalFinHeight = globalFinIndex->height;
-    }
-
-    if(!CheckPBFTMessage(pFrom, PBFTMsgType::FINALITY_BLOCK, msg, globalFinHeight)){
+    if(!CheckPBFTMessage(pFrom, PBFTMsgType::FINALITY_BLOCK, msg)){
         LogPrint(BCLog::NET, "finality block message check failed, miner=%s, block=%s \n",
                  msg.miner.ToString(), msg.GetBlockId());
         return false;
@@ -407,7 +394,7 @@ bool CPBFTMan::BroadcastBlockConfirm(const CBlockIndex* pTipIndex) {
     return true;
 }
 
-bool CheckPBFTMessage(CNode *pFrom, const int32_t msgType ,const CPBFTMessage& msg, HeightType finHeight) {
+bool CPBFTMan::CheckPBFTMessage(CNode *pFrom, const int32_t msgType ,const CPBFTMessage& msg) {
 
     //check message type;
     if(msg.msgType != msgType ) {
@@ -419,18 +406,30 @@ bool CheckPBFTMessage(CNode *pFrom, const int32_t msgType ,const CPBFTMessage& m
     CAccount account;
     {
         LOCK(cs_main);
-
-        //check height
         uint32_t tipHeight = chainActive.Height();
-        finHeight = min(tipHeight, finHeight); // make sure the finHeight <= tipHeight
-        if( msg.height < finHeight || msg.height > tipHeight + PBFT_LATEST_BLOCK_COUNT ) {
-            LogPrint(BCLog::PBFT, "messages height is out of valid range[finHeight, tipHeight]:[%u, %u]\n",
-                finHeight, chainActive.Height() + PBFT_LATEST_BLOCK_COUNT);
+        uint32_t minHeight = (tipHeight > PBFT_LATEST_BLOCK_COUNT) ? tipHeight - PBFT_LATEST_BLOCK_COUNT : 0;
+        CBlockIndex *pFinIndex = nullptr;
+        {
+            LOCK(cs_finblock);
+            if (msgType == PBFTMsgType::CONFIRM_BLOCK) {
+                pFinIndex = localFinIndex;
+            } else {
+                pFinIndex = globalFinIndex;
+            }
+        }
+        if (pFinIndex != nullptr && chainActive.Contains(pFinIndex)) {
+            minHeight = max(minHeight, (uint32_t)pFinIndex->height);
+        }
+
+        uint32_t maxHeight = tipHeight + PBFT_LATEST_BLOCK_COUNT;
+        if( msg.height < minHeight || msg.height > maxHeight ) {
+            LogPrint(BCLog::PBFT, "messages height=%u is out of valid range[%u, %u]\n",
+                msg.height, minHeight, maxHeight);
             return false; // ignore the msg
         }
 
         // check whether in chainActive
-        if (msg.height > tipHeight) {
+        if (msg.height <= tipHeight) {
             CBlockIndex* pIndex = chainActive[msg.height];
             if(pIndex == nullptr || pIndex->GetBlockHash() != msg.blockHash) {
                 LogPrint(BCLog::PBFT, "msg_block=%s not in chainActive! miner=%s\n",
@@ -460,7 +459,6 @@ bool CheckPBFTMessage(CNode *pFrom, const int32_t msgType ,const CPBFTMessage& m
         }
     }
     uint256 messageHash = msg.GetHash();
-    // TODO: add verify signature cache for pBFT messages
     if (!VerifySignature(messageHash, msg.vSignature, account.owner_pubkey)) {
         if (!VerifySignature(messageHash, msg.vSignature, account.miner_pubkey)) {
             LogPrint(BCLog::INFO, "verify signature error! Misbehavior add %d, miner=%s, msg_block=%s\n",

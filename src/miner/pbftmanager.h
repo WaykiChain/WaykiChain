@@ -42,9 +42,8 @@ public:
 
     bool BroadcastBlockConfirm(const CBlockIndex* pTipIndex);
     bool BroadcastBlockFinality(const CBlockIndex* pTipIndex);
+    bool CheckPBFTMessage(CNode *pFrom, const int32_t msgType ,const CPBFTMessage& msg);
 };
-
-bool CheckPBFTMessage(CNode *pFrom, const int32_t msgType ,const CPBFTMessage& msg, HeightType finHeight);
 
 bool RelayBlockConfirmMessage(const CBlockConfirmMessage& msg);
 
