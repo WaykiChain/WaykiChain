@@ -139,39 +139,6 @@ int64_t  CPBFTMan::GetLocalFinLastUpdate() const {
     return local_fin_last_update;
 }
 
-bool CPBFTMan::UpdateGlobalFinBlock(const CBlockFinalityMessage& msg, const uint32_t messageCount ){
-
-    ActiveDelegatesStore activeDelegatesStore;
-    CBlockIndex* pIndex = nullptr;
-    {
-        LOCK(cs_main);
-        pIndex = chainActive[msg.height];
-        if(pIndex == nullptr || pIndex->GetBlockHash() != msg.blockHash) {
-            LogPrint(BCLog::PBFT, "the block=[%u]%s of finality msg is not actived\n", msg.height, msg.blockHash.ToString());
-            return false;
-        }
-
-        if (!pCdMan->pDelegateCache->GetActiveDelegates(activeDelegatesStore)) {
-            return ERRORMSG("get active delegates error");
-        }
-    }
-
-    LOCK(cs_finblock);
-    CBlockIndex *oldGlobalFinIndex = GetGlobalFinIndex();
-
-    if (oldGlobalFinIndex != nullptr && msg.height <= (uint32_t)oldGlobalFinIndex->height ) {
-        LogPrint(BCLog::PBFT, "the msg.height=%u is less than current global fin height=%d\n", msg.height, oldGlobalFinIndex->height);
-        return false;
-    }
-
-    const auto &bpList = GetBpListByHeight(activeDelegatesStore, pIndex->height);
-    if (finalityMessageMan.CheckConfirmByBlock(pIndex->GetBlockHash(), bpList)) {
-        return UpdateGlobalFinBlock(pIndex->height);
-    }
-
-    return false;
-}
-
 CBlockIndex* CPBFTMan::GetNewLocalFinIndex(const CBlockConfirmMessage& msg) {
 
     AssertLockHeld(cs_main);

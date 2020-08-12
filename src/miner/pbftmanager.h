@@ -34,7 +34,6 @@ public:
     bool SetLocalFinTimeout();
     bool UpdateLocalFinBlock(CBlockIndex* pTipIndex);
     bool UpdateGlobalFinBlock(CBlockIndex* pIndex);
-    bool UpdateGlobalFinBlock(const CBlockFinalityMessage& msg, const uint32_t messageCount);
     int64_t  GetLocalFinLastUpdate() const;
     bool ProcessBlockConfirmMessage(CNode *pFrom, const CBlockConfirmMessage& msg);
     bool ProcessBlockFinalityMessage(CNode *pFrom, const CBlockFinalityMessage& msg);
