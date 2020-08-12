@@ -57,10 +57,10 @@ public:
         return true;
     }
 
-    int  SaveMessageByBlock(const uint256 &blockHash, const MsgType& msg) {
+    int  AddMessage(const MsgType& msg) {
 
         LOCK(cs_pbftmessage);
-        auto pData = blockMessagesMap.Touch(blockHash);
+        auto pData = blockMessagesMap.Touch(msg.blockHash);
         assert(pData && "Touch() must return a valid pData");
         auto ret = pData->emplace(msg.miner, msg);
         if (!ret.second) {

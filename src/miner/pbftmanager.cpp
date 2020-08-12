@@ -260,7 +260,7 @@ bool CPBFTMan::AddBlockConfirmMessage(CNode *pFrom, const CBlockConfirmMessage& 
     }
 
     msgMan.AddMessageKnown(msg);
-    int messageCount = msgMan.SaveMessageByBlock(msg.blockHash, msg);
+    int messageCount = msgMan.AddMessage(msg);
 
     bool updateFinalitySuccess = UpdateLocalFinBlock(msg,  messageCount);
 
@@ -294,7 +294,7 @@ bool CPBFTMan::AddBlockFinalityMessage(CNode *pFrom, const CBlockFinalityMessage
     }
 
     msgMan.AddMessageKnown(msg);
-    int messageCount = msgMan.SaveMessageByBlock(msg.blockHash, msg);
+    int messageCount = msgMan.AddMessage(msg);
     UpdateGlobalFinBlock(msg, messageCount);
 
     RelayBlockFinalityMessage(msg);
@@ -368,7 +368,7 @@ bool CPBFTMan::BroadcastBlockFinality(const CBlockIndex* pTipIndex){
 
             LogPrint(BCLog::PBFT, "generate and broadcast pbft finality msg! block=%s, bp=%s\n",
                 pTipIndex->GetIdString(), delegate.regid.ToString());
-            msgMan.SaveMessageByBlock(msg.blockHash, msg);
+            msgMan.AddMessage(msg);
 
         }
     }
@@ -428,7 +428,7 @@ bool CPBFTMan::BroadcastBlockConfirm(const CBlockIndex* pTipIndex) {
             }
             LogPrint(BCLog::PBFT, "generate and broadcast pbft confirm msg! block=%s, bp=%s\n",
                 pTipIndex->GetIdString(), delegate.regid.ToString());
-            msgMan.SaveMessageByBlock(msg.blockHash, msg);
+            msgMan.AddMessage(msg);
         }
     }
 
