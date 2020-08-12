@@ -46,31 +46,17 @@ bool CPBFTMan::SetLocalFinTimeout() {
     return true;
 }
 
-bool CPBFTMan::UpdateGlobalFinBlock(const uint32_t height) {
-    {
-        LOCK(cs_finblock);
-        CBlockIndex* oldGlobalFinblock = GetGlobalFinIndex();
-        CBlockIndex* localFinblock = GetLocalFinIndex();
+bool CPBFTMan::SaveGlobalFinBlock(CBlockIndex *pNewIndex) {
 
-        if(localFinblock== nullptr ||height > (uint32_t)localFinblock->height)
-            return false;
-        if(oldGlobalFinblock != nullptr && (uint32_t)oldGlobalFinblock->height >= height)
-            return false;
-
-        if(oldGlobalFinblock != nullptr ){
-            CBlockIndex* chainBlock = chainActive[oldGlobalFinblock->height];
-            if(chainBlock != nullptr && chainBlock->GetBlockHash() != oldGlobalFinblock->GetBlockHash()){
-                return ERRORMSG("Global finality block changed");
-            }
-        }
-
-        CBlockIndex* pTemp = chainActive[height];
-        if(pTemp== nullptr)
-            return false;
-        global_fin_index = pTemp;
-        pCdMan->pBlockCache->SetGlobalFinBlock(pTemp->height, pTemp->GetBlockHash());
-        return true;
+    AssertLockHeld(cs_main);
+    AssertLockHeld(cs_finblock);
+    if (!pCdMan->pBlockCache->SetGlobalFinBlock(pNewIndex->height, pNewIndex->GetBlockHash())) {
+        return ERRORMSG("save global fin block to db error");
     }
+
+    global_fin_index = pNewIndex;
+    return true;
+
 
 }
 
@@ -89,10 +75,10 @@ bool CPBFTMan::UpdateLocalFinBlock(CBlockIndex* pTipIndex){
     }
 
     LOCK(cs_finblock);
-    auto oldLocalFinHeight = local_fin_index ? local_fin_index->height : 0;
+    auto localFinHeight = local_fin_index ? local_fin_index->height : 0;
 
     CBlockIndex* pIndex = pTipIndex;
-    while (pIndex && pIndex->height > oldLocalFinHeight && pIndex->height > 0 &&
+    while (pIndex && pIndex->height > localFinHeight && pIndex->height > 0 &&
            pIndex->height + 10 > pTipIndex->height) {
 
         const auto &bpList = GetBpListByHeight(activeDelegatesStore, pIndex->height);
@@ -119,14 +105,22 @@ bool CPBFTMan::UpdateGlobalFinBlock(CBlockIndex* pTipIndex){
     }
 
     CBlockIndex *pIndex = pTipIndex;
-    CBlockIndex *oldGlobalFinIndex = GetGlobalFinIndex();
-    HeightType oldGlobalFinHeight = oldGlobalFinIndex ? oldGlobalFinIndex->height : 0;
 
-    while (pIndex && (uint32_t)pIndex->height > oldGlobalFinHeight && pIndex->height > 0 &&
-           pIndex->height > pTipIndex->height - 50) {
+    LOCK(cs_finblock);
+    HeightType globalFinHeight = global_fin_index ? global_fin_index->height : 0;
+
+    // make sure the local_fin_height <= global_fin_height
+    if (local_fin_index && chainActive.Contains(local_fin_index)) {
+        pIndex = local_fin_index;
+    }
+
+    HeightType minHeight = pTipIndex->height > 50 ? pTipIndex->height - 50 : 0;
+    minHeight = max(globalFinHeight, minHeight);
+
+    while (pIndex && (uint32_t)pIndex->height > minHeight) {
         const auto &bpList = GetBpListByHeight(activeDelegatesStore, pIndex->height);
         if (finalityMessageMan.CheckConfirmByBlock(pIndex->GetBlockHash(), bpList)) {
-            return UpdateGlobalFinBlock(pIndex->height);
+            return SaveGlobalFinBlock(pIndex);
         }
 
         pIndex = pIndex->pprev;
@@ -173,7 +167,7 @@ CBlockIndex* CPBFTMan::GetNewGlobalFinIndex(const CBlockFinalityMessage& msg) {
     uint32_t localFinHeight = local_fin_index ? local_fin_index->height : 0;
     if (msg.height > localFinHeight ) {
         LogPrint(BCLog::PBFT, "new_global_fin_height=%u > local_fin_height=%d\n", msg.height, localFinHeight);
-        // do nothing
+        return nullptr;
     }
     return pIndex;
 }
@@ -248,7 +242,7 @@ bool CPBFTMan::ProcessBlockFinalityMessage(CNode *pFrom, const CBlockFinalityMes
             }
             const auto &bpList = GetBpListByHeight(activeDelegatesStore, pNewIndex->height);
             if (finalityMessageMan.CheckConfirm(pBpMsgMap, bpList)) {
-                UpdateGlobalFinBlock(pNewIndex->height);
+                UpdateGlobalFinBlock(pNewIndex);
             }
         }
     }

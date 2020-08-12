@@ -23,7 +23,7 @@ private:
     CPBFTMessageMan<CBlockConfirmMessage> confirmMessageMan;
     CPBFTMessageMan<CBlockFinalityMessage> finalityMessageMan;
     CCriticalSection cs_finblock;
-    bool UpdateGlobalFinBlock(const uint32_t height);
+    bool SaveGlobalFinBlock(CBlockIndex *pNewIndex);
     CBlockIndex* GetNewLocalFinIndex(const CBlockConfirmMessage& msg);
     CBlockIndex* GetNewGlobalFinIndex(const CBlockFinalityMessage& msg);
 public:
