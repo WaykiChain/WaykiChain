@@ -1493,21 +1493,23 @@ bool static FindMostWorkChain(CValidationState &state) {
         if (fInvalidAncestor)
             continue;
 
-        if (!forkRoot) {
-            LogPrint(BCLog::INFO, "[WARN]not found root of fork{from (%s) to (%s)} base on active chain\n",
-                    forkFirst ? forkFirst->GetIdString() : "",
-                    pIndexNew ? pIndexNew->GetIdString() : "");
-            if (pIndexNew)
-                SetForkInvalid(forkFirst, pIndexNew);
-            continue;
-        }
+        if (!IsGenesisBlock(forkFirst)) {
+            if (!forkRoot) {
+                LogPrint(BCLog::INFO, "[WARN]not found root of fork{from (%s) to (%s)} base on active chain\n",
+                        forkFirst ? forkFirst->GetIdString() : "",
+                        pIndexNew ? pIndexNew->GetIdString() : "");
+                if (pIndexNew)
+                    SetForkInvalid(forkFirst, pIndexNew);
+                continue;
+            }
 
-        if (finIndex && (forkRoot->height < finIndex->height)) {
-            LogPrint(BCLog::PBFT, "the root(%s) of fork{from (%s) to (%s)} is prior to fin block(%s)\n",
-                    forkRoot->GetIdString(), forkFirst->GetIdString(), pIndexNew->GetIdString(),
-                    finIndex->GetIdString());
-            SetForkInvalidByRoot(forkRoot, pIndexNew);
-            continue;
+            if (finIndex && (forkRoot->height < finIndex->height)) {
+                LogPrint(BCLog::PBFT, "the root(%s) of fork{from (%s) to (%s)} is prior to fin block(%s)\n",
+                        forkRoot->GetIdString(), forkFirst->GetIdString(), pIndexNew->GetIdString(),
+                        finIndex->GetIdString());
+                SetForkInvalidByRoot(forkRoot, pIndexNew);
+                continue;
+            }
         }
         break;
     } while (true);

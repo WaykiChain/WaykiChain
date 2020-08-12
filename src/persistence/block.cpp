@@ -10,6 +10,14 @@
 #include "main.h"
 #include "net.h"
 
+bool IsGenesisBlock(const CBlock &block) {
+    return block.GetHeight() == 0 && block.GetHash() == SysCfg().GetGenesisBlockHash();
+}
+
+bool IsGenesisBlock(CBlockIndex *pBlockIndex) {
+    return pBlockIndex->height == 0 && pBlockIndex->GetBlockHash() == SysCfg().GetGenesisBlockHash();
+ }
+
 uint256 CBlockHeader::GetHash() const {
     return ComputeSignatureHash();
 }

@@ -472,4 +472,7 @@ bool ReadTxFromDisk(const CTxCord txCord, std::shared_ptr<TxType> &pTx) {
 
 bool GetBlockHeader(CBlockIndex *pBlockIndex, CBlockHeader &header);
 
+bool IsGenesisBlock(const CBlock &block);
+bool IsGenesisBlock(CBlockIndex *pBlockIndex);
+
 #endif  // PERSIST_BLOCK_H

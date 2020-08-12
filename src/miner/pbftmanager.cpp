@@ -78,7 +78,7 @@ bool CPBFTMan::UpdateLocalFinBlock(CBlockIndex* pTipIndex){
     minHeight = std::max(minHeight, localFinHeight);
 
     CBlockIndex* pIndex = pTipIndex;
-    while (pIndex && pIndex->height > minHeight) {
+    while (pIndex && (uint32_t)pIndex->height > minHeight) {
 
         const auto &bpList = GetBpListByHeight(activeDelegatesStore, pIndex->height);
         if (confirmMessageMan.CheckConfirmByBlock(pIndex->GetBlockHash(), bpList)) {
