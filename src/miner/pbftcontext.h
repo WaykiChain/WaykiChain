@@ -79,6 +79,33 @@ public:
         return true;
     }
 
+    static inline uint32_t GetMinConfirmBpCount(uint32_t bpCount) {
+        return bpCount - bpCount/3;
+    }
+
+    bool CheckBlockConfirm(const uint256 &blockHash, const VoteDelegateVector& delegates) {
+        LOCK(cs_pbftmessage);
+        auto pBpMsgMap = blockMessagesMap.Get(blockHash);
+        if (pBpMsgMap == nullptr)
+            return false;
+
+        uint32_t minConfirmBpCount = GetMinConfirmBpCount(delegates.size());
+        if(pBpMsgMap->size() < minConfirmBpCount)
+            return false;
+
+        uint32_t count = 0;
+        for(auto &bp : delegates){
+            if(pBpMsgMap->count(bp.regid))
+                count++;
+            if(count >= minConfirmBpCount){
+                return true;
+            }
+        }
+        return false;
+    }
+
+
+
 };
 
 #endif //MINER_PBFTCONTEXT_H

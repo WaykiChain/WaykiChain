@@ -125,24 +125,12 @@ bool CPBFTMan::UpdateLocalFinBlock(CBlockIndex* pTipIndex){
     while (pIndex && pIndex->height > oldLocalFinHeight && pIndex->height > 0 &&
            pIndex->height + 10 > pTipIndex->height) {
 
-        typename decltype(confirmMessageMan)::BpMsgMap bpMsgMap;
-        if (confirmMessageMan.GetMessagesByBlockHash(pIndex->GetBlockHash(), bpMsgMap)) {
+        const auto &bpList = GetBpListByHeight(activeDelegatesStore, pIndex->height);
+        if (confirmMessageMan.CheckBlockConfirm(pIndex->GetBlockHash(), bpList)) {
+            localFinIndex = pIndex;
+            localFinLastUpdate = GetTime();
+            return true;
 
-            const set<CRegID> &bpSet = GetBpSetByHeight(activeDelegatesStore, pIndex->height);
-
-            uint32_t minConfirmBpCount = GetMinConfirmBpCount(bpSet.size());
-            if(bpMsgMap.size() >= minConfirmBpCount){
-                uint32_t count = 0;
-                for(auto &bp : bpSet){
-                    if(bpMsgMap.count(bp))
-                        count++;
-                    if(count >= minConfirmBpCount){
-                        localFinIndex = pIndex;
-                        localFinLastUpdate = GetTime();
-                        return true;
-                    }
-                }
-            }
         }
         pIndex = pIndex->pprev;
     }
@@ -178,22 +166,11 @@ bool CPBFTMan::UpdateLocalFinBlock(const CBlockConfirmMessage& msg, const uint32
         return false;
     }
 
-    typename decltype(confirmMessageMan)::BpMsgMap bpMsgMap;
-    if (confirmMessageMan.GetMessagesByBlockHash(pIndex->GetBlockHash(), bpMsgMap)) {
-
-        const set<CRegID> &bpSet = GetBpSetByHeight(activeDelegatesStore, pIndex->height);
-        uint32_t minConfirmBpCount = GetMinConfirmBpCount(bpSet.size());
-        if (bpMsgMap.size() >= minConfirmBpCount) {
-            uint32_t count =0;
-            for (auto &bp : bpSet){
-                if (bpMsgMap.count(bp))
-                    count++;
-
-                if (count >= minConfirmBpCount) {
-                    return SaveLocalFinBlock(pIndex->height);
-                }
-            }
-        }
+    const auto &bpList = GetBpListByHeight(activeDelegatesStore, pIndex->height);
+    if (confirmMessageMan.CheckBlockConfirm(pIndex->GetBlockHash(), bpList)) {
+        localFinIndex = pIndex;
+        localFinLastUpdate = GetTime();
+        return true;
 
     }
     return false;
@@ -213,31 +190,18 @@ bool CPBFTMan::UpdateGlobalFinBlock(CBlockIndex* pTipIndex){
     CBlockIndex *oldGlobalFinIndex = GetGlobalFinIndex();
     HeightType oldGlobalFinHeight = oldGlobalFinIndex ? oldGlobalFinIndex->height : 0;
 
-    while (pIndex && (uint32_t)pIndex->height > oldGlobalFinHeight && pIndex->height > 0 && pIndex->height > pTipIndex->height-50) {
-
-        typename decltype(finalityMessageMan)::BpMsgMap bpMsgMap;
-        if (finalityMessageMan.GetMessagesByBlockHash(pIndex->GetBlockHash(), bpMsgMap)) {
-            const set<CRegID> &bpSet = GetBpSetByHeight(activeDelegatesStore, pIndex->height);
-            uint32_t minConfirmBpCount = GetMinConfirmBpCount(bpSet.size());
-
-            if (bpMsgMap.size() >= minConfirmBpCount){
-                uint32_t count =0;
-                for (auto &bp : bpSet){
-                    if (bpMsgMap.count(bp))
-                        count++;
-
-                    if (count >= minConfirmBpCount) {
-                        return UpdateGlobalFinBlock( pIndex->height);
-                    }
-                }
-            }
+    while (pIndex && (uint32_t)pIndex->height > oldGlobalFinHeight && pIndex->height > 0 &&
+           pIndex->height > pTipIndex->height - 50) {
+        const auto &bpList = GetBpListByHeight(activeDelegatesStore, pIndex->height);
+        if (finalityMessageMan.CheckBlockConfirm(pIndex->GetBlockHash(), bpList)) {
+            return UpdateGlobalFinBlock(pIndex->height);
         }
+
         pIndex = pIndex->pprev;
     }
 
     return false;
 }
-
 
 int64_t  CPBFTMan::GetLocalFinLastUpdate() const {
     return localFinLastUpdate;
@@ -268,21 +232,9 @@ bool CPBFTMan::UpdateGlobalFinBlock(const CBlockFinalityMessage& msg, const uint
         return false;
     }
 
-    typename decltype(finalityMessageMan)::BpMsgMap bpMsgMap;
-    if (finalityMessageMan.GetMessagesByBlockHash(pIndex->GetBlockHash(), bpMsgMap)) {
-        const set<CRegID> &bpSet = GetBpSetByHeight(activeDelegatesStore, pIndex->height);
-        uint32_t minConfirmBpCount = GetMinConfirmBpCount(bpSet.size());
-        if (bpMsgMap.size() >= minConfirmBpCount){
-            uint32_t count = 0;
-            for (auto &bp : bpSet){
-                if (bpMsgMap.count(bp))
-                    count++;
-
-                if (count >= minConfirmBpCount) {
-                    return UpdateGlobalFinBlock(pIndex->height);
-                }
-            }
-        }
+    const auto &bpList = GetBpListByHeight(activeDelegatesStore, pIndex->height);
+    if (finalityMessageMan.CheckBlockConfirm(pIndex->GetBlockHash(), bpList)) {
+        return UpdateGlobalFinBlock(pIndex->height);
     }
 
     return false;
