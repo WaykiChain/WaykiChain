@@ -25,6 +25,7 @@ private:
     CCriticalSection cs_finblock;
     bool UpdateGlobalFinBlock(const uint32_t height);
     CBlockIndex* GetNewLocalFinIndex(const CBlockConfirmMessage& msg);
+    CBlockIndex* GetNewGlobalFinIndex(const CBlockFinalityMessage& msg);
 public:
     void InitFinIndex(CBlockIndex *globalFinIndexIn);
 

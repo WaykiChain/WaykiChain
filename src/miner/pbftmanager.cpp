@@ -178,12 +178,35 @@ CBlockIndex* CPBFTMan::GetNewLocalFinIndex(const CBlockConfirmMessage& msg) {
     AssertLockHeld(cs_finblock);
     CBlockIndex* pIndex = chainActive[msg.height];
     if(pIndex == nullptr || pIndex->GetBlockHash() != msg.blockHash) {
+        LogPrint(BCLog::PBFT, "the block=[%u]%s of confirm msg is not active\n", msg.height, msg.blockHash.ToString());
         return nullptr;
     }
     uint32_t localFinHeight = local_fin_index ? local_fin_index->height : 0;
     if (msg.height <= localFinHeight ) {
         LogPrint(BCLog::PBFT, "the msg.height=%u is <= local_fin_height=%d\n", msg.height, localFinHeight);
         return nullptr;
+    }
+    return pIndex;
+}
+
+CBlockIndex* CPBFTMan::GetNewGlobalFinIndex(const CBlockFinalityMessage& msg) {
+
+    AssertLockHeld(cs_main);
+    AssertLockHeld(cs_finblock);
+    CBlockIndex* pIndex = chainActive[msg.height];
+    if(pIndex == nullptr || pIndex->GetBlockHash() != msg.blockHash) {
+        LogPrint(BCLog::PBFT, "the block=[%u]%s of finality msg is not active\n", msg.height, msg.blockHash.ToString());
+        return nullptr;
+    }
+    uint32_t globalFinHeight = global_fin_index ? global_fin_index->height : 0;
+    if (msg.height <= globalFinHeight ) {
+        LogPrint(BCLog::PBFT, "msg.height=%u <= global_fin_height=%d\n", msg.height, globalFinHeight);
+        return nullptr;
+    }
+    uint32_t localFinHeight = local_fin_index ? local_fin_index->height : 0;
+    if (msg.height > localFinHeight ) {
+        LogPrint(BCLog::PBFT, "new_global_fin_height=%u > local_fin_height=%d\n", msg.height, localFinHeight);
+        // do nothing
     }
     return pIndex;
 }
@@ -206,7 +229,7 @@ bool CPBFTMan::ProcessBlockConfirmMessage(CNode *pFrom, const CBlockConfirmMessa
         LOCK2(cs_finblock, confirmMessageMan.cs_pbftmessage);
         auto pBpMsgMap = confirmMessageMan.InsertMessage(msg);
 
-        CBlockIndex* pNewIndex = GetNewLocalFinIndex(msg);
+        pNewIndex = GetNewLocalFinIndex(msg);
         if (pNewIndex != nullptr) {
             ActiveDelegatesStore activeDelegatesStore;
             if (!pCdMan->pDelegateCache->GetActiveDelegates(activeDelegatesStore)) {
@@ -244,9 +267,24 @@ bool CPBFTMan::ProcessBlockFinalityMessage(CNode *pFrom, const CBlockFinalityMes
         return false;
     }
 
-    msgMan.AddMessageKnown(msg);
-    int messageCount = msgMan.AddMessage(msg);
-    UpdateGlobalFinBlock(msg, messageCount);
+    LOCK(cs_main);
+    {
+        LOCK2(cs_finblock, finalityMessageMan.cs_pbftmessage);
+
+        auto pBpMsgMap = finalityMessageMan.InsertMessage(msg);
+
+        CBlockIndex* pNewIndex = GetNewGlobalFinIndex(msg);
+        if (pNewIndex != nullptr) {
+            ActiveDelegatesStore activeDelegatesStore;
+            if (!pCdMan->pDelegateCache->GetActiveDelegates(activeDelegatesStore)) {
+                return ERRORMSG("get active delegates error");
+            }
+            const auto &bpList = GetBpListByHeight(activeDelegatesStore, pNewIndex->height);
+            if (finalityMessageMan.CheckBlockConfirm(pBpMsgMap, bpList)) {
+                UpdateGlobalFinBlock(pNewIndex->height);
+            }
+        }
+    }
 
     RelayBlockFinalityMessage(msg);
     return true;
