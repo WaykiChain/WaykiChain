@@ -70,15 +70,6 @@ public:
         return pData->size();
     }
 
-    bool GetMessagesByBlockHash(const uint256 &hash, BpMsgMap& bpMsgMap) {
-        LOCK(cs_pbftmessage);
-        auto pData = blockMessagesMap.Get(hash);
-        if (pData == nullptr)
-            return false;
-        bpMsgMap = *pData;
-        return true;
-    }
-
     static inline uint32_t GetMinConfirmBpCount(uint32_t bpCount) {
         return bpCount - bpCount/3;
     }
