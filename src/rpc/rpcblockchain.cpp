@@ -22,6 +22,7 @@
 using namespace json_spirit;
 using namespace std;
 
+extern CPBFTMan pbftMan;
 class CBaseCoinTransferTx;
 
 Object BlockToJSON(const CBlock& block, const CBlockIndex* pBlockIndex) {
@@ -337,13 +338,15 @@ Value invalidateblock(const Array& params, bool fHelp) {
             "invalidateblock \"hash\"\n"
             "\nPermanently marks a block as invalid, as if it violated a consensus rule.\n"
             "\nArguments:\n"
-            "1. \"hash\"         (string, required) the hash of the block to mark as invalid\n"
+            "1. \"hash\"             (string, required) the hash of the block to mark as invalid\n"
+            "2. \"clear_fin_block\"  (boolean, optional) clear the fin block, default is false\n"
             "\nResult:\n"
             "\nExamples:\n"
             + HelpExampleRpc("invalidateblock", "\"hash\""));
     }
 
     std::string strHash = params[0].get_str();
+    bool clearFinBlock = params.size() > 1 ? params[0].get_bool() : false;
     uint256 hash(uint256S(strHash));
     CValidationState state;
 
@@ -353,6 +356,15 @@ Value invalidateblock(const Array& params, bool fHelp) {
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Block not found");
 
         CBlockIndex* pBlockIndex = mapBlockIndex[hash];
+        if (clearFinBlock) {
+            pbftMan.ClearFinIndex(); // clear the fin block before disconnect blocks
+        } else {
+            auto pFinIndex = pbftMan.GetGlobalFinIndex();
+            if (pFinIndex && chainActive.Contains(pFinIndex) && pBlockIndex->height <= pFinIndex->height) {
+                throw JSONRPCError(RPC_MISC_ERROR,
+                    strprintf("can not invalidate the fin block=%s", pFinIndex->GetIdString()));
+            }
+        }
         InvalidateBlock(state, pBlockIndex);
     }
 

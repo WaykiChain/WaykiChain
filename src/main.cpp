@@ -1341,6 +1341,13 @@ bool DisconnectTip(CValidationState &state) {
     auto bmTx = MAKE_BENCHMARK("DisconnectTip");
     CBlockIndex *pBlockIndexToDelete = chainActive.Tip();
     assert(pBlockIndexToDelete);
+    // check global fin block
+    if (!pbftMan.IsBlockReversible(pBlockIndexToDelete)) {
+        return ERRORMSG("block=%s is irreversible, global_fin_block=%s",
+                        pBlockIndexToDelete->GetIdString(),
+                        pbftMan.GetGlobalFinIndex()->GetIdString());
+    }
+
     // Read block from disk.
     CBlock block;
     if (!ReadBlockFromDisk(pBlockIndexToDelete, block))
@@ -1367,7 +1374,8 @@ bool DisconnectTip(CValidationState &state) {
     if (!WriteChainState(state))
         return false;
     // Update chainActive and related variables.
-    UpdateTip(pBlockIndexToDelete->pprev, block);
+    CBlockIndex *pNewTipIndex = pBlockIndexToDelete->pprev;
+    UpdateTip(pNewTipIndex, block);
     // Resurrect mempool transactions from the disconnected block.
     for (const auto &pTx : block.vptx) {
         list<std::shared_ptr<CBaseTx> > removed;
@@ -1380,6 +1388,7 @@ bool DisconnectTip(CValidationState &state) {
             EraseTransactionFromWallet(pTx->GetHash());
         }
     }
+    pbftMan.AfterDisconnectTip(pNewTipIndex);
 
     return true;
 }
@@ -1523,24 +1532,6 @@ bool static FindMostWorkChain(CValidationState &state) {
     return true;
 }
 
-bool ConnectBlockOnFinChain(CBlockIndex* pNewIndex, CValidationState& state) {
-    if (pNewIndex && (chainActive.Tip() == pNewIndex->pprev)) {
-        if (!ConnectTip(state, pNewIndex)) {
-            if (state.IsInvalid()) {
-                if (!state.CorruptionPossible()) // The block violates a consensus rule.
-                    InvalidChainFound(pNewIndex);
-
-            } else {
-                // A system error occurred (disk space, database error, ...).
-                return false;
-            }
-        }
-
-        mempool.ReScanMemPoolTx();
-    }
-    return true;
-
-}
 // Try to activate to the most-work chain (thereby connecting it).
 bool ActivateBestChain(CValidationState &state, CBlockIndex* pNewIndex) {
     LOCK(cs_main);
@@ -1985,12 +1976,7 @@ bool AcceptBlock(CBlock &block, CValidationState &state, CDiskBlockPos *dbp, boo
                     pNode->PushInventory(CInv(MSG_BLOCK, blockHash));
             }
         }
-
-        pbftMan.BroadcastBlockConfirm(pTip);
-        if(pbftMan.UpdateLocalFinBlock(pTip)){
-            pbftMan.BroadcastBlockFinality(pTip);
-            pbftMan.UpdateGlobalFinBlock(pTip);
-        }
+        pbftMan.AfterAcceptBlock(pTip);
     }
 
     return true;

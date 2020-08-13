@@ -18,7 +18,6 @@ class CPBFTMan {
 
 private:
     CBlockIndex* local_fin_index = nullptr;
-    int64_t local_fin_last_update = 0;
     CBlockIndex* global_fin_index = nullptr;
     CPBFTMessageMan<CBlockConfirmMessage> confirmMessageMan;
     CPBFTMessageMan<CBlockFinalityMessage> finalityMessageMan;
@@ -28,12 +27,11 @@ private:
     CBlockIndex* GetNewGlobalFinIndex(const CBlockFinalityMessage& msg);
     bool CheckPBFTMessage(CNode *pFrom, const int32_t msgType ,const CPBFTMessage& msg);
 public:
-    void InitFinIndex(CBlockIndex *globalFinIndexIn);
+    void InitFinIndex(CBlockIndex *globalFinIndex);
+    void ClearFinIndex();
 
     CBlockIndex *GetLocalFinIndex();
     CBlockIndex *GetGlobalFinIndex();
-    bool SetLocalFinTimeout();
-    int64_t  GetLocalFinLastUpdate() const;
     bool UpdateLocalFinBlock(CBlockIndex* pTipIndex);
     bool UpdateGlobalFinBlock(CBlockIndex* pIndex);
     bool ProcessBlockConfirmMessage(CNode *pFrom, const CBlockConfirmMessage& msg);
@@ -44,6 +42,10 @@ public:
 
     bool IsBlockReversible(HeightType height, const uint256 &hash);
     bool IsBlockReversible(const CBlock &block);
+    bool IsBlockReversible(CBlockIndex *pIndex);
+
+    void AfterAcceptBlock(CBlockIndex* pTipIndex);
+    void AfterDisconnectTip(CBlockIndex* pTipIndex);
 };
 
 bool RelayBlockConfirmMessage(const CBlockConfirmMessage& msg);

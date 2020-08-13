@@ -778,7 +778,7 @@ void ProcessFilterLoadMessage(CNode *pFrom, CDataStream &vRecv) {
     vRecv >> filter;
 
     if (!filter.IsWithinSizeConstraints()) {
-        LogPrint(BCLog::INFO, "Misebehaving: filter is not within size constraints, Misbehavior add 100");
+        LogPrint(BCLog::INFO, "Misebehaving: filter is not within size constraints, Misbehavior add 100\n");
         // There is no excuse for sending a too-large filter
         Misbehaving(pFrom->GetId(), 100);
     } else {
@@ -798,14 +798,14 @@ void ProcessFilterAddMessage(CNode *pFrom, CDataStream &vRecv) {
     // and thus, the maximum size any matched object can have) in a filteradd message
     if (vData.size() > 520)  // MAX_SCRIPT_ELEMENT_SIZE)
     {
-        LogPrint(BCLog::INFO, "Misbehaving: send a data item > 520 bytes, Misbehavior add 100");
+        LogPrint(BCLog::INFO, "Misbehaving: send a data item > 520 bytes, Misbehavior add 100\n");
         Misbehaving(pFrom->GetId(), 100);
     } else {
         LOCK(pFrom->cs_filter);
         if (pFrom->pFilter)
             pFrom->pFilter->insert(vData);
         else {
-            LogPrint(BCLog::INFO, "Misbehaving: filter error, Misbehavior add 100");
+            LogPrint(BCLog::INFO, "Misbehaving: filter error, Misbehavior add 100\n");
             Misbehaving(pFrom->GetId(), 100);
         }
     }
@@ -814,14 +814,14 @@ void ProcessFilterAddMessage(CNode *pFrom, CDataStream &vRecv) {
 bool ProcessBlockConfirmMessage(CNode *pFrom, CDataStream &vRecv) {
 
     if(IsInitialBlockDownload()){
-        LogPrint(BCLog::NET, "ignore the pbft confirm message in IBD state");
+        LogPrint(BCLog::NET, "ignore the pbft confirm message in IBD state\n");
         return false;
     }
 
     CBlockConfirmMessage message;
     vRecv >> message;
 
-    LogPrint(BCLog::NET, "received Block confirmedMessage: blockHeight=%d, blockHash=%s, minerid =%s, signature=%s \n",
+    LogPrint(BCLog::NET, "received Block confirmedMessage: blockHeight=%d, blockHash=%s, minerid =%s, signature=%s\n",
              message.height, message.blockHash.GetHex(), message.miner.ToString(), HexStr<vector<unsigned char>>(message.vSignature));
 
     pFrom->AddBlockConfirmMessageKnown(message);
@@ -839,7 +839,7 @@ bool ProcessBlockFinalityMessage(CNode *pFrom, CDataStream &vRecv) {
     CBlockFinalityMessage message;
     vRecv >> message;
 
-    LogPrint(BCLog::NET, "received Block FinalityMessage: block=%s, miner=%s, signature=%s \n",
+    LogPrint(BCLog::NET, "received Block FinalityMessage: block=%s, miner=%s, signature=%s\n",
              message.GetBlockId(), message.miner.ToString(), HexStr(message.vSignature));
 
     pFrom->AddBlockFinalityMessageKnown(message);

@@ -24,9 +24,18 @@ static inline const VoteDelegateVector& GetBpListByHeight(ActiveDelegatesStore &
             : activeDelegatesStore.last_delegates.delegates;
 }
 
-void CPBFTMan::InitFinIndex(CBlockIndex *globalFinIndexIn) {
-    global_fin_index = globalFinIndexIn;
-    local_fin_index = globalFinIndexIn;
+void CPBFTMan::InitFinIndex(CBlockIndex *globalFinIndex) {
+    LOCK(cs_finblock);
+    global_fin_index = globalFinIndex;
+    local_fin_index = globalFinIndex;
+}
+
+void CPBFTMan::ClearFinIndex() {
+    AssertLockHeld(cs_main);
+    LOCK(cs_finblock);
+    global_fin_index = nullptr;
+    local_fin_index = nullptr;
+    pCdMan->pBlockCache->EraseGlobalFinBlock();
 }
 
 CBlockIndex* CPBFTMan::GetLocalFinIndex(){
@@ -38,12 +47,6 @@ CBlockIndex* CPBFTMan::GetLocalFinIndex(){
 CBlockIndex* CPBFTMan::GetGlobalFinIndex(){
     LOCK(cs_finblock);
     return global_fin_index ? global_fin_index : chainActive[0];
-}
-
-bool CPBFTMan::SetLocalFinTimeout() {
-    LOCK(cs_finblock);
-    local_fin_index = chainActive[0];
-    return true;
 }
 
 bool CPBFTMan::SaveGlobalFinBlock(CBlockIndex *pNewIndex) {
@@ -63,7 +66,7 @@ bool CPBFTMan::UpdateLocalFinBlock(CBlockIndex* pTipIndex){
     AssertLockHeld(cs_main);
     assert(pTipIndex == chainActive.Tip() && pTipIndex != nullptr && "tip index invalid");
 
-    if(pTipIndex->height==0){
+    if (pTipIndex->height == 0) {
         return true;
     }
 
@@ -83,7 +86,6 @@ bool CPBFTMan::UpdateLocalFinBlock(CBlockIndex* pTipIndex){
         const auto &bpList = GetBpListByHeight(activeDelegatesStore, pIndex->height);
         if (confirmMessageMan.CheckConfirmByBlock(pIndex->GetBlockHash(), bpList)) {
             local_fin_index = pIndex;
-            local_fin_last_update = GetTime();
             return true;
         }
         pIndex = pIndex->pprev;
@@ -125,10 +127,6 @@ bool CPBFTMan::UpdateGlobalFinBlock(CBlockIndex* pTipIndex){
     }
 
     return false;
-}
-
-int64_t  CPBFTMan::GetLocalFinLastUpdate() const {
-    return local_fin_last_update;
 }
 
 CBlockIndex* CPBFTMan::GetNewLocalFinIndex(const CBlockConfirmMessage& msg) {
@@ -197,7 +195,6 @@ bool CPBFTMan::ProcessBlockConfirmMessage(CNode *pFrom, const CBlockConfirmMessa
             const auto &bpList = GetBpListByHeight(activeDelegatesStore, pNewIndex->height);
             if (confirmMessageMan.CheckConfirm(pBpMsgMap, bpList)) {
                 local_fin_index = pNewIndex;
-                local_fin_last_update = GetTime();
             } else {
                 pNewIndex = nullptr;
             }
@@ -331,6 +328,10 @@ bool CPBFTMan::BroadcastBlockConfirm(const CBlockIndex* pTipIndex) {
     if(!SysCfg().GetBoolArg("-genblock", false))
         return false;
 
+    if(pTipIndex->height == 0) {
+        return false;
+    }
+    assert(pTipIndex->pprev != nullptr);
 
     if(GetTime() - pTipIndex->GetBlockTime() > 60)
         return false;
@@ -347,10 +348,6 @@ bool CPBFTMan::BroadcastBlockConfirm(const CBlockIndex* pTipIndex) {
     VoteDelegateVector activeDelegates;
     if (!pCdMan->pDelegateCache->GetActiveDelegates(activeDelegates)) {
         return ERRORMSG("get active delegates error");
-    }
-
-    if(pTipIndex->pprev == nullptr) {
-        return false;
     }
 
     CBlockConfirmMessage msg(pTipIndex->height, pTipIndex->GetBlockHash(), pTipIndex->pprev->GetBlockHash());
@@ -467,6 +464,31 @@ bool CPBFTMan::IsBlockReversible(HeightType height, const uint256 &hash) {
 
 bool CPBFTMan::IsBlockReversible(const CBlock &block) {
     return IsBlockReversible(block.GetHeight(), block.GetHash());
+}
+
+bool CPBFTMan::IsBlockReversible(CBlockIndex *pIndex) {
+    return IsBlockReversible(pIndex->height, pIndex->GetBlockHash());
+}
+
+
+void CPBFTMan::AfterAcceptBlock(CBlockIndex* pTipIndex) {
+    AssertLockHeld(cs_main);
+    pbftMan.BroadcastBlockConfirm(pTipIndex);
+    if(pbftMan.UpdateLocalFinBlock(pTipIndex)){
+        pbftMan.BroadcastBlockFinality(pTipIndex);
+        pbftMan.UpdateGlobalFinBlock(pTipIndex);
+    }
+}
+
+void CPBFTMan::AfterDisconnectTip(CBlockIndex* pTipIndex) {
+    AssertLockHeld(cs_main);
+    LOCK(cs_finblock);
+    // check the exist local_fin_index valid
+    if (local_fin_index != nullptr && !chainActive.Contains(local_fin_index)) {
+        LogPrint(BCLog::PBFT, "the exist fin block=%s is reverted, tip_block=%s\n",
+                 local_fin_index->GetIdString(), pTipIndex->GetIdString());
+        local_fin_index = global_fin_index;
+    }
 }
 
 bool RelayBlockConfirmMessage(const CBlockConfirmMessage& msg){
