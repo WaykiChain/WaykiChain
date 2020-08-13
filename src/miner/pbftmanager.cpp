@@ -457,6 +457,10 @@ bool CPBFTMan::IsBlockReversible(const CBlock &block) {
     return IsBlockReversible(block.GetHeight(), block.GetHash());
 }
 
+bool CPBFTMan::IsBlockReversible(CBlockIndex *pIndex) {
+    return IsBlockReversible(pIndex->height, pIndex->GetBlockHash());
+}
+
 bool RelayBlockConfirmMessage(const CBlockConfirmMessage& msg){
 
     LOCK(cs_vNodes);

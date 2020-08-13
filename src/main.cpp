@@ -1341,6 +1341,13 @@ bool DisconnectTip(CValidationState &state) {
     auto bmTx = MAKE_BENCHMARK("DisconnectTip");
     CBlockIndex *pBlockIndexToDelete = chainActive.Tip();
     assert(pBlockIndexToDelete);
+    // check global fin block
+    if (!pbftMan.IsBlockReversible(pBlockIndexToDelete)) {
+        return ERRORMSG("block=%s is irreversible, global_fin_block=%s",
+                        pBlockIndexToDelete->GetIdString(),
+                        pbftMan.GetGlobalFinIndex()->GetIdString());
+    }
+
     // Read block from disk.
     CBlock block;
     if (!ReadBlockFromDisk(pBlockIndexToDelete, block))

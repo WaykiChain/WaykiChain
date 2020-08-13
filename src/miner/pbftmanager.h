@@ -41,6 +41,7 @@ public:
 
     bool IsBlockReversible(HeightType height, const uint256 &hash);
     bool IsBlockReversible(const CBlock &block);
+    bool IsBlockReversible(CBlockIndex *pIndex);
 };
 
 bool RelayBlockConfirmMessage(const CBlockConfirmMessage& msg);
