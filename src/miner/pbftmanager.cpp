@@ -272,7 +272,7 @@ bool CPBFTMan::BroadcastBlockFinality(const CBlockIndex* pTipIndex){
 
     AssertLockHeld(cs_main);
 
-    if (!SysCfg().IsGenBlock() || SysCfg().IsForcedConfirmBlock())
+    if (!SysCfg().IsGenBlock() || !SysCfg().IsForcedConfirmBlock())
         return false;
 
     if (pTipIndex->height == 0)
@@ -327,7 +327,7 @@ bool CPBFTMan::BroadcastBlockConfirm(const CBlockIndex* pTipIndex) {
 
     AssertLockHeld(cs_main);
 
-    if (!SysCfg().IsGenBlock() || SysCfg().IsForcedConfirmBlock())
+    if (!SysCfg().IsGenBlock() || !SysCfg().IsForcedConfirmBlock())
         return false;
 
     if (pTipIndex->height == 0) {
