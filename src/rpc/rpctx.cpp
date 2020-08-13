@@ -705,11 +705,12 @@ Value getaccountinfo(const Array& params, bool fHelp) {
 }
 
 Value disconnectblock(const Array& params, bool fHelp) {
-    if (fHelp || params.size() != 1) {
+    if (fHelp || (params.size() != 1 && params.size() != 2)) {
         throw runtime_error("disconnectblock \"numbers\"\n"
                 "\ndisconnect block\n"
                 "\nArguments:\n"
                 "1. \"number \"  (numeric, required) the number of block(s) to be disconnected\n"
+                "2. \"clear_fin_block\"  (boolean, optional) clear the fin block, default is false\n"
                 "\nResult:\n"
                 "\"disconnect result\"  (bool) \n"
                 "\nExamples:\n"
@@ -718,18 +719,21 @@ Value disconnectblock(const Array& params, bool fHelp) {
                 + HelpExampleRpc("disconnectblock", "\"1\""));
     }
     int32_t number = params[0].get_int();
-
+    bool clearFinBlock = params.size() > 1 ? params[0].get_bool() : false;
 
     if (number >= chainActive.Height())
         throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid number");
 
     if (number > 0) {
-        auto pFinIndex = pbftMan.GetGlobalFinIndex();
-        HeightType minHeight = chainActive.Height() - number;
-        if (pFinIndex && chainActive.Contains(pFinIndex) && minHeight <= (HeightType)pFinIndex->height) {
-            throw JSONRPCError(RPC_MISC_ERROR,
-                strprintf("can not disconnect the fin block=%s", pFinIndex->GetIdString()));
-
+        if (clearFinBlock) {
+            pbftMan.ClearFinIndex(); // clear the fin block before disconnect blocks
+        } else {
+            auto pFinIndex = pbftMan.GetGlobalFinIndex();
+            HeightType minHeight = chainActive.Height() - number;
+            if (pFinIndex && chainActive.Contains(pFinIndex) && minHeight <= (HeightType)pFinIndex->height) {
+                throw JSONRPCError(RPC_MISC_ERROR,
+                    strprintf("can not disconnect the fin block=%s", pFinIndex->GetIdString()));
+            }
         }
         CValidationState state;
         do {
