@@ -16,6 +16,7 @@
 #include "persistence/txdb.h"
 #include "config/configuration.h"
 #include "miner/miner.h"
+#include "miner/pbftmanager.h"
 #include "main.h"
 #include "tx/coinstaketx.h"
 #include "tx/accountregtx.h"
@@ -34,6 +35,8 @@ using namespace std;
 using namespace boost;
 using namespace boost::assign;
 using namespace json_spirit;
+
+extern CPBFTMan pbftMan;
 
 namespace RPC_PARAM {
     vector<uint8_t> GetSignature(const Value &jsonValue) {
@@ -721,6 +724,13 @@ Value disconnectblock(const Array& params, bool fHelp) {
         throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid number");
 
     if (number > 0) {
+        auto pFinIndex = pbftMan.GetGlobalFinIndex();
+        HeightType minHeight = chainActive.Height() - number;
+        if (pFinIndex && chainActive.Contains(pFinIndex) && minHeight <= (HeightType)pFinIndex->height) {
+            throw JSONRPCError(RPC_MISC_ERROR,
+                strprintf("can not disconnect the fin block=%s", pFinIndex->GetIdString()));
+
+        }
         CValidationState state;
         do {
             CBlockIndex * pTipIndex = chainActive.Tip();
