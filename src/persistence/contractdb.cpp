@@ -80,11 +80,20 @@ bool CContractDBCache::SetContractTraces(const uint256 &txid, const string &cont
     return contractTracesCache.SetData(txid, contractTraces);
 }
 
+bool CContractDBCache::GetContractLogs(const uint256 &txid, string &contractLogs) {
+    return contractLogsCache.GetData(txid, contractLogs);
+}
+
+bool CContractDBCache::SetContractLogs(const uint256 &txid, const string &contractLogs) {
+    return contractLogsCache.SetData(txid, contractLogs);
+}
+
 bool CContractDBCache::Flush() {
     contractCache.Flush();
     contractDataCache.Flush();
     contractAccountCache.Flush();
     contractTracesCache.Flush();
+    contractLogsCache.Flush();
 
     return true;
 }
@@ -92,7 +101,8 @@ bool CContractDBCache::Flush() {
 uint32_t CContractDBCache::GetCacheSize() const {
     return contractCache.GetCacheSize() +
         contractDataCache.GetCacheSize() +
-        contractTracesCache.GetCacheSize();
+        contractTracesCache.GetCacheSize() +
+        contractLogsCache.GetCacheSize();
 }
 
 shared_ptr<CDBContractDataIterator> CContractDBCache::CreateContractDataIterator(const CRegID &contractRegid,

@@ -18,8 +18,8 @@ namespace eosio { namespace vm {
 
 #ifdef EOS_VM_FULL_DEBUG
    inline constexpr bool eos_vm_debug = true;
-#else
-   inline constexpr bool eos_vm_debug = false;
-#endif
+ #else
+    inline constexpr bool eos_vm_debug = false;
+ #endif
 
 }} // namespace eosio::vm

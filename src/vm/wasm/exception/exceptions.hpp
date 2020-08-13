@@ -216,8 +216,8 @@ namespace wasm_chain {
                                     3050002, "Invalid Action Arguments" )
       CHAIN_DECLARE_DERIVED_EXCEPTION( wasm_assert_message_exception, inline_transaction_validate_exception,
                                     3050003, "wasm_assert_message assertion failure" )
-      CHAIN_DECLARE_DERIVED_EXCEPTION( wasm_assert_code_exception, inline_transaction_validate_exception,
-                                    3050004, "wasm_assert_code assertion failure" )
+      CHAIN_DECLARE_DERIVED_EXCEPTION( wasm_assert_exception, inline_transaction_validate_exception,
+                                    3050004, "wasm_assert assertion failure") 
       CHAIN_DECLARE_DERIVED_EXCEPTION( action_not_found_exception, inline_transaction_validate_exception,
                                     3050005, "Action can not be found" )
       CHAIN_DECLARE_DERIVED_EXCEPTION( action_data_and_struct_mismatch, inline_transaction_validate_exception,
@@ -232,8 +232,10 @@ namespace wasm_chain {
                                     3050010, "Action attempts to increase RAM usage of account without authorization" )
       CHAIN_DECLARE_DERIVED_EXCEPTION( restricted_error_code_exception, inline_transaction_validate_exception,
                                     3050011, "wasm_assert_code assertion failure uses restricted error code value" )
-      CHAIN_DECLARE_DERIVED_EXCEPTION( wasm_assert_exception, inline_transaction_validate_exception,
-                                    3050012, "wasm_assert assertion failure" )
+      // CHAIN_DECLARE_DERIVED_EXCEPTION( wasm_assert_exception, inline_transaction_validate_exception,
+      //                               3050012, "wasm_assert assertion failure" )
+      CHAIN_DECLARE_DERIVED_EXCEPTION( wasm_assert_code_exception, inline_transaction_validate_exception,
+                                    3050012, "wasm_assert_code assertion failure" )
 
    CHAIN_DECLARE_DERIVED_EXCEPTION( database_exception, chain_exception,
                                  3060000, "Database exception" )

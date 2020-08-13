@@ -53,13 +53,15 @@ EOSIO_VM_H = \
   vm/wasm/types/symbol.hpp \
   vm/wasm/types/types.hpp \
   vm/wasm/types/uint128.hpp \
-  vm/wasm/types/varint.hpp 
-
+  vm/wasm/types/varint.hpp  \
+  vm/wasm/types/time.hpp  
 
 WASM_INTERFACE = vm/wasm/wasm_interface.cpp
 WASM_RUNTIME = vm/wasm/wasm_runtime.cpp
 
 UINT128_SRC = vm/wasm/types/uint128.cpp
+
+TIME_SRC = vm/wasm/types/time.cpp
 
 
 COMPILER_BUILTINS = $(WASM_DIR)/compiler_builtins
@@ -103,5 +105,6 @@ libwasm_a_SOURCES = \
   $(WASM_INTERFACE) \
   $(WASM_RUNTIME) \
   $(UINT128_SRC) \
+  $(TIME_SRC) \
   $(COMPILER_BUILTINS_H) \
   $(EOSIO_VM_H)

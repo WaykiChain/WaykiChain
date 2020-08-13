@@ -3,6 +3,7 @@
 #include <eosio/vm/exceptions.hpp>
 #include <eosio/vm/allocator.hpp>
 
+#include <iostream>
 #include <algorithm>
 #include <utility>
 #include <string>
@@ -55,11 +56,13 @@ namespace eosio { namespace vm {
             }
 
             constexpr inline T& at( size_t i ) {
+               //std::cout << "at:" << i << "_size:" << _size << std::endl;
                EOS_VM_ASSERT( i < _size, wasm_vector_oob_exception, "vector read out of bounds" );
                return _data[i];
             }
 
             constexpr inline T& at( size_t i )const {
+               //std::cout << "at:" << i << "_size:" << _size << std::endl;
                EOS_VM_ASSERT( i < _size, wasm_vector_oob_exception, "vector read out of bounds" );
                return _data[i];
             }

@@ -201,48 +201,6 @@ static uint64_t get_run_fee_in_wicc(const uint64_t& fuel, CBaseTx& tx, CTxExecut
     return fuel / 100 * fuel_rate;
 }
 
-
-// static void inline_trace_to_receipts(const wasm::inline_transaction_trace& trace,
-//                                      vector<CReceipt>&                     receipts,
-//                                      map<transfer_data_t,  uint64_t>&   receipts_duplicate_check) {
-
-//     if (trace.trx.contract == wasmio_bank && trace.trx.action == wasm::NAME(transfer)) {
-
-//         CReceipt receipt;
-//         receipt.code = TRANSFER_ACTUAL_COINS;
-
-//         transfer_data_t transfer_data = wasm::unpack < std::tuple < uint64_t, uint64_t, wasm::asset, string>> (trace.trx.data);
-//         auto from                        = std::get<0>(transfer_data);
-//         auto to                          = std::get<1>(transfer_data);
-//         auto quantity                    = std::get<2>(transfer_data);
-//         auto memo                        = std::get<3>(transfer_data);
-
-//         auto itr = receipts_duplicate_check.find(std::tuple(from, to ,quantity, memo));
-//         if (itr == receipts_duplicate_check.end()){
-//             receipts_duplicate_check[std::tuple(from, to ,quantity, memo)] = wasmio_bank;
-
-//             receipt.from_uid    = CUserID(CRegID(from));
-//             receipt.to_uid      = CUserID(CRegID(to));
-//             receipt.coin_symbol = quantity.symbol.code().to_string();
-//             receipt.coin_amount = quantity.amount;
-
-//             receipts.push_back(receipt);
-//         }
-//     }
-
-//     for (auto t: trace.inline_traces) {
-//         inline_trace_to_receipts(t, receipts, receipts_duplicate_check);
-//     }
-
-// }
-
-// static void trace_to_receipts(const wasm::transaction_trace& trace, vector<CReceipt>& receipts) {
-//     map<transfer_data_t, uint64_t > receipts_duplicate_check;
-//     for (auto t: trace.traces) {
-//         inline_trace_to_receipts(t, receipts, receipts_duplicate_check);
-//     }
-// }
-
 bool CUniversalTx::ExecuteTx(CTxExecuteContext &context) {
 
     auto bm = MAKE_BENCHMARK("universal tx ExecuteTx");
@@ -260,7 +218,8 @@ bool CUniversalTx::ExecuteTx(CTxExecuteContext &context) {
         }
 
         recipients_size        = 0;
-        wasm::transaction_trace trx_trace;
+        wasm::transaction_trace    trx_trace;
+        wasm::vector<transaction_log> trx_logs;
         {
             pseudo_start           = system_clock::now();//pseudo start for reduce code loading duration
             auto bm1 = MAKE_BENCHMARK_START("call execute_inline_transaction", pseudo_start);
@@ -272,7 +231,7 @@ bool CUniversalTx::ExecuteTx(CTxExecuteContext &context) {
                 trx_current_for_exception = &inline_trx;
 
                 trx_trace.traces.emplace_back();
-                execute_inline_transaction(trx_trace.traces.back(), inline_trx, inline_trx.contract, database, receipts, 0);
+                execute_inline_transaction(trx_trace.traces.back(), inline_trx, inline_trx.contract, database, receipts, trx_logs, 0);
 
                 trx_current_for_exception = nullptr;
             }
@@ -303,6 +262,7 @@ bool CUniversalTx::ExecuteTx(CTxExecuteContext &context) {
 
         //save trx trace
         if (SysCfg().IsTxTrace()) {
+
             {
                 auto bm_save_trace = MAKE_BENCHMARK("save tx trace");
                 std::vector<char> trace_bytes = wasm::pack<transaction_trace>(trx_trace);
@@ -313,6 +273,14 @@ bool CUniversalTx::ExecuteTx(CTxExecuteContext &context) {
                             GetHash().ToString())
             }
 
+            if(trx_logs.size() > 0){
+                std::vector<char> log_bytes = wasm::pack<vector<transaction_log>>(trx_logs);
+                CHAIN_ASSERT( database.contractCache.SetContractLogs(GetHash(),
+                                                                     std::string(log_bytes.begin(), log_bytes.end())),
+                              wasm_chain::account_access_exception,
+                              "set tx '%s' logs failed",
+                              GetHash().ToString())
+            }
 
             auto &json_trace = state.GetTrace();
             if (json_trace) {
@@ -321,6 +289,7 @@ bool CUniversalTx::ExecuteTx(CTxExecuteContext &context) {
                 to_variant(trx_trace, *json_trace, resolver);
             }
         }
+
 
     } catch (wasm_chain::exception &e) {
 
@@ -344,9 +313,10 @@ void CUniversalTx::execute_inline_transaction(  wasm::inline_transaction_trace& 
                                                 uint64_t                            receiver,
                                                 CCacheWrapper&                      database,
                                                 vector <CReceipt>&                  receipts,
+                                                vector <transaction_log>&           logs,
                                                 uint32_t                            recurse_depth) {
 
-    wasm_context wasm_execute_context(*this, trx, database, receipts, mining, recurse_depth);
+    wasm_context wasm_execute_context(*this, trx, database, receipts, logs, mining, recurse_depth);
 
     //check timeout
     CHAIN_ASSERT( std::chrono::duration_cast<std::chrono::microseconds>(system_clock::now() - pseudo_start) <
@@ -358,6 +328,49 @@ void CUniversalTx::execute_inline_transaction(  wasm::inline_transaction_trace& 
 
 }
 
+//fixme:V4
+std::vector<uint8_t> CUniversalTx::call_inline_transaction(  wasm::inline_transaction_trace&     trace,
+                                                wasm::inline_transaction&           trx,
+                                                uint64_t                            receiver,
+                                                CCacheWrapper&                      database,
+                                                vector <CReceipt>&                  receipts,
+                                                vector <transaction_log>&           logs,
+                                                uint32_t                            recurse_depth) {
+
+    wasm_context wasm_execute_context(*this, trx, database, receipts, logs, mining, recurse_depth);
+
+    //check timeout
+    CHAIN_ASSERT( std::chrono::duration_cast<std::chrono::microseconds>(system_clock::now() - pseudo_start) <
+                  get_max_transaction_duration() * 1000,
+                  wasm_chain::wasm_timeout_exception, "%s", "timeout");
+
+    wasm_execute_context._receiver = receiver;
+    wasm_execute_context.call_one(trace);
+
+    return wasm_execute_context.get_return();
+
+}
+
+int64_t CUniversalTx::call_inline_transaction_with_return(  wasm::inline_transaction_trace&     trace,
+                                                wasm::inline_transaction&           trx,
+                                                uint64_t                            receiver,
+                                                CCacheWrapper&                      database,
+                                                vector <CReceipt>&                  receipts,
+                                                vector <transaction_log>&           logs,
+                                                uint32_t                            recurse_depth) {
+
+    wasm_context wasm_execute_context(*this, trx, database, receipts, logs, mining, recurse_depth);
+
+    //check timeout
+    CHAIN_ASSERT( std::chrono::duration_cast<std::chrono::microseconds>(system_clock::now() - pseudo_start) <
+                  get_max_transaction_duration() * 1000,
+                  wasm_chain::wasm_timeout_exception, "%s", "timeout");
+
+    wasm_execute_context._receiver = receiver;
+    return wasm_execute_context.call_one_with_return(trace);
+
+}
+//fixme:V4
 
 bool CUniversalTx::GetInvolvedKeyIds(CCacheWrapper &cw, set <CKeyID> &keyIds) {
 

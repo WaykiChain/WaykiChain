@@ -415,6 +415,9 @@ Value wasm_gettable( const Array &params, bool fHelp ) {
 
             //unpack value in bytes to json
             std::vector<char> value_bytes(value.begin(), value.end());
+
+            //WASM_TRACE("%s %s", to_hex(key), to_hex(value))
+
             json_spirit::Value   value_json  = wasm::abi_serializer::unpack(abi, contract_table.value, value_bytes, max_serialization_time);
             json_spirit::Object& object_json = value_json.get_obj();
 

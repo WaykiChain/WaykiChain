@@ -248,6 +248,16 @@ Object GetTxDetailJSON(CCacheWrapper &cw, const CBlockHeader &header,
         obj.push_back(Pair("tx_trace", value_json));
     }
 
+    string trx_logs;
+    if(database->contractCache.GetContractLogs(txid, trx_logs)){
+        json_spirit::Value value_json;
+        std::vector<char>  log_bytes  = std::vector<char>(trx_logs.begin(), trx_logs.end());
+        vector<transaction_log>  logs = wasm::unpack<vector<transaction_log>>(log_bytes);
+        to_variant(logs, value_json, resolver);
+        obj.push_back(Pair("tx_logs", value_json));
+    }
+
+
     return obj;
 }
 

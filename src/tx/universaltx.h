@@ -12,6 +12,7 @@
 #include "chrono"
 #include "tx.h"
 #include "entities/contract.h"
+//#include "wasm/wasm_context.hpp"
 
 using std::chrono::microseconds;
 using std::chrono::system_clock;
@@ -90,8 +91,28 @@ public:
                                       uint64_t receiver,
                                       CCacheWrapper &database,
                                       vector<CReceipt> &receipts,
+                                      vector<wasm::transaction_log> &trx_logs,
                                       //CValidationState &state,
                                       uint32_t recurse_depth);
+//fixme:V4
+    std::vector<uint8_t> call_inline_transaction( wasm::inline_transaction_trace &trace,
+                                      wasm::inline_transaction &trx,
+                                      uint64_t receiver,
+                                      CCacheWrapper &database,
+                                      vector<CReceipt> &receipts,
+                                      vector<wasm::transaction_log> &trx_logs,
+                                      //CValidationState &state,
+                                      uint32_t recurse_depth);
+
+    int64_t call_inline_transaction_with_return( wasm::inline_transaction_trace &trace,
+                                      wasm::inline_transaction &trx,
+                                      uint64_t receiver,
+                                      CCacheWrapper &database,
+                                      vector<CReceipt> &receipts,
+                                      vector<wasm::transaction_log> &trx_logs,
+                                      //CValidationState &state,
+                                      uint32_t recurse_depth);
+//fixme:V4
 
 };
 

@@ -203,4 +203,66 @@ static inline void to_variant(const wasm::transaction_trace &t, json_spirit::Val
 }
 
 
+template<typename Resolver>
+static inline void to_variant(const wasm::transaction_log &t, json_spirit::Value &v, Resolver resolver) {
+    json_spirit::Object obj;
+
+    json_spirit::Value val;
+    to_variant(t.trx_id.ToString(), val);
+    json_spirit::Config::add(obj, "trx_id", val);
+
+    to_variant(wasm::regid(t.receiver), val);
+    json_spirit::Config::add(obj, "receiver", val);
+
+    // to_variant(t.trx, val, resolver);
+    // json_spirit::Config::add(obj, "trx", val);
+
+    to_variant(t.topic, val);
+    json_spirit::Config::add(obj, "topic", val);
+
+    std::vector<char> abi = resolver(t.trx.contract);
+
+    if (abi.size() > 0 ) {
+        if (t.data.size() > 0) {
+            try {
+                val = wasm::abi_serializer::unpack_data(abi, t.topic, t.data,
+                                                   max_serialization_time);
+            } catch (...) {
+                to_variant(to_hex(t.data, ""), val);
+            }
+        }
+    } else
+        to_variant(to_hex(t.data, ""), val);
+
+    json_spirit::Config::add(obj, "data", val);
+
+
+    v = obj;
+
+}
+
+template<typename Resolver>
+static inline void to_variant(const std::vector<wasm::transaction_log> &ts, json_spirit::Value &v, Resolver resolver) {
+    json_spirit::Object obj;
+
+    if (ts.size() > 0) {
+        json_spirit::Array arr;
+        for (const auto &t :ts) {
+            json_spirit::Value tmp;
+            to_variant(t, tmp, resolver);
+            arr.push_back(tmp);
+
+            WASM_TRACE("%s", t.topic);
+        }
+
+        json_spirit::Config::add(obj, "logs", json_spirit::Value(arr));
+    }
+
+
+    v = obj;
+
+}
+
+
+
 } //wasm

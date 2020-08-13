@@ -33,20 +33,19 @@ using namespace eosio::vm;
                   DATA_NAME, max_wasm_api_data_bytes, LENGTH )
 
 namespace wasm {
-    using code_version_t     = uint256;
+    //using code_version_t     = uint256;
     using backend_validate_t = backend<wasm::wasm_context_interface, vm::interpreter>;
     using rhf_t              = eosio::vm::registered_host_functions<wasm_context_interface>;
 
-    std::optional<std::map <code_version_t, std::shared_ptr<wasm_instantiated_module_interface>>>& get_wasm_instantiation_cache(){
-        static std::optional<std::map <code_version_t, std::shared_ptr<wasm_instantiated_module_interface>>> wasm_instantiation_cache;
-        return wasm_instantiation_cache;
-    }
+    // std::optional<std::map <code_version_t, std::shared_ptr<wasm_instantiated_module_interface>>>& get_wasm_instantiation_cache(){
+    //     static std::optional<std::map <code_version_t, std::shared_ptr<wasm_instantiated_module_interface>>> wasm_instantiation_cache;
+    //     return wasm_instantiation_cache;
+    // }
 
     std::shared_ptr <wasm_runtime_interface>& get_runtime_interface(){
         static std::shared_ptr <wasm_runtime_interface> runtime_interface;
         return runtime_interface;
     }
-
 
     wasm_interface::wasm_interface() {}
     wasm_interface::~wasm_interface() {}
@@ -55,30 +54,35 @@ namespace wasm {
         get_runtime_interface()->immediately_exit_currently_running_module();
     }
 
+    // std::shared_ptr <wasm_instantiated_module_interface> get_instantiated_backend(const vector <uint8_t> &code, const uint256 &hash) {
+
+    //     try {
+    //         auto bm_wasm_hash = MAKE_BENCHMARK("load wasm vm -- load code hash");
+    //         if (!get_wasm_instantiation_cache().has_value()){
+    //              get_wasm_instantiation_cache() = std::map <code_version_t, std::shared_ptr<wasm_instantiated_module_interface>>{};
+    //         }
+
+    //         if (bm_wasm_hash) bm_wasm_hash->end();
+    //         auto it = get_wasm_instantiation_cache()->find(hash);
+    //         if (it == get_wasm_instantiation_cache()->end()) {
+    //             auto bm_wasm_load = MAKE_BENCHMARK("load wasm vm -- init module");
+    //             get_wasm_instantiation_cache().value()[hash] = get_runtime_interface()->instantiate_module((const char*)code.data(), code.size(), hash);
+    //             return get_wasm_instantiation_cache().value()[hash];
+    //         }
+    //         return it->second;
+    //     } catch (...) {
+    //         throw;
+    //     }
+
+    // }
+
     std::shared_ptr <wasm_instantiated_module_interface> get_instantiated_backend(const vector <uint8_t> &code, const uint256 &hash) {
 
-        try {
-            auto bm_wasm_hash = MAKE_BENCHMARK("load wasm vm -- load code hash");
-            if (!get_wasm_instantiation_cache().has_value()){
-                 get_wasm_instantiation_cache() = std::map <code_version_t, std::shared_ptr<wasm_instantiated_module_interface>>{};
-            }
-
-            if (bm_wasm_hash) bm_wasm_hash->end();
-            auto it = get_wasm_instantiation_cache()->find(hash);
-            if (it == get_wasm_instantiation_cache()->end()) {
-                auto bm_wasm_load = MAKE_BENCHMARK("load wasm vm -- init module");
-                get_wasm_instantiation_cache().value()[hash] = get_runtime_interface()->instantiate_module((const char*)code.data(), code.size());
-                return get_wasm_instantiation_cache().value()[hash];
-            }
-            return it->second;
-        } catch (...) {
-            throw;
-        }
+        return get_runtime_interface()->instantiate_module((const char*)code.data(), code.size(), hash);
 
     }
 
-    void wasm_interface::execute(const vector <uint8_t> &code, const uint256 &hash, wasm_context_interface *pWasmContext) {
-
+    int64_t wasm_interface::execute(const vector <uint8_t> &code, const uint256 &hash, wasm_context_interface *pWasmContext) {
 
         auto bm_wasm_load = MAKE_BENCHMARK("load wasm vm with code");
         pWasmContext->pause_billing_timer();
@@ -87,7 +91,7 @@ namespace wasm {
         if (bm_wasm_load) bm_wasm_load->end();
 
         auto bm_wasm_exec = MAKE_BENCHMARK("execute wasm vm with code");
-        pInstantiated_module->apply(pWasmContext);
+        return pInstantiated_module->apply(pWasmContext);
     }
 
     void wasm_interface::validate(const vector <uint8_t> &code) {
@@ -112,11 +116,11 @@ namespace wasm {
             wasm_interface_inited = true;
 
 	        if (vm == wasm::vm_type::eos_vm)
-	            get_runtime_interface() = std::make_shared<wasm::wasm_vm_runtime<vm::interpreter>>();
+	            get_runtime_interface() = std::make_shared<wasm::wasm_vm_runtime2<vm::interpreter>>();
 	        else if (vm == wasm::vm_type::eos_vm_jit)
-	            get_runtime_interface() = std::make_shared<wasm::wasm_vm_runtime<vm::jit>>();
+	            get_runtime_interface() = std::make_shared<wasm::wasm_vm_runtime2<vm::jit>>();
 	        else
-	            get_runtime_interface() = std::make_shared<wasm::wasm_vm_runtime<vm::interpreter>>();
+	            get_runtime_interface() = std::make_shared<wasm::wasm_vm_runtime2<vm::interpreter>>();
     	}
 
     }
@@ -159,6 +163,7 @@ namespace wasm {
         void wasm_assert_code( uint32_t test, uint64_t code ) {
             if (!test) {
                 std::ostringstream o;
+                o << "err_code:";
                 o << code;
                 CHAIN_ASSERT(false, wasm_chain::wasm_assert_code_exception, o.str())
             }
@@ -626,6 +631,61 @@ namespace wasm {
         }
 
 
+        // fixme:V4 support
+        uint64_t call(void *data, uint32_t data_len){//return data size
+
+            //CHECK_WASM_IN_MEMORY(data,     data_len)
+            CHECK_WASM_DATA_SIZE(data_len, "data"  )
+            inline_transaction trx = wasm::unpack<inline_transaction>((const char *) data, data_len);
+            return pWasmContext->call(trx);
+        }
+
+        int64_t call_with_return(void *data, uint32_t data_len){//return data in int64_t
+
+            //CHECK_WASM_IN_MEMORY(data,     data_len)
+            CHECK_WASM_DATA_SIZE(data_len, "data"  )
+            inline_transaction trx = wasm::unpack<inline_transaction>((const char *) data, data_len);
+            return pWasmContext->call_with_return(trx);
+        }
+
+        uint64_t get_return(void *data, uint32_t data_len){
+
+            //CHECK_WASM_IN_MEMORY(data,     data_len)
+            CHECK_WASM_DATA_SIZE(data_len, "data"  )
+
+            std::vector<uint8_t> return_value = pWasmContext->get_return();
+            uint32_t size = return_value.size();
+ 
+            if(data_len == 0){
+                return size;
+            }
+
+            auto val_size = data_len > size ? size : data_len;
+            std::memcpy(data, return_value.data(), val_size);
+
+            return val_size;
+        }
+
+        void set_return(void *data, uint32_t data_len){
+
+            //CHECK_WASM_IN_MEMORY(data,     data_len)
+            CHECK_WASM_DATA_SIZE(data_len, "data"  )
+            return pWasmContext->set_return(data, data_len);
+        }
+
+        void make_log( uint64_t payer, uint64_t receiver, const char* topic, uint32_t topic_len, const char *data, uint32_t data_len ) {
+
+            CHECK_WASM_DATA_SIZE(topic_len,  "topic")
+            CHECK_WASM_DATA_SIZE(data_len,  "data")
+
+            string t = string((const char *) topic, topic_len);
+            string d = string((const char *) data, data_len);
+
+            pWasmContext->append_log(payer, receiver, t, d);
+
+        }
+        // fixme:V4 support 
+
         //llvm compiler builtins rt apis( GCC low-level runtime library ), eg. std:string in contract
         void __ashlti3( __int128 &ret, uint64_t low, uint64_t high, uint32_t shift ) {
             uint128 i(high, low);
@@ -969,8 +1029,15 @@ namespace wasm {
     REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, get_txid,                get_txid)
     REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, get_maintainer,          get_maintainer)
     REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, get_system_asset_price,  get_system_asset_price)
-    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, emit_result,  emit_result)
+    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, emit_result,             emit_result)
 
+    //fixme:V4
+    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, call,                    call)
+    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, get_return,              get_return)
+    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, set_return,              set_return)
+    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, call_with_return,        call_with_return)
+    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, make_log,                make_log)
+    //fixme:V4
 
     REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, __ashlti3,               __ashlti3)
     REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, __ashrti3,               __ashrti3)
@@ -1026,7 +1093,7 @@ namespace wasm {
 
 }//wasm
 
-extern  void wasm_code_cache_free() {
-     //free heap before shut down
-     wasm::get_wasm_instantiation_cache().reset();
-}
+// extern  void wasm_code_cache_free() {
+//      //free heap before shut down
+//      wasm::get_wasm_instantiation_cache().reset();
+// }

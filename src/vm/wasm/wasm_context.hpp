@@ -21,15 +21,12 @@ using namespace std;
 using namespace wasm;
 namespace wasm {
 
-    // bool get_native_contract_abi(uint64_t contract, std::vector<char>& abi);
-    // bool is_native_contract(uint64_t contract);
-
     class wasm_context : public wasm_context_interface {
 
     public:
         wasm_context(CUniversalTx &ctrl, inline_transaction &t, CCacheWrapper &cw,
-                     vector <CReceipt> &receipts_in, bool mining, uint32_t depth = 0)
-                : trx_cord(ctrl.txCord), trx(t), control_trx(ctrl), database(cw), receipts(receipts_in), recurse_depth(depth) {
+                     vector <CReceipt> &receipts_in, vector <transaction_log>& logs, bool mining, uint32_t depth = 0)
+                : trx_cord(ctrl.txCord), trx(t), control_trx(ctrl), database(cw), receipts(receipts_in), trx_logs(logs), recurse_depth(depth) {
             reset_console();
         };
 
@@ -43,6 +40,13 @@ namespace wasm {
         void execute_one(inline_transaction_trace &trace);
         bool has_permission_from_inline_transaction(const permission &p);
         bool get_code(const uint64_t& contract, std::vector <uint8_t> &code, uint256 &hash);
+
+        uint64_t get_runcost();
+        void check_authorization(const inline_transaction& t);
+
+        //fixme:V4
+        void call_one(inline_transaction_trace &trace);
+        int64_t call_one_with_return(inline_transaction_trace &trace);
 
 // Console methods:
     public:
@@ -128,12 +132,22 @@ namespace wasm {
             CHAIN_ASSERT( false, contract_exception, "%s() only used for rpc", __func__)
         }
 
+        int64_t call_with_return(inline_transaction& t);
+
+        uint64_t call(inline_transaction &inline_trx);//return with size
+        void set_return(void *data, uint32_t data_len);
+        std::vector<uint8_t> get_return();
+
+        void append_log(uint64_t payer, uint64_t receiver, const string& topic, const string& data);
+
     public:
         CTxCord&                    trx_cord;
         inline_transaction&         trx;
         CUniversalTx&               control_trx;
         CCacheWrapper&              database;
         vector<CReceipt>&           receipts;
+        vector<transaction_log>&    trx_logs;
+
         uint32_t                    recurse_depth;
         vector<uint64_t>            notified;
         vector<inline_transaction>  inline_transactions;
@@ -141,6 +155,12 @@ namespace wasm {
         wasm::wasm_interface        wasmif;
         vm::wasm_allocator          wasm_alloc;
         uint64_t                    _receiver;
+
+        vector<vector<uint8_t>>     return_values;
+        vector<uint8_t>             the_last_return_buffer;
+
+
+        //inline_transaction_trace    *trace_ptr = nullptr;
 
     private:
         std::ostringstream         _pending_console_output;

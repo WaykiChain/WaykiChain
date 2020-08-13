@@ -140,8 +140,10 @@ namespace wasm {
         vector <action_def> actions;
         vector <table_def> tables;
         vector <clause_pair> ricardian_clauses;
+        //vector<error_message> error_messages;
 
         WASM_REFLECT( abi_def, (version)(types)(structs)(actions)(tables)(ricardian_clauses) )
+
     };
 
     enum abi_typeid_t {

@@ -31,7 +31,7 @@ using namespace std;
 using namespace json_spirit;
 using namespace wasm;
 
-const static auto max_serialization_time_testing            = microseconds(25 * 1000);
+const static auto max_serialization_time_testing            = microseconds(15 * 1000);
 
 
 #define WASM_TEST( expr, msg )               \

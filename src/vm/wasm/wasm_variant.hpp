@@ -10,6 +10,7 @@
 #include "wasm/types/asset.hpp"
 #include "wasm/types/regid.hpp"
 #include "wasm/types/hash256.hpp"
+#include "wasm/types/time.hpp"
 #include "commons/json/json_spirit.h"
 #include "commons/json/json_spirit_value.h"
 //#include "wasm/exceptions.hpp"
@@ -198,6 +199,13 @@ namespace wasm {
         v = wasm::variant(from_time(time));
     }
 
+    static inline void to_variant( const wasm::time_point& t, wasm::variant& v ) {
+      v = wasm::variant(t.to_iso_string());
+    }
+    
+    static inline void to_variant( const wasm::time_point_sec& t, wasm::variant& v ) {
+      v = wasm::variant(t.to_iso_string());
+    }
 
     template<typename T>
     static inline void to_variant( const std::vector <T> &ts, wasm::variant &v ) {
@@ -492,6 +500,14 @@ namespace wasm {
         }
         CHAIN_THROW(wasm_chain::abi_parse_exception, "abi parse fail:%s", "json variant must be a string")
     }
+
+    static inline void from_variant( const wasm::variant& v, wasm::time_point& t ) {
+      t = wasm::time_point::from_iso_string( v.get_str() );
+    }
+    static inline void from_variant( const wasm::variant& v, wasm::time_point_sec& t ) {
+      t = wasm::time_point_sec::from_iso_string( v.get_str() );
+    }
+
 
     template<typename T>
     static inline void from_variant( const wasm::variant &v, vector <T> &ts ) {

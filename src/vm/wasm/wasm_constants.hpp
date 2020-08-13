@@ -31,6 +31,7 @@ namespace wasm {
 
     const static uint64_t store_fuel_per_byte           = 10;
     const static uint64_t notice_fuel_per_recipient     = 10000;
+    const static int64_t  vm_return_value_empty         = -1;
 
     namespace wasm_constraints {
         constexpr unsigned maximum_linear_memory        = 33*1024*1024;//bytes

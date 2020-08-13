@@ -241,6 +241,7 @@ Value verifymessage(const Array& params, bool fHelp) {
     DEFINE( CONTRACT_DATA,        pContractCache,  contractDataCache) \
     DEFINE( CONTRACT_ACCOUNT,     pContractCache,  contractAccountCache) \
     DEFINE( CONTRACT_TRACES,      pContractCache,  contractTracesCache) \
+    DEFINE( CONTRACT_LOGS,        pContractCache,  contractLogsCache) \
     /**** delegate db                                                                      */ \
     DEFINE( VOTE,                 pDelegateCache,  voteRegIdCache) \
     DEFINE( LAST_VOTE_HEIGHT,     pDelegateCache,  last_vote_height_cache) \

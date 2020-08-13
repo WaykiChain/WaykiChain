@@ -129,6 +129,13 @@ namespace wasm {
 
         void emit_result(const string_view &name, const string_view &type, const string_view &value) override;
 
+        int64_t call_with_return(inline_transaction& inline_trx){return 0;};
+        uint64_t call(inline_transaction& inline_trx){return 0;};//return size
+        void set_return(void *data, uint32_t data_len){};
+        std::vector<uint8_t> get_return(){return std::vector<uint8_t>{};};
+
+        void append_log(uint64_t payer, uint64_t receiver, const string& topic, const string& data){};
+
     public:
         wasm_control_rpc&           control;
         inline_transaction&         trx;

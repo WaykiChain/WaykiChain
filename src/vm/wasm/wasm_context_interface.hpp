@@ -62,6 +62,13 @@ namespace wasm {
         virtual void resume_billing_timer() = 0;//{};
 
         virtual void emit_result(const string_view &name, const string_view &type, const string_view &value) = 0; // only used for rpc
+
+        virtual int64_t call_with_return(inline_transaction& inline_trx) = 0;
+        virtual uint64_t call(inline_transaction& inline_trx) = 0;//return size
+        virtual void set_return(void *data, uint32_t data_len) = 0;
+        virtual std::vector<uint8_t> get_return() = 0;
+
+        virtual void append_log(uint64_t payer, uint64_t receiver, const string& topic, const string& data) = 0;
     };
 
 }

@@ -579,8 +579,11 @@ namespace eosio { namespace vm {
             std::string mod_name =
                   std::string((char*)mod.imports[i].module_str.raw(), mod.imports[i].module_str.size());
             std::string fn_name = std::string((char*)mod.imports[i].field_str.raw(), mod.imports[i].field_str.size());
+
+            //std::cout << "mod_name:" << mod_name << " fn_name:" << fn_name << std::endl;
+            std::string err_msg = "no mapping for imported function:"+mod_name+"."+fn_name;
             EOS_VM_ASSERT(current_mappings.named_mapping.count({ mod_name, fn_name }), wasm_link_exception,
-                          "no mapping for imported function");
+                          err_msg.c_str());
             imports[i] = current_mappings.named_mapping[{ mod_name, fn_name }];
          }
       }
@@ -589,6 +592,8 @@ namespace eosio { namespace vm {
       void operator()(Cls* host, Execution_Context& ctx, uint32_t index) {
          const auto& _func = get_mappings<wasm_allocator>().functions[index];
          std::invoke(_func, host, ctx.get_wasm_allocator(), ctx.get_operand_stack());
+         // std::cout << "host:" << (uint64_t)host 
+         //           << std::endl;
       }
    };
 

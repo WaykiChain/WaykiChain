@@ -37,6 +37,17 @@ namespace wasm {
         WASM_REFLECT( transaction_trace, (trx_id)(elapsed)(fuel)(fuel_rate)(minimum_tx_execute_fee)(traces) )
     };
 
+    struct transaction_log {
+        uint256            trx_id;
+        uint64_t           receiver;
+        inline_transaction trx;
+
+        string             topic; // table name
+        vector<char>       data;
+
+        WASM_REFLECT( transaction_log, (trx_id)(receiver)(trx)(topic)(data) )
+    };
+
    /**
     *  Serialize a asset into a stream
     *

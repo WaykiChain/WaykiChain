@@ -23,6 +23,8 @@
 #include <system_error>
 #include <utility>
 
+#include "wasm/wasm_log.hpp"
+
 namespace eosio { namespace vm {
 
    template<typename Derived, typename Host>
@@ -137,11 +139,16 @@ namespace eosio { namespace vm {
       inline operand_stack& get_operand_stack() { return _os; }
 
       inline native_value call_host_function(native_value* stack, uint32_t index) {
+
+         // std::cout << "index:" << index << std::endl;
+         
          const auto& ft = _mod.get_function_type(index);
          uint32_t num_params = ft.param_types.size();
 #ifndef NDEBUG
          uint32_t original_operands = _os.size();
 #endif
+         // std::cout << "original_operands:" << original_operands << std::endl;
+
          for(uint32_t i = 0; i < ft.param_types.size(); ++i) {
             switch(ft.param_types[i]) {
              case i32: _os.push(i32_const_t{stack[num_params - i - 1].i32}); break;
@@ -152,6 +159,10 @@ namespace eosio { namespace vm {
             }
          }
          _rhf(_host, *this, _mod.import_functions[index]);
+
+         // std::cout << "_os.size():" << _os.size() << std::endl;
+         // std::cout << "original_operands:" << original_operands << std::endl;
+
          native_value result{uint32_t{0}};
          // guarantee that the junk bits are zero, to avoid problems.
          auto set_result = [&result](auto val) { std::memcpy(&result, &val, sizeof(val)); };
@@ -165,6 +176,9 @@ namespace eosio { namespace vm {
              default: assert(!"Unexpected function return type.");
             }
          }
+
+         //WASM_TRACE("_os.size():%d", _os.size())
+
          assert(_os.size() == original_operands);
          return result;
       }
@@ -317,7 +331,11 @@ namespace eosio { namespace vm {
             type_check(ft);
             inc_pc();
             push_call( activation_frame{ nullptr, 0 } );
+            // std::cout << "index:" << index << std::endl;
+            // std::cout << "1._os.size():" << _os.size() << " _as.size():" << _as.size() << std::endl;
             _rhf(_state.host, *this, _mod.import_functions[index]);
+            // std::cout << "this:"<< (uint64_t)this << " _os:" << (uint64_t)&_os << " _as:" << (uint64_t)&_as << std::endl;
+            // std::cout << "2._os.size():" << _os.size() << " _as.size():" << _as.size() << std::endl;
             pop_call();
          } else {
             // const auto& ft = _mod.types[_mod.functions[index - _mod.get_imported_functions_size()]];
