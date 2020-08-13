@@ -24,9 +24,14 @@ static inline const VoteDelegateVector& GetBpListByHeight(ActiveDelegatesStore &
             : activeDelegatesStore.last_delegates.delegates;
 }
 
-void CPBFTMan::InitFinIndex(CBlockIndex *globalFinIndexIn) {
-    global_fin_index = globalFinIndexIn;
-    local_fin_index = globalFinIndexIn;
+void CPBFTMan::InitFinIndex(CBlockIndex *globalFinIndex) {
+    global_fin_index = globalFinIndex;
+    local_fin_index = globalFinIndex;
+}
+
+void CPBFTMan::ClearFinIndex() {
+    global_fin_index = nullptr;
+    local_fin_index = nullptr;
 }
 
 CBlockIndex* CPBFTMan::GetLocalFinIndex(){

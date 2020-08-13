@@ -166,6 +166,7 @@ Array RPCConvertValues(const string &strMethod, const vector<string> &strParams)
     if (strMethod == "listdelegates"          && n > 0) ConvertTo<int32_t>(params[0]);
 
     if (strMethod == "invalidateblock"        && n > 0) { if (params[0].get_str().size() < 32) ConvertTo<int32_t>(params[0]); }
+    if (strMethod == "invalidateblock"        && n > 1) ConvertTo<bool>(params[1]);
 
     /** for mining */
     if (strMethod == "getminedblocks"           && n > 0) ConvertTo<int64_t>(params[0]);

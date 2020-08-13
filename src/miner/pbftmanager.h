@@ -27,7 +27,8 @@ private:
     CBlockIndex* GetNewGlobalFinIndex(const CBlockFinalityMessage& msg);
     bool CheckPBFTMessage(CNode *pFrom, const int32_t msgType ,const CPBFTMessage& msg);
 public:
-    void InitFinIndex(CBlockIndex *globalFinIndexIn);
+    void InitFinIndex(CBlockIndex *globalFinIndex);
+    void ClearFinIndex();
 
     CBlockIndex *GetLocalFinIndex();
     CBlockIndex *GetGlobalFinIndex();
