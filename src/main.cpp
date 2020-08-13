@@ -1523,24 +1523,6 @@ bool static FindMostWorkChain(CValidationState &state) {
     return true;
 }
 
-bool ConnectBlockOnFinChain(CBlockIndex* pNewIndex, CValidationState& state) {
-    if (pNewIndex && (chainActive.Tip() == pNewIndex->pprev)) {
-        if (!ConnectTip(state, pNewIndex)) {
-            if (state.IsInvalid()) {
-                if (!state.CorruptionPossible()) // The block violates a consensus rule.
-                    InvalidChainFound(pNewIndex);
-
-            } else {
-                // A system error occurred (disk space, database error, ...).
-                return false;
-            }
-        }
-
-        mempool.ReScanMemPoolTx();
-    }
-    return true;
-
-}
 // Try to activate to the most-work chain (thereby connecting it).
 bool ActivateBestChain(CValidationState &state, CBlockIndex* pNewIndex) {
     LOCK(cs_main);
