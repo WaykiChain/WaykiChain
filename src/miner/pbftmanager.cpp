@@ -25,13 +25,17 @@ static inline const VoteDelegateVector& GetBpListByHeight(ActiveDelegatesStore &
 }
 
 void CPBFTMan::InitFinIndex(CBlockIndex *globalFinIndex) {
+    LOCK(cs_finblock);
     global_fin_index = globalFinIndex;
     local_fin_index = globalFinIndex;
 }
 
 void CPBFTMan::ClearFinIndex() {
+    AssertLockHeld(cs_main);
+    LOCK(cs_finblock);
     global_fin_index = nullptr;
     local_fin_index = nullptr;
+    pCdMan->pBlockCache->EraseGlobalFinBlock();
 }
 
 CBlockIndex* CPBFTMan::GetLocalFinIndex(){
