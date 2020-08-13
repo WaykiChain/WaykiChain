@@ -57,7 +57,7 @@ bool CPBFTMan::UpdateLocalFinBlock(CBlockIndex* pTipIndex){
     AssertLockHeld(cs_main);
     assert(pTipIndex == chainActive.Tip() && pTipIndex != nullptr && "tip index invalid");
 
-    if(pTipIndex->height==0){
+    if (pTipIndex->height == 0) {
         return true;
     }
 
@@ -67,6 +67,13 @@ bool CPBFTMan::UpdateLocalFinBlock(CBlockIndex* pTipIndex){
     }
 
     LOCK(cs_finblock);
+    // check the exist local_fin_index valid
+    if (local_fin_index != nullptr && !chainActive.Contains(local_fin_index)) {
+        LogPrint(BCLog::PBFT, "the exist fin block=%s is reverted, tip_block=%s\n",
+                 local_fin_index->GetIdString(), pTipIndex->GetIdString());
+        local_fin_index = global_fin_index;
+    }
+
     uint32_t localFinHeight = local_fin_index ? local_fin_index->height : 0;
     uint32_t minHeight = pTipIndex->height > 50 ? pTipIndex->height - 50 : 0;
     minHeight = std::max(minHeight, localFinHeight);
@@ -319,6 +326,10 @@ bool CPBFTMan::BroadcastBlockConfirm(const CBlockIndex* pTipIndex) {
     if(!SysCfg().GetBoolArg("-genblock", false))
         return false;
 
+    if(pTipIndex->height == 0) {
+        return false;
+    }
+    assert(pTipIndex->pprev != nullptr);
 
     if(GetTime() - pTipIndex->GetBlockTime() > 60)
         return false;
@@ -335,10 +346,6 @@ bool CPBFTMan::BroadcastBlockConfirm(const CBlockIndex* pTipIndex) {
     VoteDelegateVector activeDelegates;
     if (!pCdMan->pDelegateCache->GetActiveDelegates(activeDelegates)) {
         return ERRORMSG("get active delegates error");
-    }
-
-    if(pTipIndex->pprev == nullptr) {
-        return false;
     }
 
     CBlockConfirmMessage msg(pTipIndex->height, pTipIndex->GetBlockHash(), pTipIndex->pprev->GetBlockHash());
@@ -459,6 +466,16 @@ bool CPBFTMan::IsBlockReversible(const CBlock &block) {
 
 bool CPBFTMan::IsBlockReversible(CBlockIndex *pIndex) {
     return IsBlockReversible(pIndex->height, pIndex->GetBlockHash());
+}
+
+
+bool CPBFTMan::AfterAcceptBlock(CBlockIndex* pTipIndex) {
+    AssertLockHeld(cs_main);
+    pbftMan.BroadcastBlockConfirm(pTipIndex);
+    if(pbftMan.UpdateLocalFinBlock(pTipIndex)){
+        pbftMan.BroadcastBlockFinality(pTipIndex);
+        pbftMan.UpdateGlobalFinBlock(pTipIndex);
+    }
 }
 
 bool RelayBlockConfirmMessage(const CBlockConfirmMessage& msg){

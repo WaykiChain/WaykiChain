@@ -1974,12 +1974,7 @@ bool AcceptBlock(CBlock &block, CValidationState &state, CDiskBlockPos *dbp, boo
                     pNode->PushInventory(CInv(MSG_BLOCK, blockHash));
             }
         }
-
-        pbftMan.BroadcastBlockConfirm(pTip);
-        if(pbftMan.UpdateLocalFinBlock(pTip)){
-            pbftMan.BroadcastBlockFinality(pTip);
-            pbftMan.UpdateGlobalFinBlock(pTip);
-        }
+        pbftMan.AfterAcceptBlock(pTip);
     }
 
     return true;

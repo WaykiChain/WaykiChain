@@ -423,8 +423,9 @@ public:
     }
 
     void Print() const {
-        LogPrint(BCLog::INFO, "%s\n", ToString().c_str());
+        LogPrint(BCLog::INFO, "%s\n", ToString());
     }
+
 };
 
 /** Describes a place in the block chain to another node such that if the
