@@ -67,13 +67,6 @@ bool CPBFTMan::UpdateLocalFinBlock(CBlockIndex* pTipIndex){
     }
 
     LOCK(cs_finblock);
-    // check the exist local_fin_index valid
-    if (local_fin_index != nullptr && !chainActive.Contains(local_fin_index)) {
-        LogPrint(BCLog::PBFT, "the exist fin block=%s is reverted, tip_block=%s\n",
-                 local_fin_index->GetIdString(), pTipIndex->GetIdString());
-        local_fin_index = global_fin_index;
-    }
-
     uint32_t localFinHeight = local_fin_index ? local_fin_index->height : 0;
     uint32_t minHeight = pTipIndex->height > 50 ? pTipIndex->height - 50 : 0;
     minHeight = std::max(minHeight, localFinHeight);
@@ -469,12 +462,23 @@ bool CPBFTMan::IsBlockReversible(CBlockIndex *pIndex) {
 }
 
 
-bool CPBFTMan::AfterAcceptBlock(CBlockIndex* pTipIndex) {
+void CPBFTMan::AfterAcceptBlock(CBlockIndex* pTipIndex) {
     AssertLockHeld(cs_main);
     pbftMan.BroadcastBlockConfirm(pTipIndex);
     if(pbftMan.UpdateLocalFinBlock(pTipIndex)){
         pbftMan.BroadcastBlockFinality(pTipIndex);
         pbftMan.UpdateGlobalFinBlock(pTipIndex);
+    }
+}
+
+void CPBFTMan::AfterDisconnectTip(CBlockIndex* pTipIndex) {
+    AssertLockHeld(cs_main);
+    LOCK(cs_finblock);
+    // check the exist local_fin_index valid
+    if (local_fin_index != nullptr && !chainActive.Contains(local_fin_index)) {
+        LogPrint(BCLog::PBFT, "the exist fin block=%s is reverted, tip_block=%s\n",
+                 local_fin_index->GetIdString(), pTipIndex->GetIdString());
+        local_fin_index = global_fin_index;
     }
 }
 

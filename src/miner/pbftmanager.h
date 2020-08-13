@@ -43,7 +43,8 @@ public:
     bool IsBlockReversible(const CBlock &block);
     bool IsBlockReversible(CBlockIndex *pIndex);
 
-    bool AfterAcceptBlock(CBlockIndex* pTipIndex);
+    void AfterAcceptBlock(CBlockIndex* pTipIndex);
+    void AfterDisconnectTip(CBlockIndex* pTipIndex);
 };
 
 bool RelayBlockConfirmMessage(const CBlockConfirmMessage& msg);

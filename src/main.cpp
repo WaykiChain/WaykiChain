@@ -1374,7 +1374,8 @@ bool DisconnectTip(CValidationState &state) {
     if (!WriteChainState(state))
         return false;
     // Update chainActive and related variables.
-    UpdateTip(pBlockIndexToDelete->pprev, block);
+    CBlockIndex *pNewTipIndex = pBlockIndexToDelete->pprev;
+    UpdateTip(pNewTipIndex, block);
     // Resurrect mempool transactions from the disconnected block.
     for (const auto &pTx : block.vptx) {
         list<std::shared_ptr<CBaseTx> > removed;
@@ -1387,6 +1388,7 @@ bool DisconnectTip(CValidationState &state) {
             EraseTransactionFromWallet(pTx->GetHash());
         }
     }
+    pbftMan.AfterDisconnectTip(pNewTipIndex);
 
     return true;
 }
