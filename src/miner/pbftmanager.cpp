@@ -40,12 +40,6 @@ CBlockIndex* CPBFTMan::GetGlobalFinIndex(){
     return global_fin_index ? global_fin_index : chainActive[0];
 }
 
-bool CPBFTMan::SetLocalFinTimeout() {
-    LOCK(cs_finblock);
-    local_fin_index = chainActive[0];
-    return true;
-}
-
 bool CPBFTMan::SaveGlobalFinBlock(CBlockIndex *pNewIndex) {
 
     AssertLockHeld(cs_main);
@@ -83,7 +77,6 @@ bool CPBFTMan::UpdateLocalFinBlock(CBlockIndex* pTipIndex){
         const auto &bpList = GetBpListByHeight(activeDelegatesStore, pIndex->height);
         if (confirmMessageMan.CheckConfirmByBlock(pIndex->GetBlockHash(), bpList)) {
             local_fin_index = pIndex;
-            local_fin_last_update = GetTime();
             return true;
         }
         pIndex = pIndex->pprev;
@@ -125,10 +118,6 @@ bool CPBFTMan::UpdateGlobalFinBlock(CBlockIndex* pTipIndex){
     }
 
     return false;
-}
-
-int64_t  CPBFTMan::GetLocalFinLastUpdate() const {
-    return local_fin_last_update;
 }
 
 CBlockIndex* CPBFTMan::GetNewLocalFinIndex(const CBlockConfirmMessage& msg) {
@@ -197,7 +186,6 @@ bool CPBFTMan::ProcessBlockConfirmMessage(CNode *pFrom, const CBlockConfirmMessa
             const auto &bpList = GetBpListByHeight(activeDelegatesStore, pNewIndex->height);
             if (confirmMessageMan.CheckConfirm(pBpMsgMap, bpList)) {
                 local_fin_index = pNewIndex;
-                local_fin_last_update = GetTime();
             } else {
                 pNewIndex = nullptr;
             }

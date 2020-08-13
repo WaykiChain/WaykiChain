@@ -18,7 +18,6 @@ class CPBFTMan {
 
 private:
     CBlockIndex* local_fin_index = nullptr;
-    int64_t local_fin_last_update = 0;
     CBlockIndex* global_fin_index = nullptr;
     CPBFTMessageMan<CBlockConfirmMessage> confirmMessageMan;
     CPBFTMessageMan<CBlockFinalityMessage> finalityMessageMan;
@@ -32,8 +31,6 @@ public:
 
     CBlockIndex *GetLocalFinIndex();
     CBlockIndex *GetGlobalFinIndex();
-    bool SetLocalFinTimeout();
-    int64_t  GetLocalFinLastUpdate() const;
     bool UpdateLocalFinBlock(CBlockIndex* pTipIndex);
     bool UpdateGlobalFinBlock(CBlockIndex* pIndex);
     bool ProcessBlockConfirmMessage(CNode *pFrom, const CBlockConfirmMessage& msg);
