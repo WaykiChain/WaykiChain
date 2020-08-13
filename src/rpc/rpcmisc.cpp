@@ -135,7 +135,7 @@ Value getinfo(const Array& params, bool fHelp) {
     obj.push_back(Pair("conf_dir",              GetConfigFile().string().c_str()));
     obj.push_back(Pair("data_dir",              GetDataDir().string().c_str()));
     obj.push_back(Pair("block_interval",        (int32_t)::GetBlockInterval(tipHeight)));
-    obj.push_back(Pair("genblock",              SysCfg().GetArg("-genblock", 0)));
+    obj.push_back(Pair("genblock",              SysCfg().IsGenBlock()));
     obj.push_back(Pair("time_offset",           GetTimeOffset()));
 
     if (pWalletMain) {

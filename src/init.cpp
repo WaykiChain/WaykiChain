@@ -226,6 +226,7 @@ string HelpMessage() {
     strUsage += "  -txtrace               " + _("Maintain trace of transaction (default: 1)") + "\n";
     strUsage += "  -logfailures           " + _("Log failures into level db in detail (default: 0)") + "\n";
     strUsage += "  -genreceipt            " + _("Whether generate receipt(default: 0)") + "\n";
+    strUsage += "  -forcedconfirmblock    " + _("Whether confirm block by block-producer forcedly (default: 0)") + "\n";
 
     strUsage += "\n" + _("Connection options:") + "\n";
     strUsage += "  -addnode=<ip>          " + _("Add a node to connect to and attempt to keep the connection open") + "\n";
@@ -525,6 +526,8 @@ bool AppInit(boost::thread_group &threadGroup) {
     }
 
     SysCfg().SetTxTrace(SysCfg().GetBoolArg("-txtrace", true));
+    SysCfg().SetGenBlock(SysCfg().GetBoolArg("-genblock", false));
+    SysCfg().SetForcedConfirmBlock(SysCfg().GetBoolArg("-forcedconfirmblock", false));
 
     // Make sure enough file descriptors are available
     int32_t nBind   = max((int32_t)SysCfg().IsArgCount("-bind"), 1);
@@ -871,7 +874,7 @@ bool AppInit(boost::thread_group &threadGroup) {
 
     // Generate coins in the background
     if (pWalletMain) {
-        GenerateProduceBlockThread(SysCfg().GetBoolArg("-genblock", false), pWalletMain, SysCfg().GetArg("-genblocklimit", -1));
+        GenerateProduceBlockThread(SysCfg().IsGenBlock(), pWalletMain, SysCfg().GetArg("-genblocklimit", -1));
 
         if (!SysCfg().IsReindex()) {
             pWalletMain->ResendWalletTransactions();

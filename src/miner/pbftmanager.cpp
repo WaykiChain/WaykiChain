@@ -272,17 +272,19 @@ bool CPBFTMan::BroadcastBlockFinality(const CBlockIndex* pTipIndex){
 
     AssertLockHeld(cs_main);
 
-    if(!SysCfg().GetBoolArg("-genblock", false))
+    if (!SysCfg().IsGenBlock() || SysCfg().IsForcedConfirmBlock())
         return false;
 
-    if(IsInitialBlockDownload())
+    if (pTipIndex->height == 0)
         return false;
 
-    if(finalityMessageMan.IsBroadcastedBlock(pTipIndex->GetBlockHash()))
+    assert(pTipIndex->pprev != nullptr);
+
+    if (IsInitialBlockDownload())
+        return false;
+
+    if (finalityMessageMan.IsBroadcastedBlock(pTipIndex->GetBlockHash()))
         return true;
-
-    if(pTipIndex->pprev == nullptr)
-        return false;
 
     VoteDelegateVector activeDelegates;
     if (!pCdMan->pDelegateCache->GetActiveDelegates(activeDelegates)) {
@@ -291,7 +293,7 @@ bool CPBFTMan::BroadcastBlockFinality(const CBlockIndex* pTipIndex){
 
     CBlockFinalityMessage msg(pTipIndex->height, pTipIndex->GetBlockHash(), pTipIndex->pprev->GetBlockHash());
     {
-        for(auto delegate: activeDelegates){
+        for (auto delegate: activeDelegates){
             Miner miner;
             if(!PbftFindMiner(delegate.regid, miner))
                 continue;
@@ -325,12 +327,13 @@ bool CPBFTMan::BroadcastBlockConfirm(const CBlockIndex* pTipIndex) {
 
     AssertLockHeld(cs_main);
 
-    if(!SysCfg().GetBoolArg("-genblock", false))
+    if (!SysCfg().IsGenBlock() || SysCfg().IsForcedConfirmBlock())
         return false;
 
-    if(pTipIndex->height == 0) {
+    if (pTipIndex->height == 0) {
         return false;
     }
+
     assert(pTipIndex->pprev != nullptr);
 
     if(GetTime() - pTipIndex->GetBlockTime() > 60)

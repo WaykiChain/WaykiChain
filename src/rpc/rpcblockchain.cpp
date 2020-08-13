@@ -333,7 +333,7 @@ Value getcontractregid(const Array& params, bool fHelp) {
 }
 
 Value invalidateblock(const Array& params, bool fHelp) {
-    if (fHelp || params.size() != 1) {
+    if (fHelp || (params.size() != 1 && params.size() != 2)) {
         throw runtime_error(
             "invalidateblock \"hash\"\n"
             "\nPermanently marks a block as invalid, as if it violated a consensus rule.\n"
@@ -346,7 +346,7 @@ Value invalidateblock(const Array& params, bool fHelp) {
     }
 
     std::string strHash = params[0].get_str();
-    bool clearFinBlock = params.size() > 1 ? params[0].get_bool() : false;
+    bool clearFinBlock = params.size() > 1 ? params[1].get_bool() : false;
     uint256 hash(uint256S(strHash));
     CValidationState state;
 

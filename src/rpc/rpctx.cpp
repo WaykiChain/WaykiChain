@@ -719,7 +719,7 @@ Value disconnectblock(const Array& params, bool fHelp) {
                 + HelpExampleRpc("disconnectblock", "\"1\""));
     }
     int32_t number = params[0].get_int();
-    bool clearFinBlock = params.size() > 1 ? params[0].get_bool() : false;
+    bool clearFinBlock = params.size() > 1 ? params[1].get_bool() : false;
 
     if (number >= chainActive.Height())
         throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid number");
