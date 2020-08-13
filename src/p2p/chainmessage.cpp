@@ -198,10 +198,10 @@ bool AlreadyHave(const CInv &inv) {
 // Requires cs_main.
 bool AddBlockToQueue(const uint256 &hash, NodeId nodeId) {
     int64_t now  = GetTimeMicros();
-    bool isMiner = SysCfg().GetBoolArg("-genblock", false);
+    bool isMining = SysCfg().IsGenBlock();
 
-    int64_t blocksToDownloadTimeout = isMiner ? MINER_NODE_BLOCKS_TO_DOWNLOAD_TIMEOUT : WITNESS_NODE_BLOCKS_TO_DOWNLOAD_TIMEOUT;
-    int64_t blockInFlightTimeout    = isMiner ? MINER_NODE_BLOCKS_IN_FLIGHT_TIMEOUT : WITNESS_NODE_BLOCKS_IN_FLIGHT_TIMEOUT;
+    int64_t blocksToDownloadTimeout = isMining ? MINER_NODE_BLOCKS_TO_DOWNLOAD_TIMEOUT : WITNESS_NODE_BLOCKS_TO_DOWNLOAD_TIMEOUT;
+    int64_t blockInFlightTimeout    = isMining ? MINER_NODE_BLOCKS_IN_FLIGHT_TIMEOUT : WITNESS_NODE_BLOCKS_IN_FLIGHT_TIMEOUT;
 
     if ((mapBlocksToDownload.count(hash) &&
          (now - std::get<2>(mapBlocksToDownload[hash]) < blocksToDownloadTimeout * 1000000)) ||

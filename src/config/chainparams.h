@@ -76,6 +76,9 @@ protected:
     mutable uint32_t nCacheSize;
     mutable int32_t nTxCacheHeight;
     mutable int32_t nMaxForkTime;  // to limit the maximum fork time in seconds.
+    mutable bool fGenBlock = false;  // whether to generate block on startup
+    mutable bool fForcedConfirmBlock = false;  // whether to confirm block by block-producer forcedly
+
 
 public:
     virtual ~CBaseParams() {}
@@ -166,6 +169,8 @@ public:
     int64_t GetBestRecvTime() const { return nTimeBestReceived; }
     uint32_t GetCacheSize() const { return nCacheSize; }
     int32_t GetTxCacheHeight() const { return nTxCacheHeight; }
+    bool IsGenBlock() const { return fGenBlock; };
+    bool IsForcedConfirmBlock() const { return fForcedConfirmBlock; };
     void SetImporting(bool flag) const { fImporting = flag; }
     void SetReIndex(bool flag) const { fReindex = flag; }
     void SetBenchMark(bool flag) const { fBenchmark = flag; }
@@ -174,6 +179,8 @@ public:
     void SetLogFailures(bool flag) const { fLogFailures = flag; }
     void SetGenReceipt(bool flag) const { fGenReceipt = flag; }
     void SetBestRecvTime(int64_t nTime) const { nTimeBestReceived = nTime; }
+    void SetGenBlock(bool flag) const { fGenBlock = flag; }
+    void SetForcedConfirmBlock(bool flag) const { fForcedConfirmBlock = flag; }
     // use for cdp interest
     uint32_t GetOneDayBlocks(const int32_t currBlockHeight) const;
     int32_t GetMaxForkHeight(int32_t currBlockHeight) const;
