@@ -187,10 +187,10 @@ Value submitcdpparamgovernproposal(const Array& params, bool fHelp){
                 "4.\"scoin_symbol\":     (string,     required) the stable coin symbol\n"
                 "5.\"fee\":              (combomoney, optional) the tx fee \n"
                 "\nExamples:\n"
-                + HelpExampleCli("submitcdpparamgovernproposal", "0-1 \"[{\"name\":\"CDP_INTEREST_PARAM_A\",\"value\":10000}]\"  WICC WUSD WICC:1:WI")
+                + HelpExampleCli("submitcdpparamgovernproposal", "0-1 '[{\"name\":\"CDP_INTEREST_PARAM_A\",\"value\":10000}, {\"name\":\"CDP_INTEREST_PARAM_B\",\"value\":10000}]'  WICC WUSD WICC:1:WI")
                 + "\nAs json rpc call\n"
                 + HelpExampleRpc("submitcdpparamgovernproposal",
-                                 R"("0-1", [{"name":"CDP_INTEREST_PARAM_A",  "value":10000}], "WICC", "WUSD", "WICC:1:WI")")
+                                 R"("0-1", '[{"name":"CDP_INTEREST_PARAM_A",  "value":10000}, {"name":"CDP_INTEREST_PARAM_B",  "value":10000}]', "WICC", "WUSD", "WICC:1:WI")")
 
         );
 
