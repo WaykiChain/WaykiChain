@@ -212,10 +212,10 @@ Value submitcdpparamgovernproposal(const Array& params, bool fHelp){
 
     // Parsing paramInfo
     CGovCdpParamProposal proposal;
-    unordered_map<CdpParamType, bool> type_map;
-    for (auto objInfo: arrParam_info){
+    set<CdpParamType> typeSet;
+    for (auto& objInfo: arrParam_info){
         const Value& objName = find_value(objInfo.get_obj(), "name");
-        const Value& objValue = find_value(objInfo.get_obj(),"value");
+        const Value& objValue = find_value(objInfo.get_obj(), "value");
 
         if (objName.type() == null_type || objValue == null_type)
             throw JSONRPCError(RPC_INVALID_PARAMETER, "cdp param name or value not found");
@@ -227,11 +227,11 @@ Value submitcdpparamgovernproposal(const Array& params, bool fHelp){
         if (type == CdpParamType::NULL_CDP_PARAM_TYPE)
             throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("cdp param type(%s) is not exist", name));
 
-        if (type_map.find(type) != type_map.end())
+        if (typeSet.count(type))
             throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("cdp param type(%s) can't be the same", name));
-        
-        type_map[type] = true;
 
+        typeSet.insert(type);
+        
         string errMsg;
         if (!CheckCdpParamValue(type, paramValue, errMsg))
             throw JSONRPCError(RPC_INVALID_PARAMETER, errMsg);
