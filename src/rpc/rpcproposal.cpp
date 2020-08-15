@@ -168,23 +168,29 @@ Value submitparamgovernproposal(const Array& params, bool fHelp){
 
 Value submitcdpparamgovernproposal(const Array& params, bool fHelp){
 
-    if(fHelp || params.size() < 5 || params.size() > 6){
+    if(fHelp || params.size() < 4 || params.size() > 5){
 
         throw runtime_error(
-                "submitcdpparamgovernproposal \"sender\" \"param_name\" \"param_value\" \"bcoin_symbol\" \"scoin_symbol\" [\"fee\"]\n"
+                "submitcdpparamgovernproposal \"sender\" \"param_name\" \"param_value\" \"bcoin_symbol\" \"scoin_symbol\" [\"fee\"]\n "
                 "create proposal about cdp  param govern\n"
                 "\nArguments:\n"
                 "1.\"sender\":           (string,     required) the tx sender's address\n"
-                "2.\"param_name\":       (string,     required) the name of param, the param list can be found in document \n"
-                "3.\"param_value\":      (numberic,   required) the param value that will be updated to \n"
-                "4.\"bcoin_symbol\":     (string,     required) the base coin symbol\n"
-                "5.\"scoin_symbol\":     (string,     required) the stable coin symbol\n"
-                "6.\"fee\":              (combomoney, optional) the tx fee \n"
+                "2.\"param_info\":       (string,     required) A json info of param\n"
+                " [\n"
+                "   {\n"
+                "       \"name\":       (string,     required) the name of param, the param list can be found in document \n"
+                "       \"value\":      (numberic,   required) the param value that will be updated to \n"
+                "   }\n"
+                "       ,...\n"
+                "  ]\n"
+                "3.\"bcoin_symbol\":     (string,     required) the base coin symbol\n"
+                "4.\"scoin_symbol\":     (string,     required) the stable coin symbol\n"
+                "5.\"fee\":              (combomoney, optional) the tx fee \n"
                 "\nExamples:\n"
-                + HelpExampleCli("submitcdpparamgovernproposal", "0-1 CDP_INTEREST_PARAM_A  10000 WICC WUSD WICC:1:WI")
+                + HelpExampleCli("submitcdpparamgovernproposal", "0-1 \"[{\"name\":\"CDP_INTEREST_PARAM_A\",\"value\":10000}]\"  WICC WUSD WICC:1:WI")
                 + "\nAs json rpc call\n"
                 + HelpExampleRpc("submitcdpparamgovernproposal",
-                                 R"("0-1", "CDP_INTEREST_PARAM_A",  "10000", "WICC", "WUSD", "WICC:1:WI")")
+                                 R"("0-1", [{"name":"CDP_INTEREST_PARAM_A",  "value":10000}], "WICC", "WUSD", "WICC:1:WI")")
 
         );
 
@@ -194,25 +200,43 @@ Value submitcdpparamgovernproposal(const Array& params, bool fHelp){
     EnsureWalletIsUnlocked();
 
     const CUserID& txUid = RPC_PARAM::GetUserId(params[0], true);
-    string paramName = params[1].get_str();
-    uint64_t paramValue = RPC_PARAM::GetUint64(params[2]);
-    string bcoinSymbol = params[3].get_str();
-    string scoinSymbol = params[4].get_str();
-    ComboMoney fee          = RPC_PARAM::GetFee(params, 5, PROPOSAL_REQUEST_TX);
+    // string paramName = params[1].get_str();
+    // uint64_t paramValue = RPC_PARAM::GetUint64(params[2]);
+    Array arrParam_info = params[1].get_array();
+    string bcoinSymbol = params[2].get_str();
+    string scoinSymbol = params[3].get_str();
+    ComboMoney fee          = RPC_PARAM::GetFee(params, 4, PROPOSAL_REQUEST_TX);
     int32_t validHeight  = chainActive.Height();
     CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, txUid);
     RPC_PARAM::CheckAccountBalance(account, fee.symbol, SUB_FREE, fee.GetAmountInSawi());
 
-    CdpParamType  type = GetCdpParamType(paramName);
-    if(type == CdpParamType::NULL_CDP_PARAM_TYPE)
-        throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("system param type(%s) is not exist",paramName));
-
-    string errMsg;
-    if(!CheckCdpParamValue(type, paramValue, errMsg))
-        throw JSONRPCError(RPC_INVALID_PARAMETER, errMsg);
-
+    // Parsing paramInfo
     CGovCdpParamProposal proposal;
-    proposal.param_values.push_back(std::make_pair(type, CVarIntValue<uint64_t>(paramValue)));
+    unordered_map<CdpParamType, bool> type_map;
+    for (auto objInfo: arrParam_info){
+        string name = find_value(objInfo.get_obj(), "name").get_str();
+        uint64_t paramValue = RPC_PARAM::GetUint64(find_value(objInfo.get_obj(),"value"));
+
+        CdpParamType  type = GetCdpParamType(name);
+        if(type == CdpParamType::NULL_CDP_PARAM_TYPE)
+            throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("cdp param type(%s) is not exist",name));
+
+        if(type_map.find(type) != type_map.end())
+        {
+            throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("cdp param type(%s) can't be the same",name));
+        }
+        else
+        {    
+            type_map[type] = true;
+        }
+
+        string errMsg;
+        if(!CheckCdpParamValue(type, paramValue, errMsg))
+            throw JSONRPCError(RPC_INVALID_PARAMETER, errMsg);
+
+        proposal.param_values.push_back(std::make_pair(type, CVarIntValue<uint64_t>(paramValue)));
+    }
+    
     proposal.coin_pair = CCdpCoinPair(bcoinSymbol, scoinSymbol);
 
     CProposalRequestTx tx;
