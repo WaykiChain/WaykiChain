@@ -10,7 +10,7 @@
 
 Value getproposal(const Array& params, bool fHelp){
 
-    if(fHelp || params.size() != 1){
+    if (fHelp || params.size() != 1){
 
         throw runtime_error(
                 "getproposal \"proposalid\"\n"
@@ -27,7 +27,7 @@ Value getproposal(const Array& params, bool fHelp){
     }
     uint256 proposalId = uint256S(params[0].get_str());
     std::shared_ptr<CProposal> pp;
-    if(pCdMan->pSysGovernCache->GetProposal(proposalId, pp)){
+    if (pCdMan->pSysGovernCache->GetProposal(proposalId, pp)){
         auto proposalObject  = pp->ToJson();
         vector<CRegID> approvalList;
         pCdMan->pSysGovernCache->GetApprovalList(proposalId, approvalList);
@@ -48,7 +48,7 @@ Value getproposal(const Array& params, bool fHelp){
 
 Value getswapcoindetail(const Array& params, bool fHelp) {
 
-    if(fHelp || params.size() != 1){
+    if (fHelp || params.size() != 1){
         throw runtime_error(
                 "getswapcoin \"peer_chain_coin_symbol\"\n"
                 "\n"
@@ -73,7 +73,7 @@ Value getswapcoindetail(const Array& params, bool fHelp) {
 }
 
 Value getgovernors(const Array& params, bool fHelp) {
-    if(fHelp || params.size() != 0 ) {
+    if (fHelp || params.size() != 0 ) {
         throw runtime_error(
                 "getgovernors \n"
                 " get thee governors list \n"
@@ -103,7 +103,7 @@ Value getgovernors(const Array& params, bool fHelp) {
 
 Value submitparamgovernproposal(const Array& params, bool fHelp){
 
-    if(fHelp || params.size() < 3 || params.size() > 4){
+    if (fHelp || params.size() < 3 || params.size() > 4){
 
         throw runtime_error(
                 "submitparamgovernproposal \"sender\" \"param_name\" \"param_value\" [\"fee\"]\n"
@@ -129,11 +129,11 @@ Value submitparamgovernproposal(const Array& params, bool fHelp){
     string paramName = params[1].get_str();
     string paramValueStr = params[2].get_str();
     uint64_t paramValue;
-    if(paramName == "AXC_SWAP_GATEWAY_REGID" || paramName == "DEX_MATCH_SVC_REGID") {
+    if (paramName == "AXC_SWAP_GATEWAY_REGID" || paramName == "DEX_MATCH_SVC_REGID") {
         paramValue = CRegID(paramValueStr).GetIntValue();
     } else {
         int64_t iValue = std::atoll(paramValueStr.c_str());
-        if(iValue < 0)
+        if (iValue < 0)
             throw JSONRPCError(RPC_INVALID_PARAMETER, "the param value must >= 0");
         paramValue = (uint64_t)iValue;
     }
@@ -146,11 +146,11 @@ Value submitparamgovernproposal(const Array& params, bool fHelp){
 
 
     SysParamType  type = GetSysParamType(paramName);
-    if(type == SysParamType::NULL_SYS_PARAM_TYPE)
+    if (type == SysParamType::NULL_SYS_PARAM_TYPE)
         throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("system param type(%s) is not exist",paramName));
 
     string errorInfo = CheckSysParamValue(type, paramValue );
-    if(errorInfo != EMPTY_STRING)
+    if (errorInfo != EMPTY_STRING)
         throw JSONRPCError(RPC_INVALID_PARAMETER, errorInfo);
 
     proposal.param_values.push_back(std::make_pair(type, CVarIntValue<uint64_t>(paramValue)));
@@ -168,23 +168,29 @@ Value submitparamgovernproposal(const Array& params, bool fHelp){
 
 Value submitcdpparamgovernproposal(const Array& params, bool fHelp){
 
-    if(fHelp || params.size() < 5 || params.size() > 6){
+    if (fHelp || params.size() < 4 || params.size() > 5){
 
         throw runtime_error(
-                "submitcdpparamgovernproposal \"sender\" \"param_name\" \"param_value\" \"bcoin_symbol\" \"scoin_symbol\" [\"fee\"]\n"
+                "submitcdpparamgovernproposal \"sender\" \"param_name\" \"param_value\" \"bcoin_symbol\" \"scoin_symbol\" [\"fee\"]\n "
                 "create proposal about cdp  param govern\n"
                 "\nArguments:\n"
                 "1.\"sender\":           (string,     required) the tx sender's address\n"
-                "2.\"param_name\":       (string,     required) the name of param, the param list can be found in document \n"
-                "3.\"param_value\":      (numberic,   required) the param value that will be updated to \n"
-                "4.\"bcoin_symbol\":     (string,     required) the base coin symbol\n"
-                "5.\"scoin_symbol\":     (string,     required) the stable coin symbol\n"
-                "6.\"fee\":              (combomoney, optional) the tx fee \n"
+                "2.\"param_info\":       (string,     required) A json info of param\n"
+                " [\n"
+                "   {\n"
+                "       \"name\":       (string,     required) the name of param, the param list can be found in document \n"
+                "       \"value\":      (numberic,   required) the param value that will be updated to \n"
+                "   }\n"
+                "       ,...\n"
+                "  ]\n"
+                "3.\"bcoin_symbol\":     (string,     required) the base coin symbol\n"
+                "4.\"scoin_symbol\":     (string,     required) the stable coin symbol\n"
+                "5.\"fee\":              (combomoney, optional) the tx fee \n"
                 "\nExamples:\n"
-                + HelpExampleCli("submitcdpparamgovernproposal", "0-1 CDP_INTEREST_PARAM_A  10000 WICC WUSD WICC:1:WI")
+                + HelpExampleCli("submitcdpparamgovernproposal", "0-1 \"[{\"name\":\"CDP_INTEREST_PARAM_A\",\"value\":10000}]\"  WICC WUSD WICC:1:WI")
                 + "\nAs json rpc call\n"
                 + HelpExampleRpc("submitcdpparamgovernproposal",
-                                 R"("0-1", "CDP_INTEREST_PARAM_A",  "10000", "WICC", "WUSD", "WICC:1:WI")")
+                                 R"("0-1", [{"name":"CDP_INTEREST_PARAM_A",  "value":10000}], "WICC", "WUSD", "WICC:1:WI")")
 
         );
 
@@ -194,25 +200,45 @@ Value submitcdpparamgovernproposal(const Array& params, bool fHelp){
     EnsureWalletIsUnlocked();
 
     const CUserID& txUid = RPC_PARAM::GetUserId(params[0], true);
-    string paramName = params[1].get_str();
-    uint64_t paramValue = RPC_PARAM::GetUint64(params[2]);
-    string bcoinSymbol = params[3].get_str();
-    string scoinSymbol = params[4].get_str();
-    ComboMoney fee          = RPC_PARAM::GetFee(params, 5, PROPOSAL_REQUEST_TX);
+    // string paramName = params[1].get_str();
+    // uint64_t paramValue = RPC_PARAM::GetUint64(params[2]);
+    Array arrParam_info = params[1].get_array();
+    string bcoinSymbol = params[2].get_str();
+    string scoinSymbol = params[3].get_str();
+    ComboMoney fee          = RPC_PARAM::GetFee(params, 4, PROPOSAL_REQUEST_TX);
     int32_t validHeight  = chainActive.Height();
     CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, txUid);
     RPC_PARAM::CheckAccountBalance(account, fee.symbol, SUB_FREE, fee.GetAmountInSawi());
 
-    CdpParamType  type = GetCdpParamType(paramName);
-    if(type == CdpParamType::NULL_CDP_PARAM_TYPE)
-        throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("system param type(%s) is not exist",paramName));
-
-    string errMsg;
-    if(!CheckCdpParamValue(type, paramValue, errMsg))
-        throw JSONRPCError(RPC_INVALID_PARAMETER, errMsg);
-
+    // Parsing paramInfo
     CGovCdpParamProposal proposal;
-    proposal.param_values.push_back(std::make_pair(type, CVarIntValue<uint64_t>(paramValue)));
+    set<CdpParamType> typeSet;
+    for (auto& objInfo: arrParam_info){
+        const Value& objName = find_value(objInfo.get_obj(), "name");
+        const Value& objValue = find_value(objInfo.get_obj(), "value");
+
+        if (objName.type() == null_type || objValue == null_type)
+            throw JSONRPCError(RPC_INVALID_PARAMETER, "cdp param name or value not found");
+
+        string name = objName.get_str();
+        uint64_t paramValue = RPC_PARAM::GetUint64(objValue);
+
+        CdpParamType  type = GetCdpParamType(name);
+        if (type == CdpParamType::NULL_CDP_PARAM_TYPE)
+            throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("cdp param type(%s) is not exist", name));
+
+        if (typeSet.count(type))
+            throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("cdp param type(%s) can't be the same", name));
+
+        typeSet.insert(type);
+        
+        string errMsg;
+        if (!CheckCdpParamValue(type, paramValue, errMsg))
+            throw JSONRPCError(RPC_INVALID_PARAMETER, errMsg);
+
+        proposal.param_values.push_back(std::make_pair(type, CVarIntValue<uint64_t>(paramValue)));
+    }
+    
     proposal.coin_pair = CCdpCoinPair(bcoinSymbol, scoinSymbol);
 
     CProposalRequestTx tx;
@@ -227,7 +253,7 @@ Value submitcdpparamgovernproposal(const Array& params, bool fHelp){
 
 Value submitgovernorupdateproposal(const Array& params , bool fHelp) {
 
-    if(fHelp || params.size() < 3 || params.size() > 4){
+    if (fHelp || params.size() < 3 || params.size() > 4){
 
         throw runtime_error(
                 "submitgovernorupdateproposal \"sender\" \"governor_uid\" \"operate_type\" [\"fee\"]\n"
@@ -252,7 +278,7 @@ Value submitgovernorupdateproposal(const Array& params , bool fHelp) {
 
     const CUserID& txUid = RPC_PARAM::GetUserId(params[0], true);
     CUserID governorId = RPC_PARAM::GetUserId(params[1]);
-    if(!governorId.is<CRegID>())
+    if (!governorId.is<CRegID>())
         throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("the governor(%s) must be registered(have regid) and regid must be matured",
                                                             governorId.ToString() ));
     uint64_t operateType = RPC_PARAM::GetUint64(params[2]);
@@ -280,7 +306,7 @@ bool ParsePerms(const Array& permsArr, uint64_t& permSum) {
 
     vector<pair<uint8_t, uint8_t>> vPerms;
 
-    if(permsArr.size() == 0) {
+    if (permsArr.size() == 0) {
         throw JSONRPCError(RPC_INVALID_PARAMETER, "the perm array must be not empty");
     }
     for(auto obj:permsArr){
@@ -313,7 +339,7 @@ bool ParsePerms(const Array& permsArr, uint64_t& permSum) {
 
 Value submitaccountpermproposal(const Array& params , bool fHelp) {
 
-    if(fHelp || params.size() < 3 || params.size() > 4){
+    if (fHelp || params.size() < 3 || params.size() > 4){
 
         throw runtime_error(
                 "submitaccountpermproposal \"sender\" \"account_uid\" \"proposed_perms_sum\" [\"fee\"]\n"
@@ -369,7 +395,7 @@ Value submitaccountpermproposal(const Array& params , bool fHelp) {
 
 Value submitassetpermproposal(const Array& params , bool fHelp) {
 
-    if(fHelp || params.size() < 3 || params.size() > 4){
+    if (fHelp || params.size() < 3 || params.size() > 4){
 
         throw runtime_error(
                 "submitassetpermproposal \"sender\" \"asset_symbol\" \"proposed_perms_sum\" [\"fee\"]\n"
@@ -406,7 +432,7 @@ Value submitassetpermproposal(const Array& params , bool fHelp) {
 
     CAsset asset;
 
-    if(!pCdMan->pAssetCache->GetAsset(assetSymbol, asset)) {
+    if (!pCdMan->pAssetCache->GetAsset(assetSymbol, asset)) {
         throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("not find asset that named %s", assetSymbol));
     }
 
@@ -426,7 +452,7 @@ Value submitassetpermproposal(const Array& params , bool fHelp) {
 }
 
 Value submitfeedcoinpairproposal(const Array& params, bool fHelp) {
-    if(fHelp || params.size() < 3 || params.size() > 4) {
+    if (fHelp || params.size() < 3 || params.size() > 4) {
         throw runtime_error(
                 "submitfeedcoinpairproposal \"sender\" \"base_symbol\" \"quote_symbol\" \"operate_type\" [\"fee\"]\n"
                 "request proposal about add/remove feed price coin pair \n"
@@ -473,7 +499,7 @@ Value submitfeedcoinpairproposal(const Array& params, bool fHelp) {
 
 Value submitaxccoinproposal(const Array& params, bool fHelp) {
 
-    if(fHelp || params.size() < 4 || params.size() > 5){
+    if (fHelp || params.size() < 4 || params.size() > 5){
         throw runtime_error(
                 "submitaxccoinproposal \"sender\" \"peer_coin_symbol\" \"peer_chain_type\" \"operate_type\" [\"fee\"]\n"
                 "create a proposal about add or delete a swap coin\n"
@@ -526,7 +552,7 @@ Value submitaxccoinproposal(const Array& params, bool fHelp) {
 
 Value submitdexswitchproposal(const Array& params, bool fHelp) {
 
-    if(fHelp || params.size() < 3 || params.size() > 4){
+    if (fHelp || params.size() < 3 || params.size() > 4){
 
         throw runtime_error(
                 "submitdexswitchproposal \"sender\" \"dexid\" \"operate_type\" [\"fee\"]\n"
@@ -571,7 +597,7 @@ Value submitdexswitchproposal(const Array& params, bool fHelp) {
 
 Value submitproposalapprovaltx(const Array& params, bool fHelp){
 
-    if(fHelp || params.size() < 2 || params.size() > 4){
+    if (fHelp || params.size() < 2 || params.size() > 4){
         throw runtime_error(
                 "submitproposalapprovaltx \"sender\" \"proposalid\" [\"fee\"] [\"axc_out_signature\"]\n"
                 "approval a proposal\n"
@@ -620,7 +646,7 @@ Value submitproposalapprovaltx(const Array& params, bool fHelp){
 }
 
 Value submittotalbpssizeupdateproposal(const Array& params,bool fHelp) {
-    if(fHelp || params.size() < 3 || params.size() > 4){
+    if (fHelp || params.size() < 3 || params.size() > 4){
         throw runtime_error(
                 "submittotalbpssizeupdateproposal \"sender\" \"total_bps_size\" \"effective_height\"  [\"fee\"]\n"
                 "create proposal about update total delegate(bp) count\n"
@@ -647,7 +673,7 @@ Value submittotalbpssizeupdateproposal(const Array& params,bool fHelp) {
     CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, txUid);
     RPC_PARAM::CheckAccountBalance(account, fee.symbol, SUB_FREE, fee.GetAmountInSawi());
 
-    if(totalBpsSize <=0 || totalBpsSize > BP_MAX_COUNT)
+    if (totalBpsSize <=0 || totalBpsSize > BP_MAX_COUNT)
         throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("the range of total_bps_size is (0,%d]", BP_MAX_COUNT));
 
     CGovBpSizeProposal proposal;
@@ -666,7 +692,7 @@ Value submittotalbpssizeupdateproposal(const Array& params,bool fHelp) {
 
 }
 Value submitminerfeeproposal(const Array& params, bool fHelp) {
-    if(fHelp || params.size() < 3 || params.size() > 4){
+    if (fHelp || params.size() < 3 || params.size() > 4){
 
         throw runtime_error(
                 "submitminerfeeproposal \"sender\" \"tx_type\" \"fee_info\"  [\"fee\"]\n"
@@ -715,7 +741,7 @@ Value submitminerfeeproposal(const Array& params, bool fHelp) {
 Value submitaxcinproposal(const Array& params, bool fHelp) {
 
 
-    if(fHelp || params.size() < 6 || params.size() > 7){
+    if (fHelp || params.size() < 6 || params.size() > 7){
 
         throw runtime_error(
                 "submitaxcinproposal \"sender\" \"peer_chain_type\" \"peer_chain_token_symbol\" \"self_chain_token_symbol\" \"peer_chain_addr\""
@@ -765,7 +791,7 @@ Value submitaxcinproposal(const Array& params, bool fHelp) {
 
 Value submitaxcoutproposal(const Array& params, bool fHelp) {
 
-    if(fHelp || params.size() < 4 || params.size() > 5){
+    if (fHelp || params.size() < 4 || params.size() > 5){
 
         throw runtime_error(
                 "submitaxcoutproposal \"sender\" \"self_chain_token_symbol\" \"peer_chain_addr\" \"swap_amount\" [\"fee\"]\n"
@@ -813,7 +839,7 @@ Value submitaxcoutproposal(const Array& params, bool fHelp) {
 
 Value submitdiaissueproposal(const Array& params, bool fHelp) {
 
-    if(fHelp || params.size() < 4 || params.size() > 5){
+    if (fHelp || params.size() < 4 || params.size() > 5){
 
         throw runtime_error(
                 "submitdiaissueproposal \"sender\"  \"asset_symbol\" \"owner_uid\" \"total_supply\" [\"fee\"]\n"
@@ -839,7 +865,7 @@ Value submitdiaissueproposal(const Array& params, bool fHelp) {
     const CUserID& ownerUid = RPC_PARAM::GetUserId(params[2]);
     uint64_t totalSupply = RPC_PARAM::GetUint64(params[3]);
     ComboMoney fee          = RPC_PARAM::GetFee(params, 4, PROPOSAL_REQUEST_TX);
-    if(!ownerUid.is<CRegID>()) {
+    if (!ownerUid.is<CRegID>()) {
         throw JSONRPCError(100, "asset owner must has regid and regid is matured");
     }
     int32_t validHeight  = chainActive.Height();
@@ -865,7 +891,7 @@ Value submitdiaissueproposal(const Array& params, bool fHelp) {
 }
 
 Value submitcointransferproposal( const Array& params, bool fHelp) {
-    if(fHelp || params.size() < 4 || params.size() > 5){
+    if (fHelp || params.size() < 4 || params.size() > 5){
         throw runtime_error(
                 "submitcointransferproposal $sender $from_uid $to_uid $transfer_amount [$fee]\n"
                 "create proposal about trans coin from an account to another account\n"
@@ -923,7 +949,7 @@ Value submitcointransferproposal( const Array& params, bool fHelp) {
 
 Value submitcancelorderproposal(const Array& params, bool fHelp) {
 
-    if(fHelp || params.size() < 2 || params.size() > 3){
+    if (fHelp || params.size() < 2 || params.size() > 3){
 
         throw runtime_error(
                 "submitcancelorderproposal \"sender\"  \"order_id\" [\"fee\"]\n"
@@ -966,7 +992,7 @@ Value submitcancelorderproposal(const Array& params, bool fHelp) {
 }
 
 Value getsysparam(const Array& params, bool fHelp){
-    if(fHelp || params.size() > 1){
+    if (fHelp || params.size() > 1){
         throw runtime_error(
                 "getsysparam $param_name\n"
                 "get system param info\n"
@@ -989,11 +1015,11 @@ Value getsysparam(const Array& params, bool fHelp){
 
         st = itr->second;
         uint64_t pv;
-        if(!pCdMan->pSysParamCache->GetParam(st, pv))
+        if (!pCdMan->pSysParamCache->GetParam(st, pv))
             throw JSONRPCError(RPC_INVALID_PARAMETER, "get param error");
 
         Object obj;
-        if(itr->second == SysParamType::AXC_SWAP_GATEWAY_REGID){
+        if (itr->second == SysParamType::AXC_SWAP_GATEWAY_REGID){
             obj.push_back(Pair(paramName, CRegID(pv).ToString()));
         } else if (itr->second == SysParamType::DEX_MATCH_SVC_REGID) {
             obj.push_back(Pair(paramName, pCdMan->pSysParamCache->GetDexMatchSvcRegId().ToString()));
@@ -1010,7 +1036,7 @@ Value getsysparam(const Array& params, bool fHelp){
             uint64_t pv = 0;
             pCdMan->pSysParamCache->GetParam(kv.second, pv);
 
-            if(kv.second == SysParamType::AXC_SWAP_GATEWAY_REGID){
+            if (kv.second == SysParamType::AXC_SWAP_GATEWAY_REGID){
                 obj.push_back(Pair(paramName, CRegID(pv).ToString()));
             }
             else if (kv.second == SysParamType::DEX_MATCH_SVC_REGID) {
@@ -1038,7 +1064,7 @@ Value CdpParamValueToJson(const string& unit, uint64_t value) {
 }
 
 Value getcdpparam(const Array& params, bool fHelp) {
-    if(fHelp || params.size() < 1 || params.size() > 2){
+    if (fHelp || params.size() < 1 || params.size() > 2){
         throw runtime_error(
                 "getcdpparam $bcoin_scoin_pair $param_name \n"
                 "get its param info about a given CDP type by its coinpair key\n"
@@ -1058,7 +1084,7 @@ Value getcdpparam(const Array& params, bool fHelp) {
     if (vCoinPair.size() != 2)
         throw JSONRPCError(RPC_INVALID_PARAMETER, "ill-formatted CDP coin-pair: " + strBCoinScoin);
 
-    if(!pCdMan->pAssetCache->HasAsset(vCoinPair[0]) || !pCdMan->pAssetCache->HasAsset(vCoinPair[0]) ) {
+    if (!pCdMan->pAssetCache->HasAsset(vCoinPair[0]) || !pCdMan->pAssetCache->HasAsset(vCoinPair[0]) ) {
         throw JSONRPCError(RPC_INVALID_PARAMETER, "invalid CDP coin-pair::" + strBCoinScoin);
     }
 
@@ -1068,7 +1094,7 @@ Value getcdpparam(const Array& params, bool fHelp) {
         string paramName = params[1].get_str();
 
         auto itr = paramNameToCdpParamTypeMap.find(paramName);
-        if( itr == paramNameToCdpParamTypeMap.end())
+        if ( itr == paramNameToCdpParamTypeMap.end())
             throw JSONRPCError(RPC_INVALID_PARAMETER, "param name is illegal");
 
         CdpParamType type = itr->second;
@@ -1097,7 +1123,7 @@ Value getcdpparam(const Array& params, bool fHelp) {
 }
 
 Value listmintxfees(const Array& params, bool fHelp) {
-    if(fHelp || params.size() != 0){
+    if (fHelp || params.size() != 0){
         throw runtime_error(
                 "listmintxfees\n"
                 "\nget all tx minimum fee.\n"
@@ -1112,10 +1138,10 @@ Value listmintxfees(const Array& params, bool fHelp) {
         o.push_back(Pair("txtype_name", std::get<0>(kv.second)));
         o.push_back(Pair("txtype_code", kv.first));
         uint64_t feeOut;
-        if(GetTxMinFee(*spCw, kv.first,chainActive.Height(), SYMB::WICC,feeOut))
+        if (GetTxMinFee(*spCw, kv.first,chainActive.Height(), SYMB::WICC,feeOut))
             o.push_back(Pair("minfee_in_wicc", feeOut));
 
-        if(GetTxMinFee(*spCw, kv.first,chainActive.Height(), SYMB::WUSD,feeOut))
+        if (GetTxMinFee(*spCw, kv.first,chainActive.Height(), SYMB::WUSD,feeOut))
             o.push_back(Pair("minfee_in_wusd", feeOut));
 
         o.push_back(Pair("modifiable", std::get<5>(kv.second)));
@@ -1127,7 +1153,7 @@ Value listmintxfees(const Array& params, bool fHelp) {
 
 Value getdexbaseandquotecoins(const Array& params, bool fHelp) {
 
-    if(fHelp || params.size() !=0){
+    if (fHelp || params.size() !=0){
         throw runtime_error(
                 "getdexbaseandquotecoins\n"
                 "\nget all dex base coins and quote coins.\n"
@@ -1151,7 +1177,7 @@ Value getdexbaseandquotecoins(const Array& params, bool fHelp) {
 
 
 Value gettotalbpssize(const Array& params, bool fHelp) {
-    if(fHelp || params.size() != 0 ){
+    if (fHelp || params.size() != 0 ){
         throw runtime_error(
                 "gettotalbpssize\n"
                 "\nget the total size of bps(delegates).\n"
@@ -1167,7 +1193,7 @@ Value gettotalbpssize(const Array& params, bool fHelp) {
 
 Value getfeedcoinpairs(const Array& params, bool fHelp) {
 
-    if(fHelp || params.size() != 0) {
+    if (fHelp || params.size() != 0) {
         throw runtime_error(
                 "getfeedcoinpairs\n"
                 "\nget all price feed coin pairs.\n"

@@ -224,7 +224,7 @@ Array RPCConvertValues(const string &strMethod, const vector<string> &strParams)
     //if (strMethod == "submitparamgovernproposal"   && n > 2) ConvertTo<int64_t>(params[2]);
     //if (strMethod == "submitparamgovernproposal"   && n > 3) ConvertTo<int64_t>(params[3]);
 
-    if (strMethod == "submitcdpparamgovernproposal"   && n > 2) ConvertTo<int64_t>(params[2]);
+    if (strMethod == "submitcdpparamgovernproposal"   && n > 1) ConvertTo<Array>(params[1]);
 
     if (strMethod == "submitgovernorupdateproposal"   && n > 2) ConvertTo<int64_t>(params[2]);
     if (strMethod == "submitpasswordprooftx"  && n > 2) ConvertTo<int64_t>(params[2]);
