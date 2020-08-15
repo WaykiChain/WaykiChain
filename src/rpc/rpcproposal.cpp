@@ -218,17 +218,17 @@ Value submitcdpparamgovernproposal(const Array& params, bool fHelp){
         const Value& objValue = find_value(objInfo.get_obj(),"value");
 
         if (objName.type() == null_type || objValue == null_type)
-            throw JSONRPCError(RPC_INVALID_PARAMETER, "cdp fund name error or fund value error");
+            throw JSONRPCError(RPC_INVALID_PARAMETER, "cdp param name or value not found");
 
         string name = objName.get_str();
         uint64_t paramValue = RPC_PARAM::GetUint64(objValue);
 
         CdpParamType  type = GetCdpParamType(name);
         if (type == CdpParamType::NULL_CDP_PARAM_TYPE)
-            throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("cdp param type(%s) is not exist",name));
+            throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("cdp param type(%s) is not exist", name));
 
         if (type_map.find(type) != type_map.end())
-            throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("cdp param type(%s) can't be the same",name));
+            throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("cdp param type(%s) can't be the same", name));
         
         type_map[type] = true;
 
