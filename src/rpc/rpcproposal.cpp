@@ -190,7 +190,7 @@ Value submitcdpparamgovernproposal(const Array& params, bool fHelp){
                 + HelpExampleCli("submitcdpparamgovernproposal", "0-1 '[{\"name\":\"CDP_INTEREST_PARAM_A\",\"value\":10000}, {\"name\":\"CDP_INTEREST_PARAM_B\",\"value\":10000}]'  WICC WUSD WICC:1:WI")
                 + "\nAs json rpc call\n"
                 + HelpExampleRpc("submitcdpparamgovernproposal",
-                                 R"("0-1", '[{"name":"CDP_INTEREST_PARAM_A",  "value":10000}, {"name":"CDP_INTEREST_PARAM_B",  "value":10000}]', "WICC", "WUSD", "WICC:1:WI")")
+                                 R"("0-1", [{"name":"CDP_INTEREST_PARAM_A",  "value":10000}, {"name":"CDP_INTEREST_PARAM_B",  "value":10000}], "WICC", "WUSD", "WICC:1:WI")")
 
         );
 
