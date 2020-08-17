@@ -974,8 +974,7 @@ Value submitdexoperatorregtx(const Array& params, bool fHelp){
             "\"txHash\"             (string) The transaction id.\n"
 
             "\nExamples:\n"
-            + HelpExampleCli("submitdexoperatorregtx", "\"0-1\" \"0-1\" \"0-2\" \"wayki-dex\""
-                            "\"http://www.wayki-dex.com\" \"PRIVATE\" 2000000 2000000 '[0,1]'")
+            + HelpExampleCli("submitdexoperatorregtx", "\"0-1\" \"0-1\" \"0-2\" \"wayki-dex\" \"http://www.wayki-dex.com\" \"PRIVATE\" 2000000 2000000 '[0,1]'")
             + "\nAs json rpc call\n"
             + HelpExampleRpc("submitdexoperatorregtx", "\"0-1\", \"0-1\", \"0-2\", \"wayki-dex\", "
                             "\"http://www.wayki-dex.com\", \"PRIVATE\", 2000000, 2000000, [0, 1]")
