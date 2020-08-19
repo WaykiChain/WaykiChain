@@ -130,6 +130,7 @@ static const CRPCCommand vRPCCommands[] =
     { "getcdpinfo",                     &getcdpinfo,                        true,       false,      false   },
     { "getusercdp",                     &getusercdp,                        true,       false,      false   },
     { "getsysparam",                    &getsysparam,                       true,       false,      false   },
+    { "listsysparams",                  &listsysparams,                     true,       false,      false   },
     { "getcdpparam",                    &getcdpparam,                       true,       false,      false   },
     { "getproposal",                    &getproposal,                       true,       false,      false   },
     { "getgovernors",                   &getgovernors,                      true,       false,      false   },

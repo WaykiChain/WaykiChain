@@ -992,64 +992,77 @@ Value submitcancelorderproposal(const Array& params, bool fHelp) {
 }
 
 Value getsysparam(const Array& params, bool fHelp){
-    if (fHelp || params.size() > 1){
+    if (fHelp || params.size() != 1){
         throw runtime_error(
-                "getsysparam $param_name\n"
+                "getsysparam $param_name\n "
                 "get system param info\n"
                 "\nArguments:\n"
-                "1.$param_name:      (string, optional) param name, list all parameters when omitted \n"
+                "1.$param_name:      (string, optional) param name \n"
 
                 "\nExamples:\n"
-                + HelpExampleCli("getsysparam", "")
+                + HelpExampleCli("getsysparam", "AXC_SWAP_GATEWAY_REGID")
                 + "\nAs json rpc call\n"
-                + HelpExampleRpc("getsysparam", "")
+                + HelpExampleRpc("getsysparam", "AXC_SWAP_GATEWAY_REGID")
         );
     }
 
-    if (params.size() == 1) {
-        string paramName = params[0].get_str();
-        SysParamType st;
-        auto itr = paramNameToSysParamTypeMap.find(paramName);
-        if (itr == paramNameToSysParamTypeMap.end())
-            throw JSONRPCError(RPC_INVALID_PARAMETER, "param name is illegal");
+    
+    string paramName = params[0].get_str();
+    SysParamType st;
+    auto itr = paramNameToSysParamTypeMap.find(paramName);
+    if (itr == paramNameToSysParamTypeMap.end())
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "param name is illegal");
 
-        st = itr->second;
-        uint64_t pv;
-        if (!pCdMan->pSysParamCache->GetParam(st, pv))
-            throw JSONRPCError(RPC_INVALID_PARAMETER, "get param error");
+    st = itr->second;
+    uint64_t pv;
+    if (!pCdMan->pSysParamCache->GetParam(st, pv))
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "get param error");
 
-        Object obj;
-        if (itr->second == SysParamType::AXC_SWAP_GATEWAY_REGID){
+    Object obj;
+    if (itr->second == SysParamType::AXC_SWAP_GATEWAY_REGID){
+        obj.push_back(Pair(paramName, CRegID(pv).ToString()));
+    } else if (itr->second == SysParamType::DEX_MATCH_SVC_REGID) {
+        obj.push_back(Pair(paramName, pCdMan->pSysParamCache->GetDexMatchSvcRegId().ToString()));
+    } else {
+        obj.push_back(Pair(paramName, pv));
+    }
+
+    return obj;
+}
+
+Value listsysparams(const Array& params, bool fHelp){
+    if (fHelp || params.size() != 0){
+        throw runtime_error(
+                "listsysparams\n"
+                "list all of the system param info\n"
+
+                "\nExamples:\n"
+                + HelpExampleCli("listsysparams", "")
+                + "\nAs json rpc call\n"
+                + HelpExampleRpc("listsysparams", "")
+        );
+    }
+
+    Object obj;
+    for(auto kv : paramNameToSysParamTypeMap) {
+        auto paramName = kv.first;
+        uint64_t pv = 0;
+        pCdMan->pSysParamCache->GetParam(kv.second, pv);
+
+        if (kv.second == SysParamType::AXC_SWAP_GATEWAY_REGID){
             obj.push_back(Pair(paramName, CRegID(pv).ToString()));
-        } else if (itr->second == SysParamType::DEX_MATCH_SVC_REGID) {
+        }
+        else if (kv.second == SysParamType::DEX_MATCH_SVC_REGID) {
             obj.push_back(Pair(paramName, pCdMan->pSysParamCache->GetDexMatchSvcRegId().ToString()));
         } else {
             obj.push_back(Pair(paramName, pv));
         }
 
-        return obj;
 
-    } else {
-        Object obj;
-        for(auto kv : paramNameToSysParamTypeMap) {
-            auto paramName = kv.first;
-            uint64_t pv = 0;
-            pCdMan->pSysParamCache->GetParam(kv.second, pv);
-
-            if (kv.second == SysParamType::AXC_SWAP_GATEWAY_REGID){
-                obj.push_back(Pair(paramName, CRegID(pv).ToString()));
-            }
-            else if (kv.second == SysParamType::DEX_MATCH_SVC_REGID) {
-                obj.push_back(Pair(paramName, pCdMan->pSysParamCache->GetDexMatchSvcRegId().ToString()));
-            } else {
-                obj.push_back(Pair(paramName, pv));
-            }
-
-
-        }
-        return obj;
     }
+    return obj;
 }
+
 
 Value CdpParamValueToJson(const string& unit, uint64_t value) {
     Value val;
