@@ -186,6 +186,7 @@ extern Value submitaxcinproposal(const Array& params, bool fHelp);
 extern Value submitaxcoutproposal(const Array& params, bool fHelp);
 
 extern Value getsysparam(const Array& params, bool fHelp);
+extern Value listsysparams(const Array& params, bool fHelp);
 extern Value getdexbaseandquotecoins(const Array& params, bool fHelp);
 extern Value gettotalbpssize(const Array& params, bool fHelp);
 extern Value getfeedcoinpairs(const Array& params, bool fHelp);
