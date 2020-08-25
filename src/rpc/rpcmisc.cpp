@@ -186,10 +186,7 @@ Value getfinblockcount (const Array& params, bool fHelp) {
             "\nExamples:\n" +
             HelpExampleCli("getfinblockcount", "") + "\nAs json rpc\n" + HelpExampleRpc("getfinblockcount", ""));
 
-    std::pair<int32_t ,uint256> globalfinblock = std::make_pair(0,uint256());
-    pCdMan->pBlockCache->ReadGlobalFinBlock(globalfinblock);
-
-    return globalfinblock.first;
+    return pbftMan.GetGlobalFinIndex()->height;
 }
 
 Value verifymessage(const Array& params, bool fHelp) {
