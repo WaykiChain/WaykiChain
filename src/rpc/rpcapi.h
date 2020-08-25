@@ -132,6 +132,7 @@ extern Value walletpassphrasechange(const Array& params, bool fHelp);
 extern Value walletlock(const Array& params, bool fHelp);
 extern Value encryptwallet(const Array& params, bool fHelp);
 extern Value getinfo(const Array& params, bool fHelp);
+extern Value getfinblockcount(const Array& params, bool fHelp);
 extern Value getwalletinfo(const Array& params, bool fHelp);
 extern Value getnetworkinfo(const Array& params, bool fHelp);
 
