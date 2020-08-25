@@ -21,6 +21,7 @@ static const CRPCCommand vRPCCommands[] =
     { "stop",                           &stop,                              true,      true,        false   },
     { "validateaddr",                   &validateaddr,                      true,      true,        false   },
     { "createmulsig",                   &createmulsig,                      true,      true ,       false   },
+    { "getfinblockcount",               &getfinblockcount,                  true,      true ,       false   },
 
     /* P2P networking */
     { "getnetworkinfo",                 &getnetworkinfo,                    true,      false,       false   },

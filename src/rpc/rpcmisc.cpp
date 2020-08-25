@@ -174,6 +174,21 @@ Value getinfo(const Array& params, bool fHelp) {
     return obj;
 }
 
+Value getfinblockcount (const Array& params, bool fHelp) {
+    if (fHelp || params.size() != 0)
+        throw runtime_error(
+            "getfinblockcount\n"
+            "\nReturn the height of the finality block.\n"
+            "\nResult:\n"
+          
+            "\n  (numeric) The height of the finality block\n"
+
+            "\nExamples:\n" +
+            HelpExampleCli("getfinblockcount", "") + "\nAs json rpc\n" + HelpExampleRpc("getfinblockcount", ""));
+
+    return pbftMan.GetGlobalFinIndex()->height;
+}
+
 Value verifymessage(const Array& params, bool fHelp) {
     if (fHelp || params.size() != 3)
         throw runtime_error(
