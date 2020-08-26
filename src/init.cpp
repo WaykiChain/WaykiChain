@@ -325,6 +325,7 @@ string HelpMessage() {
 
     strUsage += "  -rpcwhitelistcmd=<method>          " + _("Add permitted RPC method to whitelist") + "\n";
     strUsage += "  -rpcblacklistcmd=<method>          " + _("Add Banned RPC method to blacklist") + "\n";
+    strUsage += "  -contracts_console                 " + _("Print wasm contract logs to console(default: 0)") + "\n";                  
     return strUsage;
 }
 
