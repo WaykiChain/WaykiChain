@@ -132,6 +132,7 @@ extern Value walletpassphrasechange(const Array& params, bool fHelp);
 extern Value walletlock(const Array& params, bool fHelp);
 extern Value encryptwallet(const Array& params, bool fHelp);
 extern Value getinfo(const Array& params, bool fHelp);
+extern Value getfinblockcount(const Array& params, bool fHelp);
 extern Value getwalletinfo(const Array& params, bool fHelp);
 extern Value getnetworkinfo(const Array& params, bool fHelp);
 
@@ -187,6 +188,7 @@ extern Value submitaxcinproposal(const Array& params, bool fHelp);
 extern Value submitaxcoutproposal(const Array& params, bool fHelp);
 
 extern Value getsysparam(const Array& params, bool fHelp);
+extern Value listsysparams(const Array& params, bool fHelp);
 extern Value getdexbaseandquotecoins(const Array& params, bool fHelp);
 extern Value gettotalbpssize(const Array& params, bool fHelp);
 extern Value getfeedcoinpairs(const Array& params, bool fHelp);

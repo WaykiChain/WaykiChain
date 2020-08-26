@@ -21,6 +21,7 @@ static const CRPCCommand vRPCCommands[] =
     { "stop",                           &stop,                              true,      true,        false   },
     { "validateaddr",                   &validateaddr,                      true,      true,        false   },
     { "createmulsig",                   &createmulsig,                      true,      true ,       false   },
+    { "getfinblockcount",               &getfinblockcount,                  true,      true ,       false   },
 
     /* P2P networking */
     { "getnetworkinfo",                 &getnetworkinfo,                    true,      false,       false   },
@@ -131,6 +132,7 @@ static const CRPCCommand vRPCCommands[] =
     { "getcdpinfo",                     &getcdpinfo,                        true,       false,      false   },
     { "getusercdp",                     &getusercdp,                        true,       false,      false   },
     { "getsysparam",                    &getsysparam,                       true,       false,      false   },
+    { "listsysparams",                  &listsysparams,                     true,       false,      false   },
     { "getcdpparam",                    &getcdpparam,                       true,       false,      false   },
     { "getproposal",                    &getproposal,                       true,       false,      false   },
     { "getgovernors",                   &getgovernors,                      true,       false,      false   },
