@@ -5,7 +5,7 @@
 
 #include "dexorder.h"
 #include "config/chainparams.h"
-#include "persistence/dbaccess.h"
+#include "persistence/dbcache.h"
 
 using namespace dex;
 

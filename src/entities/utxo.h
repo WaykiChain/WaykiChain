@@ -10,7 +10,7 @@
 #include <string>
 #include <cstdint>
 #include "id.h"
-#include "persistence/dbaccess.h"
+#include "persistence/dbcache.h"
 
 using namespace std;
 

@@ -10,7 +10,7 @@
 #include "entities/id.h"
 #include "entities/vote.h"
 #include "commons/serialize.h"
-#include "dbaccess.h"
+#include "dbcache.h"
 #include "dbiterator.h"
 #include "dbconf.h"
 

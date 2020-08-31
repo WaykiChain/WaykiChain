@@ -7,7 +7,7 @@
 #include <string>
 #include <type_traits>
 #include <boost/test/unit_test.hpp>
-#include "persistence/dbaccess.h"
+#include "persistence/dbcache.h"
 
 using namespace std;
 

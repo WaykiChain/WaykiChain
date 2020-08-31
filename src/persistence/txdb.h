@@ -10,7 +10,7 @@
 #include "entities/id.h"
 #include "commons/serialize.h"
 #include "commons/json/json_spirit_value.h"
-#include "dbaccess.h"
+#include "dbcache.h"
 #include "dbconf.h"
 #include "block.h"
 

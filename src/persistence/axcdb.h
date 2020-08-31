@@ -14,7 +14,7 @@
 #include <algorithm>
 
 #include "commons/serialize.h"
-#include "dbaccess.h"
+#include "dbcache.h"
 #include "entities/proposal.h"
 
 using namespace std;

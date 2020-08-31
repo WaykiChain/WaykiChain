@@ -9,7 +9,7 @@
 #include "commons/uint256.h"
 #include "commons/leb128.h"
 #include "entities/cdp.h"
-#include "dbaccess.h"
+#include "dbcache.h"
 #include "dbiterator.h"
 
 #include <map>

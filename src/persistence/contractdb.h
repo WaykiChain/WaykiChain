@@ -11,7 +11,7 @@
 #include "entities/key.h"
 #include "commons/arith_uint256.h"
 #include "commons/uint256.h"
-#include "dbaccess.h"
+#include "dbcache.h"
 #include "dbiterator.h"
 #include "persistence/disk.h"
 #include "vm/luavm/appaccount.h"

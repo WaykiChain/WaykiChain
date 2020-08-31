@@ -6,7 +6,7 @@
 #ifndef PERSIST_DB_ITERATOR_H
 #define PERSIST_DB_ITERATOR_H
 
-#include "dbaccess.h"
+#include "dbcache.h"
 
 template<typename CacheType>
 class CDBBaseIterator {

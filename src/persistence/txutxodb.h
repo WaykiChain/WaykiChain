@@ -11,7 +11,7 @@
 #include <vector>
 
 #include "commons/serialize.h"
-#include "dbaccess.h"
+#include "dbcache.h"
 #include "dbconf.h"
 #include "tx/coinutxotx.h"
 
@@ -33,21 +33,21 @@ public:
     bool GetUtxoPasswordProof(const tuple<TxID, CFixedUInt16, CRegIDKey> &proofKey, uint256 &proof);
     bool DelUtoxPasswordProof(const tuple<TxID, CFixedUInt16, CRegIDKey> &proofKey);
 
-    void Flush() { 
+    void Flush() {
         tx_utxo_cache.Flush();
         tx_utxo_password_proof_cache.Flush();
     }
 
-    uint32_t GetCacheSize() const { 
+    uint32_t GetCacheSize() const {
         return tx_utxo_cache.GetCacheSize() + tx_utxo_password_proof_cache.GetCacheSize();
     }
 
-    void SetBaseViewPtr(CTxUTXODBCache *pBaseIn) { 
+    void SetBaseViewPtr(CTxUTXODBCache *pBaseIn) {
         tx_utxo_cache.SetBase(&pBaseIn->tx_utxo_cache);
         tx_utxo_password_proof_cache.SetBase(&pBaseIn->tx_utxo_password_proof_cache);
     }
 
-    void SetDbOpLogMap(CDBOpLogMap *pDbOpLogMapIn) { 
+    void SetDbOpLogMap(CDBOpLogMap *pDbOpLogMapIn) {
         tx_utxo_cache.SetDbOpLogMap(pDbOpLogMapIn);
         tx_utxo_password_proof_cache.SetDbOpLogMap(pDbOpLogMapIn);
     }
