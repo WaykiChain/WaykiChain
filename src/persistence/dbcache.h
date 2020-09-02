@@ -15,6 +15,38 @@
 typedef void(UndoDataFunc)(const CDbOpLogs &pDbOpLogs);
 typedef std::map<dbk::PrefixType, std::function<UndoDataFunc>> UndoDataFuncMap;
 
+template<typename ValueType>
+struct __CacheValue {
+    std::shared_ptr<ValueType> value = std::make_shared<ValueType>();
+    bool is_modified = false;
+
+    __CacheValue() {}
+    __CacheValue(const ValueType &val, bool isModified)
+        : value(std::make_shared<ValueType>(val)), is_modified(isModified) {}
+    __CacheValue(std::shared_ptr<ValueType> val, bool isModified)
+        : value(val), is_modified(isModified) {}
+
+    inline void Set(const __CacheValue &other) {
+        ASSERT(other.value);
+        Set(*other.value, other.is_modified);
+    }
+
+    inline void Set(const ValueType &val, bool isModified) {
+        ASSERT(value);
+        *value = val;
+        is_modified = isModified;
+    }
+
+    inline bool IsValueEmpty() const {
+        return db_util::IsEmpty(*value);
+    }
+
+    inline void SetValueEmpty(bool isModified) {
+        db_util::SetEmpty(*value);
+        is_modified = isModified;
+    }
+};
+
 template<int32_t PREFIX_TYPE_VALUE, typename __KeyType, typename __ValueType>
 class CCompositeKVCache {
 public:
@@ -23,34 +55,7 @@ public:
     typedef __KeyType   KeyType;
     typedef __ValueType ValueType;
 
-    struct CacheValue {
-        std::shared_ptr<ValueType> value = std::make_shared<ValueType>();
-        bool is_modified = false;
-
-        CacheValue() {}
-        CacheValue(const ValueType &val, bool isModified)
-            : value(std::make_shared<ValueType>(val)), is_modified(isModified) {}
-
-        inline void Set(const CacheValue &other) {
-            ASSERT(other.value);
-            Set(*other.value, other.is_modified);
-        }
-
-        inline void Set(const ValueType &val, bool isModified) {
-            ASSERT(value);
-            *value = val;
-            is_modified = isModified;
-        }
-
-        inline bool IsValueEmpty() const {
-            return db_util::IsEmpty(*value);
-        }
-
-        inline void SetValueEmpty(bool isModified) {
-            db_util::SetEmpty(*value);
-            is_modified = isModified;
-        }
-    };
+    using CacheValue = __CacheValue<ValueType>;
 
     typedef typename std::map<KeyType, CacheValue> Map;
     typedef typename std::map<KeyType, CacheValue>::iterator Iterator;
@@ -351,6 +356,7 @@ template<int32_t PREFIX_TYPE_VALUE, typename __ValueType>
 class CSimpleKVCache {
 public:
     typedef __ValueType ValueType;
+    using CacheValue = __CacheValue<ValueType>;
     static const dbk::PrefixType PREFIX_TYPE = (dbk::PrefixType)PREFIX_TYPE_VALUE;
 public:
     /**
@@ -376,10 +382,12 @@ public:
         pBase = other.pBase;
         pDbAccess = other.pDbAccess;
         // deep copy for shared_ptr
-        if (other.ptrData == nullptr) {
-            ptrData = nullptr;
+        if (other.cache_value == nullptr) {
+            cache_value = nullptr;
         } else {
-            ptrData = make_shared<ValueType>(*other.ptrData);
+            if (cache_value == nullptr)
+                cache_value = make_shared<CacheValue>();
+            cache_value->Set(*other.cache_value);
         }
         pDbOpLogMap = other.pDbOpLogMap;
         return *this;
@@ -387,7 +395,7 @@ public:
 
     void SetBase(CSimpleKVCache *pBaseIn) {
         assert(pDbAccess == nullptr);
-        assert(!ptrData && "Must SetBase before have any data");
+        assert(!cache_value && "Must SetBase before have any data");
         pBase = pBaseIn;
     }
 
@@ -396,78 +404,80 @@ public:
     }
 
     uint32_t GetCacheSize() const {
-        if (!ptrData) {
+        if (!cache_value) {
             return 0;
         }
 
-        return ::GetSerializeSize(*ptrData, SER_DISK, CLIENT_VERSION);
+        return ::GetSerializeSize(*cache_value->value, SER_DISK, CLIENT_VERSION);
     }
 
     bool GetData(ValueType &value) const {
-        auto ptr = GetDataPtr();
-        if (ptr && !db_util::IsEmpty(*ptr)) {
-            value = *ptr;
+        FetchData();
+        if (!IsDataEmpty(cache_value)) {
+            value = *cache_value->value;
             return true;
         }
         return false;
     }
 
     bool GetData(const ValueType **value) const {
-        assert(value != nullptr && "the value pointer is NULL");
-        auto ptr = GetDataPtr();
-        if (ptr && !db_util::IsEmpty(*ptr)) {
-            *value = ptr.get();
+        ASSERT(value != nullptr && "the value pointer is NULL");
+        FetchData();
+        if (!IsDataEmpty(cache_value)) {
+            *value = cache_value->value.get();
             return true;
         }
         return false;
     }
 
     bool SetData(const ValueType &value) {
-        if (!ptrData) {
-            ptrData = db_util::MakeEmptyValue<ValueType>();
+        FetchData();
+        if (!cache_value) {
+            cache_value = std::make_shared<CacheValue>();
         }
-        AddOpLog(*ptrData, &value);
-        *ptrData = value;
+        AddOpLog(*cache_value->value, &value);
+        cache_value->Set(value, true);
         return true;
     }
 
     bool HasData() const {
-        auto ptr = GetDataPtr();
-        return ptr && !db_util::IsEmpty(*ptr);
+        FetchData();
+        return !IsDataEmpty(cache_value);
     }
 
     bool EraseData() {
-        auto ptr = GetDataPtr();
-        if (ptr && !db_util::IsEmpty(*ptr)) {
-            AddOpLog(*ptr, nullptr);
-            db_util::SetEmpty(*ptr);
+        FetchData();
+        if (!IsDataEmpty(cache_value)) {
+            AddOpLog(*cache_value->value, nullptr);
+            cache_value->SetValueEmpty(true);
         }
         return true;
     }
 
     void Clear() {
-        ptrData = nullptr;
+        cache_value = nullptr;
     }
 
     void Flush() {
-        assert(pBase != nullptr || pDbAccess != nullptr);
-        if (ptrData) {
+        ASSERT(pBase != nullptr || pDbAccess != nullptr);
+        if (cache_value && cache_value->is_modified) {
             if (pBase != nullptr) {
-                assert(pDbAccess == nullptr);
-                pBase->ptrData = ptrData;
+                ASSERT(pDbAccess == nullptr);
+                pBase->cache_value = cache_value; // move the data pointer to base cache
             } else if (pDbAccess != nullptr) {
-                assert(pBase == nullptr);
-                pDbAccess->WriteBatch(PREFIX_TYPE, *ptrData);
+                ASSERT(pBase == nullptr);
+                pDbAccess->WriteBatch(PREFIX_TYPE, *cache_value->value);
             }
-            ptrData = nullptr;
+            cache_value = nullptr;
         }
     }
 
     void UndoData(const CDbOpLog &dbOpLog) {
-        if (!ptrData) {
-            ptrData = db_util::MakeEmptyValue<ValueType>();
+        if (!cache_value) {
+            cache_value = std::make_shared<CacheValue>();
         }
-        dbOpLog.Get(*ptrData);
+        dbOpLog.Get(*cache_value->value);
+        cache_value->is_modified = true;
     }
 
     void UndoDataList(const CDbOpLogs &dbOpLogs) {
@@ -482,29 +492,31 @@ public:
 
     dbk::PrefixType GetPrefixType() const { return PREFIX_TYPE; }
 
-    std::shared_ptr<ValueType> GetDataPtr() const {
+    std::shared_ptr<ValueType> GetDataPtr() {
+        FetchData();
+        return cache_value ? cache_value->value : nullptr;
+    }
+private:
+    // fetch data from BaseCache or DB
+    void FetchData() const {
 
-        if (ptrData) {
-            return ptrData;
-        } else if (pBase != nullptr){
-            auto ptr = pBase->GetDataPtr();
-            if (ptr) {
-                ptrData = std::make_shared<ValueType>(*ptr);
-                return ptrData;
-            }
-        } else if (pDbAccess != NULL) {
-            auto ptrDbData = db_util::MakeEmptyValue<ValueType>();
-
-            if (pDbAccess->GetData(PREFIX_TYPE, *ptrDbData)) {
-                assert(!db_util::IsEmpty(*ptrDbData));
-                ptrData = ptrDbData;
-                return ptrData;
+        if (!cache_value) {
+            if (pBase != nullptr){
+                pBase->FetchData();
+                if (pBase->cache_value) {
+                    auto &value = *pBase->cache_value->value;
+                    cache_value = std::make_shared<CacheValue>(value, false);
+                }
+            } else if (pDbAccess != NULL) {
+                auto ptrDbData = std::make_shared<ValueType>();
+                if (!pDbAccess->GetData(PREFIX_TYPE, *ptrDbData)) {
+                    ptrDbData = nullptr;
+                }
+                cache_value = std::make_shared<CacheValue>(ptrDbData, false);
             }
         }
-        return nullptr;
     }
 
-private:
     inline void AddOpLog(const ValueType &oldValue, const ValueType *pNewValue) {
         if (pDbOpLogMap != nullptr) {
             CDbOpLog dbOpLog;
@@ -520,11 +532,15 @@ private:
         }
 
     }
+
+    inline bool IsDataEmpty(const std::shared_ptr<CacheValue> &ptr) const {
+        return ptr == nullptr || ptr->IsValueEmpty();
+    }
 private:
-    mutable CSimpleKVCache<PREFIX_TYPE, ValueType> *pBase;
-    CDBAccess *pDbAccess;
-    mutable std::shared_ptr<ValueType> ptrData = nullptr;
-    CDBOpLogMap *pDbOpLogMap                   = nullptr;
+    mutable CSimpleKVCache              *pBase;
+    CDBAccess                           *pDbAccess;
+    mutable std::shared_ptr<CacheValue> cache_value     = nullptr;
+    CDBOpLogMap                         *pDbOpLogMap    = nullptr;
 };
 
 #endif  // PERSIST_DB_CACHE_H
