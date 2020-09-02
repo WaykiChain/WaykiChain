@@ -246,8 +246,9 @@ private:
             auto pDbValue = std::make_shared<ValueType>();
             CacheValue cacheValue;
             if (pDbAccess->GetData(PREFIX_TYPE, key, *cacheValue.value)) {
-                return AddDataToMap(key, cacheValue);
+                cacheValue.SetValueEmpty(false);
             }
+            return AddDataToMap(key, cacheValue);
         }
 
         return mapData.end();
