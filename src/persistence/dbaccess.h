@@ -6,6 +6,7 @@
 #ifndef PERSIST_DB_ACCESS_H
 #define PERSIST_DB_ACCESS_H
 
+#include "commons/types.h"
 #include "dbconf.h"
 #include "leveldbwrapper.h"
 
