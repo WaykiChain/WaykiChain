@@ -8,7 +8,7 @@
 
 #include "commons/arith_uint256.h"
 #include "dbconf.h"
-#include "dbaccess.h"
+#include "dbcache.h"
 #include "dbiterator.h"
 #include "entities/asset.h"
 #include "entities/proposal.h"

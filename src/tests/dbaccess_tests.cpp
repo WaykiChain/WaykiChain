@@ -8,7 +8,7 @@
 #include <vector>
 #include <map>
 #include <boost/test/unit_test.hpp>
-#include "persistence/dbaccess.h"
+#include "persistence/dbcache.h"
 
 using namespace std;
 
@@ -171,7 +171,7 @@ template <typename CacheType>
 static uint32_t GetCacheSerializeSize(CacheType &cache) {
     uint32_t ret = 0;
     for (auto item : cache.GetMapData()) {
-        ret += GetSerSize(item.first) + GetSerSize(*item.second);
+        ret += GetSerSize(item.first) + GetSerSize(*item.second.value);
     }
     return ret;
 }

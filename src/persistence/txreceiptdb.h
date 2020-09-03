@@ -8,7 +8,7 @@
 
 #include "commons/serialize.h"
 #include "entities/receipt.h"
-#include "dbaccess.h"
+#include "dbcache.h"
 #include "dbconf.h"
 
 #include <map>

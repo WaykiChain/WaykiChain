@@ -25,6 +25,13 @@ typedef std::pair<TokenSymbol, TokenSymbol> PriceCoinPair;
 
 using uint128_t = unsigned __int128;
 
+#ifdef VER_DEBUG
+    #include <assert.h>
+    #define ASSERT(...) assert(__VA_ARGS__)
+#else
+    #define ASSERT(...)
+#endif//VER_DEBUG
+
 // pair<> hash for unordered_set and unordered_map
 template <typename T1, typename T2>
 struct UnorderedPairHash {

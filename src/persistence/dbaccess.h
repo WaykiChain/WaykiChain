@@ -6,7 +6,7 @@
 #ifndef PERSIST_DB_ACCESS_H
 #define PERSIST_DB_ACCESS_H
 
-#include "commons/uint256.h"
+#include "commons/types.h"
 #include "dbconf.h"
 #include "leveldbwrapper.h"
 
@@ -274,9 +274,6 @@ namespace db_util {
     #define TO_KV_STRING_END1(v) db_util::to_kv_string(#v, v)
     #define TO_KV_STRING_END2(k, v) db_util::to_kv_string(k, v)
 };
-
-typedef void(UndoDataFunc)(const CDbOpLogs &pDbOpLogs);
-typedef std::map<dbk::PrefixType, std::function<UndoDataFunc>> UndoDataFuncMap;
 
 class CDBAccess {
 public:

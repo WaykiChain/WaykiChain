@@ -151,6 +151,7 @@ coin_CORE_H = \
   persistence/cdpdb.h \
   persistence/contractdb.h \
   persistence/dbaccess.h \
+  persistence/dbcache.h \
   persistence/dbconf.h \
   persistence/dbiterator.h \
   persistence/dexdb.h \

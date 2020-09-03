@@ -14,7 +14,7 @@
 #include "leveldbwrapper.h"
 #include "entities/account.h"
 #include "dbconf.h"
-#include "dbaccess.h"
+#include "dbcache.h"
 
 class uint256;
 class CKeyID;

@@ -11,7 +11,7 @@
 #include <algorithm>
 
 #include "commons/serialize.h"
-#include "persistence/dbaccess.h"
+#include "persistence/dbcache.h"
 #include "entities/proposal.h"
 
 

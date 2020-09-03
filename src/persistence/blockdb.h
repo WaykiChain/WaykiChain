@@ -11,7 +11,7 @@
 #include <vector>
 #include "commons/arith_uint256.h"
 #include "leveldbwrapper.h"
-#include "dbaccess.h"
+#include "dbcache.h"
 #include "persistence/block.h"
 
 #include <map>

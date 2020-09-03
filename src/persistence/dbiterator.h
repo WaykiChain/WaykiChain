@@ -6,7 +6,7 @@
 #ifndef PERSIST_DB_ITERATOR_H
 #define PERSIST_DB_ITERATOR_H
 
-#include "dbaccess.h"
+#include "dbcache.h"
 
 template<typename CacheType>
 class CDBBaseIterator {
@@ -160,7 +160,7 @@ private:
         this->is_valid = false;
         if (map_it == this->db_cache.GetMapData().end())  return false;
         *this->sp_key = map_it->first;
-        *this->sp_value = *map_it->second;
+        *this->sp_value = *map_it->second.value;
         this->is_valid = true;
         return true;
     }

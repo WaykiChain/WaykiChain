@@ -4,7 +4,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include "commons/serialize.h"
-#include "persistence/dbaccess.h"
+#include "persistence/dbcache.h"
 #include "persistence/dbconf.h"
 
 #include <cstdint>
