@@ -696,6 +696,7 @@ public:
     }
 
     bool SetData(const ValueType &value) {
+        GetDataPtr();
         if (!ptrData) {
             ptrData = db_util::MakeEmptyValue<ValueType>();
         }
