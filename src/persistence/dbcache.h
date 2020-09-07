@@ -510,7 +510,7 @@ private:
             } else if (pDbAccess != NULL) {
                 auto ptrDbData = std::make_shared<ValueType>();
                 if (!pDbAccess->GetData(PREFIX_TYPE, *ptrDbData)) {
-                    ptrDbData = nullptr;
+                    db_util::SetEmpty(*ptrDbData);
                 }
                 cache_value = std::make_shared<CacheValue>(ptrDbData, false);
             }
