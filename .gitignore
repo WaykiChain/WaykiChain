@@ -63,3 +63,4 @@ CMakeLists.txt
 cmake-build-debug
 .idea
 src/external/softfloat/
+src/unit_test
