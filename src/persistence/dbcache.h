@@ -250,7 +250,7 @@ private:
             // TODO: need to save the empty value to mapData for search performance?
             auto pDbValue = std::make_shared<ValueType>();
             CacheValue cacheValue;
-            if (pDbAccess->GetData(PREFIX_TYPE, key, *cacheValue.value)) {
+            if (!pDbAccess->GetData(PREFIX_TYPE, key, *cacheValue.value)) {
                 cacheValue.SetValueEmpty(false);
             }
             return AddDataToMap(key, cacheValue);
