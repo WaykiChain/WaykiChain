@@ -226,25 +226,37 @@ std::shared_ptr<CBaseTx> genWasmContractCallTx(json_spirit::Value param_json) {
                     str_data,
                     wasm::max_serialization_time);
 
+            auto auth = authorizer_name;
+            Value str_auth = null_type;
+
+            if (JSON::GetObjectFieldValue(json_transaction, "auth", str_auth)) {    
+                auth = wasm::regid(str_auth.get_str());
+            }
+
             pBaseTx->inline_transactions.push_back({
                     contract_regid.value,
                     action.value,
-                    std::vector<wasm::permission>{{authorizer_name.value, wasm::wasmio_owner}},
+                    std::vector<wasm::permission>{{auth.value, wasm::wasmio_owner}},
                     action_data
                 });
+
+            if ( !str_auth.is_null()) {
+                pBaseTx->signatures.push_back({auth.value, {}});
+            } 
         }
 
-        Value json_signs;
-        if (JSON::GetObjectFieldValue(param_json, "signs", json_signs)) {
-            Array sign_arr = json_signs.get_array();
-            for (auto& sign : sign_arr) {
-                const Value& str_auth = JSON::GetObjectFieldValue(sign, "auth");
-                auto auth = wasm::regid(str_auth.get_str());
-                const Value& str_sign = JSON::GetObjectFieldValue(sign, "sign");
-                std::vector<uint8_t> signature(str_sign.get_str().begin(), str_sign.get_str().end());
-                pBaseTx->signatures.push_back({auth.value, signature});
-            }
-        }
+        // Value json_signs;
+        // if (JSON::GetObjectFieldValue(param_json, "signs", json_signs)) {
+        //     Array sign_arr = json_signs.get_array();
+        //     for (auto& sign : sign_arr) {
+        //         const Value& str_auth = JSON::GetObjectFieldValue(sign, "auth");
+        //         auto auth = wasm::regid(str_auth.get_str());
+        //         const Value& str_sign = JSON::GetObjectFieldValue(sign, "sign");
+        //         std::vector<uint8_t> signature(str_sign.get_str().begin(), str_sign.get_str().end());
+        //         pBaseTx->signatures.push_back({auth.value, signature});
+        //     }
+        // }
+
         return pBaseTx;
     } JSON_RPC_CAPTURE_AND_RETHROW;
 }
