@@ -245,18 +245,6 @@ std::shared_ptr<CBaseTx> genWasmContractCallTx(json_spirit::Value param_json) {
             } 
         }
 
-        // Value json_signs;
-        // if (JSON::GetObjectFieldValue(param_json, "signs", json_signs)) {
-        //     Array sign_arr = json_signs.get_array();
-        //     for (auto& sign : sign_arr) {
-        //         const Value& str_auth = JSON::GetObjectFieldValue(sign, "auth");
-        //         auto auth = wasm::regid(str_auth.get_str());
-        //         const Value& str_sign = JSON::GetObjectFieldValue(sign, "sign");
-        //         std::vector<uint8_t> signature(str_sign.get_str().begin(), str_sign.get_str().end());
-        //         pBaseTx->signatures.push_back({auth.value, signature});
-        //     }
-        // }
-
         return pBaseTx;
     } JSON_RPC_CAPTURE_AND_RETHROW;
 }
