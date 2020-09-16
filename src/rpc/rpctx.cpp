@@ -1078,7 +1078,7 @@ Value signtxraw(const Array& params, bool fHelp) {
             "\nsignature transaction\n"
             "\nArguments:\n"
             "1.\"str\": (string, required) Hex-format string, no longer than 65K in binary bytes\n"
-            "2.\"signer_address\": (string, required) A json array of WICC addresses\n"
+            "2.\"signers\": (array, required) A json array of WICC addresses\n"
             "[\n"
             "  \"address\"  (string) WICC address\n"
             "  ...,\n"
