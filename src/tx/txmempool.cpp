@@ -70,7 +70,7 @@ bool CTxMemPool::AddUnchecked(const uint256 &txid, const CTxMemPoolEntry &entry,
     // all the appropriate checks.
     LOCK(cs);
     {
-        if (!CheckTxInMemPool(txid, entry, state))
+        if (!CheckTxInMemPool(txid, entry, state, memPoolTxs.size()))
             return false;
 
         memPoolTxs.insert(make_pair(txid, entry));
@@ -88,7 +88,7 @@ void CTxMemPool::QueryHash(vector<uint256> &txids) {
     }
 }
 
-bool CTxMemPool::CheckTxInMemPool(const uint256 &txid, const CTxMemPoolEntry &memPoolEntry, CValidationState &state,
+bool CTxMemPool::CheckTxInMemPool(const uint256 &txid, const CTxMemPoolEntry &memPoolEntry, CValidationState &state, const int &index,
                                   bool bRehearsalExecute) {
     auto bm = MAKE_BENCHMARK("execute tx in mempool");
     CBlockIndex *pTip =  chainActive.Tip();
@@ -117,7 +117,7 @@ bool CTxMemPool::CheckTxInMemPool(const uint256 &txid, const CTxMemPoolEntry &me
         uint32_t fuelRate  = GetElementForBurn(pTip);
         uint32_t blockTime = pTip->GetBlockTime();
         uint32_t prevBlockTime = pTip->pprev != nullptr ? pTip->pprev->GetBlockTime() : pTip->GetBlockTime();
-        CTxExecuteContext context(newHeight, 0, fuelRate, blockTime, prevBlockTime, bpRegid, spCW.get(), &state,
+        CTxExecuteContext context(newHeight, index, fuelRate, blockTime, prevBlockTime, bpRegid, spCW.get(), &state,
                                 TxExecuteContextType::VALIDATE_MEMPOOL);
 
         if (!tx.ExecuteFullTx(context)) { //rehearsal only within cache env
@@ -142,8 +142,9 @@ void CTxMemPool::ReScanMemPoolTx() {
 
     LOCK(cs);
     CValidationState state;
+    int index = 0;
     for (map<uint256, CTxMemPoolEntry>::iterator iterTx = memPoolTxs.begin(); iterTx != memPoolTxs.end();) {
-        if (!CheckTxInMemPool(iterTx->first, iterTx->second, state, true)) {
+        if (!CheckTxInMemPool(iterTx->first, iterTx->second, state, ++index, true)) {
             uint256 txid = iterTx->first;
             iterTx       = memPoolTxs.erase(iterTx++);
             EraseTransactionFromWallet(txid);
