@@ -88,7 +88,7 @@ void CTxMemPool::QueryHash(vector<uint256> &txids) {
     }
 }
 
-bool CTxMemPool::CheckTxInMemPool(const uint256 &txid, const CTxMemPoolEntry &memPoolEntry, CValidationState &state, const int &index,
+bool CTxMemPool::CheckTxInMemPool(const uint256 &txid, const CTxMemPoolEntry &memPoolEntry, CValidationState &state, int32_t index,
                                   bool bRehearsalExecute) {
     auto bm = MAKE_BENCHMARK("execute tx in mempool");
     CBlockIndex *pTip =  chainActive.Tip();
@@ -143,8 +143,8 @@ void CTxMemPool::ReScanMemPoolTx() {
     LOCK(cs);
     CValidationState state;
     int index = 0;
-    for (map<uint256, CTxMemPoolEntry>::iterator iterTx = memPoolTxs.begin(); iterTx != memPoolTxs.end();) {
-        if (!CheckTxInMemPool(iterTx->first, iterTx->second, state, ++index, true)) {
+    for (map<uint256, CTxMemPoolEntry>::iterator iterTx = memPoolTxs.begin(); iterTx != memPoolTxs.end(); ++index) {
+        if (!CheckTxInMemPool(iterTx->first, iterTx->second, state, index, true)) {
             uint256 txid = iterTx->first;
             iterTx       = memPoolTxs.erase(iterTx++);
             EraseTransactionFromWallet(txid);
