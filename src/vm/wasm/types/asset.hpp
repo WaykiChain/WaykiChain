@@ -444,10 +444,14 @@ namespace wasm {
                                  amount_str);
                 }
 
-                int64_t amount = int_part;
-                amount *= sym.precision_in_10();
+                int64_t precision_in_10 = sym.precision_in_10();
+                assert(precision_in_10 > 0);
+                int64_t amount = int_part * precision_in_10;
+                CHAIN_ASSERT(int_part == amount / precision_in_10 , asset_type_exception,
+                                "asset '%s' overflow", from);
                 amount += fract_part;
-
+                CHAIN_ASSERT(amount >= fract_part, asset_type_exception,
+                                "asset '%s' overflow", from);
 
                 return asset(amount, sym);
             }
