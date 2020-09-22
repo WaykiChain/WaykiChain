@@ -336,13 +336,10 @@ Value genunsignedtxraw(const Array &params, bool fHelp) {
         throw runtime_error(gen_rawtx_rpc_help_message);
     }
 
-    RPCTypeCheck(params, list_of(str_type)(str_type));
-
     string func = params[0].get_str();
-    string param = params[1].get_str();
-    json_spirit::Value param_json;
-    json_spirit::read_string(param, param_json);
-    std::shared_ptr<CBaseTx> pBaseTx = nameToFuncMap[func](param_json);
+
+    auto argsIn = RPC_PARAM::GetGenunsignedArgs(params[1]);
+    std::shared_ptr<CBaseTx> pBaseTx = nameToFuncMap[func](argsIn);
 
     Object obj;
     obj.push_back(Pair("txid", pBaseTx->GetHash().GetHex()));
