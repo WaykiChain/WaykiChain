@@ -821,18 +821,3 @@ CBlock RPC_PARAM::ReadBlock(CBlockIndex* pBlockIndex) {
     }
     return block;
 }
-
-
-Value RPC_PARAM::GetGenunsignedArgs(const Value &jsonValue) {
-    auto newValue = jsonValue;
-    if (newValue.type() == json_spirit::str_type){
-        json_spirit::read_string(jsonValue.get_str(), newValue);
-    }
-
-    if (newValue.type() == json_spirit::obj_type){
-        return newValue;
-    }
-
-    throw JSONRPCError(RPC_INVALID_PARAMETER, "The genunsignedtxraw args type must be object,"
-                                              " or string of object");
-}
