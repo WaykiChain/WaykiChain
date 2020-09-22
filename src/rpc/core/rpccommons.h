@@ -127,8 +127,6 @@ namespace RPC_PARAM {
     CUniversalContractStore GetWasmContract(CContractDBCache &contractCache, const CRegID &regid);
 
     CBlock ReadBlock(CBlockIndex* pBlockIndex);
-
-    Value GetGenunsignedArgs(const Value &jsonValue);
     
 }
 
