@@ -229,7 +229,7 @@ std::shared_ptr<CBaseTx> genWasmContractCallTx(json_spirit::Value param_json) {
             auto auth = authorizer_name;
             Value str_auth = null_type;
 
-            if (JSON::GetObjectFieldValue(json_transaction, "auth", str_auth)) {    
+            if (JSON::GetObjectFieldValue(json_transaction, "auth", str_auth)) {
                 auth = wasm::regid(str_auth.get_str());
             }
 
@@ -241,8 +241,8 @@ std::shared_ptr<CBaseTx> genWasmContractCallTx(json_spirit::Value param_json) {
                 });
 
             if ( !str_auth.is_null()) {
-                pBaseTx->signatures.push_back({auth.value, {}});
-            } 
+                pBaseTx->set_signature(auth.value, {});
+            }
         }
 
         return pBaseTx;
