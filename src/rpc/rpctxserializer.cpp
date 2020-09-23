@@ -195,6 +195,7 @@ std::shared_ptr<CBaseTx> genWasmContractCallTx(json_spirit::Value param_json) {
         pBaseTx->valid_height = height;
         pBaseTx->fee_symbol   = fee.symbol;
         pBaseTx->llFees       = fee.GetAmountInSawi();
+        set<uint64_t> signers;
         Array json_transactions = JSON::GetObjectFieldValue(param_json, "transactions").get_array();
         for (auto& json_transaction : json_transactions) {
             const Value& str_contract   = JSON::GetObjectFieldValue(json_transaction, "contract");
@@ -240,10 +241,11 @@ std::shared_ptr<CBaseTx> genWasmContractCallTx(json_spirit::Value param_json) {
                     action_data
                 });
 
-            if ( !str_auth.is_null()) {
-                pBaseTx->set_signature(auth.value, {});
-            }
+            if (auth != authorizer_name)
+                signers.insert(auth.value);
         }
+        for (auto &signer : signers)
+            pBaseTx->set_signature(signer, {});
 
         return pBaseTx;
     } JSON_RPC_CAPTURE_AND_RETHROW;
