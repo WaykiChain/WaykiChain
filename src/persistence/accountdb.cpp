@@ -311,3 +311,19 @@ Object CAccountDBCache::GetAccountDBStats() {
     return obj;
 
 }
+
+uint64_t CAccountDBCache::GetAssetTotalSupply(TokenSymbol assetSymbol) {
+    uint64_t totalAssetCoins(0);
+
+    CDbIterator it(accountCache);
+    for (it.First(); it.IsValid(); it.Next()) {
+        const CAccount &account = it.GetValue();
+
+        CAccountToken assetCoind = account.GetToken(assetSymbol);
+
+        totalAssetCoins += assetCoind.free_amount + assetCoind.voted_amount + assetCoind.frozen_amount + assetCoind.staked_amount + assetCoind.pledged_amount;
+    }
+
+    return totalAssetCoins;
+}
+

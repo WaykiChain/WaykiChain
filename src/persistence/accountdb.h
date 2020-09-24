@@ -68,6 +68,7 @@ public:
 
     std::tuple<uint64_t, uint64_t, uint64_t, uint64_t> TraverseAccount();
     Object GetAccountDBStats();
+    uint64_t GetAssetTotalSupply(TokenSymbol assetSymbol);
 
     bool GetUserId(const string &addr, CUserID &userId) const;
     bool GetRegId(const CKeyID &keyId, CRegID &regId) const;
