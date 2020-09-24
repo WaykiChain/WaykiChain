@@ -315,7 +315,7 @@ unordered_map <string, std::shared_ptr<CBaseTx> (*)(json_spirit::Value)> nameToF
     { "submitdelegatevotetx",    &genDelegateVotetx     }
 };
 
-Value GetGenunsignedArgs(const Value &jsonValue) {
+Value GetTxArgs(const Value &jsonValue) {
     auto newValue = jsonValue;
     if (newValue.type() == json_spirit::str_type){
         json_spirit::read_string(jsonValue.get_str(), newValue);
@@ -352,7 +352,7 @@ Value genunsignedtxraw(const Array &params, bool fHelp) {
 
     string func = params[0].get_str();
 
-    auto argsIn = GetGenunsignedArgs(params[1]);
+    auto argsIn = GetTxArgs(params[1]);
     std::shared_ptr<CBaseTx> pBaseTx = nameToFuncMap[func](argsIn);
 
     Object obj;
