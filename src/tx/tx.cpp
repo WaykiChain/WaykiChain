@@ -132,8 +132,7 @@ bool CBaseTx::CheckBaseTx(CTxExecuteContext &context) {
     { //2. check Tx fee
         switch (nTxType) {
             case LCONTRACT_DEPLOY_TX:
-            case LCONTRACT_INVOKE_TX:
-            case UCOIN_TRANSFER_TX: break; //to be checked in Tx Code but not here
+            case LCONTRACT_INVOKE_TX: break; //to be checked in Tx Code but not here
             default:
                 if(!CheckFee(context)) return false;
         }

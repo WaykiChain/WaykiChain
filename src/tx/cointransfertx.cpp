@@ -68,6 +68,16 @@ Object CBaseCoinTransferTx::ToJson(CCacheWrapper &cw) const {
     return result;
 }
 
+bool CCoinTransferTx::CheckMinFee(CTxExecuteContext &context, uint64_t minFee) {
+    auto totalMinFee = transfers.size() * minFee;
+    if (llFees < transfers.size() * totalMinFee) {
+        string err = strprintf("The given fee is too small: %llu < %llu sawi", llFees, totalMinFee);
+        return context.pState->DoS(100, ERRORMSG("%s, tx=%s, height=%d, fee_symbol=%s",
+            err, GetTxTypeName(), context.height, fee_symbol), REJECT_INVALID, err);
+    }
+    return true;
+}
+
 bool CCoinTransferTx::CheckTx(CTxExecuteContext &context) {
     IMPLEMENT_DEFINE_CW_STATE;
     IMPLEMENT_CHECK_TX_MEMO;
@@ -100,14 +110,6 @@ bool CCoinTransferTx::CheckTx(CTxExecuteContext &context) {
             return state.DoS(100,
                 ERRORMSG("transfers[%d], coin_symbol=%s, coin_amount=%llu out of valid range",
                          i, transfers[i].coin_symbol, transfers[i].coin_amount), REJECT_DUST, "invalid-coin-amount");
-    }
-
-    uint64_t minFee;
-    if (!GetTxMinFee(cw, nTxType, context.height, fee_symbol, minFee)) { assert(false); /* has been check before */ }
-
-    if (llFees < transfers.size() * minFee) {
-        return state.DoS(100, ERRORMSG("tx fee too small (height: %d, fee symbol: %s, fee: %llu)",
-                         context.height, fee_symbol, llFees), REJECT_INVALID, "bad-tx-fee-toosmall");
     }
 
     if ((txUid.is<CPubKey>()) && !txUid.get<CPubKey>().IsFullyValid())
