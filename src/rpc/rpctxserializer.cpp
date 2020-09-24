@@ -317,6 +317,20 @@ unordered_map <string, std::shared_ptr<CBaseTx> (*)(json_spirit::Value)> nameToF
     { "submitdelegatevotetx",    &genDelegateVotetx     }
 };
 
+Value GetTxArgs(const Value &jsonValue) {
+    auto newValue = jsonValue;
+    if (newValue.type() == json_spirit::str_type){
+        json_spirit::read_string(jsonValue.get_str(), newValue);
+    }
+
+    if (newValue.type() == json_spirit::obj_type){
+        return newValue;
+    }
+
+    throw JSONRPCError(RPC_INVALID_PARAMETER, "The genunsignedtxraw args type must be object,"
+                                              " or string of object");
+}
+
 /**
  * Example Usage:
  *
@@ -338,13 +352,10 @@ Value genunsignedtxraw(const Array &params, bool fHelp) {
         throw runtime_error(gen_rawtx_rpc_help_message);
     }
 
-    RPCTypeCheck(params, list_of(str_type)(str_type));
-
     string func = params[0].get_str();
-    string param = params[1].get_str();
-    json_spirit::Value param_json;
-    json_spirit::read_string(param, param_json);
-    std::shared_ptr<CBaseTx> pBaseTx = nameToFuncMap[func](param_json);
+
+    auto argsIn = GetTxArgs(params[1]);
+    std::shared_ptr<CBaseTx> pBaseTx = nameToFuncMap[func](argsIn);
 
     Object obj;
     obj.push_back(Pair("txid", pBaseTx->GetHash().GetHex()));
