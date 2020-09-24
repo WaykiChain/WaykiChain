@@ -760,8 +760,11 @@ extern Value getassetinfo(const Array& params, bool fHelp) {
     if (!pCdMan->pAssetCache->GetAsset(assetSymbol, asset))
         throw JSONRPCError(RPC_INVALID_PARAMS, strprintf("Asset(%s) not exist!", assetSymbol));
 
-    asset.total_supply = pCdMan->pAccountCache->GetAssetTotalSupply(assetSymbol);
     Object obj = AssetToJson(*pCdMan->pAccountCache, asset);
+
+    auto actualAsset = pCdMan->pAccountCache->GetAssetTotalSupply(assetSymbol);
+    obj.push_back(Pair("actual_total_supply",   actualAsset));
+
     return obj;
 }
 
