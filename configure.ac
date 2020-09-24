@@ -1,7 +1,7 @@
 dnl require autoconf 2.60 (AS_ECHO/AS_ECHO_N)
 define(_CLIENT_VERSION_MAJOR,       3)
 define(_CLIENT_VERSION_MINOR,       2)
-define(_CLIENT_VERSION_REVISION,    1)
+define(_CLIENT_VERSION_REVISION,    2)
 define(_CLIENT_VERSION_BUILD,       1)
 define(_CLIENT_VERSION_IS_RELEASE,  true)
 define(_COPYRIGHT_YEAR, 2020)
