@@ -101,6 +101,7 @@ public:
 
     virtual bool CheckTx(CTxExecuteContext &context);
     virtual bool ExecuteTx(CTxExecuteContext &context);
+    virtual bool CheckMinFee(CTxExecuteContext &context, uint64_t minFee);
 };
 
 #endif // TX_COIN_TRANSFER_H
