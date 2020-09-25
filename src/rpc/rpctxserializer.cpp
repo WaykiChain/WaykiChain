@@ -245,7 +245,7 @@ std::shared_ptr<CBaseTx> genWasmContractCallTx(json_spirit::Value param_json) {
                 signers.insert(auth.value);
         }
         for (auto &signer : signers)
-            pBaseTx->set_signature(signer, {});
+            pBaseTx->signatures.push_back({signer, {}});
 
         return pBaseTx;
     } JSON_RPC_CAPTURE_AND_RETHROW;

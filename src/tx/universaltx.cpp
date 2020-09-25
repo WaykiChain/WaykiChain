@@ -448,17 +448,3 @@ Object CUniversalTx::ToJson(CCacheWrapper &cw) const {
 
     return result;
 }
-
-void CUniversalTx::set_signature(const uint64_t& account, const vector<uint8_t>& signature) {
-    for( auto& s:signatures ){
-        if( s.account == account ){
-            s.signature = signature;
-            return;
-        }
-    }
-    CHAIN_ASSERT(false, wasm_chain::missing_auth_exception, "cannot find account %s in signature list", wasm::name(account).to_string());
-}
-
-void CUniversalTx::set_signature(const wasm::signature_pair& signature) {
-    set_signature(signature.account, signature.signature);
-}
