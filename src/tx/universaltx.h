@@ -37,8 +37,6 @@ public:
     void                        pause_billing_timer();
     void                        resume_billing_timer();
     std::chrono::milliseconds   get_max_transaction_duration() { return max_transaction_duration; }
-    void                        set_signature(const uint64_t& account, const vector<uint8_t>& signature);
-    void                        set_signature(const wasm::signature_pair& signature);
 
 public:
     CUniversalTx(const CBaseTx *pBaseTx): CBaseTx(UNIVERSAL_TX) {
