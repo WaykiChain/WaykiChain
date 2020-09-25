@@ -70,7 +70,7 @@ Object CBaseCoinTransferTx::ToJson(CCacheWrapper &cw) const {
 
 bool CCoinTransferTx::CheckMinFee(CTxExecuteContext &context, uint64_t minFee) {
     auto totalMinFee = transfers.size() * minFee;
-    if (llFees < transfers.size() * totalMinFee) {
+    if (llFees < totalMinFee) {
         string err = strprintf("The given fee is too small: %llu < %llu sawi", llFees, totalMinFee);
         return context.pState->DoS(100, ERRORMSG("%s, tx=%s, height=%d, fee_symbol=%s",
             err, GetTxTypeName(), context.height, fee_symbol), REJECT_INVALID, err);
