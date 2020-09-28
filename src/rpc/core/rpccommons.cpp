@@ -830,7 +830,7 @@ CBlock RPC_PARAM::ReadBlock(CBlockIndex* pBlockIndex) {
  *  ==> ratio = a / Log10 (b+N)
  */
 static uint64_t ComputeCDPInterest(CSysParamDBCache &sysParamCache, const CUserCDP &cdp, uint32_t tipHeight) {
-    if (cdp.total_owed_scoins == 0 || cdp.block_height <= tipHeight) {
+    if (cdp.total_owed_scoins == 0 || cdp.block_height > tipHeight) {
         return 0;
     }
 
