@@ -514,8 +514,6 @@ Value getcdpinfo(const Array& params, bool fHelp){
     }
 
     uint32_t tipHeight = chainActive.Height();
-
-    uint64_t bcoinMedianPrice = RPC_PARAM::GetPriceByCdp(*pCdMan->pPriceFeedCache, cdp);
     Object obj;
     obj.push_back(Pair("height", tipHeight));
     obj.push_back(Pair("cdp", RPC_PARAM::CdpToJson(cdp, tipHeight)));
