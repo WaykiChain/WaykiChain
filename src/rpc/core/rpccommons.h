@@ -122,12 +122,13 @@ namespace RPC_PARAM {
 
     Value GetWasmContractArgs(const Value &jsonValue);
 
-    uint64_t GetPriceByCdp(CPriceFeedCache &priceFeedCache, CUserCDP &cdp);
+    uint64_t GetPriceByCdp(CPriceFeedCache &priceFeedCache, const CUserCDP &cdp);
 
     CUniversalContractStore GetWasmContract(CContractDBCache &contractCache, const CRegID &regid);
 
     CBlock ReadBlock(CBlockIndex* pBlockIndex);
-    
+
+    Object CdpToJson(const CUserCDP &cdp, uint32_t tipHeight);
 }
 
 /*

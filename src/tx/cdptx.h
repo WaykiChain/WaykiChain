@@ -221,4 +221,7 @@ public:
 
 bool GetSettledInterestCdps(CCacheWrapper &cw, HeightType height, vector<uint256> &cdpList);
 
+uint64_t ComputeCDPInterest(const uint64_t total_owed_scoins, const int32_t beginHeight, const uint32_t endHeight,
+                            uint64_t A, uint64_t B);
+
 #endif //TX_CDP_H

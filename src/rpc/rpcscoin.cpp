@@ -474,13 +474,14 @@ Value getusercdp(const Array& params, bool fHelp){
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, strprintf("The account not exists! userId=%s", pUserId->ToString()));
     }
 
+    uint32_t tipHeight = chainActive.Height();
     Object obj;
+    obj.push_back(Pair("height", tipHeight));
     Array cdps;
     vector<CUserCDP> userCdps;
     if (pCdMan->pCdpCache->GetCDPList(account.regid, userCdps)) {
         for (auto& cdp : userCdps) {
-            uint64_t bcoinMedianPrice = RPC_PARAM::GetPriceByCdp(*pCdMan->pPriceFeedCache, cdp);
-            cdps.push_back(cdp.ToJson(bcoinMedianPrice));
+            cdps.push_back(RPC_PARAM::CdpToJson(cdp, tipHeight));
         }
 
         obj.push_back(Pair("user_cdps", cdps));
@@ -488,6 +489,7 @@ Value getusercdp(const Array& params, bool fHelp){
 
     return obj;
 }
+
 
 Value getcdpinfo(const Array& params, bool fHelp){
     if (fHelp || params.size() < 1 || params.size() > 2) {
@@ -511,9 +513,12 @@ Value getcdpinfo(const Array& params, bool fHelp){
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, strprintf("CDP (%s) does not exist!", cdpTxId.GetHex()));
     }
 
+    uint32_t tipHeight = chainActive.Height();
+
     uint64_t bcoinMedianPrice = RPC_PARAM::GetPriceByCdp(*pCdMan->pPriceFeedCache, cdp);
     Object obj;
-    obj.push_back(Pair("cdp", cdp.ToJson(bcoinMedianPrice)));
+    obj.push_back(Pair("height", tipHeight));
+    obj.push_back(Pair("cdp", RPC_PARAM::CdpToJson(cdp, tipHeight)));
     return obj;
 }
 

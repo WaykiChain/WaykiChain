@@ -652,6 +652,7 @@ Value getaccountinfo(const Array& params, bool fHelp) {
     bool on_chain = false;
     bool pubkey_registered = false;
     bool in_wallet = false;
+    uint32_t tipHeight = chainActive.Height();
 
     if (pCdMan->pAccountCache->GetAccount(userId, account)) {
         on_chain = true;
@@ -679,19 +680,18 @@ Value getaccountinfo(const Array& params, bool fHelp) {
                 addrStr));
         }
     }
-
     obj = account.ToJsonObj();
     obj.push_back(Pair("onchain", on_chain));
     obj.push_back(Pair("in_wallet", in_wallet));
     obj.push_back(Pair("pubkey_registered", pubkey_registered));
+    obj.push_back(Pair("height", tipHeight));
 
     if (on_chain && !account.regid.IsEmpty()) {
         Array cdps;
         vector<CUserCDP> userCdps;
         if (pCdMan->pCdpCache->GetCDPList(account.regid, userCdps)) {
             for (auto& cdp : userCdps) {
-                uint64_t bcoinMedianPrice = RPC_PARAM::GetPriceByCdp(*pCdMan->pPriceFeedCache, cdp);
-                cdps.push_back(cdp.ToJson(bcoinMedianPrice));
+                cdps.push_back(RPC_PARAM::CdpToJson(cdp, tipHeight));
             }
         }
 

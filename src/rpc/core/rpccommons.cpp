@@ -17,6 +17,7 @@
 #include "wasm_context.hpp"
 #include "wasm_variant_trace.hpp"
 #include "wasm/exception/exceptions.hpp"
+#include "tx/cdptx.h"
 
 #include <regex>
 #include <fstream>
@@ -787,7 +788,7 @@ Value RPC_PARAM::GetWasmContractArgs(const Value &jsonValue) {
                                               " or string of object or array");
 }
 
-uint64_t RPC_PARAM::GetPriceByCdp(CPriceFeedCache &priceFeedCache, CUserCDP &cdp) {
+uint64_t RPC_PARAM::GetPriceByCdp(CPriceFeedCache &priceFeedCache, const CUserCDP &cdp) {
     auto quoteSymbol = GetQuoteSymbolByCdpScoin(cdp.scoin_symbol);
     if (quoteSymbol.empty())  {
         throw JSONRPCError(RPC_INVALID_PARAMETER,
@@ -820,4 +821,46 @@ CBlock RPC_PARAM::ReadBlock(CBlockIndex* pBlockIndex) {
         throw JSONRPCError(RPC_INTERNAL_ERROR, "Can't read block from disk");
     }
     return block;
+}
+
+
+/**
+ *  Interest Ratio Formula: ( a / Log10(b + N) )
+ *
+ *  ==> ratio = a / Log10 (b+N)
+ */
+static uint64_t ComputeCDPInterest(CSysParamDBCache &sysParamCache, const CUserCDP &cdp, uint32_t tipHeight) {
+    if (cdp.total_owed_scoins == 0 || cdp.block_height <= tipHeight) {
+        return 0;
+    }
+
+    const auto& coinPair = cdp.GetCoinPair();
+
+    list<CCdpInterestParamChange> changes;
+    if (!sysParamCache.GetCdpInterestParamChanges(coinPair, cdp.block_height, tipHeight, changes)) {
+        throw JSONRPCError(RPC_INTERNAL_ERROR, strprintf("get cdp interest param changes error! coinPiar=%s",
+                                    coinPair.ToString()));
+    }
+
+    uint64_t interest = 0;
+    for (auto &change : changes) {
+        interest += ::ComputeCDPInterest(cdp.total_owed_scoins, change.begin_height, change.end_height,
+                                        change.param_a, change.param_b);
+    }
+
+    return interest;
+}
+
+Object RPC_PARAM::CdpToJson(const CUserCDP &cdp, uint32_t tipHeight) {
+
+    uint64_t bcoinMedianPrice = GetPriceByCdp(*pCdMan->pPriceFeedCache, cdp);
+    uint64_t interest = ComputeCDPInterest(*pCdMan->pSysParamCache, cdp, tipHeight);
+
+    int32_t blockInterval = tipHeight >= cdp.block_height ? tipHeight - cdp.block_height : 0;
+    int32_t interestDays    = std::max<int32_t>(1, ceil((double)blockInterval / SysCfg().GetOneDayBlocks(tipHeight)));
+
+    auto obj = cdp.ToJson(bcoinMedianPrice);
+    obj.push_back(Pair("interest_due", interest));
+    obj.push_back(Pair("interest_days", interestDays));
+    return obj;
 }
