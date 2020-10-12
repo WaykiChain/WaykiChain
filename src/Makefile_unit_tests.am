@@ -30,4 +30,5 @@ unit_test_SOURCES = \
   tests/dbaccess_tests.cpp \
   tests/leb128_tests.cpp \
   tests/commons/lrucache_tests.cpp \
-  tests/unit_tests.cpp
+  tests/unit_tests.cpp \
+  tests/pubkey_tests.cpp
