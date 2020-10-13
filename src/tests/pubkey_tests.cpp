@@ -13,7 +13,6 @@ BOOST_AUTO_TEST_CASE(pubKey_verify_test)
 {
     ECC_Start();
     std::unique_ptr<ECCVerifyHandle> handle = std::make_unique<ECCVerifyHandle>();
-    //Handle.reset(new ECCVerifyHandle());
 
     // Randomly generate a private key
     CKey  key;
