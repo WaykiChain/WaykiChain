@@ -9,7 +9,7 @@ using namespace std;
 
 BOOST_AUTO_TEST_SUITE(pub_key_tests)
 
-BOOST_AUTO_TEST_CASE(pubKey_verify_test)
+BOOST_AUTO_TEST_CASE(pub_key_verify_test)
 {
     ECC_Start();
     std::unique_ptr<ECCVerifyHandle> handle = std::make_unique<ECCVerifyHandle>();
