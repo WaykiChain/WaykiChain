@@ -27,8 +27,9 @@ static bool GetFuelLimit(CBaseTx &tx, CTxExecuteContext &context, uint64_t &fuel
     if (!GetTxMinFee(*context.pCw, tx.nTxType, context.height, tx.fee_symbol, minFee))
         return context.pState->DoS(100, ERRORMSG("get minFee failed"), REJECT_INVALID, "get-min-fee-failed");
 
-    assert(tx.llFees >= minFee);
+    if (!tx.CheckMinFee(context, minFee)) return false;
 
+    assert(tx.llFees >= minFee);
     uint64_t reservedFeesForMiner = minFee * CONTRACT_CALL_RESERVED_FEES_RATIO / 100;
     uint64_t reservedFeesForGas   = tx.llFees - reservedFeesForMiner;
 
