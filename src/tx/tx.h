@@ -228,12 +228,12 @@ public:
     bool CheckTxAvailableFromVer(CTxExecuteContext &context, FeatureForkVersionEnum ver);
 
     bool VerifySignature(CTxExecuteContext &context, const CPubKey &pubkey);
+    bool CheckFee(CTxExecuteContext &context);
+    virtual bool CheckMinFee(CTxExecuteContext &context, uint64_t minFee);
 protected:
     void ClearMemData();
     bool CheckTxFeeSufficient(CCacheWrapper &cw, const TokenSymbol &feeSymbol,
                               const uint64_t llFees, const int32_t height) const;
-    bool CheckFee(CTxExecuteContext &context);
-    virtual bool CheckMinFee(CTxExecuteContext &context, uint64_t minFee);
 
     static bool AddInvolvedKeyIds(vector<CUserID> uids, CCacheWrapper &cw, set<CKeyID> &keyIds);
 };
