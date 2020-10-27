@@ -49,9 +49,8 @@ void static BIP32Hash(const uint8_t chainCode[32], uint32_t nChild, uint8_t head
 bool CKey::Check(const uint8_t *vch) { return secp256k1_ec_seckey_verify(secp256k1_context_sign, vch); }
 
 void CKey::MakeNewKey(bool fCompressedIn) {
-    RandAddSeedPerfmon();
     do {
-        RAND_bytes(vch, sizeof(vch));
+        GetStrongRandBytes(keydata.data(), keydata.size());
     } while (!Check(vch));
     fValid = true;
     assert(fCompressedIn == true);

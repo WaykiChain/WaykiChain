@@ -14,12 +14,37 @@
 #include <boost/thread/mutex.hpp>
 #include <boost/thread/recursive_mutex.hpp>
 
+
+#ifdef DEBUG_LOCKORDER
+void EnterCritical(const char* pszName, const char* pszFile, int nLine, void* cs, bool fTry = false);
+void LeaveCritical();
+void CheckLastCritical(void* cs, std::string& lockname, const char* guardname, const char* file, int line);
+string LocksHeld();
+void AssertLockHeldInternal(const char* pszName, const char* pszFile, int nLine, void *cs);
+void DeleteLock(void* cs);
+#else
+void static inline EnterCritical(const char* pszName, const char* pszFile, int nLine, void* cs, bool fTry = false) {}
+void static inline LeaveCritical() {}
+inline void CheckLastCritical(void* cs, std::string& lockname, const char* guardname, const char* file, int line) {}
+void static inline AssertLockHeldInternal(const char* pszName, const char* pszFile, int nLine, void *cs) {}
+inline void DeleteLock(void* cs) {}
+#endif
+#define AssertLockHeld(cs) AssertLockHeldInternal(#cs, __FILE__, __LINE__, &cs)
+
+#ifdef DEBUG_LOCKCONTENTION
+void PrintLockContention(const char* pszName, const char* pszFile, int nLine);
+#endif
+
 // Template mixin that adds -Wthread-safety locking annotations to a
 // subset of the mutex API.
 template <typename PARENT>
 class LOCKABLE AnnotatedMixin : public PARENT
 {
 public:
+    ~AnnotatedMixin() {
+        DeleteLock((void*)this);
+    }
+
     void lock() EXCLUSIVE_LOCK_FUNCTION()
     {
       PARENT::lock();
@@ -42,24 +67,6 @@ typedef AnnotatedMixin<boost::recursive_mutex> CCriticalSection;
 
 /** Wrapped boost mutex: supports waiting but not recursive locking */
 typedef AnnotatedMixin<boost::mutex> CWaitableCriticalSection;
-
-#ifdef DEBUG_LOCKORDER
-void EnterCritical(const char* pszName, const char* pszFile, int nLine, void* cs, bool fTry = false);
-void LeaveCritical();
-string LocksHeld();
-void AssertLockHeldInternal(const char* pszName, const char* pszFile, int nLine, void *cs);
-void DeleteLock(void* cs);
-#else
-void static inline EnterCritical(const char* pszName, const char* pszFile, int nLine, void* cs, bool fTry = false) {}
-void static inline LeaveCritical() {}
-void static inline AssertLockHeldInternal(const char* pszName, const char* pszFile, int nLine, void *cs) {}
-void static inline DeleteLock(void* cs) {}
-#endif
-#define AssertLockHeld(cs) AssertLockHeldInternal(#cs, __FILE__, __LINE__, &cs)
-
-#ifdef DEBUG_LOCKCONTENTION
-void PrintLockContention(const char* pszName, const char* pszFile, int nLine);
-#endif
 
 /** Wrapper around boost::unique_lock<Mutex> */
 template<typename Mutex>
@@ -117,6 +124,7 @@ typedef CMutexLock<CCriticalSection> CCriticalBlock;
 #define LOCK(cs) CCriticalBlock criticalblock(cs, #cs, __FILE__, __LINE__)
 #define LOCK2(cs1,cs2) CCriticalBlock criticalblock1(cs1, #cs1, __FILE__, __LINE__),criticalblock2(cs2, #cs2, __FILE__, __LINE__)
 #define TRY_LOCK(cs,name) CCriticalBlock name(cs, #cs, __FILE__, __LINE__, true)
+#define WAIT_LOCK(cs, name) DebugLock<decltype(cs)> name(cs, #cs, __FILE__, __LINE__)
 
 #define ENTER_CRITICAL_SECTION(cs) \
     { \
@@ -262,7 +270,7 @@ public:
 typedef StdAnnotatedMixin<std::mutex> StdMutex;
 
 /** Wrapper around std::unique_lock style lock for Mutex. */
-template <typename Mutex, typename Base = typename Mutex::UniqueLock>
+template <typename StdMutex, typename Base = typename StdMutex::UniqueLock>
 class SCOPED_LOCKABLE UniqueLock : public Base {
 private:
     void Enter(const char* pszName, const char* pszFile, int nLine) {
@@ -285,7 +293,7 @@ private:
     }
 
 public:
-    UniqueLock(Mutex& mutexIn, const char* pszName, const char* pszFile, int nLine,
+    UniqueLock(StdMutex& mutexIn, const char* pszName, const char* pszFile, int nLine,
                 bool fTry = false) EXCLUSIVE_LOCK_FUNCTION(mutexIn)
         : Base(mutexIn, std::defer_lock) {
         if (fTry)
@@ -294,7 +302,7 @@ public:
             Enter(pszName, pszFile, nLine);
     }
 
-    UniqueLock(Mutex* pmutexIn, const char* pszName, const char* pszFile, int nLine,
+    UniqueLock(StdMutex* pmutexIn, const char* pszName, const char* pszFile, int nLine,
                 bool fTry = false) EXCLUSIVE_LOCK_FUNCTION(pmutexIn) {
         if (!pmutexIn) return;
 
@@ -310,11 +318,47 @@ public:
     }
 
     operator bool() { return Base::owns_lock(); }
+    protected:
+    // needed for reverse_lock
+    UniqueLock() { }
+
+public:
+    /**
+     * An RAII-style reverse lock. Unlocks on construction and locks on destruction.
+     */
+    class reverse_lock {
+    public:
+        explicit reverse_lock(UniqueLock& _lock, const char* _guardname, const char* _file, int _line) : lock(_lock), file(_file), line(_line) {
+            CheckLastCritical((void*)lock.mutex(), lockname, _guardname, _file, _line);
+            lock.unlock();
+            LeaveCritical();
+            lock.swap(templock);
+        }
+
+        ~reverse_lock() {
+            templock.swap(lock);
+            EnterCritical(lockname.c_str(), file.c_str(), line, (void*)lock.mutex());
+            lock.lock();
+        }
+
+     private:
+        reverse_lock(reverse_lock const&);
+        reverse_lock& operator=(reverse_lock const&);
+
+        UniqueLock& lock;
+        UniqueLock templock;
+        std::string lockname;
+        const std::string file;
+        const int line;
+     };
+     friend class reverse_lock;
 };
 
 template <typename MutexArg>
 using DebugLock = UniqueLock<
     typename std::remove_reference<typename std::remove_pointer<MutexArg>::type>::type>;
+
+#define STDLOCK(cs) DebugLock<decltype(cs)> PASTE2(criticalblock, __COUNTER__)(cs, #cs, __FILE__, __LINE__)
 
 #define PASTE(x, y) x ## y
 #define PASTE2(x, y) PASTE(x, y)
