@@ -51,7 +51,7 @@ bool CKey::Check(const uint8_t *vch) { return secp256k1_ec_seckey_verify(secp256
 void CKey::MakeNewKey(bool fCompressedIn) {
     do {
         GetStrongRandBytes(keydata.data(), keydata.size());
-    } while (!Check(vch));
+    } while (!Check(keydata.data()));
     fValid = true;
     assert(fCompressedIn == true);
     fCompressed = fCompressedIn;

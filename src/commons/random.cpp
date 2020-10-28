@@ -31,7 +31,7 @@
 
 [[noreturn]] static void RandFailure()
 {
-    LogPrint(BCLog::INFO, "Failed to read randomness, aborting\n");
+    LogPrint(BCLog::ERROR, "Failed to read randomness, aborting\n");
     std::abort();
 }
 
@@ -405,7 +405,7 @@ public:
 
     void AddEvent(uint32_t event_info) noexcept
     {
-        STDLOCK(m_events_mutex);
+        STD_LOCK(m_events_mutex);
 
         m_events_hasher.Write((const unsigned char *)&event_info, sizeof(event_info));
         // Get the low four bytes of the performance counter. This translates to roughly the
@@ -421,7 +421,7 @@ public:
     {
         // We use only SHA256 for the events hashing to get the ASM speedups we have for SHA256,
         // since we want it to be fast as network peers may be able to trigger it repeatedly.
-        STDLOCK(m_events_mutex);
+        STD_LOCK(m_events_mutex);
 
         unsigned char events_hash[32];
         m_events_hasher.Finalize(events_hash);
@@ -443,7 +443,7 @@ public:
         static_assert(sizeof(buf) == CSHA512::OUTPUT_SIZE, "Buffer needs to have hasher's output size");
         bool ret;
         {
-            STDLOCK(m_mutex);
+            STD_LOCK(m_mutex);
             ret = (m_strongly_seeded |= strong_seed);
             // Write the current state of the RNG into the hasher
             hasher.Write(m_state, 32);
