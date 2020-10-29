@@ -14,12 +14,37 @@
 #include <boost/thread/mutex.hpp>
 #include <boost/thread/recursive_mutex.hpp>
 
+
+#ifdef DEBUG_LOCKORDER
+void EnterCritical(const char* pszName, const char* pszFile, int nLine, void* cs, bool fTry = false);
+void LeaveCritical();
+void CheckLastCritical(void* cs, std::string& lockname, const char* guardname, const char* file, int line);
+string LocksHeld();
+void AssertLockHeldInternal(const char* pszName, const char* pszFile, int nLine, void *cs);
+void DeleteLock(void* cs);
+#else
+void static inline EnterCritical(const char* pszName, const char* pszFile, int nLine, void* cs, bool fTry = false) {}
+void static inline LeaveCritical() {}
+inline void CheckLastCritical(void* cs, std::string& lockname, const char* guardname, const char* file, int line) {}
+void static inline AssertLockHeldInternal(const char* pszName, const char* pszFile, int nLine, void *cs) {}
+inline void DeleteLock(void* cs) {}
+#endif
+#define AssertLockHeld(cs) AssertLockHeldInternal(#cs, __FILE__, __LINE__, &cs)
+
+#ifdef DEBUG_LOCKCONTENTION
+void PrintLockContention(const char* pszName, const char* pszFile, int nLine);
+#endif
+
 // Template mixin that adds -Wthread-safety locking annotations to a
 // subset of the mutex API.
 template <typename PARENT>
 class LOCKABLE AnnotatedMixin : public PARENT
 {
 public:
+    ~AnnotatedMixin() {
+        DeleteLock((void*)this);
+    }
+
     void lock() EXCLUSIVE_LOCK_FUNCTION()
     {
       PARENT::lock();
@@ -42,24 +67,6 @@ typedef AnnotatedMixin<boost::recursive_mutex> CCriticalSection;
 
 /** Wrapped boost mutex: supports waiting but not recursive locking */
 typedef AnnotatedMixin<boost::mutex> CWaitableCriticalSection;
-
-#ifdef DEBUG_LOCKORDER
-void EnterCritical(const char* pszName, const char* pszFile, int nLine, void* cs, bool fTry = false);
-void LeaveCritical();
-string LocksHeld();
-void AssertLockHeldInternal(const char* pszName, const char* pszFile, int nLine, void *cs);
-void DeleteLock(void* cs);
-#else
-void static inline EnterCritical(const char* pszName, const char* pszFile, int nLine, void* cs, bool fTry = false) {}
-void static inline LeaveCritical() {}
-void static inline AssertLockHeldInternal(const char* pszName, const char* pszFile, int nLine, void *cs) {}
-void static inline DeleteLock(void* cs) {}
-#endif
-#define AssertLockHeld(cs) AssertLockHeldInternal(#cs, __FILE__, __LINE__, &cs)
-
-#ifdef DEBUG_LOCKCONTENTION
-void PrintLockContention(const char* pszName, const char* pszFile, int nLine);
-#endif
 
 /** Wrapper around boost::unique_lock<Mutex> */
 template<typename Mutex>
@@ -117,6 +124,7 @@ typedef CMutexLock<CCriticalSection> CCriticalBlock;
 #define LOCK(cs) CCriticalBlock criticalblock(cs, #cs, __FILE__, __LINE__)
 #define LOCK2(cs1,cs2) CCriticalBlock criticalblock1(cs1, #cs1, __FILE__, __LINE__),criticalblock2(cs2, #cs2, __FILE__, __LINE__)
 #define TRY_LOCK(cs,name) CCriticalBlock name(cs, #cs, __FILE__, __LINE__, true)
+#define WAIT_LOCK(cs, name) DebugLock<decltype(cs)> name(cs, #cs, __FILE__, __LINE__)
 
 #define ENTER_CRITICAL_SECTION(cs) \
     { \

@@ -122,6 +122,7 @@ coin_CORE_H = \
   config/chainparams.h \
   wallet/crypter.h \
   crypto/sha256.h \
+  crypto/sha512.h \
   crypto/hash.h \
   fs.h \
   init.h \
@@ -206,7 +207,8 @@ coin_CORE_H = \
   uint256.h \
   wallet/wallet.h \
   wallet/db.h \
-  logging.h
+  logging.h \
+  commons/randomenv.h
 
 JSON_H = \
   commons/json/json_spirit.h \
@@ -424,11 +426,13 @@ libcoin_common_a_SOURCES = \
   commons/arith_uint256.cpp \
   commons/random.cpp  \
   commons/uint256.cpp \
+  commons/randomenv.cpp \
   commons/bloom.cpp \
   commons/util/util.cpp \
   commons/util/threadnames.cpp \
   commons/util/time.cpp \
   crypto/hash.cpp \
+  crypto/sha512.cpp \
   config/chainparams.cpp \
   config/configuration.cpp \
   config/version.cpp \

@@ -244,13 +244,13 @@ private:
     bool fCompressed;
 
     // The actual byte data
-    uint8_t vch[32];
+    std::vector<unsigned char, secure_allocator<unsigned char> > keydata;
 
     // Check whether the 32-byte array pointed to be vch is valid keydata.
     bool static Check(const uint8_t *vch);
 
 public:
-    IMPLEMENT_SERIALIZE(uint32_t len = 0; while (len < sizeof(vch)) { READWRITE(vch[len++]); } READWRITE(fCompressed);
+    IMPLEMENT_SERIALIZE(uint32_t len = 0; while (len < keydata.size()) { READWRITE(keydata.data()[len++]); } READWRITE(fCompressed);
                         READWRITE(fValid);)
 
     string ToString() const {
@@ -259,35 +259,35 @@ public:
     }
 
     // Construct an invalid private key.
-    CKey() : fValid(false) {
-        LockObject(vch);
-        fCompressed = false;
+    CKey() : fValid(false), fCompressed(false) {
+        // Important: keydata must be 32 bytes in length to not break serialization
+        keydata.resize(32);
     }
 
     bool Clear() {
         fValid = false;
-        memset(vch, 0, sizeof(vch));
+        memset(keydata.data(), 0, keydata.size());
         return true;
     }
 
     // Copy constructor. This is necessary because of memlocking.
     CKey(const CKey &other) {
-        LockObject(vch);
+        LockObject(keydata.data());
         *this = other;
     }
 
     CKey& operator=(const CKey &other) {
         fValid = other.fValid;
         fCompressed = other.fCompressed;
-        memcpy(vch, other.vch, sizeof(vch));
+        memcpy(keydata.data(), other.keydata.data(), keydata.size());
         return *this;
     }
 
     // Destructor (again necessary because of memlocking).
-    ~CKey() { UnlockObject(vch); }
+    ~CKey() { }
 
     friend bool operator==(const CKey &a, const CKey &b) {
-        return a.fCompressed == b.fCompressed && a.size() == b.size() && memcmp(&a.vch[0], &b.vch[0], a.size()) == 0;
+        return a.fCompressed == b.fCompressed && a.size() == b.size() && memcmp(a.keydata.data(), b.keydata.data(), a.size()) == 0;
     }
 
     // Initialize using begin and end iterators to byte data.
@@ -298,7 +298,7 @@ public:
             return;
         }
         if (Check(&pbegin[0])) {
-            memcpy(vch, (uint8_t *)&pbegin[0], 32);
+            memcpy(keydata.data(), (uint8_t *)&pbegin[0], keydata.size());
             fValid      = true;
             fCompressed = fCompressedIn;
         } else {
@@ -308,8 +308,8 @@ public:
 
     // Simple read-only vector-like interface.
     uint32_t size() const { return (fValid ? 32 : 0); }
-    const uint8_t *begin() const { return vch; }
-    const uint8_t *end() const { return vch + size(); }
+    const uint8_t *begin() const { return keydata.data(); }
+    const uint8_t *end() const { return keydata.data() + size(); }
 
     // Check whether this private key is valid.
     bool IsValid() const { return fValid; }

@@ -17,12 +17,28 @@ void RandAddSeed();
 void RandAddSeedPerfmon();
 
 /**
- * Functions to gather random data via the OpenSSL PRNG
+ * Generate random data via the internal PRNG.
+ *
+ * These functions are designed to be fast (sub microsecond), but do not necessarily
+ * meaningfully add entropy to the PRNG state.
+ *
+ * Thread-safe.
  */
-void GetRandBytes(unsigned char* buf, int num);
+void GetRandBytes(unsigned char* buf, int num) noexcept;
 uint64_t GetRand(uint64_t nMax);
 int GetRandInt(int nMax);
 uint256 GetRandHash();
+
+
+/**
+ * Gather entropy from various sources, feed it into the internal PRNG, and
+ * generate random data using it.
+ *
+ * This function will cause failure whenever the OS RNG fails.
+ *
+ * Thread-safe.
+ */
+void GetStrongRandBytes(unsigned char* buf, int num) noexcept;
 
 /**
  * Seed insecure_rand using the random pool.
@@ -45,5 +61,19 @@ static inline uint32_t insecure_rand(void)
     insecure_rand_Rw = 18000 * (insecure_rand_Rw & 65535) + (insecure_rand_Rw >> 16);
     return (insecure_rand_Rw << 16) + insecure_rand_Rz;
 }
+
+
+/* Number of random bytes returned by GetOSRand.
+ * When changing this constant make sure to change all call sites, and make
+ * sure that the underlying OS APIs for all platforms support the number.
+ * (many cap out at 256 bytes).
+ */
+static const int NUM_OS_RANDOM_BYTES = 32;
+
+/** Get 32 bytes of system entropy. Do not use this in application code: use
+ * GetStrongRandBytes instead.
+ */
+void GetOSRand(unsigned char* ent32);
+
 
 #endif // BITCOIN_RANDOM_H
