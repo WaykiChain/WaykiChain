@@ -260,7 +260,7 @@ public:
 
     // Construct an invalid private key.
     CKey() : fValid(false), fCompressed(false) {
-        // Important: vch must be 32 bytes in length to not break serialization
+        // Important: keydata must be 32 bytes in length to not break serialization
         keydata.resize(32);
     }
 

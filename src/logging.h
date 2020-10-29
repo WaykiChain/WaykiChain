@@ -61,7 +61,6 @@ namespace BCLog { //blockchain log
         DELEGATE    = (1 << 23),
         PBFT        = (1 << 24),
         BENCHMARK   = (1 << 25),
-        RAND        = (1 << 26),
         ALL         = ~(uint32_t)0,
     };
 

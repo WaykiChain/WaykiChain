@@ -116,7 +116,7 @@ CSHA512& operator<<(CSHA512& hasher, const T& data) {
     return hasher;
 }
 
-#ifndef WIN32
+#if HAVE_DECL_GETIFADDRS
 void AddSockaddr(CSHA512& hasher, const struct sockaddr *addr)
 {
     if (addr == nullptr) return;
@@ -131,7 +131,9 @@ void AddSockaddr(CSHA512& hasher, const struct sockaddr *addr)
         hasher.Write((const unsigned char*)&addr->sa_family, sizeof(addr->sa_family));
     }
 }
+#endif
 
+#ifndef WIN32 
 void AddFile(CSHA512& hasher, const char *path)
 {
     struct stat sb = {};
