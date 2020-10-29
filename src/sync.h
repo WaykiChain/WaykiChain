@@ -270,7 +270,7 @@ public:
 typedef StdAnnotatedMixin<std::mutex> StdMutex;
 
 /** Wrapper around std::unique_lock style lock for Mutex. */
-template <typename StdMutex, typename Base = typename StdMutex::UniqueLock>
+template <typename Mutex, typename Base = typename Mutex::UniqueLock>
 class SCOPED_LOCKABLE UniqueLock : public Base {
 private:
     void Enter(const char* pszName, const char* pszFile, int nLine) {
@@ -293,7 +293,7 @@ private:
     }
 
 public:
-    UniqueLock(StdMutex& mutexIn, const char* pszName, const char* pszFile, int nLine,
+    UniqueLock(Mutex& mutexIn, const char* pszName, const char* pszFile, int nLine,
                 bool fTry = false) EXCLUSIVE_LOCK_FUNCTION(mutexIn)
         : Base(mutexIn, std::defer_lock) {
         if (fTry)
@@ -302,7 +302,7 @@ public:
             Enter(pszName, pszFile, nLine);
     }
 
-    UniqueLock(StdMutex* pmutexIn, const char* pszName, const char* pszFile, int nLine,
+    UniqueLock(Mutex* pmutexIn, const char* pszName, const char* pszFile, int nLine,
                 bool fTry = false) EXCLUSIVE_LOCK_FUNCTION(pmutexIn) {
         if (!pmutexIn) return;
 
