@@ -10,6 +10,7 @@
 
 #include "../test/systestbase.h"
 #include "CycleTestBase.h"
+#include "../commons/random.h"
 
 #pragma pack(push)
 #pragma pack(1)
@@ -100,13 +101,13 @@ public:
 
 	bool GetRandomData(unsigned char *buf, int num)
 	{
-		RAND_bytes(buf, num);
+		GetRandBytes(buf, num);
 		return true;
 	}
 	int GetBetData()
 	{
 		unsigned char buf;
-		RAND_bytes(&buf, 1);
+		GetRandBytes(&buf, 1);
 		int num = buf;
 
 		if(num>0&&num<=6)
@@ -116,7 +117,7 @@ public:
 	}
 	unsigned char GetRanOpType(){
 		unsigned char cType;
-		RAND_bytes(&cType, sizeof(cType));
+		GetRandBytes(&cType, sizeof(cType));
 		unsigned char  gussnum = cType % 2;
 		//cout<<"type:"<<(int)gussnum<<endl;
 		return gussnum;

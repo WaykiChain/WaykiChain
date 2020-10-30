@@ -283,7 +283,7 @@ static bool InitRPCAuthentication() {
     // RPC user/password required but empty or equal to each other
     if (SysCfg().RequireRPCPassword() && (rpcuser == "" || rpcuser == rpcpassword)) {
         unsigned char rand_pwd[32];
-        RAND_bytes(rand_pwd, 32);
+        GetRandBytes(rand_pwd, 32);
         string strWhatAmI = "To use coind";
 
         if (SysCfg().IsArgCount("-rpcserver")) {

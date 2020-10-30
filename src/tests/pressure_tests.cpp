@@ -6,6 +6,7 @@
 #include "tx/tx.h"
 #include "systestbase.h"
 #include "miner/miner.h"
+#include "commons/random.h"
 #include "../json/json_spirit_value.h"
 #include <boost/test/unit_test.hpp>
 #include <boost/assign/list_of.hpp>
@@ -35,7 +36,7 @@ std::string regScriptId("");
 map<string, string>::iterator GetRandAddress() {
 //	srand(time(NULL));
 	unsigned char cType;
-	RAND_bytes(&cType, sizeof(cType));
+	GetRandBytes(&cType, sizeof(cType));
 	int iIndex = (cType % 3);
 	map<string, string>::iterator iterAddress = mapAddress.begin();
 	while(iIndex--) {
@@ -49,7 +50,7 @@ map<string, string>::iterator GetRandAddress() {
  */
 int GetRandTxType() {
 	unsigned char cType;
-	RAND_bytes(&cType, sizeof(cType));
+	GetRandBytes(&cType, sizeof(cType));
 	//srand(time(NULL));
 	int iIndex = cType % 4;
 	return iIndex + 1;
@@ -158,7 +159,7 @@ public:
 		string srcAddr(iterSrcAddr->second);
 
 		unsigned char cType;
-		RAND_bytes(&cType, sizeof(cType));
+		GetRandBytes(&cType, sizeof(cType));
 		int iIndex = cType % 2;
 		iIndex +=20;
 		string contact =strprintf("%02x",iIndex);

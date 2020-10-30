@@ -49,7 +49,7 @@ bool SendMessages(CNode *pTo, bool fSendTrickle) {
         if (pingSend) {
             uint64_t nonce = 0;
             while (nonce == 0) {
-                RAND_bytes((uint8_t *)&nonce, sizeof(nonce));
+                GetRandBytes((uint8_t *)&nonce, sizeof(nonce));
             }
 
             pTo->nPingNonceSent = nonce;

@@ -143,7 +143,7 @@ bool CTestBetTx::WaitASendP2PBet(void){
 }
 bool CTestBetTx::BAcceptP2PBet(void) {
 		unsigned char cType;
-		RAND_bytes(&cType, sizeof(cType));
+		GetRandBytes(&cType, sizeof(cType));
 		unsigned char  gussnum = cType % 2;
 		ACCEPT_DATA acceptdata;
 		acceptdata.type = 2;
