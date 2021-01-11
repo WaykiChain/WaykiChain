@@ -422,6 +422,10 @@ namespace wasm {
                 // Parse amount
                 bool is_negtive = amount_str.size() > 0 && amount_str[0] == '-';
                 int64_t int_part, fract_part = 0;
+                // errno can be set to any non-zero value by a library function call
+                // regardless of whether there was an error, so it needs to be cleared
+                // in order to check the error set by strtoll
+                errno = 0;
                 if (dot_pos != string::npos) {
                     const auto &int_str = amount_str.substr(0, dot_pos);
                     int_part            = std::strtoll(int_str.c_str(), nullptr, 10);
