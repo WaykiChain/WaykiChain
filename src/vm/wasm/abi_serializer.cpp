@@ -95,7 +95,7 @@ namespace wasm {
         built_in_types.emplace("float32",               pack_unpack<float>());
         built_in_types.emplace("float64",               pack_unpack<double>());
 
-        built_in_types.emplace("time_point",            pack_unpack<system_clock::time_point>());
+        built_in_types.emplace("time_point",            pack_unpack<wasm::time_point>());
 
         built_in_types.emplace("table_name",            pack_unpack<name>());
         built_in_types.emplace("action_name",           pack_unpack<name>());

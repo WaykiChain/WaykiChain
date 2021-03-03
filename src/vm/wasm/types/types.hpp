@@ -45,6 +45,6 @@ namespace wasm {
 
    struct __attribute__((aligned (16))) checksum160_type { uint8_t hash[20]; };
    struct __attribute__((aligned (16))) checksum256_type { uint8_t hash[32]; };
-   struct __attribute__((aligned (16))) checksum512_type { uint8_t hash[64]; };    
+   struct __attribute__((aligned (16))) checksum512_type { uint8_t hash[64]; };
 
 }  // wasm

@@ -1,8 +1,7 @@
 #pragma once
 #pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
 
-#include <chrono>
-
+#include "wasm/types/time.hpp"
 #include "wasm/types/types.hpp"
 #include "wasm/types/uint128.hpp"
 #include "wasm/types/varint.hpp"
@@ -12,12 +11,13 @@
 #include "wasm/types/hash256.hpp"
 #include "commons/json/json_spirit.h"
 #include "commons/json/json_spirit_value.h"
-//#include "wasm/exceptions.hpp"
 #include "wasm/abi_def.hpp"
 #include "wasm/wasm_constants.hpp"
 #include "wasm/wasm_log.hpp"
 
 #include "wasm/exception/exceptions.hpp"
+
+#include <chrono>
 
 namespace wasm {
     using namespace json_spirit;
@@ -192,10 +192,8 @@ namespace wasm {
         v = wasm::variant(static_cast< int64_t >(t));
     }
 
-    static inline void to_variant( const system_clock::time_point &t, wasm::variant &v ) {
-
-        std::time_t time = std::chrono::system_clock::to_time_t(t);
-        v = wasm::variant(from_time(time));
+    static inline void to_variant( const wasm::time_point &t, wasm::variant &v ) {
+        v = t.to_iso_string();
     }
 
 
@@ -485,9 +483,12 @@ namespace wasm {
         CHAIN_THROW(wasm_chain::abi_parse_exception, "abi parse fail:%s", "json variant must be an int")
     }
 
-    static inline void from_variant( const wasm::variant &v, system_clock::time_point &t ) {
+    static inline void from_variant( const wasm::variant &v, wasm::time_point &t ) {
         if (v.type() == json_spirit::str_type) {
-            t = std::chrono::system_clock::from_time_t(to_time(v.get_str()));
+            try {
+                t = wasm::time_point::from_iso_string(v.get_str());
+            }
+            CHAIN_CAPTURE_AND_RETHROW( "unable to convert ISO-formatted std::string to wasm::time_point" )
             return;
         }
         CHAIN_THROW(wasm_chain::abi_parse_exception, "abi parse fail:%s", "json variant must be a string")
@@ -520,8 +521,8 @@ namespace wasm {
 
         T t;
         from_variant(v, t);
-        opt = t; 
-        //opt = std::optional<T>(t);   
+        opt = t;
+        //opt = std::optional<T>(t);
     }
 
     // static inline void from_variant( const wasm::variant &v, std::time_point_sec &t ) {

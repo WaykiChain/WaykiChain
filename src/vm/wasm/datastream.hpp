@@ -11,8 +11,8 @@
 #include <variant>
 #include <cstring>
 #include <sstream>
-#include <chrono>
 
+#include "wasm/types/time.hpp"
 #include "wasm/types/types.hpp"
 #include "wasm/types/symbol.hpp"
 #include "wasm/types/varint.hpp"
@@ -1154,7 +1154,7 @@ namespace wasm {
  *  @return datastream<Stream>& - Reference to the datastream
  */
     template<typename Stream>
-    inline datastream<Stream> &operator<<( datastream<Stream> &ds, const system_clock::time_point &t ) {
+    inline datastream<Stream> &operator<<( datastream<Stream> &ds, const wasm::time_point &t ) {
         ds.write((const char *) &t, sizeof(t));
         return ds;
     }
@@ -1169,7 +1169,7 @@ namespace wasm {
      *  @return datastream<Stream>& - Reference to the datastream
      */
     template<typename Stream>
-    inline datastream<Stream> &operator>>( datastream<Stream> &ds, system_clock::time_point &t ) {
+    inline datastream<Stream> &operator>>( datastream<Stream> &ds, wasm::time_point &t ) {
         ds.read((char *) &t, sizeof(t));
         return ds;
     }
