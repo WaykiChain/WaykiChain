@@ -450,6 +450,7 @@ AX_BOOST_FILESYSTEM
 AX_BOOST_PROGRAM_OPTIONS
 AX_BOOST_THREAD
 AX_BOOST_CHRONO
+AX_BOOST_DATE_TIME
 
 if test x$use_tests = xyes || test x$use_ptests = xyes || test x$use_unit_tests = xyes; then
 
@@ -479,7 +480,7 @@ if test x$use_tests = xyes || test x$use_ptests = xyes || test x$use_unit_tests 
   CPPFLAGS="$TEMP_CPPFLAGS"
 fi
 
-BOOST_LIBS="$BOOST_LDFLAGS $BOOST_SYSTEM_LIB $BOOST_FILESYSTEM_LIB $BOOST_PROGRAM_OPTIONS_LIB $BOOST_THREAD_LIB"
+BOOST_LIBS="$BOOST_LDFLAGS $BOOST_SYSTEM_LIB $BOOST_FILESYSTEM_LIB $BOOST_PROGRAM_OPTIONS_LIB $BOOST_THREAD_LIB $BOOST_DATE_TIME_LIB"
 BOOST_INCLUDES="$BOOST_CPPFLAGS"
 
 dnl Boost >= 1.50 uses sleep_for rather than the now-deprecated sleep, however
