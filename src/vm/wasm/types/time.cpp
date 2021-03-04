@@ -34,10 +34,13 @@ namespace wasm {
   {
       static boost::posix_time::ptime epoch = boost::posix_time::from_time_t( 0 );
       boost::posix_time::ptime pt;
+      char sep = 'T';
+      if (s.find(sep) == std::string::npos) sep = ' ';
+
       if( s.size() >= 5 && s.at( 4 ) == '-' ) // http://en.wikipedia.org/wiki/ISO_8601
-          pt = boost::date_time::parse_delimited_time<boost::posix_time::ptime>( s, 'T' );
+          pt = boost::date_time::parse_delimited_time<boost::posix_time::ptime>( s, sep );
       else
-          pt = boost::posix_time::from_iso_string( s );
+          pt = boost::date_time::parse_iso_time<boost::posix_time::ptime>(s, sep);
       return wasm::time_point_sec( (pt - epoch).total_seconds() );
   }
 
