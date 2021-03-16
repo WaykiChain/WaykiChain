@@ -37,7 +37,9 @@ enum SysParamType : uint8_t {
     AXC_SWAP_FEE_RATIO                      = 28,
     AXC_SWAP_GATEWAY_REGID                  = 29,
     BP_DELEGATE_VOTE_MIN                    = 50,
-    DEX_MATCH_SVC_REGID                     = 51
+    DEX_MATCH_SVC_REGID                     = 51,
+
+    BLOCK_INFLATED_REWARD_CLAIMER           = 101
 
 };
 
@@ -60,7 +62,8 @@ static const unordered_map<string, SysParamType> paramNameToSysParamTypeMap = {
         {"AXC_SWAP_FEE_RATIO",                          AXC_SWAP_FEE_RATIO                          },
         {"BP_DELEGATE_VOTE_MIN",                        BP_DELEGATE_VOTE_MIN                        },
         {"AXC_SWAP_GATEWAY_REGID",                      AXC_SWAP_GATEWAY_REGID                      },
-        {"DEX_MATCH_SVC_REGID",                         DEX_MATCH_SVC_REGID                         }
+        {"DEX_MATCH_SVC_REGID",                         DEX_MATCH_SVC_REGID                         },
+        {"BLOCK_INFLATED_REWARD_CLAIMER",               BLOCK_INFLATED_REWARD_CLAIMER               }
 };
 
 struct SysParamTypeHash {
@@ -88,7 +91,8 @@ static const unordered_map<SysParamType, std::tuple< uint64_t,string >, SysParam
     { AXC_SWAP_FEE_RATIO,                       make_tuple( 20,          "AXC_SWAP_FEE_RATIO")                      },  // 0.2%, boosted by 10000
     { BP_DELEGATE_VOTE_MIN,                     make_tuple( 21000* COIN, "BP_DELEGATE_VOTE_MIN")                    },  // 21000 wi, the min votes of delegate to be bp
     { AXC_SWAP_GATEWAY_REGID,                   make_tuple( 8,           "AXC_SWAP_GATEWAY_REGID")                  },
-    { DEX_MATCH_SVC_REGID,                      make_tuple( 0,           "DEX_MATCH_SVC_REGID")                     }
+    { DEX_MATCH_SVC_REGID,                      make_tuple( 0,           "DEX_MATCH_SVC_REGID")                     },
+    { BLOCK_INFLATED_REWARD_CLAIMER,            make_tuple( 0,           "BLOCK_INFLATED_REWARD_CLAIMER")           }
 };
 
 
@@ -112,7 +116,8 @@ static const unordered_map<SysParamType, std::pair<uint64_t, uint64_t>, SysParam
     { AXC_SWAP_FEE_RATIO,                        RANGE(0,1000)     },    //max 10%
     { BP_DELEGATE_VOTE_MIN,                      RANGE(0,0)        },    //max 10%
     { AXC_SWAP_GATEWAY_REGID,                    RANGE(0,0)        },
-    { DEX_MATCH_SVC_REGID,                       RANGE(0,0)        }
+    { DEX_MATCH_SVC_REGID,                       RANGE(0,0)        },
+    { BLOCK_INFLATED_REWARD_CLAIMER,             RANGE(0,0)        }
 };
 
 

@@ -129,7 +129,7 @@ Value submitparamgovernproposal(const Array& params, bool fHelp){
     string paramName = params[1].get_str();
     string paramValueStr = params[2].get_str();
     uint64_t paramValue;
-    if (paramName == "AXC_SWAP_GATEWAY_REGID" || paramName == "DEX_MATCH_SVC_REGID") {
+    if (paramName == "AXC_SWAP_GATEWAY_REGID" || paramName == "DEX_MATCH_SVC_REGID" || paramName == "BLOCK_INFLATED_REWARD_CLAIMER") {
         paramValue = CRegID(paramValueStr).GetIntValue();
     } else {
         int64_t iValue = std::atoll(paramValueStr.c_str());
@@ -231,14 +231,14 @@ Value submitcdpparamgovernproposal(const Array& params, bool fHelp){
             throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("cdp param type(%s) can't be the same", name));
 
         typeSet.insert(type);
-        
+
         string errMsg;
         if (!CheckCdpParamValue(type, paramValue, errMsg))
             throw JSONRPCError(RPC_INVALID_PARAMETER, errMsg);
 
         proposal.param_values.push_back(std::make_pair(type, CVarIntValue<uint64_t>(paramValue)));
     }
-    
+
     proposal.coin_pair = CCdpCoinPair(bcoinSymbol, scoinSymbol);
 
     CProposalRequestTx tx;
@@ -1006,7 +1006,7 @@ Value getsysparam(const Array& params, bool fHelp){
         );
     }
 
-    
+
     string paramName = params[0].get_str();
     SysParamType st;
     auto itr = paramNameToSysParamTypeMap.find(paramName);
@@ -1019,10 +1019,10 @@ Value getsysparam(const Array& params, bool fHelp){
         throw JSONRPCError(RPC_INVALID_PARAMETER, "get param error");
 
     Object obj;
-    if (itr->second == SysParamType::AXC_SWAP_GATEWAY_REGID){
+    if (itr->second == SysParamType::AXC_SWAP_GATEWAY_REGID ||
+        itr->second == SysParamType::DEX_MATCH_SVC_REGID ||
+        itr->second == SysParamType::BLOCK_INFLATED_REWARD_CLAIMER) {
         obj.push_back(Pair(paramName, CRegID(pv).ToString()));
-    } else if (itr->second == SysParamType::DEX_MATCH_SVC_REGID) {
-        obj.push_back(Pair(paramName, pCdMan->pSysParamCache->GetDexMatchSvcRegId().ToString()));
     } else {
         obj.push_back(Pair(paramName, pv));
     }
@@ -1049,15 +1049,13 @@ Value listsysparams(const Array& params, bool fHelp){
         uint64_t pv = 0;
         pCdMan->pSysParamCache->GetParam(kv.second, pv);
 
-        if (kv.second == SysParamType::AXC_SWAP_GATEWAY_REGID){
+        if (kv.second == SysParamType::AXC_SWAP_GATEWAY_REGID ||
+            kv.second == SysParamType::DEX_MATCH_SVC_REGID ||
+            kv.second == SysParamType::BLOCK_INFLATED_REWARD_CLAIMER) {
             obj.push_back(Pair(paramName, CRegID(pv).ToString()));
-        }
-        else if (kv.second == SysParamType::DEX_MATCH_SVC_REGID) {
-            obj.push_back(Pair(paramName, pCdMan->pSysParamCache->GetDexMatchSvcRegId().ToString()));
         } else {
             obj.push_back(Pair(paramName, pv));
         }
-
 
     }
     return obj;
