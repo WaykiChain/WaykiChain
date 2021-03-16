@@ -51,6 +51,7 @@ public:
         nVer2GenesisHeight                  = IniCfg().GetVer2GenesisHeight(MAIN_NET);
         nVer2ForkHeight                     = IniCfg().GetVer2ForkHeight(MAIN_NET);
         nVer3ForkHeight                     = IniCfg().GetVer3ForkHeight(MAIN_NET);
+        nVer3_5ForkHeight                     = IniCfg().GetVer3_5ForkHeight(MAIN_NET);
 
         assert(CreateGenesisBlockRewardTx(genesis.vptx, MAIN_NET));
         assert(CreateGenesisDelegateTx(genesis.vptx, MAIN_NET));
@@ -122,6 +123,7 @@ public:
         nVer2GenesisHeight       = IniCfg().GetVer2GenesisHeight(TEST_NET);
         nVer2ForkHeight          = IniCfg().GetVer2ForkHeight(TEST_NET);
         nVer3ForkHeight          = IniCfg().GetVer3ForkHeight(TEST_NET);
+        nVer3_5ForkHeight          = IniCfg().GetVer3_5ForkHeight(TEST_NET);
 
         // Modify the testnet genesis block so the timestamp is valid for a later start.
         genesis.SetTime(IniCfg().GetStartTimeInit(TEST_NET));
@@ -166,6 +168,7 @@ public:
         nVer2GenesisHeight      = IniCfg().GetVer2GenesisHeight(REGTEST_NET);
         nVer2ForkHeight         = IniCfg().GetVer2ForkHeight(REGTEST_NET);
         nVer3ForkHeight         = IniCfg().GetVer3ForkHeight(REGTEST_NET);
+        nVer3_5ForkHeight         = IniCfg().GetVer3_5ForkHeight(REGTEST_NET);
 
         genesis.SetTime(IniCfg().GetStartTimeInit(REGTEST_NET));
         genesis.SetNonce(IniCfg().GetGenesisBlockNonce(REGTEST_NET));
@@ -184,6 +187,7 @@ public:
         nVer2GenesisHeight = GetArg("-ver2genesisheight", IniCfg().GetVer2GenesisHeight(REGTEST_NET));
         nVer2ForkHeight    = std::max<uint32_t>(nVer2GenesisHeight + 1, GetArg("-ver2forkheight", IniCfg().GetVer2ForkHeight(REGTEST_NET)));
         nVer3ForkHeight    = std::max<uint32_t>(nVer2ForkHeight + 1, GetArg("-ver3forkheight", IniCfg().GetVer3ForkHeight(REGTEST_NET)));
+        nVer3_5ForkHeight    = std::max<uint32_t>(nVer3ForkHeight + 1, GetArg("-ver3_5forkheight", IniCfg().GetVer3_5ForkHeight(REGTEST_NET)));
 
     }
 

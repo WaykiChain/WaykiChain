@@ -184,6 +184,7 @@ public:
     uint32_t GetVer2GenesisHeight() const { return nVer2GenesisHeight; }
     uint32_t GetVer2ForkHeight() const { return nVer2ForkHeight; }
     uint32_t GetVer3ForkHeight() const { return nVer3ForkHeight; }
+    uint32_t GetVer3_5ForkHeight() const { return nVer3_5ForkHeight; }
 
     uint32_t GetBlockIntervalPreVer2Fork()  const { return nBlockIntervalPreVer2Fork; }
     uint32_t GetBlockIntervalPostVer2Fork() const { return nBlockIntervalPostVer2Fork; }
@@ -245,6 +246,7 @@ protected:
     uint32_t nVer2GenesisHeight;
     uint32_t nVer2ForkHeight;
     uint32_t nVer3ForkHeight;
+    uint32_t nVer3_5ForkHeight;
     uint32_t nBlockIntervalPreVer2Fork;
     uint32_t nBlockIntervalPostVer2Fork;
     uint32_t nContinuousBlockProducePreVer3Fork;

@@ -51,9 +51,10 @@ static const int MIN_PEER_PROTO_VERSION = 10001;
 //static const int MEMPOOL_GD_VERSION = 60002;
 
 enum FeatureForkVersionEnum {
-    MAJOR_VER_R1 = 10001, // Release 1.0
-    MAJOR_VER_R2 = 10002, // Release 2.0: StableCoin Release (2019-06-30)
-    MAJOR_VER_R3 = 10003, // Release 3.0: HU Release (2019-11-11)
+    MAJOR_VER_R1 = 10001,   // Release 1.0
+    MAJOR_VER_R2 = 10002,   // Release 2.0: StableCoin Release (2019-06-30)
+    MAJOR_VER_R3 = 10003,   // Release 3.0: HU Release (2019-11-11)
+    MAJOR_VER_R3_5 = 10035, // Release 3.5: BP voting Release (2021-03-16)
 };
 
 #endif // COIN_VERSION_H

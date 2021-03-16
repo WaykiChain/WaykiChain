@@ -51,6 +51,7 @@ public:
 	uint32_t GetVer2ForkHeight(const NET_TYPE type) const;
     uint32_t GetVer2GenesisHeight(const NET_TYPE type) const;
     uint32_t GetVer3ForkHeight(const NET_TYPE type) const;
+    uint32_t GetVer3_5ForkHeight(const NET_TYPE type) const;
     const vector<string> GetStableCoinGenesisTxid(const NET_TYPE type) const;
 
 private:
@@ -121,9 +122,13 @@ private:
     /* soft fork height for MAJOR_VER_R3 */
     static uint32_t nVer3ForkHeight[3];
 
+    /* soft fork height for MAJOR_VER_R3_5 */
+    static uint32_t nVer3_5ForkHeight[3];
+
 };
 
 inline FeatureForkVersionEnum GetFeatureForkVersion(const int32_t currBlockHeight) {
+    if (currBlockHeight >= (int32_t) SysCfg().GetVer3_5ForkHeight()) return MAJOR_VER_R3_5;
     if (currBlockHeight >= (int32_t) SysCfg().GetVer3ForkHeight()) return MAJOR_VER_R3;
     if (currBlockHeight >= (int32_t) SysCfg().GetVer2ForkHeight()) return MAJOR_VER_R2;
 
@@ -134,6 +139,7 @@ inline uint32_t GetForkHeightByVersion(FeatureForkVersionEnum ver) {
     if (ver == FeatureForkVersionEnum::MAJOR_VER_R1) return 0;
     if (ver == FeatureForkVersionEnum::MAJOR_VER_R2) return SysCfg().GetVer2ForkHeight();
     if (ver == FeatureForkVersionEnum::MAJOR_VER_R3) return SysCfg().GetVer3ForkHeight();
+    if (ver == FeatureForkVersionEnum::MAJOR_VER_R3_5) return SysCfg().GetVer3_5ForkHeight();
 
     throw runtime_error("FeatureForkVersionEnum is invalid: " + ver);
 }

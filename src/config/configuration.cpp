@@ -88,6 +88,11 @@ uint32_t G_CONFIG_TABLE::GetVer3ForkHeight(const NET_TYPE type) const {
     return nVer3ForkHeight[type];
 }
 
+uint32_t G_CONFIG_TABLE::GetVer3_5ForkHeight(const NET_TYPE type) const {
+    assert(type >= 0 && type < 3);
+    return nVer3_5ForkHeight[type];
+}
+
 vector<uint32_t> G_CONFIG_TABLE::GetSeedNodeIP() const { return pnSeed; }
 
 uint8_t* G_CONFIG_TABLE::GetMagicNumber(const NET_TYPE type) const {
@@ -277,4 +282,10 @@ uint32_t G_CONFIG_TABLE::nVer2ForkHeight[3] {
 uint32_t G_CONFIG_TABLE::nVer3ForkHeight[3] {
     11776688,   // mainnet, estimate block time: 2020-07-20 10:10:08
     5756220,    // testnet, estimate block time: 2020-06-04 10:00:00
+    500};       // regtest
+
+// Block height to enable feature fork version
+uint32_t G_CONFIG_TABLE::nVer3_5ForkHeight[3] {
+    19742098,   // mainnet, estimate block time: 2021-05-06 10:00:00
+    13288580,    // testnet, estimate block time: 2021-04-16 10:00:00
     500};       // regtest
