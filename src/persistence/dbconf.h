@@ -95,6 +95,7 @@ namespace dbk {
         DEFINE( FLAG,                 "flag",   BLOCK )         /* [prefix] --> $Flag = 1 | 0 */ \
         DEFINE( BEST_BLOCKHASH,       "bbkh",   BLOCK )         /* [prefix] --> $BestBlockHash */ \
         DEFINE( TXID_DISKINDEX,       "tidx",   BLOCK )         /* tidx{$txid} --> $DiskTxPos */ \
+        DEFINE( BLOCK_INFLATED_REWARD, "bird",  BLOCK )         /* [prefix] --> block_inflated_reward_cache */ \
         /**** account db                                                                      */ \
         DEFINE( REGID_KEYID,          "rkey",   ACCOUNT )       /* rkey{$RegID} --> $KeyId */ \
         DEFINE( KEYID_ACCOUNT,        "idac",   ACCOUNT )       /* idac{$KeyID} --> $CAccount */ \

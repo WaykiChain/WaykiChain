@@ -16,6 +16,30 @@
 
 #include <map>
 
+struct CBlockInflatedReward {
+    HeightType height = 0;
+    uint64_t new_rewards = 0;
+    uint64_t total_claimed = 0;
+    uint64_t last_claimed = 0;
+    uint64_t last_claimed_height = 0;
+
+    static const CBlockInflatedReward EMPTY;
+
+    bool IsEmpty() const {
+        return memcmp(this, &EMPTY, sizeof(CBlockInflatedReward));
+    }
+    void SetEmpty() { *this = EMPTY; }
+
+    IMPLEMENT_SERIALIZE(
+        READWRITE(height);
+        READWRITE(new_rewards);
+        READWRITE(total_claimed);
+        READWRITE(last_claimed);
+        READWRITE(last_claimed_height);
+    )
+
+};
+
 /** Access to the block database (blocks/index/) */
 class CBlockIndexDB : public CLevelDBWrapper {
 private:
@@ -50,7 +74,8 @@ public:
             best_block_hash_cache(pDbAccess),
             last_block_file_cache(pDbAccess),
             reindex_cache(pDbAccess),
-            finality_block_cache(pDbAccess) {
+            finality_block_cache(pDbAccess),
+            block_inflated_reward_cache(pDbAccess) {
         assert(pDbAccess->GetDbNameType() == DBNameType::BLOCK);
     };
 
@@ -60,7 +85,8 @@ public:
             best_block_hash_cache(pBaseIn->best_block_hash_cache),
             last_block_file_cache(pBaseIn->last_block_file_cache),
             reindex_cache(pBaseIn->reindex_cache),
-            finality_block_cache(pBaseIn->finality_block_cache){};
+            finality_block_cache(pBaseIn->finality_block_cache),
+            block_inflated_reward_cache(pBaseIn->block_inflated_reward_cache){};
 
 public:
     bool Flush();
@@ -73,6 +99,7 @@ public:
         last_block_file_cache.SetBase(&pBaseIn->last_block_file_cache);
         reindex_cache.SetBase(&pBaseIn->reindex_cache);
         finality_block_cache.SetBase(&pBaseIn->finality_block_cache);
+        block_inflated_reward_cache.SetBase(&pBaseIn->block_inflated_reward_cache);
 
     };
 
@@ -83,6 +110,7 @@ public:
         last_block_file_cache.SetDbOpLogMap(pDbOpLogMapIn);
         reindex_cache.SetDbOpLogMap(pDbOpLogMapIn);
         finality_block_cache.SetDbOpLogMap(pDbOpLogMapIn);
+        block_inflated_reward_cache.SetDbOpLogMap(pDbOpLogMapIn);
     }
 
     void RegisterUndoFunc(UndoDataFuncMap &undoDataFuncMap) {
@@ -92,6 +120,7 @@ public:
         last_block_file_cache.RegisterUndoFunc(undoDataFuncMap);
         reindex_cache.RegisterUndoFunc(undoDataFuncMap);
         finality_block_cache.RegisterUndoFunc(undoDataFuncMap);
+        block_inflated_reward_cache.RegisterUndoFunc(undoDataFuncMap);
     }
 
     bool ReadTxIndex(const uint256 &txid, CDiskTxPos &pos);
@@ -113,6 +142,8 @@ public:
     uint256 GetBestBlockHash() const;
     bool SetBestBlock(const uint256 &blockHash);
 
+    bool GetBlockInflatedReward(CBlockInflatedReward &value);
+    bool SetBlockInflatedReward(const CBlockInflatedReward &value);
 public:
 /*  CCompositeKVCache      prefixType               key                     value                 variable               */
 /*  ----------------   -------------------------   -----------------------  ------------------   ------------------------ */
@@ -121,13 +152,13 @@ public:
     // flag$name -> bool
     CCompositeKVCache< dbk::FLAG,                   string,                   bool>                 flag_cache;
 
-
 /*  CSimpleKVCache          prefixType             value           variable           */
 /*  -------------------- --------------------   -------------   --------------------- */
     CSimpleKVCache< dbk::BEST_BLOCKHASH,            uint256>      best_block_hash_cache;    // best blockHash
     CSimpleKVCache< dbk::LAST_BLOCKFILE,            int32_t>          last_block_file_cache;
     CSimpleKVCache< dbk::REINDEX,                   bool>         reindex_cache;
     CSimpleKVCache< dbk::FINALITY_BLOCK,            std::pair<int32_t,uint256>> finality_block_cache;
+    CSimpleKVCache< dbk::BLOCK_INFLATED_REWARD,     CBlockInflatedReward>       block_inflated_reward_cache;
 };
 
 /** Create a new block index entry for a given block hash */

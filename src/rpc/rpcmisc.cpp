@@ -180,7 +180,7 @@ Value getfinblockcount (const Array& params, bool fHelp) {
             "getfinblockcount\n"
             "\nReturn the height of the finality block.\n"
             "\nResult:\n"
-          
+
             "\n  (numeric) The height of the finality block\n"
 
             "\nExamples:\n" +
@@ -248,6 +248,7 @@ Value verifymessage(const Array& params, bool fHelp) {
     DEFINE( FLAG,                 pBlockCache, flag_cache) \
     DEFINE( BEST_BLOCKHASH,       pBlockCache, best_block_hash_cache) \
     DEFINE( TXID_DISKINDEX,       pBlockCache, tx_diskpos_cache) \
+    DEFINE( BLOCK_INFLATED_REWARD,pBlockCache, tx_diskpos_cache) \
     /**** account db                                                                      */ \
     DEFINE( REGID_KEYID,          pAccountCache,  regId2KeyIdCache)\
     DEFINE( KEYID_ACCOUNT,        pAccountCache,  accountCache) \

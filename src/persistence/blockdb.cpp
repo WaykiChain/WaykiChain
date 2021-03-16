@@ -13,6 +13,7 @@
 
 using namespace std;
 
+const CBlockInflatedReward CBlockInflatedReward::EMPTY = {};
 
 /********************** CBlockIndexDB ********************************/
 
@@ -108,7 +109,9 @@ uint32_t CBlockDBCache::GetCacheSize() const {
         best_block_hash_cache.GetCacheSize() +
         last_block_file_cache.GetCacheSize() +
         reindex_cache.GetCacheSize() +
-        finality_block_cache.GetCacheSize();
+        finality_block_cache.GetCacheSize() +
+        block_inflated_reward_cache.GetCacheSize();
+
 }
 
 bool CBlockDBCache::Flush() {
@@ -118,6 +121,7 @@ bool CBlockDBCache::Flush() {
     last_block_file_cache.Flush();
     reindex_cache.Flush();
     finality_block_cache.Flush();
+    block_inflated_reward_cache.Flush();
     return true;
 }
 
@@ -179,4 +183,12 @@ bool CBlockDBCache::WriteGlobalFinBlock(const int32_t height, const uint256 hash
 }
 bool CBlockDBCache::ReadGlobalFinBlock(std::pair<int32_t,uint256>& block) {
     return finality_block_cache.GetData(block);
+}
+
+bool CBlockDBCache::GetBlockInflatedReward(CBlockInflatedReward &value) {
+    return block_inflated_reward_cache.GetData(value);
+}
+
+bool CBlockDBCache::SetBlockInflatedReward(const CBlockInflatedReward &value) {
+    return block_inflated_reward_cache.SetData(value);
 }
