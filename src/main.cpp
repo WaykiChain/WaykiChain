@@ -1134,7 +1134,10 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
         }
 
         // Verify profits
-        uint64_t profits = delegateAccount.ComputeBlockInflateInterest(block.GetHeight(), curDelegate, totalDelegateNum);
+        uint64_t profits = 0;
+        if (!chain::IsBlockInflatedRewardStarted(cw, block.GetHeight())) {
+            profits = delegateAccount.ComputeBlockInflateInterest(block.GetHeight(), curDelegate, totalDelegateNum);
+        }
         if (pRewardTx->inflated_bcoins != profits) {
             return state.DoS(100, ERRORMSG("invalid coinbase profits amount(actual=%d vs valid=%d)",
                              pRewardTx->inflated_bcoins, profits), REJECT_INVALID, "bad-reward-amount");

@@ -52,11 +52,36 @@ static bool GenPendingDelegates(CBlock &block, uint32_t delegateNum, CCacheWrapp
     return true;
 }
 
+bool chain::IsBlockInflatedRewardStarted(CCacheWrapper &cw, HeightType height) {
+    auto version = GetFeatureForkVersion(height);
+    if (version >= MAJOR_VER_R3_5) {
+        CBlockInflatedReward blockInflatedReward;
+        cw.blockCache.GetBlockInflatedReward(blockInflatedReward);
+        return (blockInflatedReward.start_height != 0 && height >= blockInflatedReward.start_height);
+    }
+    return false;
+}
+
 // process block delegates, call at the tail of block executing
 bool chain::ProcessBlockDelegates(CBlock &block, CCacheWrapper &cw, CValidationState &state) {
     // required preparing the undo for cw
 
     auto version = GetFeatureForkVersion(block.GetHeight());
+
+    if (version >= MAJOR_VER_R3_5) {
+        CBlockInflatedReward blockInflatedReward;
+        cw.blockCache.GetBlockInflatedReward(blockInflatedReward);
+        if (blockInflatedReward.start_height != 0 && block.GetHeight() >= blockInflatedReward.start_height) {
+            // TODO: add proposal of BLOCK_INFLATED_REWARD_AMOUNT
+            static const uint64_t BLOCK_INFLATED_REWARD_AMOUNT = 20000000; // 0.2 WICC
+            blockInflatedReward.new_rewards += BLOCK_INFLATED_REWARD_AMOUNT;
+            if (!cw.blockCache.SetBlockInflatedReward(blockInflatedReward)) {
+                return state.DoS(100, ERRORMSG("[%d] Save BlockInflatedReward failed! block=%s",
+                        block.GetHeight(), block.GetHash().ToString()));
+            }
+        }
+    }
+
     bool isR3Fork = version >= MAJOR_VER_R3;
     int32_t countVoteInterval = (isR3Fork) ? COUNT_VOTE_INTERVAL_AFTER_V3 : COUNT_VOTE_INTERVAL_BEFORE_V3; // the interval to count the vote
     int32_t activateDelegateInterval = (isR3Fork) ? ACTIVATE_DELEGATE_DELAY_AFTER_V3 : ACTIVATE_DELEGATE_DELAY_BEFORE_V3;

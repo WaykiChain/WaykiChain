@@ -18,6 +18,7 @@
 #include "persistence/contractdb.h"
 #include "persistence/cachewrapper.h"
 #include "p2p/protocol.h"
+#include "chain/blockdelegates.h"
 
 #include <algorithm>
 #include <boost/circular_buffer.hpp>
@@ -121,7 +122,7 @@ bool GetCurrentDelegate(const int64_t currentTime, const int32_t currHeight, con
 }
 
 
-static bool CreateBlockRewardTx(Miner &miner, CBlock *pBlock,const uint32_t totalDelegateNum) {
+static bool CreateBlockRewardTx(Miner &miner, CCacheWrapper &cw, CBlock *pBlock,const uint32_t totalDelegateNum) {
 
     if (pBlock->vptx[0]->nTxType == BLOCK_REWARD_TX) {
         auto pRewardTx          = (CBlockRewardTx *)pBlock->vptx[0].get();
@@ -132,7 +133,11 @@ static bool CreateBlockRewardTx(Miner &miner, CBlock *pBlock,const uint32_t tota
         auto pRewardTx             = (CUCoinBlockRewardTx *)pBlock->vptx[0].get();
         pRewardTx->txUid           = miner.delegate.regid;
         pRewardTx->valid_height    = pBlock->GetHeight();
-        pRewardTx->inflated_bcoins = miner.account.ComputeBlockInflateInterest(pBlock->GetHeight(), miner.delegate, totalDelegateNum);
+        if (!chain::IsBlockInflatedRewardStarted(cw, pBlock->GetHeight())) {
+            pRewardTx->inflated_bcoins = miner.account.ComputeBlockInflateInterest(pBlock->GetHeight(), miner.delegate, totalDelegateNum);
+        } else {
+            pRewardTx->inflated_bcoins = 0;
+        }
     }
 
     pBlock->SetNonce(GetRand(SysCfg().GetBlockMaxNonce()));
@@ -688,7 +693,7 @@ static bool ProduceBlock(int64_t startMiningMs, CBlockIndex *pPrevIndex, Miner &
                 pBlock->vptx.size(), GetTimeMillis() - lastTime);
 
     lastTime = GetTimeMillis();
-    success  = CreateBlockRewardTx(miner, pBlock.get(), totalDelegateNum);
+    success  = CreateBlockRewardTx(miner, *spCW, pBlock.get(), totalDelegateNum);
     if (!success) {
         LogPrint(BCLog::MINER, "[%d] failed in CreateBlockRewardTx: regid=%s, "
             "used_time_ms=%lld\n", blockHeight, minerId.ToString(), GetTimeMillis() - lastTime);

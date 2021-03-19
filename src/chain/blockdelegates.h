@@ -13,6 +13,8 @@ namespace chain {
 
     // process block delegates, call in the tail of block executing
     bool ProcessBlockDelegates(CBlock &block, CCacheWrapper &cw, CValidationState &state);
+
+    bool IsBlockInflatedRewardStarted(CCacheWrapper &cw, HeightType height);
 };
 
 
