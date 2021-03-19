@@ -17,7 +17,7 @@
 #include <map>
 
 struct CBlockInflatedReward {
-    HeightType height = 0;
+    HeightType start_height = 0;
     uint64_t new_rewards = 0;
     uint64_t total_claimed = 0;
     uint64_t last_claimed = 0;
@@ -31,7 +31,7 @@ struct CBlockInflatedReward {
     void SetEmpty() { *this = EMPTY; }
 
     IMPLEMENT_SERIALIZE(
-        READWRITE(height);
+        READWRITE(start_height);
         READWRITE(new_rewards);
         READWRITE(total_claimed);
         READWRITE(last_claimed);

@@ -325,7 +325,7 @@ string HelpMessage() {
 
     strUsage += "  -rpcwhitelistcmd=<method>          " + _("Add permitted RPC method to whitelist") + "\n";
     strUsage += "  -rpcblacklistcmd=<method>          " + _("Add Banned RPC method to blacklist") + "\n";
-    strUsage += "  -contracts_console                 " + _("Print wasm contract logs to console(default: 0)") + "\n";                  
+    strUsage += "  -contracts_console                 " + _("Print wasm contract logs to console(default: 0)") + "\n";
     return strUsage;
 }
 
@@ -403,6 +403,7 @@ void wasm_load_native_modules_and_register_routes() {
     if(modules.size() == 0){
         modules.push_back(std::make_shared<wasm_native_module>());
         modules.push_back(std::make_shared<wasm_bank_native_module>());
+        modules.push_back(std::make_shared<native_voting_module>());
     }
 
     auto& abi_router = get_wasm_abi_route();

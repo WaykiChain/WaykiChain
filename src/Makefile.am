@@ -316,6 +316,7 @@ WASM_H = \
   vm/wasm/wasm_control_rpc.hpp \
   vm/wasm/modules/wasm_native_dispatch.hpp \
   vm/wasm/modules/wasm_native_bank_module.hpp \
+  vm/wasm/modules/wasm_native_voting_module.hpp \
   vm/wasm/modules/wasm_native_module.hpp
 
 

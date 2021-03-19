@@ -25,6 +25,7 @@ namespace wasm {
 
     static const uint64_t wasmio                        = REGID(0, 100); //0-100
     static const uint64_t wasmio_bank                   = REGID(0, 800); //0-800
+    static const uint64_t wasmio_voting                 = REGID(0, 900); //0-900
 
     const static uint64_t wasmio_code                   = NAME(wasmio_code);
     const static uint64_t wasmio_owner                  = NAME(wasmio_owner);

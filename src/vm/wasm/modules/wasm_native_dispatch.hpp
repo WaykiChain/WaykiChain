@@ -6,6 +6,7 @@
 
 #include "wasm/modules/wasm_router.hpp"
 #include "wasm/modules/wasm_native_bank_module.hpp"
+#include "wasm/modules/wasm_native_voting_module.hpp"
 #include "wasm/modules/wasm_native_module.hpp"
 
 using namespace std;
@@ -33,7 +34,7 @@ namespace wasm {
         auto* handler = router.route(contract);
         if(handler == nullptr) return false;
         abi = (*handler)();
-        return true; 
+        return true;
     }
 
     inline bool is_native_contract(uint64_t contract){
