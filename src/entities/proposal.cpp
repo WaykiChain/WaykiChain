@@ -40,7 +40,7 @@ bool CGovSysParamProposal::CheckProposal(CTxExecuteContext& context, CBaseTx& tx
         if (errorInfo != EMPTY_STRING)
             return state.DoS(100, ERRORMSG("CheckSysParamValue failed: %s ", errorInfo),
                      REJECT_INVALID, "params-range-error");
-        if (paramType == AXC_SWAP_GATEWAY_REGID || paramType == DEX_MATCH_SVC_REGID || paramType == BLOCK_INFLATED_REWARD_CLAIMER) {
+        if (paramType == AXC_SWAP_GATEWAY_REGID || paramType == DEX_MATCH_SVC_REGID || paramType == VOTING_CONTRACT_REGID) {
             auto regid = CRegID(paramValue);
             if (regid.IsEmpty() || tx.GetAccount(cw, regid) == nullptr)  {
                 return state.DoS(100, ERRORMSG("account of %s not exist, regid_value=%llu",

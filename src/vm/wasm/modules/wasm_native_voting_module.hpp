@@ -122,16 +122,16 @@ namespace wasm {
                             wasm_chain::native_contract_assert_exception,
                             "params must be empty")
             auto &db = context.database;
-            uint64_t claimer = 0;
-            db.sysParamCache.GetParam(SysParamType::BLOCK_INFLATED_REWARD_CLAIMER, claimer);
+            uint64_t voting_contract = 0;
+            db.sysParamCache.GetParam(SysParamType::VOTING_CONTRACT_REGID, voting_contract);
 
-            CHAIN_ASSERT(   claimer != 0,
+            CHAIN_ASSERT(   voting_contract != 0,
                             wasm_chain::native_contract_assert_exception,
-                            "block inflated reward claimer not set yet")
-            CRegID claimer_regid(claimer);
-            auto sp_account = get_account(context, claimer_regid, "block inflated reward claimer");
+                            "VOTING_CONTRACT_REGID not set yet")
+            CRegID voting_contract_regid(voting_contract);
+            auto sp_account = get_account(context, voting_contract_regid, "voting_contract");
 
-            context.require_auth( claimer );
+            context.require_auth( voting_contract );
 
             CBlockInflatedReward reward_info; // all fields must be 0 or empty
             if (db.blockCache.GetBlockInflatedReward(reward_info)) {

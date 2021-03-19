@@ -129,7 +129,7 @@ Value submitparamgovernproposal(const Array& params, bool fHelp){
     string paramName = params[1].get_str();
     string paramValueStr = params[2].get_str();
     uint64_t paramValue;
-    if (paramName == "AXC_SWAP_GATEWAY_REGID" || paramName == "DEX_MATCH_SVC_REGID" || paramName == "BLOCK_INFLATED_REWARD_CLAIMER") {
+    if (paramName == "AXC_SWAP_GATEWAY_REGID" || paramName == "DEX_MATCH_SVC_REGID" || paramName == "VOTING_CONTRACT_REGID") {
         paramValue = CRegID(paramValueStr).GetIntValue();
     } else {
         int64_t iValue = std::atoll(paramValueStr.c_str());
@@ -1021,7 +1021,7 @@ Value getsysparam(const Array& params, bool fHelp){
     Object obj;
     if (itr->second == SysParamType::AXC_SWAP_GATEWAY_REGID ||
         itr->second == SysParamType::DEX_MATCH_SVC_REGID ||
-        itr->second == SysParamType::BLOCK_INFLATED_REWARD_CLAIMER) {
+        itr->second == SysParamType::VOTING_CONTRACT_REGID) {
         obj.push_back(Pair(paramName, CRegID(pv).ToString()));
     } else {
         obj.push_back(Pair(paramName, pv));
@@ -1051,7 +1051,7 @@ Value listsysparams(const Array& params, bool fHelp){
 
         if (kv.second == SysParamType::AXC_SWAP_GATEWAY_REGID ||
             kv.second == SysParamType::DEX_MATCH_SVC_REGID ||
-            kv.second == SysParamType::BLOCK_INFLATED_REWARD_CLAIMER) {
+            kv.second == SysParamType::VOTING_CONTRACT_REGID) {
             obj.push_back(Pair(paramName, CRegID(pv).ToString()));
         } else {
             obj.push_back(Pair(paramName, pv));
