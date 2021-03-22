@@ -30,9 +30,9 @@ namespace wasm {
                 case NAME(start): // start the block reward
                     start(context);
                     return;
-                // case NAME(claim): // mint new asset tokens
-                //     claim(context);
-                //     return;
+                case NAME(setvotes): // set votes
+                    setvotes(context);
+                    return;
                 // case NAME(burn): // burn asset tokens
                 //     burn(context);
                 //     return;
@@ -64,13 +64,13 @@ namespace wasm {
                     // no params
                 }
             });
-            // abi.structs.push_back({"mint", "",
-            //     {
-            //         {"to",              "regid"     }, //mint & issue assets to the target holder
-            //         {"quantity",        "asset"     },
-            //         {"memo",            "string"    }
-            //     }
-            // });
+            abi.structs.push_back({"setvotes", "",
+                {
+                    {"candidate",       "regid"     },
+                    {"votes",           "uint64"    },
+                    {"memo",            "string"    }
+                }
+            });
             // abi.structs.push_back({"burn", "",
             //     {
             //         {"owner",          "regid"     }, //only asset owner can burn assets hold by the owner
@@ -96,7 +96,7 @@ namespace wasm {
             // });
 
             abi.actions.emplace_back( "start",          "start",        "" );
-            // abi.actions.emplace_back( "mint",           "mint",         "" );
+            abi.actions.emplace_back( "setvotes",       "setvotes",     "" );
             // abi.actions.emplace_back( "burn",           "burn",         "" );
             // abi.actions.emplace_back( "update",         "update",       "" );
             // abi.actions.emplace_back( "transfer",       "transfer",     "" );
@@ -109,7 +109,7 @@ namespace wasm {
          * Usage: issue an UIA asset
          */
         static void start(wasm_context &context) {
-
+            // TODO: check version fork
             CHAIN_ASSERT(    context._receiver == native_voting_module::id,
                                 wasm_chain::native_contract_assert_exception,
                                 "expect contract '%s', but get '%s'",
@@ -122,13 +122,8 @@ namespace wasm {
                             wasm_chain::native_contract_assert_exception,
                             "params must be empty")
             auto &db = context.database;
-            uint64_t voting_contract = 0;
-            db.sysParamCache.GetParam(SysParamType::VOTING_CONTRACT_REGID, voting_contract);
-
-            CHAIN_ASSERT(   voting_contract != 0,
-                            wasm_chain::native_contract_assert_exception,
-                            "VOTING_CONTRACT_REGID not set yet")
-            CRegID voting_contract_regid(voting_contract);
+            uint64_t voting_contract = _get_voting_contract(context);
+            CRegID voting_contract_regid = CRegID(voting_contract);
             auto sp_account = get_account(context, voting_contract_regid, "voting_contract");
 
             context.require_auth( voting_contract );
@@ -147,16 +142,44 @@ namespace wasm {
                                 "block inflated reward save error")
         }
 
-        // static void mint(wasm_context &context) {
+        /**
+         * set received votes of candidate
+         */
+        static void setvotes(wasm_context &context) {
 
-        //     CHAIN_ASSERT(    context._receiver == bank_native_module_id,
-        //                         wasm_chain::native_contract_assert_exception,
-        //                         "expect contract '%s', but get '%s'",
-        //                         wasm::regid(bank_native_module_id).to_string(),
-        //                         wasm::regid(context._receiver).to_string());
+            CHAIN_ASSERT(    context._receiver == native_voting_module::id,
+                                wasm_chain::native_contract_assert_exception,
+                                "expect contract '%s', but get '%s'",
+                                wasm::regid(bank_native_module_id).to_string(),
+                                wasm::regid(context._receiver).to_string());
 
-        //     mint_burn_balance(context, true);
-        // }
+
+            context.control_trx.fuel   += calc_inline_tx_fuel(context);
+
+            auto params = wasm::unpack<std::tuple <uint64_t, uint64_t, string >> (context.trx.data);
+
+            auto candidate              = std::get<0>(params);
+            auto votes                  = std::get<1>(params);
+            auto memo                   = std::get<2>(params);
+
+            uint64_t voting_contract = _get_voting_contract(context);
+
+            context.require_auth( voting_contract );
+
+            auto candidate_regid = CRegID(candidate);
+
+            CHAIN_CHECK_REGID(candidate_regid, "candidate regid")
+            CHAIN_CHECK_MEMO(memo, "memo");
+
+            auto &db = context.database;
+            CHAIN_ASSERT(    db.delegateCache.SetDelegateVotes(candidate_regid, votes),
+                                wasm_chain::native_contract_assert_exception,
+                                "save candidate votes failed");
+
+            WASM_TRACE("set received votes=%llu of candidate: %s", votes, candidate_regid.ToString() )
+
+            context.notify_recipient(candidate);
+        }
 
         // static void burn(wasm_context &context) {
 
@@ -286,5 +309,15 @@ namespace wasm {
         //     context.notify_recipient(to);
 
         // }
+
+        static inline uint64_t _get_voting_contract(wasm_context &context) {
+            auto &db = context.database;
+            uint64_t voting_contract = 0;
+            db.sysParamCache.GetParam(SysParamType::VOTING_CONTRACT_REGID, voting_contract);
+            CHAIN_ASSERT(   voting_contract != 0,
+                            wasm_chain::native_contract_assert_exception,
+                            "VOTING_CONTRACT_REGID not set yet");
+            return voting_contract;
+        }
     };
 }
