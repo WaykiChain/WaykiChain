@@ -72,13 +72,14 @@ bool chain::ProcessBlockDelegates(CBlock &block, CCacheWrapper &cw, CValidationS
         CBlockInflatedReward blockInflatedReward;
         cw.blockCache.GetBlockInflatedReward(blockInflatedReward);
         if (blockInflatedReward.start_height != 0 && block.GetHeight() >= blockInflatedReward.start_height) {
-            // TODO: add proposal of BLOCK_INFLATED_REWARD_AMOUNT
-            static const uint64_t BLOCK_INFLATED_REWARD_AMOUNT = 20000000; // 0.2 WICC
-            blockInflatedReward.new_rewards += BLOCK_INFLATED_REWARD_AMOUNT;
+            uint64_t new_rewards = 0;
+            cw.sysParamCache.GetParam(SysParamType::BLOCK_INFLATED_REWARD_AMOUNT, new_rewards);
+            blockInflatedReward.new_rewards += new_rewards;
             if (!cw.blockCache.SetBlockInflatedReward(blockInflatedReward)) {
                 return state.DoS(100, ERRORMSG("[%d] Save BlockInflatedReward failed! block=%s",
                         block.GetHeight(), block.GetHash().ToString()));
             }
+            LogPrint(BCLog::DELEGATE, "Inflated rewards=%llu at block=%s", new_rewards, block.GetIdStr());
         }
     }
 

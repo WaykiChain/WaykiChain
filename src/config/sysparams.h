@@ -39,7 +39,8 @@ enum SysParamType : uint8_t {
     BP_DELEGATE_VOTE_MIN                    = 50,
     DEX_MATCH_SVC_REGID                     = 51,
 
-    VOTING_CONTRACT_REGID           = 101
+    VOTING_CONTRACT_REGID                   = 101,
+    BLOCK_INFLATED_REWARD_AMOUNT            = 102
 
 };
 
@@ -63,7 +64,8 @@ static const unordered_map<string, SysParamType> paramNameToSysParamTypeMap = {
         {"BP_DELEGATE_VOTE_MIN",                        BP_DELEGATE_VOTE_MIN                        },
         {"AXC_SWAP_GATEWAY_REGID",                      AXC_SWAP_GATEWAY_REGID                      },
         {"DEX_MATCH_SVC_REGID",                         DEX_MATCH_SVC_REGID                         },
-        {"VOTING_CONTRACT_REGID",                       VOTING_CONTRACT_REGID                       }
+        {"VOTING_CONTRACT_REGID",                       VOTING_CONTRACT_REGID                       },
+        {"BLOCK_INFLATED_REWARD_AMOUNT",                BLOCK_INFLATED_REWARD_AMOUNT                }
 };
 
 struct SysParamTypeHash {
@@ -92,7 +94,8 @@ static const unordered_map<SysParamType, std::tuple< uint64_t,string >, SysParam
     { BP_DELEGATE_VOTE_MIN,                     make_tuple( 21000* COIN, "BP_DELEGATE_VOTE_MIN")                    },  // 21000 wi, the min votes of delegate to be bp
     { AXC_SWAP_GATEWAY_REGID,                   make_tuple( 8,           "AXC_SWAP_GATEWAY_REGID")                  },
     { DEX_MATCH_SVC_REGID,                      make_tuple( 0,           "DEX_MATCH_SVC_REGID")                     },
-    { VOTING_CONTRACT_REGID,                    make_tuple( 0,           "VOTING_CONTRACT_REGID")                   }
+    { VOTING_CONTRACT_REGID,                    make_tuple( 0,           "VOTING_CONTRACT_REGID")                   },
+    { BLOCK_INFLATED_REWARD_AMOUNT,             make_tuple( 20000000,    "BLOCK_INFLATED_REWARD_AMOUNT")            }   // block inflated reward amount = 0.2 WICC
 };
 
 
@@ -117,7 +120,8 @@ static const unordered_map<SysParamType, std::pair<uint64_t, uint64_t>, SysParam
     { BP_DELEGATE_VOTE_MIN,                      RANGE(0,0)        },    //max 10%
     { AXC_SWAP_GATEWAY_REGID,                    RANGE(0,0)        },
     { DEX_MATCH_SVC_REGID,                       RANGE(0,0)        },
-    { VOTING_CONTRACT_REGID,                     RANGE(0,0)        }
+    { VOTING_CONTRACT_REGID,                     RANGE(0,0)        },
+    { BLOCK_INFLATED_REWARD_AMOUNT,              RANGE(0,0)        }
 };
 
 

@@ -186,10 +186,10 @@ namespace wasm {
                             wasm_chain::native_contract_assert_exception,
                             "operate balance of to account error")
 
-            reward_info.new_rewards -= new_rewards;
-            reward_info.total_minted += new_rewards;
-            reward_info.last_minted = new_rewards;
-            reward_info.last_minted_height = height;
+            reward_info.new_rewards         = 0;
+            reward_info.total_minted       += new_rewards;
+            reward_info.last_minted         = new_rewards;
+            reward_info.last_minted_height  = height;
 
             CHAIN_ASSERT(       db.blockCache.SetBlockInflatedReward(reward_info),
                                 wasm_chain::native_contract_assert_exception,
