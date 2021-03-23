@@ -123,7 +123,7 @@ namespace wasm {
 
             context.control_trx.fuel   += calc_inline_tx_fuel(context);
 
-            auto params = wasm::unpack<std::tuple <uint64_t, uint64_t, string >> (context.trx.data);
+            auto params = wasm::unpack<std::tuple <regid, uint64_t, string >> (context.trx.data);
 
             auto candidate              = std::get<0>(params);
             auto votes                  = std::get<1>(params);
@@ -133,7 +133,7 @@ namespace wasm {
 
             context.require_auth( voting_contract );
 
-            auto candidate_regid = CRegID(candidate);
+            auto candidate_regid = CRegID(candidate.value);
 
             CHAIN_CHECK_REGID(candidate_regid, "candidate regid")
             CHAIN_CHECK_MEMO(memo, "memo");
@@ -145,7 +145,7 @@ namespace wasm {
 
             WASM_TRACE("set received votes=%llu of candidate: %s", votes, candidate_regid.ToString() )
 
-            context.notify_recipient(candidate);
+            context.notify_recipient(candidate.value);
         }
 
         /**
