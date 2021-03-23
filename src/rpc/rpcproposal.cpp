@@ -217,7 +217,7 @@ Value submitcdpparamgovernproposal(const Array& params, bool fHelp){
         const Value& objName = find_value(objInfo.get_obj(), "name");
         const Value& objValue = find_value(objInfo.get_obj(), "value");
 
-        if (objName.type() == null_type || objValue == null_type)
+        if (objName.type() == null_type || objValue.type() == null_type)
             throw JSONRPCError(RPC_INVALID_PARAMETER, "cdp param name or value not found");
 
         string name = objName.get_str();
@@ -231,14 +231,14 @@ Value submitcdpparamgovernproposal(const Array& params, bool fHelp){
             throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("cdp param type(%s) can't be the same", name));
 
         typeSet.insert(type);
-        
+
         string errMsg;
         if (!CheckCdpParamValue(type, paramValue, errMsg))
             throw JSONRPCError(RPC_INVALID_PARAMETER, errMsg);
 
         proposal.param_values.push_back(std::make_pair(type, CVarIntValue<uint64_t>(paramValue)));
     }
-    
+
     proposal.coin_pair = CCdpCoinPair(bcoinSymbol, scoinSymbol);
 
     CProposalRequestTx tx;
@@ -1006,7 +1006,7 @@ Value getsysparam(const Array& params, bool fHelp){
         );
     }
 
-    
+
     string paramName = params[0].get_str();
     SysParamType st;
     auto itr = paramNameToSysParamTypeMap.find(paramName);
