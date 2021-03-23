@@ -217,7 +217,7 @@ Value submitcdpparamgovernproposal(const Array& params, bool fHelp){
         const Value& objName = find_value(objInfo.get_obj(), "name");
         const Value& objValue = find_value(objInfo.get_obj(), "value");
 
-        if (objName.type() == null_type || objValue == null_type)
+        if (objName.type() == null_type || objValue.type() == null_type)
             throw JSONRPCError(RPC_INVALID_PARAMETER, "cdp param name or value not found");
 
         string name = objName.get_str();
