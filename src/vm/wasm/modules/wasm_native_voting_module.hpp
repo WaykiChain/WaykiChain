@@ -82,10 +82,10 @@ namespace wasm {
             }
 
         /**
-         * Usage: issue an UIA asset
+         * start the native voting contract
          */
         static void start(wasm_context &context) {
-            // TODO: check version fork
+
             _check_receiver_is_self(context._receiver);
 
             context.control_trx.fuel   += calc_inline_tx_fuel(context);
