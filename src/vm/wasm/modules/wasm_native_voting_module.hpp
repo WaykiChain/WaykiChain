@@ -33,15 +33,9 @@ namespace wasm {
                 case NAME(setvotes): // set votes
                     setvotes(context);
                     return;
-                // case NAME(burn): // burn asset tokens
-                //     burn(context);
-                //     return;
-                // case NAME(update): // update asset properties like owner's regid
-                //     update(context);
-                //     return;
-                // case NAME(transfer): // transfer asset tokens
-                //     tansfer(context);
-                //     return;
+                case NAME(mintrewards): // claim rewards
+                    mintrewards(context);
+                    return;
                 default:
                     break;
                 }
@@ -52,69 +46,47 @@ namespace wasm {
                              wasm::regid(id).to_string())
             };
 
-                static std::vector<char> abi_handler() {
-            abi_def abi;
+            static std::vector<char> abi_handler() {
+                abi_def abi;
 
-            if (abi.version.size() == 0) {
-                abi.version = "wasm::abi/1.0";
+                if (abi.version.size() == 0) {
+                    abi.version = "wasm::abi/1.0";
+                }
+
+                abi.structs.push_back({"start", "",
+                    {
+                        // no params
+                    }
+                });
+                abi.structs.push_back({"setvotes", "",
+                    {
+                        {"candidate",       "regid"     },
+                        {"votes",           "uint64"    },
+                        {"memo",            "string"    }
+                    }
+                });
+                abi.structs.push_back({"mintrewards", "",
+                    {
+                        {"to",          "regid"     },
+                        {"max_amount",  "uint64_t"  },
+                        {"memo",        "string"    }
+                    }
+                });
+
+                abi.actions.emplace_back( "start",          "start",        "" );
+                abi.actions.emplace_back( "setvotes",       "setvotes",     "" );
+                abi.actions.emplace_back( "mintrewards",    "mintrewards",  "" );
+
+                auto abi_bytes = wasm::pack<wasm::abi_def>(abi);
+                return abi_bytes;
             }
-
-            abi.structs.push_back({"start", "",
-                {
-                    // no params
-                }
-            });
-            abi.structs.push_back({"setvotes", "",
-                {
-                    {"candidate",       "regid"     },
-                    {"votes",           "uint64"    },
-                    {"memo",            "string"    }
-                }
-            });
-            // abi.structs.push_back({"burn", "",
-            //     {
-            //         {"owner",          "regid"     }, //only asset owner can burn assets hold by the owner
-            //         {"quantity",       "asset"     },
-            //         {"memo",           "string"    }
-            //     }
-            // });
-            // abi.structs.push_back({"update", "",
-            //     {
-            //         {"symbol_code",    "symbol_code"   }, //target asset symbol to update
-            //         {"owner",          "regid?"        },
-            //         {"name",           "string?"       },
-            //         {"memo",           "string?"       }
-            //     }
-            // });
-            // abi.structs.push_back({"transfer", "",
-            //     {
-            //         {"from",          "regid"    },
-            //         {"to",            "regid"    },
-            //         {"quantity",      "asset"    },
-            //         {"memo",          "string"   }
-            //     }
-            // });
-
-            abi.actions.emplace_back( "start",          "start",        "" );
-            abi.actions.emplace_back( "setvotes",       "setvotes",     "" );
-            // abi.actions.emplace_back( "burn",           "burn",         "" );
-            // abi.actions.emplace_back( "update",         "update",       "" );
-            // abi.actions.emplace_back( "transfer",       "transfer",     "" );
-
-            auto abi_bytes = wasm::pack<wasm::abi_def>(abi);
-            return abi_bytes;
-        }
 
         /**
          * Usage: issue an UIA asset
          */
         static void start(wasm_context &context) {
             // TODO: check version fork
-            CHAIN_ASSERT(    context._receiver == native_voting_module::id,
-                                wasm_chain::native_contract_assert_exception,
-                                "expect contract '%s', but get '%s'",
-                                wasm::regid(native_voting_module::id).to_string(),
-                                wasm::regid(context._receiver).to_string());
+            _check_receiver_is_self(context._receiver);
 
             context.control_trx.fuel   += calc_inline_tx_fuel(context);
 
@@ -147,12 +119,7 @@ namespace wasm {
          */
         static void setvotes(wasm_context &context) {
 
-            CHAIN_ASSERT(    context._receiver == native_voting_module::id,
-                                wasm_chain::native_contract_assert_exception,
-                                "expect contract '%s', but get '%s'",
-                                wasm::regid(bank_native_module_id).to_string(),
-                                wasm::regid(context._receiver).to_string());
-
+            _check_receiver_is_self(context._receiver);
 
             context.control_trx.fuel   += calc_inline_tx_fuel(context);
 
@@ -181,134 +148,74 @@ namespace wasm {
             context.notify_recipient(candidate);
         }
 
-        // static void burn(wasm_context &context) {
+        /**
+         * set received votes of candidate
+         */
+        static void mintrewards(wasm_context &context) {
 
-        //     CHAIN_ASSERT(     context._receiver == bank_native_module_id,
-        //                         wasm_chain::native_contract_assert_exception,
-        //                         "expect contract '%s', but get '%s'",
-        //                         wasm::regid(bank_native_module_id).to_string(),
-        //                         wasm::regid(context._receiver).to_string());
+            _check_receiver_is_self(context._receiver);
 
-        //     mint_burn_balance(context, false);
-        // }
+            context.control_trx.fuel   += calc_inline_tx_fuel(context);
 
-        // static void update(wasm_context &context) {
+            auto params = wasm::unpack<std::tuple <wasm::regid, uint64_t, string >> (context.trx.data);
 
-        //     CHAIN_ASSERT(     context._receiver == bank_native_module_id,
-        //                         wasm_chain::native_contract_assert_exception,
-        //                         "expect contract '%s', but get '%s'",
-        //                         wasm::regid(bank_native_module_id).to_string(),
-        //                         wasm::regid(context._receiver).to_string());
+            auto to                     = std::get<0>(params);
+            auto max_amount             = std::get<1>(params);
+            auto memo                   = std::get<2>(params);
 
-        //     context.control_trx.fuel   += calc_inline_tx_fuel(context);
+            uint64_t voting_contract = _get_voting_contract(context);
 
-        //     auto params = wasm::unpack< std::tuple <
-        //                     wasm::symbol_code,
-        //                     std::optional<wasm::regid>,
-        //                     std::optional<string>,
-        //                     std::optional<string> >>(context.trx.data);
+            context.require_auth( voting_contract );
 
-        //     auto sym_code    = std::get<0>(params);
-        //     auto new_owner   = std::get<1>(params);
-        //     auto new_name    = std::get<2>(params);
-        //     auto memo        = std::get<3>(params);
+            auto to_regid = CRegID(to.value);
 
-        //     auto sym = sym_code.to_string();
-        //     CAsset asset;
-        //     CHAIN_ASSERT(context.database.assetCache.GetAsset(sym, asset),
-        //                  wasm_chain::asset_type_exception,
-        //                  "asset (%s) does not exist",
-        //                  sym)
+            CHAIN_CHECK_REGID(to_regid, "to regid")
+            CHAIN_CHECK_MEMO(memo, "memo");
 
-        //     CHAIN_CHECK_ASSET_HAS_OWNER(asset, "asset");
+            auto &db = context.database;
 
-        //     context.require_auth( asset.owner_regid.GetIntValue() );
+            CBlockInflatedReward reward_info; // all fields must be 0 or empty
+            CHAIN_ASSERT(      db.blockCache.GetBlockInflatedReward(reward_info) &&
+                                    reward_info.start_height > 0,
+                                wasm_chain::native_contract_assert_exception,
+                                "block inflated reward is not started")
 
-        //     auto sp_account = get_account(context, asset.owner_regid, "owner account");
+            auto sp_to_account = get_account(context, to_regid, "to account");
+            uint64_t new_rewards = reward_info.new_rewards;
+            if (new_rewards != 0) {
+                if (max_amount != 0) {
+                    new_rewards = std::min(new_rewards, max_amount);
+                }
+                CHAIN_ASSERT(   sp_to_account->OperateBalance(SYMB::WICC, BalanceOpType::ADD_FREE, new_rewards,
+                                        ReceiptType::WASM_MINT_COINS, context.control_trx.receipts, nullptr),
+                                wasm_chain::native_contract_assert_exception,
+                                "operate balance of to account error")
+            }
+            reward_info.new_rewards -= new_rewards;
+            reward_info.total_claimed += new_rewards;
+            reward_info.last_claimed = new_rewards;
+            reward_info.last_claimed = context.trx_cord.GetHeight();
 
-        //     string msg;
-        //     // CHAIN_ASSERT(   ProcessAssetFee(context.control_trx, context.database, sp_account.get(), "update", context.receipts, msg),
-        //     //                 wasm_chain::account_access_exception,
-        //     //                 "process asset fee error: %s", msg )
+            CHAIN_ASSERT(       db.blockCache.SetBlockInflatedReward(reward_info),
+                                wasm_chain::native_contract_assert_exception,
+                                "save block inflated reward info failed");
 
-        //     bool to_update = false;
+            auto minted_rewards = asset(new_rewards, WICC_SYMBOL);
+            _on_mint(context, wasm::regid(voting_contract), to, minted_rewards, memo);
 
-        //     if (new_owner) {
-        //         auto new_owner_regid = CRegID(new_owner->value);
-        //         CHAIN_CHECK_REGID(new_owner_regid, "new owner regid")
-        //         check_account_exist(context, new_owner_regid, "new owner account");
-        //         to_update             = true;
-        //         asset.owner_regid      = new_owner_regid;
-        //     }
-
-        //         if (new_name) {
-        //         CHAIN_CHECK_ASSET_NAME(new_name.value(), "new asset name")
-        //         to_update             = true;
-        //         asset.asset_name    = *new_name;
-        //     }
-
-        //     if (memo) CHAIN_CHECK_MEMO(memo.value(), "memo");
-
-        //     CHAIN_ASSERT( to_update,
-        //                   wasm_chain::native_contract_assert_exception,
-        //                   "none field found for update")
-
-        //     CHAIN_ASSERT( context.database.assetCache.SetAsset(asset),
-        //                   wasm_chain::level_db_update_fail,
-        //                   "Update Asset (%s) failure",
-        //                   sym)
-
-        // }
-
-        // static void tansfer(wasm_context &context) {
-
-        //     CHAIN_ASSERT(     context._receiver == bank_native_module_id,
-        //                         wasm_chain::native_contract_assert_exception,
-        //                         "expect contract '%s', but get '%s'",
-        //                         wasm::regid(bank_native_module_id).to_string(),
-        //                         wasm::regid(context._receiver).to_string());
-
-        //     context.control_trx.fuel   += calc_inline_tx_fuel(context);
-
-        //     auto transfer_data = wasm::unpack<std::tuple <uint64_t, uint64_t,
-        //                             wasm::asset, string >>(context.trx.data);
-
-        //     auto from                        = std::get<0>(transfer_data);
-        //     auto to                          = std::get<1>(transfer_data);
-        //     auto quantity                    = std::get<2>(transfer_data);
-        //     auto memo                        = std::get<3>(transfer_data);
-
-        //     context.require_auth(from); //from auth
-        //     auto from_regid = CRegID(from);
-        //     auto to_regid = CRegID(to);
-
-        //     CHAIN_CHECK_REGID(from_regid, "from regid")
-        //     CHAIN_CHECK_REGID(to_regid, "to regid")
-        //     CHAIN_ASSERT(from != to,             wasm_chain::native_contract_assert_exception, "cannot transfer to self");
-        //     CHAIN_ASSERT(quantity.is_valid(),    wasm_chain::native_contract_assert_exception, "invalid quantity");
-        //     CHAIN_ASSERT(quantity.amount > 0,    wasm_chain::native_contract_assert_exception, "must transfer positive quantity");
-
-        //     CHAIN_CHECK_MEMO(memo, "memo");
-
-        //     //may not be txAccount since one trx can have multiple signed/authorized transfers (from->to)
-        //     auto spFromAccount = get_account(context, from_regid, "from account");
-        //     auto spToAccount = get_account(context, to_regid, "to account");
-
-        //     CAsset asset;
-        //     string symbol = quantity.symbol.code().to_string();
-        //         CHAIN_ASSERT(     context.database.assetCache.GetAsset(symbol, asset),
-        //                     wasm_chain::asset_type_exception,
-        //                     "asset (%s) does not exist", symbol )
-
-        //     transfer_balance( *spFromAccount, *spToAccount, quantity, context );
-
-        //     WASM_TRACE("transfer from: %s, to: %s, quantity: %s",
-        //                 spFromAccount->regid.ToString(), spToAccount->regid.ToString(), quantity.to_string().c_str() )
-
-        //     context.notify_recipient(from);
-        //     context.notify_recipient(to);
-
-        // }
+            WASM_TRACE("mint rewards=%d to %s. memo:%s", minted_rewards.to_string(), to_regid.ToString(), memo )
+        }
+        /**
+         * on_mint
+         * the voting_contract must implement action on_mint() to receive the mint
+         * ACTION on_mint(const wasm::regid &to, const asset &minted_rewards, const string &memo)
+         */
+        static inline void _on_mint(wasm_context &context, const wasm::regid &voting_contract,
+                    const wasm::regid &to, const asset &minted_rewards, const string &memo) {
+            auto data = wasm::pack(std::make_tuple(to, minted_rewards, memo));
+            inline_transaction trx = {voting_contract.value, N(on_mint), {{id, wasmio_code}}, data};
+            context.execute_inline(trx);
+        }
 
         static inline uint64_t _get_voting_contract(wasm_context &context) {
             auto &db = context.database;
@@ -318,6 +225,14 @@ namespace wasm {
                             wasm_chain::native_contract_assert_exception,
                             "VOTING_CONTRACT_REGID not set yet");
             return voting_contract;
+        }
+
+        static inline void _check_receiver_is_self(uint64_t recever) {
+            CHAIN_ASSERT(    recever == native_voting_module::id,
+                                wasm_chain::native_contract_assert_exception,
+                                "expect contract '%s', but get '%s'",
+                                wasm::regid(native_voting_module::id).to_string(),
+                                wasm::regid(recever).to_string());
         }
     };
 }

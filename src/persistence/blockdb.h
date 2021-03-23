@@ -30,6 +30,16 @@ struct CBlockInflatedReward {
     }
     void SetEmpty() { *this = EMPTY; }
 
+    string ToString() {
+        return "{" +
+                strprintf( "start_height=%d, ", start_height) +
+                strprintf( "new_rewards=%d, ", new_rewards) +
+                strprintf( "total_claimed=%d, ", total_claimed) +
+                strprintf( "last_claimed=%d, ", last_claimed) +
+                strprintf( "last_claimed_height=%d, ", last_claimed_height) +
+                "}";
+    }
+
     IMPLEMENT_SERIALIZE(
         READWRITE(start_height);
         READWRITE(new_rewards);

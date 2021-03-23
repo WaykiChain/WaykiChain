@@ -3,6 +3,10 @@
 
 namespace wasm {
 
+
+    static const symbol_code WICC_SYMBOL_CODE = symbol_code(SYMB::WICC);
+    static const symbol WICC_SYMBOL = symbol(WICC_SYMBOL_CODE, 8);
+
 #define CHAIN_CHECK_REGID(regid, title)                                                            \
     CHAIN_ASSERT(!regid.IsEmpty(), wasm_chain::regid_type_exception, "invalid %s=%s", title,       \
                  regid.ToString())
