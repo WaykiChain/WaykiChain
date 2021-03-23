@@ -68,7 +68,6 @@ namespace wasm {
                 abi.structs.push_back({"mintrewards", "",
                     {
                         {"to",          "regid"     },
-                        {"max_amount",  "uint64_t"  },
                         {"memo",        "string"    }
                     }
                 });
@@ -157,11 +156,10 @@ namespace wasm {
 
             context.control_trx.fuel   += calc_inline_tx_fuel(context);
 
-            auto params = wasm::unpack<std::tuple <wasm::regid, uint64_t, string >> (context.trx.data);
+            auto params = wasm::unpack<std::tuple <wasm::regid, string >> (context.trx.data);
 
             auto to                     = std::get<0>(params);
-            auto max_amount             = std::get<1>(params);
-            auto memo                   = std::get<2>(params);
+            auto memo                   = std::get<1>(params);
 
             uint64_t voting_contract = _get_voting_contract(context);
 
@@ -183,15 +181,11 @@ namespace wasm {
 
             auto sp_to_account = get_account(context, to_regid, "to account");
             uint64_t new_rewards = reward_info.new_rewards;
-            if (new_rewards != 0) {
-                if (max_amount != 0) {
-                    new_rewards = std::min(new_rewards, max_amount);
-                }
-                CHAIN_ASSERT(   sp_to_account->OperateBalance(SYMB::WICC, BalanceOpType::ADD_FREE, new_rewards,
-                                        ReceiptType::WASM_MINT_COINS, context.control_trx.receipts, nullptr),
-                                wasm_chain::native_contract_assert_exception,
-                                "operate balance of to account error")
-            }
+            CHAIN_ASSERT(   sp_to_account->OperateBalance(SYMB::WICC, BalanceOpType::ADD_FREE, new_rewards,
+                                    ReceiptType::WASM_MINT_COINS, context.control_trx.receipts, nullptr),
+                            wasm_chain::native_contract_assert_exception,
+                            "operate balance of to account error")
+
             reward_info.new_rewards -= new_rewards;
             reward_info.total_minted += new_rewards;
             reward_info.last_minted = new_rewards;
