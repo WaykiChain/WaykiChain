@@ -17,11 +17,11 @@
 #include <map>
 
 struct CBlockInflatedReward {
-    HeightType start_height = 0;
-    uint64_t new_rewards = 0;
-    uint64_t total_claimed = 0;
-    uint64_t last_claimed = 0;
-    uint64_t last_claimed_height = 0;
+    uint64_t start_height = 0;        // start block height
+    uint64_t new_rewards = 0;           // new rewards, availible to mint
+    uint64_t total_minted = 0;          // total minted rewards
+    uint64_t last_minted = 0;           // last minted rewards
+    uint64_t last_minted_height = 0;    // last minted block height
 
     static const CBlockInflatedReward EMPTY;
 
@@ -34,18 +34,18 @@ struct CBlockInflatedReward {
         return "{" +
                 strprintf( "start_height=%d, ", start_height) +
                 strprintf( "new_rewards=%d, ", new_rewards) +
-                strprintf( "total_claimed=%d, ", total_claimed) +
-                strprintf( "last_claimed=%d, ", last_claimed) +
-                strprintf( "last_claimed_height=%d, ", last_claimed_height) +
+                strprintf( "total_minted=%d, ", total_minted) +
+                strprintf( "last_minted=%d, ", last_minted) +
+                strprintf( "last_minted_height=%d, ", last_minted_height) +
                 "}";
     }
 
     IMPLEMENT_SERIALIZE(
         READWRITE(start_height);
         READWRITE(new_rewards);
-        READWRITE(total_claimed);
-        READWRITE(last_claimed);
-        READWRITE(last_claimed_height);
+        READWRITE(total_minted);
+        READWRITE(last_minted);
+        READWRITE(last_minted_height);
     )
 
 };

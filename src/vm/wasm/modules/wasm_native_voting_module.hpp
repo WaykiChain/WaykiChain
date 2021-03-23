@@ -173,10 +173,11 @@ namespace wasm {
             CHAIN_CHECK_MEMO(memo, "memo");
 
             auto &db = context.database;
+            auto height = context.trx_cord.GetHeight();
 
             CBlockInflatedReward reward_info; // all fields must be 0 or empty
             CHAIN_ASSERT(      db.blockCache.GetBlockInflatedReward(reward_info) &&
-                                    reward_info.start_height > 0,
+                                    reward_info.start_height > 0 && reward_info.start_height <= height,
                                 wasm_chain::native_contract_assert_exception,
                                 "block inflated reward is not started")
 
@@ -192,9 +193,9 @@ namespace wasm {
                                 "operate balance of to account error")
             }
             reward_info.new_rewards -= new_rewards;
-            reward_info.total_claimed += new_rewards;
-            reward_info.last_claimed = new_rewards;
-            reward_info.last_claimed = context.trx_cord.GetHeight();
+            reward_info.total_minted += new_rewards;
+            reward_info.last_minted = new_rewards;
+            reward_info.last_minted_height = height;
 
             CHAIN_ASSERT(       db.blockCache.SetBlockInflatedReward(reward_info),
                                 wasm_chain::native_contract_assert_exception,
