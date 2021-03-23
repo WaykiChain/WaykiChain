@@ -16,6 +16,7 @@
 #include "wallet/wallet.h"
 #include "wallet/walletdb.h"
 #include "persistence/blockundo.h"
+#include "wasm/types/time.hpp"
 
 #include <stdint.h>
 
@@ -171,6 +172,58 @@ Value getinfo(const Array& params, bool fHelp) {
     obj.push_back(Pair("errors",                GetWarnings("statusbar")));
     obj.push_back(Pair("state",                 get_node_state())); //IBD, Importing, ReIndexing, InSync
 
+    return obj;
+}
+
+Value getrewardinfo(const Array& params, bool fHelp) {
+    if (fHelp || params.size() != 0 )
+        throw runtime_error(
+            "getrewardinfo \"count\" [height]\n"
+            "\nget the chain state of the most recent blocks.\n"
+            "\nArguments:\n"
+            "\nResult:\n"
+            "{\n"
+            "  \"height\": n,                   (numeric) The tip block height\n"
+            "  \"block_inflated_reward\": {\n"
+            "    \"start_height\": n,           (numeric) The start block height\n"
+            "    \"start_time\": s,             (string)  The start time\n"
+            "    \"new_rewards\": n,            (numeric) The new unminted rewards\n"
+            "    \"total_minted\":n,            (numeric) The total minted rewards\n"
+            "    \"last_minted\":n,             (numeric) The last minted rewards\n"
+            "    \"last_minted_height\": n,     (numeric) The last minted block height\n"
+            "    \"last_minted_time\": s,       (string)  The last minted time\n"
+            "  },\n"
+            "  ...\n"
+            "}\n"
+            "\nExamples:\n" +
+            HelpExampleCli("getrewardinfo", "") + "\nAs json rpc call\n" + HelpExampleRpc("getrewardinfo", ""));
+
+
+    auto tipHeight = chainActive.Height();
+    CBlockInflatedReward rewardInfo;
+    pCdMan->pBlockCache->GetBlockInflatedReward(rewardInfo);
+
+    auto GetBlockTimeStr = [&tipHeight] (int64_t height) {
+        if (height > 0 && height <= tipHeight) {
+            CBlockIndex *pBlock = chainActive[height];
+            auto tp = wasm::time_point(wasm::seconds(pBlock->GetBlockTime()));
+            return tp.to_iso_string();
+        }
+        return string("");
+    };
+
+    Object rewardsObj;
+    rewardsObj.push_back(Pair("start_height",       rewardInfo.start_height));
+    rewardsObj.push_back(Pair("start_time",         GetBlockTimeStr(rewardInfo.start_height)));
+    rewardsObj.push_back(Pair("new_rewards",        rewardInfo.new_rewards));
+    rewardsObj.push_back(Pair("total_minted",       rewardInfo.total_minted));
+    rewardsObj.push_back(Pair("last_minted",        rewardInfo.last_minted));
+    rewardsObj.push_back(Pair("last_minted_height", rewardInfo.last_minted_height));
+    rewardsObj.push_back(Pair("last_minted_time",   GetBlockTimeStr(rewardInfo.last_minted_height)));
+
+    Object obj;
+    obj.push_back(Pair("height",       tipHeight));
+    obj.push_back(Pair("block_inflated_reward",       rewardsObj));
     return obj;
 }
 

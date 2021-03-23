@@ -135,6 +135,7 @@ extern Value getinfo(const Array& params, bool fHelp);
 extern Value getfinblockcount(const Array& params, bool fHelp);
 extern Value getwalletinfo(const Array& params, bool fHelp);
 extern Value getnetworkinfo(const Array& params, bool fHelp);
+extern Value getrewardinfo(const Array& params, bool fHelp);
 
 extern Value signtxraw(const Array& params, bool fHelp);
 extern Value submittxraw(const Array& params, bool fHelp);
