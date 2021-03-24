@@ -30,7 +30,7 @@ struct CBlockInflatedReward {
     }
     void SetEmpty() { *this = EMPTY; }
 
-    string ToString() {
+    string ToString() const {
         return "{" +
                 strprintf( "start_height=%d, ", start_height) +
                 strprintf( "new_rewards=%d, ", new_rewards) +
