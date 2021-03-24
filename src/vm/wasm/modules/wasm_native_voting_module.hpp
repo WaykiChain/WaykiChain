@@ -27,9 +27,6 @@ namespace wasm {
         public:
             static void act_handler(wasm_context &context, uint64_t action) {
                 switch (action) {
-                case NAME(start): // start the block reward
-                    start(context);
-                    return;
                 case NAME(setvotes): // set votes
                     setvotes(context);
                     return;
@@ -53,11 +50,6 @@ namespace wasm {
                     abi.version = "wasm::abi/1.0";
                 }
 
-                abi.structs.push_back({"start", "",
-                    {
-                        // no params
-                    }
-                });
                 abi.structs.push_back({"setvotes", "",
                     {
                         {"candidate",       "regid"     },
@@ -72,46 +64,12 @@ namespace wasm {
                     }
                 });
 
-                abi.actions.emplace_back( "start",          "start",        "" );
                 abi.actions.emplace_back( "setvotes",       "setvotes",     "" );
                 abi.actions.emplace_back( "mintrewards",    "mintrewards",  "" );
 
                 auto abi_bytes = wasm::pack<wasm::abi_def>(abi);
                 return abi_bytes;
             }
-
-        /**
-         * start the native voting contract
-         */
-        static void start(wasm_context &context) {
-
-            _check_receiver_is_self(context._receiver);
-
-            context.control_trx.fuel   += calc_inline_tx_fuel(context);
-
-            CHAIN_ASSERT(   context.trx.data.empty(),
-                            wasm_chain::native_contract_assert_exception,
-                            "params must be empty")
-            auto &db = context.database;
-            uint64_t voting_contract = _get_voting_contract(context);
-            CRegID voting_contract_regid = CRegID(voting_contract);
-            auto sp_account = get_account(context, voting_contract_regid, "voting_contract");
-
-            context.require_auth( voting_contract );
-
-            CBlockInflatedReward reward_info; // all fields must be 0 or empty
-            if (db.blockCache.GetBlockInflatedReward(reward_info)) {
-                CHAIN_ASSERT(   reward_info.start_height == 0,
-                                wasm_chain::native_contract_assert_exception,
-                                "block inflated reward has been start at height=",
-                                reward_info.start_height)
-            }
-            reward_info.start_height = context.trx_cord.GetHeight();
-
-            CHAIN_ASSERT(       db.blockCache.SetBlockInflatedReward(reward_info),
-                                wasm_chain::native_contract_assert_exception,
-                                "block inflated reward save error")
-        }
 
         /**
          * set received votes of candidate
@@ -171,25 +129,34 @@ namespace wasm {
             CHAIN_CHECK_MEMO(memo, "memo");
 
             auto &db = context.database;
-            auto height = context.trx_cord.GetHeight();
+            uint64_t height = context.trx_cord.GetHeight();
+            auto sp_to_account = get_account(context, to_regid, "to account");
+            uint64_t new_rewards = 0;
 
             CBlockInflatedReward reward_info; // all fields must be 0 or empty
-            CHAIN_ASSERT(      db.blockCache.GetBlockInflatedReward(reward_info) &&
-                                    reward_info.start_height > 0 && reward_info.start_height <= height,
-                                wasm_chain::native_contract_assert_exception,
-                                "block inflated reward is not started")
+            db.blockCache.GetBlockInflatedReward(reward_info);
+            if (reward_info.start_height == 0) {
+                reward_info.start_height = context.trx_cord.GetHeight();
+                WASM_TRACE("start rewards at height=%llu. to:%s memo:%s", height, to_regid.ToString(), memo )
+            } else {
+                CHAIN_ASSERT(       reward_info.start_height <= height,
+                                    wasm_chain::native_contract_assert_exception,
+                                    "start_height=%llu must <= current height=%llu",
+                                    reward_info.start_height, height)
+                new_rewards                     = reward_info.new_rewards;
+                reward_info.new_rewards         = 0;
+                if (new_rewards != 0) {
+                    CHAIN_ASSERT(   sp_to_account->OperateBalance(SYMB::WICC, BalanceOpType::ADD_FREE, new_rewards,
+                                            ReceiptType::WASM_MINT_COINS, context.control_trx.receipts, nullptr),
+                                    wasm_chain::native_contract_assert_exception,
+                                    "operate balance of to account error")
+                }
 
-            auto sp_to_account = get_account(context, to_regid, "to account");
-            uint64_t new_rewards = reward_info.new_rewards;
-            CHAIN_ASSERT(   sp_to_account->OperateBalance(SYMB::WICC, BalanceOpType::ADD_FREE, new_rewards,
-                                    ReceiptType::WASM_MINT_COINS, context.control_trx.receipts, nullptr),
-                            wasm_chain::native_contract_assert_exception,
-                            "operate balance of to account error")
+                reward_info.total_minted       += new_rewards;
+                reward_info.last_minted         = new_rewards;
+                reward_info.last_minted_height  = height;
 
-            reward_info.new_rewards         = 0;
-            reward_info.total_minted       += new_rewards;
-            reward_info.last_minted         = new_rewards;
-            reward_info.last_minted_height  = height;
+            }
 
             CHAIN_ASSERT(       db.blockCache.SetBlockInflatedReward(reward_info),
                                 wasm_chain::native_contract_assert_exception,
@@ -197,8 +164,7 @@ namespace wasm {
 
             auto minted_rewards = asset(new_rewards, WICC_SYMBOL);
             _on_mint(context, wasm::regid(voting_contract), to, minted_rewards, memo);
-
-            WASM_TRACE("mint rewards=%d to %s. memo:%s", minted_rewards.to_string(), to_regid.ToString(), memo )
+            WASM_TRACE("mint rewards=%d to %s at height:%llu. memo:%s", minted_rewards.to_string(), to_regid.ToString(), height, memo )
         }
         /**
          * on_mint
