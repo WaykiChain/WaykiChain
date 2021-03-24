@@ -26,7 +26,8 @@ struct CBlockInflatedReward {
     static const CBlockInflatedReward EMPTY;
 
     bool IsEmpty() const {
-        return memcmp(this, &EMPTY, sizeof(CBlockInflatedReward));
+        return start_height == 0 && new_rewards == 0 && total_minted == 0
+               && last_minted == 0 && last_minted_height == 0;
     }
     void SetEmpty() { *this = EMPTY; }
 
