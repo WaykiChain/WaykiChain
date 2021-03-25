@@ -80,7 +80,7 @@ namespace wasm {
 
             context.control_trx.fuel   += calc_inline_tx_fuel(context);
 
-            auto params = wasm::unpack<std::tuple <regid, uint64_t, string >> (context.trx.data);
+            auto params = wasm::unpack<std::tuple <regid, int64_t, string >> (context.trx.data);
 
             auto candidate              = std::get<0>(params);
             auto votes                  = std::get<1>(params);
@@ -96,11 +96,32 @@ namespace wasm {
             CHAIN_CHECK_MEMO(memo, "memo");
 
             auto &db = context.database;
-            CHAIN_ASSERT(    db.delegateCache.SetDelegateVotes(candidate_regid, votes),
-                                wasm_chain::native_contract_assert_exception,
-                                "save candidate votes failed");
 
-            WASM_TRACE("set received votes=%llu of candidate: %s", votes, candidate_regid.ToString() )
+            auto sp_candidate_account = get_account(context, candidate_regid, "candidate account");
+
+            int64_t total_votes = sp_candidate_account->received_votes;
+            int64_t old_total_votes = total_votes;
+            CHAIN_ASSERT(   old_total_votes >= 0,
+                            wasm_chain::native_contract_assert_exception,
+                            "the old_total_votes=%llu can not be negtive", old_total_votes);
+            total_votes += votes;
+            CHAIN_ASSERT(   total_votes >= votes && total_votes >= 0,
+                            wasm_chain::native_contract_assert_exception,
+                            "operate candidate votes overflow! old_total_votes=%lld, votes=%lld",
+                            old_total_votes, votes);
+            sp_candidate_account->received_votes = total_votes; // total_votes >= 0
+
+            // Votes: set the new value and erase the old value
+
+            CHAIN_ASSERT(   db.delegateCache.SetDelegateVotes(candidate_regid, total_votes),
+                            wasm_chain::native_contract_assert_exception,
+                            "save candidate=%s votes failed", candidate_regid.ToString());
+
+            CHAIN_ASSERT(   db.delegateCache.EraseDelegateVotes(candidate_regid, old_total_votes),
+                            wasm_chain::native_contract_assert_exception,
+                            "erase candidate=%s old votes failed", candidate_regid.ToString());
+
+            WASM_TRACE("receive votes=%lld of candidate: %s, total_votes=%lld", votes, candidate_regid.ToString(), total_votes )
 
             context.notify_recipient(candidate.value);
         }
