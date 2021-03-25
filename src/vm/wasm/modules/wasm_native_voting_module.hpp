@@ -27,8 +27,8 @@ namespace wasm {
         public:
             static void act_handler(wasm_context &context, uint64_t action) {
                 switch (action) {
-                case NAME(setvotes): // set votes
-                    setvotes(context);
+                case NAME(vote): // set votes
+                    vote(context);
                     return;
                 case NAME(mintrewards): // claim rewards
                     mintrewards(context);
@@ -50,10 +50,10 @@ namespace wasm {
                     abi.version = "wasm::abi/1.0";
                 }
 
-                abi.structs.push_back({"setvotes", "",
+                abi.structs.push_back({"vote", "",
                     {
                         {"candidate",       "regid"     },
-                        {"votes",           "uint64"    },
+                        {"votes",           "int64"    },
                         {"memo",            "string"    }
                     }
                 });
@@ -64,7 +64,7 @@ namespace wasm {
                     }
                 });
 
-                abi.actions.emplace_back( "setvotes",       "setvotes",     "" );
+                abi.actions.emplace_back( "vote",       "vote",     "" );
                 abi.actions.emplace_back( "mintrewards",    "mintrewards",  "" );
 
                 auto abi_bytes = wasm::pack<wasm::abi_def>(abi);
@@ -74,7 +74,7 @@ namespace wasm {
         /**
          * set received votes of candidate
          */
-        static void setvotes(wasm_context &context) {
+        static void vote(wasm_context &context) {
 
             _check_receiver_is_self(context._receiver);
 
