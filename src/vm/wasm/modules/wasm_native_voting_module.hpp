@@ -195,7 +195,7 @@ namespace wasm {
         static inline void _on_mint(wasm_context &context, const wasm::regid &voting_contract,
                     const wasm::regid &to, const asset &minted_rewards, const string &memo) {
             auto data = wasm::pack(std::make_tuple(to, minted_rewards, memo));
-            inline_transaction trx = {voting_contract.value, N(on_mint), {{id, wasmio_code}}, data};
+            inline_transaction trx = {voting_contract.value, NAME(on_mint), {{id, wasmio_code}}, data};
             context.execute_inline(trx);
         }
 
