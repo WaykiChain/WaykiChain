@@ -37,7 +37,14 @@ bool CDelegateVoteTx::CheckTx(CTxExecuteContext &context) {
         auto spCandidateAcct = GetAccount(context, vote.GetCandidateUid(), "candidate_uid");
         if (!spCandidateAcct) return false;
 
-        if (GetFeatureForkVersion(context.height) >= MAJOR_VER_R2) {
+        auto version = GetFeatureForkVersion(context.height);
+        if (vote.GetCandidateVoteType() == VoteType::ADD_BCOIN &&  version >= MAJOR_VER_R3_5) {
+            return state.DoS(
+                100, ERRORMSG("CDelegateVoteTx::CheckTx, unsupport adding votes after V3.5"),
+                REJECT_INVALID, "unspupported-adding-votes");
+        }
+
+        if (version >= MAJOR_VER_R2) {
             if (!spCandidateAcct->HasOwnerPubKey()) {
                 return state.DoS(100, ERRORMSG("CDelegateVoteTx::CheckTx, account is unregistered, address=%s",
                                  vote.GetCandidateUid().ToString()), REJECT_INVALID, "bad-read-accountdb");
