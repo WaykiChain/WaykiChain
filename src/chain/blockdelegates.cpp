@@ -23,11 +23,14 @@ static bool GenPendingDelegates(CBlock &block, uint32_t delegateNum, CCacheWrapp
                                 const VoteDelegateVector activeDelegates,
                                 PendingDelegates &pendingDelegates, bool isR3Fork) {
 
+    auto version = GetFeatureForkVersion(block.GetHeight());
     pendingDelegates.counted_vote_height = block.GetHeight();
-    uint64_t BpMinVote;
-    if (!cw.sysParamCache.GetParam(SysParamType::BP_DELEGATE_VOTE_MIN, BpMinVote))
-        return ERRORMSG("get sys param BP_DELEGATE_VOTE_MIN failed! block=%d:%s\n",
-                        block.GetHeight(), block.GetHash().ToString());
+    uint64_t BpMinVote = 0;
+    if (version < MAJOR_VER_R3_5) {
+        if (!cw.sysParamCache.GetParam(SysParamType::BP_DELEGATE_VOTE_MIN, BpMinVote))
+            return ERRORMSG("get sys param BP_DELEGATE_VOTE_MIN failed! block=%d:%s\n",
+                            block.GetHeight(), block.GetHash().ToString());
+    } // else {  BP_DELEGATE_VOTE_MIN will be deprecated after MAJOR_VER_R3_5 }
 
     VoteDelegateVector topVoteDelegates;
     if (!cw.delegateCache.GetTopVoteDelegates(delegateNum, BpMinVote, topVoteDelegates, isR3Fork)) {
