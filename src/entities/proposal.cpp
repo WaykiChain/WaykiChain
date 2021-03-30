@@ -37,8 +37,8 @@ bool CGovSysParamProposal::CheckProposal(CTxExecuteContext& context, CBaseTx& tx
                        REJECT_INVALID, "params-error");
         }
         auto version = GetFeatureForkVersion(context.height);
-        if (version < MAJOR_VER_R3_5 && paramType == VOTING_CONTRACT_REGID) {
-             return state.DoS(100, ERRORMSG("unsupport sys param %s at height=%d", GetSysParamName(VOTING_CONTRACT_REGID), context.height),
+        if (version < MAJOR_VER_R3_5 && (paramType == VOTING_CONTRACT_REGID || paramType == BLOCK_INFLATED_REWARD_AMOUNT)) {
+             return state.DoS(100, ERRORMSG("unsupport sys param %s at height=%d", GetSysParamName(paramType), context.height),
                        REJECT_INVALID, "unsupport-sys-param");
         }
 
