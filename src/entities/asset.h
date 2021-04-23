@@ -152,7 +152,7 @@ public:
         return o;
     }
     // Check it when supplied from external like Tx or RPC calls
-    static bool CheckSymbol(const AssetType assetType, const TokenSymbol &assetSymbol, string &errMsg);
+    static bool CheckSymbol(uint64_t height, const AssetType assetType, const TokenSymbol &assetSymbol, string &errMsg);
 };
 
 inline TokenSymbol GetQuoteSymbolByCdpScoin(const TokenSymbol &scoinSymbol) {

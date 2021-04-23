@@ -22,7 +22,8 @@ namespace wasm {
 #define CHAIN_CHECK_UIA_SYMBOL(symbol, title)                                                      \
     {                                                                                              \
         string msg;                                                                                \
-        CHAIN_ASSERT(CAsset::CheckSymbol(AssetType::UIA, symbol.code().to_string(), msg),          \
+        CHAIN_ASSERT(CAsset::CheckSymbol(context.trx_cord.GetHeight(), AssetType::UIA,             \
+                                         symbol.code().to_string(), msg),                          \
                      wasm_chain::asset_type_exception, "invalid %s=%s, %s", title,                 \
                      symbol.to_string(), msg)                                                      \
         CHAIN_CHECK_SYMBOL_PRECISION(symbol, title)                                                \

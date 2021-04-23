@@ -119,7 +119,7 @@ bool CUserIssueAssetTx::CheckTx(CTxExecuteContext &context) {
     CValidationState &state = *context.pState;
 
     string errMsg = "";
-    if (!CAsset::CheckSymbol(AssetType::UIA, asset.asset_symbol, errMsg))
+    if (!CAsset::CheckSymbol(context.height, AssetType::UIA, asset.asset_symbol, errMsg))
         return state.DoS(100, ERRORMSG("invalid asset symbol! %s", errMsg), REJECT_INVALID, "invalid-asset-symbol");
 
     if (asset.asset_name.empty() || asset.asset_name.size() > MAX_ASSET_NAME_LEN)
@@ -296,7 +296,7 @@ bool CUserUpdateAssetTx::CheckTx(CTxExecuteContext &context) {
     if (!cw.assetCache.GetAsset(asset_symbol, asset))
         return state.DoS(100, ERRORMSG("get asset by symbol=%s failed", asset_symbol), REJECT_INVALID, "get-asset-failed");
 
-    if (!CAsset::CheckSymbol(asset.asset_type, asset_symbol, errMsg))
+    if (!CAsset::CheckSymbol(context.height, asset.asset_type, asset_symbol, errMsg))
         return state.DoS(100, ERRORMSG("asset_symbol error: %s", errMsg), REJECT_INVALID, "invalid-asset-symbol");
 
     switch (update_data.GetType()) {

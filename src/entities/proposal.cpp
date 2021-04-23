@@ -812,7 +812,7 @@ bool CGovAxcCoinProposal::CheckProposal(CTxExecuteContext& context, CBaseTx& tx)
 
     auto selfChainCoinSymbol = GenSelfChainCoinSymbol();
     string errMsg;
-    if (!CAsset::CheckSymbol(AssetType::DIA, selfChainCoinSymbol, errMsg )) {
+    if (!CAsset::CheckSymbol(context.height, AssetType::DIA, selfChainCoinSymbol, errMsg )) {
         return state.DoS(100, ERRORMSG("Invalid symbol=%s: %s", selfChainCoinSymbol, errMsg.c_str()),
                 REJECT_INVALID, "bad-symbol");
     }
@@ -853,7 +853,7 @@ bool CGovAssetIssueProposal::CheckProposal(CTxExecuteContext& context, CBaseTx& 
     IMPLEMENT_DEFINE_CW_STATE
 
     string errMsg;
-    if (!CAsset::CheckSymbol(AssetType::DIA, asset_symbol, errMsg )) {
+    if (!CAsset::CheckSymbol(context.height, AssetType::DIA, asset_symbol, errMsg )) {
         return state.DoS(100, ERRORMSG(errMsg.c_str()), REJECT_INVALID,
                          "bad-symbol");
     }

@@ -4,23 +4,31 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include "asset.h"
+#include "config/configuration.h"
 
 
 using namespace json_spirit;
 using namespace std;
 
     // Check it when supplied from external like Tx or RPC calls
-bool CAsset::CheckSymbol(const AssetType assetType, const TokenSymbol &assetSymbol, string &errMsg) {
+bool CAsset::CheckSymbol(uint64_t height, const AssetType assetType, const TokenSymbol &assetSymbol, string &errMsg) {
     if (assetType == AssetType::NULL_ASSET) {
         errMsg = "null asset type";
         return false;
     }
+    auto version = GetFeatureForkVersion(height);
 
     uint32_t symbolSizeMin = 2;
     uint32_t symbolSizeMax = 7;
     if (assetType == AssetType::UIA) {
-        symbolSizeMin = 6;
-        symbolSizeMax = 7;
+
+        if (version >= MAJOR_VER_R3_5) {
+            symbolSizeMin = 4;
+            symbolSizeMax = 7;
+        } else {
+            symbolSizeMin = 6;
+            symbolSizeMax = 7;
+        }
     }
 
     size_t symbolSize = assetSymbol.size();
