@@ -152,44 +152,7 @@ public:
         return o;
     }
     // Check it when supplied from external like Tx or RPC calls
-    static bool CheckSymbol(const AssetType assetType, const TokenSymbol &assetSymbol, string &errMsg) {
-        if (assetType == AssetType::NULL_ASSET) {
-            errMsg = "null asset type";
-            return false;
-        }
-
-        uint32_t symbolSizeMin = 2;
-        uint32_t symbolSizeMax = 7;
-        if (assetType == AssetType::UIA) {
-            symbolSizeMin = 6;
-            symbolSizeMax = 7;
-        }
-
-        size_t symbolSize = assetSymbol.size();
-        if (symbolSize < symbolSizeMin || symbolSize > symbolSizeMax) {
-            errMsg = strprintf("symbol len=%d, beyond range[%d, %d]",
-                                symbolSize, symbolSizeMin, symbolSizeMax);
-            return false;
-        }
-
-        bool valid = false;
-        for (auto ch : assetSymbol) {
-            valid = (ch >= '0' && ch <= '9') || (ch >= 'A' && ch <= 'Z');
-
-            if (assetType == AssetType::UIA)
-                valid = valid || (ch == '#' || ch == '.' || ch == '@' || ch == '_');
-            if (assetType == AssetType::DIA) {
-                valid = valid || (ch >= 'a' && ch <= 'z');
-            }
-
-            if (!valid) {
-                errMsg = strprintf("Invalid char in symbol: %d", ch);
-                return false;
-            }
-        }
-
-        return true;
-    }
+    static bool CheckSymbol(const AssetType assetType, const TokenSymbol &assetSymbol, string &errMsg);
 };
 
 inline TokenSymbol GetQuoteSymbolByCdpScoin(const TokenSymbol &scoinSymbol) {

@@ -338,6 +338,7 @@ libcoin_server_a_SOURCES = \
   chain/chain.cpp \
   chain/merkletree.cpp \
   entities/account.cpp \
+  entities/asset.cpp \
   entities/cdp.cpp \
   entities/contract.cpp \
   entities/dexorder.cpp \
