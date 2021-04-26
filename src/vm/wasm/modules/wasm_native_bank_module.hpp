@@ -111,7 +111,7 @@ namespace wasm {
             abi.structs.push_back({"setasseticon", "",
                 {
                     {"symbol_code",   "symbol_code"     },
-                    {"icon_url",      "icon_url"        }
+                    {"icon_url",      "string"          }
                 }
             });
 
