@@ -86,6 +86,7 @@ public:
     CRegID owner_regid;                            // creator or owner regid of the asset, null for NIA/DIA/MPA
     uint64_t total_supply = 0;                    // boosted by 10^8 for the decimal part, max is 90 billion.
     bool mintable         = false;                // whether this token can be minted in the future.
+    std::string icon_url;                              // icon url
 
 public:
     CAsset() {}
@@ -103,6 +104,7 @@ public:
         READWRITE(owner_regid);
         READWRITE(VARINT(total_supply));
         READWRITE(mintable);
+        READWRITE(icon_url);
     )
 
     bool OperateToTalSupply(uint64_t amount, TotalSupplyOpType op) {
@@ -130,11 +132,14 @@ public:
         owner_regid.SetEmpty();
         total_supply = 0;
         mintable = false;
+        icon_url = "";
     }
 
     string ToString() const {
-        return strprintf("asset_symbol=%s, asset_name=%s, asset_type=%d, perms_sum=%llu, owner_regid=%s, total_supply=%llu, mintable=%d",
-                asset_symbol, asset_name, asset_type, perms_sum, owner_regid.ToString(), total_supply, mintable);
+        return strprintf("asset_symbol=%s, asset_name=%s, asset_type=%d, perms_sum=%llu, "
+                         "owner_regid=%s, total_supply=%llu, mintable=%d, icon_url=%s",
+                         asset_symbol, asset_name, asset_type, perms_sum, owner_regid.ToString(),
+                         total_supply, mintable, icon_url);
     }
 
     Object ToJsonObj() const {
@@ -149,6 +154,7 @@ public:
         o.push_back(Pair("owner_regid",   owner_regid.ToString()));
         o.push_back(Pair("total_supply",  total_supply));
         o.push_back(Pair("mintable",      mintable));
+        o.push_back(Pair("icon_url",      icon_url));
         return o;
     }
     // Check it when supplied from external like Tx or RPC calls

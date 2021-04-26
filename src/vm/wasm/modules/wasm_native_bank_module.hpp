@@ -48,6 +48,9 @@ namespace wasm {
                 case NAME(transfer): // transfer asset tokens
                     tansfer(context);
                     return;
+                case NAME(setasseticon): // set asset icon
+                    setasseticon(context);
+                    return;
                 default:
                     break;
                 }
@@ -105,12 +108,19 @@ namespace wasm {
                     {"memo",          "string"   }
                 }
             });
+            abi.structs.push_back({"setasseticon", "",
+                {
+                    {"symbol_code",   "symbol_code"     },
+                    {"icon_url",      "icon_url"        }
+                }
+            });
 
             abi.actions.emplace_back( "issue",          "issue",        "" );
             abi.actions.emplace_back( "mint",           "mint",         "" );
             abi.actions.emplace_back( "burn",           "burn",         "" );
             abi.actions.emplace_back( "update",         "update",       "" );
             abi.actions.emplace_back( "transfer",       "transfer",     "" );
+            abi.actions.emplace_back( "setasseticon",        "setasseticon",      "" );
 
             auto abi_bytes = wasm::pack<wasm::abi_def>(abi);
             return abi_bytes;
@@ -334,5 +344,48 @@ namespace wasm {
             context.notify_recipient(to);
 
         }
+
+        static void setasseticon(wasm_context &context) {
+
+            CHAIN_ASSERT(     context._receiver == bank_native_module_id,
+                                wasm_chain::native_contract_assert_exception,
+                                "expect contract '%s', but get '%s'",
+                                wasm::regid(bank_native_module_id).to_string(),
+                                wasm::regid(context._receiver).to_string());
+
+            context.control_trx.fuel   += calc_inline_tx_fuel(context);
+
+            auto params = wasm::unpack< std::tuple <
+                            wasm::symbol_code,
+                            std::string> >(context.trx.data);
+
+            auto sym_code    = std::get<0>(params);
+            auto icon_url   = std::get<1>(params);
+
+            auto sym = sym_code.to_string();
+            CAsset asset;
+            CHAIN_ASSERT(context.database.assetCache.GetAsset(sym, asset),
+                         wasm_chain::asset_type_exception,
+                         "asset (%s) does not exist",
+                         sym)
+
+            CHAIN_CHECK_ASSET_HAS_OWNER(asset, "asset");
+
+            context.require_auth( asset.owner_regid.GetIntValue() );
+
+            auto sp_account = get_account(context, asset.owner_regid, "owner account");
+
+            CHAIN_ASSERT(icon_url.size() <= 256, wasm_chain::native_contract_assert_exception,
+                        "icon_url is too long than 256 bytes", icon_url);
+
+            asset.icon_url = icon_url;
+
+            CHAIN_ASSERT( context.database.assetCache.SetAsset(asset),
+                          wasm_chain::level_db_update_fail,
+                          "Update Asset (%s) failure",
+                          sym)
+
+        }
+
     };
 }
