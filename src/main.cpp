@@ -509,7 +509,7 @@ void static InvalidChainFound(CBlockIndex *pIndexNew) {
              pIndexNew->height, pIndexNew->GetBlockHash().ToString(),
              DateTimeStrFormat("%Y-%m-%d %H:%M:%S", pIndexNew->GetBlockTime()));
 
-    LogPrint(BCLog::INFO, "[%d] current best=%s  log2_work=%.8g  date=%s\n",
+    LogPrint(BCLog::INFO, "[%d] current best=%s date=%s\n",
              chainActive.Height(), chainActive.Tip()->GetBlockHash().ToString(),
              DateTimeStrFormat("%Y-%m-%d %H:%M:%S", chainActive.Tip()->GetBlockTime()));
 
