@@ -121,6 +121,11 @@ namespace wasm {
                             wasm_chain::native_contract_assert_exception,
                             "erase candidate=%s old votes failed", candidate_regid.ToString());
 
+            uint64_t height = context.trx_cord.GetHeight();
+            CHAIN_ASSERT(   db.delegateCache.SetLastVoteHeight(height),
+                            wasm_chain::native_contract_assert_exception,
+                            "save last vote height error");
+
             WASM_TRACE("receive votes=%lld of candidate: %s, total_votes=%lld", votes, candidate_regid.ToString(), total_votes )
 
             context.notify_recipient(candidate.value);
