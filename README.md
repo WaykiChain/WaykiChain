@@ -27,6 +27,4 @@ WaykiChain will keep abreast of the latest blockchain technologies and take no h
 
 ## :: The team behind WaykiChain
 
-We are a team of technology enthusiasts, dream catchers and dragon trainers (as we believe WaykiChain to us is like Night Fury in "How To Train Your Dragon" movie)! We firmly believe in what we do and take steady steps in building the best blockchain for the target industries and ecosystems.
-
 Please feel free to contanct us (coredev at waykichainhk dot com) and provide us with your feedbacks that can make WaykiChain better for ecosystem partners and participants.

@@ -46,11 +46,13 @@ static const CRPCCommand vRPCCommands[] =
     { "gettotalcoins",                  &gettotalcoins,                     true,      false,       false   },
     { "invalidateblock",                &invalidateblock,                   true,      true,        false   },
     { "reconsiderblock",                &reconsiderblock,                   true,      true,        false   },
+    
     /* Mining */
     { "getmininginfo",                  &getmininginfo,                     true,      false,       false   },
     { "submitblock",                    &submitblock,                       true,      false,       false   },
     { "getminedblocks",                 &getminedblocks,                    true,      true,        false   },
     { "getminerbyblocktime",            &getminerbyblocktime,               true,      true,        false   },
+    
     /* uses wallet if enabled */
     { "getaccountinfo",                 &getaccountinfo,                    true,      false,       true    },
     { "getnewaddr",                     &getnewaddr,                        false,     false,       true    },
@@ -157,15 +159,14 @@ static const CRPCCommand vRPCCommands[] =
     { "getdexbaseandquotecoins",        &getdexbaseandquotecoins,           true,       false,      false   },
     { "gettotalbpssize",                &gettotalbpssize,                   true,       false,      false   },
     { "getfeedcoinpairs",               &getfeedcoinpairs,                  true,       false,      false   },
-        /* for asset */
-    // { "submitassetissuetx",             &submitassetissuetx,                false,      false,      false   },
-    // { "submitassetupdatetx",            &submitassetupdatetx,               false,      false,      false   },
+    
+    /* for asset */
     { "getassetinfo",                   &getassetinfo,                      true,       false,      false   },
     { "listassets",                     &listassets,                        true,       false,      false   },
 
     /* for wasm-based universal contract deploy & invocation tx submission */
-    { "submitsetcodetx",         &submitsetcodetx,            true,       false,      true    },
-    { "submittx",               &submittx,                  true,       false,      true    },
+    { "submitsetcodetx",                &submitsetcodetx,                   true,       false,      true    },
+    { "submittx",                       &submittx,                          true,       false,      true    },
 
     { "wasm_gettable",                  &wasm_gettable,                      true,       false,      true    },
     { "wasm_getrow",                    &wasm_getrow,                        true,       false,      true    },
@@ -176,6 +177,7 @@ static const CRPCCommand vRPCCommands[] =
     { "wasm_gettxtrace",                &wasm_gettxtrace,                    true,       false,      true    },
     { "wasm_abidefjson2bin",            &wasm_abidefjson2bin,                true,       false,      true    },
     { "wasm_getresult",                  &wasm_getresult,                true,       false,      true    },
+    
     /* for test code */
     { "disconnectblock",                &disconnectblock,                   true,       false,      true    },
     { "reloadtxcache",                  &reloadtxcache,                     true,       false,      true    },
@@ -185,8 +187,8 @@ static const CRPCCommand vRPCCommands[] =
     { "startcommontpstest",             &startcommontpstest,                true,       true,       false   },
     { "startcontracttpstest",           &startcontracttpstest,              true,       true,       false   },
     { "startwasmtpstest",               &startwasmtpstest,                  true,       true,       false   },
-
     { "getblockfailures",               &getblockfailures,                  true,       false,      false   },
+    
     /* vm functions work in vm simulator */
     { "luavm_executescript",            &luavm_executescript,               true,       false,       true    },
     { "luavm_executecontract",          &luavm_executecontract,             true,       false,       true    },
@@ -206,9 +208,9 @@ static const CRPCCommand vRPCCommands[] =
     { "genutxomultiinputcondhash",      &genutxomultiinputcondhash,         true,       false,       false   },
     { "genutxomultisignaddr",           &genutxomultisignaddr,              true,       false,       false   },
     { "genutxomultisignature",          &genutxomultisignature,             true,       false,       false   },
+    
     /* abi tx serializer*/
     { "genunsignedtxraw",                &genunsignedtxraw,                   true,      false,       false   },
-
 
 };
 
