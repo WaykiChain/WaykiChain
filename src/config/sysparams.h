@@ -40,8 +40,10 @@ enum SysParamType : uint8_t {
     DEX_MATCH_SVC_REGID                     = 51,
 
     VOTING_CONTRACT_REGID                   = 101,
-    BLOCK_INFLATED_REWARD_AMOUNT            = 102
+    BLOCK_INFLATED_REWARD_AMOUNT            = 102,
 
+    UTXO_VIN_SIZE                           = 111,
+    UTXO_VOUT_SIZE                          = 112
 };
 
 static const unordered_map<string, SysParamType> paramNameToSysParamTypeMap = {

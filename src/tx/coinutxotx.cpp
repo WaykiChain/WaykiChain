@@ -315,13 +315,17 @@ bool CCoinUtxoTransferTx::CheckTx(CTxExecuteContext &context) {
     IMPLEMENT_DEFINE_CW_STATE;
     IMPLEMENT_CHECK_TX_MEMO;
 
+    uint64_t VinSize, VoutSize;
+    GetParam(SysParamType::UTXO_VIN_SIZE, VinSize);
+    GetParam(SysParamType::UTXO_VOUT_SIZE, VoutSize);
+
     if ((txUid.is<CPubKey>()) && !txUid.get<CPubKey>().IsFullyValid())
         return state.DoS(100, ERRORMSG("public key is invalid"), REJECT_INVALID, "bad-publickey");
 
-    if (vins.size() > 100) //FIXME: need to use sysparam to replace 100
+    if (vins.size() > VinSize)
         return state.DoS(100, ERRORMSG("vins size > 100 error"), REJECT_INVALID, "vins-size-too-large");
 
-    if (vouts.size() > 100) //FIXME: need to use sysparam to replace 100
+    if (vouts.size() > VoutSize)
         return state.DoS(100, ERRORMSG("vouts size > 100 error"), REJECT_INVALID, "vouts-size-too-large");
 
     if (vins.size() == 0 && vouts.size() == 0)
